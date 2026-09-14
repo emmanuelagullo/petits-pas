@@ -1,0 +1,27 @@
+{% extends "suivi/base.html" %}
+{% block titre %}{{ classe.nom }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'accueil' %}">Les classes</a></p>
+<h1>{{ classe.nom }}</h1>
+<p class="sous-titre">{{ eleves|length }} enfant{{ eleves|length|pluralize }} · {{ total_competences }} compétences au référentiel</p>
+
+<div class="actions">
+  <a class="bouton" href="{% url 'choisir_competence' classe.pk %}">Saisir pour toute la classe</a>
+  {% if est_direction %}<a class="bouton discret" href="{% url 'importer_eleves' classe.pk %}">Ajouter des enfants</a>{% endif %}
+</div>
+
+{% if eleves %}
+<ul class="liste">
+  {% for e in eleves %}
+  <li><a class="entree" href="{% url 'saisie_eleve' e.pk %}">
+    <span class="pastille">{{ e.niveau }}</span>
+    <span class="principal">{{ e.prenom }} {{ e.nom }}</span>
+    <span class="jauge" aria-hidden="true"><span style="width: {{ e.part_reussies }}%"></span></span>
+    <span class="secondaire">{{ e.nb_reussies }} réussite{{ e.nb_reussies|pluralize }}</span>
+  </a></li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="vide"><p>Cette classe n'a pas encore d'enfants.</p></div>
+{% endif %}
+{% endblock %}

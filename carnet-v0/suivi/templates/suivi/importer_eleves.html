@@ -1,0 +1,26 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Ajouter des enfants{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
+<h1>Ajouter des enfants à {{ classe.nom }}</h1>
+<p class="sous-titre">Collez votre liste, un enfant par ligne. Vous pouvez la copier depuis ONDE ou depuis un tableur.</p>
+
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <label for="liste">La liste
+    <span class="aide">Un prénom par ligne suffit. Pour aller plus loin : <code>Prénom ; Nom ; PS</code>.</span>
+  </label>
+  <textarea id="liste" name="liste" autofocus placeholder="Camille&#10;Sofiane ; Benali ; MS&#10;Lou ; Trémeur ; GS"></textarea>
+
+  <label for="niveau">Niveau par défaut
+    <span class="aide">Appliqué aux lignes où vous ne l'avez pas précisé.</span>
+  </label>
+  <select id="niveau" name="niveau">
+    <option value="PS">Petite section</option>
+    <option value="MS">Moyenne section</option>
+    <option value="GS">Grande section</option>
+  </select>
+
+  <div class="actions"><button class="bouton" type="submit">Ajouter ces enfants</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,99 @@
+# Trame de référentiel — carnet de suivi des apprentissages, cycle 1
+#
+# ATTENTION : ceci est une TRAME DE TRAVAIL, pas un référentiel officiel.
+# Elle reprend l'organisation en cinq domaines d'apprentissage de l'école
+# maternelle et propose une formulation des compétences à la première personne,
+# telle qu'on la trouve dans la plupart des carnets de réussite.
+#
+# L'école qui teste l'outil est censée remplacer ce fichier par ses propres
+# progressions. C'est le fichier à modifier, pas la base de données :
+#
+#     python manage.py charger_referentiel referentiel/le-votre.yaml
+#
+# La commande met à jour les libellés sans perdre les observations déjà
+# saisies, tant que le `code` d'une compétence ne change pas.
+#
+# Champs d'une compétence :
+#   code    : identifiant stable, propre à l'école (ne le changez plus ensuite)
+#   libelle : la phrase telle qu'elle apparaîtra dans le carnet de l'enfant
+#   niveau  : PS, MS ou GS — indicatif, sert à trier l'écran de saisie.
+#             Un enfant de PS peut tout à fait valider une compétence GS.
+
+domaines:
+
+  - code: LANG
+    nom: Mobiliser le langage dans toutes ses dimensions
+    competences:
+      - { code: LANG-01, niveau: PS, libelle: "J'ose parler devant les autres" }
+      - { code: LANG-02, niveau: PS, libelle: "Je dis mon prénom et celui de mes camarades" }
+      - { code: LANG-03, niveau: PS, libelle: "Je réponds aux questions qu'on me pose" }
+      - { code: LANG-04, niveau: PS, libelle: "Je dis une comptine que j'ai apprise" }
+      - { code: LANG-05, niveau: PS, libelle: "Je reconnais mon prénom écrit" }
+      - { code: LANG-06, niveau: PS, libelle: "Je tiens bien mon crayon" }
+      - { code: LANG-07, niveau: MS, libelle: "Je raconte une histoire que j'ai entendue" }
+      - { code: LANG-08, niveau: MS, libelle: "Je fais des phrases que tout le monde comprend" }
+      - { code: LANG-09, niveau: MS, libelle: "Je repère des mots qui riment" }
+      - { code: LANG-10, niveau: MS, libelle: "J'écris mon prénom en majuscules" }
+      - { code: LANG-11, niveau: MS, libelle: "Je reconnais des lettres de l'alphabet" }
+      - { code: LANG-12, niveau: GS, libelle: "J'explique ce que j'ai fait et comment je m'y suis pris" }
+      - { code: LANG-13, niveau: GS, libelle: "Je découpe un mot en syllabes" }
+      - { code: LANG-14, niveau: GS, libelle: "J'entends le son du début d'un mot" }
+      - { code: LANG-15, niveau: GS, libelle: "J'écris mon prénom en écriture attachée" }
+      - { code: LANG-16, niveau: GS, libelle: "Je copie un mot en respectant le sens des lettres" }
+
+  - code: PHYS
+    nom: Agir, s'exprimer, comprendre à travers l'activité physique
+    competences:
+      - { code: PHYS-01, niveau: PS, libelle: "Je cours, je saute, je grimpe sans avoir peur" }
+      - { code: PHYS-02, niveau: PS, libelle: "Je me déplace en tenant compte des autres" }
+      - { code: PHYS-03, niveau: PS, libelle: "Je lance un objet vers une cible" }
+      - { code: PHYS-04, niveau: MS, libelle: "Je garde mon équilibre sur un parcours" }
+      - { code: PHYS-05, niveau: MS, libelle: "Je danse en suivant la musique" }
+      - { code: PHYS-06, niveau: MS, libelle: "Je joue à un jeu collectif en respectant la règle" }
+      - { code: PHYS-07, niveau: GS, libelle: "Je sais m'arrêter au signal" }
+      - { code: PHYS-08, niveau: GS, libelle: "Je recommence pour faire mieux qu'avant" }
+      - { code: PHYS-09, niveau: GS, libelle: "J'invente et je montre un déplacement aux autres" }
+
+  - code: ART
+    nom: Agir, s'exprimer, comprendre à travers les activités artistiques
+    competences:
+      - { code: ART-01, niveau: PS, libelle: "Je laisse une trace avec différents outils" }
+      - { code: ART-02, niveau: PS, libelle: "Je chante avec le groupe" }
+      - { code: ART-03, niveau: PS, libelle: "J'écoute un morceau de musique jusqu'au bout" }
+      - { code: ART-04, niveau: MS, libelle: "Je choisis mes couleurs et mes outils exprès" }
+      - { code: ART-05, niveau: MS, libelle: "Je dis ce que je vois dans une image" }
+      - { code: ART-06, niveau: MS, libelle: "Je reproduis un rythme avec des percussions" }
+      - { code: ART-07, niveau: GS, libelle: "Je dessine un bonhomme avec tous ses détails" }
+      - { code: ART-08, niveau: GS, libelle: "Je parle de mon travail et de celui des autres" }
+      - { code: ART-09, niveau: GS, libelle: "Je joue un petit rôle devant la classe" }
+
+  - code: MATH
+    nom: Acquérir les premiers outils mathématiques
+    competences:
+      - { code: MATH-01, niveau: PS, libelle: "Je reconnais un, deux et trois objets d'un coup d'œil" }
+      - { code: MATH-02, niveau: PS, libelle: "Je range les objets par couleur ou par forme" }
+      - { code: MATH-03, niveau: PS, libelle: "Je fais une tour, un puzzle, un encastrement" }
+      - { code: MATH-04, niveau: MS, libelle: "Je compte jusqu'à dix" }
+      - { code: MATH-05, niveau: MS, libelle: "Je donne le nombre d'objets d'une petite collection" }
+      - { code: MATH-06, niveau: MS, libelle: "Je continue un algorithme commencé" }
+      - { code: MATH-07, niveau: MS, libelle: "Je compare des longueurs et des tailles" }
+      - { code: MATH-08, niveau: GS, libelle: "Je compte jusqu'à trente" }
+      - { code: MATH-09, niveau: GS, libelle: "Je fabrique une collection qui a autant d'objets qu'une autre" }
+      - { code: MATH-10, niveau: GS, libelle: "Je sais ce qui se passe quand j'ajoute ou j'enlève" }
+      - { code: MATH-11, niveau: GS, libelle: "J'écris les chiffres de 1 à 10" }
+      - { code: MATH-12, niveau: GS, libelle: "Je reconnais et je nomme les formes simples" }
+
+  - code: MOND
+    nom: Explorer le monde
+    competences:
+      - { code: MOND-01, niveau: PS, libelle: "Je repère les moments de la journée à l'école" }
+      - { code: MOND-02, niveau: PS, libelle: "Je nomme les parties de mon corps" }
+      - { code: MOND-03, niveau: PS, libelle: "Je me lave les mains tout seul" }
+      - { code: MOND-04, niveau: MS, libelle: "Je me repère dans l'école et dans la classe" }
+      - { code: MOND-05, niveau: MS, libelle: "Je range des images dans l'ordre de l'histoire" }
+      - { code: MOND-06, niveau: MS, libelle: "Je prends soin des plantes et des animaux de la classe" }
+      - { code: MOND-07, niveau: MS, libelle: "Je me sers des ciseaux pour découper" }
+      - { code: MOND-08, niveau: GS, libelle: "Je sais quel jour on est et je lis la date" }
+      - { code: MOND-09, niveau: GS, libelle: "Je raconte ce que j'ai observé et ce que j'ai compris" }
+      - { code: MOND-10, niveau: GS, libelle: "Je fabrique un objet en suivant une fiche" }
+      - { code: MOND-11, niveau: GS, libelle: "Je me sers de la tablette ou de l'ordinateur pour travailler" }

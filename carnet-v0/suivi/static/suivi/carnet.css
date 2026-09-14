@@ -1,0 +1,426 @@
+/* Carnet de suivi — feuille de style unique.
+   Pas de police distante : les écoles ont parfois une connexion poussive,
+   et l'outil doit s'afficher même quand le wifi de la classe rame. */
+
+:root {
+  --ardoise: #1f2a33;
+  --ardoise-clair: #5b6b74;
+  --papier: #f2f4f0;
+  --surface: #ffffff;
+  --trait: #d2d9cf;
+  --reussi: #1f7a4d;
+  --reussi-fond: #dcefe2;
+  --en-cours: #b2601b;
+  --en-cours-fond: #fbe8d3;
+  --lien: #2d4e8a;
+  --rayon: 6px;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--papier);
+  color: var(--ardoise);
+  font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+
+a { color: var(--lien); }
+
+:focus-visible {
+  outline: 3px solid var(--lien);
+  outline-offset: 2px;
+}
+
+/* ---------- Ossature ---------- */
+
+.bandeau {
+  background: var(--surface);
+  border-bottom: 1px solid var(--trait);
+  padding: 0.6rem 1rem;
+}
+
+.bandeau-corps {
+  max-width: 62rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.bandeau .marque {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  color: var(--ardoise);
+}
+
+.bandeau nav {
+  margin-left: auto;
+  display: flex;
+  gap: 1rem;
+  font-size: 0.94rem;
+}
+
+main {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  margin: 0 0 0.3rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin: 2rem 0 0.6rem;
+  color: var(--ardoise-clair);
+  font-weight: 650;
+}
+
+.sous-titre {
+  color: var(--ardoise-clair);
+  margin: 0 0 1.5rem;
+}
+
+.fil {
+  font-size: 0.9rem;
+  margin: 0 0 0.8rem;
+}
+
+/* ---------- Boutons et liens d'action ---------- */
+
+.bouton, button.bouton {
+  display: inline-block;
+  padding: 0.65rem 1.1rem;
+  min-height: 46px;
+  background: var(--ardoise);
+  color: #fff;
+  border: 1px solid var(--ardoise);
+  border-radius: var(--rayon);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bouton.discret {
+  background: var(--surface);
+  color: var(--ardoise);
+  border-color: var(--trait);
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+
+/* ---------- Listes de classes et d'élèves ---------- */
+
+.liste {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.liste li + li { border-top: 1px solid var(--trait); }
+
+.liste a.entree {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  min-height: 56px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.liste a.entree:hover { background: var(--papier); }
+
+.entree .principal { font-weight: 550; }
+.entree .secondaire {
+  margin-left: auto;
+  color: var(--ardoise-clair);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.jauge {
+  width: 90px;
+  height: 7px;
+  background: var(--trait);
+  border-radius: 4px;
+  overflow: hidden;
+  flex: none;
+}
+.jauge span {
+  display: block;
+  height: 100%;
+  background: var(--reussi);
+}
+
+.pastille {
+  flex: none;
+  font-size: 0.75rem;
+  font-weight: 650;
+  color: var(--ardoise-clair);
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+}
+
+/* ---------- Saisie : la ligne compétence ---------- */
+
+.domaine {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--surface);
+  overflow: hidden;
+  margin-bottom: 1.4rem;
+}
+
+.domaine > h3 {
+  margin: 0;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  background: var(--papier);
+  border-bottom: 1px solid var(--trait);
+}
+
+.ligne {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--trait);
+}
+.domaine > h3 + .ligne { border-top: 0; }
+
+.ligne form { display: flex; flex: 1; margin: 0; }
+
+.bascule {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.7rem 1rem;
+  min-height: 58px;
+  background: none;
+  border: 0;
+  border-left: 5px solid transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bascule:hover { background: #f8faf7; }
+
+.bascule .marqueur {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--trait);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  line-height: 1;
+  color: transparent;
+}
+
+.bascule[data-statut="reussi"] {
+  border-left-color: var(--reussi);
+  background: var(--reussi-fond);
+}
+.bascule[data-statut="reussi"] .marqueur {
+  border-color: var(--reussi);
+  background: var(--reussi);
+  color: #fff;
+}
+
+.bascule[data-statut="en_cours"] {
+  border-left-color: var(--en-cours);
+  background: var(--en-cours-fond);
+}
+.bascule[data-statut="en_cours"] .marqueur {
+  border-color: var(--en-cours);
+  color: var(--en-cours);
+}
+
+.bascule .date {
+  margin-left: auto;
+  flex: none;
+  font-size: 0.8rem;
+  color: var(--ardoise-clair);
+}
+
+.ligne .trace-lien {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  border-left: 1px solid var(--trait);
+  text-decoration: none;
+  color: var(--ardoise-clair);
+  font-size: 1.1rem;
+}
+.ligne .trace-lien:hover { background: var(--papier); color: var(--ardoise); }
+.ligne .trace-lien.pleine { color: var(--reussi); }
+
+/* ---------- Filtres ---------- */
+
+.filtres {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 0 0 1.2rem;
+}
+.filtres a {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--ardoise);
+  font-size: 0.9rem;
+}
+.filtres a[aria-current="true"] {
+  background: var(--ardoise);
+  border-color: var(--ardoise);
+  color: #fff;
+}
+
+/* ---------- Formulaires ---------- */
+
+label { display: block; font-weight: 550; margin: 1rem 0 0.35rem; }
+.aide { color: var(--ardoise-clair); font-size: 0.9rem; font-weight: 400; }
+
+input[type="text"], input[type="password"], input[type="date"],
+input[type="file"], select, textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  min-height: 46px;
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+textarea { min-height: 7rem; resize: vertical; }
+
+.encadre {
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  padding: 1.25rem;
+  max-width: 34rem;
+}
+
+.messages { list-style: none; padding: 0; margin: 0 0 1.2rem; }
+.messages li {
+  padding: 0.7rem 1rem;
+  border-radius: var(--rayon);
+  border: 1px solid var(--trait);
+  background: var(--surface);
+}
+.messages li.error { border-color: #c0553c; background: #fbe7e2; }
+.messages li.success { border-color: var(--reussi); background: var(--reussi-fond); }
+
+.vide {
+  border: 1px dashed var(--trait);
+  border-radius: var(--rayon);
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: var(--ardoise-clair);
+  background: var(--surface);
+}
+
+.miniature { max-width: 220px; border-radius: var(--rayon); display: block; }
+
+/* ---------- Le carnet de l'enfant ---------- */
+
+.carnet {
+  background: #fff;
+  color: #1a1a1a;
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  line-height: 1.6;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2.5rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+
+.carnet h1 { font-size: 2rem; font-weight: 400; margin-bottom: 0.2rem; }
+.carnet .entete { border-bottom: 2px solid #1a1a1a; padding-bottom: 1rem; margin-bottom: 2rem; }
+.carnet .entete p { margin: 0.2rem 0 0; color: #555; font-size: 0.95rem; }
+
+.carnet section { margin-bottom: 2rem; break-inside: avoid; }
+.carnet section h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 0.7rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #ccc;
+}
+
+.carnet ul { list-style: none; padding: 0; margin: 0; }
+.carnet li {
+  display: flex;
+  gap: 0.7rem;
+  padding: 0.35rem 0;
+  break-inside: avoid;
+}
+.carnet li .puce { flex: none; width: 1.3rem; font-size: 1rem; }
+.carnet li.reussi .puce { color: var(--reussi); }
+.carnet li.en_cours .puce { color: var(--en-cours); }
+.carnet li.absent { color: #999; }
+
+.carnet .mot {
+  display: block;
+  font-style: italic;
+  color: #555;
+  font-size: 0.92rem;
+  margin-top: 0.15rem;
+}
+.carnet .trace-photo { max-width: 180px; margin: 0.4rem 0 0.6rem; }
+
+.carnet .pied {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ccc;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+@media print {
+  body { background: #fff; }
+  .bandeau, .actions, .messages, .filtres, .sans-impression { display: none !important; }
+  main { padding: 0; max-width: none; }
+  .carnet { border: 0; padding: 0; max-width: none; }
+  a { color: inherit; text-decoration: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+@media (max-width: 34rem) {
+  main { padding: 1rem 0.7rem 3rem; }
+  .bascule { padding: 0.7rem 0.8rem; }
+  .bascule .date { display: none; }
+  .carnet { padding: 1.5rem 1.2rem; }
+}

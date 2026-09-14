@@ -1,0 +1,39 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Carnet de {{ eleve.prenom }}{% endblock %}
+{% block contenu %}
+<div class="actions sans-impression">
+  <a class="bouton discret" href="{% url 'saisie_eleve' eleve.pk %}">Retour à la saisie</a>
+  <button class="bouton" onclick="window.print()">Imprimer ou enregistrer en PDF</button>
+  {% if tout %}<a class="bouton discret" href="?">Ne montrer que ce qui est acquis</a>
+  {% else %}<a class="bouton discret" href="?tout=1">Montrer aussi ce qui reste à découvrir</a>{% endif %}
+</div>
+
+<article class="carnet">
+  <div class="entete">
+    <h1>Le carnet de {{ eleve.prenom }}</h1>
+    <p>{{ eleve.classe.nom }} — {{ eleve.get_niveau_display|lower }} — {{ eleve.classe.annee_scolaire }}</p>
+  </div>
+
+  {% for domaine, lignes in domaines %}
+  <section>
+    <h2>{{ domaine.nom }}</h2>
+    <ul>
+      {% for competence, obs in lignes %}
+      <li class="{% if obs %}{{ obs.statut }}{% else %}absent{% endif %}">
+        <span class="puce" aria-hidden="true">{% if obs.statut == 'reussi' %}★{% elif obs.statut == 'en_cours' %}☆{% else %}·{% endif %}</span>
+        <span>
+          {{ competence.libelle }}
+          {% if obs.commentaire %}<span class="mot">« {{ obs.commentaire }} »</span>{% endif %}
+          {% if obs.photo %}<img class="trace-photo" src="{{ obs.photo.url }}" alt="">{% endif %}
+        </span>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% empty %}
+  <p>Rien n'a encore été noté pour {{ eleve.prenom }}.</p>
+  {% endfor %}
+
+  <p class="pied">★ je sais le faire · ☆ je suis en train d'apprendre — Carnet édité le {{ edite_le|date:"j F Y" }} par {{ ecole.nom }}.</p>
+</article>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Les classes{% endblock %}
+{% block contenu %}
+<h1>Les classes</h1>
+<p class="sous-titre">Choisissez la vôtre pour voir les enfants et saisir leurs réussites.</p>
+{% if classes %}
+<ul class="liste">
+  {% for c in classes %}
+  <li><a class="entree" href="{% url 'classe_detail' c.pk %}">
+    <span class="principal">{{ c.nom }}</span>
+    <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }} · {{ c.annee_scolaire }}</span>
+  </a></li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="vide">
+  <p>Aucune classe pour l'instant.</p>
+  {% if est_direction %}<a class="bouton" href="{% url 'creer_classe' %}">Créer la première classe</a>
+  {% else %}<p>La direction doit d'abord créer les classes.</p>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

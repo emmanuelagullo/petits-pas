@@ -1,0 +1,27 @@
+{% extends "suivi/base.html" %}
+{% block titre %}{{ eleve.prenom }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'accueil' %}">Les classes</a> · <a href="{% url 'classe_detail' eleve.classe.pk %}">{{ eleve.classe.nom }}</a></p>
+<h1>{{ eleve.prenom }} {{ eleve.nom }}</h1>
+<p class="sous-titre">Touchez une ligne pour la marquer réussie. Une deuxième fois pour « en cours », une troisième pour l'effacer.</p>
+
+<div class="filtres">
+  <a href="?niveaux=tous" aria-current="{% if filtre == 'tous' %}true{% endif %}">Tout le cycle</a>
+  <a href="?niveaux=PS" aria-current="{% if filtre == 'PS' %}true{% endif %}">Petite section</a>
+  <a href="?niveaux=MS" aria-current="{% if filtre == 'MS' %}true{% endif %}">Moyenne section</a>
+  <a href="?niveaux=GS" aria-current="{% if filtre == 'GS' %}true{% endif %}">Grande section</a>
+</div>
+
+{% for domaine, lignes in domaines %}
+<div class="domaine">
+  <h3>{{ domaine.nom }}</h3>
+  {% for competence, obs in lignes %}{% include "suivi/partiels/case_competence.html" %}{% endfor %}
+</div>
+{% empty %}
+<div class="vide"><p>Aucune compétence dans le référentiel. Chargez-en un avec <code>manage.py charger_referentiel</code>.</p></div>
+{% endfor %}
+
+<div class="actions">
+  <a class="bouton" href="{% url 'carnet' eleve.pk %}">Voir le carnet de {{ eleve.prenom }}</a>
+</div>
+{% endblock %}

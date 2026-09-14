@@ -1,0 +1,17 @@
+{% comment %}Une ligne « compétence » dans l'écran d'un enfant.{% endcomment %}
+<div class="ligne" id="c{{ competence.pk }}">
+  <form hx-post="{% url 'basculer' eleve.pk competence.pk %}"
+        hx-target="#c{{ competence.pk }}" hx-swap="outerHTML">
+    {% csrf_token %}
+    <button class="bascule" type="submit"
+            data-statut="{{ obs.statut|default:'' }}"
+            aria-label="{{ competence.libelle }} — {% if obs %}{{ obs.get_statut_display }}{% else %}pas encore observé{% endif %}">
+      <span class="marqueur" aria-hidden="true">{% if obs.statut == 'reussi' %}✓{% elif obs.statut == 'en_cours' %}◐{% endif %}</span>
+      <span class="libelle">{{ competence.libelle }}</span>
+      {% if obs %}<span class="date">{{ obs.date_observation|date:"j M" }}</span>{% endif %}
+    </button>
+  </form>
+  <a class="trace-lien {% if obs.commentaire or obs.photo %}pleine{% endif %}"
+     href="{% url 'trace' eleve.pk competence.pk %}"
+     title="Ajouter un mot ou une photo">{% if obs.commentaire or obs.photo %}✎{% else %}+{% endif %}</a>
+</div>

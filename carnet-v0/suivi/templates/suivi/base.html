@@ -1,0 +1,31 @@
+{% load static %}<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block titre %}Carnet de suivi{% endblock %}</title>
+<link rel="stylesheet" href="{% static 'suivi/carnet.css' %}">
+<script src="{% static 'suivi/htmx.min.js' %}" defer></script>
+</head>
+<body>
+{% if ecole %}
+<header class="bandeau">
+  <div class="bandeau-corps">
+    <a class="marque" href="{% url 'accueil' %}">{{ ecole.nom }}</a>
+    <nav>
+      {% if est_direction %}<a href="{% url 'gestion' %}">Gérer l'école</a>{% endif %}
+      <a href="{% url 'deconnexion' %}">Quitter</a>
+    </nav>
+  </div>
+</header>
+{% endif %}
+<main>
+  {% if messages %}
+  <ul class="messages">
+    {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% block contenu %}{% endblock %}
+</main>
+</body>
+</html>
