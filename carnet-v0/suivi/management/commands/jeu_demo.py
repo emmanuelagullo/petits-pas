@@ -1,6 +1,6 @@
 import random
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from suivi.models import Classe, Competence, Ecole, Eleve, Observation
 
@@ -26,6 +26,17 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         random.seed(3)
         ecole = Ecole.objects.first()
+        if ecole is None:
+            raise CommandError(
+                "Aucune école en base. Lancez d'abord :\n"
+                '  python manage.py creer_ecole "Nom de l\'école"\n'
+                "  python manage.py charger_referentiel referentiel/trame-cycle1.yaml"
+            )
+        if not Competence.objects.filter(domaine__ecole=ecole).exists():
+            raise CommandError(
+                "Aucune compétence en base. Lancez d'abord :\n"
+                "  python manage.py charger_referentiel referentiel/trame-cycle1.yaml"
+            )
         classe, _ = Classe.objects.get_or_create(
             ecole=ecole, nom="PS-MS-GS de Nadia", defaults={"ordre": 1}
         )
