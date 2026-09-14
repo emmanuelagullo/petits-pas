@@ -1,0 +1,44 @@
+#+begin_src bash
+python3 manage.py migrate
+python3 manage.py creer_ecole "École maternelle Francis de Pressensé" --commune "Bordeaux"
+#+end_src
+
+#+begin_example
+École créée : École maternelle Francis de Pressensé (id 1)
+  mot de passe enseignant : xxxxxxxxxxxxxxxxxxxx
+  mot de passe direction  : xxxxxxxxxxxxxxxxxxxx
+Notez-les maintenant, ils ne sont pas stockés en clair.
+#+end_example
+
+#+begin_src bash
+python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
+#+end_src
+
+#+begin_example
+École maternelle Francis de Pressensé : 57 compétence(s) créée(s), 0 mise(s) à jour.
+#+end_example
+
+#+begin_src
+python3 manage.py jeu_demo
+#+end_src
+
+#+begin_example
+Démo prête : PS-MS-GS de Nadia — 16 enfants, 293 observations.
+#+end_example
+
+
+#+begin_src
+python3 manage.py test suivi
+#+end_src
+
+#+begin_example
+Found 13 test(s).
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+.............
+----------------------------------------------------------------------
+Ran 13 tests in 46.482s
+
+OK
+Destroying test database for alias 'default'...
+#+end_example
