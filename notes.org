@@ -1,24 +1,53 @@
+* Bonjour Ma Belle Ecole
+
+** Création de l'école
 #+begin_src bash
 python3 manage.py migrate
-python3 manage.py creer_ecole "École maternelle Francis de Pressensé" --commune "Bordeaux"
+python3 manage.py creer_ecole "École maternelle Ma Belle Ecole" --commune "Bordeaux"
 #+end_src
 
 #+begin_example
-École créée : École maternelle Francis de Pressensé (id 1)
-  mot de passe enseignant : xxxxxxxxxxxxxxxxxxxx
-  mot de passe direction  : xxxxxxxxxxxxxxxxxxxx
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, sessions, suivi
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying sessions.0001_initial... OK
+  Applying suivi.0001_initial... OK
+École créée : École maternelle Ma Belle Ecole (id 1)
+  mot de passe enseignant : crayon-flocon-tortue
+  mot de passe direction  : toupie-panda-hibou
 Notez-les maintenant, ils ne sont pas stockés en clair.
 #+end_example
+
+** Chargement du référentiel
 
 #+begin_src bash
 python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
 #+end_src
 
 #+begin_example
-École maternelle Francis de Pressensé : 57 compétence(s) créée(s), 0 mise(s) à jour.
+École maternelle Ma Belle Ecole : 57 compétence(s) créée(s), 0 mise(s) à jour.
 #+end_example
 
-#+begin_src
+** Test rapide avec jeu démo
+
+#+begin_src bash
 python3 manage.py jeu_demo
 #+end_src
 
@@ -27,7 +56,9 @@ Démo prête : PS-MS-GS de Nadia — 16 enfants, 293 observations.
 #+end_example
 
 
-#+begin_src
+** Suite de tests
+
+#+begin_src bash
 python3 manage.py test suivi
 #+end_src
 
@@ -37,8 +68,31 @@ Creating test database for alias 'default'...
 System check identified no issues (0 silenced).
 .............
 ----------------------------------------------------------------------
-Ran 13 tests in 46.482s
+Ran 13 tests in 46.323s
 
 OK
 Destroying test database for alias 'default'...
 #+end_example
+
+** Lancement du serveur web
+
+#+begin_src bash
+python3 manage.py runserver
+#+end_src
+
+#+begin_example
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+September 14, 2026 - 23:59:48
+Django version 5.2.15, using settings 'carnet.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
+#+end_example
+
+On test depuis le navigateur sur [[http://127.0.0.1:8000/]]
+
