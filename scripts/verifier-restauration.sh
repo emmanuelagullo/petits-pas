@@ -10,8 +10,8 @@ if [[ -n "${DATABASE_URL:-}" && "${RESTORE_DATABASE_URL}" == "${DATABASE_URL}" ]
     exit 1
 fi
 
-DATABASE_URL="${RESTORE_DATABASE_URL}" python manage.py migrate --check
-DATABASE_URL="${RESTORE_DATABASE_URL}" python manage.py shell -c '
+DATABASE_URL="${RESTORE_DATABASE_URL}" python3 manage.py migrate --check
+DATABASE_URL="${RESTORE_DATABASE_URL}" python3 manage.py shell -c '
 from suivi.models import Classe, Competence, Ecole, Eleve, Observation
 
 print("Restauration lisible :")

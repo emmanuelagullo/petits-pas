@@ -145,6 +145,38 @@ Une future production devra prévoir une courte mise en maintenance ou un
 mécanisme de snapshots coordonnés fourni par l’hébergeur, en fonction de
 l’objectif de reprise retenu.
 
+Petits Pas peut regrouper les deux exports dans un paquet de reprise vérifiable.
+En mode =online=, PostgreSQL est sauvegardé avant les médias ; le manifeste
+indique explicitement que l’ensemble n’est pas atomique :
+
+#+begin_src sh
+export CARNET_BACKUP_DIR=/chemin/absolu/vers/un/stockage/durable
+scripts/sauvegarder-reprise.sh online
+#+end_src
+
+Le mode =writes-suspended= qualifie le paquet comme logiquement cohérent, mais
+il repose sur une garantie fournie par l’opérateur : toutes les écritures et
+requêtes en cours doivent être arrêtées pendant l’opération.
+
+#+begin_src sh
+export CARNET_BACKUP_DIR=/chemin/absolu/vers/un/stockage/durable
+export CARNET_ECRITURES_SUSPENDUES=oui
+scripts/sauvegarder-reprise.sh writes-suspended
+#+end_src
+
+Le script construit le paquet sous un nom temporaire, vérifie l’archive
+PostgreSQL, les médias et le manifeste global, puis publie le répertoire final
+par renommage. Un paquet existant se vérifie indépendamment avec :
+
+#+begin_src sh
+scripts/verifier-reprise.sh \
+  /chemin/petits-pas-reprise-YYYYMMDDTHHMMSSZ
+#+end_src
+
+La restauration reste volontairement composée des procédures PostgreSQL et
+médias séparées : aucune transaction commune ne permettrait de les annuler
+ensemble en cas d’échec.
+
 * Profils
 
 - démonstration éphémère : =start-render.sh=, SQLite, médias sur disque et jeu
