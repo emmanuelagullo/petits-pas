@@ -12,6 +12,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Prise en charge optionnelle de PostgreSQL à partir de la variable
   d’environnement =DATABASE_URL=.
 - Ajout des dépendances =dj-database-url= et =psycopg=.
+- Prise en charge optionnelle d’un stockage objet privé compatible S3 pour
+  les photos, activée par la variable =CARNET_S3_BUCKET=.
+- Génération d’URL temporaires signées pour l’accès aux médias privés.
+
 
 ** Changed
 

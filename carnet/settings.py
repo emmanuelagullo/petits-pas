@@ -84,10 +84,33 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STORAGES = {
-    "default": {
+
+S3_BUCKET = os.environ.get("CARNET_S3_BUCKET")
+
+if S3_BUCKET:
+    DEFAULT_STORAGE = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": S3_BUCKET,
+            "endpoint_url": os.environ.get("CARNET_S3_ENDPOINT_URL"),
+            "region_name": os.environ.get("CARNET_S3_REGION"),
+            "access_key": os.environ.get("CARNET_S3_ACCESS_KEY"),
+            "secret_key": os.environ.get("CARNET_S3_SECRET_KEY"),
+            "default_acl": None,
+            "querystring_auth": True,
+            "querystring_expire": int(
+                os.environ.get("CARNET_S3_URL_EXPIRATION", "300")
+            ),
+            "file_overwrite": False,
+        },
+    }
+else:
+    DEFAULT_STORAGE = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
+    }
+
+STORAGES = {
+    "default": DEFAULT_STORAGE,
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
