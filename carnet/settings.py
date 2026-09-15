@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -52,12 +53,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "carnet.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "carnet.sqlite3",
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    # Les PaaS fournissent généralement l'accès à PostgreSQL sous la forme
+    # d'une URL. L'application reste ainsi indépendante du fournisseur.
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    # Développement local et démonstration éphémère : aucune base externe
+    # n'est nécessaire.
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "carnet.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = []
 

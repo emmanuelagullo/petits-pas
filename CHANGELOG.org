@@ -1,0 +1,69 @@
+#+title: Journal des modifications de Petits Pas
+
+Ce document présente les modifications significatives apportées à Petits Pas.
+
+Le dépôt source et les versions publiées sont disponibles à l’adresse :
+[[https://gitlab.inria.fr/petits-pas/petits-pas][gitlab.inria.fr/petits-pas/petits-pas]].
+
+* Unreleased
+
+** Added
+
+- Prise en charge optionnelle de PostgreSQL à partir de la variable
+  d’environnement =DATABASE_URL=.
+- Ajout des dépendances =dj-database-url= et =psycopg=.
+
+** Changed
+
+- Conservation de SQLite comme base par défaut pour le développement local
+  et les démonstrations éphémères.
+- Préparation du code pour les déploiements persistants de la phase 2.
+
+* 0.1 — 2026-09-15
+
+Première preuve de concept utilisable de Petits Pas.
+
+** Added
+
+- Application web Django et HTMX destinée au suivi des apprentissages en
+  école maternelle.
+- Navigation par classe, par élève et par compétence.
+- Saisie rapide de l’état d’une compétence pour plusieurs élèves.
+- Trois états de progression : réussi, en cours et pas commencé.
+- Ajout d’une trace composée d’un commentaire et d’une photo.
+- Conservation des commentaires et des photos lors des changements de statut.
+- Carnet individuel imprimable pour chaque élève.
+- Import d’élèves par copier-coller.
+- Référentiel de compétences configurable au format YAML.
+- Commandes de création d’une école, de chargement du référentiel et de
+  génération d’un jeu de démonstration.
+- Deux niveaux d’accès partagés : enseignant et direction.
+- Tests couvrant les accès, les changements de statut, la conservation des
+  traces, l’isolation entre écoles, l’import des élèves et le rechargement du
+  référentiel.
+- Déploiement éphémère de démonstration sur Render.
+- Gestion des fichiers statiques avec WhiteNoise.
+
+** Fixed
+
+- Définition du stockage =default= nécessaire au téléversement des photos
+  avec les versions récentes de Django.
+- Suppression de la perte des commentaires et des photos lors du passage
+  d’une compétence à l’état « pas commencé ».
+
+** Known limitations
+
+- Une seule observation est conservée par couple élève–compétence.
+- Les données du déploiement de démonstration ne sont pas persistantes.
+- Les photos sont stockées sur le système de fichiers local.
+- Les comptes utilisateurs individuels et la traçabilité des auteurs ne sont
+  pas encore disponibles.
+- Le déploiement de démonstration ne doit recevoir aucune donnée scolaire
+  réelle.
+
+* Liens
+
+- Version 0.1 :
+  [[https://gitlab.inria.fr/petits-pas/petits-pas/-/tree/0.1][code source associé au tag 0.1]]
+- Modifications postérieures à 0.1 :
+  [[https://gitlab.inria.fr/petits-pas/petits-pas/-/compare/0.1...main][comparaison entre 0.1 et la branche principale]]
