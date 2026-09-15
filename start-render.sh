@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
-# Commande de démarrage pour Render (palier gratuit).
+# Commande de démarrage pour la démonstration Render gratuite.
 #
-# Le disque est éphémère sur ce palier : tout redémarrage du conteneur
-# (redéploiement, réveil après mise en veille) repart d'un système de
-# fichiers vierge. Plutôt que de lutter contre ça pour une preuve de
-# concept, ce script en profite : il reconstruit la base et la classe de
-# démonstration à chaque démarrage. Sur un vrai pilote avec de vraies
-# données à conserver, ce script est à jeter, pas à réparer — il faudra
-# un disque persistant à la place (voir README).
+# Ce profil suppose un système de fichiers éphémère : Render fournit une
+# nouvelle base SQLite vide après une mise en veille, un redémarrage ou un
+# redéploiement. Ne jamais l'utiliser avec les ressources persistantes du
+# pilote.
 set -euo pipefail
+
+if [[ -n "${DATABASE_URL:-}" || -n "${CARNET_S3_BUCKET:-}" ]]; then
+    echo "Refus : le profil jetable ne doit utiliser ni PostgreSQL ni S3." >&2
+    exit 1
+fi
 
 python manage.py migrate --noinput
 
-# Idempotent par construction : sur ce palier, la base est toujours vide
-# à ce stade puisqu'elle vient d'être recréée par migrate ci-dessus.
 python manage.py creer_ecole "Ma Belle École" \
   --commune "Bordeaux" \
   --mdp-enseignant "${CARNET_MDP_ENSEIGNANT:-maclasse}" \
