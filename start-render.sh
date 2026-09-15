@@ -16,8 +16,8 @@ python manage.py migrate --noinput
 # à ce stade puisqu'elle vient d'être recréée par migrate ci-dessus.
 python manage.py creer_ecole "Ma Belle École" \
   --commune "Bordeaux" \
-  --mdp-enseignant "${CARNET_MDP_ENSEIGNANT:-cerise-nuage-toupie}" \
-  --mdp-direction "${CARNET_MDP_DIRECTION:-hibou-marelle-sirop}"
+  --mdp-enseignant "${CARNET_MDP_ENSEIGNANT:-maclasse}" \
+  --mdp-direction "${CARNET_MDP_DIRECTION:-pressense}"
 
 python manage.py charger_referentiel referentiel/trame-cycle1.yaml
 python manage.py jeu_demo
