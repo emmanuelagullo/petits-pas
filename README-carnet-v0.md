@@ -135,6 +135,58 @@ La planification de `sauvegarder-postgresql.sh`, la rétention des exports, le
 versionnement du bucket S3 et les essais réguliers de restauration relèvent de
 la configuration de l'hébergeur.
 
+## Tester le profil persistant en local
+
+### Variante native
+
+Cette variante lance PostgreSQL comme processus utilisateur et conserve les
+médias dans `.local-persistent/`. Le paquet `postgresql` doit être disponible
+dans l'environnement.
+
+Démarrage :
+
+```sh
+scripts/demarrer-local-natif.sh
+source scripts/activer-local-natif.sh
+python3 manage.py runserver
+```
+
+Arrêtez le serveur Django avec `Ctrl-C`, puis PostgreSQL avec :
+
+```sh
+scripts/arreter-local-natif.sh
+```
+
+Les données PostgreSQL et les médias sont conservés dans
+`.local-persistent/` et seront retrouvés au prochain démarrage.
+
+### Variante Compose
+
+Cette variante lance PostgreSQL et MinIO afin de reproduire une architecture
+avec stockage objet S3. Docker Compose ou Podman Compose est requis.
+
+```sh
+scripts/demarrer-local-compose.sh
+source scripts/activer-local-compose.sh
+python3 manage.py runserver
+```
+
+Arrêtez Django avec `Ctrl-C`, puis les services avec :
+
+```sh
+docker compose -f compose.local.yaml down
+# ou :
+podman compose -f compose.local.yaml down
+```
+
+Les volumes PostgreSQL et MinIO sont conservés. La commande suivante les
+supprimerait définitivement et ne doit servir qu'à une réinitialisation
+volontaire :
+
+```sh
+docker compose -f compose.local.yaml down --volumes
+```
+
 ## Structure
 
 ```

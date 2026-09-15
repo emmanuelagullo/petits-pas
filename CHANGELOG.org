@@ -29,6 +29,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Ajout d’un environnement local persistant avec PostgreSQL et MinIO.
 - Ajout d’une commande vérifiant l’écriture, la lecture et la suppression
   d’un objet dans le stockage de médias.
+- Ajout d’une variante locale native légère utilisant PostgreSQL et un
+  répertoire persistant pour les médias.
 
 ** Changed
 

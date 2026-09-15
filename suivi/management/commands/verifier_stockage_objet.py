@@ -21,7 +21,7 @@ class Command(BaseCommand):
 
             url = default_storage.url(nom_enregistre)
             self.stdout.write(f"- Objet : {nom_enregistre}")
-            self.stdout.write(f"- URL temporaire : {url}")
+            self.stdout.write(f"- URL d'accès : {url}")
         except CommandError:
             raise
         except Exception as erreur:
