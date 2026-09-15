@@ -9,6 +9,7 @@ set -euo pipefail
 : "${DATABASE_URL:?DATABASE_URL est obligatoire pour le profil persistant}"
 : "${CARNET_S3_BUCKET:?CARNET_S3_BUCKET est obligatoire pour le profil persistant}"
 
+python manage.py diagnostiquer_deploiement --exiger-persistant
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 

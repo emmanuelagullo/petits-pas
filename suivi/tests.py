@@ -1,4 +1,10 @@
-from django.test import TestCase
+from io import StringIO
+from unittest.mock import patch
+
+from django.conf import settings
+from django.core.management import call_command
+from django.core.management.base import CommandError
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
@@ -149,3 +155,80 @@ class Referentiel(Base):
         self.competence.refresh_from_db()
         self.assertEqual(self.competence.libelle, "Je dis mon prénom et celui des autres")
         self.assertEqual(Observation.objects.count(), 1)
+
+
+class DiagnosticDeploiement(TestCase):
+    @override_settings(
+        DEBUG=True,
+        SECRET_KEY="dev-seulement-a-changer-avant-toute-mise-en-ligne",
+        ALLOWED_HOSTS=["*"],
+        CSRF_TRUSTED_ORIGINS=[],
+        STORAGES={
+            "default": {
+                "BACKEND": "django.core.files.storage.FileSystemStorage",
+            },
+            "staticfiles": {
+                "BACKEND": (
+                    "django.contrib.staticfiles.storage.StaticFilesStorage"
+                ),
+            },
+        },
+    )
+    def test_identifie_le_profil_de_demonstration_sans_afficher_la_cle(self):
+        sortie = StringIO()
+        call_command("diagnostiquer_deploiement", stdout=sortie)
+        texte = sortie.getvalue()
+
+        self.assertIn("FileSystemStorage", texte)
+        self.assertIn("Mode debug : activé", texte)
+        self.assertNotIn(settings.SECRET_KEY, texte)
+
+    @override_settings(
+        DEBUG=False,
+        SECRET_KEY="une-cle-distincte-et-secrete",
+        ALLOWED_HOSTS=["petits-pas.inria.fr"],
+        CSRF_TRUSTED_ORIGINS=["https://petits-pas.inria.fr"],
+        SECURE_PROXY_SSL_HEADER=(
+            "HTTP_X_FORWARDED_PROTO",
+            "https",
+        ),
+        STORAGES={
+            "default": {
+                "BACKEND": "storages.backends.s3.S3Storage",
+            },
+            "staticfiles": {
+                "BACKEND": (
+                    "django.contrib.staticfiles.storage.StaticFilesStorage"
+                ),
+            },
+        },
+    )
+    @patch.object(
+        settings,
+        "DATABASES",
+        {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",
+                "NAME": "petits_pas",
+            }
+        },
+    )
+    def test_accepte_un_profil_persistant_complet(self):
+        sortie = StringIO()
+
+        call_command(
+            "diagnostiquer_deploiement",
+            "--exiger-persistant",
+            stdout=sortie,
+        )
+
+        self.assertIn("Profil persistant valide", sortie.getvalue())
+
+    def test_refuse_un_profil_incomplet_quand_le_persistant_est_exige(self):
+        with self.assertRaises(CommandError):
+            call_command(
+                "diagnostiquer_deploiement",
+                "--exiger-persistant",
+                stdout=StringIO(),
+                stderr=StringIO(),
+            )

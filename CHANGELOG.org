@@ -19,6 +19,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   exigeant PostgreSQL et un stockage objet.
 - Ajout de garde-fous empêchant le profil de démonstration d’utiliser les
   ressources persistantes du pilote.
+- Ajout d’une commande de diagnostic affichant la configuration effective du
+  déploiement sans révéler les secrets.
+- Validation automatique du profil persistant avant le démarrage de
+  l’application.
 
 ** Changed
 
