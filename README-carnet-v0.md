@@ -130,10 +130,24 @@ scripts/verifier-restauration.sh
 refuse de s'exécuter lorsque `RESTORE_DATABASE_URL` est textuellement identique
 à `DATABASE_URL`. La base de restauration ne doit jamais être la base active.
 
-Ces scripts ne programment pas les sauvegardes et ne protègent pas les photos.
-La planification de `sauvegarder-postgresql.sh`, la rétention des exports, le
-versionnement du bucket S3 et les essais réguliers de restauration relèvent de
-la configuration de l'hébergeur.
+Ces scripts PostgreSQL ne programment pas eux-mêmes les sauvegardes. Leur
+planification, la rétention des exports et les essais réguliers de restauration
+relèvent de la configuration de l'hébergeur.
+
+Les médias peuvent également être exportés dans un format portable composé de
+fichiers ordinaires et d’un manifeste SHA-256 :
+
+```sh
+export CARNET_BACKUP_DIR=/chemin/persistant/sauvegardes
+scripts/sauvegarder-medias.sh
+
+export CARNET_AUTORISER_RESTAURATION_MEDIAS=oui
+scripts/restaurer-medias.sh \
+  /chemin/persistant/sauvegardes/petits-pas-medias-YYYYMMDDTHHMMSSZ
+```
+
+La restauration refuse tout écrasement. Le contrat et les limites de cohérence
+entre les sauvegardes SQL et médias sont détaillés dans `DEPLOIEMENT.org`.
 
 ## Tester le profil persistant en local
 

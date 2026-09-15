@@ -1,9 +1,12 @@
+import os
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.conf import settings
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import DatabaseError
@@ -286,3 +289,121 @@ class Sante(TestCase):
             self.client.post(reverse("health")).status_code,
             405,
         )
+
+
+class SauvegardeMedias(TestCase):
+    def configuration_stockage(self, repertoire):
+        return override_settings(
+            MEDIA_ROOT=repertoire,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                },
+            },
+        )
+
+    def creer_sauvegarde(self, medias, sauvegardes):
+        destination = Path(sauvegardes) / "sauvegarde"
+        with self.configuration_stockage(medias):
+            default_storage.save(
+                "traces/classe/a.txt", ContentFile(b"premier contenu")
+            )
+            default_storage.save(
+                "traces/b.txt", ContentFile(b"deuxieme contenu")
+            )
+            call_command("sauvegarder_medias", str(destination), stdout=StringIO())
+        return destination
+
+    def test_sauvegarde_verification_et_restauration(self):
+        with (
+            TemporaryDirectory() as medias,
+            TemporaryDirectory() as sauvegardes,
+            TemporaryDirectory() as restauration,
+        ):
+            destination = self.creer_sauvegarde(medias, sauvegardes)
+            call_command(
+                "verifier_sauvegarde_medias",
+                str(destination),
+                stdout=StringIO(),
+            )
+
+            with (
+                self.configuration_stockage(restauration),
+                patch.dict(
+                    os.environ,
+                    {"CARNET_AUTORISER_RESTAURATION_MEDIAS": "oui"},
+                ),
+            ):
+                call_command(
+                    "restaurer_medias",
+                    str(destination),
+                    stdout=StringIO(),
+                )
+                with default_storage.open("traces/classe/a.txt", "rb") as fichier:
+                    self.assertEqual(fichier.read(), b"premier contenu")
+                with default_storage.open("traces/b.txt", "rb") as fichier:
+                    self.assertEqual(fichier.read(), b"deuxieme contenu")
+
+    def test_detecte_une_sauvegarde_corrompue(self):
+        with (
+            TemporaryDirectory() as medias,
+            TemporaryDirectory() as sauvegardes,
+        ):
+            destination = self.creer_sauvegarde(medias, sauvegardes)
+            (destination / "objets/traces/b.txt").write_bytes(b"corrompu")
+
+            with self.assertRaises(CommandError):
+                call_command(
+                    "verifier_sauvegarde_medias",
+                    str(destination),
+                    stdout=StringIO(),
+                )
+
+    def test_refuse_d_ecraser_un_media_existant(self):
+        with (
+            TemporaryDirectory() as medias,
+            TemporaryDirectory() as sauvegardes,
+            TemporaryDirectory() as restauration,
+        ):
+            destination = self.creer_sauvegarde(medias, sauvegardes)
+
+            with (
+                self.configuration_stockage(restauration),
+                patch.dict(
+                    os.environ,
+                    {"CARNET_AUTORISER_RESTAURATION_MEDIAS": "oui"},
+                ),
+            ):
+                default_storage.save(
+                    "traces/b.txt", ContentFile(b"a conserver")
+                )
+                with self.assertRaises(CommandError):
+                    call_command(
+                        "restaurer_medias",
+                        str(destination),
+                        stdout=StringIO(),
+                    )
+                with default_storage.open("traces/b.txt", "rb") as fichier:
+                    self.assertEqual(fichier.read(), b"a conserver")
+
+    def test_exige_une_autorisation_explicite_pour_restaurer(self):
+        with (
+            TemporaryDirectory() as medias,
+            TemporaryDirectory() as sauvegardes,
+            TemporaryDirectory() as restauration,
+        ):
+            destination = self.creer_sauvegarde(medias, sauvegardes)
+
+            with (
+                self.configuration_stockage(restauration),
+                patch.dict(
+                    os.environ,
+                    {"CARNET_AUTORISER_RESTAURATION_MEDIAS": ""},
+                ),
+                self.assertRaises(CommandError),
+            ):
+                call_command(
+                    "restaurer_medias",
+                    str(destination),
+                    stdout=StringIO(),
+                )
