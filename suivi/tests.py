@@ -1,4 +1,5 @@
 from io import StringIO
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.conf import settings
@@ -232,3 +233,23 @@ class DiagnosticDeploiement(TestCase):
                 stdout=StringIO(),
                 stderr=StringIO(),
             )
+
+
+class VerificationStockage(TestCase):
+    def test_ecrit_lit_et_supprime_un_objet(self):
+        sortie = StringIO()
+
+        with TemporaryDirectory() as media_root, override_settings(
+            MEDIA_ROOT=media_root,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                },
+            },
+        ):
+            call_command("verifier_stockage_objet", stdout=sortie)
+
+        self.assertIn(
+            "Écriture, lecture, URL et suppression vérifiées",
+            sortie.getvalue(),
+        )

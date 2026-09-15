@@ -26,6 +26,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Ajout de scripts de sauvegarde PostgreSQL, de restauration vers une base
   distincte et de vérification non destructive de la restauration.
 - Génération d’une somme SHA-256 pour chaque sauvegarde PostgreSQL.
+- Ajout d’un environnement local persistant avec PostgreSQL et MinIO.
+- Ajout d’une commande vérifiant l’écriture, la lecture et la suppression
+  d’un objet dans le stockage de médias.
 
 ** Changed
 

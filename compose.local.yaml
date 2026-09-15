@@ -1,0 +1,46 @@
+name: petits-pas-local
+
+services:
+  postgresql:
+    image: docker.io/library/postgres:17-alpine
+    environment:
+      POSTGRES_DB: petits_pas
+      POSTGRES_USER: petits_pas
+      POSTGRES_PASSWORD: petits_pas_local
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petits_pas -d petits_pas"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  minio:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: petits_pas
+      MINIO_ROOT_PASSWORD: petits_pas_local
+    ports:
+      - "127.0.0.1:59000:9000"
+      - "127.0.0.1:59001:9001"
+    volumes:
+      - minio-data:/data
+  minio-init:
+    image: quay.io/minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until mc alias set local http://minio:9000 petits_pas petits_pas_local; do
+          sleep 1
+        done
+        mc mb --ignore-existing local/petits-pas
+
+volumes:
+  postgresql-data:
+  minio-data:
