@@ -102,6 +102,39 @@ potentiellement des photos. Hébergement dans l'UE, HTTPS, sauvegarde du fichier
 sur ce qui est photographié. La formulation retenue dans l'interface suggère de
 photographier les productions plutôt que les visages.
 
+## Sauvegarder et tester une restauration PostgreSQL
+
+Le profil persistant dispose de scripts indépendants de l'hébergeur. Le
+répertoire de sauvegarde doit être explicite, absolu et situé sur un stockage
+durable distinct du système de fichiers éphémère de l'application :
+
+```sh
+export CARNET_BACKUP_DIR=/chemin/persistant/sauvegardes
+scripts/sauvegarder-postgresql.sh
+```
+
+Chaque export au format personnalisé de PostgreSQL est accompagné d'une somme
+SHA-256. La présence d'un fichier ne suffit cependant pas : une restauration
+doit être testée périodiquement dans une base temporaire distincte :
+
+```sh
+export RESTORE_DATABASE_URL='postgresql://.../petits_pas_restauration'
+export CARNET_AUTORISER_RESTAURATION=oui
+
+scripts/restaurer-postgresql.sh \
+  /chemin/persistant/sauvegardes/petits-pas-YYYYMMDDTHHMMSSZ.dump
+scripts/verifier-restauration.sh
+```
+
+`restaurer-postgresql.sh` détruit le contenu existant de la base temporaire et
+refuse de s'exécuter lorsque `RESTORE_DATABASE_URL` est textuellement identique
+à `DATABASE_URL`. La base de restauration ne doit jamais être la base active.
+
+Ces scripts ne programment pas les sauvegardes et ne protègent pas les photos.
+La planification de `sauvegarder-postgresql.sh`, la rétention des exports, le
+versionnement du bucket S3 et les essais réguliers de restauration relèvent de
+la configuration de l'hébergeur.
+
 ## Structure
 
 ```
@@ -112,6 +145,7 @@ suivi/           modèles, vues, templates, statiques
     charger_referentiel.py  charge/met à jour le YAML
     jeu_demo.py             données de démonstration
 referentiel/     les fichiers YAML de compétences
+scripts/         sauvegarde et vérification de restauration PostgreSQL
 ```
 
 Six modèles : `Ecole`, `Classe`, `Eleve`, `Domaine`, `Competence`,

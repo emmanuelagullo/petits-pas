@@ -5,3 +5,4 @@ __pycache__/
 carnet.sqlite3
 media/
 staticfiles/
+backups/

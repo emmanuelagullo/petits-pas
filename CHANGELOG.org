@@ -23,6 +23,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   déploiement sans révéler les secrets.
 - Validation automatique du profil persistant avant le démarrage de
   l’application.
+- Ajout de scripts de sauvegarde PostgreSQL, de restauration vers une base
+  distincte et de vérification non destructive de la restauration.
+- Génération d’une somme SHA-256 pour chaque sauvegarde PostgreSQL.
 
 ** Changed
 
