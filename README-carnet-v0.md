@@ -165,6 +165,12 @@ Les données PostgreSQL et les médias sont conservés dans
 Cette variante lance PostgreSQL et MinIO afin de reproduire une architecture
 avec stockage objet S3. Docker Compose ou Podman Compose est requis.
 
+> **Note**
+>
+> Cette variante est préparée mais n’a pas encore été validée avec Podman
+> rootless sous Guix System. La variante native constitue actuellement le
+> chemin recommandé pour le développement local.
+
 ```sh
 scripts/demarrer-local-compose.sh
 source scripts/activer-local-compose.sh

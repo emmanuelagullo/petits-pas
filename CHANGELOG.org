@@ -39,6 +39,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Préparation du code pour les déploiements persistants de la phase 2.
 - Séparation explicite des démarrages de démonstration et de pilote.
 
+** Known limitations
+
+- La variante locale native est validée.
+- La variante PostgreSQL + MinIO avec Compose est préparée mais reste à
+  valider, notamment avec Podman rootless sous Guix System.
+
 * 0.1 — 2026-09-15
 
 Première preuve de concept utilisable de Petits Pas.
