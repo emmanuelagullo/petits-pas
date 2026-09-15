@@ -20,5 +20,5 @@ if [[ "${sauvegarde}" != /* || ! -d "${sauvegarde}" ]]; then
     exit 1
 fi
 
-python manage.py verifier_sauvegarde_medias "${sauvegarde}"
-python manage.py restaurer_medias "${sauvegarde}"
+python3 manage.py verifier_sauvegarde_medias "${sauvegarde}"
+python3 manage.py restaurer_medias "${sauvegarde}"

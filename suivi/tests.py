@@ -1,3 +1,4 @@
+import hashlib
 import os
 from io import StringIO
 from pathlib import Path
@@ -406,4 +407,95 @@ class SauvegardeMedias(TestCase):
                     "restaurer_medias",
                     str(destination),
                     stdout=StringIO(),
+                )
+
+
+class PaquetReprise(TestCase):
+    HORODATAGES = {
+        "started_at": "2026-09-16T10:00:00Z",
+        "database_completed_at": "2026-09-16T10:00:01Z",
+        "media_completed_at": "2026-09-16T10:00:02Z",
+        "completed_at": "2026-09-16T10:00:03Z",
+    }
+
+    def creer_paquet(self, racine, mode="online"):
+        paquet = Path(racine) / "reprise"
+        postgresql = paquet / "postgresql"
+        medias = paquet / "medias"
+        postgresql.mkdir(parents=True)
+        medias.mkdir()
+
+        dump = postgresql / "petits-pas-test.dump"
+        dump.write_bytes(b"archive PostgreSQL de test")
+        somme = hashlib.sha256(dump.read_bytes()).hexdigest()
+        (postgresql / "petits-pas-test.dump.sha256").write_text(
+            f"{somme}  {dump.name}\n",
+            encoding="utf-8",
+        )
+
+        with TemporaryDirectory() as stockage, override_settings(
+            MEDIA_ROOT=stockage,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                },
+            },
+        ):
+            default_storage.save("traces/a.txt", ContentFile(b"media de test"))
+            call_command(
+                "sauvegarder_medias",
+                str(medias / "petits-pas-medias-test"),
+                stdout=StringIO(),
+            )
+
+        environnement = (
+            {"CARNET_ECRITURES_SUSPENDUES": "oui"}
+            if mode == "writes-suspended"
+            else {}
+        )
+        with patch.dict(os.environ, environnement):
+            call_command(
+                "creer_manifeste_reprise",
+                str(paquet),
+                mode=mode,
+                stdout=StringIO(),
+                **self.HORODATAGES,
+            )
+        return paquet
+
+    @patch("suivi.management.commands.verifier_reprise.subprocess.run")
+    def test_cree_et_verifie_un_paquet_coordonne(self, executer):
+        with TemporaryDirectory() as racine:
+            paquet = self.creer_paquet(racine)
+
+            call_command("verifier_reprise", str(paquet), stdout=StringIO())
+
+            executer.assert_called_once()
+
+    def test_detecte_une_archive_postgresql_modifiee(self):
+        with TemporaryDirectory() as racine:
+            paquet = self.creer_paquet(racine)
+            dump = next((paquet / "postgresql").glob("*.dump"))
+            dump.write_bytes(b"archive corrompue")
+
+            with self.assertRaises(CommandError):
+                call_command("verifier_reprise", str(paquet), stdout=StringIO())
+
+    def test_exige_la_confirmation_des_ecritures_suspendues(self):
+        with TemporaryDirectory() as racine:
+            paquet = Path(racine) / "reprise"
+            paquet.mkdir()
+            with (
+                patch.dict(
+                    os.environ,
+                    {"CARNET_ECRITURES_SUSPENDUES": ""},
+                ),
+                self.assertRaises(CommandError),
+            ):
+                call_command(
+                    "creer_manifeste_reprise",
+                    str(paquet),
+                    mode="writes-suspended",
+                    stdout=StringIO(),
+                    **self.HORODATAGES,
                 )

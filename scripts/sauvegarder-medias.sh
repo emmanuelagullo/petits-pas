@@ -15,7 +15,7 @@ mkdir -p -- "${CARNET_BACKUP_DIR}"
 horodatage="$(date -u +%Y%m%dT%H%M%SZ)"
 sauvegarde="${CARNET_BACKUP_DIR}/petits-pas-medias-${horodatage}"
 
-python manage.py sauvegarder_medias "${sauvegarde}"
-python manage.py verifier_sauvegarde_medias "${sauvegarde}"
+python3 manage.py sauvegarder_medias "${sauvegarde}"
+python3 manage.py verifier_sauvegarde_medias "${sauvegarde}"
 
 echo "Sauvegarde des médias créée et vérifiée : ${sauvegarde}"

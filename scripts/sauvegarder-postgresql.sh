@@ -31,7 +31,8 @@ if [[ -e "${sauvegarde}" ]]; then
     exit 1
 fi
 
-PGDATABASE="${DATABASE_URL}" pg_dump \
+pg_dump \
+    --dbname="${DATABASE_URL}" \
     --format=custom \
     --no-owner \
     --no-privileges \

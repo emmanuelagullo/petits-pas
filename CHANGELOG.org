@@ -40,6 +40,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   tailles et de sommes SHA-256.
 - Ajout de commandes de vérification et de restauration des médias refusant
   tout écrasement sans action explicite.
+- Ajout de paquets de reprise coordonnés regroupant PostgreSQL et médias, avec
+  manifeste global et modes de cohérence =online= ou =writes-suspended=.
+- Publication d’un paquet de reprise uniquement après vérification complète.
 
 ** Changed
 

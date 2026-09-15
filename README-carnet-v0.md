@@ -149,6 +149,18 @@ scripts/restaurer-medias.sh \
 La restauration refuse tout écrasement. Le contrat et les limites de cohérence
 entre les sauvegardes SQL et médias sont détaillés dans `DEPLOIEMENT.org`.
 
+Un paquet de reprise coordonné peut regrouper les deux sauvegardes :
+
+```sh
+export CARNET_BACKUP_DIR=/chemin/persistant/sauvegardes
+scripts/sauvegarder-reprise.sh online
+scripts/verifier-reprise.sh \
+  /chemin/persistant/sauvegardes/petits-pas-reprise-YYYYMMDDTHHMMSSZ
+```
+
+Le mode `writes-suspended`, documenté dans `DEPLOIEMENT.org`, exige que
+l’opérateur interrompe effectivement toutes les écritures.
+
 ## Tester le profil persistant en local
 
 ### Variante native
