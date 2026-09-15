@@ -193,6 +193,13 @@ volontaire :
 docker compose -f compose.local.yaml down --volumes
 ```
 
+## Déployer le profil persistant
+
+Le contrat indépendant de l’hébergeur, les variables d’environnement, la
+commande de démarrage, les sondes et les responsabilités de sauvegarde sont
+décrits dans [`DEPLOIEMENT.org`](DEPLOIEMENT.org). Un jeu de variables sans
+secret réel est fourni dans [`.env.example`](.env.example).
+
 ## Structure
 
 ```

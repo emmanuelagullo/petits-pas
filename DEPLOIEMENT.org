@@ -1,0 +1,120 @@
+#+title: Contrat de déploiement persistant de Petits Pas
+
+* Objet
+
+Ce document décrit les ressources et réglages attendus par le profil
+persistant de Petits Pas. Il sert d’interface entre l’application et
+l’hébergeur ; il ne prescrit ni fournisseur, ni orchestrateur particulier.
+
+Le fichier =.env.example= récapitule les variables sous une forme directement
+lisible. Django ne charge pas automatiquement ce fichier : les variables et
+secrets doivent être injectés par la plate-forme de déploiement.
+
+* Ressources nécessaires
+
+- une base PostgreSQL joignable par l’application ;
+- un bucket privé compatible avec l’API S3 ;
+- un proxy HTTPS transmettant =X-Forwarded-Proto: https= ;
+- un mécanisme externe de sauvegarde et de rétention.
+
+Le bucket doit exister avant le démarrage. Les identifiants de l’application
+doivent permettre au minimum la création, la lecture et la suppression
+d’objets dans ce bucket. Aucun média ne doit être rendu public : Django génère
+des URL temporaires signées.
+
+* Variables d’environnement
+
+** Obligatoires
+
+- =DATABASE_URL= : URL de connexion PostgreSQL ;
+- =CARNET_S3_BUCKET= : nom du bucket réservé aux médias ;
+- =CARNET_SECRET_KEY= : valeur longue, aléatoire et stable ;
+- =CARNET_DEBUG=0= : désactive les pages d’erreur détaillées ;
+- =CARNET_HOSTS= : noms DNS acceptés, séparés par des virgules ;
+- =CARNET_CSRF_ORIGINS= : origines HTTPS complètes, séparées par des virgules.
+
+** Selon le fournisseur S3
+
+- =CARNET_S3_ENDPOINT_URL= : URL de l’API pour un service compatible S3 ;
+- =CARNET_S3_REGION= : région du bucket ;
+- =CARNET_S3_ACCESS_KEY= et =CARNET_S3_SECRET_KEY= : identifiants statiques.
+
+Les identifiants statiques peuvent être omis lorsque la plate-forme fournit un
+autre mécanisme d’authentification compris par Boto3.
+
+** Facultatives
+
+- =CARNET_S3_URL_EXPIRATION= : durée de validité des URL signées, en secondes
+  (300 par défaut) ;
+- =PORT= : port d’écoute de Gunicorn (8000 par défaut).
+
+* Construction et démarrage
+
+Les dépendances sont installées depuis =requirements.txt=. La commande de
+démarrage du profil persistant est :
+
+#+begin_src sh
+./start-persistent.sh
+#+end_src
+
+Avant de lancer Gunicorn, ce script :
+
+- refuse une configuration qui ne satisfait pas les garde-fous du profil ;
+- applique les migrations Django ;
+- rassemble les fichiers statiques pour WhiteNoise ;
+- écrit, relit puis supprime un objet de contrôle dans le bucket.
+
+Une erreur à l’une de ces étapes doit faire échouer le déploiement. Le script
+ne crée aucune école et ne charge aucune donnée métier.
+
+* Sondes
+
+La sonde non authentifiée =GET /health/= renvoie :
+
+- =200 {"status": "ok"}= lorsque Django peut interroger PostgreSQL ;
+- =503 {"status": "unavailable"}= lorsque la base est indisponible.
+
+Elle ne révèle ni exception, ni nom de base, ni secret et ne contacte pas S3.
+La connexion S3 est contrôlée au démarrage par =verifier_stockage_objet=.
+
+* Initialisation fonctionnelle
+
+La création d’une école et le chargement de son référentiel restent des
+opérations explicites :
+
+#+begin_src sh
+python manage.py creer_ecole "Nom de l’école" --commune "Commune"
+python manage.py charger_referentiel referentiel/trame-cycle1.yaml
+#+end_src
+
+=jeu_demo= ne doit être utilisé qu’avec des données factices.
+
+* Sauvegardes
+
+La sauvegarde PostgreSQL peut être déclenchée avec :
+
+#+begin_src sh
+export CARNET_BACKUP_DIR=/chemin/absolu/vers/un/stockage/durable
+scripts/sauvegarder-postgresql.sh
+#+end_src
+
+Ce répertoire doit être distinct du système de fichiers éphémère de
+l’application. La restauration doit être testée périodiquement dans une base
+séparée avec les scripts documentés dans =README-carnet-v0.md=.
+
+Les médias nécessitent une politique fournie par l’hébergeur : versionnement
+du bucket ou copie vers un stockage distinct, rétention définie et essais de
+restauration. Les sauvegardes PostgreSQL et S3 doivent être cohérentes à
+l’échelle de l’objectif de reprise retenu.
+
+* Profils
+
+- démonstration éphémère : =start-render.sh=, SQLite, médias sur disque et jeu
+  de données recréé ;
+- développement local natif : PostgreSQL et médias dans
+  =.local-persistent/= ;
+- développement local Compose : PostgreSQL et MinIO, variante préparée mais
+  pas encore validée sous Podman rootless avec Guix System ;
+- pilote persistant : =start-persistent.sh=, PostgreSQL et bucket S3 privés.
+
+Seul le dernier profil représente le contrat destiné à l’hébergeur.

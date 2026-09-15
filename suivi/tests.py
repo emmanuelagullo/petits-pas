@@ -1,10 +1,12 @@
 from io import StringIO
+from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import DatabaseError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -248,8 +250,39 @@ class VerificationStockage(TestCase):
             },
         ):
             call_command("verifier_stockage_objet", stdout=sortie)
+            self.assertEqual(list(Path(media_root).rglob("*.txt")), [])
 
         self.assertIn(
             "Écriture, lecture, URL et suppression vérifiées",
             sortie.getvalue(),
+        )
+
+
+class Sante(TestCase):
+    def test_signale_que_django_et_la_base_sont_disponibles(self):
+        reponse = self.client.get(reverse("health"))
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(reponse.json(), {"status": "ok"})
+
+    @patch("suivi.views.connection.cursor")
+    def test_signale_une_base_indisponible_sans_exposer_l_erreur(
+        self, cursor
+    ):
+        cursor.side_effect = DatabaseError("mot-de-passe-secret")
+
+        reponse = self.client.get(reverse("health"))
+
+        self.assertEqual(reponse.status_code, 503)
+        self.assertEqual(reponse.json(), {"status": "unavailable"})
+        self.assertNotContains(
+            reponse,
+            "mot-de-passe-secret",
+            status_code=503,
+        )
+
+    def test_refuse_une_requete_non_sure(self):
+        self.assertEqual(
+            self.client.post(reverse("health")).status_code,
+            405,
         )
