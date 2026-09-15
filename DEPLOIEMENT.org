@@ -89,7 +89,9 @@ python manage.py charger_referentiel referentiel/trame-cycle1.yaml
 
 =jeu_demo= ne doit être utilisé qu’avec des données factices.
 
-* Sauvegardes
+* Sauvegardes et restaurations
+
+** PostgreSQL
 
 La sauvegarde PostgreSQL peut être déclenchée avec :
 
@@ -102,10 +104,46 @@ Ce répertoire doit être distinct du système de fichiers éphémère de
 l’application. La restauration doit être testée périodiquement dans une base
 séparée avec les scripts documentés dans =README-carnet-v0.md=.
 
-Les médias nécessitent une politique fournie par l’hébergeur : versionnement
-du bucket ou copie vers un stockage distinct, rétention définie et essais de
-restauration. Les sauvegardes PostgreSQL et S3 doivent être cohérentes à
-l’échelle de l’objectif de reprise retenu.
+** Médias
+
+Petits Pas peut exporter les médias depuis tout backend Django, y compris S3,
+vers un répertoire durable indépendant :
+
+#+begin_src sh
+export CARNET_BACKUP_DIR=/chemin/absolu/vers/un/stockage/durable
+scripts/sauvegarder-medias.sh
+#+end_src
+
+Chaque sauvegarde contient les objets sous leur nom logique et un manifeste
+JSON indiquant leur taille et leur somme SHA-256. Elle peut être vérifiée sans
+accéder au stockage d’origine :
+
+#+begin_src sh
+python manage.py verifier_sauvegarde_medias \
+  /chemin/petits-pas-medias-YYYYMMDDTHHMMSSZ
+#+end_src
+
+La restauration vérifie d’abord toute la sauvegarde et refuse d’écraser un
+objet existant :
+
+#+begin_src sh
+export CARNET_AUTORISER_RESTAURATION_MEDIAS=oui
+scripts/restaurer-medias.sh \
+  /chemin/petits-pas-medias-YYYYMMDDTHHMMSSZ
+#+end_src
+
+Cette copie portable complète, sans les remplacer, les mécanismes fournis par
+l’hébergeur : versionnement du bucket, réplication vers un autre stockage,
+rétention et protection contre la suppression du bucket ou du compte.
+
+** Cohérence d’un point de reprise
+
+Les sauvegardes PostgreSQL et médias réalisées séparément ne constituent pas
+un instantané atomique : une modification peut survenir entre les deux. Pour
+le pilote avec données factices, elles peuvent être exécutées successivement.
+Une future production devra prévoir une courte mise en maintenance ou un
+mécanisme de snapshots coordonnés fourni par l’hébergeur, en fonction de
+l’objectif de reprise retenu.
 
 * Profils
 
