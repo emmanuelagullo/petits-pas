@@ -96,3 +96,51 @@ For more information on production servers see: https://docs.djangoproject.com/e
 
 On test depuis le navigateur sur [[http://127.0.0.1:8000/]]
 
+* Déploiement sur Render
+
+#+begin_src bash
+python3 manage.py collectstatic --noinput
+#+end_src
+
+
+* Mise à jour
+
+On met à jour pour ne pas supprimer l'état (commentaire / image) quand
+on cycle.
+
+#+begin_src bash
+python3 manage.py makemigrations
+#+end_src
+
+#+begin_example
+Migrations for 'suivi':
+  suivi/migrations/0002_alter_observation_statut.py
+    ~ Alter field statut on observation
+#+end_example
+
+#+begin_src bash
+python3 manage.py migrate
+#+end_src
+
+#+begin_example
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, sessions, suivi
+Running migrations:
+  Applying suivi.0002_alter_observation_statut... OK
+#+end_example
+
+#+begin_src bash
+python3 manage.py test
+#+end_src
+
+#+begin_example
+Found 14 test(s).
+Creating test database for alias 'default'...
+System check identified no issues (0 silenced).
+..............
+----------------------------------------------------------------------
+Ran 14 tests in 51.572s
+
+OK
+Destroying test database for alias 'default'...
+#+end_example

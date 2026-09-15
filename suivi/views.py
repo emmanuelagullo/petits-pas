@@ -170,7 +170,12 @@ def saisie_competence(request, pk, competence_pk):
     )
 
 
-SUITE = {None: Observation.REUSSI, Observation.REUSSI: Observation.EN_COURS}
+SUITE = {
+    None: Observation.REUSSI,
+    Observation.REUSSI: Observation.EN_COURS,
+    Observation.EN_COURS: Observation.NON_DEBUTE,
+    Observation.NON_DEBUTE: Observation.REUSSI,
+}
 
 
 @acces_requis
@@ -182,21 +187,23 @@ def basculer(request, eleve_pk, competence_pk):
     eleve = get_object_or_404(Eleve, pk=eleve_pk, classe__ecole=ecole)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
 
-    obs = Observation.objects.filter(eleve=eleve, competence=competence).first()
-    suivant = SUITE.get(obs.statut if obs else None)
+    obs = Observation.objects.filter(
+        eleve=eleve,
+        competence=competence,
+    ).first()
 
-    if suivant is None:
-        if obs:
-            obs.delete()
-        obs = None
-    elif obs is None:
+    suivant = SUITE[obs.statut if obs else None]
+
+    if obs is None:
         obs = Observation.objects.create(
-            eleve=eleve, competence=competence, statut=suivant
+            eleve=eleve,
+            competence=competence,
+            statut=suivant,
         )
     else:
         obs.statut = suivant
         obs.date_observation = timezone.localdate()
-        obs.save()
+        obs.save(update_fields=["statut", "date_observation", "modifie_le"])
 
     gabarit = (
         "suivi/partiels/case_eleve.html"

@@ -66,7 +66,9 @@ class Bascule(Base):
         self.client.post(self.url)
         self.assertEqual(self.etat(), "en_cours")
         self.client.post(self.url)
-        self.assertIsNone(self.etat())
+        self.assertEqual(self.etat(), "non_debute")
+        self.client.post(self.url)
+        self.assertEqual(self.etat(), "reussi")
 
     def test_le_get_est_refuse(self):
         self.assertEqual(self.client.get(self.url).status_code, 403)
@@ -80,6 +82,23 @@ class Bascule(Base):
         )
         url = reverse("basculer", args=[eleve.pk, self.competence.pk])
         self.assertEqual(self.client.post(url).status_code, 404)
+
+    def test_le_changement_de_statut_conserve_la_trace(self):
+        obs = Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+            commentaire="Une première réussite",
+            photo="traces/test.jpg",
+        )
+
+        self.client.post(self.url)
+        self.client.post(self.url)
+
+        obs.refresh_from_db()
+        self.assertEqual(obs.statut, Observation.NON_DEBUTE)
+        self.assertEqual(obs.commentaire, "Une première réussite")
+        self.assertEqual(obs.photo.name, "traces/test.jpg")
 
 
 class Carnet(Base):

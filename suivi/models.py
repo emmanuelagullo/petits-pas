@@ -113,11 +113,17 @@ class Competence(models.Model):
 
 class Observation(models.Model):
     """Où en est un enfant sur une compétence. Une ligne par couple
-    (élève, compétence) : l'absence de ligne vaut « pas encore observé »."""
+    (élève, compétence).."""
 
+    NON_DEBUTE = "non_debute"
     EN_COURS = "en_cours"
     REUSSI = "reussi"
-    STATUTS = [(EN_COURS, "En cours"), (REUSSI, "Réussi")]
+
+    STATUTS = [
+        (NON_DEBUTE, "Pas commencé"),
+        (EN_COURS, "En cours"),
+        (REUSSI, "Réussi"),
+    ]
 
     eleve = models.ForeignKey(
         Eleve, on_delete=models.CASCADE, related_name="observations"
