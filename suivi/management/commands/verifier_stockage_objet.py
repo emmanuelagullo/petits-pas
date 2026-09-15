@@ -22,22 +22,25 @@ class Command(BaseCommand):
             url = default_storage.url(nom_enregistre)
             self.stdout.write(f"- Objet : {nom_enregistre}")
             self.stdout.write(f"- URL d'accès : {url}")
-        except CommandError:
-            raise
         except Exception as erreur:
-            raise CommandError(f"Échec du stockage : {erreur}") from erreur
-        finally:
             if nom_enregistre:
                 try:
                     default_storage.delete(nom_enregistre)
-                except Exception as erreur:
-                    self.stderr.write(
-                        self.style.WARNING(
-                            f"Impossible de supprimer l'objet de vérification : {erreur}"
-                        )
-                    )
+                except Exception:
+                    pass
+            if isinstance(erreur, CommandError):
+                raise
+            raise CommandError(f"Échec du stockage : {erreur}") from erreur
+
+        try:
+            default_storage.delete(nom_enregistre)
+            if default_storage.exists(nom_enregistre):
+                raise CommandError("L'objet de vérification existe après suppression.")
+        except CommandError:
+            raise
+        except Exception as erreur:
+            raise CommandError(f"Échec de la suppression : {erreur}") from erreur
 
         self.stdout.write(
             self.style.SUCCESS("Écriture, lecture, URL et suppression vérifiées.")
         )
-

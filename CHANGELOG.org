@@ -31,6 +31,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   d’un objet dans le stockage de médias.
 - Ajout d’une variante locale native légère utilisant PostgreSQL et un
   répertoire persistant pour les médias.
+- Ajout d’un contrat de déploiement indépendant de l’hébergeur et d’un exemple
+  de variables d’environnement sans secret réel.
+- Ajout d’une sonde de santé vérifiant la connexion à PostgreSQL sans exposer
+  d’informations internes.
+- Vérification effective du stockage objet avant le démarrage de Gunicorn.
 
 ** Changed
 

@@ -12,5 +12,6 @@ set -euo pipefail
 python manage.py diagnostiquer_deploiement --exiger-persistant
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
+python manage.py verifier_stockage_objet
 
 exec gunicorn carnet.wsgi:application --bind "0.0.0.0:${PORT:-8000}"

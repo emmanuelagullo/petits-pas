@@ -1,11 +1,13 @@
 from functools import wraps
 
 from django.contrib import messages
+from django.db import DatabaseError, connection
 from django.db.models import Count, Prefetch, Q
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_safe
 
 from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
 
@@ -13,6 +15,18 @@ from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
 # --------------------------------------------------------------------------
 # Accès
 # --------------------------------------------------------------------------
+
+
+@require_safe
+def health(request):
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+    except DatabaseError:
+        return JsonResponse({"status": "unavailable"}, status=503)
+
+    return JsonResponse({"status": "ok"})
 
 
 def acces_requis(vue):

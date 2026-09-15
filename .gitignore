@@ -7,3 +7,6 @@ carnet.sqlite3
 media/
 staticfiles/
 backups/
+.env
+.env.*
+!.env.example
