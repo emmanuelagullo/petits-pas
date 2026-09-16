@@ -53,6 +53,6 @@ pg_restore \
     --no-privileges \
     --file=- \
     "${sauvegarde}" \
-    | PGDATABASE="${RESTORE_DATABASE_URL}" psql --set=ON_ERROR_STOP=1
+    | psql --dbname="${RESTORE_DATABASE_URL}" --set=ON_ERROR_STOP=1
 
 echo "Restauration terminée. Lancez maintenant verifier-restauration.sh."

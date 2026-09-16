@@ -1,5 +1,6 @@
 __pycache__/
 .local-persistent/
+.local-recovery/
 *.private.org
 *.pyc
 .venv/

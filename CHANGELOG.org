@@ -43,6 +43,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Ajout de paquets de reprise coordonnés regroupant PostgreSQL et médias, avec
   manifeste global et modes de cohérence =online= ou =writes-suspended=.
 - Publication d’un paquet de reprise uniquement après vérification complète.
+- Ajout d’un exercice local non destructif restaurant et contrôlant un paquet
+  de reprise complet dans des cibles temporaires isolées.
 
 ** Changed
 

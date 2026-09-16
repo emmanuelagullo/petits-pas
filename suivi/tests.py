@@ -499,3 +499,49 @@ class PaquetReprise(TestCase):
                     stdout=StringIO(),
                     **self.HORODATAGES,
                 )
+
+
+class VerificationRepriseRestauree(Base):
+    def test_accepte_tous_les_medias_references(self):
+        with TemporaryDirectory() as medias, override_settings(
+            MEDIA_ROOT=medias,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                },
+            },
+        ):
+            photo = default_storage.save(
+                "traces/photo.txt", ContentFile(b"photo restauree")
+            )
+            Observation.objects.create(
+                eleve=self.eleve,
+                competence=self.competence,
+                photo=photo,
+            )
+
+            sortie = StringIO()
+            call_command("verifier_reprise_restauree", stdout=sortie)
+
+        self.assertIn("1 média(s) référencé(s)", sortie.getvalue())
+
+    def test_refuse_un_media_reference_absent(self):
+        with TemporaryDirectory() as medias, override_settings(
+            MEDIA_ROOT=medias,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                },
+            },
+        ):
+            Observation.objects.create(
+                eleve=self.eleve,
+                competence=self.competence,
+                photo="traces/absente.jpg",
+            )
+
+            with self.assertRaises(CommandError):
+                call_command(
+                    "verifier_reprise_restauree",
+                    stdout=StringIO(),
+                )

@@ -177,6 +177,36 @@ La restauration reste volontairement composée des procédures PostgreSQL et
 médias séparées : aucune transaction commune ne permettrait de les annuler
 ensemble en cas d’échec.
 
+** Exercice complet de reprise
+
+Une sauvegarde n’est considérée comme exploitable qu’après un essai de
+restauration. Pour le profil local natif, un paquet coordonné peut être restauré
+dans une base PostgreSQL nouvellement créée et un répertoire de médias vide :
+
+#+begin_src sh
+source scripts/activer-local-natif.sh
+scripts/exercer-reprise-local.sh \
+  "$PWD/backups/petits-pas-reprise-YYYYMMDDTHHMMSSZ"
+#+end_src
+
+L’exercice :
+
+- vérifie le paquet avant toute restauration ;
+- crée une base portant un nom unique, distincte de la base active ;
+- restaure PostgreSQL et les médias vers des cibles temporaires ;
+- vérifie les migrations, la lecture des données et la présence de chaque
+  média référencé par une observation ;
+- supprime les deux cibles à la fin, y compris après un échec.
+
+=CARNET_CONSERVER_REPRISE_LOCALE=oui= désactive le nettoyage afin de permettre
+une inspection manuelle. Cette option laisse volontairement une base et des
+fichiers contenant les données restaurées ; ils doivent alors être supprimés
+explicitement par l’opérateur.
+
+Ce mécanisme teste la restaurabilité du paquet. Il ne transforme pas un paquet
+=online= en instantané atomique et ne remplace pas un exercice périodique dans
+l’infrastructure de l’hébergeur.
+
 * Profils
 
 - démonstration éphémère : =start-render.sh=, SQLite, médias sur disque et jeu
