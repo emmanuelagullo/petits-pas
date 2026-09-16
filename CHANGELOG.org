@@ -45,6 +45,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Publication d’un paquet de reprise uniquement après vérification complète.
 - Ajout d’un exercice local non destructif restaurant et contrôlant un paquet
   de reprise complet dans des cibles temporaires isolées.
+- Ajout d’une intégration continue GitLab exécutant les tests avec PostgreSQL,
+  le contrôle des migrations et les vérifications statiques du dépôt.
 
 ** Changed
 
