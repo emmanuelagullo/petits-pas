@@ -1,0 +1,61 @@
+image: python:3.12-bookworm
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+default:
+  tags:
+    - ci.inria.fr
+    - small
+
+services:
+  - name: postgres:16-bookworm
+    alias: postgresql
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  POSTGRES_DB: petits_pas_ci
+  POSTGRES_USER: petits_pas_ci
+  POSTGRES_PASSWORD: petits_pas_ci
+  DATABASE_URL: "postgresql://petits_pas_ci:petits_pas_ci@postgresql:5432/petits_pas_ci"
+  CARNET_SECRET_KEY: "ci-only-secret-key-never-used-in-production"
+  CARNET_DEBUG: "1"
+  CARNET_HOSTS: "localhost,127.0.0.1"
+
+cache:
+  key:
+    files:
+      - requirements.txt
+  paths:
+    - .cache/pip
+
+test:
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends git
+    - python3 -m pip install --requirement requirements.txt
+    - |
+      python3 - <<'PY'
+      import os
+      import time
+
+      import psycopg
+
+      for tentative in range(30):
+          try:
+              with psycopg.connect(os.environ["DATABASE_URL"]):
+                  break
+          except psycopg.OperationalError:
+              if tentative == 29:
+                  raise
+              time.sleep(1)
+      PY
+  script:
+    - python3 manage.py test
+    - python3 manage.py makemigrations --check --dry-run
+    - bash -n start-persistent.sh start-render.sh scripts/*.sh
+    - git show --check --format= --no-renames "$CI_COMMIT_SHA"

@@ -62,6 +62,22 @@ l'import et le rechargement du référentiel :
 python manage.py test suivi
 ```
 
+## Intégration continue
+
+Le fichier `.gitlab-ci.yml` exécute automatiquement les contrôles du projet
+sur un runner partagé de `gitlab.inria.fr`, avec une base PostgreSQL créée pour
+la durée du job :
+
+- tests Django ;
+- absence de migration oubliée ;
+- validation syntaxique des scripts shell ;
+- détection des erreurs d’espacement par Git.
+
+Si un pipeline reste en attente faute de runner, activez un runner partagé dans
+`Paramètres > CI/CD > Runners`. Le job utilise les tags `ci.inria.fr` et
+`small`. Aucune variable secrète n’est nécessaire pour cette première CI : les
+identifiants présents dans le fichier sont réservés à la base éphémère du job.
+
 ## Le référentiel
 
 `referentiel/trame-cycle1.yaml` est **une trame de travail, pas un référentiel
