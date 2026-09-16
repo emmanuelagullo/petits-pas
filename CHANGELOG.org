@@ -47,6 +47,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   de reprise complet dans des cibles temporaires isolées.
 - Ajout d’une intégration continue GitLab exécutant les tests avec PostgreSQL,
   le contrôle des migrations et les vérifications statiques du dépôt.
+- Ajout d’un déploiement éphémère GitLab avec PostgreSQL, MinIO, Gunicorn,
+  contrôle de santé, sauvegarde coordonnée et exercice complet de reprise.
 
 ** Changed
 
