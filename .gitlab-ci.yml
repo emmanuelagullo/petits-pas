@@ -1,4 +1,4 @@
-image: python:3.12-bookworm
+image: python:3.12-slim-bookworm
 
 workflow:
   rules:
@@ -13,7 +13,7 @@ default:
     - small
 
 services:
-  - name: postgres:16-bookworm
+  - name: postgres:16-alpine
     alias: postgresql
 
 variables:
@@ -55,6 +55,7 @@ test:
               time.sleep(1)
       PY
   script:
+    - python3 manage.py collectstatic --noinput
     - python3 manage.py test
     - python3 manage.py makemigrations --check --dry-run
     - bash -n start-persistent.sh start-render.sh scripts/*.sh
