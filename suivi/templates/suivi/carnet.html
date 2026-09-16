@@ -4,36 +4,65 @@
 <div class="actions sans-impression">
   <a class="bouton discret" href="{% url 'saisie_eleve' eleve.pk %}">Retour à la saisie</a>
   <button class="bouton" onclick="window.print()">Imprimer ou enregistrer en PDF</button>
-  {% if tout %}<a class="bouton discret" href="?">Ne montrer que ce qui est acquis</a>
-  {% else %}<a class="bouton discret" href="?tout=1">Montrer aussi ce qui reste à découvrir</a>{% endif %}
+</div>
+
+<div class="apercu-carnet sans-impression">
+  <strong>Contenu du carnet à prévisualiser</strong>
+  <p>Comparez ces trois propositions avant l'impression. Ce choix ne modifie pas les observations.</p>
+  <div class="filtres" aria-label="Contenu du carnet">
+    <a href="?contenu=reussites" aria-current="{% if mode == 'reussites' %}true{% endif %}">Réussites</a>
+    <a href="?contenu=observes" aria-current="{% if mode == 'observes' %}true{% endif %}">Réussites et apprentissages en cours</a>
+    <a href="?contenu=tout" aria-current="{% if mode == 'tout' %}true{% endif %}">Référentiel complet</a>
+  </div>
 </div>
 
 <article class="carnet">
-  <div class="entete">
-    <h1>Le carnet de {{ eleve.prenom }}</h1>
-    <p>{{ eleve.classe.nom }} — {{ eleve.get_niveau_display|lower }} — {{ eleve.classe.annee_scolaire }}</p>
+  <header class="couverture">
+    <p class="nom-ecole">{{ ecole.nom }}</p>
+    <div>
+      <p class="sur-titre">Carnet de suivi des apprentissages</p>
+      <h1>{{ eleve.prenom }}{% if eleve.nom %} {{ eleve.nom }}{% endif %}</h1>
+      <p>{{ eleve.classe.nom }}</p>
+      <p>{{ eleve.get_niveau_display }} · Année scolaire {{ eleve.classe.annee_scolaire }}</p>
+    </div>
+    <p class="date-edition">Édité le {{ edite_le|date:"j F Y" }}</p>
+  </header>
+
+  <div class="pages-carnet">
+    <header class="entete-pages">
+      <p>Les petits et grands pas de {{ eleve.prenom }}</p>
+      <p class="legende">
+        {% if mode == 'reussites' %}★ Je sais le faire
+        {% elif mode == 'observes' %}★ Je sais le faire · ☆ Je suis en train d'apprendre
+        {% else %}★ Je sais le faire · ☆ Je suis en train d'apprendre · · À découvrir{% endif %}
+      </p>
+    </header>
+
+    {% for domaine, lignes in domaines %}
+    <section class="domaine-carnet">
+      <h2>{{ domaine.nom }}</h2>
+      <ul>
+        {% for competence, obs in lignes %}
+        <li class="{% if obs %}{{ obs.statut }}{% else %}absent{% endif %}">
+          <span class="puce" aria-hidden="true">{% if obs.statut == 'reussi' %}★{% elif obs.statut == 'en_cours' %}☆{% else %}·{% endif %}</span>
+          <span class="contenu-competence">
+            <span class="libelle-competence">{{ competence.libelle }}</span>
+            {% if obs and obs.statut != 'non_debute' %}<span class="date-observation">Observé le {{ obs.date_observation|date:"j F Y" }}</span>{% endif %}
+            {% if obs.commentaire %}<span class="mot">« {{ obs.commentaire }} »</span>{% endif %}
+            {% if obs.photo %}<img class="trace-photo" src="{{ obs.photo.url }}" alt="Trace associée à {{ competence.libelle }}">{% endif %}
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% empty %}
+    <div class="carnet-vide">
+      <h2>Le carnet commence ici</h2>
+      <p>Aucune réussite n'a encore été sélectionnée pour cette prévisualisation.</p>
+    </div>
+    {% endfor %}
+
+    <p class="pied">Carnet édité le {{ edite_le|date:"j F Y" }} par {{ ecole.nom }}.</p>
   </div>
-
-  {% for domaine, lignes in domaines %}
-  <section>
-    <h2>{{ domaine.nom }}</h2>
-    <ul>
-      {% for competence, obs in lignes %}
-      <li class="{% if obs %}{{ obs.statut }}{% else %}absent{% endif %}">
-        <span class="puce" aria-hidden="true">{% if obs.statut == 'reussi' %}★{% elif obs.statut == 'en_cours' %}☆{% else %}·{% endif %}</span>
-        <span>
-          {{ competence.libelle }}
-          {% if obs.commentaire %}<span class="mot">« {{ obs.commentaire }} »</span>{% endif %}
-          {% if obs.photo %}<img class="trace-photo" src="{{ obs.photo.url }}" alt="">{% endif %}
-        </span>
-      </li>
-      {% endfor %}
-    </ul>
-  </section>
-  {% empty %}
-  <p>Rien n'a encore été noté pour {{ eleve.prenom }}.</p>
-  {% endfor %}
-
-  <p class="pied">★ je sais le faire · ☆ je suis en train d'apprendre — Carnet édité le {{ edite_le|date:"j F Y" }} par {{ ecole.nom }}.</p>
 </article>
 {% endblock %}

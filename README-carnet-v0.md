@@ -15,8 +15,10 @@ Django 5/6 + HTMX + SQLite. Aucune dépendance distante au moment de l'affichage
   section. Un appui = réussi, deux = en cours, trois = effacé.
 - **Saisie éclair** : une compétence observée, toute la classe sur un écran.
 - **Trace** : un commentaire et une photo par réussite.
-- **Carnet imprimable** : une page par enfant, en serif, pensée pour être
-  donnée aux parents. `Ctrl+P` produit un PDF correct sans bibliothèque.
+- **Carnet imprimable** : une couverture et des pages de compétences pensées
+  pour être données aux parents. La prévisualisation permet de comparer les
+  réussites seules, les apprentissages observés ou le référentiel complet.
+  `Ctrl+P` produit encore le PDF sans bibliothèque dédiée.
 - Deux mots de passe pour l'école, enseignant et direction, comme Iticarnet.
 - Import d'une liste d'élèves par copier-coller.
 
@@ -34,6 +36,10 @@ Volontairement, pour tenir dans une V0 :
 - Pas d'envoi de carnet aux parents, pas d'espace parent.
 - Photos stockées telles quelles, sans redimensionnement.
 - Pas de synthèse de fin de GS, pas d'export ONDE.
+
+La première hypothèse de carnet de la phase 3, ses cas de contrôle et les
+questions à soumettre à l'équipe pédagogique sont décrits dans
+[`CARNET-REFERENCE.org`](CARNET-REFERENCE.org).
 
 ## Démarrer
 

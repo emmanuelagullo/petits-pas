@@ -1,0 +1,82 @@
+#+title: Petits Pas — carnet de référence de la phase 3
+
+* Objet
+
+Ce document décrit la première hypothèse de carnet utilisée pendant la phase
+3. Il s'agit d'une référence à montrer et à critiquer avec l'équipe
+pédagogique, et non d'une spécification pédagogique définitive.
+
+Le carnet reste, pour cet incrément, une page HTML imprimée par le navigateur.
+Le choix d'un moteur PDF déterministe viendra après l'évaluation de sa
+structure et de son contenu.
+
+* Hypothèse de référence
+
+- Une couverture identifie l'école, l'enfant, la classe, le niveau, l'année
+  scolaire et la date d'édition.
+- Le corps du carnet regroupe les compétences par domaine d'apprentissage.
+- Le carnet présente par défaut les réussites.
+- La date d'observation accompagne chaque compétence présentée.
+- Un commentaire et une photo éventuels constituent la trace associée.
+- Les PDF sont destinés à être générés à la demande et ne sont pas conservés
+  par défaut.
+
+* Trois contenus à comparer
+
+La prévisualisation permet de comparer trois propositions sans modifier les
+observations :
+
+- =Réussites= : seules les compétences au statut « réussi » ;
+- =Réussites et apprentissages en cours= : statuts « réussi » et « en cours » ;
+- =Référentiel complet= : toutes les compétences actives, y compris celles
+  qui n'ont pas encore d'observation.
+
+Le premier mode est l'hypothèse de référence. Le maintien de ces trois modes
+dans le produit final dépendra des retours pédagogiques.
+
+* Cas à examiner
+
+- carnet sans réussite ;
+- compétence réussie sans trace ;
+- compétence avec commentaire court ou long ;
+- compétence avec photo en orientation portrait ou paysage ;
+- plusieurs domaines et passage sur plusieurs pages ;
+- prénom et nom longs ;
+- comparaison des trois contenus proposés ;
+- réimpression du même carnet après une modification.
+
+* Questions pour l'équipe pédagogique
+
+- Un carnet de réussites doit-il montrer uniquement les réussites ?
+- Les apprentissages en cours ont-ils leur place dans le document transmis ?
+- La date de chaque observation est-elle utile aux familles ?
+- Le commentaire doit-il être systématique, facultatif ou masquable ?
+- Une seule trace par compétence suffit-elle ?
+- La couverture contient-elle les bonnes informations ?
+- Faut-il pouvoir exclure une observation du carnet sans la supprimer ?
+- Le carnet est-il préparé par période, par semestre ou pour l'année entière ?
+
+* Contraintes techniques déjà retenues
+
+- Les illustrations officielles optimisées sont des fichiers statiques
+  publics versionnés dans le dépôt Git principal.
+- Les photos et autres fichiers téléversés par une école restent privés dans
+  le stockage objet S3 administré par le service Petits Pas.
+- L'équipe scolaire n'administre ni S3, ni PostgreSQL, ni les sauvegardes.
+- Une cible indicative est de 1 à 2 Mio sans photo pédagogique, puis de
+  quelques mégaoctets avec photos, sans dégradation arbitraire de la qualité.
+- Le carnet individuel précède l'éventuel export ZIP de toute une classe.
+
+* Validation de cette référence
+
+Pour chaque PDF de contrôle :
+
+#+begin_src bash
+pdfinfo carnet.pdf
+pdfimages -list carnet.pdf
+du -h carnet.pdf
+#+end_src
+
+Il faut contrôler au minimum le nombre et le format des pages, les ruptures de
+page, la lisibilité des textes et photos, la présence des informations
+attendues et le poids du fichier.

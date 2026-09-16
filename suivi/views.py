@@ -268,14 +268,28 @@ def trace(request, eleve_pk, competence_pk):
 def carnet(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, classe__ecole=ecole)
-    tout = request.GET.get("tout") == "1"
+    modes = {"reussites", "observes", "tout"}
+    mode = request.GET.get("contenu", "reussites")
+    # Compatibilité avec les liens de la version 0.2.
+    if request.GET.get("tout") == "1":
+        mode = "tout"
+    if mode not in modes:
+        mode = "reussites"
 
     etats = {o.competence_id: o for o in eleve.observations.select_related("competence")}
     domaines = []
     for d in _arbre(ecole):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
-        if not tout:
-            lignes = [(c, o) for c, o in lignes if o]
+        if mode == "reussites":
+            lignes = [
+                (c, o) for c, o in lignes if o and o.statut == Observation.REUSSI
+            ]
+        elif mode == "observes":
+            lignes = [
+                (c, o)
+                for c, o in lignes
+                if o and o.statut in (Observation.REUSSI, Observation.EN_COURS)
+            ]
         if lignes:
             domaines.append((d, lignes))
 
@@ -285,7 +299,7 @@ def carnet(request, pk):
         {
             "eleve": eleve,
             "domaines": domaines,
-            "tout": tout,
+            "mode": mode,
             "edite_le": timezone.localdate(),
         },
     )

@@ -278,6 +278,14 @@ h2 {
 }
 .ligne .trace-lien:hover { background: var(--papier); color: var(--ardoise); }
 .ligne .trace-lien.pleine { color: var(--reussi); }
+.ligne .trace-indicateurs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  font-size: 1rem;
+}
+.ligne .indicateur-photo { font-size: 0.9rem; }
 
 /* ---------- Filtres ---------- */
 
@@ -351,24 +359,74 @@ textarea { min-height: 7rem; resize: vertical; }
 
 /* ---------- Le carnet de l'enfant ---------- */
 
-.carnet {
-  background: #fff;
-  color: #1a1a1a;
-  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
-  line-height: 1.6;
-  max-width: 44rem;
-  margin: 0 auto;
-  padding: 2.5rem;
+.apercu-carnet {
+  max-width: 52rem;
+  margin: 1rem auto 1.5rem;
+  padding: 1rem 1.2rem;
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
+  background: var(--surface);
 }
 
-.carnet h1 { font-size: 2rem; font-weight: 400; margin-bottom: 0.2rem; }
-.carnet .entete { border-bottom: 2px solid #1a1a1a; padding-bottom: 1rem; margin-bottom: 2rem; }
-.carnet .entete p { margin: 0.2rem 0 0; color: #555; font-size: 0.95rem; }
+.apercu-carnet p { margin: 0.25rem 0 0.8rem; color: var(--ardoise-clair); }
+.apercu-carnet .filtres { margin: 0; }
 
-.carnet section { margin-bottom: 2rem; break-inside: avoid; }
-.carnet section h2 {
+.carnet {
+  color: #1a1a1a;
+  font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  line-height: 1.5;
+  max-width: 52rem;
+  margin: 0 auto;
+}
+
+.couverture,
+.pages-carnet {
+  min-height: 70rem;
+  padding: 3.5rem 4rem;
+  background: #fff;
+  border: 1px solid var(--trait);
+  box-shadow: 0 2px 8px rgb(31 42 51 / 8%);
+}
+
+.couverture {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.couverture .nom-ecole,
+.couverture .date-edition { color: #555; }
+.couverture .sur-titre {
+  margin: 0;
+  color: #555;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.couverture h1 {
+  margin: 1rem 0 1.5rem;
+  font-size: 3.2rem;
+  font-weight: 400;
+}
+.couverture div > p { margin: 0.35rem 0; }
+
+.entete-pages {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #1a1a1a;
+}
+.entete-pages p { margin: 0; }
+.entete-pages > p:first-child { font-size: 1.25rem; }
+.entete-pages .legende { color: #555; font-size: 0.8rem; text-align: right; }
+
+.carnet .domaine-carnet { margin-bottom: 2rem; }
+.carnet .domaine-carnet h2 {
   font-size: 1.15rem;
   font-weight: 700;
   color: #1a1a1a;
@@ -381,10 +439,17 @@ textarea { min-height: 7rem; resize: vertical; }
 .carnet li {
   display: flex;
   gap: 0.7rem;
-  padding: 0.35rem 0;
+  padding: 0.45rem 0;
   break-inside: avoid;
 }
 .carnet li .puce { flex: none; width: 1.3rem; font-size: 1rem; }
+.carnet .contenu-competence { min-width: 0; }
+.carnet .libelle-competence { display: block; }
+.carnet .date-observation {
+  display: block;
+  color: #777;
+  font: 0.75rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
 .carnet li.reussi .puce { color: var(--reussi); }
 .carnet li.en_cours .puce { color: var(--en-cours); }
 .carnet li.absent { color: #999; }
@@ -396,7 +461,16 @@ textarea { min-height: 7rem; resize: vertical; }
   font-size: 0.92rem;
   margin-top: 0.15rem;
 }
-.carnet .trace-photo { max-width: 180px; margin: 0.4rem 0 0.6rem; }
+.carnet .trace-photo {
+  display: block;
+  width: auto;
+  max-width: 16rem;
+  max-height: 12rem;
+  margin: 0.6rem 0 0.8rem;
+}
+
+.carnet-vide { margin: 7rem auto; max-width: 28rem; text-align: center; color: #666; }
+.carnet-vide h2 { color: #333; }
 
 .carnet .pied {
   margin-top: 2.5rem;
@@ -406,11 +480,24 @@ textarea { min-height: 7rem; resize: vertical; }
   color: #666;
 }
 
+@page { size: A4 portrait; margin: 14mm; }
+
 @media print {
+  html, body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   body { background: #fff; }
   .bandeau, .actions, .messages, .filtres, .sans-impression { display: none !important; }
   main { padding: 0; max-width: none; }
-  .carnet { border: 0; padding: 0; max-width: none; }
+  .carnet { max-width: none; }
+  .couverture,
+  .pages-carnet {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+  .couverture { height: 268mm; margin: 0; break-after: page; }
+  .domaine-carnet h2 { break-after: avoid; }
+  .pied { break-inside: avoid; }
   a { color: inherit; text-decoration: none; }
 }
 
@@ -422,5 +509,9 @@ textarea { min-height: 7rem; resize: vertical; }
   main { padding: 1rem 0.7rem 3rem; }
   .bascule { padding: 0.7rem 0.8rem; }
   .bascule .date { display: none; }
-  .carnet { padding: 1.5rem 1.2rem; }
+  .couverture, .pages-carnet { min-height: 0; padding: 2rem 1.2rem; }
+  .couverture { min-height: 32rem; }
+  .couverture h1 { font-size: 2.5rem; }
+  .entete-pages { display: block; }
+  .entete-pages .legende { margin-top: 0.4rem; text-align: left; }
 }
