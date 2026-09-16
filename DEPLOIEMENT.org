@@ -207,6 +207,24 @@ Ce mécanisme teste la restaurabilité du paquet. Il ne transforme pas un paquet
 =online= en instantané atomique et ne remplace pas un exercice périodique dans
 l’infrastructure de l’hébergeur.
 
+** Déploiement éphémère en intégration continue
+
+Le job GitLab =deploiement-ephemere= démarre PostgreSQL et MinIO dans des
+services isolés, puis exécute le profil persistant complet. Il vérifie :
+
+- les migrations et la collecte des fichiers statiques ;
+- le démarrage de Gunicorn et la sonde =/health/= ;
+- l’écriture, la lecture et la suppression sur le stockage S3 ;
+- la présence d’un média réellement référencé en base ;
+- la création d’un paquet coordonné PostgreSQL + médias ;
+- la restauration de ce paquet dans des cibles temporaires distinctes.
+
+Le script refuse de s’exécuter sans
+=CARNET_ENVIRONNEMENT_EPHEMERE=oui=. Cette confirmation ne doit être fournie
+que pour une base et un bucket jetables. Le succès du job prouve la
+reproductibilité du déploiement et de la reprise, mais pas la persistance entre
+deux jobs CI ni les garanties du futur hébergeur.
+
 * Profils
 
 - démonstration éphémère : =start-render.sh=, SQLite, médias sur disque et jeu
@@ -215,6 +233,8 @@ l’infrastructure de l’hébergeur.
   =.local-persistent/= ;
 - développement local Compose : PostgreSQL et MinIO, variante préparée mais
   pas encore validée sous Podman rootless avec Guix System ;
+- intégration continue : PostgreSQL, MinIO et application complète dans des
+  services éphémères isolés ;
 - pilote persistant : =start-persistent.sh=, PostgreSQL et bucket S3 privés.
 
 Seul le dernier profil représente le contrat destiné à l’hébergeur.

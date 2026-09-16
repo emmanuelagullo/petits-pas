@@ -1,5 +1,9 @@
 image: python:3.12-slim-bookworm
 
+stages:
+  - test
+  - integration
+
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -11,10 +15,6 @@ default:
   tags:
     - ci.inria.fr
     - small
-
-services:
-  - name: postgres:16-alpine
-    alias: postgresql
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -34,6 +34,10 @@ cache:
     - .cache/pip
 
 test:
+  stage: test
+  services:
+    - name: postgres:16-alpine
+      alias: postgresql
   before_script:
     - apt-get update
     - apt-get install --yes --no-install-recommends git
@@ -60,3 +64,39 @@ test:
     - python3 manage.py makemigrations --check --dry-run
     - bash -n start-persistent.sh start-render.sh scripts/*.sh
     - git show --check --format= --no-renames "$CI_COMMIT_SHA"
+
+deploiement-ephemere:
+  stage: integration
+  tags:
+    - ci.inria.fr
+    - medium
+  services:
+    - name: postgres:15-alpine
+      alias: postgresql
+    - name: quay.io/minio/minio:latest
+      alias: minio
+      command: ["server", "/data"]
+  variables:
+    POSTGRES_DB: petits_pas_ci
+    POSTGRES_USER: petits_pas_ci
+    POSTGRES_PASSWORD: petits_pas_ci
+    DATABASE_URL: "postgresql://petits_pas_ci:petits_pas_ci@postgresql:5432/petits_pas_ci"
+    MINIO_ROOT_USER: petits_pas_ci
+    MINIO_ROOT_PASSWORD: petits_pas_ci_secret
+    CARNET_S3_BUCKET: petits-pas-ci
+    CARNET_S3_ENDPOINT_URL: "http://minio:9000"
+    CARNET_S3_REGION: us-east-1
+    CARNET_S3_ACCESS_KEY: petits_pas_ci
+    CARNET_S3_SECRET_KEY: petits_pas_ci_secret
+    CARNET_S3_URL_EXPIRATION: "300"
+    CARNET_SECRET_KEY: "ci-only-persistent-secret-key-never-used-in-production"
+    CARNET_DEBUG: "0"
+    CARNET_HOSTS: "localhost,127.0.0.1"
+    CARNET_CSRF_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
+    CARNET_ENVIRONNEMENT_EPHEMERE: "oui"
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends curl git postgresql-client
+    - python3 -m pip install --requirement requirements.txt
+  script:
+    - scripts/exercer-deploiement-ephemere.sh

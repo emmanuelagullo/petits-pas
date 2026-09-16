@@ -78,6 +78,12 @@ Si un pipeline reste en attente faute de runner, activez un runner partagé dans
 `small`. Aucune variable secrète n’est nécessaire pour cette première CI : les
 identifiants présents dans le fichier sont réservés à la base éphémère du job.
 
+Après ces contrôles, un second job déploie l’application avec PostgreSQL et
+MinIO sur un runner `medium`. Il contrôle le démarrage de Gunicorn, `/health/`,
+un vrai média S3, la création d’un paquet de reprise et sa restauration dans
+des cibles distinctes. Les bases, le bucket et les identifiants de ce scénario
+n’existent que pendant le job et ne contiennent aucune donnée réelle.
+
 ## Le référentiel
 
 `referentiel/trame-cycle1.yaml` est **une trame de travail, pas un référentiel

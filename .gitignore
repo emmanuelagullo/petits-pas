@@ -8,6 +8,7 @@ carnet.sqlite3
 media/
 staticfiles/
 backups/
+.ci-deploiement-ephemere.log
 .env
 .env.*
 !.env.example
