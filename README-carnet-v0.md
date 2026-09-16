@@ -39,7 +39,7 @@ Volontairement, pour tenir dans une V0 :
 
 ```sh
 python -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements.lock
 
 python manage.py migrate
 python manage.py creer_ecole "École maternelle des Tilleuls" --commune "Angoulême"
@@ -48,6 +48,11 @@ python manage.py creer_ecole "École maternelle des Tilleuls" --commune "Angoul�
 python manage.py charger_referentiel referentiel/trame-cycle1.yaml
 python manage.py runserver
 ```
+
+`requirements.lock` reproduit les versions Python validées pour la version
+courante. `requirements.txt` conserve des plages plus larges afin de permettre
+d’autres résolutions compatibles, notamment un futur environnement Guix. La
+séparation et ses limites sont détaillées dans `REPRODUCTIBILITE.org`.
 
 Pour voir l'outil rempli avant de le montrer à quelqu'un :
 
