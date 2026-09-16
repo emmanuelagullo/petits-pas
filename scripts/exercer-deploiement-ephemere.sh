@@ -84,7 +84,7 @@ application_pid=$!
 
 application_prete=0
 for _ in $(seq 1 60); do
-    if curl --fail --silent --show-error \
+    if curl --fail --silent \
         http://127.0.0.1:8000/health/ \
         | grep -q '"status": "ok"'; then
         application_prete=1

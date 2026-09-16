@@ -1,0 +1,73 @@
+#+title: Reproductibilité de Petits Pas
+
+* Deux informations différentes
+
+Petits Pas sépare volontairement la compatibilité de la reproduction d’un
+environnement déjà validé.
+
+- =requirements.txt= exprime les dépendances directes et leurs plages de
+  compatibilité. Il répond à la question : « avec quelles versions
+  l’application est-elle censée pouvoir fonctionner ? »
+- =requirements.lock= fige toutes les versions Python d’un environnement
+  effectivement passé en intégration continue. Il répond à la question :
+  « quelles versions faut-il réinstaller pour reproduire le déploiement 0.2
+  hors Guix ? »
+
+Une borne telle que =Django>=5.2,<7= n’impose donc pas Django 6.1.1 à tous les
+déploiements. Le verrou courant choisit 6.1.1, tandis que la CI teste aussi la
+branche 5.2 afin de préserver une solution de déploiement plus ancienne tant
+qu’elle reste compatible.
+
+* Installation sans Guix
+
+Pour reproduire l’environnement validé :
+
+#+begin_src sh
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install --requirement requirements.lock
+#+end_src
+
+Pour explorer une autre résolution compatible, notamment lors d’une mise à
+jour :
+
+#+begin_src sh
+python3 -m pip install --requirement requirements.txt
+#+end_src
+
+Le verrou garantit ici les versions Python, pas une identité bit à bit : le
+wheel choisi dépend encore de la plate-forme, de Python et de l’index utilisé.
+Cette limite est explicite.
+
+* Évolution du verrou
+
+Le verrou ne doit pas être régénéré implicitement lors d’un déploiement. Une
+mise à jour suit ce cycle :
+
+- résoudre volontairement de nouvelles versions à partir de
+  =requirements.txt= ;
+- exécuter les tests et le déploiement éphémère complet ;
+- enregistrer les versions validées dans =requirements.lock= ;
+- relire le changement de verrou comme toute autre modification de code.
+
+* Future phase Guix
+
+Une phase dédiée pourra fournir :
+
+- un paquet Guix pour Petits Pas et, si nécessaire, les recettes Python
+  absentes ou trop anciennes dans Guix ;
+- un manifeste pour l’environnement de développement ;
+- un =channels.scm= verrouillant les commits des canaux ;
+- des commandes exécutées par =guix time-machine -C channels.scm -- ...= ;
+- éventuellement un =guix pack= pour une image applicative autonome ;
+- éventuellement une déclaration =guix system= pour une VM ou une machine
+  complète.
+
+Guix choisira une version située dans les plages de =requirements.txt= ; il
+n’aura pas à reproduire le choix de =requirements.lock=. Si aucune version
+disponible dans les canaux verrouillés ne convient, le dépôt pourra définir sa
+propre variante de paquet sans resserrer artificiellement le contrat Python.
+
+Le couple dépôt Git + =channels.scm= identifiera alors les sources et le graphe
+de construction complet. La reproductibilité bit à bit des artefacts devra
+néanmoins être vérifiée, et non déduite du seul usage de Guix.

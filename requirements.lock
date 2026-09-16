@@ -1,0 +1,23 @@
+# Environnement Python non-Guix validé par la CI pour la version 0.2.
+# Ce fichier fige les versions déployées ; requirements.txt décrit séparément
+# les plages de versions avec lesquelles Petits Pas entend rester compatible.
+asgiref==3.12.1
+boto3==1.43.95
+botocore==1.43.95
+dj-database-url==3.1.2
+Django==6.1.1
+django-storages==1.14.6
+gunicorn==26.2.0
+jmespath==1.1.0
+Pillow==12.3.0
+psycopg==3.3.5
+psycopg-binary==3.3.5
+python-dateutil==2.9.0.post0
+PyYAML==6.0.3
+s3transfer==0.19.2
+six==1.17.0
+sqlparse==0.6.0
+typing-extensions==4.16.0
+tzdata==2026.4
+urllib3==2.8.0
+whitenoise==6.12.0

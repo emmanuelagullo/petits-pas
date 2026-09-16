@@ -50,8 +50,10 @@ autre mécanisme d’authentification compris par Boto3.
 
 * Construction et démarrage
 
-Les dépendances sont installées depuis =requirements.txt=. La commande de
-démarrage du profil persistant est :
+Les déploiements ordinaires installent les versions validées depuis
+=requirements.lock=. Les plages de compatibilité restent décrites séparément
+dans =requirements.txt= ; voir =REPRODUCTIBILITE.org=. La commande de démarrage
+du profil persistant est :
 
 #+begin_src sh
 ./start-persistent.sh

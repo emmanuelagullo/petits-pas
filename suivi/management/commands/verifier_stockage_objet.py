@@ -20,8 +20,10 @@ class Command(BaseCommand):
                     raise CommandError("Le contenu relu diffère du contenu écrit.")
 
             url = default_storage.url(nom_enregistre)
+            if not url:
+                raise CommandError("Le stockage n’a pas produit d’URL d’accès.")
             self.stdout.write(f"- Objet : {nom_enregistre}")
-            self.stdout.write(f"- URL d'accès : {url}")
+            self.stdout.write("- URL d'accès temporaire : générée")
         except Exception as erreur:
             if nom_enregistre:
                 try:

@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+Aucune modification pour le moment.
+
+* 0.2 — 2026-09-16
+
 ** Added
 
 - Prise en charge optionnelle de PostgreSQL à partir de la variable
@@ -49,6 +53,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   le contrôle des migrations et les vérifications statiques du dépôt.
 - Ajout d’un déploiement éphémère GitLab avec PostgreSQL, MinIO, Gunicorn,
   contrôle de santé, sauvegarde coordonnée et exercice complet de reprise.
+- Ajout d’un verrou des versions Python validées sans resserrer les plages de
+  compatibilité, et test continu de la branche Django 5.2.
+- Documentation de l’articulation entre reproductibilité Python et future
+  reproductibilité complète avec Guix.
 
 ** Changed
 
@@ -56,6 +64,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   et les démonstrations éphémères.
 - Préparation du code pour les déploiements persistants de la phase 2.
 - Séparation explicite des démarrages de démonstration et de pilote.
+- Les installations et déploiements non-Guix reproductibles utilisent
+  désormais =requirements.lock=.
+- Les journaux ne publient plus les URL S3 temporaires signées.
 
 ** Known limitations
 
