@@ -161,6 +161,22 @@ scripts/verifier-reprise.sh \
 Le mode `writes-suspended`, documenté dans `DEPLOIEMENT.org`, exige que
 l’opérateur interrompe effectivement toutes les écritures.
 
+Pour prouver qu’un paquet permet réellement une reprise, le profil local natif
+peut effectuer un exercice complet dans une base PostgreSQL et un répertoire de
+médias temporaires :
+
+```sh
+source scripts/activer-local-natif.sh
+scripts/exercer-reprise-local.sh \
+  "$PWD/backups/petits-pas-reprise-YYYYMMDDTHHMMSSZ"
+```
+
+Le script vérifie le paquet, restaure les deux composantes, contrôle les
+migrations et l’existence de chaque média référencé par la base, puis supprime
+ses cibles temporaires. La base active et ses médias ne sont jamais modifiés.
+Pour conserver les cibles à des fins d’inspection, définir explicitement
+`CARNET_CONSERVER_REPRISE_LOCALE=oui` avant l’exercice.
+
 ## Tester le profil persistant en local
 
 ### Variante native
