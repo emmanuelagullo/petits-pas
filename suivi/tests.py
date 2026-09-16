@@ -115,17 +115,122 @@ class Bascule(Base):
 
 
 class Carnet(Base):
-    def test_le_carnet_ne_montre_que_les_competences_observees(self):
+    def test_la_couverture_identifie_le_carnet(self):
+        self.entrer()
+
+        r = self.client.get(reverse("carnet", args=[self.eleve.pk]))
+
+        self.assertContains(r, "Carnet de suivi des apprentissages")
+        self.assertContains(r, self.ecole.nom)
+        self.assertContains(r, self.classe.nom)
+        self.assertContains(r, self.eleve.get_niveau_display())
+        self.assertContains(r, self.classe.annee_scolaire)
+
+    def test_le_carnet_ne_montre_par_defaut_que_les_reussites(self):
         self.entrer()
         url = reverse("carnet", args=[self.eleve.pk])
         self.assertNotContains(self.client.get(url), "Je dis mon prénom")
-        Observation.objects.create(eleve=self.eleve, competence=self.competence)
+
+        observation = Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.EN_COURS,
+        )
+        self.assertNotContains(self.client.get(url), "Je dis mon prénom")
+
+        observation.statut = Observation.REUSSI
+        observation.save()
         self.assertContains(self.client.get(url), "Je dis mon prénom")
 
-    def test_le_carnet_complet_montre_tout(self):
+    def test_le_mode_observes_montre_les_apprentissages_en_cours(self):
+        self.entrer()
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.EN_COURS,
+        )
+
+        r = self.client.get(
+            reverse("carnet", args=[self.eleve.pk]),
+            {"contenu": "observes"},
+        )
+
+        self.assertContains(r, "Je dis mon prénom")
+        self.assertContains(r, "Je suis en train d'apprendre")
+
+    def test_une_reussite_montre_sa_date_et_son_commentaire(self):
+        self.entrer()
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+            date_observation="2026-09-16",
+            commentaire="Lou a raconté son arrivée à l'école.",
+        )
+
+        r = self.client.get(reverse("carnet", args=[self.eleve.pk]))
+
+        self.assertContains(r, "Observé le 16 septembre 2026")
+        self.assertContains(r, "Lou a raconté son arrivée")
+        self.assertContains(r, "école.")
+
+    def test_le_mode_complet_montre_tout(self):
+        self.entrer()
+        r = self.client.get(
+            reverse("carnet", args=[self.eleve.pk]), {"contenu": "tout"}
+        )
+        self.assertContains(r, "Je dis mon prénom")
+
+    def test_l_ancien_lien_tout_reste_compatible(self):
         self.entrer()
         r = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"tout": "1"})
         self.assertContains(r, "Je dis mon prénom")
+
+    def test_un_mode_inconnu_revient_aux_reussites(self):
+        self.entrer()
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.EN_COURS,
+        )
+        r = self.client.get(
+            reverse("carnet", args=[self.eleve.pk]), {"contenu": "inconnu"}
+        )
+        self.assertNotContains(r, "Je dis mon prénom")
+
+
+class IndicateursTrace(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer()
+
+    def page_eleve(self):
+        return self.client.get(reverse("saisie_eleve", args=[self.eleve.pk]))
+
+    def test_un_commentaire_est_signale_par_un_crayon(self):
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            commentaire="Une remarque",
+        )
+
+        r = self.page_eleve()
+
+        self.assertContains(r, 'class="indicateur-commentaire"')
+        self.assertNotContains(r, 'class="indicateur-photo"')
+
+    def test_une_photo_est_signalee_independamment_du_commentaire(self):
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            commentaire="Une remarque",
+            photo="traces/test.jpg",
+        )
+
+        r = self.page_eleve()
+
+        self.assertContains(r, 'class="indicateur-commentaire"')
+        self.assertContains(r, 'class="indicateur-photo"')
 
 
 class Import(Base):

@@ -7,7 +7,21 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
-Aucune modification pour le moment.
+** Added
+
+- Première référence de carnet pour la phase 3, avec couverture, mise en page
+  A4 et contrat de contenu documenté.
+- Comparaison dans la prévisualisation de trois contenus : réussites seules,
+  réussites et apprentissages en cours, ou référentiel complet.
+- Affichage de la date d'observation dans le carnet.
+- Indicateurs distincts dans la saisie pour les commentaires et les photos
+  associés à une compétence.
+
+** Changed
+
+- Le carnet présente par défaut les compétences réussies ; les autres
+  propositions restent accessibles dans la prévisualisation pour recueillir
+  les retours pédagogiques.
 
 * 0.2 — 2026-09-16
 
