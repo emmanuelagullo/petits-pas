@@ -1,0 +1,11 @@
+{{ define "main" }}
+  <article class="page shell prose">
+    <p class="eyebrow">Erreur 404</p>
+    <h1>Cette page reste à trouver</h1>
+    <p class="lede">L'adresse demandée ne correspond à aucune page du site Petits Pas.</p>
+    <div class="actions">
+      <a class="button primary" href="{{ "" | relURL }}">Revenir à l'accueil</a>
+      <a class="button" href="{{ "projet/" | relURL }}">Découvrir le projet</a>
+    </div>
+  </article>
+{{ end }}

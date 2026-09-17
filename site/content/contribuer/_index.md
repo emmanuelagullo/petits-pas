@@ -7,9 +7,6 @@ Petits Pas se construit comme un bien commun. Contribuer peut vouloir dire
 écrire du code, mais aussi décrire un geste de classe, relire un carnet,
 éprouver un déploiement ou rendre une explication plus accessible.
 
-Il n'est pas nécessaire de connaître Git, GitLab ou le développement logiciel
-pour apporter un retour utile.
-
 ## Contribuer depuis le terrain
 
 Les équipes pédagogiques peuvent notamment :
