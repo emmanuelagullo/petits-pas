@@ -288,7 +288,9 @@ demande avec WeasyPrint. Le fichier reprend les filtres et le nombre de
 colonnes choisis et n'est pas conservé sur le serveur. L'environnement Guix
 inclut `weasyprint` et `poppler` ; hors Guix, les bibliothèques système requises
 par WeasyPrint doivent être fournies par la plate-forme en complément de
-`requirements.lock`.
+`requirements.lock`. Les photos sont lues directement depuis le stockage
+Django — local ou S3 privé — et ne dépendent pas d'une URL publique accessible
+par le moteur PDF.
 
 Le poids, le format, le nombre de pages et les images incorporées se contrôlent
 avec :

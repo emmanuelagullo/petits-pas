@@ -1,7 +1,10 @@
 from functools import wraps
+import mimetypes
+from urllib.parse import quote, unquote
 
 from django.contrib import messages
 from django.contrib.staticfiles import finders
+from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection
 from django.db.models import Count, Prefetch, Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
@@ -308,7 +311,36 @@ def _contexte_carnet(request, pk):
     }
 
 
-def _generer_pdf(html, base_url, feuille_style):
+SCHEMA_MEDIA_PDF = "petits-pas-media:"
+
+
+def _url_media_pdf(nom):
+    return SCHEMA_MEDIA_PDF + quote(nom, safe="")
+
+
+def _recuperateur_pdf(noms_media):
+    from weasyprint import default_url_fetcher
+
+    noms_autorises = set(noms_media)
+
+    def recuperer(url):
+        if not url.startswith(SCHEMA_MEDIA_PDF):
+            return default_url_fetcher(url)
+
+        nom = unquote(url.removeprefix(SCHEMA_MEDIA_PDF))
+        if nom not in noms_autorises:
+            raise ValueError("Média non autorisé dans ce carnet.")
+
+        return {
+            "file_obj": default_storage.open(nom, "rb"),
+            "mime_type": mimetypes.guess_type(nom)[0],
+            "redirected_url": url,
+        }
+
+    return recuperer
+
+
+def _generer_pdf(html, base_url, feuille_style, noms_media=()):
     # Le chargement tardif laisse les autres pages disponibles sur un ancien
     # environnement de démonstration qui ne fournirait pas encore Pango.
     from weasyprint import CSS, HTML
@@ -317,6 +349,7 @@ def _generer_pdf(html, base_url, feuille_style):
         string=html,
         base_url=base_url,
         media_type="print",
+        url_fetcher=_recuperateur_pdf(noms_media),
     ).write_pdf(stylesheets=[CSS(filename=feuille_style)])
 
 
@@ -334,6 +367,12 @@ def carnet(request, pk):
 @require_safe
 def carnet_pdf(request, pk):
     contexte = _contexte_carnet(request, pk)
+    noms_media = []
+    for _domaine, lignes in contexte["domaines"]:
+        for _competence, observation in lignes:
+            if observation and observation.photo:
+                observation.url_photo_pdf = _url_media_pdf(observation.photo.name)
+                noms_media.append(observation.photo.name)
     html = render_to_string(
         "suivi/carnet.html",
         {**contexte, "generation_pdf": True},
@@ -347,6 +386,7 @@ def carnet_pdf(request, pk):
         html,
         request.build_absolute_uri("/"),
         feuille_style,
+        noms_media,
     )
 
     nom = slugify(contexte["eleve"].nom_court) or "eleve"

@@ -16,3 +16,4 @@ site/.hugo_build.lock
 .env
 .env.*
 !.env.example
+/notes-locales/

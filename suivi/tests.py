@@ -1,6 +1,6 @@
 import hashlib
 import os
-from io import StringIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -15,6 +15,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
+from .views import _recuperateur_pdf
 
 
 class Base(TestCase):
@@ -140,6 +141,29 @@ class Bascule(Base):
 
 
 class Carnet(Base):
+    @patch(
+        "suivi.views.default_storage.open",
+        return_value=BytesIO(b"contenu-photo"),
+    )
+    def test_le_recuperateur_pdf_lit_un_media_autorise_dans_le_stockage(
+        self, ouvrir
+    ):
+        recuperer = _recuperateur_pdf(["traces/photo école.jpg"])
+
+        resultat = recuperer(
+            "petits-pas-media:traces%2Fphoto%20%C3%A9cole.jpg"
+        )
+
+        ouvrir.assert_called_once_with("traces/photo école.jpg", "rb")
+        self.assertEqual(resultat["file_obj"].read(), b"contenu-photo")
+        self.assertEqual(resultat["mime_type"], "image/jpeg")
+
+    def test_le_recuperateur_pdf_refuse_un_media_hors_du_carnet(self):
+        recuperer = _recuperateur_pdf([])
+
+        with self.assertRaisesMessage(ValueError, "Média non autorisé"):
+            recuperer("petits-pas-media:traces%2Fautre.jpg")
+
     def test_le_pdf_exige_une_connexion(self):
         r = self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]))
 
@@ -296,6 +320,25 @@ class Carnet(Base):
         self.assertNotIn("Lou Martin", rendu)
         self.assertIn("En cours d'apprentissage", rendu)
         self.assertIn('class="carnet colonnes-1"', rendu)
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
+    def test_le_pdf_lit_les_photos_depuis_le_stockage_prive(self, generer_pdf):
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+            photo="traces/photo école.jpg",
+        )
+        self.entrer()
+
+        self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]))
+
+        rendu, _base_url, _feuille_style, noms_media = generer_pdf.call_args.args
+        self.assertIn(
+            'src="petits-pas-media:traces%2Fphoto%20%C3%A9cole.jpg"', rendu
+        )
+        self.assertNotIn("/media/traces/", rendu)
+        self.assertEqual(noms_media, ["traces/photo école.jpg"])
 
     def test_le_pdf_d_un_eleve_d_une_autre_ecole_est_introuvable(self):
         autre = Ecole.objects.create(nom="Ailleurs")
