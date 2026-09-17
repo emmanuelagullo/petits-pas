@@ -14,11 +14,11 @@ ITICarnet constitue une source d'information et non un rendu à reproduire.
 Petits Pas peut faire des choix distincts lorsqu'ils simplifient le travail
 enseignant, rendent le carnet plus clair ou protègent mieux les données.
 
-La version =#J1c= reste une page HTML imprimée par le navigateur. Le choix d'un
-moteur PDF déterministe viendra après l'évaluation de la structure et du
-contenu du carnet.
+Depuis =#J3=, la même référence sert à la prévisualisation HTML et à la
+génération déterministe d'un PDF individuel avec WeasyPrint. Le PDF est produit
+à la demande et incorpore les photos directement depuis le stockage privé.
 
-* État du prototype =#J1c=
+* État du prototype après =#J3b=
 
 La première prévisualisation permet de comparer trois contenus sans modifier
 les observations :
@@ -28,7 +28,7 @@ les observations :
 - =Référentiel complet= : toutes les compétences actives, y compris celles
   qui n'ont pas encore d'observation.
 
-=#J1c= utilise =Réussites et apprentissages en cours= par défaut, dans une
+Le prototype utilise =Réussites et apprentissages en cours= par défaut, dans une
 présentation positive et sans couleur évoquant une alerte ou un échec. Les
 autres contenus restent disponibles afin de les comparer.
 
@@ -41,7 +41,7 @@ affichée aux familles dans cette référence.
 
 L'année de naissance, la photo de l'école, les sous-domaines, les bilans, les
 regroupements temporels et l'historique de plusieurs traces nécessitent des
-évolutions ultérieures du modèle de données et ne sont pas simulés par =#J1c=.
+évolutions ultérieures du modèle de données et ne sont pas encore simulés.
 
 * Faits observés dans les PDF ITICarnet
 
@@ -91,6 +91,53 @@ Les boîtes sont présentées sur deux colonnes dans les documents examinés.
   éditions et pas dans d'autres.
 - Un nouveau grand domaine et la partie bilan commencent au moins parfois sur
   une nouvelle page.
+
+* Faits observés dans l'interface ITICarnet
+
+Ces faits proviennent de la partie encore consultable de l'application après
+l'arrêt des ajouts d'élèves, d'observations et de remarques. Ils décrivent une
+référence connue, non un cahier des charges pour Petits Pas.
+
+** Gestion des élèves
+
+- La liste peut être filtrée par niveau, classe ou recherche textuelle.
+- Chaque élève possède un nom, un prénom, une année de naissance, un niveau et
+  une classe.
+- Un élève peut être archivé ou supprimé.
+
+** Paramètres durables de l'école
+
+- Une couverture commune peut comprendre un titre, un texte, une photo ou un
+  logo d'école, ou une photo individuelle.
+- Les attendus de fin de cycle peuvent précéder chaque domaine.
+- L'école choisit des icônes, la présence d'un domaine et l'ordre des domaines.
+- Des barres de progression facultatives peuvent être ajoutées.
+- Cinq styles combinent différemment périodes, cadres, vignettes et dates.
+- Une page de remarques peut être absente, vierge ou alimentée par des textes
+  saisis dans l'application, avec plusieurs règles de sélection.
+
+** Préparation d'une édition
+
+- L'enseignant choisit un élève, une sélection ou toute la classe.
+- Il choisit une période de mois à mois.
+- Il peut régler la couleur, la couverture, les attendus et les
+  sous-domaines.
+- Il peut inclure des compétences antérieures et personnaliser leur titre.
+- Il choisit les remarques à inclure selon la politique de l'école.
+- L'application produit un PDF ou plusieurs PDF réunis dans une archive ZIP.
+
+** Outils internes « petits plus »
+
+- Une grille par compétence repère les élèves qui ne l'ont pas encore acquise.
+- Une grille par élève rassemble ses compétences non acquises.
+- Des barres peuvent être imprimées pour un élève ou une classe et une
+  période.
+- La liste des compétences de l'école peut être exportée par niveau.
+
+L'interface observée distingue donc quatre responsabilités : gestion des
+élèves, politique durable du carnet, préparation ponctuelle d'une édition et
+outils internes de suivi. Cette séparation est retenue comme principe de
+conception, indépendamment des options particulières d'ITICarnet.
 
 * Hypothèses retenues pour Petits Pas
 
@@ -153,7 +200,7 @@ Le référentiel peut proposer une ou plusieurs formulations narratives pour une
 compétence. Une formulation peut contenir un emplacement simple pour le prénom
 de l'enfant.
 
-L'enseignante peut :
+L'enseignant peut :
 
 - ne sélectionner aucune formulation ;
 - insérer une proposition en un clic ;
@@ -260,6 +307,11 @@ doit pouvoir choisir ou paramétrer au moins :
 - l'inclusion éventuelle des attendus de fin de maternelle ;
 - les traces destinées à apparaître.
 
+La préparation doit aussi pouvoir porter, à terme, sur un élève, une sélection
+ou une classe entière, puis produire des PDF individuels réunis dans une
+archive ZIP. La période de l'édition et l'inclusion éventuelle d'acquisitions
+antérieures sont des choix ponctuels distincts des paramètres de l'école.
+
 Il reste à déterminer si cette sélection doit seulement décrire une édition ou
 si certains choix, comme l'exclusion d'une trace, doivent pouvoir devenir
 permanents.
@@ -306,6 +358,11 @@ devenir des contraintes définitives.
   nom ?
 - Existe-t-il des situations où la période d'un bilan ne peut pas être déduite
   des dates des bilans successifs ?
+- Quelles options doivent constituer une politique stable de l'école et
+  lesquelles varient réellement avant chaque édition ?
+- Générez-vous le plus souvent un carnet, une sélection ou toute la classe ?
+- Parmi les grilles et barres d'ITICarnet, lesquelles utilisiez-vous réellement
+  et pour prendre quelle décision pédagogique ?
 
 * Conséquences probables sur le modèle de données
 
@@ -323,6 +380,10 @@ migration à ce stade.
   les formulations narratives proposées.
 - La préparation d'une édition devra rester distincte des faits pédagogiques
   enregistrés.
+- Des paramètres d'école devront conserver les choix durables sans les
+  confondre avec les options ponctuelles d'un export.
+- L'archivage devra masquer un élève des listes courantes sans supprimer son
+  parcours.
 
 * Contraintes techniques déjà retenues
 

@@ -9,6 +9,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Formalisation du parcours enseignant à partir de l'état actuel de Petits Pas
+  et des fonctions observées dans la partie encore accessible d'ITICarnet, en
+  distinguant démonstration, essai pédagogique et évolutions ultérieures.
+- Description séparée de la gestion des élèves, des paramètres durables de
+  l'école, de la préparation d'une édition et des outils internes de suivi.
 - Génération à la demande d'un carnet PDF individuel reprenant les choix de
   contenu et de mise en page de la prévisualisation, sans conservation sur le
   serveur.

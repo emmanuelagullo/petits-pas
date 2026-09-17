@@ -1,0 +1,297 @@
+#+title: Petits Pas — parcours enseignant de référence
+
+* Objet
+
+Ce document décrit le parcours enseignant visé pendant la phase 3. Il met en
+regard :
+
+- l'usage déjà disponible dans Petits Pas ;
+- les fonctions observées dans la partie encore accessible d'ITICarnet ;
+- les besoins probables pour une démonstration puis un essai pédagogique ;
+- les décisions qui doivent encore être validées avec l'équipe pédagogique.
+
+ITICarnet est une source d'information et non une interface à reproduire. Une
+fonction observée n'entre dans Petits Pas que si elle répond à un usage compris
+et si son coût reste proportionné à l'essai envisagé.
+
+* Principes de conception
+
+- Séparer les faits pédagogiques des choix de présentation d'un PDF.
+- Séparer les paramètres durables de l'école des options propres à une
+  édition.
+- Optimiser d'abord la saisie quotidienne, puis la préparation périodique des
+  carnets.
+- Employer un langage positif dans les documents destinés aux familles.
+- Réserver les outils de pilotage internes aux équipes pédagogiques.
+- Ne pas demander à l'école d'administrer la base, le stockage objet ou les
+  sauvegardes.
+- Ne pas reproduire une option d'ITICarnet sans en connaître l'usage.
+
+* Vue d'ensemble
+
+Le parcours est réparti en six activités :
+
+- préparer l'école, les classes et les élèves ;
+- saisir les apprentissages au quotidien ;
+- entretenir les bilans et le parcours longitudinal ;
+- préparer et prévisualiser une édition ;
+- exporter les carnets ;
+- consulter des outils internes de suivi.
+
+Les quatre niveaux de priorité employés ci-dessous sont :
+
+- =Existant= : déjà utilisable dans Petits Pas ;
+- =Démonstration= : nécessaire pour présenter un parcours cohérent avec des
+  données factices ;
+- =Essai= : nécessaire ou très utile avant un usage pédagogique réel ;
+- =Plus tard= : intéressant, mais non bloquant pour le premier essai.
+
+* Préparer l'école, les classes et les élèves
+
+** Existant
+
+- Création d'une école en ligne de commande.
+- Deux rôles accessibles par mots de passe partagés : équipe enseignante et
+  direction.
+- Création de classes et import d'une liste d'élèves.
+- Rattachement d'un élève à une classe et à un niveau PS, MS ou GS.
+- Isolation des données entre écoles.
+
+** Démonstration
+
+- Conserver le jeu de données factices stable entre deux retours de l'équipe.
+- Montrer clairement la classe, le niveau et l'année scolaire courants.
+- Ajouter l'année de naissance facultative à l'identité de l'élève.
+- Permettre de retrouver un élève par son prénom, son initiale, sa classe ou
+  son niveau lorsque l'effectif de démonstration le justifie.
+
+** Essai
+
+- Archiver un élève sans supprimer son carnet ni ses traces.
+- Faire passer un même élève d'une classe ou d'un niveau à l'autre en
+  conservant son historique.
+- Représenter explicitement sa scolarité pour chaque année scolaire.
+- Clarifier les droits respectifs de la direction et de l'équipe enseignante
+  sur les élèves, les classes et les paramètres de l'école.
+
+** Plus tard
+
+- Comptes individuels et attribution nominative des modifications.
+- Import ou rapprochement avec ONDE, si le cadre institutionnel le permet.
+
+* Saisir les apprentissages au quotidien
+
+** Existant
+
+- Vue d'un élève sur l'ensemble du référentiel.
+- Vue d'une compétence sur l'ensemble de la classe.
+- États « réussi », « en cours » et absence d'observation.
+- Date exacte conservée pour chaque observation.
+- Commentaire libre et photo facultatifs.
+- Indicateurs distincts pour le commentaire et la photo.
+
+** Démonstration
+
+- Faire évaluer les deux portes d'entrée — par élève et par compétence — par
+  l'équipe pédagogique.
+- Vérifier le vocabulaire et le nombre de gestes nécessaires lors d'une saisie
+  répétée.
+- Montrer que la date exacte enregistrée peut être restituée sous une période
+  plus large dans le carnet.
+
+** Essai
+
+- Proposer des formulations narratives insérables en un clic puis librement
+  modifiables.
+- Conserver plusieurs observations ou traces datées pour une même compétence.
+- Permettre d'exclure une trace d'une édition sans effacer le fait
+  pédagogique.
+- Normaliser les photos à l'import et supprimer leurs métadonnées privées.
+
+** Plus tard
+
+- Plusieurs photos dans une même trace si l'essai en démontre l'utilité.
+- Historique nominatif des modifications lorsque des comptes individuels
+  existent.
+
+* Entretenir les bilans et le parcours longitudinal
+
+** Démonstration
+
+- Montrer dans la maquette la place prévue pour les bilans, sans inventer de
+  contenu réel.
+- Présenter les quatre regroupements envisagés : annuel, mensuel, par bilan ou
+  aucun.
+
+** Essai
+
+- Créer plusieurs bilans datés au cours d'une même année scolaire.
+- Conserver les bilans des années précédentes.
+- Déduire automatiquement la période couverte de la chronologie des bilans.
+- Rééditer un ancien état du parcours sans que les modifications ultérieures
+  du référentiel changent les textes déjà enregistrés.
+
+Le terme =bilan= est retenu provisoirement pour l'entité. L'interface pourra
+employer une formulation plus douce, par exemple « Quelques mots sur le
+parcours », selon le vocabulaire choisi avec l'équipe.
+
+* Paramétrer durablement le carnet de l'école
+
+Les réglages suivants décrivent une politique d'école. Ils ne devraient pas
+être ressaisis avant chaque export :
+
+- titre et texte facultatif de couverture ;
+- nom et photo facultative de l'école ;
+- présence habituelle des attendus de fin de cycle ;
+- ordre et visibilité des domaines ;
+- visibilité des sous-domaines ;
+- contenu familial par défaut : réussites seules ou réussites et
+  apprentissages en cours ;
+- regroupement temporel habituel ;
+- présentation habituelle sur une ou deux colonnes ;
+- politique habituelle d'inclusion des bilans.
+
+ITICarnet proposait des séries d'icônes, cinq styles globaux et des barres de
+progression. Petits Pas ne retient pas ces choix à ce stade : les options de
+contenu et de mise en page doivent rester explicites et indépendantes.
+
+* Préparer et prévisualiser une édition
+
+** Existant
+
+- Prévisualisation d'un carnet individuel.
+- Choix entre réussites, apprentissages observés ou référentiel complet.
+- Choix entre une et deux colonnes.
+- Génération du PDF à la demande avec commentaire et photo.
+
+** Démonstration
+
+- Faire apparaître la différence entre paramètres d'école et options de
+  l'édition courante.
+- Préserver les choix pendant les allers-retours entre prévisualisation et
+  téléchargement.
+- Montrer un cas sans photo, un cas avec photo et plusieurs longueurs de
+  carnet.
+
+** Essai
+
+Une préparation d'édition doit pouvoir sélectionner :
+
+- un élève, plusieurs élèves ou toute une classe ;
+- une période ou les années scolaires concernées ;
+- les acquisitions de la période et, facultativement, les acquisitions
+  antérieures ;
+- réussites seules ou réussites et apprentissages en cours ;
+- couverture, attendus et sous-domaines ;
+- regroupement temporel ;
+- bilans inclus ;
+- une ou deux colonnes ;
+- impression en couleur ou économe en encre.
+
+Une prévisualisation doit précéder l'export. Les choix ponctuels ne modifient
+ni les observations ni les paramètres durables de l'école.
+
+Plutôt que plusieurs « styles » opaques, Petits Pas compose des options
+sémantiques. Des préréglages pourront être ajoutés plus tard si les usages
+montrent que les mêmes combinaisons reviennent souvent.
+
+* Exporter les carnets
+
+** Existant
+
+- Téléchargement immédiat d'un PDF individuel.
+- Nom de fichier ne révélant que le prénom et l'initiale du nom.
+- PDF non conservé par défaut sur le serveur.
+
+** Démonstration
+
+- Contrôler le poids, les pages et les images avec les outils documentés.
+- Vérifier que la prévisualisation et le PDF appliquent les mêmes choix.
+
+** Essai
+
+- Produire les PDF d'une sélection ou de toute une classe.
+- Télécharger ces fichiers dans une archive ZIP.
+- Afficher une progression lorsque la génération demande plusieurs secondes.
+- Signaler individuellement un échec sans perdre les autres PDF produits.
+
+Petits Pas n'envoie pas directement les carnets aux familles pendant ce
+premier essai. L'équipe conserve son canal habituel et Petits Pas n'a besoin ni
+des adresses ni de comptes parents.
+
+* Consulter les outils internes de suivi
+
+ITICarnet proposait notamment :
+
+- une grille d'une ou plusieurs compétences pour repérer les élèves ne les
+  ayant pas encore acquises ;
+- une grille d'un élève regroupant ses compétences non acquises ;
+- des barres de progression par niveau et pour le cycle ;
+- une liste imprimable des compétences de l'école.
+
+Ces outils répondent à un usage interne distinct du carnet familial. Petits
+Pas doit d'abord demander quels documents sont réellement utilisés et pour
+quelle décision pédagogique.
+
+Si un premier outil est retenu, la priorité plausible est une vue de classe
+par compétence, déjà proche de l'écran de saisie actuel. Les formulations
+« compétences à observer » ou « apprentissages à accompagner » sont préférées
+à une liste d'échecs.
+
+Les barres de progression sont différées. Un pourcentage dépend du
+référentiel, de la politique de saisie, de la période et du dénominateur
+choisi ; il ne doit pas donner une apparence de mesure objective sans contrat
+explicite.
+
+* Questions à soumettre à l'équipe pédagogique
+
+** Travail quotidien
+
+- Utilisez-vous davantage l'entrée par élève ou l'entrée par compétence ?
+- Lorsqu'une compétence est revue, faut-il conserver plusieurs traces ?
+- Les commentaires proposés puis modifiables feraient-ils réellement gagner
+  du temps ?
+- Une trace doit-elle pouvoir rester interne et ne jamais apparaître dans le
+  carnet familial ?
+
+** Carnet familial
+
+- Souhaitez-vous y montrer uniquement les réussites, ou également les
+  apprentissages en cours ?
+- Quels regroupements temporels utiliseriez-vous réellement ?
+- Les attendus sont-ils nécessaires à chaque édition ou seulement à certaines
+  étapes du cycle ?
+- Comment nommez-vous les textes périodiques consacrés à l'enfant : bilans,
+  remarques, appréciations ou autrement ?
+- Faut-il conserver toutes ces entrées dans les éditions suivantes ?
+- L'année de naissance, le prénom et l'initiale du nom suffisent-ils pour
+  identifier le carnet ?
+
+** Préparation et export
+
+- Générez-vous toujours toute la classe ou souvent quelques carnets seulement ?
+- Quelle période choisissez-vous et à quel moment de l'année ?
+- Pourquoi réaffichez-vous, ou non, les compétences antérieures ?
+- Quelles options changent réellement d'une édition à l'autre ?
+- Un ZIP de PDF individuels correspond-il exactement à votre circuit actuel ?
+
+** Outils internes
+
+- Parmi les grilles et barres proposées par ITICarnet, lesquelles utilisiez-vous
+  effectivement ?
+- Quelle décision prenez-vous à partir d'une grille de compétence ou d'élève ?
+- Une vue interactive est-elle préférable à un PDF imprimé ?
+
+* Découpage proposé après cette formalisation
+
+- Modèle longitudinal minimal : année de naissance, archivage, scolarités et
+  bilans datés.
+- Préparation explicite d'une édition individuelle avec période et options.
+- Historique de plusieurs observations ou traces par compétence.
+- Export d'une sélection d'élèves et ZIP de classe.
+- Normalisation et optimisation des photos.
+- Premier outil interne choisi avec l'équipe, seulement après clarification
+  de son usage.
+
+L'ordre pourra changer après le retour pédagogique. En particulier, un besoin
+quotidien avéré prime sur une option de présentation ou un indicateur agrégé.
