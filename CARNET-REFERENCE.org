@@ -14,11 +14,11 @@ ITICarnet constitue une source d'information et non un rendu à reproduire.
 Petits Pas peut faire des choix distincts lorsqu'ils simplifient le travail
 enseignant, rendent le carnet plus clair ou protègent mieux les données.
 
-La version =#J1= reste une page HTML imprimée par le navigateur. Le choix d'un
+La version =#J1c= reste une page HTML imprimée par le navigateur. Le choix d'un
 moteur PDF déterministe viendra après l'évaluation de la structure et du
 contenu du carnet.
 
-* État du prototype =#J1=
+* État du prototype =#J1c=
 
 La première prévisualisation permet de comparer trois contenus sans modifier
 les observations :
@@ -28,13 +28,20 @@ les observations :
 - =Référentiel complet= : toutes les compétences actives, y compris celles
   qui n'ont pas encore d'observation.
 
-=#J1= utilise encore =Réussites= par défaut. L'hypothèse retenue pour la
-prochaine évolution est =Réussites et apprentissages en cours=, dans une
-présentation positive et sans couleur évoquant une alerte ou un échec.
+=#J1c= utilise =Réussites et apprentissages en cours= par défaut, dans une
+présentation positive et sans couleur évoquant une alerte ou un échec. Les
+autres contenus restent disponibles afin de les comparer.
 
-La couverture =#J1= constitue une bonne base. La prochaine évolution devra
-utiliser le prénom et l'initiale du nom, ajouter l'année de naissance lorsqu'elle
-est connue et réserver une place facultative à la photo de l'école.
+La couverture utilise le prénom et l'initiale du nom. Les compétences sont
+présentées dans des boîtes sur une ou deux colonnes, au choix, et chaque
+nouveau grand domaine commence sur une nouvelle page à l'impression. Les
+apprentissages en cours portent un libellé explicite sans fond évoquant une
+alerte. La date exacte de l'observation reste enregistrée mais n'est plus
+affichée aux familles dans cette référence.
+
+L'année de naissance, la photo de l'école, les sous-domaines, les bilans, les
+regroupements temporels et l'historique de plusieurs traces nécessitent des
+évolutions ultérieures du modèle de données et ne sont pas simulés par =#J1c=.
 
 * Faits observés dans les PDF ITICarnet
 
@@ -262,8 +269,8 @@ permanents.
 - La couverture commence sur une page dédiée.
 - Chaque grand domaine et la partie bilan peuvent commencer sur une nouvelle
   page.
-- Les boîtes de compétences peuvent être disposées sur deux colonnes lorsque
-  leur contenu le permet.
+- Les boîtes de compétences peuvent être disposées sur une ou deux colonnes,
+  au choix lors de la prévisualisation.
 - Une boîte ne doit pas être coupée entre deux pages.
 - Les apprentissages en cours utilisent une présentation encourageante et
   non une couleur d'avertissement.

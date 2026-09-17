@@ -269,12 +269,15 @@ def carnet(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, classe__ecole=ecole)
     modes = {"reussites", "observes", "tout"}
-    mode = request.GET.get("contenu", "reussites")
+    mode = request.GET.get("contenu", "observes")
+    colonnes = request.GET.get("colonnes", "2")
     # Compatibilité avec les liens de la version 0.2.
     if request.GET.get("tout") == "1":
         mode = "tout"
     if mode not in modes:
-        mode = "reussites"
+        mode = "observes"
+    if colonnes not in {"1", "2"}:
+        colonnes = "2"
 
     etats = {o.competence_id: o for o in eleve.observations.select_related("competence")}
     domaines = []
@@ -300,6 +303,7 @@ def carnet(request, pk):
             "eleve": eleve,
             "domaines": domaines,
             "mode": mode,
+            "colonnes": colonnes,
             "edite_le": timezone.localdate(),
         },
     )
