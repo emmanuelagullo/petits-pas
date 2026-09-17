@@ -31,3 +31,14 @@ hugo --source site --minify
 ```
 
 Le résultat est écrit dans `site/public/`, répertoire ignoré par Git.
+
+## Construction en CI
+
+Les jobs `site-public` et `pages` héritent de la même définition Hugo dans
+`.gitlab-ci.yml`. L'image est référencée par son digest immuable et fournit
+actuellement Hugo Extended 0.140.2. Une mise à niveau de Hugo doit donc être une
+modification explicite et validée, et non un effet de bord du tag `latest`.
+
+La construction en CI utilise `--panicOnWarning` : tout avertissement Hugo fait
+échouer le job. Les jobs Hugo désactivent aussi le cache Python global, dont ils
+n'ont pas besoin.
