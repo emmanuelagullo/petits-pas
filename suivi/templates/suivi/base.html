@@ -11,10 +11,16 @@
 </head>
 <body>
 {% if environnement_atelier %}
-<aside class="bandeau-atelier sans-impression" role="status">
+<aside class="bandeau-environnement sans-impression" role="status">
   <strong>Atelier pédagogique — données factices uniquement</strong>
   <span>N'utilisez aucun nom, commentaire ni média réel.</span>
   <span>Version {{ version_application }}</span>
+</aside>
+{% elif environnement_ephemere %}
+<aside class="bandeau-environnement sans-impression" role="status">
+  <strong>Démonstration publique — données fictives uniquement</strong>
+  <span>N'utilisez aucune donnée sensible : toute saisie ou tout média peut être vu par les autres visiteurs.</span>
+  <span>Les modifications disparaissent après 15 minutes sans aucune visite.</span>
 </aside>
 {% endif %}
 {% if ecole %}

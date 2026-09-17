@@ -1,0 +1,16 @@
+{{- $demo := .Site.Data.demonstration -}}
+<div class="demo-access">
+  <article>
+    <h2>Accès enseignant</h2>
+    <p>Mot de passe</p>
+    <code>{{ $demo.identifiants.enseignant }}</code>
+  </article>
+  <article>
+    <h2>Accès direction</h2>
+    <p>Mot de passe</p>
+    <code>{{ $demo.identifiants.direction }}</code>
+  </article>
+</div>
+<p class="actions">
+  <a class="button primary" href="{{ $demo.url }}" rel="external">Ouvrir la démonstration</a>
+</p>

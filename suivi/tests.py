@@ -46,6 +46,19 @@ class Acces(Base):
         )
         self.assertContains(r, "Version 0.3-dev1")
 
+    @override_settings(
+        ENVIRONNEMENT_ATELIER=False,
+        ENVIRONNEMENT_EPHEMERE=True,
+    )
+    def test_la_demonstration_ephemere_est_signalee_sur_la_connexion(self):
+        r = self.client.get(reverse("connexion"))
+
+        self.assertContains(
+            r, "Démonstration publique — données fictives uniquement"
+        )
+        self.assertContains(r, "peut être vu par les autres visiteurs")
+        self.assertContains(r, "15 minutes sans aucune visite")
+
     def test_sans_mot_de_passe_on_est_renvoye_a_la_connexion(self):
         r = self.client.get(reverse("accueil"))
         self.assertRedirects(r, reverse("connexion"))

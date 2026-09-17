@@ -15,8 +15,12 @@ carnet de chaque enfant.
 4. Relire les acquisitions sur une période ou depuis le dernier bilan.
 5. Générer un carnet individuel destiné à la famille.
 
-## Démonstration en préparation
+## Essayer le parcours
 
-Les futures captures seront générées automatiquement depuis un environnement
-de démonstration contenant uniquement des données fictives. Elles évolueront
-ainsi avec l'interface sans introduire de données réelles dans le dépôt.
+La [démonstration publique]({{< relref "/demonstration/" >}}) permet déjà de
+parcourir l'application avec un jeu de données fictives. Cet espace est partagé
+et jetable : aucune donnée réelle ou sensible ne doit y être saisie.
+
+Les futures captures seront générées automatiquement depuis cet environnement.
+Elles évolueront ainsi avec l'interface sans introduire de données réelles dans
+le dépôt.

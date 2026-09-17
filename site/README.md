@@ -24,6 +24,11 @@ placer dans le répertoire de construction avant l'appel à Hugo.
 Les ressources graphiques permanentes et leurs informations de licence peuvent
 en revanche être versionnées dans `static/`.
 
+Les paramètres publics partagés par le site et la démonstration Render sont
+centralisés dans `data/demonstration.yaml`. Toute modification de ce fichier
+affecte également `start-render.sh` et déclenche donc les contrôles de
+l'application.
+
 ## Construction locale
 
 ```sh

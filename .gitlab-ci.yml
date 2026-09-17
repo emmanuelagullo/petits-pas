@@ -61,6 +61,7 @@ test:
         - requirements.lock
         - requirements.txt
         - "scripts/**/*"
+        - site/data/demonstration.yaml
         - "start-*.sh"
         - "suivi/**/*"
         - trame-cycle1.yaml
@@ -119,6 +120,7 @@ deploiement-ephemere:
         - requirements.lock
         - requirements.txt
         - "scripts/**/*"
+        - site/data/demonstration.yaml
         - "start-*.sh"
         - "suivi/**/*"
         - trame-cycle1.yaml
