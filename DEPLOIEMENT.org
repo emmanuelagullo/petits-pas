@@ -52,8 +52,19 @@ autre mécanisme d’authentification compris par Boto3.
 
 Les déploiements ordinaires installent les versions validées depuis
 =requirements.lock=. Les plages de compatibilité restent décrites séparément
-dans =requirements.txt= ; voir =REPRODUCTIBILITE.org=. La commande de démarrage
-du profil persistant est :
+dans =requirements.txt= ; voir =REPRODUCTIBILITE.org=.
+
+La génération PDF utilise WeasyPrint. L'image ou le système d'exécution doit
+donc fournir ses bibliothèques natives de composition typographique et de rendu
+en plus des paquets Python de =requirements.lock=. Le paquet Guix
+=weasyprint= fournit cet ensemble pour le développement ; la disponibilité de
+la commande suivante doit être contrôlée chez l'hébergeur :
+
+#+begin_src sh
+weasyprint --info
+#+end_src
+
+La commande de démarrage du profil persistant est :
 
 #+begin_src sh
 ./start-persistent.sh

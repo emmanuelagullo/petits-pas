@@ -9,6 +9,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Génération à la demande d'un carnet PDF individuel reprenant les choix de
+  contenu et de mise en page de la prévisualisation, sans conservation sur le
+  serveur.
 - Profil dédié d'atelier pédagogique persistant, signalé dans l'interface et
   limité par des garde-fous à des données exclusivement factices.
 - Initialisation explicite et non destructive du jeu de données de l'atelier,

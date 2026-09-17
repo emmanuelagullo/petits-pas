@@ -127,6 +127,11 @@ class Bascule(Base):
 
 
 class Carnet(Base):
+    def test_le_pdf_exige_une_connexion(self):
+        r = self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]))
+
+        self.assertRedirects(r, reverse("connexion"))
+
     def test_la_couverture_identifie_le_carnet(self):
         self.eleve.nom = "Martin"
         self.eleve.save(update_fields=["nom"])
@@ -228,6 +233,66 @@ class Carnet(Base):
             reverse("carnet", args=[self.eleve.pk]), {"contenu": "inconnu"}
         )
         self.assertContains(r, "Je dis mon prénom")
+
+    def test_le_pdf_est_telechargeable_avec_un_nom_neutre(self):
+        self.eleve.nom = "Martin"
+        self.eleve.save(update_fields=["nom"])
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+        )
+        self.entrer()
+
+        r = self.client.get(
+            reverse("carnet_pdf", args=[self.eleve.pk]),
+            {"contenu": "reussites", "colonnes": "1"},
+        )
+
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r["Content-Type"], "application/pdf")
+        self.assertEqual(
+            r["Content-Disposition"],
+            'attachment; filename="carnet-lou-m.pdf"',
+        )
+        self.assertIn("no-store", r["Cache-Control"])
+        self.assertIn("private", r["Cache-Control"])
+        self.assertTrue(r.content.startswith(b"%PDF-"))
+        self.assertLess(len(r.content), 1_000_000)
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
+    def test_le_pdf_reutilise_les_filtres_et_ne_devoile_pas_le_nom(
+        self, generer_pdf
+    ):
+        self.eleve.nom = "Martin"
+        self.eleve.save(update_fields=["nom"])
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.EN_COURS,
+        )
+        self.entrer()
+
+        self.client.get(
+            reverse("carnet_pdf", args=[self.eleve.pk]),
+            {"contenu": "observes", "colonnes": "1"},
+        )
+
+        rendu = generer_pdf.call_args.args[0]
+        self.assertIn("Lou M.", rendu)
+        self.assertNotIn("Lou Martin", rendu)
+        self.assertIn("En cours d'apprentissage", rendu)
+        self.assertIn('class="carnet colonnes-1"', rendu)
+
+    def test_le_pdf_d_un_eleve_d_une_autre_ecole_est_introuvable(self):
+        autre = Ecole.objects.create(nom="Ailleurs")
+        autre_classe = Classe.objects.create(ecole=autre, nom="MS")
+        autre_eleve = Eleve.objects.create(classe=autre_classe, prenom="Zoé")
+        self.entrer()
+
+        r = self.client.get(reverse("carnet_pdf", args=[autre_eleve.pk]))
+
+        self.assertEqual(r.status_code, 404)
 
 
 class IndicateursTrace(Base):
@@ -331,6 +396,9 @@ class DiagnosticDeploiement(TestCase):
         SECRET_KEY="une-cle-distincte-et-secrete",
         ALLOWED_HOSTS=["petits-pas.inria.fr"],
         CSRF_TRUSTED_ORIGINS=["https://petits-pas.inria.fr"],
+        ENVIRONNEMENT_ATELIER=False,
+        ENVIRONNEMENT_EPHEMERE=False,
+        VERSION_APPLICATION="",
         SECURE_PROXY_SSL_HEADER=(
             "HTTP_X_FORWARDED_PROTO",
             "https",

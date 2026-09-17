@@ -7,3 +7,4 @@ Pillow>=10
 tzdata
 gunicorn
 whitenoise
+weasyprint>=68,<69

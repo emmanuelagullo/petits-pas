@@ -3,7 +3,8 @@
 {% block contenu %}
 <div class="actions sans-impression">
   <a class="bouton discret" href="{% url 'saisie_eleve' eleve.pk %}">Retour à la saisie</a>
-  <button class="bouton" onclick="window.print()">Imprimer ou enregistrer en PDF</button>
+  <a class="bouton" href="{% url 'carnet_pdf' eleve.pk %}?contenu={{ mode }}&amp;colonnes={{ colonnes }}">Télécharger le PDF</a>
+  <button class="bouton discret" onclick="window.print()">Imprimer depuis le navigateur</button>
 </div>
 
 <div class="apercu-carnet sans-impression">

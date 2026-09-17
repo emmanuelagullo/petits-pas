@@ -4,8 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block titre %}Carnet de suivi{% endblock %}</title>
+{% if not generation_pdf %}
 <link rel="stylesheet" href="{% static 'suivi/carnet.css' %}">
 <script src="{% static 'suivi/htmx.min.js' %}" defer></script>
+{% endif %}
 </head>
 <body>
 {% if environnement_atelier %}

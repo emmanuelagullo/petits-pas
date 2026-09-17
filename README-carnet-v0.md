@@ -281,6 +281,22 @@ décrit séparément dans
 données factices, affiche la version promue et ne réinitialise jamais ses
 données lors d'un redéploiement.
 
+## Générer les carnets PDF
+
+La prévisualisation d'un carnet propose un téléchargement PDF produit à la
+demande avec WeasyPrint. Le fichier reprend les filtres et le nombre de
+colonnes choisis et n'est pas conservé sur le serveur. L'environnement Guix
+inclut `weasyprint` et `poppler` ; hors Guix, les bibliothèques système requises
+par WeasyPrint doivent être fournies par la plate-forme en complément de
+`requirements.lock`.
+
+Le poids, le format, le nombre de pages et les images incorporées se contrôlent
+avec :
+
+```sh
+scripts/analyser-pdf.sh chemin/vers/carnet.pdf
+```
+
 ## Structure
 
 ```
