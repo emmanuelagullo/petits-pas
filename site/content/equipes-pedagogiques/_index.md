@@ -21,6 +21,10 @@ La [démonstration publique]({{< relref "/demonstration/" >}}) permet déjà de
 parcourir l'application avec un jeu de données fictives. Cet espace est partagé
 et jetable : aucune donnée réelle ou sensible ne doit y être saisie.
 
-Les futures captures seront générées automatiquement depuis cet environnement.
-Elles évolueront ainsi avec l'interface sans introduire de données réelles dans
-le dépôt.
+## Le parcours en images
+
+Ces écrans présentent une classe entièrement fictive. Ils sont remis à jour
+avec l'application afin de toujours montrer le parcours proposé aujourd'hui.
+Sélectionnez une image pour l'afficher en grand.
+
+{{< captures-demonstration >}}
