@@ -1,0 +1,18 @@
+baseURL = "/"
+locale = "fr-FR"
+title = "Petits Pas"
+enableRobotsTXT = true
+disableKinds = ["taxonomy", "term"]
+
+[params]
+  description = "Un carnet numérique libre pour suivre les apprentissages en maternelle."
+  repository = "https://gitlab.inria.fr/petits-pas/petits-pas"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = false
+
+[security]
+  allowContent = ["^text/markdown$", "^text/org$"]
+  enableInlineShortcodes = false

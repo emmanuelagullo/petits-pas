@@ -1,0 +1,28 @@
+#+title: Genèse
+#+description: Du besoin laissé par l'arrêt annoncé d'Iticarnet à la construction d'un bien commun.
+
+Petits Pas est né à la suite de l'annonce de l'arrêt du support d'Iticarnet,
+utilisé par des équipes de maternelle pour constituer les carnets de suivi des
+apprentissages. Cette rupture a révélé un besoin plus durable : disposer d'un
+outil dont le fonctionnement, les données et l'avenir ne dépendent pas d'un
+service impossible à reprendre.
+
+Le projet part des pratiques réelles des enseignantes et enseignants : observer
+sans interrompre la classe, associer quelques traces utiles, rendre visibles
+les progrès et produire un carnet compréhensible par les familles.
+
+* Construire avec le terrain
+
+Le cahier des charges a vocation à être consolidé avec des équipes
+pédagogiques. Le projet distinguera toujours clairement les contributions et
+remerciements d'une éventuelle approbation institutionnelle.
+
+* Un bien commun
+
+Le code de Petits Pas est publié sous licence GNU AGPL version 3 ou ultérieure.
+Il peut être étudié, adapté, partagé et auto-hébergé. Les améliorations d'une
+version modifiée proposée comme service restent accessibles aux utilisateurs
+de cette version selon les conditions de la licence.
+
+Cette liberté concerne le logiciel, jamais les données des enfants, des
+familles ou des écoles.

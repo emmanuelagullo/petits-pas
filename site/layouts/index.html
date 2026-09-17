@@ -1,0 +1,40 @@
+{{ define "main" }}
+  <section class="hero shell">
+    <div>
+      <p class="eyebrow">Suivi des apprentissages en maternelle</p>
+      <h1>Chaque progrès compte.<br>Chaque équipe doit garder la main.</h1>
+      <div class="lede">{{ .Content }}</div>
+      <div class="actions">
+        <a class="button primary" href="{{ "equipes-pedagogiques/" | relURL }}">Découvrir le parcours</a>
+        <a class="button" href="{{ "projet/genese/" | relURL }}">Comprendre le projet</a>
+      </div>
+    </div>
+    <div class="demo-card" aria-label="Aperçu illustratif de Petits Pas">
+      <div class="demo-bar"><span></span><span></span><span></span></div>
+      <p class="demo-kicker">Classe des Lucioles</p>
+      <h2>Les progrès d'Ana</h2>
+      <div class="progress"><i></i><i></i><i></i><i></i></div>
+      <div class="demo-item"><b>Explorer le monde</b><small>Observation ajoutée aujourd'hui</small></div>
+      <div class="demo-item"><b>Mobiliser le langage</b><small>Acquisition en cours</small></div>
+      <p class="fiction">Données entièrement fictives</p>
+    </div>
+  </section>
+
+  <section class="principles shell" aria-label="Principes du projet">
+    <article><span>01</span><h2>Au service du terrain</h2><p>Un parcours conçu autour des gestes quotidiens des équipes pédagogiques.</p></article>
+    <article><span>02</span><h2>Maîtrise des données</h2><p>Des déploiements documentés, des médias privés et aucune donnée réelle dans les démonstrations.</p></article>
+    <article><span>03</span><h2>Un logiciel libre</h2><p>Un code ouvert sous licence AGPL, étudiable, adaptable et auto-hébergeable.</p></article>
+  </section>
+
+  <section class="audiences">
+    <div class="shell">
+      <p class="eyebrow">Trois portes d'entrée</p>
+      <h2>Petits Pas, selon votre rôle</h2>
+      <div class="cards">
+        <a href="{{ "equipes-pedagogiques/" | relURL }}"><b>Équipes pédagogiques</b><span>Observer, suivre et préparer les carnets.</span></a>
+        <a href="{{ "dsi/" | relURL }}"><b>DSI et hébergeurs</b><span>Comprendre l'architecture et le déploiement.</span></a>
+        <a href="{{ "contribuer/" | relURL }}"><b>Contributeurs</b><span>Étudier le code et construire le bien commun.</span></a>
+      </div>
+    </div>
+  </section>
+{{ end }}
