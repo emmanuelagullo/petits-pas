@@ -1,12 +1,16 @@
 from functools import wraps
 
 from django.contrib import messages
+from django.contrib.staticfiles import finders
 from django.db import DatabaseError, connection
 from django.db.models import Count, Prefetch, Q
-from django.http import HttpResponseForbidden, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.text import slugify
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
 from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
@@ -264,8 +268,7 @@ def trace(request, eleve_pk, competence_pk):
 # --------------------------------------------------------------------------
 
 
-@acces_requis
-def carnet(request, pk):
+def _contexte_carnet(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, classe__ecole=ecole)
     modes = {"reussites", "observes", "tout"}
@@ -296,17 +299,60 @@ def carnet(request, pk):
         if lignes:
             domaines.append((d, lignes))
 
+    return {
+        "eleve": eleve,
+        "domaines": domaines,
+        "mode": mode,
+        "colonnes": colonnes,
+        "edite_le": timezone.localdate(),
+    }
+
+
+def _generer_pdf(html, base_url, feuille_style):
+    # Le chargement tardif laisse les autres pages disponibles sur un ancien
+    # environnement de démonstration qui ne fournirait pas encore Pango.
+    from weasyprint import CSS, HTML
+
+    return HTML(
+        string=html,
+        base_url=base_url,
+        media_type="print",
+    ).write_pdf(stylesheets=[CSS(filename=feuille_style)])
+
+
+@acces_requis
+def carnet(request, pk):
     return render(
         request,
         "suivi/carnet.html",
-        {
-            "eleve": eleve,
-            "domaines": domaines,
-            "mode": mode,
-            "colonnes": colonnes,
-            "edite_le": timezone.localdate(),
-        },
+        _contexte_carnet(request, pk),
     )
+
+
+@never_cache
+@acces_requis
+@require_safe
+def carnet_pdf(request, pk):
+    contexte = _contexte_carnet(request, pk)
+    html = render_to_string(
+        "suivi/carnet.html",
+        {**contexte, "generation_pdf": True},
+        request=request,
+    )
+    feuille_style = finders.find("suivi/carnet.css")
+    if not feuille_style:
+        raise RuntimeError("La feuille de style du carnet est introuvable.")
+
+    contenu = _generer_pdf(
+        html,
+        request.build_absolute_uri("/"),
+        feuille_style,
+    )
+
+    nom = slugify(contexte["eleve"].nom_court) or "eleve"
+    reponse = HttpResponse(contenu, content_type="application/pdf")
+    reponse["Content-Disposition"] = f'attachment; filename="carnet-{nom}.pdf"'
+    return reponse
 
 
 # --------------------------------------------------------------------------

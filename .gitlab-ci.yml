@@ -47,7 +47,7 @@ test:
       alias: postgresql
   before_script:
     - apt-get update
-    - apt-get install --yes --no-install-recommends git
+    - apt-get install --yes --no-install-recommends git libpango-1.0-0 libpangoft2-1.0-0
     - |
       if [[ "$DEPENDANCES" == "verrouillees" ]]; then
         python3 -m pip install --requirement requirements.lock
@@ -111,7 +111,7 @@ deploiement-ephemere:
     CARNET_ENVIRONNEMENT_EPHEMERE: "oui"
   before_script:
     - apt-get update
-    - apt-get install --yes --no-install-recommends curl git postgresql-client
+    - apt-get install --yes --no-install-recommends curl git libpango-1.0-0 libpangoft2-1.0-0 postgresql-client
     - python3 -m pip install --requirement requirements.lock
     - python3 -m pip check
   script:
