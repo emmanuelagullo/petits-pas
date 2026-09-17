@@ -19,9 +19,16 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Changed
 
-- Le carnet présente par défaut les compétences réussies ; les autres
-  propositions restent accessibles dans la prévisualisation pour recueillir
-  les retours pédagogiques.
+- Le carnet présente par défaut les réussites et les apprentissages en cours ;
+  les autres propositions restent accessibles dans la prévisualisation pour
+  recueillir les retours pédagogiques.
+- La couverture utilise le prénom et l'initiale du nom plutôt que le nom
+  complet.
+- Les compétences sont présentées dans des boîtes sur une ou deux colonnes,
+  au choix, avec un libellé explicite et positif pour les apprentissages en
+  cours et un nouveau domaine par page à l'impression.
+- La date exacte de l'observation reste enregistrée mais n'est plus affichée
+  dans cette prévisualisation destinée aux familles.
 - Formalisation du carnet longitudinal envisagé, des quatre regroupements
   temporels et des hypothèses à soumettre à l'équipe pédagogique, sans
   modification du modèle de données.
