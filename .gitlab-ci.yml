@@ -118,25 +118,30 @@ deploiement-ephemere:
   script:
     - scripts/exercer-deploiement-ephemere.sh
 
-site-public:
-  stage: test
+.hugo:
   image:
-    name: registry.gitlab.com/pages/hugo/hugo_extended:latest
+    # Immutable image currently providing Hugo Extended 0.140.2.
+    name: registry.gitlab.com/pages/hugo/hugo_extended@sha256:ff07c15f0ff5876c7a737d07b906d48802e7fcd1bba02f648fae63fda57ddb56
     entrypoint: [""]
+  cache: []
+  before_script:
+    - hugo version
+
+site-public:
+  extends: .hugo
+  stage: test
   script:
-    - hugo --source site --baseURL "https://example.invalid/" --cleanDestinationDir --minify
+    - hugo --source site --baseURL "https://example.invalid/" --cleanDestinationDir --minify --panicOnWarning
   artifacts:
     paths:
       - site/public
     expire_in: 1 week
 
 pages:
+  extends: .hugo
   stage: publication
-  image:
-    name: registry.gitlab.com/pages/hugo/hugo_extended:latest
-    entrypoint: [""]
   script:
-    - hugo --source site --baseURL "$CI_PAGES_URL/" --cleanDestinationDir --minify
+    - hugo --source site --baseURL "$CI_PAGES_URL/" --cleanDestinationDir --minify --panicOnWarning
   pages:
     publish: site/public
   rules:
