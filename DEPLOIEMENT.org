@@ -246,7 +246,10 @@ deux jobs CI ni les garanties du futur hébergeur.
 * Profils
 
 - démonstration éphémère : =start-render.sh=, SQLite, médias sur disque et jeu
-  de données recréé ;
+  de données recréé. L'URL, le nom de l'école et les identifiants publics sont
+  définis dans =site/data/demonstration.yaml=, également lu par le site Hugo.
+  =start-render.sh= impose lui-même =CARNET_ENVIRONNEMENT_EPHEMERE=oui= afin
+  d'afficher le bandeau d'avertissement ;
 - développement local natif : PostgreSQL et médias dans
   =.local-persistent/= ;
 - développement local Compose : PostgreSQL et MinIO, variante préparée mais

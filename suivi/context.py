@@ -11,5 +11,6 @@ def session_ecole(request):
         "role": request.session.get("role"),
         "est_direction": request.session.get("role") == "direction",
         "environnement_atelier": settings.ENVIRONNEMENT_ATELIER,
+        "environnement_ephemere": settings.ENVIRONNEMENT_EPHEMERE,
         "version_application": settings.VERSION_APPLICATION,
     }

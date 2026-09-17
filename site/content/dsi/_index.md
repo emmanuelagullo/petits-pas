@@ -23,3 +23,12 @@ déploiement.
 
 Le projet documentera explicitement son architecture, ses procédures de
 sauvegarde et de reprise, ainsi que l'état réel de ses garanties de sécurité.
+
+## Des profils volontairement distincts
+
+La démonstration publique Render utilise SQLite et un système de fichiers
+éphémère. Elle est partagée, réinitialisable et ne doit recevoir aucune donnée
+réelle. L'atelier pédagogique, persistant mais exclusivement fictif, sert à
+consolider le cahier des charges avec une équipe. Une production repose quant
+à elle sur PostgreSQL, un stockage objet privé et des procédures de sauvegarde
+et de reprise documentées.
