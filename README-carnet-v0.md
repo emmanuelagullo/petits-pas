@@ -2,7 +2,7 @@
 
 Un carnet numérique de suivi pour le cycle 1, dans l'esprit d'Iticarnet, qui
 ferme fin mai 2027. Cette V0 vise **une seule école, un seul trimestre de
-test** : elle est faite pour être mise entre les mains d'une enseignante vite,
+test** : elle est faite pour être mise entre les mains d'un enseignant vite,
 et pour être jetée ou réécrite après.
 
 Django 5/6 + HTMX + SQLite. Aucune dépendance distante au moment de l'affichage
@@ -18,7 +18,7 @@ Django 5/6 + HTMX + SQLite. Aucune dépendance distante au moment de l'affichage
 - **Carnet imprimable** : une couverture et des pages de compétences pensées
   pour être données aux parents. La prévisualisation permet de comparer les
   réussites seules, les apprentissages observés ou le référentiel complet.
-  `Ctrl+P` produit encore le PDF sans bibliothèque dédiée.
+  Un téléchargement produit à la demande un PDF individuel avec WeasyPrint.
 - Deux mots de passe pour l'école, enseignant et direction, comme Iticarnet.
 - Import d'une liste d'élèves par copier-coller.
 
@@ -28,8 +28,8 @@ Volontairement, pour tenir dans une V0 :
 
 - **Une seule observation par couple (enfant, compétence).** Pas d'historique :
   si vous repassez une compétence de « réussi » à « en cours », la date
-  précédente est perdue. C'est le premier point à valider avec l'enseignante —
-  si elle veut plusieurs traces datées par compétence, le modèle change.
+  précédente est perdue. C'est le premier point à valider avec l'enseignant —
+  s'il veut plusieurs traces datées par compétence, le modèle change.
 - Pas d'inscription en ligne : les écoles se créent en ligne de commande.
 - Pas de comptes individuels : le mot de passe est partagé par l'équipe. On ne
   sait donc pas qui a saisi quoi.
@@ -40,6 +40,12 @@ Volontairement, pour tenir dans une V0 :
 La première hypothèse de carnet de la phase 3, ses cas de contrôle et les
 questions à soumettre à l'équipe pédagogique sont décrits dans
 [`CARNET-REFERENCE.org`](CARNET-REFERENCE.org).
+
+Le parcours de travail — préparation de l'école, saisie quotidienne, bilans,
+préparation d'une édition, export et outils internes — est formalisé dans
+[`PARCOURS-ENSEIGNANT.org`](PARCOURS-ENSEIGNANT.org). Il distingue ce qui
+existe déjà de ce qui est attendu pour la démonstration, le premier essai ou
+une évolution ultérieure.
 
 ## Démarrer
 
