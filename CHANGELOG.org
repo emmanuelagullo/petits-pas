@@ -41,6 +41,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   temporels et des hypothèses à soumettre à l'équipe pédagogique, sans
   modification du modèle de données.
 
+** Fixed
+
+- Les photos des traces sont incorporées aux PDF directement depuis le
+  stockage privé Django/S3, sans demander à WeasyPrint de les télécharger par
+  l'URL publique de l'application.
+
 * 0.2 — 2026-09-16
 
 ** Added

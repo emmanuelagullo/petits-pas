@@ -55,7 +55,7 @@
             <span class="libelle-competence">{{ competence.libelle }}</span>
             {% if obs.statut == 'en_cours' %}<span class="etat-competence">En cours d'apprentissage</span>{% endif %}
             {% if obs.commentaire %}<span class="mot">« {{ obs.commentaire }} »</span>{% endif %}
-            {% if obs.photo %}<img class="trace-photo" src="{{ obs.photo.url }}" alt="Trace associée à {{ competence.libelle }}">{% endif %}
+            {% if obs.photo %}<img class="trace-photo" src="{% if generation_pdf %}{{ obs.url_photo_pdf }}{% else %}{{ obs.photo.url }}{% endif %}" alt="Trace associée à {{ competence.libelle }}">{% endif %}
           </span>
         </li>
         {% endfor %}
