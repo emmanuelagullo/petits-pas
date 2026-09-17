@@ -2,59 +2,320 @@
 
 * Objet
 
-Ce document décrit la première hypothèse de carnet utilisée pendant la phase
-3. Il s'agit d'une référence à montrer et à critiquer avec l'équipe
-pédagogique, et non d'une spécification pédagogique définitive.
+Ce document décrit le carnet de référence de la phase 3. Il rassemble :
 
-Le carnet reste, pour cet incrément, une page HTML imprimée par le navigateur.
-Le choix d'un moteur PDF déterministe viendra après l'évaluation de sa
-structure et de son contenu.
+- les faits observés dans quelques PDF produits par ITICarnet ;
+- les hypothèses de conception retenues pour Petits Pas ;
+- les règles de restitution temporelle ;
+- les conséquences probables sur le futur modèle de données ;
+- les questions qui doivent encore être soumises à l'équipe pédagogique.
 
-* Hypothèse de référence
+ITICarnet constitue une source d'information et non un rendu à reproduire.
+Petits Pas peut faire des choix distincts lorsqu'ils simplifient le travail
+enseignant, rendent le carnet plus clair ou protègent mieux les données.
 
-- Une couverture identifie l'école, l'enfant, la classe, le niveau, l'année
-  scolaire et la date d'édition.
-- Le corps du carnet regroupe les compétences par domaine d'apprentissage.
-- Le carnet présente par défaut les réussites.
-- La date d'observation accompagne chaque compétence présentée.
-- Un commentaire et une photo éventuels constituent la trace associée.
-- Les PDF sont destinés à être générés à la demande et ne sont pas conservés
-  par défaut.
+La version =#J1= reste une page HTML imprimée par le navigateur. Le choix d'un
+moteur PDF déterministe viendra après l'évaluation de la structure et du
+contenu du carnet.
 
-* Trois contenus à comparer
+* État du prototype =#J1=
 
-La prévisualisation permet de comparer trois propositions sans modifier les
-observations :
+La première prévisualisation permet de comparer trois contenus sans modifier
+les observations :
 
 - =Réussites= : seules les compétences au statut « réussi » ;
 - =Réussites et apprentissages en cours= : statuts « réussi » et « en cours » ;
 - =Référentiel complet= : toutes les compétences actives, y compris celles
   qui n'ont pas encore d'observation.
 
-Le premier mode est l'hypothèse de référence. Le maintien de ces trois modes
-dans le produit final dépendra des retours pédagogiques.
+=#J1= utilise encore =Réussites= par défaut. L'hypothèse retenue pour la
+prochaine évolution est =Réussites et apprentissages en cours=, dans une
+présentation positive et sans couleur évoquant une alerte ou un échec.
 
-* Cas à examiner
+La couverture =#J1= constitue une bonne base. La prochaine évolution devra
+utiliser le prénom et l'initiale du nom, ajouter l'année de naissance lorsqu'elle
+est connue et réserver une place facultative à la photo de l'école.
 
-- carnet sans réussite ;
-- compétence réussie sans trace ;
-- compétence avec commentaire court ou long ;
-- compétence avec photo en orientation portrait ou paysage ;
-- plusieurs domaines et passage sur plusieurs pages ;
-- prénom et nom longs ;
-- comparaison des trois contenus proposés ;
-- réimpression du même carnet après une modification.
+* Faits observés dans les PDF ITICarnet
 
-* Questions pour l'équipe pédagogique
+Les observations suivantes reposent sur un petit nombre de carnets réels. Elles
+ne constituent pas encore une description exhaustive d'ITICarnet.
 
-- Un carnet de réussites doit-il montrer uniquement les réussites ?
-- Les apprentissages en cours ont-ils leur place dans le document transmis ?
-- La date de chaque observation est-elle utile aux familles ?
-- Le commentaire doit-il être systématique, facultatif ou masquable ?
-- Une seule trace par compétence suffit-elle ?
-- La couverture contient-elle les bonnes informations ?
-- Faut-il pouvoir exclure une observation du carnet sans la supprimer ?
-- Le carnet est-il préparé par période, par semestre ou pour l'année entière ?
+** Identité et couverture
+
+- Le prénom est affiché.
+- Le nom complet n'apparaît pas ; seule son initiale peut accompagner le
+  prénom.
+- L'année de naissance est affichée, sans date de naissance complète.
+- Le nom et une photo de l'école peuvent apparaître.
+- Une première page est consacrée à la couverture.
+
+** Organisation pédagogique
+
+Le contenu observé suit une hiérarchie proche de :
+
+- domaine d'apprentissage ;
+- sous-domaine ou objectif pédagogique ;
+- période de restitution ;
+- boîtes de compétences.
+
+Une boîte peut contenir :
+
+- un titre formulé à la première personne ;
+- une illustration ;
+- un texte narratif personnalisé avec le prénom de l'enfant.
+
+Les boîtes sont présentées sur deux colonnes dans les documents examinés.
+
+** Chronologie
+
+- Le carnet couvre plusieurs années de maternelle et s'enrichit au fil du
+  temps.
+- Les acquisitions sont regroupées sous des rubriques comme « En juin 2025 ».
+- Les bilans des années antérieures restent présents dans les éditions
+  suivantes.
+- Plusieurs bilans datés peuvent exister pendant une même année scolaire.
+- La date exacte de chaque observation ne semble pas nécessairement affichée.
+
+** Bilans et attendus
+
+- Un bilan comprend une date et un texte libre consacré à l'enfant.
+- Une page d'attendus de fin de maternelle peut apparaître dans certaines
+  éditions et pas dans d'autres.
+- Un nouveau grand domaine et la partie bilan commencent au moins parfois sur
+  une nouvelle page.
+
+* Hypothèses retenues pour Petits Pas
+
+** Un carnet longitudinal
+
+Le carnet accompagne l'enfant pendant toute sa scolarité maternelle. Il peut
+restituer les acquisitions et bilans de plusieurs années scolaires.
+
+Une édition ne doit pas écraser les observations antérieures. Les données
+doivent permettre de reconstruire le parcours de l'enfant et de préparer de
+nouvelles éditions à partir d'un historique conservé.
+
+** Identité sur la couverture
+
+La couverture affiche :
+
+- le prénom et l'initiale du nom ;
+- la classe, le niveau et l'année scolaire ;
+- l'année de naissance, facultative ;
+- le nom de l'école ;
+- une photo facultative de l'école ;
+- la date d'édition.
+
+L'année de naissance est préférée à la date complète afin de limiter la
+précision de la donnée collectée tout en facilitant l'identification.
+
+** Hiérarchie du référentiel
+
+La structure pédagogique visée est :
+
+- domaine ;
+- sous-domaine ;
+- compétence.
+
+La période de restitution ne fait pas partie du référentiel : elle est calculée
+à partir des observations, des années scolaires, des bilans et des paramètres
+de l'édition.
+
+Les attendus de fin de maternelle sont un contenu éditorial distinct des
+compétences observables. Leur inclusion dans le carnet doit être facultative.
+
+** Observations et traces
+
+Une même compétence peut recevoir plusieurs observations ou traces datées.
+
+Chaque observation conserve sa date exacte, même lorsque le carnet la présente
+dans une période plus large. Une trace peut comprendre :
+
+- un commentaire facultatif ;
+- une ou plusieurs photos à terme ;
+- son état, notamment « réussi » ou « en cours » ;
+- les informations nécessaires à sa sélection dans une édition.
+
+Le carnet ne doit pas confondre la date réelle de l'observation avec le titre
+de la période sous laquelle elle est restituée.
+
+** Commentaires proposés
+
+Le référentiel peut proposer une ou plusieurs formulations narratives pour une
+compétence. Une formulation peut contenir un emplacement simple pour le prénom
+de l'enfant.
+
+L'enseignante peut :
+
+- ne sélectionner aucune formulation ;
+- insérer une proposition en un clic ;
+- modifier librement le texte inséré ;
+- écrire un commentaire entièrement personnel.
+
+Le texte choisi est copié dans l'observation. Une modification ultérieure du
+référentiel ne doit jamais modifier rétroactivement un ancien commentaire.
+
+** Bilans
+
+Un élève peut avoir plusieurs bilans datés pendant une même année scolaire.
+Chaque bilan contient au minimum :
+
+- une date ;
+- un texte libre ;
+- son rattachement à la scolarité annuelle de l'enfant.
+
+La période couverte est déduite automatiquement de la chronologie des bilans.
+Elle n'est pas saisie séparément dans le premier modèle envisagé.
+
+Pour un bilan donné :
+
+- la borne de fin est la date du bilan, incluse ;
+- la borne de début suit le bilan précédent, dont la date est exclue ;
+- pour le premier bilan, elle commence au début de la scolarité annuelle de
+  l'enfant.
+
+Une borne exceptionnelle pourra être envisagée plus tard si les essais font
+apparaître un besoin que cette règle ne couvre pas.
+
+* Regroupement temporel des acquisitions
+
+Le regroupement est un paramètre de restitution indépendant du nombre de
+bilans déjà enregistrés. Les quatre choix restent disponibles, y compris lors
+du premier bilan.
+
+** Par année scolaire
+
+Les acquisitions sont regroupées sous l'année scolaire et, lorsque c'est
+pertinent, le niveau de l'enfant.
+
+Exemple :
+
+#+begin_example
+Petite section — 2024-2025
+#+end_example
+
+** Par mois
+
+Les acquisitions utilisent le mois réel de leur observation.
+
+Une observation du 18 octobre 2024 apparaît sous :
+
+#+begin_example
+Octobre 2024
+#+end_example
+
+** Par bilan
+
+Une observation est rattachée au premier bilan dont la date est supérieure ou
+égale à sa date d'observation.
+
+Par exemple, une observation du 18 octobre 2024 suivie d'un premier bilan le
+15 janvier 2025 apparaît sous :
+
+#+begin_example
+Mes acquisitions — janvier 2025
+#+end_example
+
+La date du 18 octobre reste enregistrée en interne. Le mois affiché est celui
+du bilan et ne prétend pas être le mois de l'observation.
+
+Après le dernier bilan connu, les nouvelles acquisitions apparaissent sous :
+
+#+begin_example
+Acquisitions depuis le dernier bilan
+#+end_example
+
+Lorsqu'aucun bilan n'existe encore, elles apparaissent sous :
+
+#+begin_example
+Premières acquisitions de l'année
+#+end_example
+
+Ces rubriques sont provisoires : les observations rejoignent automatiquement
+le bilan suivant lorsqu'il est créé, sans modification de leur date réelle.
+
+** Aucun regroupement temporel
+
+Les compétences sont présentées directement dans leur domaine et leur
+sous-domaine, sans rubrique temporelle supplémentaire.
+
+* Préparation d'une édition
+
+Le PDF est généré à la demande et n'est pas conservé par défaut. Une édition
+doit pouvoir choisir ou paramétrer au moins :
+
+- les années scolaires concernées ;
+- les domaines ou sous-domaines ;
+- les réussites et apprentissages en cours ;
+- le mode de regroupement temporel ;
+- les bilans ;
+- l'inclusion éventuelle des attendus de fin de maternelle ;
+- les traces destinées à apparaître.
+
+Il reste à déterminer si cette sélection doit seulement décrire une édition ou
+si certains choix, comme l'exclusion d'une trace, doivent pouvoir devenir
+permanents.
+
+* Hypothèses de présentation
+
+- La couverture commence sur une page dédiée.
+- Chaque grand domaine et la partie bilan peuvent commencer sur une nouvelle
+  page.
+- Les boîtes de compétences peuvent être disposées sur deux colonnes lorsque
+  leur contenu le permet.
+- Une boîte ne doit pas être coupée entre deux pages.
+- Les apprentissages en cours utilisent une présentation encourageante et
+  non une couleur d'avertissement.
+- Le titre, l'illustration, le commentaire et les photos doivent rester
+  lisibles sans incorporer des images inutilement grandes.
+- La mise en page doit rester utilisable lorsque certains contenus facultatifs
+  sont absents.
+
+Ces choix doivent être évalués sur plusieurs tailles de carnets avant de
+devenir des contraintes définitives.
+
+* Questions affinées pour l'équipe pédagogique
+
+- Nous avons supposé que le carnet accompagne l'enfant pendant toute la
+  maternelle et conserve les années précédentes. Est-ce le fonctionnement
+  souhaité ?
+- Les quatre regroupements proposés — par année scolaire, par mois, par bilan
+  ou aucun — correspondent-ils aux usages attendus ?
+- Dans le mode par bilan, le rattachement automatique au premier bilan suivant
+  l'observation est-il naturel ?
+- Souhaitez-vous afficher par défaut les réussites et les apprentissages en
+  cours ?
+- Lorsqu'une compétence a été observée plusieurs fois, souhaitez-vous
+  conserver toutes ses traces puis choisir celles publiées ?
+- Les formulations proposées par le référentiel doivent-elles être insérées
+  puis librement modifiables ?
+- Faut-il sélectionner les domaines, périodes, compétences et traces avant
+  chaque édition ?
+- Les attendus de fin de maternelle doivent-ils apparaître systématiquement,
+  seulement à certaines étapes ou uniquement sur demande ?
+- La photo de l'école doit-elle être configurable et facultative ?
+- Confirmez-vous l'affichage du prénom accompagné seulement de l'initiale du
+  nom ?
+- Existe-t-il des situations où la période d'un bilan ne peut pas être déduite
+  des dates des bilans successifs ?
+
+* Conséquences probables sur le modèle de données
+
+Ces conséquences orientent la conception future mais ne déclenchent aucune
+migration à ce stade.
+
+- La contrainte actuelle d'une unique observation par couple élève-compétence
+  devra probablement être remplacée par un historique daté.
+- L'élève devra pouvoir traverser plusieurs classes et années scolaires sans
+  perdre son identité ni son historique.
+- Une entité de scolarité annuelle pourra relier l'élève à sa classe, son
+  niveau et son année scolaire.
+- Une entité de bilan daté devra conserver les textes successifs.
+- Le référentiel devra pouvoir représenter les sous-domaines, les attendus et
+  les formulations narratives proposées.
+- La préparation d'une édition devra rester distincte des faits pédagogiques
+  enregistrés.
 
 * Contraintes techniques déjà retenues
 
@@ -67,7 +328,25 @@ dans le produit final dépendra des retours pédagogiques.
   quelques mégaoctets avec photos, sans dégradation arbitraire de la qualité.
 - Le carnet individuel précède l'éventuel export ZIP de toute une classe.
 
-* Validation de cette référence
+* Cas de contrôle
+
+- carnet sans acquisition ;
+- premier bilan et plusieurs bilans dans une même année ;
+- acquisitions avant tout bilan, entre deux bilans et après le dernier ;
+- comparaison des quatre regroupements temporels ;
+- compétence réussie sans trace ;
+- apprentissage en cours ;
+- plusieurs traces pour une même compétence ;
+- commentaire proposé, modifié ou entièrement libre ;
+- photo en orientation portrait ou paysage ;
+- carnet sur plusieurs années scolaires ;
+- présence et absence de la photo d'école et de l'année de naissance ;
+- prénom et nom longs ;
+- plusieurs domaines et passage sur plusieurs pages ;
+- attendus de fin de maternelle inclus ou exclus ;
+- réédition après une modification.
+
+* Validation des futurs PDF
 
 Pour chaque PDF de contrôle :
 
@@ -77,6 +356,12 @@ pdfimages -list carnet.pdf
 du -h carnet.pdf
 #+end_src
 
-Il faut contrôler au minimum le nombre et le format des pages, les ruptures de
-page, la lisibilité des textes et photos, la présence des informations
-attendues et le poids du fichier.
+Il faut contrôler au minimum :
+
+- le nombre et le format des pages ;
+- les ruptures et éventuelles pages blanches ;
+- l'absence de boîte coupée ;
+- la lisibilité des textes, illustrations et photos ;
+- la présence des informations et périodes attendues ;
+- le poids du fichier ;
+- l'absence de métadonnées privées inutiles.
