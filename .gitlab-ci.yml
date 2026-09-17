@@ -37,8 +37,34 @@ cache:
   paths:
     - .cache/pip
 
+qualite-depot:
+  stage: test
+  cache: []
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends git
+  script:
+    - git show --check --format= --no-renames "$CI_COMMIT_SHA"
+
 test:
   stage: test
+  # Keep this list aligned with every file that can affect the application or
+  # its test environment. A CI change deliberately exercises the full matrix.
+  rules:
+    - changes:
+        - .env.example
+        - .gitlab-ci.yml
+        - "*.py"
+        - "carnet/**/*"
+        - compose.local.yaml
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements.txt
+        - "scripts/**/*"
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml
+    - when: never
   parallel:
     matrix:
       - DEPENDANCES: verrouillees
@@ -79,10 +105,24 @@ test:
     - python3 manage.py test
     - python3 manage.py makemigrations --check --dry-run
     - bash -n start-atelier.sh start-persistent.sh start-render.sh scripts/*.sh
-    - git show --check --format= --no-renames "$CI_COMMIT_SHA"
 
 deploiement-ephemere:
   stage: integration
+  rules:
+    - changes:
+        - .env.example
+        - .gitlab-ci.yml
+        - "*.py"
+        - "carnet/**/*"
+        - compose.local.yaml
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements.txt
+        - "scripts/**/*"
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml
+    - when: never
   tags:
     - ci.inria.fr
     - medium
@@ -130,6 +170,11 @@ deploiement-ephemere:
 site-public:
   extends: .hugo
   stage: test
+  rules:
+    - changes:
+        - .gitlab-ci.yml
+        - "site/**/*"
+    - when: never
   script:
     - hugo --source site --baseURL "https://example.invalid/" --cleanDestinationDir --minify --panicOnWarning
   artifacts:
@@ -146,3 +191,6 @@ pages:
     publish: site/public
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      changes:
+        - .gitlab-ci.yml
+        - "site/**/*"
