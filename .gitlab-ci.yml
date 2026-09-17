@@ -3,6 +3,7 @@ image: python:3.12-slim-bookworm
 stages:
   - test
   - integration
+  - construction
   - publication
 
 workflow:
@@ -160,6 +161,60 @@ deploiement-ephemere:
   script:
     - scripts/exercer-deploiement-ephemere.sh
 
+.site-public-rules:
+  rules:
+    - changes:
+        - .env.example
+        - .gitlab-ci.yml
+        - "*.py"
+        - "carnet/**/*"
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements.txt
+        - "scripts/**/*"
+        - "site/**/*"
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml
+    - when: never
+
+captures-demonstration:
+  extends: .site-public-rules
+  stage: test
+  image:
+    # Playwright 1.63.0 and its Chromium build, pinned by manifest digest.
+    name: mcr.microsoft.com/playwright/python@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0
+    entrypoint: [""]
+  cache: []
+  variables:
+    DATABASE_URL: ""
+    CARNET_S3_BUCKET: ""
+    CARNET_DEBUG: "1"
+    CARNET_HOSTS: "127.0.0.1,localhost"
+    PORT: "8000"
+  before_script:
+    - python3 -m pip install --requirement requirements.lock
+    - python3 -m pip install "playwright==1.63.0"
+    - python3 -m pip check
+  script:
+    - test ! -e carnet.sqlite3
+    - |
+      bash ./start-render.sh >.ci-captures-demonstration.log 2>&1 &
+      application_pid=$!
+      trap 'kill "$application_pid" 2>/dev/null || true; wait "$application_pid" 2>/dev/null || true' EXIT
+      python3 scripts/capturer-demonstration.py \
+        --base-url "http://127.0.0.1:$PORT" \
+        --output site/static/captures
+      kill "$application_pid"
+      wait "$application_pid" || true
+      trap - EXIT
+  artifacts:
+    when: always
+    paths:
+      - site/static/captures
+      - .ci-captures-demonstration.log
+    expire_in: 1 week
+
 .hugo:
   image:
     # Immutable image currently providing Hugo Extended 0.140.2.
@@ -170,13 +225,13 @@ deploiement-ephemere:
     - hugo version
 
 site-public:
-  extends: .hugo
-  stage: test
-  rules:
-    - changes:
-        - .gitlab-ci.yml
-        - "site/**/*"
-    - when: never
+  extends:
+    - .hugo
+    - .site-public-rules
+  stage: construction
+  needs:
+    - job: captures-demonstration
+      artifacts: true
   script:
     - hugo --source site --baseURL "https://example.invalid/" --cleanDestinationDir --minify --panicOnWarning
   artifacts:
@@ -187,6 +242,9 @@ site-public:
 pages:
   extends: .hugo
   stage: publication
+  needs:
+    - job: captures-demonstration
+      artifacts: true
   script:
     - hugo --source site --baseURL "$CI_PAGES_URL/" --cleanDestinationDir --minify --panicOnWarning
   pages:
@@ -194,5 +252,15 @@ pages:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       changes:
+        - .env.example
         - .gitlab-ci.yml
+        - "*.py"
+        - "carnet/**/*"
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements.txt
+        - "scripts/**/*"
         - "site/**/*"
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml

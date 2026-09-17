@@ -64,6 +64,11 @@ h2 { font-family: Georgia, serif; }
 .demo-access h2 { margin: 0 0 12px; font-size: 1.35rem; }
 .demo-access p { margin: 0; color: var(--muted); font-size: .9rem; }
 .demo-access code { font-size: 1.05rem; }
+.screenshot-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; max-width: 1120px; margin-top: 32px; }
+.screenshot-gallery figure { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: white; box-shadow: 0 14px 36px #25483b12; }
+.screenshot-link { display: block; }
+.screenshot-gallery img { display: block; width: 100%; height: auto; }
+.screenshot-gallery figcaption { padding: 14px 16px; color: var(--muted); font-size: .9rem; }
 .site-footer { padding: 50px 0; border-top: 1px solid var(--line); }
 .footer-grid { display: flex; justify-content: space-between; gap: 30px; }
 .footer-grid p { margin: 0; color: var(--muted); }
@@ -73,7 +78,7 @@ h2 { font-family: Georgia, serif; }
   nav { gap: 8px 16px; }
   .hero { grid-template-columns: 1fr; }
   .demo-card { transform: none; }
-  .principles, .cards, .demo-access { grid-template-columns: 1fr; }
+  .principles, .cards, .demo-access, .screenshot-gallery { grid-template-columns: 1fr; }
   .principles article { border-right: 0; border-bottom: 1px solid var(--line); }
   .footer-grid { flex-direction: column; }
 }

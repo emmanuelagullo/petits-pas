@@ -17,9 +17,10 @@ Un document nécessitant les fonctions avancées d'Org devra disposer d'une
 ## Captures de démonstration
 
 Les captures fonctionnelles ne sont pas versionnées dans Git. Le pipeline
-prévu devra les générer depuis le jeu de données factices stable, avec une
-version de navigateur, une taille de fenêtre et des dates fixées, puis les
-placer dans le répertoire de construction avant l'appel à Hugo.
+les génère depuis le jeu de données factices stable, avec une version de
+navigateur, une taille de fenêtre et des dates fixées. Le job
+`captures-demonstration` les transmet comme artefacts aux constructions Hugo,
+qui les publient sous `captures/`.
 
 Les ressources graphiques permanentes et leurs informations de licence peuvent
 en revanche être versionnées dans `static/`.
