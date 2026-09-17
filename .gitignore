@@ -9,6 +9,9 @@ media/
 staticfiles/
 backups/
 .ci-deploiement-ephemere.log
+site/public/
+site/resources/_gen/
+site/.hugo_build.lock
 .env
 .env.*
 !.env.example

@@ -1,0 +1,33 @@
+# Site public de Petits Pas
+
+Ce répertoire contient le site Hugo publié par GitLab Pages.
+
+## Contenus
+
+Les pages peuvent être écrites en Markdown ou directement en Org-mode. Seuls
+les fichiers sélectionnés dans `content/` deviennent publics : les documents
+de travail placés ailleurs dans le dépôt ne sont jamais incorporés
+implicitement.
+
+Le rendu Org natif de Hugo est réservé à un sous-ensemble volontairement
+simple : titres, paragraphes, listes, liens, tableaux, blocs de code et images.
+Un document nécessitant les fonctions avancées d'Org devra disposer d'une
+étape d'export explicite et testée.
+
+## Captures de démonstration
+
+Les captures fonctionnelles ne sont pas versionnées dans Git. Le pipeline
+prévu devra les générer depuis le jeu de données factices stable, avec une
+version de navigateur, une taille de fenêtre et des dates fixées, puis les
+placer dans le répertoire de construction avant l'appel à Hugo.
+
+Les ressources graphiques permanentes et leurs informations de licence peuvent
+en revanche être versionnées dans `static/`.
+
+## Construction locale
+
+```sh
+hugo --source site --minify
+```
+
+Le résultat est écrit dans `site/public/`, répertoire ignoré par Git.

@@ -3,6 +3,7 @@ image: python:3.12-slim-bookworm
 stages:
   - test
   - integration
+  - publication
 
 workflow:
   rules:
@@ -116,3 +117,27 @@ deploiement-ephemere:
     - python3 -m pip check
   script:
     - scripts/exercer-deploiement-ephemere.sh
+
+site-public:
+  stage: test
+  image:
+    name: registry.gitlab.com/pages/hugo/hugo_extended:latest
+    entrypoint: [""]
+  script:
+    - hugo --source site --baseURL "https://example.invalid/" --cleanDestinationDir --minify
+  artifacts:
+    paths:
+      - site/public
+    expire_in: 1 week
+
+pages:
+  stage: publication
+  image:
+    name: registry.gitlab.com/pages/hugo/hugo_extended:latest
+    entrypoint: [""]
+  script:
+    - hugo --source site --baseURL "$CI_PAGES_URL/" --cleanDestinationDir --minify
+  pages:
+    publish: site/public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
