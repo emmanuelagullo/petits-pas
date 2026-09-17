@@ -7,8 +7,16 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+* 0.3 — 2026-09-17
+
 ** Added
 
+- Publication avec GitLab Pages d'un site de présentation destiné aux équipes
+  pédagogiques, aux services informatiques et aux contributeurs, décrivant le
+  projet, sa genèse, sa gouvernance des données, son déploiement et les moyens
+  d'y contribuer.
+- Génération automatique en CI des captures du site à partir de données
+  exclusivement factices.
 - Formalisation du parcours enseignant à partir de l'état actuel de Petits Pas
   et des fonctions observées dans la partie encore accessible d'ITICarnet, en
   distinguant démonstration, essai pédagogique et évolutions ultérieures.

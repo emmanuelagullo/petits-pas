@@ -37,7 +37,7 @@ class Base(TestCase):
 class Acces(Base):
     @override_settings(
         ENVIRONNEMENT_ATELIER=True,
-        VERSION_APPLICATION="0.3-dev1",
+        VERSION_APPLICATION="0.3",
     )
     def test_l_atelier_est_signale_y_compris_sur_la_connexion(self):
         r = self.client.get(reverse("connexion"))
@@ -45,7 +45,7 @@ class Acces(Base):
         self.assertContains(
             r, "Atelier pédagogique — données factices uniquement"
         )
-        self.assertContains(r, "Version 0.3-dev1")
+        self.assertContains(r, "Version 0.3")
 
     @override_settings(
         ENVIRONNEMENT_ATELIER=False,
@@ -499,7 +499,7 @@ class DiagnosticDeploiement(TestCase):
         SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https"),
         ENVIRONNEMENT_ATELIER=True,
         ENVIRONNEMENT_EPHEMERE=False,
-        VERSION_APPLICATION="0.3-dev1",
+        VERSION_APPLICATION="0.3",
         STORAGES={
             "default": {"BACKEND": "storages.backends.s3.S3Storage"},
             "staticfiles": {
@@ -522,7 +522,7 @@ class DiagnosticDeploiement(TestCase):
         )
 
         self.assertIn("Profil atelier valide", sortie.getvalue())
-        self.assertIn("Version affichée : 0.3-dev1", sortie.getvalue())
+        self.assertIn("Version affichée : 0.3", sortie.getvalue())
 
     @override_settings(ENVIRONNEMENT_ATELIER=False)
     def test_refuse_l_initialisation_d_atelier_non_confirmee(self):
