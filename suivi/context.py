@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from .models import Ecole
 
 
@@ -8,4 +10,6 @@ def session_ecole(request):
         "ecole": ecole,
         "role": request.session.get("role"),
         "est_direction": request.session.get("role") == "direction",
+        "environnement_atelier": settings.ENVIRONNEMENT_ATELIER,
+        "version_application": settings.VERSION_APPLICATION,
     }

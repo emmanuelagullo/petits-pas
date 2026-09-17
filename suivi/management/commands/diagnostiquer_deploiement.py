@@ -19,6 +19,14 @@ class Command(BaseCommand):
                 "réglages de sécurité du pilote ne sont pas configurés."
             ),
         )
+        parser.add_argument(
+            "--exiger-atelier",
+            action="store_true",
+            help=(
+                "Exige le profil persistant et la confirmation explicite "
+                "d'un atelier à données exclusivement factices."
+            ),
+        )
 
     def handle(self, *args, **options):
         moteur = settings.DATABASES["default"]["ENGINE"]
@@ -40,6 +48,9 @@ class Command(BaseCommand):
             "HTTP_X_FORWARDED_PROTO",
             "https",
         )
+        atelier = settings.ENVIRONNEMENT_ATELIER
+        ephemere = settings.ENVIRONNEMENT_EPHEMERE
+        version = settings.VERSION_APPLICATION
 
         self.stdout.write("Diagnostic du déploiement")
         self.stdout.write(
@@ -75,6 +86,17 @@ class Command(BaseCommand):
             "- Proxy HTTPS : "
             + ("configuré" if proxy_https else "non configuré")
         )
+        self.stdout.write(
+            "- Environnement : "
+            + (
+                "atelier pédagogique factice"
+                if atelier
+                else "éphémère" if ephemere else "persistant ordinaire"
+            )
+        )
+        self.stdout.write(
+            "- Version affichée : " + (version if version else "absente")
+        )
 
         erreurs = []
 
@@ -97,6 +119,23 @@ class Command(BaseCommand):
         if not proxy_https:
             erreurs.append("le proxy HTTPS n'est pas configuré")
 
+        erreurs_atelier = list(erreurs)
+        if not atelier:
+            erreurs_atelier.append(
+                "CARNET_ENVIRONNEMENT_ATELIER ne vaut pas oui"
+            )
+        if ephemere:
+            erreurs_atelier.append(
+                "CARNET_ENVIRONNEMENT_EPHEMERE vaut aussi oui"
+            )
+        if not version:
+            erreurs_atelier.append("CARNET_VERSION est absent")
+
+        if options["exiger_atelier"] and erreurs_atelier:
+            raise CommandError(
+                "Profil atelier invalide : " + "; ".join(erreurs_atelier)
+            )
+
         if options["exiger_persistant"] and erreurs:
             raise CommandError(
                 "Profil persistant invalide : " + "; ".join(erreurs)
@@ -107,6 +146,19 @@ class Command(BaseCommand):
                 self.style.WARNING(
                     "Profil de développement ou de démonstration : "
                     "ne pas utiliser avec des données réelles."
+                )
+            )
+        elif atelier and erreurs_atelier:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Profil atelier incomplet : "
+                    + "; ".join(erreurs_atelier)
+                )
+            )
+        elif atelier:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Profil atelier valide : données réelles interdites."
                 )
             )
         else:

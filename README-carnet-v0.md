@@ -275,6 +275,12 @@ commande de démarrage, les sondes et les responsabilités de sauvegarde sont
 décrits dans [`DEPLOIEMENT.org`](DEPLOIEMENT.org). Un jeu de variables sans
 secret réel est fourni dans [`.env.example`](.env.example).
 
+L'environnement persistant réservé aux retours de l'équipe pédagogique est
+décrit séparément dans
+[`ATELIER-PEDAGOGIQUE.org`](ATELIER-PEDAGOGIQUE.org). Il n'accepte que des
+données factices, affiche la version promue et ne réinitialise jamais ses
+données lors d'un redéploiement.
+
 ## Structure
 
 ```

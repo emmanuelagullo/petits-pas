@@ -1,0 +1,102 @@
+#+title: Environnement d'atelier pédagogique persistant
+
+* Objet et limites
+
+L'atelier fournit à l'équipe pédagogique une URL stable et des données
+conservées entre les redéploiements afin de consolider ses retours. Toutes les
+personnes, observations et éventuels médias qui y sont saisis doivent être
+fictifs.
+
+Cet environnement n'est ni la démonstration Render éphémère, ni un pilote avec
+des données réelles, ni la future production. Sa mise en place ne vaut pas
+validation de la sécurité ou de la conformité RGPD de ces futurs profils.
+
+Le choix de l'hébergeur reste ouvert. Il doit satisfaire le contrat technique
+de =DEPLOIEMENT.org= : PostgreSQL persistant, bucket S3 privé, HTTPS et
+sauvegardes durables.
+
+* Configuration
+
+Partir de =.env.example= et renseigner toutes les variables du profil
+persistant. Ajouter obligatoirement :
+
+#+begin_src sh
+CARNET_ENVIRONNEMENT_ATELIER=oui
+CARNET_VERSION=0.3-dev1
+#+end_src
+
+=CARNET_VERSION= identifie la version délibérément promue dans l'atelier. Elle
+est affichée dans le bandeau de toutes les pages. Ne pas définir
+=CARNET_ENVIRONNEMENT_EPHEMERE=oui= : les deux profils sont incompatibles.
+
+La commande de démarrage est :
+
+#+begin_src sh
+./start-atelier.sh
+#+end_src
+
+Elle vérifie le profil persistant et les marqueurs propres à l'atelier avant
+les migrations, les fichiers statiques, le contrôle S3 et Gunicorn. Elle ne
+crée, ne réinitialise et ne modifie aucune donnée fonctionnelle.
+
+* Première initialisation
+
+Sur une base vide, injecter temporairement deux secrets distincts, puis lancer :
+
+#+begin_src sh
+export CARNET_ATELIER_MDP_ENSEIGNANT='CHANGE_ME'
+export CARNET_ATELIER_MDP_DIRECTION='CHANGE_ME'
+python manage.py initialiser_atelier
+unset CARNET_ATELIER_MDP_ENSEIGNANT CARNET_ATELIER_MDP_DIRECTION
+#+end_src
+
+Dans une plate-forme, préférer son mécanisme d'injection de secrets à la
+commande =export=. Retirer ces deux secrets après l'initialisation : Django ne
+conserve que leurs empreintes.
+
+La commande crée l'école, le référentiel, la classe, les élèves et les
+observations factices. Une seconde exécution reconnaît l'atelier et ne modifie
+rien. Elle refuse toute base non vide qui ne correspond pas à cet atelier ;
+elle ne doit jamais servir à convertir ou écraser un autre environnement.
+
+Le bandeau permanent rappelle : « Atelier pédagogique — données factices
+uniquement ». Cette protection visible ne remplace pas la consigne donnée aux
+participants : aucun nom, commentaire, document ou média réel ne doit être
+saisi.
+
+* Promotion d'une version
+
+L'atelier suit des versions identifiées, pas chaque commit :
+
+1. valider la version en CI et noter l'identifiant choisi ;
+2. créer un paquet de reprise de l'atelier ;
+3. déployer le commit ou tag choisi avec =CARNET_VERSION= correspondant ;
+4. vérifier =/health/=, le bandeau, une connexion et un carnet ;
+5. consigner les retours pédagogiques avec cette version.
+
+Un redéploiement conserve la base et le bucket et ne relance jamais
+=initialiser_atelier=. Cette stabilité permet de comparer les retours dans le
+temps sans transformer l'atelier en environnement de données réelles.
+
+* Sauvegarde, reprise et remise à zéro
+
+Même factices, les données de l'atelier matérialisent le travail de l'équipe.
+Utiliser les procédures de sauvegarde coordonnée et de restauration de
+=DEPLOIEMENT.org=, notamment avant une promotion ou une migration risquée.
+
+Une remise à zéro est une opération volontaire et destructive. Elle consiste
+à sauvegarder l'état utile, puis à rattacher l'application à une base vide et
+à un bucket vide dédiés avant de relancer =initialiser_atelier=. Ne jamais
+vider par erreur les ressources d'un autre profil et ne pas automatiser cette
+opération au démarrage.
+
+* Recette minimale
+
+- l'URL HTTPS reste stable et =/health/= répond correctement ;
+- le diagnostic =--exiger-atelier= réussit ;
+- le bandeau et =CARNET_VERSION= sont visibles dès la connexion ;
+- les deux rôles peuvent se connecter avec les secrets convenus ;
+- la classe et ses seize élèves explicitement fictifs sont présents ;
+- un changement persiste après redéploiement ;
+- une sauvegarde coordonnée est créée et vérifiée ;
+- aucun secret n'apparaît dans les journaux ni dans le dépôt.

@@ -91,6 +91,11 @@ python manage.py charger_referentiel referentiel/trame-cycle1.yaml
 
 =jeu_demo= ne doit être utilisé qu’avec des données factices.
 
+L'atelier pédagogique persistant possède une initialisation dédiée et des
+garde-fous supplémentaires. Sa procédure complète est décrite dans
+=ATELIER-PEDAGOGIQUE.org= ; elle ne doit pas être confondue avec celle d'un
+futur pilote comportant des données réelles.
+
 * Sauvegardes et restaurations
 
 ** PostgreSQL
@@ -237,6 +242,10 @@ deux jobs CI ni les garanties du futur hébergeur.
   pas encore validée sous Podman rootless avec Guix System ;
 - intégration continue : PostgreSQL, MinIO et application complète dans des
   services éphémères isolés ;
-- pilote persistant : =start-persistent.sh=, PostgreSQL et bucket S3 privés.
+- atelier pédagogique persistant : =start-atelier.sh=, PostgreSQL et bucket S3
+  privés, URL stable et données exclusivement factices ;
+- futur pilote ou production : =start-persistent.sh=, PostgreSQL et bucket S3
+  privés, seulement après validation des exigences de sécurité et de
+  conformité applicables aux données réelles.
 
 Seul le dernier profil représente le contrat destiné à l’hébergeur.
