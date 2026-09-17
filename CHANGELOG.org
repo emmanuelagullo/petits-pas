@@ -9,6 +9,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Profil dédié d'atelier pédagogique persistant, signalé dans l'interface et
+  limité par des garde-fous à des données exclusivement factices.
+- Initialisation explicite et non destructive du jeu de données de l'atelier,
+  indépendante des redéploiements.
+- Identification visible de la version promue dans l'atelier.
 - Première référence de carnet pour la phase 3, avec couverture, mise en page
   A4 et contrat de contenu documenté.
 - Comparaison dans la prévisualisation de trois contenus : réussites seules,

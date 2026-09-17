@@ -34,6 +34,18 @@ class Base(TestCase):
 
 
 class Acces(Base):
+    @override_settings(
+        ENVIRONNEMENT_ATELIER=True,
+        VERSION_APPLICATION="0.3-dev1",
+    )
+    def test_l_atelier_est_signale_y_compris_sur_la_connexion(self):
+        r = self.client.get(reverse("connexion"))
+
+        self.assertContains(
+            r, "Atelier pédagogique — données factices uniquement"
+        )
+        self.assertContains(r, "Version 0.3-dev1")
+
     def test_sans_mot_de_passe_on_est_renvoye_a_la_connexion(self):
         r = self.client.get(reverse("accueil"))
         self.assertRedirects(r, reverse("connexion"))
@@ -355,6 +367,46 @@ class DiagnosticDeploiement(TestCase):
 
         self.assertIn("Profil persistant valide", sortie.getvalue())
 
+    @override_settings(
+        DEBUG=False,
+        SECRET_KEY="une-cle-distincte-et-secrete",
+        ALLOWED_HOSTS=["atelier.petits-pas.inria.fr"],
+        CSRF_TRUSTED_ORIGINS=["https://atelier.petits-pas.inria.fr"],
+        SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https"),
+        ENVIRONNEMENT_ATELIER=True,
+        ENVIRONNEMENT_EPHEMERE=False,
+        VERSION_APPLICATION="0.3-dev1",
+        STORAGES={
+            "default": {"BACKEND": "storages.backends.s3.S3Storage"},
+            "staticfiles": {
+                "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+            },
+        },
+    )
+    @patch.object(
+        settings,
+        "DATABASES",
+        {"default": {"ENGINE": "django.db.backends.postgresql"}},
+    )
+    def test_accepte_un_atelier_persistant_explicitement_identifie(self):
+        sortie = StringIO()
+
+        call_command(
+            "diagnostiquer_deploiement",
+            "--exiger-atelier",
+            stdout=sortie,
+        )
+
+        self.assertIn("Profil atelier valide", sortie.getvalue())
+        self.assertIn("Version affichée : 0.3-dev1", sortie.getvalue())
+
+    @override_settings(ENVIRONNEMENT_ATELIER=False)
+    def test_refuse_l_initialisation_d_atelier_non_confirmee(self):
+        with self.assertRaisesMessage(
+            CommandError, "CARNET_ENVIRONNEMENT_ATELIER"
+        ):
+            call_command("initialiser_atelier", stdout=StringIO())
+
     def test_refuse_un_profil_incomplet_quand_le_persistant_est_exige(self):
         with self.assertRaises(CommandError):
             call_command(
@@ -363,6 +415,63 @@ class DiagnosticDeploiement(TestCase):
                 stdout=StringIO(),
                 stderr=StringIO(),
             )
+
+
+class InitialisationAtelier(TestCase):
+    @override_settings(
+        ENVIRONNEMENT_ATELIER=True,
+        ENVIRONNEMENT_EPHEMERE=False,
+    )
+    def test_initialise_une_fois_des_donnees_exclusivement_fictives(self):
+        variables = {
+            "CARNET_ATELIER_MDP_ENSEIGNANT": "enseignant-factice",
+            "CARNET_ATELIER_MDP_DIRECTION": "direction-factice",
+        }
+        with patch.dict(os.environ, variables):
+            call_command("initialiser_atelier", stdout=StringIO())
+
+        ecole = Ecole.objects.get(nom="École fictive Petits Pas")
+        classe = ecole.classes.get(nom="PS-MS-GS de Nadia")
+        nombres = (
+            Domaine.objects.count(),
+            Competence.objects.count(),
+            Eleve.objects.count(),
+            Observation.objects.count(),
+        )
+        self.assertEqual(classe.eleves.count(), 16)
+        self.assertGreater(nombres[0], 0)
+        self.assertGreater(nombres[1], 0)
+        self.assertGreater(nombres[3], 0)
+        self.assertEqual(ecole.verifier("enseignant-factice"), "enseignant")
+
+        sortie = StringIO()
+        call_command("initialiser_atelier", stdout=sortie)
+
+        self.assertIn("aucune donnée modifiée", sortie.getvalue())
+        self.assertEqual(
+            nombres,
+            (
+                Domaine.objects.count(),
+                Competence.objects.count(),
+                Eleve.objects.count(),
+                Observation.objects.count(),
+            ),
+        )
+
+    @override_settings(
+        ENVIRONNEMENT_ATELIER=True,
+        ENVIRONNEMENT_EPHEMERE=False,
+    )
+    def test_refuse_une_base_non_vide_sans_la_modifier(self):
+        Ecole.objects.create(nom="École existante")
+
+        with self.assertRaisesMessage(CommandError, "Aucune donnée"):
+            call_command("initialiser_atelier", stdout=StringIO())
+
+        self.assertEqual(
+            list(Ecole.objects.values_list("nom", flat=True)),
+            ["École existante"],
+        )
 
 
 class VerificationStockage(TestCase):

@@ -8,6 +8,13 @@
 <script src="{% static 'suivi/htmx.min.js' %}" defer></script>
 </head>
 <body>
+{% if environnement_atelier %}
+<aside class="bandeau-atelier sans-impression" role="status">
+  <strong>Atelier pédagogique — données factices uniquement</strong>
+  <span>N'utilisez aucun nom, commentaire ni média réel.</span>
+  <span>Version {{ version_application }}</span>
+</aside>
+{% endif %}
 {% if ecole %}
 <header class="bandeau">
   <div class="bandeau-corps">

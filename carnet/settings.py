@@ -12,6 +12,13 @@ ALLOWED_HOSTS = os.environ.get("CARNET_HOSTS", "*").split(",")
 CSRF_TRUSTED_ORIGINS = [
     o for o in os.environ.get("CARNET_CSRF_ORIGINS", "").split(",") if o
 ]
+ENVIRONNEMENT_ATELIER = (
+    os.environ.get("CARNET_ENVIRONNEMENT_ATELIER", "") == "oui"
+)
+ENVIRONNEMENT_EPHEMERE = (
+    os.environ.get("CARNET_ENVIRONNEMENT_EPHEMERE", "") == "oui"
+)
+VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip()
 
 INSTALLED_APPS = [
     "django.contrib.admin",
