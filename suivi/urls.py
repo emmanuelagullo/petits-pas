@@ -82,6 +82,7 @@ urlpatterns = [
         name="basculer_visibilite_trace",
     ),
     path("gestion/", views.gestion, name="gestion"),
+    path("gestion/eleves/", views.annuaire_eleves, name="annuaire_eleves"),
     path(
         "gestion/parametres-carnet/",
         views.parametres_carnet,

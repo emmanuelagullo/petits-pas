@@ -1128,6 +1128,98 @@ class ParcoursLongitudinal(Base):
         self.eleve.refresh_from_db()
         self.assertIsNone(self.eleve.archive_le)
 
+    def test_desarchiver_indique_la_classe_de_reaffectation(self):
+        self.eleve.archive_le = timezone.now()
+        self.eleve.save(update_fields=["archive_le"])
+        self.entrer("dir-mdp")
+
+        r = self.client.post(
+            reverse("desarchiver_eleve", args=[self.eleve.pk]), follow=True
+        )
+
+        self.assertContains(r, str(self.classe))
+
+    def test_un_eleve_peut_etre_reactive_depuis_son_parcours(self):
+        self.eleve.archive_le = timezone.now()
+        self.eleve.save(update_fields=["archive_le"])
+        self.entrer("dir-mdp")
+        url = reverse("parcours_eleve", args=[self.eleve.pk])
+
+        self.assertContains(self.client.get(url), "Réactiver cet élève")
+
+        r = self.client.post(url, {"action": "reactiver"}, follow=True)
+
+        self.eleve.refresh_from_db()
+        self.assertIsNone(self.eleve.archive_le)
+        self.assertContains(r, str(self.classe))
+
+    def test_un_eleve_reactive_sans_scolarite_courante_le_signale(self):
+        eleve = Eleve.objects.create(
+            ecole=self.ecole, prenom="Sami", archive_le=timezone.now()
+        )
+        self.entrer("dir-mdp")
+
+        r = self.client.post(
+            reverse("parcours_eleve", args=[eleve.pk]),
+            {"action": "reactiver"},
+            follow=True,
+        )
+
+        self.assertContains(r, "encore de scolarité")
+
+
+class AnnuaireEleves(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer("dir-mdp")
+        self.classe_suivante = Classe.objects.create(
+            ecole=self.ecole, nom="MS-GS", annee_scolaire="2027-2028"
+        )
+        self.eleve_archive = Eleve.objects.create(
+            ecole=self.ecole, prenom="Malo", archive_le=timezone.now()
+        )
+        self.eleve_sans_classe = Eleve.objects.create(
+            ecole=self.ecole, prenom="Zoé"
+        )
+
+    def test_la_gestion_est_fermee_aux_enseignants(self):
+        self.client.get(reverse("deconnexion"))
+        self.entrer()
+
+        self.assertEqual(
+            self.client.get(reverse("annuaire_eleves")).status_code, 403
+        )
+
+    def test_par_defaut_seuls_les_eleves_actifs_de_l_annee_recente_sont_montres(self):
+        r = self.client.get(reverse("annuaire_eleves"))
+
+        self.assertContains(r, "Lou")
+        self.assertContains(r, "PS-MS")
+        self.assertNotContains(r, "Malo")
+        self.assertContains(r, "sans scolarité en 2026-2027")
+
+    def test_le_filtre_archives_montre_les_eleves_archives(self):
+        r = self.client.get(reverse("annuaire_eleves"), {"etat": "archives"})
+
+        self.assertContains(r, "Malo")
+        self.assertContains(r, "archivé")
+        self.assertNotContains(r, "Lou")
+
+    def test_le_filtre_niveau_exclut_les_eleves_d_un_autre_niveau(self):
+        r = self.client.get(
+            reverse("annuaire_eleves"),
+            {"annee": self.classe.annee_scolaire, "niveau": "MS"},
+        )
+
+        self.assertNotContains(r, "Lou")
+
+    def test_le_filtre_par_annee_montre_la_scolarite_de_cette_annee(self):
+        r = self.client.get(
+            reverse("annuaire_eleves"), {"annee": self.classe.annee_scolaire}
+        )
+
+        self.assertContains(r, "PS-MS")
+
 
 class BilansEtPeriodes(Base):
     def setUp(self):

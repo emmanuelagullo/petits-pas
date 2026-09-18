@@ -4,6 +4,16 @@
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Parcours scolaire de {{ eleve.nom_court }}</h1>
 
+{% if eleve.archive_le %}
+<section class="encadre">
+  <p>Cet élève est archivé depuis le {{ eleve.archive_le|date:"j F Y" }}.</p>
+  <form method="post" class="actions">
+    {% csrf_token %}<input type="hidden" name="action" value="reactiver">
+    <button class="bouton" type="submit">Réactiver cet élève</button>
+  </form>
+</section>
+{% endif %}
+
 <form method="post" class="encadre">
   {% csrf_token %}<input type="hidden" name="action" value="identite">
   <h2>Identité durable</h2>
