@@ -583,6 +583,57 @@ class HistoriqueTraces(Base):
         self.assertEqual(self.client.get(url).status_code, 403)
         self.assertTrue(Trace.objects.filter(pk=trace.pk).exists())
 
+    def test_la_visibilite_d_une_trace_se_bascule_depuis_l_historique(self):
+        observation = Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+        )
+        trace = self.creer_trace(
+            observation,
+            commentaire="Une trace à publier",
+            visible_carnet=True,
+        )
+        url = reverse(
+            "basculer_visibilite_trace",
+            args=[self.eleve.pk, self.competence.pk, trace.pk],
+        )
+
+        historique = self.client.get(self.url)
+        self.assertContains(historique, "✓ Affichée dans le carnet")
+
+        reponse = self.client.post(url)
+        self.assertRedirects(reponse, self.url)
+        trace.refresh_from_db()
+        self.assertFalse(trace.visible_carnet)
+        self.assertNotContains(
+            self.client.get(reverse("carnet", args=[self.eleve.pk])),
+            "Une trace à publier",
+        )
+        self.assertContains(self.client.get(self.url), "○ Masquée du carnet")
+
+        self.client.post(url)
+        trace.refresh_from_db()
+        self.assertTrue(trace.visible_carnet)
+        self.assertContains(
+            self.client.get(reverse("carnet", args=[self.eleve.pk])),
+            "Une trace à publier",
+        )
+
+    def test_basculer_la_visibilite_exige_post(self):
+        observation = Observation.objects.create(
+            eleve=self.eleve, competence=self.competence
+        )
+        trace = self.creer_trace(observation)
+        url = reverse(
+            "basculer_visibilite_trace",
+            args=[self.eleve.pk, self.competence.pk, trace.pk],
+        )
+
+        self.assertEqual(self.client.get(url).status_code, 403)
+        trace.refresh_from_db()
+        self.assertTrue(trace.visible_carnet)
+
 
 class Import(Base):
     def test_coller_une_liste_cree_les_eleves(self):

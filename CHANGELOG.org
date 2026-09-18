@@ -25,6 +25,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 - Édition d'une trace à sa place dans l'historique, suppression explicite avec
   nettoyage de son média privé et pictogrammes calculés sur toutes les traces.
+- Bascule directe depuis l'historique entre une trace affichée dans le carnet
+  et une trace conservée uniquement pour l'équipe.
 
 * 0.3 — 2026-09-17
 

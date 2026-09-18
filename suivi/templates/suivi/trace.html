@@ -16,6 +16,12 @@
     {% if trace.commentaire %}<p>{{ trace.commentaire }}</p>{% endif %}
     {% if trace.photo %}<img class="miniature" src="{{ trace.photo.url }}" alt="">{% endif %}
     <p><a href="{% url 'modifier_trace' eleve.pk competence.pk trace.pk %}">Modifier cette trace</a></p>
+    <form method="post" action="{% url 'basculer_visibilite_trace' eleve.pk competence.pk trace.pk %}" class="visibilite-trace">
+      {% csrf_token %}
+      <button class="bouton discret {% if trace.visible_carnet %}visible-carnet{% else %}masquee-carnet{% endif %}" type="submit">
+        {% if trace.visible_carnet %}✓ Affichée dans le carnet{% else %}○ Masquée du carnet{% endif %}
+      </button>
+    </form>
     {% endif %}
     <form method="post" action="{% url 'supprimer_trace' eleve.pk competence.pk trace.pk %}" class="supprimer-trace" onsubmit="return confirm('Supprimer définitivement cette trace ?');">
       {% csrf_token %}

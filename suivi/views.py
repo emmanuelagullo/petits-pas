@@ -297,6 +297,25 @@ def supprimer_trace(request, eleve_pk, competence_pk, trace_pk):
     return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
 
 
+@acces_requis
+def basculer_visibilite_trace(request, eleve_pk, competence_pk, trace_pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    ecole = ecole_courante(request)
+    trace_obj = get_object_or_404(
+        Trace,
+        pk=trace_pk,
+        observation__eleve_id=eleve_pk,
+        observation__competence_id=competence_pk,
+        observation__eleve__ecole=ecole,
+    )
+    trace_obj.visible_carnet = not trace_obj.visible_carnet
+    trace_obj.save(update_fields=["visible_carnet", "modifie_le"])
+    etat = "affichée dans le carnet" if trace_obj.visible_carnet else "masquée du carnet"
+    messages.success(request, f"Trace {etat}.")
+    return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
+
+
 def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
     """Ajouter ou modifier une trace datée sans écraser les précédentes."""
     ecole = ecole_courante(request)
