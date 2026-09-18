@@ -6,6 +6,7 @@
 
 <div class="actions">
   <a class="bouton" href="{% url 'creer_classe' %}">Créer une classe</a>
+  <a class="bouton discret" href="{% url 'parametres_carnet' %}">Paramétrer le carnet</a>
   <a class="bouton discret" href="/admin/">Réglages avancés</a>
 </div>
 
@@ -27,6 +28,7 @@
   {% for eleve in eleves_archives %}
   <li class="entree">
     <span class="principal">{{ eleve.nom_court }}</span>
+    <a class="bouton discret" href="{% url 'parcours_eleve' eleve.pk %}">Parcours</a>
     <form method="post" action="{% url 'desarchiver_eleve' eleve.pk %}">{% csrf_token %}<button class="bouton discret" type="submit">Désarchiver</button></form>
   </li>
   {% endfor %}

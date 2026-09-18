@@ -17,6 +17,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import (
+    Attendu,
     Bilan,
     Classe,
     Competence,
@@ -24,7 +25,9 @@ from .models import (
     Ecole,
     Eleve,
     Observation,
+    ParametresCarnet,
     Scolarite,
+    SousDomaine,
     Trace,
 )
 from .views import _recuperateur_pdf
@@ -804,7 +807,101 @@ class BilansEtPeriodes(Base):
             )
 
 
+class ParametrageCarnet(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer("dir-mdp")
+
+    def test_la_direction_definit_les_valeurs_par_defaut_du_carnet(self):
+        self.client.post(
+            reverse("parametres_carnet"),
+            {
+                "titre_couverture": "Mes petits pas",
+                "texte_couverture": "École des Tilleuls",
+                "contenu_par_defaut": "reussites",
+                "regroupement_par_defaut": "mensuel",
+                "colonnes_par_defaut": "1",
+                "afficher_attendus": "on",
+                "afficher_sous_domaines": "on",
+            },
+        )
+
+        parametres = ParametresCarnet.objects.get(ecole=self.ecole)
+        self.assertEqual(parametres.titre_couverture, "Mes petits pas")
+        self.assertEqual(parametres.contenu_par_defaut, "reussites")
+        self.assertEqual(parametres.regroupement_par_defaut, "mensuel")
+        self.assertEqual(parametres.colonnes_par_defaut, 1)
+        self.assertTrue(parametres.afficher_attendus)
+        self.assertFalse(parametres.inclure_bilans)
+
+    def test_attendus_et_sous_domaine_sont_optionnels_dans_le_carnet(self):
+        sous_domaine = SousDomaine.objects.create(
+            domaine=self.competence.domaine,
+            code="ORAL",
+            nom="L'oral",
+        )
+        self.competence.sous_domaine = sous_domaine
+        self.competence.save(update_fields=["sous_domaine"])
+        Attendu.objects.create(
+            domaine=self.competence.domaine,
+            code="LANG-ATT-01",
+            texte="Communiquer avec les adultes et les autres enfants.",
+        )
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+        )
+        url = reverse("carnet", args=[self.eleve.pk])
+
+        affiche = self.client.get(
+            url,
+            {"attendus": "1", "sous_domaines": "1"},
+        )
+        masque = self.client.get(
+            url,
+            {"attendus": "0", "sous_domaines": "0"},
+        )
+
+        self.assertContains(affiche, "Communiquer avec les adultes")
+        self.assertContains(affiche, "L&#x27;oral")
+        self.assertNotContains(masque, "Communiquer avec les adultes")
+        self.assertNotContains(masque, "L&#x27;oral")
+
+
 class Referentiel(Base):
+    def test_charge_les_attendus_et_les_sous_domaines(self):
+        from tempfile import NamedTemporaryFile
+
+        with NamedTemporaryFile("w", suffix=".yaml", delete=False, encoding="utf-8") as f:
+            f.write(
+                "domaines:\n"
+                "  - code: LANG\n"
+                "    nom: Langage\n"
+                "    attendus:\n"
+                "      - { code: LANG-A1, texte: 'Communiquer avec les autres.' }\n"
+                "    sous_domaines:\n"
+                "      - code: ORAL\n"
+                "        nom: L'oral\n"
+                "        competences:\n"
+                "          - { code: LANG-02, niveau: PS, libelle: 'Je parle.' }\n"
+            )
+            chemin = f.name
+
+        call_command(
+            "charger_referentiel",
+            chemin,
+            ecole=self.ecole.pk,
+            stdout=StringIO(),
+        )
+
+        competence = Competence.objects.get(code="LANG-02")
+        self.assertEqual(competence.sous_domaine.code, "ORAL")
+        self.assertEqual(
+            Attendu.objects.get(code="LANG-A1").texte,
+            "Communiquer avec les autres.",
+        )
+
     def test_le_rechargement_conserve_les_observations(self):
         from io import StringIO
         from tempfile import NamedTemporaryFile

@@ -3,7 +3,7 @@
 {% block contenu %}
 <div class="actions sans-impression">
   <a class="bouton discret" href="{% url 'saisie_eleve' eleve.pk %}">Retour à la saisie</a>
-  <a class="bouton" href="{% url 'carnet_pdf' eleve.pk %}?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}">Télécharger le PDF</a>
+  <a class="bouton" href="{% url 'carnet_pdf' eleve.pk %}?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}">Télécharger le PDF</a>
   <button class="bouton discret" onclick="window.print()">Imprimer depuis le navigateur</button>
 </div>
 
@@ -11,21 +11,27 @@
   <strong>Contenu du carnet à prévisualiser</strong>
   <p>Comparez ces trois propositions avant l'impression. Ce choix ne modifie pas les observations.</p>
   <div class="filtres" aria-label="Contenu du carnet">
-    <a href="?contenu=reussites&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}" aria-current="{% if mode == 'reussites' %}true{% endif %}">Réussites</a>
-    <a href="?contenu=observes&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}" aria-current="{% if mode == 'observes' %}true{% endif %}">Réussites et apprentissages en cours</a>
-    <a href="?contenu=tout&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}" aria-current="{% if mode == 'tout' %}true{% endif %}">Référentiel complet</a>
+    <a href="?contenu=reussites&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if mode == 'reussites' %}true{% endif %}">Réussites</a>
+    <a href="?contenu=observes&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if mode == 'observes' %}true{% endif %}">Réussites et apprentissages en cours</a>
+    <a href="?contenu=tout&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if mode == 'tout' %}true{% endif %}">Référentiel complet</a>
   </div>
   <strong>Mise en page</strong>
   <div class="filtres" aria-label="Nombre de colonnes">
-    <a href="?contenu={{ mode }}&amp;colonnes=1&amp;regroupement={{ regroupement }}" aria-current="{% if colonnes == '1' %}true{% endif %}">Une colonne</a>
-    <a href="?contenu={{ mode }}&amp;colonnes=2&amp;regroupement={{ regroupement }}" aria-current="{% if colonnes == '2' %}true{% endif %}">Deux colonnes</a>
+    <a href="?contenu={{ mode }}&amp;colonnes=1&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if colonnes == '1' %}true{% endif %}">Une colonne</a>
+    <a href="?contenu={{ mode }}&amp;colonnes=2&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if colonnes == '2' %}true{% endif %}">Deux colonnes</a>
   </div>
   <strong>Regrouper les acquisitions</strong>
   <div class="filtres" aria-label="Regroupement temporel">
-    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=aucun" aria-current="{% if regroupement == 'aucun' %}true{% endif %}">Aucun</a>
-    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=annuel" aria-current="{% if regroupement == 'annuel' %}true{% endif %}">Annuel</a>
-    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=mensuel" aria-current="{% if regroupement == 'mensuel' %}true{% endif %}">Mensuel</a>
-    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=bilan" aria-current="{% if regroupement == 'bilan' %}true{% endif %}">Par bilan</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=aucun&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if regroupement == 'aucun' %}true{% endif %}">Aucun</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=annuel&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if regroupement == 'annuel' %}true{% endif %}">Annuel</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=mensuel&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if regroupement == 'mensuel' %}true{% endif %}">Mensuel</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=bilan&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if regroupement == 'bilan' %}true{% endif %}">Par bilan</a>
+  </div>
+  <strong>Éléments complémentaires</strong>
+  <div class="filtres" aria-label="Éléments complémentaires">
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'0,1' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{{ afficher_attendus|yesno:'true,false' }}">Attendus</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'0,1' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{{ afficher_sous_domaines|yesno:'true,false' }}">Sous-domaines</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'0,1' }}" aria-current="{{ inclure_bilans|yesno:'true,false' }}">Bilans</a>
   </div>
 </div>
 
@@ -33,11 +39,12 @@
   <header class="couverture">
     <p class="nom-ecole">{{ ecole.nom }}</p>
     <div>
-      <p class="sur-titre">Carnet de suivi des apprentissages</p>
+      <p class="sur-titre">{{ parametres_carnet.titre_couverture }}</p>
       <h1>{{ eleve.nom_court }}</h1>
       <p>{{ scolarite.classe.nom }}</p>
       <p>{{ scolarite.get_niveau_display }} · Année scolaire {{ scolarite.annee_scolaire }}</p>
       {% if eleve.annee_naissance %}<p>Né(e) en {{ eleve.annee_naissance }}</p>{% endif %}
+      {% if parametres_carnet.texte_couverture %}<p>{{ parametres_carnet.texte_couverture }}</p>{% endif %}
     </div>
     <p class="date-edition">Édité le {{ edite_le|date:"j F Y" }}</p>
   </header>
@@ -55,6 +62,9 @@
     {% for domaine, groupes in domaines %}
     <section class="domaine-carnet">
       <h2>{{ domaine.nom }}</h2>
+      {% if afficher_attendus and domaine.attendus.all %}
+      <div class="attendus-carnet"><h3>Attendus de fin de cycle</h3><ul>{% for attendu in domaine.attendus.all %}<li>{{ attendu.texte }}</li>{% endfor %}</ul></div>
+      {% endif %}
       {% for titre_periode, lignes in groupes %}
       {% if titre_periode %}<h3>{{ titre_periode }}</h3>{% endif %}
       <ul>
@@ -63,6 +73,7 @@
           <span class="puce" aria-hidden="true">{% if obs.statut == 'reussi' %}★{% elif obs.statut == 'en_cours' %}☆{% else %}·{% endif %}</span>
           <span class="contenu-competence">
             <span class="libelle-competence">{{ competence.libelle }}</span>
+            {% if afficher_sous_domaines and competence.sous_domaine %}<span class="sous-domaine-competence">{{ competence.sous_domaine.nom }}</span>{% endif %}
             {% if obs.statut == 'en_cours' %}<span class="etat-competence">En cours d'apprentissage</span>{% endif %}
             {% for trace in obs.traces_carnet %}
               {% if trace.commentaire %}<span class="mot">« {{ trace.commentaire }} »</span>{% endif %}

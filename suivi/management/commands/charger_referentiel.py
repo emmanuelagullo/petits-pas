@@ -2,7 +2,7 @@ import yaml
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from suivi.models import Competence, Domaine, Ecole
+from suivi.models import Attendu, Competence, Domaine, Ecole, SousDomaine
 
 
 class Command(BaseCommand):
@@ -51,20 +51,50 @@ class Command(BaseCommand):
                 code=d["code"],
                 defaults={"nom": d["nom"], "ordre": i},
             )
-            for j, c in enumerate(d.get("competences", [])):
+
+            for j, attendu_data in enumerate(d.get("attendus", [])):
+                if isinstance(attendu_data, str):
+                    attendu_data = {
+                        "code": f"{d['code']}-ATT-{j + 1:02d}",
+                        "texte": attendu_data,
+                    }
+                Attendu.objects.update_or_create(
+                    domaine=domaine,
+                    code=attendu_data["code"],
+                    defaults={"texte": attendu_data["texte"], "ordre": j},
+                )
+
+            ordre_competence = 0
+
+            def charger_competence(c, sous_domaine=None):
+                nonlocal crees, maj, ordre_competence
                 _, cree = Competence.objects.update_or_create(
                     domaine=domaine,
                     code=c["code"],
                     defaults={
                         "libelle": c["libelle"],
                         "niveau": c.get("niveau", "PS"),
-                        "ordre": j,
+                        "ordre": ordre_competence,
+                        "sous_domaine": sous_domaine,
                         "active": True,
                     },
                 )
+                ordre_competence += 1
                 vus.add(c["code"])
                 crees += cree
                 maj += not cree
+
+            for c in d.get("competences", []):
+                charger_competence(c)
+
+            for j, sous_domaine_data in enumerate(d.get("sous_domaines", [])):
+                sous_domaine, _ = SousDomaine.objects.update_or_create(
+                    domaine=domaine,
+                    code=sous_domaine_data["code"],
+                    defaults={"nom": sous_domaine_data["nom"], "ordre": j},
+                )
+                for c in sous_domaine_data.get("competences", []):
+                    charger_competence(c, sous_domaine)
 
         if options["desactiver_absents"]:
             hors = Competence.objects.filter(domaine__ecole=ecole).exclude(code__in=vus)

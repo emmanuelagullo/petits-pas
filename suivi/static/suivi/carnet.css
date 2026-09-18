@@ -515,6 +515,19 @@ textarea { min-height: 7rem; resize: vertical; }
   max-height: 12rem;
   margin: 0.6rem 0 0.8rem;
 }
+.carnet .sous-domaine-competence {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--ardoise-clair);
+  font-size: 0.78rem;
+}
+.carnet .attendus-carnet {
+  break-inside: avoid;
+  margin: 1rem 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
 
 .encadre-bilan { break-inside: avoid; margin: 1rem 0; padding: 1rem; border: 1px solid var(--ligne); border-radius: 0.8rem; }
 .bilans-carnet { break-before: page; }

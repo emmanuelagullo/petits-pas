@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import (
+    Attendu,
     Bilan,
     Classe,
     Competence,
@@ -8,9 +9,16 @@ from .models import (
     Ecole,
     Eleve,
     Observation,
+    ParametresCarnet,
     Scolarite,
+    SousDomaine,
     Trace,
 )
+
+
+@admin.register(ParametresCarnet)
+class ParametresCarnetAdmin(admin.ModelAdmin):
+    list_display = ("ecole", "contenu_par_defaut", "regroupement_par_defaut")
 
 
 class ScolariteInline(admin.TabularInline):
@@ -60,9 +68,26 @@ class DomaineAdmin(admin.ModelAdmin):
     inlines = [CompetenceInline]
 
 
+@admin.register(SousDomaine)
+class SousDomaineAdmin(admin.ModelAdmin):
+    list_display = ("nom", "code", "domaine", "ordre")
+
+
+@admin.register(Attendu)
+class AttenduAdmin(admin.ModelAdmin):
+    list_display = ("code", "domaine", "ordre", "texte")
+
+
 @admin.register(Competence)
 class CompetenceAdmin(admin.ModelAdmin):
-    list_display = ("libelle", "code", "niveau", "domaine", "active")
+    list_display = (
+        "libelle",
+        "code",
+        "niveau",
+        "domaine",
+        "sous_domaine",
+        "active",
+    )
     list_filter = ("domaine", "niveau", "active")
     search_fields = ("libelle", "code")
 

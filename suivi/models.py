@@ -41,6 +41,44 @@ class Ecole(models.Model):
         return None
 
 
+class ParametresCarnet(models.Model):
+    ecole = models.OneToOneField(
+        Ecole, on_delete=models.CASCADE, related_name="parametres_carnet"
+    )
+    titre_couverture = models.CharField(
+        max_length=200, default="Carnet de suivi des apprentissages"
+    )
+    texte_couverture = models.TextField(blank=True, max_length=400)
+    contenu_par_defaut = models.CharField(
+        max_length=10,
+        choices=[
+            ("reussites", "Réussites"),
+            ("observes", "Réussites et apprentissages en cours"),
+            ("tout", "Référentiel complet"),
+        ],
+        default="observes",
+    )
+    regroupement_par_defaut = models.CharField(
+        max_length=10,
+        choices=[
+            ("aucun", "Aucun"),
+            ("annuel", "Annuel"),
+            ("mensuel", "Mensuel"),
+            ("bilan", "Par bilan"),
+        ],
+        default="aucun",
+    )
+    colonnes_par_defaut = models.PositiveSmallIntegerField(
+        choices=[(1, "Une colonne"), (2, "Deux colonnes")], default=2
+    )
+    afficher_attendus = models.BooleanField(default=False)
+    afficher_sous_domaines = models.BooleanField(default=True)
+    inclure_bilans = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Paramètres du carnet — {self.ecole}"
+
+
 class Classe(models.Model):
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name="classes")
     nom = models.CharField(max_length=100, help_text="Par exemple : PS-MS de Nadia")
@@ -183,9 +221,56 @@ class Domaine(models.Model):
         return self.nom
 
 
+class SousDomaine(models.Model):
+    domaine = models.ForeignKey(
+        Domaine, on_delete=models.CASCADE, related_name="sous_domaines"
+    )
+    code = models.CharField(max_length=30)
+    nom = models.CharField(max_length=200)
+    ordre = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["ordre", "nom"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["domaine", "code"], name="sous_domaine_unique_par_domaine"
+            )
+        ]
+
+    def __str__(self):
+        return self.nom
+
+
+class Attendu(models.Model):
+    domaine = models.ForeignKey(
+        Domaine, on_delete=models.CASCADE, related_name="attendus"
+    )
+    code = models.CharField(max_length=30)
+    texte = models.TextField()
+    ordre = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["ordre", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["domaine", "code"], name="attendu_unique_par_domaine"
+            )
+        ]
+
+    def __str__(self):
+        return self.texte
+
+
 class Competence(models.Model):
     domaine = models.ForeignKey(
         Domaine, on_delete=models.CASCADE, related_name="competences"
+    )
+    sous_domaine = models.ForeignKey(
+        SousDomaine,
+        on_delete=models.SET_NULL,
+        related_name="competences",
+        blank=True,
+        null=True,
     )
     code = models.CharField(max_length=30)
     libelle = models.CharField(max_length=300)
