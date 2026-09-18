@@ -1,0 +1,374 @@
+#+title: Petits Pas — conception du modèle longitudinal minimal
+
+* Objet
+
+Ce document fixe la cible et la stratégie de transition du modèle =0.3= vers
+un carnet longitudinal. Le jalon =#J6= est uniquement conceptuel : il ne
+modifie ni les modèles Django, ni la base, ni les écrans.
+
+La conception doit permettre :
+
+- de conserver l'identité d'un élève pendant toute la maternelle ;
+- de représenter séparément chacune de ses années scolaires ;
+- d'archiver un élève sans supprimer son parcours ;
+- d'enregistrer plusieurs bilans datés ;
+- de préparer ultérieurement plusieurs traces pour une même compétence ;
+- de migrer les données =0.3= sans perte et avec une reprise possible.
+
+* Limites du modèle =0.3=
+
+Dans =0.3= :
+
+- =Eleve.classe= désigne directement la classe courante ;
+- =Eleve.niveau= porte une information PS, MS ou GS qui change avec le temps ;
+- =Classe.annee_scolaire= porte déjà l'année ;
+- supprimer une classe supprime en cascade ses élèves, puis leurs observations ;
+- =Observation= est unique pour le couple élève-compétence ;
+- aucun bilan périodique n'est représenté.
+
+Ce modèle convient à une photographie d'une classe, mais pas à un carnet qui
+s'enrichit de la PS à la GS.
+
+* Principes retenus
+
+- L'identité de l'élève est durable ; classe et niveau appartiennent à une
+  scolarité annuelle.
+- Un élève appartient directement à une école, indépendamment de sa classe.
+- Une donnée historique ne disparaît pas lorsqu'un élément n'est plus courant.
+- L'archivage est distinct de la suppression exceptionnelle.
+- Les suppressions susceptibles d'effacer un historique sont protégées.
+- La transition est additive avant d'être destructive : les anciens champs ne
+  sont retirés qu'après migration, vérification et adaptation du code.
+- Les données pédagogiques restent distinctes des choix de publication d'un
+  carnet.
+- Une abstraction n'est ajoutée que si elle porte une information durable ou
+  une contrainte métier réelle.
+
+* Entités cibles
+
+** École
+
+=Ecole= reste la racine d'isolation des données. Aucun changement n'est requis
+pour =#J7=, hormis les relations nouvelles décrites ci-dessous.
+
+Une année scolaire courante globale n'est pas ajoutée à ce stade. Les classes
+et les scolarités portent explicitement leur année, ce qui permet à une école
+de préparer une rentrée sans faire basculer toutes les données en une seule
+opération.
+
+** Élève
+
+=Eleve= représente l'identité durable dans une école :
+
+- =ecole= : école propriétaire, obligatoire ;
+- =prenom= ;
+- =nom=, facultatif dans les usages actuels ;
+- =annee_naissance=, entier facultatif ;
+- =archive_le=, date et heure facultatives ;
+- dates techniques de création et de modification, si leur utilité est
+  confirmée pendant l'implémentation.
+
+=classe= et =niveau= ne font pas partie de l'identité cible. Ils seront retirés
+après la transition vers =Scolarite=.
+
+L'année de naissance reste moins précise qu'une date de naissance. Une
+validation applicative refuse une année future ou manifestement incohérente,
+sans imposer dans la base une borne basse liée à l'année actuelle.
+
+Un élève est actif lorsque =archive_le= est nul. L'archivage :
+
+- le retire des listes et saisies courantes ;
+- conserve ses scolarités, acquisitions, traces, bilans et médias ;
+- reste réversible par une action explicite ;
+- n'altère aucun PDF déjà reconstructible.
+
+** Classe
+
+=Classe= continue de représenter un groupe d'une école pour une année donnée :
+
+- =ecole= ;
+- =nom= ;
+- =annee_scolaire= au format =AAAA-AAAA= ;
+- =ordre=.
+
+Une contrainte d'unicité sur =(ecole, annee_scolaire, nom)= est envisagée pour
+éviter deux classes indistinguables. Elle devra être précédée d'un contrôle des
+données existantes.
+
+Une classe ayant accueilli des élèves ne doit plus pouvoir être supprimée en
+cascade avec leur parcours. La relation depuis =Scolarite= utilisera
+=PROTECT=. Une classe ancienne reste consultable ; un éventuel archivage des
+classes pourra être ajouté seulement si les listes deviennent encombrées.
+
+** Scolarité
+
+=Scolarite= relie un élève à sa situation pendant une année scolaire :
+
+- =eleve= ;
+- =classe= ;
+- =annee_scolaire= ;
+- =niveau= : PS, MS ou GS ;
+- dates techniques de création et de modification.
+
+La valeur =annee_scolaire= est conservée directement dans la scolarité, même si
+elle existe aussi sur la classe. Cette redondance limitée permet :
+
+- une contrainte en base garantissant au plus une scolarité par élève et par
+  année ;
+- des requêtes longitudinales simples ;
+- la conservation de l'année même si le modèle des classes évolue.
+
+L'application vérifie que =Scolarite.annee_scolaire= est égale à
+=Classe.annee_scolaire= et que l'élève et la classe appartiennent à la même
+école.
+
+Contraintes prévues :
+
+- unicité de =(eleve, annee_scolaire)= ;
+- index sur =(classe, niveau)= pour les listes et les saisies ;
+- protection de la classe contre une suppression historique.
+
+Le modèle minimal suppose une seule classe par élève et par année. Un
+changement exceptionnel de classe met à jour cette scolarité. Un historique
+intra-annuel avec dates de début et de fin ne sera ajouté que si un besoin réel
+apparaît.
+
+** Bilan
+
+=Bilan= représente un texte périodique rattaché à une scolarité :
+
+- =scolarite= ;
+- =date_bilan= ;
+- =texte= ;
+- dates techniques de création et de modification.
+
+La relation à =Scolarite= rend explicites l'année, le niveau et la classe du
+bilan sans recopier ces informations.
+
+Une contrainte d'unicité sur =(scolarite, date_bilan)= est retenue pour le
+premier modèle. Elle évite deux périodes impossibles à ordonner sans empêcher
+plusieurs bilans pendant la même année.
+
+La période n'est pas stockée : elle est déduite des dates successives selon
+les règles de =CARNET-REFERENCE.org=. Une éventuelle borne exceptionnelle est
+différée jusqu'à ce qu'un cas concret la justifie.
+
+Le mot =Bilan= est un nom technique provisoire. L'interface pourra employer
+« Quelques mots sur le parcours » ou la formulation validée par l'équipe.
+
+* Résumé des relations cibles
+
+| Parent | Relation | Enfant | Cardinalité | Politique principale |
+|--------+----------+--------+-------------+----------------------|
+| École | possède | Élève | un à plusieurs | identité durable dans une école |
+| École | possède | Classe | un à plusieurs | classe annuelle |
+| Élève | possède | Scolarité | un à plusieurs | une au plus par année |
+| Classe | reçoit | Scolarité | un à plusieurs | suppression protégée |
+| Scolarité | possède | Bilan | zéro à plusieurs | dates distinctes |
+| Élève | possède | Suivi de compétence | zéro à plusieurs | un par compétence |
+| Suivi de compétence | possède | Trace | zéro à plusieurs | historique daté |
+
+La scolarité constitue ainsi le contexte annuel des bilans et des futures
+traces, tandis que l'élève reste le point d'entrée de son parcours complet.
+
+* Observations, acquisitions et traces
+
+La contrainte actuelle d'une seule =Observation= mélange trois rôles :
+
+- l'état courant d'une compétence ;
+- la date retenue pour l'acquisition ;
+- une trace publiée, composée d'un commentaire et d'une photo.
+
+=#J7= et =#J8= ne modifient pas encore ce modèle. Pour =#J9=, la cible retenue
+est de séparer :
+
+** Suivi d'une compétence
+
+Une entité, dont le nom définitif sera choisi lors de =#J9=, conserve l'état
+courant unique pour =(eleve, competence)= :
+
+- statut courant ;
+- date de l'état ou de l'acquisition ;
+- informations techniques de modification.
+
+Cette entité permet de conserver les écrans rapides actuels sans recalculer
+l'état courant à partir de tous les événements.
+
+** Trace
+
+Une ou plusieurs traces peuvent être rattachées au suivi d'une compétence :
+
+- scolarité pendant laquelle la trace a été recueillie ;
+- date exacte ;
+- commentaire facultatif ;
+- photo facultative ;
+- indicateur de sélection ou de visibilité dans un carnet, si les essais le
+  confirment.
+
+La future migration devra transformer chaque commentaire ou photo existant en
+une première trace, sans créer de trace vide inutile. Le statut et la date
+actuels restent dans le suivi de compétence.
+
+Cette séparation est préférée à une simple suppression de l'unicité sur
+=Observation= : plusieurs lignes concurrentes rendraient ambigu l'état affiché
+par les écrans de saisie et transformeraient chaque clic correctif en événement
+pédagogique.
+
+* Relations et politiques de suppression
+
+Les politiques cibles sont :
+
+- suppression exceptionnelle d'une école : cascade sur son espace complet,
+  uniquement dans un cadre administratif contrôlé ;
+- suppression d'une classe référencée par une scolarité : refusée avec
+  =PROTECT= ;
+- suppression exceptionnelle d'un élève : cascade sur son parcours, après une
+  confirmation distincte de l'archivage ;
+- suppression d'une scolarité : refusée ou fortement encadrée dès qu'elle
+  possède bilans ou traces ;
+- retrait d'une compétence : désactivation avec =active=False=, sans
+  suppression des suivis et traces ;
+- suppression d'un média : coordonnée avec la suppression explicite de la
+  trace qui le référence.
+
+L'interface courante ne doit proposer que l'archivage d'un élève. Une
+suppression irréversible relève au minimum du rôle direction et ne fait pas
+partie de =#J7=.
+
+* Règles de sélection courante
+
+Après =#J7= :
+
+- la page d'une classe liste ses scolarités et leurs élèves actifs ;
+- les vues de saisie reçoivent la scolarité courante correspondant à la classe
+  ouverte ;
+- le carnet individuel peut utiliser la scolarité choisie comme contexte
+  d'édition, tout en accédant au parcours antérieur ;
+- un élève archivé reste accessible depuis une vue dédiée mais disparaît des
+  saisies quotidiennes ;
+- les contrôles d'accès passent directement par =Eleve.ecole= puis vérifient
+  les relations de scolarité nécessaires.
+
+Il n'existe pas de propriété « classe courante » indépendante du contexte : un
+carnet ancien et une classe actuelle peuvent demander deux scolarités
+différentes. Une propriété de confort ne devra jamais choisir silencieusement
+une année en présence d'une ambiguïté.
+
+* Transition depuis =0.3=
+
+La transition est découpée afin que chaque étape soit testable et réversible
+par restauration de la sauvegarde préalable.
+
+** Migration additive
+
+- Ajouter à =Eleve= un lien =ecole= temporairement nullable,
+  =annee_naissance= et =archive_le=.
+- Créer =Scolarite= sans retirer =Eleve.classe= ni =Eleve.niveau=.
+- Copier pour chaque élève :
+  - l'école de sa classe vers =Eleve.ecole= ;
+  - sa classe, son niveau et l'année de sa classe vers une scolarité.
+- Vérifier qu'il existe exactement une scolarité migrée par élève.
+- Rendre =Eleve.ecole= obligatoire.
+
+** Adaptation applicative
+
+- Faire lire et écrire les classes et niveaux via =Scolarite=.
+- Adapter les contrôles d'isolation entre écoles.
+- Adapter l'import, le jeu de démonstration, l'administration, les listes et le
+  carnet.
+- Tester explicitement un élève sur plusieurs années.
+- Conserver temporairement les anciens champs en lecture de compatibilité si
+  cela réduit le risque du premier déploiement.
+
+** Retrait des anciens champs
+
+- Comparer les valeurs anciennes aux scolarités sur une copie restaurée de la
+  base.
+- Refuser le retrait si une divergence est détectée.
+- Supprimer =Eleve.classe= et =Eleve.niveau= seulement lorsque tout le code et
+  toutes les données utilisent =Scolarite=.
+
+La création de =Bilan= peut suivre cette transition dans =#J8= ; aucune donnée
+=0.3= n'a alors besoin d'être inventée ou migrée.
+
+* Invariants à vérifier
+
+Les commandes de diagnostic ou migrations doivent vérifier :
+
+- chaque élève appartient à exactement une école ;
+- chaque scolarité relie des objets de la même école ;
+- l'année de la scolarité correspond à celle de sa classe ;
+- un élève n'a pas deux scolarités pour la même année ;
+- le nombre d'élèves avant et après migration est identique ;
+- chaque élève =0.3= possède une scolarité issue de ses anciens champs ;
+- aucune observation, photo ou relation pédagogique n'est perdue ;
+- un bilan appartient à la même école que sa scolarité ;
+- un élève archivé conserve tout son parcours.
+
+* Cas de test attendus
+
+** Migration
+
+- base vide ;
+- un élève sans observation ;
+- un élève avec commentaires et photos ;
+- plusieurs écoles ayant des classes de même nom ;
+- plusieurs classes d'une même année ;
+- restauration d'une base =0.3= puis migration complète.
+
+** Parcours
+
+- élève de PS passant en MS puis GS ;
+- changement de classe entre deux années ;
+- tentative d'une deuxième scolarité la même année ;
+- archivage puis désarchivage ;
+- exclusion d'un élève archivé des écrans quotidiens ;
+- consultation de son ancien carnet ;
+- tentative de suppression d'une classe historique.
+
+** Bilans
+
+- aucun bilan ;
+- premier bilan ;
+- plusieurs bilans ordonnés dans une année ;
+- deux bilans à la même date refusés ;
+- acquisitions avant, entre et après les bilans ;
+- bilans de PS encore présents lors d'une édition de MS.
+
+* Découpage d'implémentation
+
+** =#J7= — identité, archivage et scolarités
+
+- ajouter les champs durables de l'élève ;
+- créer et peupler =Scolarite= ;
+- adapter les écrans et commandes existants ;
+- introduire l'archivage ;
+- retirer les dépendances fonctionnelles aux anciens champs, puis décider si
+  leur retrait appartient au même jalon ou à un court jalon de stabilisation.
+
+** =#J8= — bilans datés et périodes
+
+- créer =Bilan= ;
+- fournir la saisie des bilans ;
+- intégrer leur restitution au carnet ;
+- implémenter le regroupement par bilan et ses cas limites.
+
+** =#J9= — plusieurs traces par compétence
+
+- séparer l'état courant des traces datées ;
+- migrer commentaires et photos existants ;
+- permettre la sélection des traces dans une édition ;
+- préserver la rapidité des deux écrans de saisie.
+
+* Décisions différées
+
+- historique des changements de classe à l'intérieur d'une même année ;
+- date de naissance complète ;
+- suppression irréversible depuis l'interface ;
+- comptes individuels et auteur de chaque modification ;
+- plusieurs écoles pour un même élève ;
+- import ONDE ;
+- bornes de période de bilan saisies manuellement ;
+- plusieurs photos par trace.
+
+Ces sujets ne doivent pas compliquer le premier essai sans besoin observé.

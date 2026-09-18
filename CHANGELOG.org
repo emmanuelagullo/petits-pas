@@ -7,6 +7,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+** Added
+
+- Conception du modèle longitudinal minimal séparant l'identité durable de
+  l'élève, ses scolarités annuelles et ses bilans datés, avec stratégie de
+  migration vérifiable depuis =0.3= et préparation de plusieurs traces par
+  compétence.
+
 * 0.3 — 2026-09-17
 
 ** Added

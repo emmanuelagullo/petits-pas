@@ -284,6 +284,9 @@ explicite.
 
 * Découpage proposé après cette formalisation
 
+La conception détaillée de la première étape est décrite dans
+=MODELE-LONGITUDINAL.org=.
+
 - Modèle longitudinal minimal : année de naissance, archivage, scolarités et
   bilans datés.
 - Préparation explicite d'une édition individuelle avec période et options.
