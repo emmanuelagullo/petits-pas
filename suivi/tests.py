@@ -922,11 +922,13 @@ class InitialisationAtelier(TestCase):
             Competence.objects.count(),
             Eleve.objects.count(),
             Observation.objects.count(),
+            Trace.objects.count(),
         )
         self.assertEqual(classe.eleves.count(), 16)
         self.assertGreater(nombres[0], 0)
         self.assertGreater(nombres[1], 0)
         self.assertGreater(nombres[3], 0)
+        self.assertGreater(nombres[4], 0)
         self.assertEqual(ecole.verifier("enseignant-factice"), "enseignant")
 
         sortie = StringIO()
@@ -940,6 +942,7 @@ class InitialisationAtelier(TestCase):
                 Competence.objects.count(),
                 Eleve.objects.count(),
                 Observation.objects.count(),
+                Trace.objects.count(),
             ),
         )
 
