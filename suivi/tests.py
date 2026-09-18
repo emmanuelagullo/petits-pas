@@ -24,6 +24,7 @@ from .models import (
     Domaine,
     Ecole,
     Eleve,
+    FormulationProposee,
     Observation,
     ParametresCarnet,
     Scolarite,
@@ -492,6 +493,29 @@ class HistoriqueTraces(Base):
         self.assertContains(page, "Première trace")
         self.assertContains(page, "Deuxième trace")
 
+    def test_une_formulation_proposee_est_personnalisee_et_reste_modifiable(self):
+        FormulationProposee.objects.create(
+            competence=self.competence,
+            code="LANG-01-F01",
+            texte="{prenom} sait raconter un événement vécu.",
+        )
+
+        page = self.client.get(self.url)
+
+        self.assertContains(page, "Lou sait raconter un événement vécu.")
+        self.client.post(
+            self.url,
+            {
+                "date_observation": "2026-10-03",
+                "commentaire": "Lou raconte maintenant avec beaucoup de précision.",
+                "visible_carnet": "on",
+            },
+        )
+        self.assertEqual(
+            Trace.objects.get().commentaire,
+            "Lou raconte maintenant avec beaucoup de précision.",
+        )
+
     def test_modifier_une_trace_necrase_pas_les_autres(self):
         observation = Observation.objects.create(
             eleve=self.eleve, competence=self.competence
@@ -950,6 +974,39 @@ class Referentiel(Base):
             Attendu.objects.get(code="LANG-A1").texte,
             "Communiquer avec les autres.",
         )
+
+    def test_charge_et_desactive_les_formulations_proposees(self):
+        from tempfile import NamedTemporaryFile
+
+        def charger(formulations):
+            with NamedTemporaryFile(
+                "w", suffix=".yaml", delete=False, encoding="utf-8"
+            ) as fichier:
+                fichier.write(
+                    "domaines:\n"
+                    "  - code: LANG\n"
+                    "    nom: Langage\n"
+                    "    competences:\n"
+                    "      - code: LANG-01\n"
+                    "        niveau: PS\n"
+                    "        libelle: Je dis mon prénom\n"
+                    f"        formulations: {formulations}\n"
+                )
+                chemin = fichier.name
+            call_command(
+                "charger_referentiel",
+                chemin,
+                ecole=self.ecole.pk,
+                stdout=StringIO(),
+            )
+
+        charger("[{ code: F01, texte: '{prenom} sait se présenter.' }]")
+        formulation = FormulationProposee.objects.get(code="F01")
+        self.assertTrue(formulation.active)
+
+        charger("[]")
+        formulation.refresh_from_db()
+        self.assertFalse(formulation.active)
 
     def test_le_rechargement_conserve_les_observations(self):
         from io import StringIO

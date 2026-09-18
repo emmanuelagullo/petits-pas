@@ -8,6 +8,7 @@ from .models import (
     Domaine,
     Ecole,
     Eleve,
+    FormulationProposee,
     Observation,
     ParametresCarnet,
     Scolarite,
@@ -90,6 +91,12 @@ class CompetenceAdmin(admin.ModelAdmin):
     )
     list_filter = ("domaine", "niveau", "active")
     search_fields = ("libelle", "code")
+
+
+@admin.register(FormulationProposee)
+class FormulationProposeeAdmin(admin.ModelAdmin):
+    list_display = ("code", "competence", "ordre", "active")
+    list_filter = ("active", "competence__domaine")
 
 
 @admin.register(Observation)

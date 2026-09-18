@@ -382,6 +382,12 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             "obs": obs,
             "trace_obj": trace_obj,
             "traces": obs.traces.select_related("scolarite"),
+            "formulations": [
+                formulation.texte.replace("{prenom}", eleve.prenom).replace(
+                    "<prenom>", eleve.prenom
+                )
+                for formulation in competence.formulations.filter(active=True)
+            ],
             "date_defaut": timezone.localdate(),
         },
     )

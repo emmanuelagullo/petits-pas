@@ -291,6 +291,30 @@ class Competence(models.Model):
         return self.libelle
 
 
+class FormulationProposee(models.Model):
+    competence = models.ForeignKey(
+        Competence, on_delete=models.CASCADE, related_name="formulations"
+    )
+    code = models.CharField(max_length=30)
+    texte = models.TextField(
+        help_text="Utiliser {prenom} à l'endroit où insérer le prénom de l'enfant."
+    )
+    ordre = models.PositiveSmallIntegerField(default=0)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["ordre", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["competence", "code"],
+                name="formulation_unique_par_competence",
+            )
+        ]
+
+    def __str__(self):
+        return self.texte
+
+
 class Observation(models.Model):
     """Où en est un enfant sur une compétence. Une ligne par couple
     (élève, compétence).."""

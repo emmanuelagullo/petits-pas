@@ -2,7 +2,14 @@ import yaml
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from suivi.models import Attendu, Competence, Domaine, Ecole, SousDomaine
+from suivi.models import (
+    Attendu,
+    Competence,
+    Domaine,
+    Ecole,
+    FormulationProposee,
+    SousDomaine,
+)
 
 
 class Command(BaseCommand):
@@ -68,7 +75,7 @@ class Command(BaseCommand):
 
             def charger_competence(c, sous_domaine=None):
                 nonlocal crees, maj, ordre_competence
-                _, cree = Competence.objects.update_or_create(
+                competence, cree = Competence.objects.update_or_create(
                     domaine=domaine,
                     code=c["code"],
                     defaults={
@@ -83,6 +90,26 @@ class Command(BaseCommand):
                 vus.add(c["code"])
                 crees += cree
                 maj += not cree
+                formulations_vues = set()
+                for k, formulation_data in enumerate(c.get("formulations", [])):
+                    if isinstance(formulation_data, str):
+                        formulation_data = {
+                            "code": f"{c['code']}-F{k + 1:02d}",
+                            "texte": formulation_data,
+                        }
+                    FormulationProposee.objects.update_or_create(
+                        competence=competence,
+                        code=formulation_data["code"],
+                        defaults={
+                            "texte": formulation_data["texte"],
+                            "ordre": k,
+                            "active": True,
+                        },
+                    )
+                    formulations_vues.add(formulation_data["code"])
+                competence.formulations.exclude(
+                    code__in=formulations_vues
+                ).update(active=False)
 
             for c in d.get("competences", []):
                 charger_competence(c)
