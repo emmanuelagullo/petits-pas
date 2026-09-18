@@ -13,8 +13,8 @@
   </form>
   <a class="trace-lien {% if obs.commentaire or obs.photo %}pleine{% endif %}"
      href="{% url 'trace' eleve.pk competence.pk %}"
-     aria-label="{% if obs.commentaire or obs.photo %}Modifier la trace{% else %}Ajouter un commentaire ou une photo{% endif %}"
-     title="{% if obs.commentaire or obs.photo %}Modifier la trace{% else %}Ajouter un commentaire ou une photo{% endif %}">
+     aria-label="{% if obs.commentaire or obs.photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}"
+     title="{% if obs.commentaire or obs.photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}">
     {% if obs.commentaire or obs.photo %}
     <span class="trace-indicateurs" aria-hidden="true">
       {% if obs.commentaire %}<span class="indicateur-commentaire">✎</span>{% endif %}

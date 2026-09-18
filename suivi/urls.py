@@ -36,6 +36,11 @@ urlpatterns = [
         views.trace,
         name="trace",
     ),
+    path(
+        "eleve/<int:eleve_pk>/competence/<int:competence_pk>/trace/<int:trace_pk>/",
+        views.modifier_trace,
+        name="modifier_trace",
+    ),
     path("gestion/", views.gestion, name="gestion"),
     path("gestion/classe/nouvelle/", views.creer_classe, name="creer_classe"),
     path(

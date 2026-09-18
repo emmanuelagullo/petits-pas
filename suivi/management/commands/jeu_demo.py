@@ -2,7 +2,7 @@ import random
 
 from django.core.management.base import BaseCommand, CommandError
 
-from suivi.models import Classe, Competence, Ecole, Eleve, Observation, Scolarite
+from suivi.models import Classe, Competence, Ecole, Eleve, Observation, Scolarite, Trace
 
 PRENOMS = [
     ("Camille", "PS"), ("Sofiane", "PS"), ("Lou", "PS"), ("Ismaël", "PS"),
@@ -60,16 +60,22 @@ class Command(BaseCommand):
                 or (eleve.niveau == "GS" and c.niveau == "GS")
             ]
             for c in random.sample(pertinentes, k=max(3, len(pertinentes) // 2)):
-                Observation.objects.update_or_create(
+                observation, _ = Observation.objects.update_or_create(
                     eleve=eleve,
                     competence=c,
                     defaults={
                         "statut": random.choices(
                             ["reussi", "en_cours"], weights=[4, 1]
                         )[0],
-                        "commentaire": random.choice(MOTS) if random.random() < 0.2 else "",
                     },
                 )
+                commentaire = random.choice(MOTS) if random.random() < 0.2 else ""
+                if commentaire and not observation.traces.exists():
+                    Trace.objects.create(
+                        observation=observation,
+                        scolarite=eleve.scolarite_courante(),
+                        commentaire=commentaire,
+                    )
         self.stdout.write(
             self.style.SUCCESS(
                 f"Démo prête : {classe} — {classe.eleves.count()} enfants, "

@@ -227,8 +227,6 @@ class Observation(models.Model):
     )
     statut = models.CharField(max_length=10, choices=STATUTS, default=REUSSI)
     date_observation = models.DateField(default=timezone.localdate)
-    commentaire = models.TextField(blank=True)
-    photo = models.ImageField(upload_to="traces/%Y/%m/", blank=True, null=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -237,3 +235,47 @@ class Observation(models.Model):
 
     def __str__(self):
         return f"{self.eleve} — {self.competence} ({self.get_statut_display()})"
+
+    @property
+    def trace_courante(self):
+        traces_prefaites = getattr(self, "_prefetched_objects_cache", {}).get(
+            "traces"
+        )
+        if traces_prefaites is not None:
+            return max(
+                traces_prefaites,
+                key=lambda trace: (trace.date_observation, trace.pk),
+                default=None,
+            )
+        return self.traces.order_by("-date_observation", "-pk").first()
+
+    @property
+    def commentaire(self):
+        trace = self.trace_courante
+        return trace.commentaire if trace else ""
+
+    @property
+    def photo(self):
+        trace = self.trace_courante
+        return trace.photo if trace else None
+
+
+class Trace(models.Model):
+    observation = models.ForeignKey(
+        Observation, on_delete=models.CASCADE, related_name="traces"
+    )
+    scolarite = models.ForeignKey(
+        Scolarite, on_delete=models.PROTECT, related_name="traces"
+    )
+    date_observation = models.DateField(default=timezone.localdate)
+    commentaire = models.TextField(blank=True)
+    photo = models.ImageField(upload_to="traces/%Y/%m/", blank=True, null=True)
+    visible_carnet = models.BooleanField(default=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    modifie_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["date_observation", "pk"]
+
+    def __str__(self):
+        return f"{self.observation.eleve} — {self.date_observation:%d/%m/%Y}"

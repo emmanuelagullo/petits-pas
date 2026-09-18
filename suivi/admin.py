@@ -1,6 +1,16 @@
 from django.contrib import admin
 
-from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
+from .models import (
+    Bilan,
+    Classe,
+    Competence,
+    Domaine,
+    Ecole,
+    Eleve,
+    Observation,
+    Scolarite,
+    Trace,
+)
 
 
 class ScolariteInline(admin.TabularInline):
@@ -61,3 +71,14 @@ class CompetenceAdmin(admin.ModelAdmin):
 class ObservationAdmin(admin.ModelAdmin):
     list_display = ("eleve", "competence", "statut", "date_observation")
     list_filter = ("statut", "eleve__scolarites__classe")
+
+
+@admin.register(Trace)
+class TraceAdmin(admin.ModelAdmin):
+    list_display = (
+        "observation",
+        "date_observation",
+        "scolarite",
+        "visible_carnet",
+    )
+    list_filter = ("visible_carnet", "scolarite__annee_scolaire")

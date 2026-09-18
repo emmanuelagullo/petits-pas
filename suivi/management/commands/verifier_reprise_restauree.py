@@ -1,7 +1,7 @@
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 
-from suivi.models import Observation
+from suivi.models import Trace
 
 
 class Command(BaseCommand):
@@ -9,7 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         references = list(
-            Observation.objects.exclude(photo="")
+            Trace.objects.exclude(photo="")
             .exclude(photo__isnull=True)
             .values_list("photo", flat=True)
         )

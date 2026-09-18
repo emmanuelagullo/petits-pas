@@ -14,6 +14,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   l'élève.
 - Bilans datés rattachés aux scolarités et quatre regroupements possibles des
   acquisitions dans le carnet : aucun, annuel, mensuel ou par bilan.
+- Historique de plusieurs traces datées par compétence, rattachées à leur
+  scolarité annuelle et sélectionnables individuellement pour le carnet.
 - Conception du modèle longitudinal minimal séparant l'identité durable de
   l'élève, ses scolarités annuelles et ses bilans datés, avec stratégie de
   migration vérifiable depuis =0.3= et préparation de plusieurs traces par

@@ -16,7 +16,17 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
+from .models import (
+    Bilan,
+    Classe,
+    Competence,
+    Domaine,
+    Ecole,
+    Eleve,
+    Observation,
+    Scolarite,
+    Trace,
+)
 from .views import _recuperateur_pdf
 
 
@@ -40,6 +50,14 @@ class Base(TestCase):
 
     def entrer(self, mdp="ens-mdp"):
         return self.client.post(reverse("connexion"), {"mot_de_passe": mdp})
+
+    def creer_trace(self, observation=None, **champs):
+        observation = observation or Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+        )
+        champs.setdefault("scolarite", self.scolarite)
+        return Trace.objects.create(observation=observation, **champs)
 
 
 class Acces(Base):
@@ -140,6 +158,9 @@ class Bascule(Base):
             eleve=self.eleve,
             competence=self.competence,
             statut=Observation.REUSSI,
+        )
+        trace = self.creer_trace(
+            obs,
             commentaire="Une première réussite",
             photo="traces/test.jpg",
         )
@@ -149,8 +170,9 @@ class Bascule(Base):
 
         obs.refresh_from_db()
         self.assertEqual(obs.statut, Observation.NON_DEBUTE)
-        self.assertEqual(obs.commentaire, "Une première réussite")
-        self.assertEqual(obs.photo.name, "traces/test.jpg")
+        trace.refresh_from_db()
+        self.assertEqual(trace.commentaire, "Une première réussite")
+        self.assertEqual(trace.photo.name, "traces/test.jpg")
 
 
 class Carnet(Base):
@@ -246,10 +268,14 @@ class Carnet(Base):
 
     def test_une_reussite_montre_son_commentaire_sans_date_exacte(self):
         self.entrer()
-        Observation.objects.create(
+        observation = Observation.objects.create(
             eleve=self.eleve,
             competence=self.competence,
             statut=Observation.REUSSI,
+            date_observation="2026-09-16",
+        )
+        self.creer_trace(
+            observation,
             date_observation="2026-09-16",
             commentaire="Lou a raconté son arrivée à l'école.",
         )
@@ -336,10 +362,13 @@ class Carnet(Base):
 
     @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
     def test_le_pdf_lit_les_photos_depuis_le_stockage_prive(self, generer_pdf):
-        Observation.objects.create(
+        observation = Observation.objects.create(
             eleve=self.eleve,
             competence=self.competence,
             statut=Observation.REUSSI,
+        )
+        self.creer_trace(
+            observation,
             photo="traces/photo école.jpg",
         )
         self.entrer()
@@ -379,11 +408,11 @@ class IndicateursTrace(Base):
         return self.client.get(reverse("saisie_eleve", args=[self.eleve.pk]))
 
     def test_un_commentaire_est_signale_par_un_crayon(self):
-        Observation.objects.create(
+        observation = Observation.objects.create(
             eleve=self.eleve,
             competence=self.competence,
-            commentaire="Une remarque",
         )
+        self.creer_trace(observation, commentaire="Une remarque")
 
         r = self.page_eleve()
 
@@ -391,9 +420,12 @@ class IndicateursTrace(Base):
         self.assertNotContains(r, 'class="indicateur-photo"')
 
     def test_une_photo_est_signalee_independamment_du_commentaire(self):
-        Observation.objects.create(
+        observation = Observation.objects.create(
             eleve=self.eleve,
             competence=self.competence,
+        )
+        self.creer_trace(
+            observation,
             commentaire="Une remarque",
             photo="traces/test.jpg",
         )
@@ -402,6 +434,85 @@ class IndicateursTrace(Base):
 
         self.assertContains(r, 'class="indicateur-commentaire"')
         self.assertContains(r, 'class="indicateur-photo"')
+
+
+class HistoriqueTraces(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer()
+        self.url = reverse("trace", args=[self.eleve.pk, self.competence.pk])
+
+    def test_plusieurs_traces_sont_conservees_pour_une_competence(self):
+        self.client.post(
+            self.url,
+            {
+                "date_observation": "2026-10-03",
+                "commentaire": "Première trace",
+                "visible_carnet": "on",
+            },
+        )
+        self.client.post(
+            self.url,
+            {
+                "date_observation": "2027-01-12",
+                "commentaire": "Deuxième trace",
+                "visible_carnet": "on",
+            },
+        )
+
+        observation = Observation.objects.get(
+            eleve=self.eleve, competence=self.competence
+        )
+        self.assertEqual(observation.traces.count(), 2)
+        page = self.client.get(self.url)
+        self.assertContains(page, "Première trace")
+        self.assertContains(page, "Deuxième trace")
+
+    def test_modifier_une_trace_necrase_pas_les_autres(self):
+        observation = Observation.objects.create(
+            eleve=self.eleve, competence=self.competence
+        )
+        premiere = self.creer_trace(observation, commentaire="Première")
+        seconde = self.creer_trace(observation, commentaire="Deuxième")
+
+        self.client.post(
+            reverse(
+                "modifier_trace",
+                args=[self.eleve.pk, self.competence.pk, premiere.pk],
+            ),
+            {
+                "date_observation": "2026-11-01",
+                "commentaire": "Première corrigée",
+                "visible_carnet": "on",
+            },
+        )
+
+        premiere.refresh_from_db()
+        seconde.refresh_from_db()
+        self.assertEqual(premiere.commentaire, "Première corrigée")
+        self.assertEqual(seconde.commentaire, "Deuxième")
+
+    def test_une_trace_masquee_reste_conservee_sans_apparaitre_dans_le_carnet(self):
+        observation = Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+        )
+        self.creer_trace(
+            observation,
+            commentaire="Pour l'équipe seulement",
+            visible_carnet=False,
+        )
+        self.creer_trace(
+            observation,
+            commentaire="Pour la famille",
+            visible_carnet=True,
+        )
+
+        carnet = self.client.get(reverse("carnet", args=[self.eleve.pk]))
+
+        self.assertNotContains(carnet, "Pour l'équipe seulement")
+        self.assertContains(carnet, "Pour la famille")
 
 
 class Import(Base):
@@ -1001,9 +1112,12 @@ class VerificationRepriseRestauree(Base):
             photo = default_storage.save(
                 "traces/photo.txt", ContentFile(b"photo restauree")
             )
-            Observation.objects.create(
+            observation = Observation.objects.create(
                 eleve=self.eleve,
                 competence=self.competence,
+            )
+            self.creer_trace(
+                observation,
                 photo=photo,
             )
 
@@ -1021,9 +1135,12 @@ class VerificationRepriseRestauree(Base):
                 },
             },
         ):
-            Observation.objects.create(
+            observation = Observation.objects.create(
                 eleve=self.eleve,
                 competence=self.competence,
+            )
+            self.creer_trace(
+                observation,
                 photo="traces/absente.jpg",
             )
 
