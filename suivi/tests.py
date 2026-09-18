@@ -806,6 +806,55 @@ class BilansEtPeriodes(Base):
                 texte="Doublon",
             )
 
+    def test_un_bilan_peut_etre_modifie_sans_en_creer_un_second(self):
+        bilan = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Premier texte",
+        )
+
+        self.client.post(
+            reverse("modifier_bilan", args=[self.eleve.pk, bilan.pk]),
+            {
+                "scolarite": self.scolarite.pk,
+                "date_bilan": "2027-02-01",
+                "texte": "Texte corrigé",
+            },
+        )
+
+        bilan.refresh_from_db()
+        self.assertEqual(Bilan.objects.count(), 1)
+        self.assertEqual(str(bilan.date_bilan), "2027-02-01")
+        self.assertEqual(bilan.texte, "Texte corrigé")
+
+    def test_un_bilan_peut_etre_supprime_explicitement(self):
+        bilan = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="À supprimer",
+        )
+
+        reponse = self.client.post(
+            reverse("supprimer_bilan", args=[self.eleve.pk, bilan.pk])
+        )
+
+        self.assertRedirects(reponse, reverse("bilans_eleve", args=[self.eleve.pk]))
+        self.assertFalse(Bilan.objects.filter(pk=bilan.pk).exists())
+
+    def test_supprimer_un_bilan_exige_post(self):
+        bilan = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="À conserver",
+        )
+
+        reponse = self.client.get(
+            reverse("supprimer_bilan", args=[self.eleve.pk, bilan.pk])
+        )
+
+        self.assertEqual(reponse.status_code, 403)
+        self.assertTrue(Bilan.objects.filter(pk=bilan.pk).exists())
+
 
 class ParametrageCarnet(Base):
     def setUp(self):

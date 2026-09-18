@@ -22,6 +22,16 @@ urlpatterns = [
     path("eleve/<int:pk>/carnet/", views.carnet, name="carnet"),
     path("eleve/<int:pk>/bilans/", views.bilans_eleve, name="bilans_eleve"),
     path(
+        "eleve/<int:pk>/bilans/<int:bilan_pk>/",
+        views.modifier_bilan,
+        name="modifier_bilan",
+    ),
+    path(
+        "eleve/<int:pk>/bilans/<int:bilan_pk>/supprimer/",
+        views.supprimer_bilan,
+        name="supprimer_bilan",
+    ),
+    path(
         "eleve/<int:pk>/carnet.pdf",
         views.carnet_pdf,
         name="carnet_pdf",
