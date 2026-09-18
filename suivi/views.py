@@ -1,4 +1,5 @@
 from functools import wraps
+import logging
 import mimetypes
 from collections import OrderedDict
 from urllib.parse import quote, unquote
@@ -6,7 +7,7 @@ from urllib.parse import quote, unquote
 from django.contrib import messages
 from django.contrib.staticfiles import finders
 from django.core.files.storage import default_storage
-from django.db import DatabaseError, connection
+from django.db import DatabaseError, connection, transaction
 from django.db.models import Count, Prefetch, Q
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -19,6 +20,9 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
 from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite, Trace
+
+
+logger = logging.getLogger(__name__)
 
 
 # --------------------------------------------------------------------------
@@ -258,6 +262,41 @@ def modifier_trace(request, eleve_pk, competence_pk, trace_pk):
     return _editer_trace(request, eleve_pk, competence_pk, trace_pk)
 
 
+def _supprimer_media_apres_validation(nom):
+    if not nom:
+        return
+
+    def supprimer():
+        try:
+            default_storage.delete(nom)
+        except Exception:
+            # Une référence orpheline est préférable à une trace pointant vers
+            # un objet déjà effacé. Le nettoyage pourra alors être repris.
+            logger.exception("Impossible de supprimer le média privé %r", nom)
+
+    transaction.on_commit(supprimer)
+
+
+@acces_requis
+def supprimer_trace(request, eleve_pk, competence_pk, trace_pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    ecole = ecole_courante(request)
+    trace_obj = get_object_or_404(
+        Trace,
+        pk=trace_pk,
+        observation__eleve_id=eleve_pk,
+        observation__competence_id=competence_pk,
+        observation__eleve__ecole=ecole,
+    )
+    nom_photo = trace_obj.photo.name if trace_obj.photo else ""
+    with transaction.atomic():
+        trace_obj.delete()
+        _supprimer_media_apres_validation(nom_photo)
+    messages.success(request, "Trace supprimée.")
+    return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
+
+
 def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
     """Ajouter ou modifier une trace datée sans écraser les précédentes."""
     ecole = ecole_courante(request)
@@ -273,6 +312,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
         if scolarite is None:
             return HttpResponseForbidden("Aucune scolarité n'est associée à cet élève.")
         trace_obj = trace_obj or Trace(observation=obs, scolarite=scolarite)
+        ancien_nom_photo = trace_obj.photo.name if trace_obj.pk and trace_obj.photo else ""
         trace_obj.commentaire = request.POST.get("commentaire", "").strip()
         if request.POST.get("retirer_photo"):
             trace_obj.photo = None
@@ -282,7 +322,11 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
         if date:
             trace_obj.date_observation = date
         trace_obj.visible_carnet = request.POST.get("visible_carnet") == "on"
-        trace_obj.save()
+        with transaction.atomic():
+            trace_obj.save()
+            nouveau_nom_photo = trace_obj.photo.name if trace_obj.photo else ""
+            if ancien_nom_photo and ancien_nom_photo != nouveau_nom_photo:
+                _supprimer_media_apres_validation(ancien_nom_photo)
         messages.success(request, f"Trace enregistrée pour {eleve.prenom}.")
         return redirect("trace", eleve_pk=eleve.pk, competence_pk=competence.pk)
 

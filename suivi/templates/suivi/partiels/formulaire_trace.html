@@ -1,0 +1,29 @@
+<form method="post" enctype="multipart/form-data" class="formulaire-trace">
+  {% csrf_token %}
+  <h2>{% if trace_obj %}Modifier la trace{% else %}Ajouter une trace{% endif %}</h2>
+  <label for="commentaire">Le mot qui accompagne la réussite
+    <span class="aide">Ce que l'enfant a dit, ce que vous avez vu. C'est ce texte qui apparaîtra dans le carnet.</span>
+  </label>
+  <textarea id="commentaire" name="commentaire">{{ trace_obj.commentaire }}</textarea>
+
+  <label for="date_observation">Date</label>
+  <input type="date" id="date_observation" name="date_observation" value="{% if trace_obj %}{{ trace_obj.date_observation|date:'Y-m-d' }}{% else %}{{ date_defaut|date:'Y-m-d' }}{% endif %}">
+
+  {% if trace_obj.photo %}
+  <label>Photo actuelle</label>
+  <img class="miniature" src="{{ trace_obj.photo.url }}" alt="">
+  <p><label class="choix-simple"><input type="checkbox" name="retirer_photo"> Retirer cette photo</label></p>
+  {% endif %}
+
+  <label for="photo">{% if trace_obj.photo %}Remplacer par une autre photo{% else %}Ajouter une photo{% endif %}
+    <span class="aide">Une photo du travail, pas du visage de l'enfant, si vous voulez rester tranquille côté RGPD.</span>
+  </label>
+  <input type="file" id="photo" name="photo" accept="image/*">
+
+  <p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if not trace_obj or trace_obj.visible_carnet %}checked{% endif %}> Afficher cette trace dans le carnet</label></p>
+
+  <div class="actions">
+    <button class="bouton" type="submit">{% if trace_obj %}Enregistrer les modifications{% else %}Ajouter la trace{% endif %}</button>
+    <a class="bouton discret" href="{% if trace_obj %}{% url 'trace' eleve.pk competence.pk %}{% else %}{% url 'saisie_eleve' eleve.pk %}{% endif %}">Annuler</a>
+  </div>
+</form>

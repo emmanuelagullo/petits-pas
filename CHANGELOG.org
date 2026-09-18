@@ -21,6 +21,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   migration vérifiable depuis =0.3= et préparation de plusieurs traces par
   compétence.
 
+** Fixed
+
+- Édition d'une trace à sa place dans l'historique, suppression explicite avec
+  nettoyage de son média privé et pictogrammes calculés sur toutes les traces.
+
 * 0.3 — 2026-09-17
 
 ** Added

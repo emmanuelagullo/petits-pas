@@ -435,6 +435,27 @@ class IndicateursTrace(Base):
         self.assertContains(r, 'class="indicateur-commentaire"')
         self.assertContains(r, 'class="indicateur-photo"')
 
+    def test_les_indicateurs_considerent_toutes_les_traces(self):
+        observation = Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+        )
+        self.creer_trace(
+            observation,
+            date_observation="2026-09-01",
+            commentaire="Une ancienne remarque",
+            photo="traces/ancienne.jpg",
+        )
+        self.creer_trace(
+            observation,
+            date_observation="2026-10-01",
+        )
+
+        r = self.page_eleve()
+
+        self.assertContains(r, 'class="indicateur-commentaire"')
+        self.assertContains(r, 'class="indicateur-photo"')
+
 
 class HistoriqueTraces(Base):
     def setUp(self):
@@ -475,6 +496,17 @@ class HistoriqueTraces(Base):
         premiere = self.creer_trace(observation, commentaire="Première")
         seconde = self.creer_trace(observation, commentaire="Deuxième")
 
+        page_edition = self.client.get(
+            reverse(
+                "modifier_trace",
+                args=[self.eleve.pk, self.competence.pk, premiere.pk],
+            )
+        )
+
+        self.assertContains(page_edition, "Première", count=1)
+        self.assertContains(page_edition, "Deuxième", count=1)
+        self.assertContains(page_edition, 'class="trace-conservee en-edition"')
+
         self.client.post(
             reverse(
                 "modifier_trace",
@@ -513,6 +545,43 @@ class HistoriqueTraces(Base):
 
         self.assertNotContains(carnet, "Pour l'équipe seulement")
         self.assertContains(carnet, "Pour la famille")
+
+    @patch("suivi.views.default_storage.delete")
+    def test_supprimer_une_trace_supprime_aussi_son_media_prive(self, supprimer):
+        observation = Observation.objects.create(
+            eleve=self.eleve, competence=self.competence
+        )
+        trace = self.creer_trace(
+            observation,
+            commentaire="À supprimer",
+            photo="traces/a-supprimer.jpg",
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            reponse = self.client.post(
+                reverse(
+                    "supprimer_trace",
+                    args=[self.eleve.pk, self.competence.pk, trace.pk],
+                )
+            )
+
+        self.assertRedirects(reponse, self.url)
+        self.assertFalse(Trace.objects.filter(pk=trace.pk).exists())
+        supprimer.assert_called_once_with("traces/a-supprimer.jpg")
+        self.assertTrue(Observation.objects.filter(pk=observation.pk).exists())
+
+    def test_supprimer_une_trace_exige_post(self):
+        observation = Observation.objects.create(
+            eleve=self.eleve, competence=self.competence
+        )
+        trace = self.creer_trace(observation)
+        url = reverse(
+            "supprimer_trace",
+            args=[self.eleve.pk, self.competence.pk, trace.pk],
+        )
+
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.assertTrue(Trace.objects.filter(pk=trace.pk).exists())
 
 
 class Import(Base):
