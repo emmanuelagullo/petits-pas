@@ -16,7 +16,7 @@ from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
+from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
 
 
 # --------------------------------------------------------------------------
@@ -92,7 +92,13 @@ def deconnexion(request):
 @acces_requis
 def accueil(request):
     ecole = ecole_courante(request)
-    classes = ecole.classes.annotate(nb_eleves=Count("eleves"))
+    classes = ecole.classes.annotate(
+        nb_eleves=Count(
+            "scolarites__eleve",
+            filter=Q(scolarites__eleve__archive_le__isnull=True),
+            distinct=True,
+        )
+    )
     return render(request, "suivi/accueil.html", {"classes": classes})
 
 
@@ -114,7 +120,7 @@ def _progression(eleves, ecole):
 def classe_detail(request, pk):
     ecole = ecole_courante(request)
     classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
-    eleves = list(classe.eleves.all())
+    eleves = list(classe.eleves)
     total = _progression(eleves, ecole)
     return render(
         request,
@@ -141,7 +147,7 @@ def _arbre(ecole, niveaux=None):
 def saisie_eleve(request, pk):
     """L'écran du quotidien : un enfant, tout ce qu'il sait faire."""
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=pk, classe__ecole=ecole)
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole, archive_le__isnull=True)
     filtre = request.GET.get("niveaux", "tous")
     niveaux = None if filtre == "tous" else [filtre]
 
@@ -180,10 +186,10 @@ def saisie_competence(request, pk, competence_pk):
     etats = {
         o.eleve_id: o
         for o in Observation.objects.filter(
-            competence=competence, eleve__classe=classe
+            competence=competence, eleve__scolarites__classe=classe
         )
     }
-    lignes = [(e, etats.get(e.pk)) for e in classe.eleves.all()]
+    lignes = [(e, etats.get(e.pk)) for e in classe.eleves]
     return render(
         request,
         "suivi/saisie_competence.html",
@@ -205,7 +211,7 @@ def basculer(request, eleve_pk, competence_pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=eleve_pk, classe__ecole=ecole)
+    eleve = get_object_or_404(Eleve, pk=eleve_pk, ecole=ecole, archive_le__isnull=True)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
 
     obs = Observation.objects.filter(
@@ -242,7 +248,7 @@ def basculer(request, eleve_pk, competence_pk):
 def trace(request, eleve_pk, competence_pk):
     """Ajouter un commentaire ou une photo à une réussite."""
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=eleve_pk, classe__ecole=ecole)
+    eleve = get_object_or_404(Eleve, pk=eleve_pk, ecole=ecole, archive_le__isnull=True)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
     obs, _ = Observation.objects.get_or_create(eleve=eleve, competence=competence)
 
@@ -273,7 +279,7 @@ def trace(request, eleve_pk, competence_pk):
 
 def _contexte_carnet(request, pk):
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=pk, classe__ecole=ecole)
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
     modes = {"reussites", "observes", "tout"}
     mode = request.GET.get("contenu", "observes")
     colonnes = request.GET.get("colonnes", "2")
@@ -403,12 +409,23 @@ def carnet_pdf(request, pk):
 @direction_requise
 def gestion(request):
     ecole = ecole_courante(request)
-    classes = ecole.classes.annotate(nb_eleves=Count("eleves"))
+    classes = ecole.classes.annotate(
+        nb_eleves=Count(
+            "scolarites__eleve",
+            filter=Q(scolarites__eleve__archive_le__isnull=True),
+            distinct=True,
+        )
+    )
+    eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
     nb_competences = Competence.objects.filter(domaine__ecole=ecole, active=True).count()
     return render(
         request,
         "suivi/gestion.html",
-        {"classes": classes, "nb_competences": nb_competences},
+        {
+            "classes": classes,
+            "nb_competences": nb_competences,
+            "eleves_archives": eleves_archives,
+        },
     )
 
 
@@ -445,11 +462,45 @@ def importer_eleves(request, pk):
                 if len(parts) > 2 and parts[2].upper() in {"PS", "MS", "GS"}
                 else niveau_defaut
             )
-            Eleve.objects.create(
-                classe=classe, prenom=prenom, nom=nom, niveau=niveau
+            annee_naissance = None
+            if len(parts) > 3 and parts[3].isdigit():
+                annee_naissance = int(parts[3])
+            eleve = Eleve.objects.create(
+                ecole=ecole,
+                prenom=prenom,
+                nom=nom,
+                annee_naissance=annee_naissance,
+            )
+            Scolarite.objects.create(
+                eleve=eleve,
+                classe=classe,
+                annee_scolaire=classe.annee_scolaire,
+                niveau=niveau,
             )
             ajoutes += 1
         messages.success(request, f"{ajoutes} enfant(s) ajouté(s) à {classe}.")
         return redirect("classe_detail", pk=classe.pk)
 
     return render(request, "suivi/importer_eleves.html", {"classe": classe})
+
+
+@direction_requise
+def archiver_eleve(request, pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+    eleve.archive_le = timezone.now()
+    eleve.save(update_fields=["archive_le"])
+    messages.success(request, f"{eleve.prenom} a été archivé sans supprimer son parcours.")
+    return redirect("gestion")
+
+
+@direction_requise
+def desarchiver_eleve(request, pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+    eleve.archive_le = None
+    eleve.save(update_fields=["archive_le"])
+    messages.success(request, f"{eleve.prenom} est de nouveau actif.")
+    return redirect("gestion")

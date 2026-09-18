@@ -48,16 +48,30 @@ class Classe(models.Model):
 
     class Meta:
         ordering = ["ordre", "nom"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["ecole", "annee_scolaire", "nom"],
+                name="classe_unique_par_ecole_annee_nom",
+            )
+        ]
 
     def __str__(self):
         return self.nom
 
+    @property
+    def eleves(self):
+        return Eleve.objects.filter(
+            scolarites__classe=self,
+            archive_le__isnull=True,
+        ).distinct()
+
 
 class Eleve(models.Model):
-    classe = models.ForeignKey(Classe, on_delete=models.CASCADE, related_name="eleves")
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name="eleves")
     prenom = models.CharField(max_length=100)
     nom = models.CharField(max_length=100, blank=True)
-    niveau = models.CharField(max_length=2, choices=NIVEAUX, default="PS")
+    annee_naissance = models.PositiveSmallIntegerField(blank=True, null=True)
+    archive_le = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         ordering = ["prenom", "nom"]
@@ -72,6 +86,64 @@ class Eleve(models.Model):
         if self.nom:
             return f"{self.prenom} {self.nom[0].upper()}."
         return self.prenom
+
+    def scolarite_courante(self):
+        return self.scolarites.select_related("classe").order_by("-annee_scolaire").first()
+
+    @property
+    def classe(self):
+        scolarite = self.scolarite_courante()
+        return scolarite.classe if scolarite else None
+
+    @property
+    def niveau(self):
+        scolarite = self.scolarite_courante()
+        return scolarite.niveau if scolarite else ""
+
+    def get_niveau_display(self):
+        return dict(NIVEAUX).get(self.niveau, self.niveau)
+
+
+class Scolarite(models.Model):
+    eleve = models.ForeignKey(
+        Eleve, on_delete=models.CASCADE, related_name="scolarites"
+    )
+    classe = models.ForeignKey(
+        Classe, on_delete=models.PROTECT, related_name="scolarites"
+    )
+    annee_scolaire = models.CharField(max_length=9)
+    niveau = models.CharField(max_length=2, choices=NIVEAUX)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    modifie_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-annee_scolaire", "eleve__prenom", "eleve__nom"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["eleve", "annee_scolaire"],
+                name="scolarite_unique_par_eleve_annee",
+            )
+        ]
+        indexes = [
+            models.Index(
+                fields=["classe", "niveau"],
+                name="suivi_scola_classe__b283c1_idx",
+            )
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        erreurs = {}
+        if self.classe_id and self.annee_scolaire != self.classe.annee_scolaire:
+            erreurs["annee_scolaire"] = "L'année doit être celle de la classe."
+        if self.eleve_id and self.classe_id and self.eleve.ecole_id != self.classe.ecole_id:
+            erreurs["classe"] = "L'élève et la classe doivent appartenir à la même école."
+        if erreurs:
+            raise ValidationError(erreurs)
+
+    def __str__(self):
+        return f"{self.eleve} — {self.niveau} {self.annee_scolaire}"
 
 
 class Domaine(models.Model):

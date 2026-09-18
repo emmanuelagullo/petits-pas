@@ -2,7 +2,7 @@ import random
 
 from django.core.management.base import BaseCommand, CommandError
 
-from suivi.models import Classe, Competence, Ecole, Eleve, Observation
+from suivi.models import Classe, Competence, Ecole, Eleve, Observation, Scolarite
 
 PRENOMS = [
     ("Camille", "PS"), ("Sofiane", "PS"), ("Lou", "PS"), ("Ismaël", "PS"),
@@ -42,10 +42,16 @@ class Command(BaseCommand):
         )
         if not classe.eleves.exists():
             for prenom, niveau in PRENOMS:
-                Eleve.objects.create(classe=classe, prenom=prenom, niveau=niveau)
+                eleve = Eleve.objects.create(ecole=ecole, prenom=prenom)
+                Scolarite.objects.create(
+                    eleve=eleve,
+                    classe=classe,
+                    annee_scolaire=classe.annee_scolaire,
+                    niveau=niveau,
+                )
 
         competences = list(Competence.objects.filter(domaine__ecole=ecole))
-        for eleve in classe.eleves.all():
+        for eleve in classe.eleves:
             pertinentes = [
                 c
                 for c in competences
@@ -67,6 +73,6 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"Démo prête : {classe} — {classe.eleves.count()} enfants, "
-                f"{Observation.objects.filter(eleve__classe=classe).count()} observations."
+                f"{Observation.objects.filter(eleve__scolarites__classe=classe).count()} observations."
             )
         )
