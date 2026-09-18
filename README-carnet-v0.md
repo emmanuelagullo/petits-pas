@@ -47,6 +47,10 @@ préparation d'une édition, export et outils internes — est formalisé dans
 existe déjà de ce qui est attendu pour la démonstration, le premier essai ou
 une évolution ultérieure.
 
+La séparation prévue entre identité de l'élève, scolarités annuelles, bilans
+et futures traces multiples, ainsi que la migration sans perte depuis `0.3`,
+sont définies dans [`MODELE-LONGITUDINAL.org`](MODELE-LONGITUDINAL.org).
+
 ## Démarrer
 
 ```sh
