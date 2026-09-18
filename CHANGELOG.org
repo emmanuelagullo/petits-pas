@@ -7,6 +7,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+* 0.4 — 2026-09-18
+
 ** Added
 
 - Identité durable des élèves, année de naissance facultative, archivage sans
@@ -23,6 +25,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Adaptation du déploiement éphémère au stockage des photos dans les traces
+  multiples introduit après =0.3=.
 - Édition d'une trace à sa place dans l'historique, suppression explicite avec
   nettoyage de son média privé et pictogrammes calculés sur toutes les traces.
 - Bascule directe depuis l'historique entre une trace affichée dans le carnet

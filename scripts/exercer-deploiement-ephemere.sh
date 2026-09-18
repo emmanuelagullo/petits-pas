@@ -120,15 +120,19 @@ python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
 python3 manage.py jeu_demo
 python3 manage.py shell -c '
 from django.core.files.base import ContentFile
-from suivi.models import Observation
+from suivi.models import Observation, Trace
 
 observation = Observation.objects.first()
-observation.photo.save(
+trace = Trace.objects.create(
+    observation=observation,
+    scolarite=observation.eleve.scolarite_courante(),
+)
+trace.photo.save(
     "preuve-deploiement-ci.txt",
     ContentFile(b"preuve du stockage S3 de Petits Pas\n"),
     save=True,
 )
-print(f"Média de contrôle créé : {observation.photo.name}")
+print(f"Média de contrôle créé : {trace.photo.name}")
 '
 
 python3 manage.py verifier_stockage_objet

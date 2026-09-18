@@ -22,7 +22,7 @@ persistant. Ajouter obligatoirement :
 
 #+begin_src sh
 CARNET_ENVIRONNEMENT_ATELIER=oui
-CARNET_VERSION=0.3
+CARNET_VERSION=0.4
 #+end_src
 
 =CARNET_VERSION= identifie la version délibérément promue dans l'atelier. Elle

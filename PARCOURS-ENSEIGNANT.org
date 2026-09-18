@@ -55,22 +55,22 @@ Les quatre niveaux de priorité employés ci-dessous sont :
   direction.
 - Création de classes et import d'une liste d'élèves.
 - Rattachement d'un élève à une classe et à un niveau PS, MS ou GS.
+- Identité durable comprenant une année de naissance facultative.
+- Scolarités annuelles séparant la classe et le niveau de l'identité.
+- Archivage et désarchivage sans suppression du parcours.
 - Isolation des données entre écoles.
 
 ** Démonstration
 
 - Conserver le jeu de données factices stable entre deux retours de l'équipe.
 - Montrer clairement la classe, le niveau et l'année scolaire courants.
-- Ajouter l'année de naissance facultative à l'identité de l'élève.
 - Permettre de retrouver un élève par son prénom, son initiale, sa classe ou
   son niveau lorsque l'effectif de démonstration le justifie.
 
 ** Essai
 
-- Archiver un élève sans supprimer son carnet ni ses traces.
-- Faire passer un même élève d'une classe ou d'un niveau à l'autre en
-  conservant son historique.
-- Représenter explicitement sa scolarité pour chaque année scolaire.
+- Fournir le parcours d'interface faisant passer un même élève d'une classe ou
+  d'un niveau à l'autre pour une nouvelle année.
 - Clarifier les droits respectifs de la direction et de l'équipe enseignante
   sur les élèves, les classes et les paramètres de l'école.
 
@@ -88,6 +88,10 @@ Les quatre niveaux de priorité employés ci-dessous sont :
 - États « réussi », « en cours » et absence d'observation.
 - Date exacte conservée pour chaque observation.
 - Commentaire libre et photo facultatifs.
+- Plusieurs traces datées pour une même compétence.
+- Choix, modification et suppression de chaque trace indépendamment.
+- Possibilité de conserver une trace pour l'équipe sans l'afficher dans le
+  carnet familial.
 - Indicateurs distincts pour le commentaire et la photo.
 
 ** Démonstration
@@ -103,9 +107,6 @@ Les quatre niveaux de priorité employés ci-dessous sont :
 
 - Proposer des formulations narratives insérables en un clic puis librement
   modifiables.
-- Conserver plusieurs observations ou traces datées pour une même compétence.
-- Permettre d'exclure une trace d'une édition sans effacer le fait
-  pédagogique.
 - Normaliser les photos à l'import et supprimer leurs métadonnées privées.
 
 ** Plus tard
@@ -116,18 +117,21 @@ Les quatre niveaux de priorité employés ci-dessous sont :
 
 * Entretenir les bilans et le parcours longitudinal
 
+** Existant
+
+- Plusieurs bilans datés peuvent être rattachés aux scolarités successives.
+- Les bilans des années précédentes restent conservés dans le parcours.
+- Le carnet propose les regroupements annuel, mensuel, par bilan ou aucun.
+- La période « par bilan » est déduite de la chronologie des bilans.
+
 ** Démonstration
 
-- Montrer dans la maquette la place prévue pour les bilans, sans inventer de
-  contenu réel.
-- Présenter les quatre regroupements envisagés : annuel, mensuel, par bilan ou
-  aucun.
+- Faire évaluer la restitution des bilans et les quatre regroupements avec des
+  contenus exclusivement factices.
 
 ** Essai
 
-- Créer plusieurs bilans datés au cours d'une même année scolaire.
-- Conserver les bilans des années précédentes.
-- Déduire automatiquement la période couverte de la chronologie des bilans.
+- Permettre de modifier et supprimer explicitement un bilan existant.
 - Rééditer un ancien état du parcours sans que les modifications ultérieures
   du référentiel changent les textes déjà enregistrés.
 
@@ -162,6 +166,8 @@ contenu et de mise en page doivent rester explicites et indépendantes.
 - Prévisualisation d'un carnet individuel.
 - Choix entre réussites, apprentissages observés ou référentiel complet.
 - Choix entre une et deux colonnes.
+- Choix entre les quatre regroupements temporels.
+- Restitution des bilans et des seules traces sélectionnées pour le carnet.
 - Génération du PDF à la demande avec commentaire et photo.
 
 ** Démonstration

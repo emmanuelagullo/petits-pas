@@ -1,12 +1,14 @@
 # Carnet de suivi des apprentissages — V0
 
 Un carnet numérique de suivi pour le cycle 1, dans l'esprit d'Iticarnet, qui
-ferme fin mai 2027. Cette V0 vise **une seule école, un seul trimestre de
-test** : elle est faite pour être mise entre les mains d'un enseignant vite,
-et pour être jetée ou réécrite après.
+ferme fin mai 2027. Cette V0 vise d'abord **une école pilote** : elle est faite
+pour être mise rapidement entre les mains d'un enseignant et évoluer à partir
+des retours pédagogiques.
 
-Django 5/6 + HTMX + SQLite. Aucune dépendance distante au moment de l'affichage
-(htmx est embarqué), parce que le wifi des écoles n'est pas fiable.
+Django 5.2/6.1 + HTMX, avec SQLite pour le développement ou la démonstration
+et PostgreSQL + stockage objet S3 pour un déploiement persistant. Aucune
+dépendance distante n'est nécessaire au moment de l'affichage : HTMX est
+embarqué, parce que le wifi des écoles n'est pas fiable.
 
 ## Ce qu'elle fait
 
@@ -14,7 +16,10 @@ Django 5/6 + HTMX + SQLite. Aucune dépendance distante au moment de l'affichage
 - **Saisie par enfant** : la liste complète du référentiel, filtrable par
   section. Un appui = réussi, deux = en cours, trois = effacé.
 - **Saisie éclair** : une compétence observée, toute la classe sur un écran.
-- **Trace** : un commentaire et une photo par réussite.
+- **Parcours longitudinal** : identité durable, scolarités annuelles,
+  archivage réversible et plusieurs bilans datés.
+- **Traces** : plusieurs commentaires ou photos datés par compétence, chacun
+  pouvant être affiché dans le carnet ou conservé uniquement pour l'équipe.
 - **Carnet imprimable** : une couverture et des pages de compétences pensées
   pour être données aux parents. La prévisualisation permet de comparer les
   réussites seules, les apprentissages observés ou le référentiel complet.
@@ -24,17 +29,18 @@ Django 5/6 + HTMX + SQLite. Aucune dépendance distante au moment de l'affichage
 
 ## Ce qu'elle ne fait pas
 
-Volontairement, pour tenir dans une V0 :
+Volontairement, à ce stade :
 
-- **Une seule observation par couple (enfant, compétence).** Pas d'historique :
-  si vous repassez une compétence de « réussi » à « en cours », la date
-  précédente est perdue. C'est le premier point à valider avec l'enseignant —
-  s'il veut plusieurs traces datées par compétence, le modèle change.
+- **Un seul état courant par couple enfant-compétence.** Les traces sont
+  historiques, mais les changements successifs de l'état « réussi » ou « en
+  cours » ne constituent pas encore un journal permettant de reconstruire à
+  l'identique chaque ancienne édition.
 - Pas d'inscription en ligne : les écoles se créent en ligne de commande.
 - Pas de comptes individuels : le mot de passe est partagé par l'équipe. On ne
   sait donc pas qui a saisi quoi.
 - Pas d'envoi de carnet aux parents, pas d'espace parent.
 - Photos stockées telles quelles, sans redimensionnement.
+- Pas encore d'édition collective ni d'archive ZIP pour toute une classe.
 - Pas de synthèse de fin de GS, pas d'export ONDE.
 
 La première hypothèse de carnet de la phase 3, ses cas de contrôle et les
@@ -47,9 +53,9 @@ préparation d'une édition, export et outils internes — est formalisé dans
 existe déjà de ce qui est attendu pour la démonstration, le premier essai ou
 une évolution ultérieure.
 
-La séparation prévue entre identité de l'élève, scolarités annuelles, bilans
-et futures traces multiples, ainsi que la migration sans perte depuis `0.3`,
-sont définies dans [`MODELE-LONGITUDINAL.org`](MODELE-LONGITUDINAL.org).
+La séparation entre identité de l'élève, scolarités annuelles, bilans et
+traces multiples, ainsi que la migration sans perte depuis `0.3`, est définie
+dans [`MODELE-LONGITUDINAL.org`](MODELE-LONGITUDINAL.org).
 
 ## Démarrer
 
@@ -76,8 +82,9 @@ Pour voir l'outil rempli avant de le montrer à quelqu'un :
 python manage.py jeu_demo    # une classe de 16 enfants et ~300 observations
 ```
 
-Les tests couvrent l'accès, le cycle de bascule, l'isolation entre écoles,
-l'import et le rechargement du référentiel :
+Les tests couvrent notamment l'accès, le parcours longitudinal, les bilans,
+les traces multiples, les PDF, l'isolation entre écoles, les sauvegardes et
+restaurations, l'import et le rechargement du référentiel :
 
 ```sh
 python manage.py test suivi
@@ -125,25 +132,21 @@ compétences disparues du fichier, sans perdre les observations associées.
 
 ## Mettre en ligne pour le test
 
-SQLite tient très largement la charge d'une école. Le minimum avant d'ouvrir
-l'accès depuis l'extérieur :
+SQLite et les médias locaux conviennent au développement et à la démonstration
+éphémère. Un environnement persistant exposé à une équipe utilise le profil
+PostgreSQL + stockage objet privé décrit dans `DEPLOIEMENT.org`. Sa
+configuration part de `.env.example` et son démarrage s'effectue avec :
 
 ```sh
-export CARNET_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
-export CARNET_DEBUG=0
-export CARNET_HOSTS="carnet.mon-domaine.fr"
-export CARNET_CSRF_ORIGINS="https://carnet.mon-domaine.fr"
-python manage.py collectstatic
-gunicorn carnet.wsgi   # derrière nginx/caddy, en HTTPS
+./start-persistent.sh
 ```
 
-En `CARNET_DEBUG=0`, Django ne sert plus `media/` : confiez-le au serveur web.
-
 Côté données personnelles : l'outil contient des prénoms d'enfants et
-potentiellement des photos. Hébergement dans l'UE, HTTPS, sauvegarde du fichier
-`carnet.sqlite3` et du dossier `media/`, et une conversation avec la direction
-sur ce qui est photographié. La formulation retenue dans l'interface suggère de
-photographier les productions plutôt que les visages.
+potentiellement des photos. Hébergement adapté, HTTPS, stockage privé,
+sauvegardes coordonnées de PostgreSQL et des médias, et conversation avec la
+direction sur ce qui est photographié restent indispensables. La formulation
+retenue dans l'interface suggère de photographier les productions plutôt que
+les visages.
 
 ## Sauvegarder et tester une restauration PostgreSQL
 
