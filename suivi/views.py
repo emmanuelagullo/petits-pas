@@ -801,6 +801,100 @@ def preparer_edition(request, pk):
 # --------------------------------------------------------------------------
 
 
+def _message_scolarite_courante(eleve):
+    """Décrit où un élève est actuellement scolarisé, pour les messages de
+    confirmation après réactivation."""
+    scolarite = eleve.scolarite_courante()
+    if scolarite:
+        return (
+            f"{scolarite.classe} ({scolarite.get_niveau_display()} — "
+            f"{scolarite.annee_scolaire})"
+        )
+    return None
+
+
+def _annees_disponibles(ecole):
+    return sorted(
+        set(ecole.classes.values_list("annee_scolaire", flat=True)), reverse=True
+    )
+
+
+def _annee_courante_probable(ecole, annees):
+    """La meilleure année par défaut pour l'annuaire : celle qui compte le
+    plus de scolarités actives, pas nécessairement la plus récente (une
+    classe de rentrée peut déjà exister, encore vide, pour l'année suivante)."""
+    if not annees:
+        return ""
+    compte = dict(
+        Scolarite.objects.filter(
+            eleve__ecole=ecole, eleve__archive_le__isnull=True
+        )
+        .values("annee_scolaire")
+        .annotate(n=Count("pk"))
+        .values_list("annee_scolaire", "n")
+    )
+    if compte:
+        return max(compte, key=lambda annee: (compte.get(annee, 0), annee))
+    return annees[0]
+
+
+@direction_requise
+def annuaire_eleves(request):
+    """Liste filtrable de tous les élèves de l'école, avec leur scolarité
+    pour l'année choisie, afin de rendre déplacements et réactivations
+    visibles sans passer par une classe en particulier."""
+    ecole = ecole_courante(request)
+    annees = _annees_disponibles(ecole)
+    annee = request.GET.get("annee") or _annee_courante_probable(ecole, annees)
+    niveau = request.GET.get("niveau", "tous")
+    if niveau not in {"tous", "PS", "MS", "GS"}:
+        niveau = "tous"
+    etat = request.GET.get("etat", "actifs")
+    if etat not in {"actifs", "archives", "tous"}:
+        etat = "actifs"
+
+    eleves = ecole.eleves.all()
+    if etat == "actifs":
+        eleves = eleves.filter(archive_le__isnull=True)
+    elif etat == "archives":
+        eleves = eleves.filter(archive_le__isnull=False)
+
+    if annee:
+        eleves = eleves.prefetch_related(
+            Prefetch(
+                "scolarites",
+                queryset=Scolarite.objects.filter(
+                    annee_scolaire=annee
+                ).select_related("classe"),
+                to_attr="scolarites_annee",
+            )
+        )
+
+    resultats = []
+    for eleve in eleves:
+        scolarite = None
+        if annee:
+            scolarites_annee = getattr(eleve, "scolarites_annee", [])
+            scolarite = scolarites_annee[0] if scolarites_annee else None
+            if niveau != "tous" and (not scolarite or scolarite.niveau != niveau):
+                continue
+        eleve.scolarite_annee = scolarite
+        resultats.append(eleve)
+    resultats.sort(key=lambda e: (e.prenom.lower(), e.nom.lower()))
+
+    return render(
+        request,
+        "suivi/annuaire.html",
+        {
+            "eleves": resultats,
+            "annees": annees,
+            "annee": annee,
+            "niveau": niveau,
+            "etat": etat,
+        },
+    )
+
+
 @direction_requise
 def gestion(request):
     ecole = ecole_courante(request)
@@ -892,6 +986,20 @@ def creer_classe(request):
 def parcours_eleve(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
+    if request.method == "POST" and request.POST.get("action") == "reactiver":
+        eleve.archive_le = None
+        eleve.save(update_fields=["archive_le"])
+        ou = _message_scolarite_courante(eleve)
+        if ou:
+            messages.success(request, f"{eleve.prenom} est de nouveau actif, dans {ou}.")
+        else:
+            messages.success(
+                request,
+                f"{eleve.prenom} est de nouveau actif, mais n'a pas encore de "
+                "scolarité pour l'année en cours : ajoutez-en une ci-dessous.",
+            )
+        return redirect("parcours_eleve", pk=eleve.pk)
+
     if request.method == "POST" and request.POST.get("action") == "identite":
         prenom = request.POST.get("prenom", "").strip()
         if not prenom:
@@ -1183,5 +1291,13 @@ def desarchiver_eleve(request, pk):
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
     eleve.archive_le = None
     eleve.save(update_fields=["archive_le"])
-    messages.success(request, f"{eleve.prenom} est de nouveau actif.")
+    ou = _message_scolarite_courante(eleve)
+    if ou:
+        messages.success(request, f"{eleve.prenom} est de nouveau actif, dans {ou}.")
+    else:
+        messages.success(
+            request,
+            f"{eleve.prenom} est de nouveau actif, mais n'a pas encore de "
+            "scolarité pour l'année en cours : ajoutez-en une depuis son parcours.",
+        )
     return redirect("gestion")
