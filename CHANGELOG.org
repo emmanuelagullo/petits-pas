@@ -12,6 +12,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Identité durable des élèves, année de naissance facultative, archivage sans
   suppression et scolarités annuelles séparant classe et niveau du dossier de
   l'élève.
+- Bilans datés rattachés aux scolarités et quatre regroupements possibles des
+  acquisitions dans le carnet : aucun, annuel, mensuel ou par bilan.
 - Conception du modèle longitudinal minimal séparant l'identité durable de
   l'élève, ses scolarités annuelles et ses bilans datés, avec stratégie de
   migration vérifiable depuis =0.3= et préparation de plusieurs traces par

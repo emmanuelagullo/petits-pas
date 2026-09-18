@@ -499,6 +499,9 @@ textarea { min-height: 7rem; resize: vertical; }
   margin: 0.6rem 0 0.8rem;
 }
 
+.encadre-bilan { break-inside: avoid; margin: 1rem 0; padding: 1rem; border: 1px solid var(--ligne); border-radius: 0.8rem; }
+.bilans-carnet { break-before: page; }
+
 .carnet-vide { margin: 7rem auto; max-width: 28rem; text-align: center; color: #666; }
 .carnet-vide h2 { color: #333; }
 

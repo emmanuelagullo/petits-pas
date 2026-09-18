@@ -23,5 +23,6 @@
 
 <div class="actions">
   <a class="bouton" href="{% url 'carnet' eleve.pk %}">Voir le carnet de {{ eleve.prenom }}</a>
+  <a class="bouton discret" href="{% url 'bilans_eleve' eleve.pk %}">Quelques mots sur son parcours</a>
 </div>
 {% endblock %}

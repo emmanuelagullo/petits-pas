@@ -1,5 +1,6 @@
 from functools import wraps
 import mimetypes
+from collections import OrderedDict
 from urllib.parse import quote, unquote
 
 from django.contrib import messages
@@ -12,11 +13,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
+from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
 
 
 # --------------------------------------------------------------------------
@@ -283,6 +285,7 @@ def _contexte_carnet(request, pk):
     modes = {"reussites", "observes", "tout"}
     mode = request.GET.get("contenu", "observes")
     colonnes = request.GET.get("colonnes", "2")
+    regroupement = request.GET.get("regroupement", "aucun")
     # Compatibilité avec les liens de la version 0.2.
     if request.GET.get("tout") == "1":
         mode = "tout"
@@ -290,6 +293,8 @@ def _contexte_carnet(request, pk):
         mode = "observes"
     if colonnes not in {"1", "2"}:
         colonnes = "2"
+    if regroupement not in {"aucun", "annuel", "mensuel", "bilan"}:
+        regroupement = "aucun"
 
     etats = {o.competence_id: o for o in eleve.observations.select_related("competence")}
     domaines = []
@@ -306,15 +311,66 @@ def _contexte_carnet(request, pk):
                 if o and o.statut in (Observation.REUSSI, Observation.EN_COURS)
             ]
         if lignes:
-            domaines.append((d, lignes))
+            domaines.append((d, _regrouper_lignes(eleve, lignes, regroupement)))
+
+    scolarite = eleve.scolarite_courante()
+    bilans = Bilan.objects.filter(scolarite__eleve=eleve).select_related("scolarite")
 
     return {
         "eleve": eleve,
         "domaines": domaines,
         "mode": mode,
         "colonnes": colonnes,
+        "regroupement": regroupement,
+        "scolarite": scolarite,
+        "bilans": bilans,
         "edite_le": timezone.localdate(),
     }
+
+
+def _annee_scolaire_date(date):
+    debut = date.year if date.month >= 8 else date.year - 1
+    return f"{debut}-{debut + 1}"
+
+
+def _regrouper_lignes(eleve, lignes, regroupement):
+    if regroupement == "aucun":
+        return [(None, lignes)]
+
+    bilans = list(
+        Bilan.objects.filter(scolarite__eleve=eleve)
+        .select_related("scolarite")
+        .order_by("date_bilan")
+    )
+    groupes = OrderedDict()
+    for competence, observation in lignes:
+        if observation is None:
+            titre = "À découvrir"
+        elif regroupement == "mensuel":
+            titre = date_format(observation.date_observation, "F Y").capitalize()
+        elif regroupement == "annuel":
+            annee = _annee_scolaire_date(observation.date_observation)
+            scolarite = eleve.scolarites.filter(annee_scolaire=annee).first()
+            titre = (
+                f"{scolarite.get_niveau_display()} — {annee}"
+                if scolarite
+                else f"Année scolaire {annee}"
+            )
+        else:
+            bilan = next(
+                (b for b in bilans if b.date_bilan >= observation.date_observation),
+                None,
+            )
+            if bilan:
+                titre = "Mes acquisitions — " + date_format(
+                    bilan.date_bilan, "F Y"
+                ).lower()
+            elif bilans:
+                titre = "Acquisitions depuis le dernier bilan"
+            else:
+                titre = "Premières acquisitions de l'année"
+        groupes.setdefault(titre, []).append((competence, observation))
+    return list(groupes.items())
 
 
 SCHEMA_MEDIA_PDF = "petits-pas-media:"
@@ -374,11 +430,12 @@ def carnet(request, pk):
 def carnet_pdf(request, pk):
     contexte = _contexte_carnet(request, pk)
     noms_media = []
-    for _domaine, lignes in contexte["domaines"]:
-        for _competence, observation in lignes:
-            if observation and observation.photo:
-                observation.url_photo_pdf = _url_media_pdf(observation.photo.name)
-                noms_media.append(observation.photo.name)
+    for _domaine, groupes in contexte["domaines"]:
+        for _titre, lignes in groupes:
+            for _competence, observation in lignes:
+                if observation and observation.photo:
+                    observation.url_photo_pdf = _url_media_pdf(observation.photo.name)
+                    noms_media.append(observation.photo.name)
     html = render_to_string(
         "suivi/carnet.html",
         {**contexte, "generation_pdf": True},
@@ -482,6 +539,42 @@ def importer_eleves(request, pk):
         return redirect("classe_detail", pk=classe.pk)
 
     return render(request, "suivi/importer_eleves.html", {"classe": classe})
+
+
+@acces_requis
+def bilans_eleve(request, pk):
+    ecole = ecole_courante(request)
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
+    scolarites = eleve.scolarites.select_related("classe").order_by("-annee_scolaire")
+    if request.method == "POST":
+        scolarite = get_object_or_404(
+            Scolarite,
+            pk=request.POST.get("scolarite"),
+            eleve=eleve,
+            classe__ecole=ecole,
+        )
+        date_bilan = request.POST.get("date_bilan")
+        texte = request.POST.get("texte", "").strip()
+        if date_bilan and texte:
+            Bilan.objects.update_or_create(
+                scolarite=scolarite,
+                date_bilan=date_bilan,
+                defaults={"texte": texte},
+            )
+            messages.success(request, "Quelques mots sur le parcours enregistrés.")
+            return redirect("bilans_eleve", pk=eleve.pk)
+        messages.error(request, "La date et le texte sont obligatoires.")
+    return render(
+        request,
+        "suivi/bilans.html",
+        {
+            "eleve": eleve,
+            "scolarites": scolarites,
+            "bilans": Bilan.objects.filter(scolarite__eleve=eleve).select_related(
+                "scolarite"
+            ),
+        },
+    )
 
 
 @direction_requise

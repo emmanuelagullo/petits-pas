@@ -146,6 +146,28 @@ class Scolarite(models.Model):
         return f"{self.eleve} — {self.niveau} {self.annee_scolaire}"
 
 
+class Bilan(models.Model):
+    scolarite = models.ForeignKey(
+        Scolarite, on_delete=models.CASCADE, related_name="bilans"
+    )
+    date_bilan = models.DateField()
+    texte = models.TextField()
+    cree_le = models.DateTimeField(auto_now_add=True)
+    modifie_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["date_bilan", "pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["scolarite", "date_bilan"],
+                name="bilan_unique_par_scolarite_date",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.scolarite.eleve} — {self.date_bilan:%d/%m/%Y}"
+
+
 class Domaine(models.Model):
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name="domaines")
     code = models.CharField(max_length=20)
