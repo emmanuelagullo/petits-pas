@@ -119,17 +119,6 @@ def accueil(request):
             distinct=True,
         )
     )
-    eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
-    nb_competences = Competence.objects.filter(domaine__ecole=ecole, active=True).count()
-    return render(
-        request,
-        "suivi/gestion.html",
-        {
-            "classes": classes,
-            "nb_competences": nb_competences,
-            "eleves_archives": eleves_archives,
-        },
-    )
     return render(request, "suivi/accueil.html", {"classes": classes})
 
 
@@ -756,6 +745,19 @@ def gestion(request):
             filter=Q(scolarites__eleve__archive_le__isnull=True),
             distinct=True,
         )
+    )
+    eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
+    nb_competences = Competence.objects.filter(
+        domaine__ecole=ecole, active=True
+    ).count()
+    return render(
+        request,
+        "suivi/gestion.html",
+        {
+            "classes": classes,
+            "nb_competences": nb_competences,
+            "eleves_archives": eleves_archives,
+        },
     )
 
 
