@@ -18,7 +18,7 @@ from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
+from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite, Trace
 
 
 # --------------------------------------------------------------------------
@@ -153,7 +153,9 @@ def saisie_eleve(request, pk):
     filtre = request.GET.get("niveaux", "tous")
     niveaux = None if filtre == "tous" else [filtre]
 
-    etats = {o.competence_id: o for o in eleve.observations.all()}
+    etats = {
+        o.competence_id: o for o in eleve.observations.prefetch_related("traces")
+    }
     domaines = []
     for d in _arbre(ecole, niveaux):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
@@ -189,7 +191,7 @@ def saisie_competence(request, pk, competence_pk):
         o.eleve_id: o
         for o in Observation.objects.filter(
             competence=competence, eleve__scolarites__classe=classe
-        )
+        ).prefetch_related("traces")
     }
     lignes = [(e, etats.get(e.pk)) for e in classe.eleves]
     return render(
@@ -248,29 +250,53 @@ def basculer(request, eleve_pk, competence_pk):
 
 @acces_requis
 def trace(request, eleve_pk, competence_pk):
-    """Ajouter un commentaire ou une photo à une réussite."""
+    return _editer_trace(request, eleve_pk, competence_pk)
+
+
+@acces_requis
+def modifier_trace(request, eleve_pk, competence_pk, trace_pk):
+    return _editer_trace(request, eleve_pk, competence_pk, trace_pk)
+
+
+def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
+    """Ajouter ou modifier une trace datée sans écraser les précédentes."""
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=eleve_pk, ecole=ecole, archive_le__isnull=True)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
     obs, _ = Observation.objects.get_or_create(eleve=eleve, competence=competence)
+    trace_obj = None
+    if trace_pk is not None:
+        trace_obj = get_object_or_404(Trace, pk=trace_pk, observation=obs)
 
     if request.method == "POST":
-        obs.commentaire = request.POST.get("commentaire", "").strip()
+        scolarite = eleve.scolarite_courante()
+        if scolarite is None:
+            return HttpResponseForbidden("Aucune scolarité n'est associée à cet élève.")
+        trace_obj = trace_obj or Trace(observation=obs, scolarite=scolarite)
+        trace_obj.commentaire = request.POST.get("commentaire", "").strip()
         if request.POST.get("retirer_photo"):
-            obs.photo = None
+            trace_obj.photo = None
         if request.FILES.get("photo"):
-            obs.photo = request.FILES["photo"]
+            trace_obj.photo = request.FILES["photo"]
         date = request.POST.get("date_observation")
         if date:
-            obs.date_observation = date
-        obs.save()
+            trace_obj.date_observation = date
+        trace_obj.visible_carnet = request.POST.get("visible_carnet") == "on"
+        trace_obj.save()
         messages.success(request, f"Trace enregistrée pour {eleve.prenom}.")
-        return redirect(reverse("saisie_eleve", args=[eleve.pk]) + f"#c{competence.pk}")
+        return redirect("trace", eleve_pk=eleve.pk, competence_pk=competence.pk)
 
     return render(
         request,
         "suivi/trace.html",
-        {"eleve": eleve, "competence": competence, "obs": obs},
+        {
+            "eleve": eleve,
+            "competence": competence,
+            "obs": obs,
+            "trace_obj": trace_obj,
+            "traces": obs.traces.select_related("scolarite"),
+            "date_defaut": timezone.localdate(),
+        },
     )
 
 
@@ -296,7 +322,16 @@ def _contexte_carnet(request, pk):
     if regroupement not in {"aucun", "annuel", "mensuel", "bilan"}:
         regroupement = "aucun"
 
-    etats = {o.competence_id: o for o in eleve.observations.select_related("competence")}
+    etats = {
+        o.competence_id: o
+        for o in eleve.observations.select_related("competence").prefetch_related(
+            "traces"
+        )
+    }
+    for observation in etats.values():
+        observation.traces_carnet = [
+            trace for trace in observation.traces.all() if trace.visible_carnet
+        ]
     domaines = []
     for d in _arbre(ecole):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
@@ -433,9 +468,11 @@ def carnet_pdf(request, pk):
     for _domaine, groupes in contexte["domaines"]:
         for _titre, lignes in groupes:
             for _competence, observation in lignes:
-                if observation and observation.photo:
-                    observation.url_photo_pdf = _url_media_pdf(observation.photo.name)
-                    noms_media.append(observation.photo.name)
+                if observation:
+                    for trace_obj in observation.traces_carnet:
+                        if trace_obj.photo:
+                            trace_obj.url_photo_pdf = _url_media_pdf(trace_obj.photo.name)
+                            noms_media.append(trace_obj.photo.name)
     html = render_to_string(
         "suivi/carnet.html",
         {**contexte, "generation_pdf": True},
