@@ -859,6 +859,62 @@ class HistoriqueTraces(Base):
         self.assertTrue(trace.visible_carnet)
 
 
+class TableauDeClasse(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer("dir-mdp")
+        domaine = self.competence.domaine
+        self.competence_ms = Competence.objects.create(
+            domaine=domaine, code="LANG-02", libelle="Je raconte une histoire",
+            niveau="MS",
+        )
+        self.eleve_ms = Eleve.objects.create(ecole=self.ecole, prenom="Nino")
+        self.scolarite_ms = Scolarite.objects.create(
+            eleve=self.eleve_ms,
+            classe=self.classe,
+            annee_scolaire=self.classe.annee_scolaire,
+            niveau="MS",
+        )
+        Observation.objects.create(
+            eleve=self.eleve, competence=self.competence, statut="reussi"
+        )
+        Observation.objects.create(
+            eleve=self.eleve_ms, competence=self.competence_ms, statut="reussi"
+        )
+        Bilan.objects.create(
+            scolarite=self.scolarite_ms, date_bilan="2027-01-10", texte="Bon départ"
+        )
+
+    def test_annee_de_classe_compte_les_competences_du_niveau_propre(self):
+        r = self.client.get(reverse("classe_detail", args=[self.classe.pk]))
+
+        self.assertContains(r, "1/1 réussite")
+        self.assertContains(r, "0 bilan")
+        self.assertContains(r, "1 bilan")
+
+    def test_tout_le_cycle_compte_toutes_les_competences(self):
+        r = self.client.get(
+            reverse("classe_detail", args=[self.classe.pk]), {"niveaux": "tous"}
+        )
+
+        self.assertContains(r, "1/2 réussite")
+
+    def test_un_niveau_explicite_ne_compte_que_ses_competences(self):
+        r = self.client.get(
+            reverse("classe_detail", args=[self.classe.pk]), {"niveaux": "MS"}
+        )
+
+        self.assertContains(r, "0/1 réussite")
+        self.assertContains(r, "1/1 réussite")
+
+    def test_un_filtre_inconnu_retombe_sur_annee_de_classe(self):
+        r = self.client.get(
+            reverse("classe_detail", args=[self.classe.pk]), {"niveaux": "XX"}
+        )
+
+        self.assertContains(r, 'aria-current="true">Année de classe')
+
+
 class Import(Base):
     def test_coller_une_liste_cree_les_eleves(self):
         self.entrer("dir-mdp")
