@@ -16,7 +16,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
+from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
 from .views import _recuperateur_pdf
 
 
@@ -462,6 +462,70 @@ class ParcoursLongitudinal(Base):
 
         self.eleve.refresh_from_db()
         self.assertIsNone(self.eleve.archive_le)
+
+
+class BilansEtPeriodes(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer()
+
+    def test_un_bilan_date_est_affiche_dans_le_carnet(self):
+        Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Lou avance avec confiance.",
+        )
+
+        r = self.client.get(reverse("carnet", args=[self.eleve.pk]))
+
+        self.assertContains(r, "Quelques mots sur mon parcours")
+        self.assertContains(r, "Lou avance avec confiance")
+
+    def test_le_regroupement_mensuel_utilise_la_date_reelle(self):
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            date_observation="2026-10-18",
+        )
+
+        r = self.client.get(
+            reverse("carnet", args=[self.eleve.pk]),
+            {"regroupement": "mensuel"},
+        )
+
+        self.assertContains(r, "Octobre 2026")
+
+    def test_le_regroupement_par_bilan_utilise_le_premier_bilan_suivant(self):
+        Observation.objects.create(
+            eleve=self.eleve,
+            competence=self.competence,
+            date_observation="2026-10-18",
+        )
+        Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Premier bilan",
+        )
+
+        r = self.client.get(
+            reverse("carnet", args=[self.eleve.pk]),
+            {"regroupement": "bilan"},
+        )
+
+        self.assertContains(r, "Mes acquisitions — janvier 2027")
+
+    def test_deux_bilans_a_la_meme_date_sont_refuses(self):
+        Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Premier bilan",
+        )
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Bilan.objects.create(
+                scolarite=self.scolarite,
+                date_bilan="2027-01-15",
+                texte="Doublon",
+            )
 
 
 class Referentiel(Base):

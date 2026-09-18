@@ -1,0 +1,27 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Le parcours de {{ eleve.prenom }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'saisie_eleve' eleve.pk %}">{{ eleve.nom_court }}</a></p>
+<h1>Quelques mots sur le parcours de {{ eleve.prenom }}</h1>
+
+{% if bilans %}
+<ul class="liste">
+  {% for bilan in bilans %}
+  <li class="entree"><span class="principal">{{ bilan.date_bilan|date:"j F Y" }} · {{ bilan.scolarite.get_niveau_display }}</span><span class="secondaire">{{ bilan.texte }}</span></li>
+  {% endfor %}
+</ul>
+{% endif %}
+
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <label for="scolarite">Année scolaire</label>
+  <select id="scolarite" name="scolarite" required>
+    {% for scolarite in scolarites %}<option value="{{ scolarite.pk }}">{{ scolarite.get_niveau_display }} — {{ scolarite.annee_scolaire }}</option>{% endfor %}
+  </select>
+  <label for="date_bilan">Date</label>
+  <input id="date_bilan" name="date_bilan" type="date" required>
+  <label for="texte">Texte</label>
+  <textarea id="texte" name="texte" required></textarea>
+  <div class="actions"><button class="bouton" type="submit">Enregistrer</button></div>
+</form>
+{% endblock %}

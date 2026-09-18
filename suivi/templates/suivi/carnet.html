@@ -3,7 +3,7 @@
 {% block contenu %}
 <div class="actions sans-impression">
   <a class="bouton discret" href="{% url 'saisie_eleve' eleve.pk %}">Retour à la saisie</a>
-  <a class="bouton" href="{% url 'carnet_pdf' eleve.pk %}?contenu={{ mode }}&amp;colonnes={{ colonnes }}">Télécharger le PDF</a>
+  <a class="bouton" href="{% url 'carnet_pdf' eleve.pk %}?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}">Télécharger le PDF</a>
   <button class="bouton discret" onclick="window.print()">Imprimer depuis le navigateur</button>
 </div>
 
@@ -11,14 +11,21 @@
   <strong>Contenu du carnet à prévisualiser</strong>
   <p>Comparez ces trois propositions avant l'impression. Ce choix ne modifie pas les observations.</p>
   <div class="filtres" aria-label="Contenu du carnet">
-    <a href="?contenu=reussites&amp;colonnes={{ colonnes }}" aria-current="{% if mode == 'reussites' %}true{% endif %}">Réussites</a>
-    <a href="?contenu=observes&amp;colonnes={{ colonnes }}" aria-current="{% if mode == 'observes' %}true{% endif %}">Réussites et apprentissages en cours</a>
-    <a href="?contenu=tout&amp;colonnes={{ colonnes }}" aria-current="{% if mode == 'tout' %}true{% endif %}">Référentiel complet</a>
+    <a href="?contenu=reussites&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}" aria-current="{% if mode == 'reussites' %}true{% endif %}">Réussites</a>
+    <a href="?contenu=observes&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}" aria-current="{% if mode == 'observes' %}true{% endif %}">Réussites et apprentissages en cours</a>
+    <a href="?contenu=tout&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}" aria-current="{% if mode == 'tout' %}true{% endif %}">Référentiel complet</a>
   </div>
   <strong>Mise en page</strong>
   <div class="filtres" aria-label="Nombre de colonnes">
-    <a href="?contenu={{ mode }}&amp;colonnes=1" aria-current="{% if colonnes == '1' %}true{% endif %}">Une colonne</a>
-    <a href="?contenu={{ mode }}&amp;colonnes=2" aria-current="{% if colonnes == '2' %}true{% endif %}">Deux colonnes</a>
+    <a href="?contenu={{ mode }}&amp;colonnes=1&amp;regroupement={{ regroupement }}" aria-current="{% if colonnes == '1' %}true{% endif %}">Une colonne</a>
+    <a href="?contenu={{ mode }}&amp;colonnes=2&amp;regroupement={{ regroupement }}" aria-current="{% if colonnes == '2' %}true{% endif %}">Deux colonnes</a>
+  </div>
+  <strong>Regrouper les acquisitions</strong>
+  <div class="filtres" aria-label="Regroupement temporel">
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=aucun" aria-current="{% if regroupement == 'aucun' %}true{% endif %}">Aucun</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=annuel" aria-current="{% if regroupement == 'annuel' %}true{% endif %}">Annuel</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=mensuel" aria-current="{% if regroupement == 'mensuel' %}true{% endif %}">Mensuel</a>
+    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement=bilan" aria-current="{% if regroupement == 'bilan' %}true{% endif %}">Par bilan</a>
   </div>
 </div>
 
@@ -28,8 +35,9 @@
     <div>
       <p class="sur-titre">Carnet de suivi des apprentissages</p>
       <h1>{{ eleve.nom_court }}</h1>
-      <p>{{ eleve.classe.nom }}</p>
-      <p>{{ eleve.get_niveau_display }} · Année scolaire {{ eleve.classe.annee_scolaire }}</p>
+      <p>{{ scolarite.classe.nom }}</p>
+      <p>{{ scolarite.get_niveau_display }} · Année scolaire {{ scolarite.annee_scolaire }}</p>
+      {% if eleve.annee_naissance %}<p>Né(e) en {{ eleve.annee_naissance }}</p>{% endif %}
     </div>
     <p class="date-edition">Édité le {{ edite_le|date:"j F Y" }}</p>
   </header>
@@ -44,9 +52,11 @@
       </p>
     </header>
 
-    {% for domaine, lignes in domaines %}
+    {% for domaine, groupes in domaines %}
     <section class="domaine-carnet">
       <h2>{{ domaine.nom }}</h2>
+      {% for titre_periode, lignes in groupes %}
+      {% if titre_periode %}<h3>{{ titre_periode }}</h3>{% endif %}
       <ul>
         {% for competence, obs in lignes %}
         <li class="{% if obs %}{{ obs.statut }}{% else %}absent{% endif %}">
@@ -60,6 +70,7 @@
         </li>
         {% endfor %}
       </ul>
+      {% endfor %}
     </section>
     {% empty %}
     <div class="carnet-vide">
@@ -67,6 +78,15 @@
       <p>Aucune acquisition n'a encore été sélectionnée pour cette prévisualisation.</p>
     </div>
     {% endfor %}
+
+    {% if bilans %}
+    <section class="domaine-carnet bilans-carnet">
+      <h2>Quelques mots sur mon parcours</h2>
+      {% for bilan in bilans %}
+      <div class="encadre-bilan"><h3>{{ bilan.scolarite.get_niveau_display }} — {{ bilan.date_bilan|date:"j F Y" }}</h3><p>{{ bilan.texte|linebreaksbr }}</p></div>
+      {% endfor %}
+    </section>
+    {% endif %}
 
     <p class="pied">Carnet édité le {{ edite_le|date:"j F Y" }} par {{ ecole.nom }}.</p>
   </div>
