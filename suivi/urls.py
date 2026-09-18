@@ -47,6 +47,11 @@ urlpatterns = [
         name="supprimer_bilan",
     ),
     path(
+        "eleve/<int:pk>/bilans/<int:bilan_pk>/visibilite/",
+        views.basculer_visibilite_bilan,
+        name="basculer_visibilite_bilan",
+    ),
+    path(
         "eleve/<int:pk>/carnet.pdf",
         views.carnet_pdf,
         name="carnet_pdf",

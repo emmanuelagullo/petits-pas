@@ -981,6 +981,14 @@ class BilansEtPeriodes(Base):
         self.assertContains(r, "Quelques mots sur mon parcours")
         self.assertContains(r, "Lou avance avec confiance")
 
+    def test_le_formulaire_propose_la_date_du_jour(self):
+        reponse = self.client.get(reverse("bilans_eleve", args=[self.eleve.pk]))
+
+        self.assertContains(
+            reponse,
+            f'value="{timezone.localdate().isoformat()}"',
+        )
+
     def test_le_regroupement_mensuel_utilise_la_date_reelle(self):
         Observation.objects.create(
             eleve=self.eleve,
@@ -1040,6 +1048,7 @@ class BilansEtPeriodes(Base):
                 "scolarite": self.scolarite.pk,
                 "date_bilan": "2027-02-01",
                 "texte": "Texte corrigé",
+                "visible_carnet": "on",
             },
         )
 
@@ -1047,6 +1056,65 @@ class BilansEtPeriodes(Base):
         self.assertEqual(Bilan.objects.count(), 1)
         self.assertEqual(str(bilan.date_bilan), "2027-02-01")
         self.assertEqual(bilan.texte, "Texte corrigé")
+
+    def test_un_bilan_est_modifie_a_sa_place_dans_l_historique(self):
+        bilan = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Texte à reprendre",
+        )
+
+        reponse = self.client.get(
+            reverse("modifier_bilan", args=[self.eleve.pk, bilan.pk])
+        )
+
+        self.assertContains(reponse, "Texte à reprendre", count=1)
+        self.assertContains(reponse, 'class="trace-conservee en-edition"')
+        self.assertNotContains(reponse, "Ajouter un bilan")
+
+    def test_la_visibilite_d_un_bilan_se_bascule_depuis_l_historique(self):
+        bilan = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Bilan à publier",
+        )
+        url = reverse(
+            "basculer_visibilite_bilan", args=[self.eleve.pk, bilan.pk]
+        )
+
+        self.assertContains(
+            self.client.get(reverse("bilans_eleve", args=[self.eleve.pk])),
+            "✓ Affiché dans le carnet",
+        )
+        self.client.post(url)
+
+        bilan.refresh_from_db()
+        self.assertFalse(bilan.visible_carnet)
+        self.assertNotContains(
+            self.client.get(reverse("carnet", args=[self.eleve.pk])),
+            "Bilan à publier",
+        )
+        self.assertContains(
+            self.client.get(reverse("bilans_eleve", args=[self.eleve.pk])),
+            "○ Masqué du carnet",
+        )
+
+    def test_basculer_la_visibilite_d_un_bilan_exige_post(self):
+        bilan = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="À conserver",
+        )
+
+        reponse = self.client.get(
+            reverse(
+                "basculer_visibilite_bilan", args=[self.eleve.pk, bilan.pk]
+            )
+        )
+
+        self.assertEqual(reponse.status_code, 403)
+        bilan.refresh_from_db()
+        self.assertTrue(bilan.visible_carnet)
 
     def test_un_bilan_peut_etre_supprime_explicitement(self):
         bilan = Bilan.objects.create(
