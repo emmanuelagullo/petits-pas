@@ -5,47 +5,28 @@
 <h1>{{ competence.libelle }}</h1>
 <p class="sous-titre">{{ competence.domaine.nom }}</p>
 
-{% if traces %}
-<section class="encadre">
-  <h2>Traces déjà conservées</h2>
+<section class="encadre historique-traces">
+  {% if traces %}<h2>Traces déjà conservées</h2>{% endif %}
   {% for trace in traces %}
-  <article>
+  <article class="trace-conservee{% if trace_obj.pk == trace.pk %} en-edition{% endif %}">
+    {% if trace_obj.pk == trace.pk %}
+    {% include "suivi/partiels/formulaire_trace.html" %}
+    {% else %}
     <p><strong>{{ trace.date_observation|date:"j F Y" }}</strong>{% if not trace.visible_carnet %} · masquée dans le carnet{% endif %}</p>
     {% if trace.commentaire %}<p>{{ trace.commentaire }}</p>{% endif %}
     {% if trace.photo %}<img class="miniature" src="{{ trace.photo.url }}" alt="">{% endif %}
     <p><a href="{% url 'modifier_trace' eleve.pk competence.pk trace.pk %}">Modifier cette trace</a></p>
+    {% endif %}
+    <form method="post" action="{% url 'supprimer_trace' eleve.pk competence.pk trace.pk %}" class="supprimer-trace" onsubmit="return confirm('Supprimer définitivement cette trace ?');">
+      {% csrf_token %}
+      <button class="bouton discret" type="submit">Supprimer cette trace</button>
+    </form>
   </article>
   {% endfor %}
-</section>
-{% endif %}
-
-<form method="post" enctype="multipart/form-data" class="encadre">
-  {% csrf_token %}
-  <h2>{% if trace_obj %}Modifier la trace{% else %}Ajouter une trace{% endif %}</h2>
-  <label for="commentaire">Le mot qui accompagne la réussite
-    <span class="aide">Ce que l'enfant a dit, ce que vous avez vu. C'est ce texte qui apparaîtra dans le carnet.</span>
-  </label>
-  <textarea id="commentaire" name="commentaire">{{ trace_obj.commentaire }}</textarea>
-
-  <label for="date_observation">Date</label>
-  <input type="date" id="date_observation" name="date_observation" value="{% if trace_obj %}{{ trace_obj.date_observation|date:'Y-m-d' }}{% else %}{{ date_defaut|date:'Y-m-d' }}{% endif %}">
-
-  {% if trace_obj.photo %}
-  <label>Photo actuelle</label>
-  <img class="miniature" src="{{ trace_obj.photo.url }}" alt="">
-  <p><label style="font-weight:400"><input type="checkbox" name="retirer_photo" style="width:auto;min-height:0"> Retirer cette photo</label></p>
+  {% if not trace_obj %}
+  <article class="trace-conservee ajout-trace">
+    {% include "suivi/partiels/formulaire_trace.html" %}
+  </article>
   {% endif %}
-
-  <label for="photo">{% if trace_obj.photo %}Remplacer par une autre photo{% else %}Ajouter une photo{% endif %}
-    <span class="aide">Une photo du travail, pas du visage de l'enfant, si vous voulez rester tranquille côté RGPD.</span>
-  </label>
-  <input type="file" id="photo" name="photo" accept="image/*">
-
-  <p><label style="font-weight:400"><input type="checkbox" name="visible_carnet" style="width:auto;min-height:0" {% if not trace_obj or trace_obj.visible_carnet %}checked{% endif %}> Afficher cette trace dans le carnet</label></p>
-
-  <div class="actions">
-    <button class="bouton" type="submit">{% if trace_obj %}Enregistrer les modifications{% else %}Ajouter la trace{% endif %}</button>
-    <a class="bouton discret" href="{% url 'saisie_eleve' eleve.pk %}">Annuler</a>
-  </div>
-</form>
+</section>
 {% endblock %}

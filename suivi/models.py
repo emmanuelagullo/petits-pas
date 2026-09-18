@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
 from django.utils import timezone
+from django.utils.functional import cached_property
 
 NIVEAUX = [
     ("PS", "Petite section"),
@@ -258,6 +259,23 @@ class Observation(models.Model):
     def photo(self):
         trace = self.trace_courante
         return trace.photo if trace else None
+
+    def _traces_prefaites(self):
+        return getattr(self, "_prefetched_objects_cache", {}).get("traces")
+
+    @cached_property
+    def a_un_commentaire(self):
+        traces_prefaites = self._traces_prefaites()
+        if traces_prefaites is not None:
+            return any(trace.commentaire for trace in traces_prefaites)
+        return self.traces.exclude(commentaire="").exists()
+
+    @cached_property
+    def a_une_photo(self):
+        traces_prefaites = self._traces_prefaites()
+        if traces_prefaites is not None:
+            return any(trace.photo for trace in traces_prefaites)
+        return self.traces.exclude(photo="").exclude(photo__isnull=True).exists()
 
 
 class Trace(models.Model):

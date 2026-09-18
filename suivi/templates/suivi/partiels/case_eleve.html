@@ -11,14 +11,14 @@
       <span class="pastille">{{ eleve.niveau }}</span>
     </button>
   </form>
-  <a class="trace-lien {% if obs.commentaire or obs.photo %}pleine{% endif %}"
+  <a class="trace-lien {% if obs.a_un_commentaire or obs.a_une_photo %}pleine{% endif %}"
      href="{% url 'trace' eleve.pk competence.pk %}"
-     aria-label="{% if obs.commentaire or obs.photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}"
-     title="{% if obs.commentaire or obs.photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}">
-    {% if obs.commentaire or obs.photo %}
+     aria-label="{% if obs.a_un_commentaire or obs.a_une_photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}"
+     title="{% if obs.a_un_commentaire or obs.a_une_photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}">
+    {% if obs.a_un_commentaire or obs.a_une_photo %}
     <span class="trace-indicateurs" aria-hidden="true">
-      {% if obs.commentaire %}<span class="indicateur-commentaire">✎</span>{% endif %}
-      {% if obs.photo %}<span class="indicateur-photo">📷</span>{% endif %}
+      {% if obs.a_un_commentaire %}<span class="indicateur-commentaire">✎</span>{% endif %}
+      {% if obs.a_une_photo %}<span class="indicateur-photo">📷</span>{% endif %}
     </span>
     {% else %}+{% endif %}
   </a>
