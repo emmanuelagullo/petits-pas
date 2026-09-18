@@ -652,6 +652,51 @@ class Import(Base):
 
 
 class ParcoursLongitudinal(Base):
+    def test_la_creation_d_une_classe_demande_son_annee(self):
+        self.entrer("dir-mdp")
+
+        reponse = self.client.post(
+            reverse("creer_classe"),
+            {"nom": "MS-GS", "annee_scolaire": "2027-2028"},
+        )
+
+        classe = Classe.objects.get(nom="MS-GS")
+        self.assertEqual(classe.annee_scolaire, "2027-2028")
+        self.assertRedirects(reponse, reverse("importer_eleves", args=[classe.pk]))
+
+    def test_la_rentree_ajoute_une_scolarite_sans_effacer_la_precedente(self):
+        classe_suivante = Classe.objects.create(
+            ecole=self.ecole,
+            nom="MS",
+            annee_scolaire="2027-2028",
+        )
+        self.entrer("dir-mdp")
+
+        self.client.post(
+            reverse("parcours_eleve", args=[self.eleve.pk]),
+            {
+                "action": "scolarite",
+                "classe": classe_suivante.pk,
+                "niveau": "MS",
+            },
+        )
+
+        self.assertEqual(self.eleve.scolarites.count(), 2)
+        self.assertEqual(
+            self.eleve.scolarites.get(annee_scolaire="2027-2028").niveau,
+            "MS",
+        )
+        self.assertTrue(
+            self.eleve.scolarites.filter(annee_scolaire="2026-2027").exists()
+        )
+
+    def test_un_enseignant_ne_peut_pas_modifier_le_parcours_administratif(self):
+        self.entrer()
+
+        reponse = self.client.get(reverse("parcours_eleve", args=[self.eleve.pk]))
+
+        self.assertEqual(reponse.status_code, 403)
+
     def test_un_eleve_ne_peut_avoir_deux_scolarites_la_meme_annee(self):
         autre_classe = Classe.objects.create(
             ecole=self.ecole,

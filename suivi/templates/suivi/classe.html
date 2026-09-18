@@ -20,7 +20,7 @@
       <span class="jauge" aria-hidden="true"><span style="width: {{ e.part_reussies }}%"></span></span>
       <span class="secondaire">{{ e.nb_reussies }} réussite{{ e.nb_reussies|pluralize }}</span>
     </a>
-    {% if est_direction %}<form method="post" action="{% url 'archiver_eleve' e.pk %}">{% csrf_token %}<button class="bouton discret" type="submit">Archiver sans supprimer</button></form>{% endif %}
+    {% if est_direction %}<div class="actions"><a class="bouton discret" href="{% url 'parcours_eleve' e.pk %}">Parcours et rentrée</a><form method="post" action="{% url 'archiver_eleve' e.pk %}">{% csrf_token %}<button class="bouton discret" type="submit">Archiver sans supprimer</button></form></div>{% endif %}
   </li>
   {% endfor %}
 </ul>

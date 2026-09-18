@@ -1,0 +1,35 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Parcours de {{ eleve.prenom }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
+<h1>Parcours scolaire de {{ eleve.nom_court }}</h1>
+
+<form method="post" class="encadre">
+  {% csrf_token %}<input type="hidden" name="action" value="identite">
+  <h2>Identité durable</h2>
+  <label for="prenom">Prénom</label><input id="prenom" name="prenom" value="{{ eleve.prenom }}" required>
+  <label for="nom">Nom</label><input id="nom" name="nom" value="{{ eleve.nom }}">
+  <label for="annee_naissance">Année de naissance</label><input id="annee_naissance" name="annee_naissance" inputmode="numeric" value="{{ eleve.annee_naissance|default:'' }}">
+  <div class="actions"><button class="bouton" type="submit">Enregistrer l'identité</button></div>
+</form>
+
+<h2>Scolarités conservées</h2>
+<ul class="liste">
+  {% for scolarite in scolarites %}
+  <li class="entree"><span class="principal">{{ scolarite.get_niveau_display }} — {{ scolarite.annee_scolaire }}</span><span class="secondaire">{{ scolarite.classe.nom }}</span></li>
+  {% endfor %}
+</ul>
+
+<form method="post" class="encadre">
+  {% csrf_token %}<input type="hidden" name="action" value="scolarite">
+  <h2>Préparer une année scolaire</h2>
+  <p class="aide">Choisir une classe d'une nouvelle année ajoute une scolarité. Rechoisir une année existante corrige sa classe ou son niveau sans toucher aux autres années.</p>
+  <label for="classe">Classe</label>
+  <select id="classe" name="classe" required>
+    {% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.annee_scolaire }} — {{ classe.nom }}</option>{% endfor %}
+  </select>
+  <label for="niveau">Niveau</label>
+  <select id="niveau" name="niveau"><option>PS</option><option>MS</option><option>GS</option></select>
+  <div class="actions"><button class="bouton" type="submit">Enregistrer cette scolarité</button></div>
+</form>
+{% endblock %}
