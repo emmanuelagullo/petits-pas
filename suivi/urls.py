@@ -54,6 +54,11 @@ urlpatterns = [
     path("gestion/", views.gestion, name="gestion"),
     path("gestion/classe/nouvelle/", views.creer_classe, name="creer_classe"),
     path(
+        "gestion/eleve/<int:pk>/parcours/",
+        views.parcours_eleve,
+        name="parcours_eleve",
+    ),
+    path(
         "gestion/classe/<int:pk>/eleves/",
         views.importer_eleves,
         name="importer_eleves",

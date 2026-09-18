@@ -1,6 +1,7 @@
 from functools import wraps
 import logging
 import mimetypes
+import re
 from collections import OrderedDict
 from urllib.parse import quote, unquote
 
@@ -591,11 +592,76 @@ def creer_classe(request):
     ecole = ecole_courante(request)
     if request.method == "POST":
         nom = request.POST.get("nom", "").strip()
-        if nom:
-            classe = Classe.objects.create(ecole=ecole, nom=nom)
+        annee_scolaire = request.POST.get("annee_scolaire", "").strip()
+        correspondance = re.fullmatch(r"(\d{4})-(\d{4})", annee_scolaire)
+        annee_valide = (
+            correspondance
+            and int(correspondance.group(2)) == int(correspondance.group(1)) + 1
+        )
+        if nom and annee_valide:
+            classe, creee = Classe.objects.get_or_create(
+                ecole=ecole,
+                nom=nom,
+                annee_scolaire=annee_scolaire,
+            )
+            if not creee:
+                messages.error(request, "Cette classe existe déjà pour cette année.")
+                return render(request, "suivi/creer_classe.html")
             return redirect("importer_eleves", pk=classe.pk)
-        messages.error(request, "Donnez un nom à la classe.")
+        messages.error(
+            request,
+            "Donnez un nom et une année scolaire au format 2027-2028.",
+        )
     return render(request, "suivi/creer_classe.html")
+
+
+@direction_requise
+def parcours_eleve(request, pk):
+    ecole = ecole_courante(request)
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
+    if request.method == "POST" and request.POST.get("action") == "identite":
+        prenom = request.POST.get("prenom", "").strip()
+        if not prenom:
+            messages.error(request, "Le prénom est obligatoire.")
+        else:
+            annee = request.POST.get("annee_naissance", "").strip()
+            eleve.prenom = prenom
+            eleve.nom = request.POST.get("nom", "").strip()
+            eleve.annee_naissance = int(annee) if annee.isdigit() else None
+            eleve.save(update_fields=["prenom", "nom", "annee_naissance"])
+            messages.success(request, "Identité de l'élève enregistrée.")
+            return redirect("parcours_eleve", pk=eleve.pk)
+
+    if request.method == "POST" and request.POST.get("action") == "scolarite":
+        classe = get_object_or_404(
+            Classe,
+            pk=request.POST.get("classe"),
+            ecole=ecole,
+        )
+        niveau = request.POST.get("niveau")
+        if niveau not in {"PS", "MS", "GS"}:
+            messages.error(request, "Choisissez un niveau valide.")
+        else:
+            Scolarite.objects.update_or_create(
+                eleve=eleve,
+                annee_scolaire=classe.annee_scolaire,
+                defaults={"classe": classe, "niveau": niveau},
+            )
+            messages.success(
+                request,
+                f"Scolarité {classe.annee_scolaire} enregistrée sans modifier les années précédentes.",
+            )
+            return redirect("parcours_eleve", pk=eleve.pk)
+
+    return render(
+        request,
+        "suivi/parcours_eleve.html",
+        {
+            "eleve": eleve,
+            "classes": ecole.classes.all(),
+            "scolarites": eleve.scolarites.select_related("classe"),
+        },
+    )
 
 
 @direction_requise

@@ -9,6 +9,10 @@
     <span class="aide">Celui que les collègues utilisent entre elles : « PS-MS de Nadia », « Les coccinelles ».</span>
   </label>
   <input type="text" id="nom" name="nom" autofocus required>
+  <label for="annee_scolaire">Année scolaire
+    <span class="aide">Au format 2027-2028.</span>
+  </label>
+  <input type="text" id="annee_scolaire" name="annee_scolaire" pattern="[0-9]{4}-[0-9]{4}" placeholder="2027-2028" required>
   <div class="actions"><button class="bouton" type="submit">Créer et ajouter les enfants</button></div>
 </form>
 {% endblock %}

@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+** Added
+
+- Parcours de rentrée permettant de créer les classes avec leur année scolaire
+  et de faire évoluer l'identité, la classe et le niveau d'un élève sans
+  perdre ses scolarités précédentes.
+
 * 0.4 — 2026-09-18
 
 ** Added
