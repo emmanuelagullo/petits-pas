@@ -19,6 +19,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   prénom puis insérables sans empêcher leur modification libre.
 - Préparation d'une édition pour une sélection d'élèves ou toute une classe,
   avec export d'une archive ZIP contenant un PDF individuel par enfant.
+- Grille interne imprimable et exportable en PDF pour repérer, sur une
+  compétence donnée, les élèves à observer, en cours d'apprentissage ou ayant
+  déjà réussi.
 
 * 0.4 — 2026-09-18
 

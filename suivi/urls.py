@@ -23,6 +23,16 @@ urlpatterns = [
         views.saisie_competence,
         name="saisie_competence",
     ),
+    path(
+        "classe/<int:pk>/competence/<int:competence_pk>/grille/",
+        views.grille_competence,
+        name="grille_competence",
+    ),
+    path(
+        "classe/<int:pk>/competence/<int:competence_pk>/grille.pdf",
+        views.grille_competence_pdf,
+        name="grille_competence_pdf",
+    ),
     path("eleve/<int:pk>/", views.saisie_eleve, name="saisie_eleve"),
     path("eleve/<int:pk>/carnet/", views.carnet, name="carnet"),
     path("eleve/<int:pk>/bilans/", views.bilans_eleve, name="bilans_eleve"),

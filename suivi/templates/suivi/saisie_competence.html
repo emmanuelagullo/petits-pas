@@ -5,6 +5,10 @@
 <h1>{{ competence.libelle }}</h1>
 <p class="sous-titre">{{ competence.domaine.nom }} · repère {{ competence.get_niveau_display|lower }}</p>
 
+<div class="actions">
+  <a class="bouton discret" href="{% url 'grille_competence' classe.pk competence.pk %}">Voir la grille de suivi</a>
+</div>
+
 <div class="domaine">
   {% for eleve, obs in lignes %}{% include "suivi/partiels/case_eleve.html" %}{% empty %}
   <div class="vide"><p>Cette classe n'a pas encore d'enfants.</p></div>{% endfor %}

@@ -231,6 +231,77 @@ def saisie_competence(request, pk, competence_pk):
     )
 
 
+def _contexte_grille_competence(request, pk, competence_pk):
+    ecole = ecole_courante(request)
+    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    competence = get_object_or_404(
+        Competence, pk=competence_pk, domaine__ecole=ecole
+    )
+    etats = {
+        observation.eleve_id: observation
+        for observation in Observation.objects.filter(
+            competence=competence,
+            eleve__scolarites__classe=classe,
+        )
+    }
+    lignes = []
+    compteurs = {"a_observer": 0, "en_cours": 0, "reussi": 0}
+    for eleve in classe.eleves:
+        observation = etats.get(eleve.pk)
+        if observation and observation.statut == Observation.REUSSI:
+            etat = "reussi"
+        elif observation and observation.statut == Observation.EN_COURS:
+            etat = "en_cours"
+        else:
+            etat = "a_observer"
+        compteurs[etat] += 1
+        lignes.append((eleve, observation, etat))
+    return {
+        "classe": classe,
+        "competence": competence,
+        "lignes": lignes,
+        "compteurs": compteurs,
+        "edite_le": timezone.localdate(),
+    }
+
+
+@acces_requis
+@require_safe
+def grille_competence(request, pk, competence_pk):
+    return render(
+        request,
+        "suivi/grille_competence.html",
+        _contexte_grille_competence(request, pk, competence_pk),
+    )
+
+
+@never_cache
+@acces_requis
+@require_safe
+def grille_competence_pdf(request, pk, competence_pk):
+    contexte = _contexte_grille_competence(request, pk, competence_pk)
+    html = render_to_string(
+        "suivi/grille_competence.html",
+        {**contexte, "generation_pdf": True},
+        request=request,
+    )
+    feuille_style = finders.find("suivi/carnet.css")
+    if not feuille_style:
+        raise RuntimeError("La feuille de style est introuvable.")
+    contenu = _generer_pdf(
+        html,
+        request.build_absolute_uri("/"),
+        feuille_style,
+    )
+    nom_classe = slugify(contexte["classe"].nom) or "classe"
+    nom_competence = slugify(contexte["competence"].code) or "competence"
+    reponse = HttpResponse(contenu, content_type="application/pdf")
+    reponse["Content-Disposition"] = (
+        f'attachment; filename="grille-{nom_classe}-{nom_competence}.pdf"'
+    )
+    return reponse
+
+
 SUITE = {
     None: Observation.REUSSI,
     Observation.REUSSI: Observation.EN_COURS,
