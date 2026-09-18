@@ -9,6 +9,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Alignement de la saisie des bilans sur l'historique des traces : date du
+  jour proposée, édition en place et choix individuel de présence au carnet.
 - Rétablissement de l'accueil des classes pour les enseignants et de l'écran
   de gestion réservé à la direction, confondus lors de l'ajout du parcours de
   rentrée.

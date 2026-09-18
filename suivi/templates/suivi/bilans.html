@@ -4,24 +4,33 @@
 <p class="fil"><a href="{% url 'saisie_eleve' eleve.pk %}">{{ eleve.nom_court }}</a></p>
 <h1>Quelques mots sur le parcours de {{ eleve.prenom }}</h1>
 
-{% if bilans %}
-<ul class="liste">
+<section class="encadre historique-traces">
+  {% if bilans %}<h2>Bilans déjà conservés</h2>{% endif %}
   {% for bilan in bilans %}
-  <li class="entree"><span class="principal">{{ bilan.date_bilan|date:"j F Y" }} · {{ bilan.scolarite.get_niveau_display }}</span><span class="secondaire">{{ bilan.texte }}</span><div class="actions"><a class="bouton discret" href="{% url 'modifier_bilan' eleve.pk bilan.pk %}">Modifier</a><form method="post" action="{% url 'supprimer_bilan' eleve.pk bilan.pk %}" onsubmit="return confirm('Supprimer définitivement ce bilan ?');">{% csrf_token %}<button class="bouton discret" type="submit">Supprimer</button></form></div></li>
+  <article class="trace-conservee{% if bilan_obj.pk == bilan.pk %} en-edition{% endif %}">
+    {% if bilan_obj.pk == bilan.pk %}
+      {% include "suivi/partiels/formulaire_bilan.html" %}
+    {% else %}
+      <p><strong>{{ bilan.date_bilan|date:"j F Y" }}</strong> · {{ bilan.scolarite.get_niveau_display }} — {{ bilan.scolarite.annee_scolaire }}{% if not bilan.visible_carnet %} · masqué dans le carnet{% endif %}</p>
+      <p>{{ bilan.texte|linebreaksbr }}</p>
+      <p><a href="{% url 'modifier_bilan' eleve.pk bilan.pk %}">Modifier ce bilan</a></p>
+      <form method="post" action="{% url 'basculer_visibilite_bilan' eleve.pk bilan.pk %}" class="visibilite-trace">
+        {% csrf_token %}
+        <button class="bouton discret {% if bilan.visible_carnet %}visible-carnet{% else %}masquee-carnet{% endif %}" type="submit">
+          {% if bilan.visible_carnet %}✓ Affiché dans le carnet{% else %}○ Masqué du carnet{% endif %}
+        </button>
+      </form>
+    {% endif %}
+    <form method="post" action="{% url 'supprimer_bilan' eleve.pk bilan.pk %}" class="supprimer-trace" onsubmit="return confirm('Supprimer définitivement ce bilan ?');">
+      {% csrf_token %}
+      <button class="bouton discret" type="submit">Supprimer ce bilan</button>
+    </form>
+  </article>
   {% endfor %}
-</ul>
-{% endif %}
-
-<form method="post" class="encadre">
-  {% csrf_token %}
-  <label for="scolarite">Année scolaire</label>
-  <select id="scolarite" name="scolarite" required>
-    {% for scolarite in scolarites %}<option value="{{ scolarite.pk }}" {% if bilan_obj.scolarite_id == scolarite.pk %}selected{% endif %}>{{ scolarite.get_niveau_display }} — {{ scolarite.annee_scolaire }}</option>{% endfor %}
-  </select>
-  <label for="date_bilan">Date</label>
-  <input id="date_bilan" name="date_bilan" type="date" value="{{ bilan_obj.date_bilan|date:'Y-m-d' }}" required>
-  <label for="texte">Texte</label>
-  <textarea id="texte" name="texte" required>{{ bilan_obj.texte }}</textarea>
-  <div class="actions"><button class="bouton" type="submit">{% if bilan_obj %}Enregistrer les modifications{% else %}Ajouter au parcours{% endif %}</button>{% if bilan_obj %}<a class="bouton discret" href="{% url 'bilans_eleve' eleve.pk %}">Annuler</a>{% endif %}</div>
-</form>
+  {% if not bilan_obj %}
+  <article class="trace-conservee ajout-trace">
+    {% include "suivi/partiels/formulaire_bilan.html" %}
+  </article>
+  {% endif %}
+</section>
 {% endblock %}

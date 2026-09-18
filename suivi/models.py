@@ -191,6 +191,7 @@ class Bilan(models.Model):
     )
     date_bilan = models.DateField()
     texte = models.TextField()
+    visible_carnet = models.BooleanField(default=True)
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 

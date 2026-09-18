@@ -1,0 +1,21 @@
+<form method="post" class="formulaire-trace">
+  {% csrf_token %}
+  <h2>{% if bilan_obj %}Modifier le bilan{% else %}Ajouter un bilan{% endif %}</h2>
+  <label for="scolarite">Année scolaire</label>
+  <select id="scolarite" name="scolarite" required>
+    {% for scolarite in scolarites %}<option value="{{ scolarite.pk }}" {% if bilan_obj.scolarite_id == scolarite.pk %}selected{% endif %}>{{ scolarite.get_niveau_display }} — {{ scolarite.annee_scolaire }}</option>{% endfor %}
+  </select>
+
+  <label for="date_bilan">Date</label>
+  <input id="date_bilan" name="date_bilan" type="date" value="{% if bilan_obj %}{{ bilan_obj.date_bilan|date:'Y-m-d' }}{% else %}{{ date_defaut|date:'Y-m-d' }}{% endif %}" required>
+
+  <label for="texte">Quelques mots sur le parcours</label>
+  <textarea id="texte" name="texte" required>{{ bilan_obj.texte }}</textarea>
+
+  <p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if not bilan_obj or bilan_obj.visible_carnet %}checked{% endif %}> Afficher ce bilan dans le carnet</label></p>
+
+  <div class="actions">
+    <button class="bouton" type="submit">{% if bilan_obj %}Enregistrer les modifications{% else %}Ajouter le bilan{% endif %}</button>
+    {% if bilan_obj %}<a class="bouton discret" href="{% url 'bilans_eleve' eleve.pk %}">Annuler</a>{% endif %}
+  </div>
+</form>

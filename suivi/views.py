@@ -518,7 +518,9 @@ def _contexte_carnet(request, pk, options=None):
 
     scolarite = eleve.scolarite_courante()
     bilans = (
-        Bilan.objects.filter(scolarite__eleve=eleve).select_related("scolarite")
+        Bilan.objects.filter(
+            scolarite__eleve=eleve, visible_carnet=True
+        ).select_related("scolarite")
         if inclure_bilans
         else Bilan.objects.none()
     )
@@ -961,6 +963,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
             bilan_obj.scolarite = scolarite
             bilan_obj.date_bilan = date_bilan
             bilan_obj.texte = texte
+            bilan_obj.visible_carnet = request.POST.get("visible_carnet") == "on"
             bilan_obj.save()
             messages.success(request, "Quelques mots sur le parcours enregistrés.")
             return redirect("bilans_eleve", pk=eleve.pk)
@@ -975,6 +978,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
                 "scolarite"
             ),
             "bilan_obj": bilan_obj,
+            "date_defaut": timezone.localdate(),
         },
     )
 
@@ -987,6 +991,19 @@ def supprimer_bilan(request, pk, bilan_pk):
     bilan = get_object_or_404(Bilan, pk=bilan_pk, scolarite__eleve=eleve)
     bilan.delete()
     messages.success(request, "Bilan supprimé.")
+    return redirect("bilans_eleve", pk=eleve.pk)
+
+
+@acces_requis
+def basculer_visibilite_bilan(request, pk, bilan_pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+    bilan = get_object_or_404(Bilan, pk=bilan_pk, scolarite__eleve=eleve)
+    bilan.visible_carnet = not bilan.visible_carnet
+    bilan.save(update_fields=["visible_carnet", "modifie_le"])
+    etat = "affiché dans le carnet" if bilan.visible_carnet else "masqué du carnet"
+    messages.success(request, f"Bilan {etat}.")
     return redirect("bilans_eleve", pk=eleve.pk)
 
 
