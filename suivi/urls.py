@@ -9,6 +9,11 @@ urlpatterns = [
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path("classe/<int:pk>/", views.classe_detail, name="classe_detail"),
     path(
+        "classe/<int:pk>/edition/",
+        views.preparer_edition,
+        name="preparer_edition",
+    ),
+    path(
         "classe/<int:pk>/competences/",
         views.choisir_competence,
         name="choisir_competence",

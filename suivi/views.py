@@ -2,6 +2,8 @@ from functools import wraps
 import logging
 import mimetypes
 import re
+from io import BytesIO
+from zipfile import ZIP_DEFLATED, ZipFile
 from collections import OrderedDict
 from urllib.parse import quote, unquote
 
@@ -398,27 +400,28 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
 # --------------------------------------------------------------------------
 
 
-def _contexte_carnet(request, pk):
+def _contexte_carnet(request, pk, options=None):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
     parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
+    options = request.GET if options is None else options
     modes = {"reussites", "observes", "tout"}
-    mode = request.GET.get("contenu", parametres.contenu_par_defaut)
-    colonnes = request.GET.get("colonnes", str(parametres.colonnes_par_defaut))
-    regroupement = request.GET.get(
+    mode = options.get("contenu", parametres.contenu_par_defaut)
+    colonnes = options.get("colonnes", str(parametres.colonnes_par_defaut))
+    regroupement = options.get(
         "regroupement", parametres.regroupement_par_defaut
     )
-    afficher_attendus = request.GET.get(
+    afficher_attendus = options.get(
         "attendus", "1" if parametres.afficher_attendus else "0"
     ) == "1"
-    afficher_sous_domaines = request.GET.get(
+    afficher_sous_domaines = options.get(
         "sous_domaines", "1" if parametres.afficher_sous_domaines else "0"
     ) == "1"
-    inclure_bilans = request.GET.get(
+    inclure_bilans = options.get(
         "bilans", "1" if parametres.inclure_bilans else "0"
     ) == "1"
     # Compatibilité avec les liens de la version 0.2.
-    if request.GET.get("tout") == "1":
+    if options.get("tout") == "1":
         mode = "tout"
     if mode not in modes:
         mode = "observes"
@@ -576,7 +579,14 @@ def carnet(request, pk):
 @acces_requis
 @require_safe
 def carnet_pdf(request, pk):
-    contexte = _contexte_carnet(request, pk)
+    contenu, nom = _contenu_pdf_carnet(request, pk)
+    reponse = HttpResponse(contenu, content_type="application/pdf")
+    reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
+    return reponse
+
+
+def _contenu_pdf_carnet(request, pk, options=None):
+    contexte = _contexte_carnet(request, pk, options)
     noms_media = []
     for _domaine, groupes in contexte["domaines"]:
         for _titre, lignes in groupes:
@@ -603,9 +613,62 @@ def carnet_pdf(request, pk):
     )
 
     nom = slugify(contexte["eleve"].nom_court) or "eleve"
-    reponse = HttpResponse(contenu, content_type="application/pdf")
-    reponse["Content-Disposition"] = f'attachment; filename="carnet-{nom}.pdf"'
-    return reponse
+    return contenu, f"carnet-{nom}.pdf"
+
+
+@never_cache
+@acces_requis
+def preparer_edition(request, pk):
+    ecole = ecole_courante(request)
+    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    eleves = list(classe.eleves)
+    parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
+
+    if request.method == "POST":
+        ids = request.POST.getlist("eleves")
+        selection = list(classe.eleves.filter(pk__in=ids))
+        if not selection:
+            messages.error(request, "Sélectionnez au moins un enfant.")
+        else:
+            options = {
+                "contenu": request.POST.get("contenu", "observes"),
+                "colonnes": request.POST.get("colonnes", "2"),
+                "regroupement": request.POST.get("regroupement", "aucun"),
+                "attendus": "1" if "attendus" in request.POST else "0",
+                "sous_domaines": "1" if "sous_domaines" in request.POST else "0",
+                "bilans": "1" if "bilans" in request.POST else "0",
+            }
+            archive = BytesIO()
+            noms_utilises = set()
+            with ZipFile(archive, "w", ZIP_DEFLATED) as fichiers:
+                for eleve in selection:
+                    contenu, nom = _contenu_pdf_carnet(request, eleve.pk, options)
+                    base, extension = nom.rsplit(".", 1)
+                    candidat = nom
+                    numero = 2
+                    while candidat in noms_utilises:
+                        candidat = f"{base}-{numero}.{extension}"
+                        numero += 1
+                    noms_utilises.add(candidat)
+                    fichiers.writestr(candidat, contenu)
+            nom_classe = slugify(classe.nom) or "classe"
+            reponse = HttpResponse(
+                archive.getvalue(), content_type="application/zip"
+            )
+            reponse["Content-Disposition"] = (
+                f'attachment; filename="carnets-{nom_classe}.zip"'
+            )
+            return reponse
+
+    return render(
+        request,
+        "suivi/preparer_edition.html",
+        {
+            "classe": classe,
+            "eleves": eleves,
+            "parametres_carnet": parametres,
+        },
+    )
 
 
 # --------------------------------------------------------------------------

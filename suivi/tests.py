@@ -1,5 +1,6 @@
 import hashlib
 import os
+from zipfile import ZipFile
 from io import BytesIO, StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -401,6 +402,96 @@ class Carnet(Base):
         r = self.client.get(reverse("carnet_pdf", args=[autre_eleve.pk]))
 
         self.assertEqual(r.status_code, 404)
+
+
+class EditionClasse(Base):
+    def setUp(self):
+        super().setUp()
+        self.autre_eleve = Eleve.objects.create(
+            ecole=self.ecole, prenom="Malo", nom="Martin"
+        )
+        Scolarite.objects.create(
+            eleve=self.autre_eleve,
+            classe=self.classe,
+            annee_scolaire=self.classe.annee_scolaire,
+            niveau="PS",
+        )
+        self.entrer()
+        self.url = reverse("preparer_edition", args=[self.classe.pk])
+
+    def test_la_page_permet_de_selectionner_la_classe_et_les_options(self):
+        reponse = self.client.get(self.url)
+
+        self.assertContains(reponse, "Sélectionner toute la classe")
+        self.assertContains(reponse, self.eleve.nom_court)
+        self.assertContains(reponse, self.autre_eleve.nom_court)
+        self.assertContains(reponse, "Regrouper les acquisitions")
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
+    def test_une_selection_produit_un_pdf_par_eleve_dans_un_zip(self, generer):
+        reponse = self.client.post(
+            self.url,
+            {
+                "eleves": [self.eleve.pk, self.autre_eleve.pk],
+                "contenu": "reussites",
+                "regroupement": "mensuel",
+                "colonnes": "1",
+                "bilans": "on",
+            },
+        )
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(reponse["Content-Type"], "application/zip")
+        self.assertIn("no-store", reponse["Cache-Control"])
+        with ZipFile(BytesIO(reponse.content)) as archive:
+            self.assertEqual(
+                set(archive.namelist()),
+                {"carnet-lou.pdf", "carnet-malo-m.pdf"},
+            )
+            self.assertTrue(
+                all(archive.read(nom) == b"%PDF-factice" for nom in archive.namelist())
+            )
+        self.assertEqual(generer.call_count, 2)
+        for appel in generer.call_args_list:
+            html = appel.args[0]
+            self.assertIn('class="carnet colonnes-1"', html)
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
+    def test_un_eleve_hors_de_la_classe_est_ignore(self, generer):
+        autre_classe = Classe.objects.create(
+            ecole=self.ecole,
+            nom="GS",
+            annee_scolaire=self.classe.annee_scolaire,
+        )
+        hors_classe = Eleve.objects.create(ecole=self.ecole, prenom="Zoé")
+        Scolarite.objects.create(
+            eleve=hors_classe,
+            classe=autre_classe,
+            annee_scolaire=autre_classe.annee_scolaire,
+            niveau="GS",
+        )
+
+        reponse = self.client.post(
+            self.url,
+            {
+                "eleves": [self.eleve.pk, hors_classe.pk],
+                "contenu": "observes",
+                "regroupement": "aucun",
+                "colonnes": "2",
+            },
+        )
+
+        with ZipFile(BytesIO(reponse.content)) as archive:
+            self.assertEqual(archive.namelist(), ["carnet-lou.pdf"])
+        self.assertEqual(generer.call_count, 1)
+
+    @patch("suivi.views._generer_pdf")
+    def test_une_selection_vide_ne_genere_rien(self, generer):
+        reponse = self.client.post(self.url, {})
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, "Sélectionnez au moins un enfant")
+        generer.assert_not_called()
 
 
 class IndicateursTrace(Base):
