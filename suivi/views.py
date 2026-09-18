@@ -775,9 +775,25 @@ def importer_eleves(request, pk):
 
 @acces_requis
 def bilans_eleve(request, pk):
+    return _editer_bilan(request, pk)
+
+
+@acces_requis
+def modifier_bilan(request, pk, bilan_pk):
+    return _editer_bilan(request, pk, bilan_pk)
+
+
+def _editer_bilan(request, pk, bilan_pk=None):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
     scolarites = eleve.scolarites.select_related("classe").order_by("-annee_scolaire")
+    bilan_obj = None
+    if bilan_pk is not None:
+        bilan_obj = get_object_or_404(
+            Bilan,
+            pk=bilan_pk,
+            scolarite__eleve=eleve,
+        )
     if request.method == "POST":
         scolarite = get_object_or_404(
             Scolarite,
@@ -788,11 +804,22 @@ def bilans_eleve(request, pk):
         date_bilan = request.POST.get("date_bilan")
         texte = request.POST.get("texte", "").strip()
         if date_bilan and texte:
-            Bilan.objects.update_or_create(
-                scolarite=scolarite,
-                date_bilan=date_bilan,
-                defaults={"texte": texte},
+            doublon = Bilan.objects.filter(
+                scolarite=scolarite, date_bilan=date_bilan
             )
+            if bilan_obj:
+                doublon = doublon.exclude(pk=bilan_obj.pk)
+            if doublon.exists():
+                messages.error(
+                    request,
+                    "Un bilan existe déjà à cette date pour cette année scolaire.",
+                )
+                return redirect("bilans_eleve", pk=eleve.pk)
+            bilan_obj = bilan_obj or Bilan()
+            bilan_obj.scolarite = scolarite
+            bilan_obj.date_bilan = date_bilan
+            bilan_obj.texte = texte
+            bilan_obj.save()
             messages.success(request, "Quelques mots sur le parcours enregistrés.")
             return redirect("bilans_eleve", pk=eleve.pk)
         messages.error(request, "La date et le texte sont obligatoires.")
@@ -805,8 +832,20 @@ def bilans_eleve(request, pk):
             "bilans": Bilan.objects.filter(scolarite__eleve=eleve).select_related(
                 "scolarite"
             ),
+            "bilan_obj": bilan_obj,
         },
     )
+
+
+@acces_requis
+def supprimer_bilan(request, pk, bilan_pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+    bilan = get_object_or_404(Bilan, pk=bilan_pk, scolarite__eleve=eleve)
+    bilan.delete()
+    messages.success(request, "Bilan supprimé.")
+    return redirect("bilans_eleve", pk=eleve.pk)
 
 
 @direction_requise
