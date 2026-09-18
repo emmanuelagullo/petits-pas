@@ -10,11 +10,13 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.db import DatabaseError
+from django.db import DatabaseError, IntegrityError, transaction
+from django.db.models.deletion import ProtectedError
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
-from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
+from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
 from .views import _recuperateur_pdf
 
 
@@ -24,7 +26,13 @@ class Base(TestCase):
         self.ecole.definir_mots_de_passe("ens-mdp", "dir-mdp")
         self.ecole.save()
         self.classe = Classe.objects.create(ecole=self.ecole, nom="PS-MS")
-        self.eleve = Eleve.objects.create(classe=self.classe, prenom="Lou", niveau="PS")
+        self.eleve = Eleve.objects.create(ecole=self.ecole, prenom="Lou")
+        self.scolarite = Scolarite.objects.create(
+            eleve=self.eleve,
+            classe=self.classe,
+            annee_scolaire=self.classe.annee_scolaire,
+            niveau="PS",
+        )
         domaine = Domaine.objects.create(ecole=self.ecole, code="LANG", nom="Langage")
         self.competence = Competence.objects.create(
             domaine=domaine, code="LANG-01", libelle="Je dis mon prénom", niveau="PS"
@@ -116,8 +124,13 @@ class Bascule(Base):
         autre = Ecole(nom="Ailleurs")
         autre.definir_mots_de_passe("a", "b")
         autre.save()
-        eleve = Eleve.objects.create(
-            classe=Classe.objects.create(ecole=autre, nom="GS"), prenom="Zoé"
+        autre_classe = Classe.objects.create(ecole=autre, nom="GS")
+        eleve = Eleve.objects.create(ecole=autre, prenom="Zoé")
+        Scolarite.objects.create(
+            eleve=eleve,
+            classe=autre_classe,
+            annee_scolaire=autre_classe.annee_scolaire,
+            niveau="GS",
         )
         url = reverse("basculer", args=[eleve.pk, self.competence.pk])
         self.assertEqual(self.client.post(url).status_code, 404)
@@ -343,7 +356,13 @@ class Carnet(Base):
     def test_le_pdf_d_un_eleve_d_une_autre_ecole_est_introuvable(self):
         autre = Ecole.objects.create(nom="Ailleurs")
         autre_classe = Classe.objects.create(ecole=autre, nom="MS")
-        autre_eleve = Eleve.objects.create(classe=autre_classe, prenom="Zoé")
+        autre_eleve = Eleve.objects.create(ecole=autre, prenom="Zoé")
+        Scolarite.objects.create(
+            eleve=autre_eleve,
+            classe=autre_classe,
+            annee_scolaire=autre_classe.annee_scolaire,
+            niveau="MS",
+        )
         self.entrer()
 
         r = self.client.get(reverse("carnet_pdf", args=[autre_eleve.pk]))
@@ -390,12 +409,59 @@ class Import(Base):
         self.entrer("dir-mdp")
         self.client.post(
             reverse("importer_eleves", args=[self.classe.pk]),
-            {"liste": "Camille\nSofiane ; Benali ; MS\n\n  Lou  ", "niveau": "PS"},
+            {"liste": "Camille\nSofiane ; Benali ; MS ; 2021\n\n  Lou  ", "niveau": "PS"},
         )
         noms = set(self.classe.eleves.values_list("prenom", flat=True))
         self.assertEqual(noms, {"Lou", "Camille", "Sofiane"})
         self.assertEqual(self.classe.eleves.get(prenom="Sofiane").niveau, "MS")
+        self.assertEqual(
+            self.classe.eleves.get(prenom="Sofiane").annee_naissance, 2021
+        )
         self.assertEqual(self.classe.eleves.get(prenom="Camille").niveau, "PS")
+
+
+class ParcoursLongitudinal(Base):
+    def test_un_eleve_ne_peut_avoir_deux_scolarites_la_meme_annee(self):
+        autre_classe = Classe.objects.create(
+            ecole=self.ecole,
+            nom="Autre classe",
+            annee_scolaire=self.classe.annee_scolaire,
+        )
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Scolarite.objects.create(
+                eleve=self.eleve,
+                classe=autre_classe,
+                annee_scolaire=self.classe.annee_scolaire,
+                niveau="PS",
+            )
+
+    def test_une_classe_historique_ne_peut_pas_etre_supprimee(self):
+        with self.assertRaises(ProtectedError):
+            self.classe.delete()
+
+    def test_archiver_masque_l_eleve_sans_supprimer_son_parcours(self):
+        self.entrer("dir-mdp")
+
+        self.client.post(reverse("archiver_eleve", args=[self.eleve.pk]))
+
+        self.eleve.refresh_from_db()
+        self.assertIsNotNone(self.eleve.archive_le)
+        self.assertEqual(Scolarite.objects.filter(eleve=self.eleve).count(), 1)
+        self.assertContains(
+            self.client.get(reverse("classe_detail", args=[self.classe.pk])),
+            "0 enfants",
+        )
+
+    def test_un_eleve_archive_peut_etre_reactive(self):
+        self.eleve.archive_le = timezone.now()
+        self.eleve.save(update_fields=["archive_le"])
+        self.entrer("dir-mdp")
+
+        self.client.post(reverse("desarchiver_eleve", args=[self.eleve.pk]))
+
+        self.eleve.refresh_from_db()
+        self.assertIsNone(self.eleve.archive_le)
 
 
 class Referentiel(Base):

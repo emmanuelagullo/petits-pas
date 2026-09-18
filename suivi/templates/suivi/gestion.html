@@ -21,6 +21,18 @@
 </ul>
 {% else %}<div class="vide"><p>Aucune classe pour l'instant.</p></div>{% endif %}
 
+{% if eleves_archives %}
+<h2>Élèves archivés</h2>
+<ul class="liste">
+  {% for eleve in eleves_archives %}
+  <li class="entree">
+    <span class="principal">{{ eleve.nom_court }}</span>
+    <form method="post" action="{% url 'desarchiver_eleve' eleve.pk %}">{% csrf_token %}<button class="bouton discret" type="submit">Désarchiver</button></form>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+
 <h2>Le référentiel de compétences</h2>
 <p>Il se modifie dans le fichier <code>referentiel/*.yaml</code>, puis se recharge en une commande&nbsp;:</p>
 <pre class="encadre" style="overflow:auto">python manage.py charger_referentiel referentiel/le-votre.yaml</pre>

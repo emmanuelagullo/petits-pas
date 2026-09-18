@@ -13,12 +13,15 @@
 {% if eleves %}
 <ul class="liste">
   {% for e in eleves %}
-  <li><a class="entree" href="{% url 'saisie_eleve' e.pk %}">
-    <span class="pastille">{{ e.niveau }}</span>
-    <span class="principal">{{ e.prenom }} {{ e.nom }}</span>
-    <span class="jauge" aria-hidden="true"><span style="width: {{ e.part_reussies }}%"></span></span>
-    <span class="secondaire">{{ e.nb_reussies }} réussite{{ e.nb_reussies|pluralize }}</span>
-  </a></li>
+  <li>
+    <a class="entree" href="{% url 'saisie_eleve' e.pk %}">
+      <span class="pastille">{{ e.niveau }}</span>
+      <span class="principal">{{ e.prenom }} {{ e.nom }}</span>
+      <span class="jauge" aria-hidden="true"><span style="width: {{ e.part_reussies }}%"></span></span>
+      <span class="secondaire">{{ e.nb_reussies }} réussite{{ e.nb_reussies|pluralize }}</span>
+    </a>
+    {% if est_direction %}<form method="post" action="{% url 'archiver_eleve' e.pk %}">{% csrf_token %}<button class="bouton discret" type="submit">Archiver sans supprimer</button></form>{% endif %}
+  </li>
   {% endfor %}
 </ul>
 {% else %}

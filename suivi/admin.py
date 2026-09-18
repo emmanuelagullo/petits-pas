@@ -1,10 +1,10 @@
 from django.contrib import admin
 
-from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation
+from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
 
 
-class EleveInline(admin.TabularInline):
-    model = Eleve
+class ScolariteInline(admin.TabularInline):
+    model = Scolarite
     extra = 0
 
 
@@ -16,14 +16,21 @@ class EcoleAdmin(admin.ModelAdmin):
 @admin.register(Classe)
 class ClasseAdmin(admin.ModelAdmin):
     list_display = ("nom", "ecole", "annee_scolaire", "ordre")
-    inlines = [EleveInline]
+    inlines = [ScolariteInline]
 
 
 @admin.register(Eleve)
 class EleveAdmin(admin.ModelAdmin):
-    list_display = ("prenom", "nom", "niveau", "classe")
-    list_filter = ("classe", "niveau")
+    list_display = ("prenom", "nom", "ecole", "annee_naissance", "archive_le")
+    list_filter = ("ecole", "archive_le")
     search_fields = ("prenom", "nom")
+    inlines = [ScolariteInline]
+
+
+@admin.register(Scolarite)
+class ScolariteAdmin(admin.ModelAdmin):
+    list_display = ("eleve", "classe", "niveau", "annee_scolaire")
+    list_filter = ("annee_scolaire", "niveau", "classe")
 
 
 class CompetenceInline(admin.TabularInline):
@@ -47,4 +54,4 @@ class CompetenceAdmin(admin.ModelAdmin):
 @admin.register(Observation)
 class ObservationAdmin(admin.ModelAdmin):
     list_display = ("eleve", "competence", "statut", "date_observation")
-    list_filter = ("statut", "eleve__classe")
+    list_filter = ("statut", "eleve__scolarites__classe")

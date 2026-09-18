@@ -42,4 +42,6 @@ urlpatterns = [
         views.importer_eleves,
         name="importer_eleves",
     ),
+    path("gestion/eleve/<int:pk>/archiver/", views.archiver_eleve, name="archiver_eleve"),
+    path("gestion/eleve/<int:pk>/desarchiver/", views.desarchiver_eleve, name="desarchiver_eleve"),
 ]

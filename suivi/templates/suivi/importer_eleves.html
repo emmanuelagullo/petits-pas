@@ -8,9 +8,9 @@
 <form method="post" class="encadre">
   {% csrf_token %}
   <label for="liste">La liste
-    <span class="aide">Un prénom par ligne suffit. Pour aller plus loin : <code>Prénom ; Nom ; PS</code>.</span>
+    <span class="aide">Un prénom par ligne suffit. Pour aller plus loin : <code>Prénom ; Nom ; PS ; 2021</code>.</span>
   </label>
-  <textarea id="liste" name="liste" autofocus placeholder="Camille&#10;Sofiane ; Benali ; MS&#10;Lou ; Trémeur ; GS"></textarea>
+  <textarea id="liste" name="liste" autofocus placeholder="Camille&#10;Sofiane ; Benali ; MS ; 2021&#10;Lou ; Trémeur ; GS ; 2020"></textarea>
 
   <label for="niveau">Niveau par défaut
     <span class="aide">Appliqué aux lignes où vous ne l'avez pas précisé.</span>
