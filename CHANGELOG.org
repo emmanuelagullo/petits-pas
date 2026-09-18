@@ -12,6 +12,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Parcours de rentrée permettant de créer les classes avec leur année scolaire
   et de faire évoluer l'identité, la classe et le niveau d'un élève sans
   perdre ses scolarités précédentes.
+- Paramètres habituels du carnet par école, attendus de fin de cycle et
+  sous-domaines importables depuis le référentiel puis activables à l'édition.
 
 * 0.4 — 2026-09-18
 

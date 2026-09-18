@@ -20,7 +20,18 @@ from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from .models import Bilan, Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite, Trace
+from .models import (
+    Bilan,
+    Classe,
+    Competence,
+    Domaine,
+    Ecole,
+    Eleve,
+    Observation,
+    ParametresCarnet,
+    Scolarite,
+    Trace,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -106,6 +117,17 @@ def accueil(request):
             distinct=True,
         )
     )
+    eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
+    nb_competences = Competence.objects.filter(domaine__ecole=ecole, active=True).count()
+    return render(
+        request,
+        "suivi/gestion.html",
+        {
+            "classes": classes,
+            "nb_competences": nb_competences,
+            "eleves_archives": eleves_archives,
+        },
+    )
     return render(request, "suivi/accueil.html", {"classes": classes})
 
 
@@ -142,11 +164,12 @@ def classe_detail(request, pk):
 
 
 def _arbre(ecole, niveaux=None):
-    competences = Competence.objects.filter(active=True)
+    competences = Competence.objects.filter(active=True).select_related("sous_domaine")
     if niveaux:
         competences = competences.filter(niveau__in=niveaux)
     return Domaine.objects.filter(ecole=ecole).prefetch_related(
-        Prefetch("competences", queryset=competences, to_attr="visibles")
+        Prefetch("competences", queryset=competences, to_attr="visibles"),
+        "attendus",
     )
 
 
@@ -372,10 +395,22 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
 def _contexte_carnet(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
+    parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
     modes = {"reussites", "observes", "tout"}
-    mode = request.GET.get("contenu", "observes")
-    colonnes = request.GET.get("colonnes", "2")
-    regroupement = request.GET.get("regroupement", "aucun")
+    mode = request.GET.get("contenu", parametres.contenu_par_defaut)
+    colonnes = request.GET.get("colonnes", str(parametres.colonnes_par_defaut))
+    regroupement = request.GET.get(
+        "regroupement", parametres.regroupement_par_defaut
+    )
+    afficher_attendus = request.GET.get(
+        "attendus", "1" if parametres.afficher_attendus else "0"
+    ) == "1"
+    afficher_sous_domaines = request.GET.get(
+        "sous_domaines", "1" if parametres.afficher_sous_domaines else "0"
+    ) == "1"
+    inclure_bilans = request.GET.get(
+        "bilans", "1" if parametres.inclure_bilans else "0"
+    ) == "1"
     # Compatibilité avec les liens de la version 0.2.
     if request.GET.get("tout") == "1":
         mode = "tout"
@@ -413,7 +448,11 @@ def _contexte_carnet(request, pk):
             domaines.append((d, _regrouper_lignes(eleve, lignes, regroupement)))
 
     scolarite = eleve.scolarite_courante()
-    bilans = Bilan.objects.filter(scolarite__eleve=eleve).select_related("scolarite")
+    bilans = (
+        Bilan.objects.filter(scolarite__eleve=eleve).select_related("scolarite")
+        if inclure_bilans
+        else Bilan.objects.none()
+    )
 
     return {
         "eleve": eleve,
@@ -423,6 +462,10 @@ def _contexte_carnet(request, pk):
         "regroupement": regroupement,
         "scolarite": scolarite,
         "bilans": bilans,
+        "parametres_carnet": parametres,
+        "afficher_attendus": afficher_attendus,
+        "afficher_sous_domaines": afficher_sous_domaines,
+        "inclure_bilans": inclure_bilans,
         "edite_le": timezone.localdate(),
     }
 
@@ -574,16 +617,39 @@ def gestion(request):
             distinct=True,
         )
     )
-    eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
-    nb_competences = Competence.objects.filter(domaine__ecole=ecole, active=True).count()
+
+
+@direction_requise
+def parametres_carnet(request):
+    ecole = ecole_courante(request)
+    parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
+    if request.method == "POST":
+        contenu = request.POST.get("contenu_par_defaut")
+        regroupement = request.POST.get("regroupement_par_defaut")
+        colonnes = request.POST.get("colonnes_par_defaut")
+        if contenu in {"reussites", "observes", "tout"}:
+            parametres.contenu_par_defaut = contenu
+        if regroupement in {"aucun", "annuel", "mensuel", "bilan"}:
+            parametres.regroupement_par_defaut = regroupement
+        if colonnes in {"1", "2"}:
+            parametres.colonnes_par_defaut = int(colonnes)
+        parametres.titre_couverture = (
+            request.POST.get("titre_couverture", "").strip()
+            or "Carnet de suivi des apprentissages"
+        )
+        parametres.texte_couverture = request.POST.get(
+            "texte_couverture", ""
+        ).strip()
+        parametres.afficher_attendus = "afficher_attendus" in request.POST
+        parametres.afficher_sous_domaines = "afficher_sous_domaines" in request.POST
+        parametres.inclure_bilans = "inclure_bilans" in request.POST
+        parametres.save()
+        messages.success(request, "Paramètres habituels du carnet enregistrés.")
+        return redirect("parametres_carnet")
     return render(
         request,
-        "suivi/gestion.html",
-        {
-            "classes": classes,
-            "nb_competences": nb_competences,
-            "eleves_archives": eleves_archives,
-        },
+        "suivi/parametres_carnet.html",
+        {"parametres": parametres},
     )
 
 
