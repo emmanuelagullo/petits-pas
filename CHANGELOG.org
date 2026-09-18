@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+** Fixed
+
+- Rétablissement de l'accueil des classes pour les enseignants et de l'écran
+  de gestion réservé à la direction, confondus lors de l'ajout du parcours de
+  rentrée.
+
 ** Added
 
 - Parcours de rentrée permettant de créer les classes avec leur année scolaire

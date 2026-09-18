@@ -111,6 +111,36 @@ class Acces(Base):
         self.entrer()
         self.assertEqual(self.client.get(reverse("gestion")).status_code, 403)
 
+    def test_l_enseignant_arrive_sur_les_classes_sans_actions_de_direction(self):
+        self.entrer()
+
+        accueil = self.client.get(reverse("accueil"))
+
+        self.assertContains(accueil, "Les classes")
+        self.assertContains(
+            accueil, reverse("classe_detail", args=[self.classe.pk])
+        )
+        self.assertNotContains(accueil, "Créer une classe")
+        self.assertNotContains(accueil, "Paramétrer le carnet")
+        self.assertEqual(
+            self.client.get(
+                reverse("classe_detail", args=[self.classe.pk])
+            ).status_code,
+            200,
+        )
+
+    def test_la_direction_dispose_d_un_ecran_de_gestion_fonctionnel(self):
+        self.entrer("dir-mdp")
+
+        gestion = self.client.get(reverse("gestion"))
+
+        self.assertContains(gestion, "Gérer l'école")
+        self.assertContains(gestion, "Créer une classe")
+        self.assertContains(gestion, "Paramétrer le carnet")
+        self.assertContains(
+            gestion, reverse("importer_eleves", args=[self.classe.pk])
+        )
+
     def test_on_revient_sur_la_page_demandee_apres_connexion(self):
         cible = reverse("saisie_eleve", args=[self.eleve.pk])
         self.client.get(cible)
