@@ -122,18 +122,72 @@ def accueil(request):
     return render(request, "suivi/accueil.html", {"classes": classes})
 
 
-def _progression(eleves, ecole):
-    """Nombre de compétences réussies par élève, en un seul aller-retour."""
-    total = Competence.objects.filter(domaine__ecole=ecole, active=True).count()
+FILTRES_NIVEAU_CLASSE = {"classe", "tous", "PS", "MS", "GS"}
+
+
+def _progression(eleves, ecole, filtre="classe"):
+    """Nombre de compétences réussies par élève, en un seul aller-retour.
+
+    ``filtre`` vaut :
+    - ``"classe"`` (par défaut) : les compétences du niveau propre à chaque
+      élève (« Année de classe ») ;
+    - ``"tous"`` : l'ensemble des compétences du cycle ;
+    - ``"PS"``, ``"MS"`` ou ``"GS"`` : uniquement les compétences de ce niveau,
+      pour tous les élèves affichés, quel que soit leur propre niveau.
+
+    Renvoie le nombre total de compétences actives du cycle (utile pour
+    l'affichage global), indépendamment du filtre appliqué par élève.
+    """
+    totaux_par_niveau = dict(
+        Competence.objects.filter(domaine__ecole=ecole, active=True)
+        .values("niveau")
+        .annotate(n=Count("pk"))
+        .values_list("niveau", "n")
+    )
+    total_cycle = sum(totaux_par_niveau.values())
+
+    reussies_par_eleve_et_niveau = {}
+    lignes = (
+        Observation.objects.filter(
+            eleve__pk__in=[e.pk for e in eleves], statut="reussi"
+        )
+        .values("eleve_id", "competence__niveau")
+        .annotate(n=Count("pk"))
+    )
+    for ligne in lignes:
+        reussies_par_eleve_et_niveau.setdefault(ligne["eleve_id"], {})[
+            ligne["competence__niveau"]
+        ] = ligne["n"]
+
+    for e in eleves:
+        par_niveau = reussies_par_eleve_et_niveau.get(e.pk, {})
+        if filtre == "tous":
+            e.nb_reussies = sum(par_niveau.values())
+            e.total_competences = total_cycle
+        elif filtre in {"PS", "MS", "GS"}:
+            e.nb_reussies = par_niveau.get(filtre, 0)
+            e.total_competences = totaux_par_niveau.get(filtre, 0)
+        else:  # "classe" : le niveau propre à l'élève
+            e.nb_reussies = par_niveau.get(e.niveau, 0)
+            e.total_competences = totaux_par_niveau.get(e.niveau, 0)
+        e.part_reussies = (
+            round(100 * e.nb_reussies / e.total_competences)
+            if e.total_competences
+            else 0
+        )
+    return total_cycle
+
+
+def _bilans_par_eleve(eleves, classe):
+    """Nombre de bilans déjà déposés, pour la scolarité de chacun dans cette classe."""
     compte = dict(
-        Eleve.objects.filter(pk__in=[e.pk for e in eleves])
-        .annotate(n=Count("observations", filter=Q(observations__statut="reussi")))
-        .values_list("pk", "n")
+        Bilan.objects.filter(scolarite__classe=classe, scolarite__eleve__in=eleves)
+        .values("scolarite__eleve_id")
+        .annotate(n=Count("pk"))
+        .values_list("scolarite__eleve_id", "n")
     )
     for e in eleves:
-        e.nb_reussies = compte.get(e.pk, 0)
-        e.part_reussies = round(100 * e.nb_reussies / total) if total else 0
-    return total
+        e.nb_bilans = compte.get(e.pk, 0)
 
 
 @acces_requis
@@ -141,11 +195,20 @@ def classe_detail(request, pk):
     ecole = ecole_courante(request)
     classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
     eleves = list(classe.eleves)
-    total = _progression(eleves, ecole)
+    filtre = request.GET.get("niveaux", "classe")
+    if filtre not in FILTRES_NIVEAU_CLASSE:
+        filtre = "classe"
+    total = _progression(eleves, ecole, filtre)
+    _bilans_par_eleve(eleves, classe)
     return render(
         request,
         "suivi/classe.html",
-        {"classe": classe, "eleves": eleves, "total_competences": total},
+        {
+            "classe": classe,
+            "eleves": eleves,
+            "total_competences": total,
+            "filtre": filtre,
+        },
     )
 
 
