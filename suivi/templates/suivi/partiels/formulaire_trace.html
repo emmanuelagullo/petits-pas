@@ -4,6 +4,12 @@
   <label for="commentaire">Le mot qui accompagne la réussite
     <span class="aide">Ce que l'enfant a dit, ce que vous avez vu. C'est ce texte qui apparaîtra dans le carnet.</span>
   </label>
+  {% if formulations %}
+  <div class="propositions-commentaire">
+    <span class="aide">Propositions à insérer puis modifier librement :</span>
+    {% for formulation in formulations %}<button type="button" class="bouton discret proposition-commentaire" data-texte="{{ formulation }}">{{ formulation }}</button>{% endfor %}
+  </div>
+  {% endif %}
   <textarea id="commentaire" name="commentaire">{{ trace_obj.commentaire }}</textarea>
 
   <label for="date_observation">Date</label>
@@ -27,3 +33,12 @@
     <a class="bouton discret" href="{% if trace_obj %}{% url 'trace' eleve.pk competence.pk %}{% else %}{% url 'saisie_eleve' eleve.pk %}{% endif %}">Annuler</a>
   </div>
 </form>
+{% if formulations %}
+<script>
+document.querySelectorAll(".proposition-commentaire").forEach((bouton) => {
+  bouton.addEventListener("click", () => {
+    document.getElementById("commentaire").value = bouton.dataset.texte;
+  });
+});
+</script>
+{% endif %}
