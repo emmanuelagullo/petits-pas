@@ -1028,12 +1028,32 @@ def _editer_bilan(request, pk, bilan_pk=None):
             )
             if bilan_obj:
                 doublon = doublon.exclude(pk=bilan_obj.pk)
-            if doublon.exists():
+            bilan_en_conflit = doublon.select_related("scolarite").first()
+            if bilan_en_conflit:
                 messages.error(
                     request,
-                    "Un bilan existe déjà à cette date pour cette année scolaire.",
+                    "Un bilan existe déjà à cette date pour cette année scolaire. "
+                    "Votre brouillon a été conservé ci-dessous, sans écraser le "
+                    "bilan existant : relisez-le avant d'enregistrer.",
                 )
-                return redirect("bilans_eleve", pk=eleve.pk)
+                bilan_en_conflit.date_bilan = date_bilan
+                bilan_en_conflit.texte = texte
+                bilan_en_conflit.visible_carnet = (
+                    request.POST.get("visible_carnet") == "on"
+                )
+                return render(
+                    request,
+                    "suivi/bilans.html",
+                    {
+                        "eleve": eleve,
+                        "scolarites": scolarites,
+                        "bilans": Bilan.objects.filter(
+                            scolarite__eleve=eleve
+                        ).select_related("scolarite"),
+                        "bilan_obj": bilan_en_conflit,
+                        "date_defaut": timezone.localdate(),
+                    },
+                )
             bilan_obj = bilan_obj or Bilan()
             bilan_obj.scolarite = scolarite
             bilan_obj.date_bilan = date_bilan

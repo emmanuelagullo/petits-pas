@@ -1166,6 +1166,29 @@ class BilansEtPeriodes(Base):
         self.assertEqual(str(bilan.date_bilan), "2027-02-01")
         self.assertEqual(bilan.texte, "Texte corrigé")
 
+    def test_un_conflit_de_date_conserve_le_brouillon_sans_ecraser_le_bilan(self):
+        existant = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Texte déjà enregistré",
+        )
+
+        reponse = self.client.post(
+            reverse("bilans_eleve", args=[self.eleve.pk]),
+            {
+                "scolarite": self.scolarite.pk,
+                "date_bilan": "2027-01-15",
+                "texte": "Brouillon en cours de saisie",
+                "visible_carnet": "on",
+            },
+        )
+
+        existant.refresh_from_db()
+        self.assertEqual(existant.texte, "Texte déjà enregistré")
+        self.assertContains(reponse, "Brouillon en cours de saisie")
+        self.assertContains(reponse, "Un bilan existe déjà à cette date")
+        self.assertEqual(Bilan.objects.count(), 1)
+
     def test_un_bilan_est_modifie_a_sa_place_dans_l_historique(self):
         bilan = Bilan.objects.create(
             scolarite=self.scolarite,
