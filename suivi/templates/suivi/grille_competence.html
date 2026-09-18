@@ -1,0 +1,39 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Grille — {{ competence.libelle }}{% endblock %}
+{% block contenu %}
+<div class="actions sans-impression">
+  <a class="bouton discret" href="{% url 'saisie_competence' classe.pk competence.pk %}">Retour à la saisie</a>
+  <a class="bouton" href="{% url 'grille_competence_pdf' classe.pk competence.pk %}">Télécharger le PDF</a>
+  <button class="bouton discret" type="button" onclick="window.print()">Imprimer</button>
+</div>
+
+<article class="grille-competence">
+  <header>
+    <p class="sur-titre">Grille de suivi · {{ classe.nom }} · {{ classe.annee_scolaire }}</p>
+    <h1>{{ competence.libelle }}</h1>
+    <p>{{ competence.domaine.nom }}{% if competence.sous_domaine %} · {{ competence.sous_domaine.nom }}{% endif %} · repère {{ competence.get_niveau_display|lower }}</p>
+  </header>
+
+  <div class="resume-grille">
+    <span><strong>{{ compteurs.a_observer }}</strong> à observer</span>
+    <span><strong>{{ compteurs.en_cours }}</strong> en cours</span>
+    <span><strong>{{ compteurs.reussi }}</strong> réussite{{ compteurs.reussi|pluralize }}</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Élève</th><th>À observer</th><th>En cours</th><th>Réussi</th><th>Notes de séance</th></tr></thead>
+    <tbody>
+      {% for eleve, observation, etat in lignes %}
+      <tr>
+        <th>{{ eleve.prenom }} {{ eleve.nom }}</th>
+        <td class="marque-etat">{% if etat == 'a_observer' %}●{% else %}○{% endif %}</td>
+        <td class="marque-etat">{% if etat == 'en_cours' %}●{% else %}○{% endif %}</td>
+        <td class="marque-etat">{% if etat == 'reussi' %}●{% else %}○{% endif %}</td>
+        <td class="notes-grille"></td>
+      </tr>
+      {% empty %}<tr><td colspan="5">Cette classe n'a pas encore d'enfants.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  <p class="pied-grille">Édité le {{ edite_le|date:"j F Y" }} · document interne à l'équipe pédagogique.</p>
+</article>
+{% endblock %}

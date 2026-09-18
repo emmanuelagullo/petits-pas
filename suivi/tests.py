@@ -494,6 +494,82 @@ class EditionClasse(Base):
         generer.assert_not_called()
 
 
+class GrilleCompetence(Base):
+    def setUp(self):
+        super().setUp()
+        self.en_cours = Eleve.objects.create(ecole=self.ecole, prenom="Malo")
+        self.reussi = Eleve.objects.create(ecole=self.ecole, prenom="Inès")
+        for eleve in (self.en_cours, self.reussi):
+            Scolarite.objects.create(
+                eleve=eleve,
+                classe=self.classe,
+                annee_scolaire=self.classe.annee_scolaire,
+                niveau="PS",
+            )
+        Observation.objects.create(
+            eleve=self.en_cours,
+            competence=self.competence,
+            statut=Observation.EN_COURS,
+        )
+        Observation.objects.create(
+            eleve=self.reussi,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+        )
+        self.entrer()
+        self.url = reverse(
+            "grille_competence", args=[self.classe.pk, self.competence.pk]
+        )
+
+    def test_la_grille_repartit_tous_les_eleves_selon_leur_etat(self):
+        reponse = self.client.get(self.url)
+
+        self.assertContains(reponse, self.eleve.prenom)
+        self.assertContains(reponse, self.en_cours.prenom)
+        self.assertContains(reponse, self.reussi.prenom)
+        self.assertContains(reponse, "<strong>1</strong> à observer", html=True)
+        self.assertContains(reponse, "<strong>1</strong> en cours", html=True)
+        self.assertContains(reponse, "<strong>1</strong> réussite", html=True)
+        self.assertContains(reponse, "document interne à l'équipe pédagogique")
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-grille")
+    def test_la_grille_est_exportable_en_pdf(self, generer):
+        reponse = self.client.get(
+            reverse(
+                "grille_competence_pdf",
+                args=[self.classe.pk, self.competence.pk],
+            )
+        )
+
+        self.assertEqual(reponse["Content-Type"], "application/pdf")
+        self.assertEqual(reponse.content, b"%PDF-grille")
+        self.assertIn("no-store", reponse["Cache-Control"])
+        self.assertIn("grille-ps-ms-lang-01.pdf", reponse["Content-Disposition"])
+        html = generer.call_args.args[0]
+        self.assertIn("Malo", html)
+        self.assertIn("Inès", html)
+
+    def test_une_competence_d_une_autre_ecole_est_introuvable(self):
+        autre = Ecole.objects.create(nom="Ailleurs")
+        autre_domaine = Domaine.objects.create(
+            ecole=autre, code="AUTRE", nom="Autre domaine"
+        )
+        autre_competence = Competence.objects.create(
+            domaine=autre_domaine,
+            code="AUTRE-01",
+            libelle="Autre compétence",
+        )
+
+        reponse = self.client.get(
+            reverse(
+                "grille_competence",
+                args=[self.classe.pk, autre_competence.pk],
+            )
+        )
+
+        self.assertEqual(reponse.status_code, 404)
+
+
 class IndicateursTrace(Base):
     def setUp(self):
         super().setUp()

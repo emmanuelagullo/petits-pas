@@ -539,6 +539,17 @@ textarea { min-height: 7rem; resize: vertical; }
 .encadre-bilan { break-inside: avoid; margin: 1rem 0; padding: 1rem; border: 1px solid var(--ligne); border-radius: 0.8rem; }
 .bilans-carnet { break-before: page; }
 
+.grille-competence { background: var(--surface); padding: 1.5rem; border-radius: var(--rayon); }
+.grille-competence h1 { margin-bottom: 0.35rem; }
+.resume-grille { display: flex; gap: 0.8rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.resume-grille span { padding: 0.45rem 0.7rem; background: var(--papier); border-radius: 999px; }
+.grille-competence table { width: 100%; border-collapse: collapse; }
+.grille-competence th, .grille-competence td { padding: 0.7rem; border: 1px solid var(--trait); text-align: left; }
+.grille-competence thead th { background: var(--papier); }
+.grille-competence .marque-etat { width: 5.5rem; text-align: center; font-size: 1.1rem; }
+.grille-competence .notes-grille { width: 35%; }
+.pied-grille { margin-top: 1rem; color: var(--ardoise-clair); font-size: 0.85rem; }
+
 .carnet-vide { margin: 7rem auto; max-width: 28rem; text-align: center; color: #666; }
 .carnet-vide h2 { color: #333; }
 
@@ -587,6 +598,8 @@ textarea { min-height: 7rem; resize: vertical; }
   .domaine-carnet + .domaine-carnet { break-before: page; }
   .domaine-carnet h2 { break-after: avoid; }
   .pied { break-inside: avoid; }
+  .grille-competence { padding: 0; }
+  .grille-competence tr { break-inside: avoid; }
   a { color: inherit; text-decoration: none; }
 }
 
