@@ -136,6 +136,16 @@ h2 {
   margin: 1rem 0;
 }
 
+.ligne-affectation {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(8rem, auto) auto auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.65rem 0;
+}
+.ligne-affectation + .ligne-affectation { border-top: 1px solid var(--trait); }
+.ligne-affectation select { margin: 0; min-width: 5rem; }
+
 /* ---------- Listes de classes et d'élèves ---------- */
 
 .liste {
@@ -617,4 +627,5 @@ textarea { min-height: 7rem; resize: vertical; }
   .entete-pages { display: block; }
   .entete-pages .legende { margin-top: 0.4rem; text-align: left; }
   .carnet.colonnes-2 ul { columns: 1; }
+  .ligne-affectation { grid-template-columns: 1fr; }
 }

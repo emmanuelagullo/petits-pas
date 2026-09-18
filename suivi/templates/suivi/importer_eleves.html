@@ -3,10 +3,54 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
 <h1>Ajouter des enfants à {{ classe.nom }}</h1>
-<p class="sous-titre">Collez votre liste, un enfant par ligne. Vous pouvez la copier depuis ONDE ou depuis un tableur.</p>
+<p class="sous-titre">Ajoutez un élève déjà connu ou collez une liste de nouveaux élèves.</p>
+
+{% if eleves_disponibles %}
+<section class="encadre">
+  <h2>Élèves déjà connus, sans classe en {{ classe.annee_scolaire }}</h2>
+  {% for eleve in eleves_disponibles %}
+  <form method="post" class="ligne-affectation">
+    {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}">
+    <strong>{{ eleve.nom_court }}</strong>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
+    <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}"><option value="PS">PS</option><option value="MS">MS</option><option value="GS">GS</option></select>
+    <button class="bouton discret" type="submit">Ajouter à la classe</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if affectations_autres %}
+<section class="encadre">
+  <h2>Élèves affectés à une autre classe cette année</h2>
+  <p class="aide">Le déplacement est explicite : il remplace seulement la classe de {{ classe.annee_scolaire }} et conserve les années précédentes.</p>
+  {% for scolarite in affectations_autres %}
+  <form method="post" class="ligne-affectation">
+    {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}"><input type="hidden" name="confirmer_deplacement" value="on">
+    <strong>{{ scolarite.eleve.nom_court }}</strong><span>{{ scolarite.classe.nom }}</span>
+    <select name="niveau" aria-label="Niveau de {{ scolarite.eleve.prenom }}"><option value="PS"{% if scolarite.niveau == 'PS' %} selected{% endif %}>PS</option><option value="MS"{% if scolarite.niveau == 'MS' %} selected{% endif %}>MS</option><option value="GS"{% if scolarite.niveau == 'GS' %} selected{% endif %}>GS</option></select>
+    <button class="bouton discret" type="submit">Déplacer vers cette classe</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% if eleves_archives %}
+<section class="encadre">
+  <h2>Élèves archivés</h2>
+  {% for eleve in eleves_archives %}
+  <form method="post" class="ligne-affectation">
+    {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}"><input type="hidden" name="reactiver" value="on"><input type="hidden" name="confirmer_deplacement" value="on">
+    <strong>{{ eleve.nom_court }}</strong>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
+    <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}"><option value="PS">PS</option><option value="MS">MS</option><option value="GS">GS</option></select>
+    <button class="bouton discret" type="submit">Réactiver et ajouter</button>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
 
 <form method="post" class="encadre">
   {% csrf_token %}
+  <h2>Nouveaux élèves</h2>
   <label for="liste">La liste
     <span class="aide">Un prénom par ligne suffit. Pour aller plus loin : <code>Prénom ; Nom ; PS ; 2021</code>.</span>
   </label>
