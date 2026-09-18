@@ -17,6 +17,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Création, modification et suppression explicites des bilans datés.
 - Formulations narratives proposées par le référentiel, personnalisées avec le
   prénom puis insérables sans empêcher leur modification libre.
+- Préparation d'une édition pour une sélection d'élèves ou toute une classe,
+  avec export d'une archive ZIP contenant un PDF individuel par enfant.
 
 * 0.4 — 2026-09-18
 

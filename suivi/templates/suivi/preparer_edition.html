@@ -1,0 +1,58 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Préparer les carnets de {{ classe.nom }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
+<h1>Préparer les carnets PDF</h1>
+<p class="sous-titre">Chaque enfant sélectionné aura son propre PDF dans une archive ZIP.</p>
+
+<form method="post" class="formulaire">
+  {% csrf_token %}
+  <fieldset>
+    <legend>Enfants</legend>
+    <label class="choix"><input type="checkbox" id="tous-les-eleves"> Sélectionner toute la classe</label>
+    <div class="liste-selection">
+      {% for eleve in eleves %}
+      <label class="choix"><input type="checkbox" name="eleves" value="{{ eleve.pk }}"> {{ eleve.nom_court }} — {{ eleve.get_niveau_display }}</label>
+      {% empty %}<p>Cette classe n'a pas encore d'enfants.</p>{% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Contenu</legend>
+    <label for="contenu">Apprentissages affichés</label>
+    <select id="contenu" name="contenu">
+      <option value="reussites"{% if parametres_carnet.contenu_par_defaut == 'reussites' %} selected{% endif %}>Réussites</option>
+      <option value="observes"{% if parametres_carnet.contenu_par_defaut == 'observes' %} selected{% endif %}>Réussites et apprentissages en cours</option>
+      <option value="tout"{% if parametres_carnet.contenu_par_defaut == 'tout' %} selected{% endif %}>Référentiel complet</option>
+    </select>
+
+    <label for="regroupement">Regrouper les acquisitions</label>
+    <select id="regroupement" name="regroupement">
+      <option value="aucun"{% if parametres_carnet.regroupement_par_defaut == 'aucun' %} selected{% endif %}>Aucun</option>
+      <option value="annuel"{% if parametres_carnet.regroupement_par_defaut == 'annuel' %} selected{% endif %}>Annuel</option>
+      <option value="mensuel"{% if parametres_carnet.regroupement_par_defaut == 'mensuel' %} selected{% endif %}>Mensuel</option>
+      <option value="bilan"{% if parametres_carnet.regroupement_par_defaut == 'bilan' %} selected{% endif %}>Par bilan</option>
+    </select>
+
+    <label for="colonnes">Mise en page</label>
+    <select id="colonnes" name="colonnes">
+      <option value="1"{% if parametres_carnet.colonnes_par_defaut == 1 %} selected{% endif %}>Une colonne</option>
+      <option value="2"{% if parametres_carnet.colonnes_par_defaut == 2 %} selected{% endif %}>Deux colonnes</option>
+    </select>
+
+    <label class="choix"><input type="checkbox" name="attendus"{% if parametres_carnet.afficher_attendus %} checked{% endif %}> Afficher les attendus de fin de cycle</label>
+    <label class="choix"><input type="checkbox" name="sous_domaines"{% if parametres_carnet.afficher_sous_domaines %} checked{% endif %}> Afficher les sous-domaines</label>
+    <label class="choix"><input type="checkbox" name="bilans"{% if parametres_carnet.inclure_bilans %} checked{% endif %}> Inclure les bilans</label>
+  </fieldset>
+
+  <div class="actions"><button class="bouton" type="submit">Télécharger l'archive ZIP</button></div>
+</form>
+
+<script>
+document.getElementById("tous-les-eleves").addEventListener("change", (evenement) => {
+  document.querySelectorAll('input[name="eleves"]').forEach((caseEleve) => {
+    caseEleve.checked = evenement.target.checked;
+  });
+});
+</script>
+{% endblock %}
