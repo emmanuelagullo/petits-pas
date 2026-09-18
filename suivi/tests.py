@@ -874,6 +874,115 @@ class Import(Base):
         )
         self.assertEqual(self.classe.eleves.get(prenom="Camille").niveau, "PS")
 
+    def test_un_eleve_existant_sans_classe_cette_annee_peut_etre_affecte(self):
+        eleve = Eleve.objects.create(
+            ecole=self.ecole, prenom="Malo", nom="Martin", annee_naissance=2021
+        )
+        self.entrer("dir-mdp")
+        url = reverse("importer_eleves", args=[self.classe.pk])
+
+        page = self.client.get(url)
+        self.assertContains(page, "Malo M.")
+        self.assertContains(page, "sans classe en 2026-2027")
+
+        self.client.post(
+            url,
+            {
+                "action": "affecter_existant",
+                "eleve": eleve.pk,
+                "niveau": "MS",
+            },
+        )
+
+        self.assertEqual(Eleve.objects.filter(prenom="Malo").count(), 1)
+        scolarite = eleve.scolarites.get(annee_scolaire="2026-2027")
+        self.assertEqual(scolarite.classe, self.classe)
+        self.assertEqual(scolarite.niveau, "MS")
+
+    def test_le_deplacement_depuis_une_autre_classe_est_explicite(self):
+        autre_classe = Classe.objects.create(
+            ecole=self.ecole,
+            nom="Autre PS",
+            annee_scolaire=self.classe.annee_scolaire,
+        )
+        eleve = Eleve.objects.create(ecole=self.ecole, prenom="Inès")
+        scolarite = Scolarite.objects.create(
+            eleve=eleve,
+            classe=autre_classe,
+            annee_scolaire=autre_classe.annee_scolaire,
+            niveau="PS",
+        )
+        self.entrer("dir-mdp")
+        url = reverse("importer_eleves", args=[self.classe.pk])
+
+        self.client.post(
+            url,
+            {
+                "action": "affecter_existant",
+                "eleve": eleve.pk,
+                "niveau": "MS",
+            },
+        )
+        scolarite.refresh_from_db()
+        self.assertEqual(scolarite.classe, autre_classe)
+
+        self.client.post(
+            url,
+            {
+                "action": "affecter_existant",
+                "eleve": eleve.pk,
+                "niveau": "MS",
+                "confirmer_deplacement": "on",
+            },
+        )
+        scolarite.refresh_from_db()
+        self.assertEqual(scolarite.classe, self.classe)
+        self.assertEqual(scolarite.niveau, "MS")
+        self.assertEqual(eleve.scolarites.count(), 1)
+
+    def test_un_eleve_archive_est_reactive_explicitement(self):
+        eleve = Eleve.objects.create(
+            ecole=self.ecole,
+            prenom="Sami",
+            archive_le=timezone.now(),
+        )
+        self.entrer("dir-mdp")
+        url = reverse("importer_eleves", args=[self.classe.pk])
+
+        self.assertContains(self.client.get(url), "Réactiver et ajouter")
+        self.client.post(
+            url,
+            {
+                "action": "affecter_existant",
+                "eleve": eleve.pk,
+                "niveau": "GS",
+                "reactiver": "on",
+            },
+        )
+
+        eleve.refresh_from_db()
+        self.assertIsNone(eleve.archive_le)
+        self.assertTrue(
+            eleve.scolarites.filter(classe=self.classe, niveau="GS").exists()
+        )
+
+    def test_un_eleve_d_une_autre_ecole_ne_peut_pas_etre_affecte(self):
+        autre = Ecole.objects.create(nom="Ailleurs")
+        eleve = Eleve.objects.create(ecole=autre, prenom="Zoé")
+        self.entrer("dir-mdp")
+
+        reponse = self.client.post(
+            reverse("importer_eleves", args=[self.classe.pk]),
+            {
+                "action": "affecter_existant",
+                "eleve": eleve.pk,
+                "niveau": "PS",
+            },
+        )
+
+        self.assertEqual(reponse.status_code, 404)
+        self.assertFalse(eleve.scolarites.exists())
+
 
 class ParcoursLongitudinal(Base):
     def test_la_creation_d_une_classe_demande_son_annee(self):

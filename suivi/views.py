@@ -880,6 +880,61 @@ def importer_eleves(request, pk):
     ecole = ecole_courante(request)
     classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
 
+    if request.method == "POST" and request.POST.get("action") == "affecter_existant":
+        eleve = get_object_or_404(
+            Eleve, pk=request.POST.get("eleve"), ecole=ecole
+        )
+        niveau = request.POST.get("niveau")
+        if niveau not in {"PS", "MS", "GS"}:
+            messages.error(request, "Choisissez un niveau valide.")
+            return redirect("importer_eleves", pk=classe.pk)
+        if eleve.archive_le and request.POST.get("reactiver") != "on":
+            messages.error(
+                request,
+                "Confirmez la réactivation de cet élève avant de l'ajouter.",
+            )
+            return redirect("importer_eleves", pk=classe.pk)
+
+        scolarite = eleve.scolarites.filter(
+            annee_scolaire=classe.annee_scolaire
+        ).select_related("classe").first()
+        if (
+            scolarite
+            and scolarite.classe_id != classe.pk
+            and request.POST.get("confirmer_deplacement") != "on"
+        ):
+            messages.error(
+                request,
+                f"{eleve.prenom} est déjà dans {scolarite.classe}. "
+                "Confirmez explicitement son déplacement.",
+            )
+            return redirect("importer_eleves", pk=classe.pk)
+
+        with transaction.atomic():
+            reactive = bool(eleve.archive_le)
+            if reactive:
+                eleve.archive_le = None
+                eleve.save(update_fields=["archive_le"])
+            if scolarite:
+                deja_dans_classe = scolarite.classe_id == classe.pk
+                scolarite.classe = classe
+                scolarite.niveau = niveau
+                scolarite.save(update_fields=["classe", "niveau", "modifie_le"])
+            else:
+                deja_dans_classe = False
+                Scolarite.objects.create(
+                    eleve=eleve,
+                    classe=classe,
+                    annee_scolaire=classe.annee_scolaire,
+                    niveau=niveau,
+                )
+
+        if deja_dans_classe and not reactive:
+            messages.info(request, f"{eleve.prenom} est déjà dans {classe}.")
+        else:
+            messages.success(request, f"{eleve.prenom} a été ajouté à {classe}.")
+        return redirect("importer_eleves", pk=classe.pk)
+
     if request.method == "POST":
         niveau_defaut = request.POST.get("niveau", "PS")
         ajoutes = 0
@@ -914,7 +969,27 @@ def importer_eleves(request, pk):
         messages.success(request, f"{ajoutes} enfant(s) ajouté(s) à {classe}.")
         return redirect("classe_detail", pk=classe.pk)
 
-    return render(request, "suivi/importer_eleves.html", {"classe": classe})
+    scolarites_annee = Scolarite.objects.filter(
+        eleve__ecole=ecole,
+        eleve__archive_le__isnull=True,
+        annee_scolaire=classe.annee_scolaire,
+    ).select_related("eleve", "classe")
+    ids_affectes = scolarites_annee.values_list("eleve_id", flat=True)
+    eleves_disponibles = ecole.eleves.filter(
+        archive_le__isnull=True
+    ).exclude(pk__in=ids_affectes)
+    affectations_autres = scolarites_annee.exclude(classe=classe)
+    eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
+    return render(
+        request,
+        "suivi/importer_eleves.html",
+        {
+            "classe": classe,
+            "eleves_disponibles": eleves_disponibles,
+            "affectations_autres": affectations_autres,
+            "eleves_archives": eleves_archives,
+        },
+    )
 
 
 @acces_requis
