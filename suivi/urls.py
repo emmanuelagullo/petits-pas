@@ -46,6 +46,11 @@ urlpatterns = [
         views.supprimer_trace,
         name="supprimer_trace",
     ),
+    path(
+        "eleve/<int:eleve_pk>/competence/<int:competence_pk>/trace/<int:trace_pk>/visibilite/",
+        views.basculer_visibilite_trace,
+        name="basculer_visibilite_trace",
+    ),
     path("gestion/", views.gestion, name="gestion"),
     path("gestion/classe/nouvelle/", views.creer_classe, name="creer_classe"),
     path(

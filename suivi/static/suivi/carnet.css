@@ -360,6 +360,9 @@ textarea { min-height: 7rem; resize: vertical; }
   padding-inline: 0.75rem;
 }
 .trace-conservee .supprimer-trace { margin-top: 0.75rem; }
+.trace-conservee .visibilite-trace { margin-top: 0.75rem; }
+.visibilite-trace .visible-carnet { color: var(--reussi); }
+.visibilite-trace .masquee-carnet { color: var(--ardoise-clair); }
 .choix-simple { font-weight: 400; }
 .choix-simple input { width: auto; min-height: 0; }
 
