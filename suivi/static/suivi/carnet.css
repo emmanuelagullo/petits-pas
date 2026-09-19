@@ -12,6 +12,8 @@
   --reussi-fond: #dcefe2;
   --en-cours: #b2601b;
   --en-cours-fond: #fbe8d3;
+  --annee-ancienne: #c0553c;
+  --annee-ancienne-fond: #fbe7e2;
   --lien: #2d4e8a;
   --rayon: 6px;
 }
@@ -203,6 +205,12 @@ h2 {
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
 }
+
+/* ---------- Année scolaire : classes courantes / futures / passées ---------- */
+
+.pastille-annee.annee-future { color: var(--reussi); border-color: var(--reussi); background: var(--reussi-fond); }
+.pastille-annee.annee-passee { color: var(--en-cours); border-color: var(--en-cours); background: var(--en-cours-fond); }
+.pastille-annee.annee-ancienne { color: var(--annee-ancienne); border-color: var(--annee-ancienne); background: var(--annee-ancienne-fond); }
 
 /* ---------- Saisie : la ligne compétence ---------- */
 

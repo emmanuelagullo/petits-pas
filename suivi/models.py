@@ -132,6 +132,10 @@ class Classe(models.Model):
         return self.nom
 
     @property
+    def statut_annee(self):
+        return statut_annee_scolaire(self.annee_scolaire)
+
+    @property
     def eleves(self):
         return Eleve.objects.filter(
             scolarites__classe=self,
