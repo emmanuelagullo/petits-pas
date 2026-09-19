@@ -212,6 +212,24 @@ h2 {
 .pastille-annee.annee-passee { color: var(--en-cours); border-color: var(--en-cours); background: var(--en-cours-fond); }
 .pastille-annee.annee-ancienne { color: var(--annee-ancienne); border-color: var(--annee-ancienne); background: var(--annee-ancienne-fond); }
 
+.groupe-annee { margin-bottom: 1.6rem; }
+.titre-annee {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.05rem;
+  margin: 0 0 0.6rem;
+  color: var(--ardoise-clair);
+  font-weight: 650;
+}
+.groupe-annee-courante {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  padding: 1rem 1rem 0.4rem;
+  background: var(--surface);
+}
+.groupe-annee-courante .titre-annee { color: var(--ardoise); }
+
 /* ---------- Saisie : la ligne compétence ---------- */
 
 .domaine {
