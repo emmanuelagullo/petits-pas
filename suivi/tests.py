@@ -899,6 +899,20 @@ class HistoriqueTraces(Base):
         self.assertTrue(trace.visible_carnet)
 
 
+class ClasseStatutAnnee(Base):
+    def test_le_statut_annee_d_une_classe_suit_statut_annee_scolaire(self):
+        classe_future = Classe.objects.create(
+            ecole=self.ecole, nom="Rentrée", annee_scolaire="2027-2028"
+        )
+        classe_ancienne = Classe.objects.create(
+            ecole=self.ecole, nom="Ancienne", annee_scolaire="2020-2021"
+        )
+
+        self.assertEqual(self.classe.statut_annee, "courante")
+        self.assertEqual(classe_future.statut_annee, "future")
+        self.assertEqual(classe_ancienne.statut_annee, "ancienne")
+
+
 class TableauDeClasse(Base):
     def setUp(self):
         super().setUp()
