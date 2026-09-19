@@ -1021,6 +1021,65 @@ class TableauDeClasse(Base):
         self.assertContains(r, "1 bilan")
 
 
+class PageDesClasses(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer()
+
+    def test_le_groupe_de_l_annee_courante_est_mis_en_valeur(self):
+        r = self.client.get(reverse("accueil"))
+
+        self.assertContains(r, "groupe-annee-courante")
+        self.assertContains(r, self.classe.annee_scolaire)
+
+    def test_une_classe_future_est_signalee_et_groupee_avant_la_courante(self):
+        Classe.objects.create(
+            ecole=self.ecole, nom="Rentrée", annee_scolaire="2027-2028"
+        )
+
+        r = self.client.get(reverse("accueil"))
+
+        self.assertContains(r, "Rentrée")
+        self.assertContains(r, "à venir")
+        self.assertLess(
+            r.content.find(b"2027-2028"), r.content.find(b"2026-2027")
+        )
+
+    def test_par_defaut_les_annees_passees_sont_masquees(self):
+        Classe.objects.create(
+            ecole=self.ecole, nom="Ancienne", annee_scolaire="2024-2025"
+        )
+
+        r = self.client.get(reverse("accueil"))
+
+        self.assertNotContains(r, "Ancienne")
+        self.assertContains(r, "Voir aussi les années précédentes")
+
+    def test_le_lien_affiche_aussi_les_annees_passees(self):
+        Classe.objects.create(
+            ecole=self.ecole, nom="Ancienne", annee_scolaire="2024-2025"
+        )
+
+        r = self.client.get(reverse("accueil"), {"toutes": "1"})
+
+        self.assertContains(r, "Ancienne")
+        self.assertContains(r, "archives")
+        self.assertContains(r, "Revenir aux classes à partir de l'année en cours")
+
+    def test_une_annee_precedente_immediate_est_distinguee_des_plus_anciennes(self):
+        Classe.objects.create(
+            ecole=self.ecole, nom="Année-1", annee_scolaire="2025-2026"
+        )
+        Classe.objects.create(
+            ecole=self.ecole, nom="Année-3", annee_scolaire="2023-2024"
+        )
+
+        r = self.client.get(reverse("accueil"), {"toutes": "1"})
+
+        self.assertContains(r, "année précédente")
+        self.assertContains(r, "archives")
+
+
 class Import(Base):
     def test_coller_une_liste_cree_les_eleves(self):
         self.entrer("dir-mdp")

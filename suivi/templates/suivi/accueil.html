@@ -3,15 +3,28 @@
 {% block contenu %}
 <h1>Les classes</h1>
 <p class="sous-titre">Choisissez la vôtre pour voir les enfants et saisir leurs réussites.</p>
-{% if classes %}
-<ul class="liste">
-  {% for c in classes %}
-  <li><a class="entree" href="{% url 'classe_detail' c.pk %}">
-    <span class="principal">{{ c.nom }}</span>
-    <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }} · {{ c.annee_scolaire }}</span>
-  </a></li>
+{% if groupes %}
+  {% for groupe in groupes %}
+  <section class="groupe-annee annee-{{ groupe.statut }}{% if groupe.statut == 'courante' %} groupe-annee-courante{% endif %}">
+    <h2 class="titre-annee">
+      {{ groupe.annee }}
+      {% if groupe.statut != "courante" %}<span class="pastille pastille-annee annee-{{ groupe.statut }}">{% if groupe.statut == "future" %}à venir{% elif groupe.statut == "passee" %}année précédente{% else %}archives{% endif %}</span>{% endif %}
+    </h2>
+    <ul class="liste">
+      {% for c in groupe.classes %}
+      <li><a class="entree" href="{% url 'classe_detail' c.pk %}">
+        <span class="principal">{{ c.nom }}</span>
+        <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }}</span>
+      </a></li>
+      {% endfor %}
+    </ul>
+  </section>
   {% endfor %}
-</ul>
+  {% if toutes %}
+  <p class="sous-titre"><a href="?">Revenir aux classes à partir de l'année en cours</a></p>
+  {% elif a_des_annees_passees %}
+  <p class="sous-titre"><a href="?toutes=1">Voir aussi les années précédentes</a></p>
+  {% endif %}
 {% else %}
 <div class="vide">
   <p>Aucune classe pour l'instant.</p>

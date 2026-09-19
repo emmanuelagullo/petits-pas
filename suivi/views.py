@@ -114,14 +114,41 @@ def deconnexion(request):
 @acces_requis
 def accueil(request):
     ecole = ecole_courante(request)
-    classes = ecole.classes.annotate(
-        nb_eleves=Count(
-            "scolarites__eleve",
-            filter=Q(scolarites__eleve__archive_le__isnull=True),
-            distinct=True,
+    classes = list(
+        ecole.classes.annotate(
+            nb_eleves=Count(
+                "scolarites__eleve",
+                filter=Q(scolarites__eleve__archive_le__isnull=True),
+                distinct=True,
+            )
         )
     )
-    return render(request, "suivi/accueil.html", {"classes": classes})
+    annee_courante = annee_scolaire_pour(timezone.localdate())
+    a_des_annees_passees = any(c.annee_scolaire < annee_courante for c in classes)
+    toutes = request.GET.get("toutes") == "1"
+    if not toutes:
+        classes = [c for c in classes if c.annee_scolaire >= annee_courante]
+
+    groupes = []
+    for annee in sorted({c.annee_scolaire for c in classes}, reverse=True):
+        classes_annee = [c for c in classes if c.annee_scolaire == annee]
+        groupes.append(
+            {
+                "annee": annee,
+                "statut": classes_annee[0].statut_annee,
+                "classes": classes_annee,
+            }
+        )
+
+    return render(
+        request,
+        "suivi/accueil.html",
+        {
+            "groupes": groupes,
+            "toutes": toutes,
+            "a_des_annees_passees": a_des_annees_passees,
+        },
+    )
 
 
 FILTRES_NIVEAU_CLASSE = {"classe", "tous", "PS", "MS", "GS"}
