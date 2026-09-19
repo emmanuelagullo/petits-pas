@@ -954,6 +954,58 @@ class TableauDeClasse(Base):
 
         self.assertContains(r, 'aria-current="true">Année de classe')
 
+    def test_annee_de_classe_ignore_un_bilan_date_hors_de_l_annee_de_la_classe(self):
+        Bilan.objects.create(
+            scolarite=self.scolarite_ms, date_bilan="2025-06-01", texte="Bilan égaré"
+        )
+
+        r = self.client.get(reverse("classe_detail", args=[self.classe.pk]))
+
+        self.assertContains(r, "1 bilan")
+        self.assertNotContains(r, "2 bilan")
+
+    def test_tout_le_cycle_compte_tous_les_bilans_de_l_eleve(self):
+        classe_precedente = Classe.objects.create(
+            ecole=self.ecole, nom="Autre", annee_scolaire="2025-2026"
+        )
+        scolarite_ancienne = Scolarite.objects.create(
+            eleve=self.eleve_ms,
+            classe=classe_precedente,
+            annee_scolaire="2025-2026",
+            niveau="PS",
+        )
+        Bilan.objects.create(
+            scolarite=scolarite_ancienne, date_bilan="2026-03-01", texte="Bilan PS"
+        )
+
+        r = self.client.get(
+            reverse("classe_detail", args=[self.classe.pk]), {"niveaux": "tous"}
+        )
+
+        self.assertContains(r, "2 bilan")
+
+    def test_un_niveau_explicite_compte_les_bilans_de_toutes_les_scolarites_a_ce_niveau(
+        self,
+    ):
+        classe_precedente = Classe.objects.create(
+            ecole=self.ecole, nom="PS d'avant", annee_scolaire="2025-2026"
+        )
+        scolarite_ps_ancienne = Scolarite.objects.create(
+            eleve=self.eleve_ms,
+            classe=classe_precedente,
+            annee_scolaire="2025-2026",
+            niveau="PS",
+        )
+        Bilan.objects.create(
+            scolarite=scolarite_ps_ancienne, date_bilan="2026-03-01", texte="Bilan PS"
+        )
+
+        r = self.client.get(
+            reverse("classe_detail", args=[self.classe.pk]), {"niveaux": "PS"}
+        )
+
+        self.assertContains(r, "1 bilan")
+
 
 class Import(Base):
     def test_coller_une_liste_cree_les_eleves(self):

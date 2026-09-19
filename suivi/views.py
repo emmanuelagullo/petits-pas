@@ -34,6 +34,7 @@ from .models import (
     Scolarite,
     Trace,
     annee_scolaire_pour,
+    bornes_annee_scolaire,
 )
 
 
@@ -179,14 +180,47 @@ def _progression(eleves, ecole, filtre="classe"):
     return total_cycle
 
 
-def _bilans_par_eleve(eleves, classe):
-    """Nombre de bilans déjà déposés, pour la scolarité de chacun dans cette classe."""
-    compte = dict(
-        Bilan.objects.filter(scolarite__classe=classe, scolarite__eleve__in=eleves)
-        .values("scolarite__eleve_id")
-        .annotate(n=Count("pk"))
-        .values_list("scolarite__eleve_id", "n")
-    )
+def _bilans_par_eleve(eleves, classe, filtre="classe"):
+    """Nombre de bilans, avec la même logique de filtre que ``_progression``.
+
+    - ``"classe"`` : bilans de la scolarité de l'élève dans cette classe,
+      dont la date tombe bien dans l'année scolaire de la classe (une
+      scolarité est déjà propre à cette année, mais on vérifie la date en
+      plus, par défense) ;
+    - ``"tous"`` : tous les bilans de l'élève, toutes années confondues ;
+    - ``"PS"``, ``"MS"`` ou ``"GS"`` : les bilans rattachés à une scolarité
+      où l'élève avait ce niveau, quelle que soit la classe ou l'année (il
+      peut, rarement, y en avoir eu plusieurs).
+    """
+    if filtre == "tous":
+        compte = dict(
+            Bilan.objects.filter(scolarite__eleve__in=eleves)
+            .values("scolarite__eleve_id")
+            .annotate(n=Count("pk"))
+            .values_list("scolarite__eleve_id", "n")
+        )
+    elif filtre in {"PS", "MS", "GS"}:
+        compte = dict(
+            Bilan.objects.filter(
+                scolarite__eleve__in=eleves, scolarite__niveau=filtre
+            )
+            .values("scolarite__eleve_id")
+            .annotate(n=Count("pk"))
+            .values_list("scolarite__eleve_id", "n")
+        )
+    else:  # "classe" : bilans de cette classe, datés dans son année scolaire
+        debut, fin = bornes_annee_scolaire(classe.annee_scolaire)
+        compte = dict(
+            Bilan.objects.filter(
+                scolarite__classe=classe,
+                scolarite__eleve__in=eleves,
+                date_bilan__gte=debut,
+                date_bilan__lte=fin,
+            )
+            .values("scolarite__eleve_id")
+            .annotate(n=Count("pk"))
+            .values_list("scolarite__eleve_id", "n")
+        )
     for e in eleves:
         e.nb_bilans = compte.get(e.pk, 0)
 
@@ -200,7 +234,7 @@ def classe_detail(request, pk):
     if filtre not in FILTRES_NIVEAU_CLASSE:
         filtre = "classe"
     total = _progression(eleves, ecole, filtre)
-    _bilans_par_eleve(eleves, classe)
+    _bilans_par_eleve(eleves, classe, filtre)
     return render(
         request,
         "suivi/classe.html",
