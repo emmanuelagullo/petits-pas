@@ -1,5 +1,6 @@
 import hashlib
 import os
+from datetime import date
 from zipfile import ZipFile
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -31,8 +32,47 @@ from .models import (
     Scolarite,
     SousDomaine,
     Trace,
+    annee_scolaire_pour,
+    bornes_annee_scolaire,
+    statut_annee_scolaire,
 )
 from .views import _recuperateur_pdf
+
+
+class AnneeScolaireUtilitaires(TestCase):
+    def test_le_1er_septembre_ouvre_la_nouvelle_annee_scolaire(self):
+        self.assertEqual(
+            annee_scolaire_pour(date(2026, 9, 1)), "2026-2027"
+        )
+
+    def test_le_31_aout_appartient_encore_a_l_annee_precedente(self):
+        self.assertEqual(
+            annee_scolaire_pour(date(2027, 8, 31)), "2026-2027"
+        )
+
+    def test_bornes_annee_scolaire_va_du_1er_septembre_au_31_aout(self):
+        self.assertEqual(
+            bornes_annee_scolaire("2026-2027"),
+            (date(2026, 9, 1), date(2027, 8, 31)),
+        )
+
+    def test_statut_annee_scolaire_situe_par_rapport_a_une_reference(self):
+        self.assertEqual(
+            statut_annee_scolaire("2026-2027", annee_reference="2026-2027"),
+            "courante",
+        )
+        self.assertEqual(
+            statut_annee_scolaire("2027-2028", annee_reference="2026-2027"),
+            "future",
+        )
+        self.assertEqual(
+            statut_annee_scolaire("2025-2026", annee_reference="2026-2027"),
+            "passee",
+        )
+        self.assertEqual(
+            statut_annee_scolaire("2020-2021", annee_reference="2026-2027"),
+            "ancienne",
+        )
 
 
 class Base(TestCase):
