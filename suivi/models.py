@@ -1,3 +1,6 @@
+import re
+import datetime
+
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
 from django.utils import timezone
@@ -8,6 +11,37 @@ NIVEAUX = [
     ("MS", "Moyenne section"),
     ("GS", "Grande section"),
 ]
+
+
+def annee_scolaire_pour(date):
+    """Année scolaire (ex. « 2026-2027 ») à laquelle appartient une date,
+    le cycle scolaire allant du 1er septembre au 31 août."""
+    debut = date.year if date.month >= 9 else date.year - 1
+    return f"{debut}-{debut + 1}"
+
+
+def bornes_annee_scolaire(annee_scolaire):
+    """Dates de début (1er septembre) et de fin (31 août) d'une année
+    scolaire au format « 2026-2027 »."""
+    debut = int(re.match(r"(\d{4})", annee_scolaire).group(1))
+    return datetime.date(debut, 9, 1), datetime.date(debut + 1, 8, 31)
+
+
+def statut_annee_scolaire(annee_scolaire, annee_reference=None):
+    """Situe une année scolaire (« 2026-2027 ») par rapport à l'année
+    scolaire de référence (aujourd'hui, par défaut) : ``"courante"``,
+    ``"future"``, ``"passee"`` (l'année scolaire précédente) ou
+    ``"ancienne"`` (plus ancienne encore)."""
+    annee_reference = annee_reference or annee_scolaire_pour(timezone.localdate())
+    if annee_scolaire == annee_reference:
+        return "courante"
+    if annee_scolaire > annee_reference:
+        return "future"
+    debut = re.match(r"(\d{4})", annee_scolaire)
+    debut_reference = re.match(r"(\d{4})", annee_reference)
+    if debut and debut_reference and int(debut.group(1)) == int(debut_reference.group(1)) - 1:
+        return "passee"
+    return "ancienne"
 
 
 class Ecole(models.Model):

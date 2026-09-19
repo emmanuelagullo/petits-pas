@@ -33,6 +33,7 @@ from .models import (
     ParametresCarnet,
     Scolarite,
     Trace,
+    annee_scolaire_pour,
 )
 
 
@@ -604,11 +605,6 @@ def _contexte_carnet(request, pk, options=None):
     }
 
 
-def _annee_scolaire_date(date):
-    debut = date.year if date.month >= 8 else date.year - 1
-    return f"{debut}-{debut + 1}"
-
-
 def _regrouper_lignes(eleve, lignes, regroupement):
     if regroupement == "aucun":
         return [(None, lignes)]
@@ -625,7 +621,7 @@ def _regrouper_lignes(eleve, lignes, regroupement):
         elif regroupement == "mensuel":
             titre = date_format(observation.date_observation, "F Y").capitalize()
         elif regroupement == "annuel":
-            annee = _annee_scolaire_date(observation.date_observation)
+            annee = annee_scolaire_pour(observation.date_observation)
             scolarite = eleve.scolarites.filter(annee_scolaire=annee).first()
             titre = (
                 f"{scolarite.get_niveau_display()} — {annee}"
