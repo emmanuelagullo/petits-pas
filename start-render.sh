@@ -59,7 +59,7 @@ python3 manage.py creer_ecole "${parametres_demo[0]}" \
   --mdp-direction "${parametres_demo[2]}"
 
 python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
-python3 manage.py jeu_demo
+python3 manage.py jeu_demo_large
 
 python3 manage.py collectstatic --noinput
 
