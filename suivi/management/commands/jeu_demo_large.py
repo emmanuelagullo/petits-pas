@@ -88,16 +88,28 @@ class Command(BaseCommand):
             action="store_true",
             help="Ne pas ajouter la démonstration de sous-domaines et d'attendus.",
         )
+        parser.add_argument(
+            "--ecole",
+            type=int,
+            help="Identifiant de l'école (inutile s'il n'y en a qu'une)",
+        )
+
 
     @transaction.atomic
     def handle(self, *args, **options):
         random.seed(17)
-        ecole = Ecole.objects.first()
-        if ecole is None:
+        ecoles = Ecole.objects.all()
+        if options["ecole"]:
+            ecole = ecoles.filter(pk=options["ecole"]).first()
+        elif ecoles.count() == 1:
+            ecole = ecoles.first()
+        else:
             raise CommandError(
-                "Aucune école en base. Lancez d'abord :\n"
-                '  python manage.py creer_ecole "Nom de l\'école"\n'
-                "  python manage.py charger_referentiel referentiel/trame-cycle1.yaml"
+                "Plusieurs écoles en base : précisez --ecole <id>."
+                if ecoles.exists()
+                else "Aucune école en base. Lancez d'abord :\n"
+                     '  python manage.py creer_ecole "Nom de l\'école"\n'
+                     "  python manage.py charger_referentiel referentiel/trame-cycle1.yaml"
             )
         competences = list(Competence.objects.filter(domaine__ecole=ecole))
         if not competences:
