@@ -1218,6 +1218,18 @@ class ParcoursLongitudinal(Base):
         self.assertEqual(classe.annee_scolaire, "2027-2028")
         self.assertRedirects(reponse, reverse("importer_eleves", args=[classe.pk]))
 
+    def test_une_annee_invalide_conserve_le_nom_deja_saisi(self):
+        self.entrer("dir-mdp")
+
+        reponse = self.client.post(
+            reverse("creer_classe"),
+            {"nom": "MS-GS", "annee_scolaire": "annee-bidon"},
+        )
+
+        self.assertContains(reponse, 'value="MS-GS"')
+        self.assertContains(reponse, 'value="annee-bidon"')
+        self.assertFalse(Classe.objects.filter(nom="MS-GS").exists())
+
     def test_la_rentree_ajoute_une_scolarite_sans_effacer_la_precedente(self):
         classe_suivante = Classe.objects.create(
             ecole=self.ecole,
