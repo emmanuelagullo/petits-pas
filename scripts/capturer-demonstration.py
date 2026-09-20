@@ -74,8 +74,10 @@ def main():
         page.locator("#mdp").fill(demonstration["identifiants"]["enseignant"])
         page.get_by_role("button", name="Entrer").click()
         page.get_by_role("heading", name="Les classes").wait_for()
-        page.locator(".liste .entree").first.click()
-        page.get_by_role("heading", name="PS-MS-GS de Nadia").wait_for()
+        premiere_classe = page.locator(".liste .entree").first
+        nom_classe = premiere_classe.locator(".principal").inner_text().strip()
+        premiere_classe.click()
+        page.get_by_role("heading", name=nom_classe).wait_for()
         capturer(page, options.output / "classe.png")
 
         premier_eleve = page.locator(".liste .entree").first
