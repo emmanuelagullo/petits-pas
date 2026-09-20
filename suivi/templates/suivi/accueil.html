@@ -8,7 +8,7 @@
   <section class="groupe-annee annee-{{ groupe.statut }}{% if groupe.statut == 'courante' %} groupe-annee-courante{% endif %}">
     <h2 class="titre-annee">
       {{ groupe.annee }}
-      {% if groupe.statut != "courante" %}<span class="pastille pastille-annee annee-{{ groupe.statut }}">{% if groupe.statut == "future" %}à venir{% elif groupe.statut == "passee" %}année précédente{% else %}archives{% endif %}</span>{% endif %}
+      {% if groupe.statut != "courante" %}<span class="pastille pastille-annee annee-{{ groupe.statut }}">{% if groupe.statut == "future" %}à venir{% elif groupe.statut == "passee" %}année précédente{% else %}années antérieures{% endif %}</span>{% endif %}
     </h2>
     <ul class="liste">
       {% for c in groupe.classes %}
