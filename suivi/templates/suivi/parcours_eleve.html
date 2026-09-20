@@ -26,7 +26,14 @@
 <h2>Scolarités conservées</h2>
 <ul class="liste">
   {% for scolarite in scolarites %}
-  <li class="entree"><span class="principal">{{ scolarite.get_niveau_display }} — {{ scolarite.annee_scolaire }}</span><span class="secondaire">{{ scolarite.classe.nom }}</span></li>
+    <li class="entree">
+      <span class="principal">
+        {{ scolarite.get_niveau_display }} — {{ scolarite.annee_scolaire }}
+      </span>
+      <span class="secondaire">
+        {{ scolarite.classe.nom }}
+      </span>
+    </li>
   {% endfor %}
 </ul>
 
