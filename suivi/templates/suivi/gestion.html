@@ -12,15 +12,8 @@
 </div>
 
 <h2>Les classes</h2>
-{% if classes %}
-<ul class="liste">
-  {% for c in classes %}
-  <li><a class="entree" href="{% url 'importer_eleves' c.pk %}">
-    <span class="principal">{{ c.nom }}</span>
-    <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }} · ajouter des enfants</span>
-  </a></li>
-  {% endfor %}
-</ul>
+{% if groupes %}
+  {% include "suivi/partiels/groupes_classes.html" with url_nom="importer_eleves" suffixe=" · ajouter des enfants" %}
 {% else %}<div class="vide"><p>Aucune classe pour l'instant.</p></div>{% endif %}
 
 {% if eleves_archives %}

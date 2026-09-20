@@ -111,21 +111,14 @@ def deconnexion(request):
 # --------------------------------------------------------------------------
 
 
-@acces_requis
-def accueil(request):
-    ecole = ecole_courante(request)
-    classes = list(
-        ecole.classes.annotate(
-            nb_eleves=Count(
-                "scolarites__eleve",
-                filter=Q(scolarites__eleve__archive_le__isnull=True),
-                distinct=True,
-            )
-        )
-    )
+def _grouper_classes_par_annee(classes, toutes):
+    """Regroupe des classes annotées de ``nb_eleves`` par année scolaire
+    décroissante, avec le statut de chaque groupe (voir Classe.statut_annee).
+    Sans ``toutes``, seules les années à partir de l'année courante sont
+    gardées. Renvoie (groupes, a_des_annees_passees)."""
+    classes = list(classes)
     annee_courante = annee_scolaire_pour(timezone.localdate())
     a_des_annees_passees = any(c.annee_scolaire < annee_courante for c in classes)
-    toutes = request.GET.get("toutes") == "1"
     if not toutes:
         classes = [c for c in classes if c.annee_scolaire >= annee_courante]
 
@@ -139,6 +132,21 @@ def accueil(request):
                 "classes": classes_annee,
             }
         )
+    return groupes, a_des_annees_passees
+
+
+@acces_requis
+def accueil(request):
+    ecole = ecole_courante(request)
+    classes = ecole.classes.annotate(
+        nb_eleves=Count(
+            "scolarites__eleve",
+            filter=Q(scolarites__eleve__archive_le__isnull=True),
+            distinct=True,
+        )
+    )
+    toutes = request.GET.get("toutes") == "1"
+    groupes, a_des_annees_passees = _grouper_classes_par_annee(classes, toutes)
 
     return render(
         request,
@@ -962,6 +970,8 @@ def gestion(request):
             distinct=True,
         )
     )
+    toutes = request.GET.get("toutes") == "1"
+    groupes, a_des_annees_passees = _grouper_classes_par_annee(classes, toutes)
     eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
     nb_competences = Competence.objects.filter(
         domaine__ecole=ecole, active=True
@@ -970,7 +980,9 @@ def gestion(request):
         request,
         "suivi/gestion.html",
         {
-            "classes": classes,
+            "groupes": groupes,
+            "toutes": toutes,
+            "a_des_annees_passees": a_des_annees_passees,
             "nb_competences": nb_competences,
             "eleves_archives": eleves_archives,
         },
