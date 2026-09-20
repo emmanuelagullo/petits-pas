@@ -1063,7 +1063,7 @@ class PageDesClasses(Base):
         r = self.client.get(reverse("accueil"), {"toutes": "1"})
 
         self.assertContains(r, "Ancienne")
-        self.assertContains(r, "archives")
+        self.assertContains(r, "années antérieures")
         self.assertContains(r, "Revenir aux classes à partir de l'année en cours")
 
     def test_une_annee_precedente_immediate_est_distinguee_des_plus_anciennes(self):
@@ -1077,7 +1077,7 @@ class PageDesClasses(Base):
         r = self.client.get(reverse("accueil"), {"toutes": "1"})
 
         self.assertContains(r, "année précédente")
-        self.assertContains(r, "archives")
+        self.assertContains(r, "années antérieures")
 
 
 class Import(Base):
