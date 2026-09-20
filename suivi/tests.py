@@ -1080,6 +1080,36 @@ class PageDesClasses(Base):
         self.assertContains(r, "années antérieures")
 
 
+class GestionClassesGroupees(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer("dir-mdp")
+
+    def test_les_classes_de_gestion_sont_aussi_groupees_par_annee(self):
+        r = self.client.get(reverse("gestion"))
+
+        self.assertContains(r, "groupe-annee-courante")
+        self.assertContains(
+            r, reverse("importer_eleves", args=[self.classe.pk])
+        )
+        self.assertContains(r, "ajouter des enfants")
+
+    def test_les_annees_passees_sont_masquees_par_defaut_dans_la_gestion(self):
+        Classe.objects.create(
+            ecole=self.ecole, nom="Ancienne", annee_scolaire="2024-2025"
+        )
+
+        r = self.client.get(reverse("gestion"))
+
+        self.assertNotContains(r, "Ancienne")
+        self.assertContains(r, "Voir aussi les années précédentes")
+
+        r = self.client.get(reverse("gestion"), {"toutes": "1"})
+
+        self.assertContains(r, "Ancienne")
+        self.assertContains(r, "années antérieures")
+
+
 class Import(Base):
     def test_coller_une_liste_cree_les_eleves(self):
         self.entrer("dir-mdp")

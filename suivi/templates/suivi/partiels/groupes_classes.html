@@ -1,0 +1,21 @@
+{% for groupe in groupes %}
+<section class="groupe-annee annee-{{ groupe.statut }}{% if groupe.statut == 'courante' %} groupe-annee-courante{% endif %}">
+  <h2 class="titre-annee">
+    {{ groupe.annee }}
+    {% if groupe.statut != "courante" %}<span class="pastille pastille-annee annee-{{ groupe.statut }}">{% if groupe.statut == "future" %}à venir{% elif groupe.statut == "passee" %}année précédente{% else %}années antérieures{% endif %}</span>{% endif %}
+  </h2>
+  <ul class="liste">
+    {% for c in groupe.classes %}
+    <li><a class="entree" href="{% url url_nom c.pk %}">
+      <span class="principal">{{ c.nom }}</span>
+      <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }}{{ suffixe|default:"" }}</span>
+    </a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endfor %}
+{% if toutes %}
+<p class="sous-titre"><a href="?">Revenir aux classes à partir de l'année en cours</a></p>
+{% elif a_des_annees_passees %}
+<p class="sous-titre"><a href="?toutes=1">Voir aussi les années précédentes</a></p>
+{% endif %}
