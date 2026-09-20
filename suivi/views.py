@@ -1030,11 +1030,20 @@ def creer_classe(request):
             )
             if not creee:
                 messages.error(request, "Cette classe existe déjà pour cette année.")
-                return render(request, "suivi/creer_classe.html")
+                return render(
+                    request,
+                    "suivi/creer_classe.html",
+                    {"nom": nom, "annee_scolaire": annee_scolaire},
+                )
             return redirect("importer_eleves", pk=classe.pk)
         messages.error(
             request,
             "Donnez un nom et une année scolaire au format 2027-2028.",
+        )
+        return render(
+            request,
+            "suivi/creer_classe.html",
+            {"nom": nom, "annee_scolaire": annee_scolaire},
         )
     return render(request, "suivi/creer_classe.html")
 
