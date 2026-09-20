@@ -1860,6 +1860,107 @@ class DiagnosticDeploiement(TestCase):
             )
 
 
+class JeuDemoLarge(TestCase):
+    def _charger_referentiel_demo(self, ecole):
+        from tempfile import NamedTemporaryFile
+
+        with NamedTemporaryFile("w", suffix=".yaml", delete=False, encoding="utf-8") as f:
+            f.write(
+                "domaines:\n"
+                "  - code: LANG\n"
+                "    nom: Langage\n"
+                "    competences:\n"
+                "      - { code: LANG-PS-01, niveau: PS, libelle: 'Compétence PS 1' }\n"
+                "      - { code: LANG-PS-02, niveau: PS, libelle: 'Compétence PS 2' }\n"
+                "      - { code: LANG-MS-01, niveau: MS, libelle: 'Compétence MS 1' }\n"
+                "      - { code: LANG-MS-02, niveau: MS, libelle: 'Compétence MS 2' }\n"
+                "      - { code: LANG-GS-01, niveau: GS, libelle: 'Compétence GS 1' }\n"
+                "      - { code: LANG-GS-02, niveau: GS, libelle: 'Compétence GS 2' }\n"
+            )
+            chemin = f.name
+        call_command("charger_referentiel", chemin, ecole=ecole.pk, stdout=StringIO())
+
+    def setUp(self):
+        self.ecole = Ecole(nom="École de démo")
+        self.ecole.definir_mots_de_passe("ens-mdp", "dir-mdp")
+        self.ecole.save()
+        self._charger_referentiel_demo(self.ecole)
+
+    def test_genere_cinq_annees_avec_plusieurs_classes_chacune(self):
+        call_command("jeu_demo_large", stdout=StringIO())
+
+        annees = set(self.ecole.classes.values_list("annee_scolaire", flat=True))
+        self.assertEqual(
+            annees,
+            {"2022-2023", "2023-2024", "2024-2025", "2025-2026", "2026-2027"},
+        )
+        for annee in annees:
+            self.assertEqual(self.ecole.classes.filter(annee_scolaire=annee).count(), 2)
+
+    def test_les_enfants_nes_en_2019_et_2020_sont_archives(self):
+        call_command("jeu_demo_large", stdout=StringIO())
+
+        self.assertTrue(
+            Eleve.objects.filter(ecole=self.ecole, annee_naissance=2019)
+            .exclude(archive_le__isnull=True)
+            .exists()
+        )
+        self.assertFalse(
+            Eleve.objects.filter(ecole=self.ecole, annee_naissance=2023)
+            .exclude(archive_le__isnull=True)
+            .exists()
+        )
+
+    def test_les_trois_parcours_non_standards_sont_crees(self):
+        call_command("jeu_demo_large", stdout=StringIO())
+
+        redouble = Eleve.objects.get(ecole=self.ecole, prenom="Redouble")
+        self.assertEqual(
+            list(redouble.scolarites.order_by("annee_scolaire").values_list("niveau", flat=True)),
+            ["PS", "PS", "MS", "GS"],
+        )
+        self.assertIsNone(redouble.archive_le)
+
+        direct = Eleve.objects.get(ecole=self.ecole, prenom="Direct")
+        self.assertEqual(direct.scolarites.count(), 2)
+        self.assertFalse(direct.scolarites.filter(niveau="PS").exists())
+
+        retour = Eleve.objects.get(ecole=self.ecole, prenom="Retour")
+        self.assertIsNone(retour.archive_le)
+        self.assertEqual(
+            set(retour.scolarites.values_list("annee_scolaire", flat=True)),
+            {"2024-2025", "2026-2027"},
+        )
+
+    def test_des_bilans_sont_crees(self):
+        call_command("jeu_demo_large", stdout=StringIO())
+
+        self.assertTrue(Bilan.objects.filter(scolarite__eleve__ecole=self.ecole).exists())
+
+    def test_ajoute_une_hierarchie_de_demonstration(self):
+        call_command("jeu_demo_large", stdout=StringIO())
+
+        self.assertTrue(SousDomaine.objects.filter(domaine__ecole=self.ecole).exists())
+        self.assertTrue(Attendu.objects.filter(domaine__ecole=self.ecole).exists())
+        self.assertTrue(
+            Competence.objects.filter(
+                domaine__ecole=self.ecole, sous_domaine__isnull=False
+            ).exists()
+        )
+
+    def test_loption_sans_hierarchie_n_ajoute_rien(self):
+        call_command("jeu_demo_large", "--sans-hierarchie", stdout=StringIO())
+
+        self.assertFalse(SousDomaine.objects.filter(domaine__ecole=self.ecole).exists())
+        self.assertFalse(Attendu.objects.filter(domaine__ecole=self.ecole).exists())
+
+    def test_un_second_lancement_est_refuse(self):
+        call_command("jeu_demo_large", stdout=StringIO())
+
+        with self.assertRaises(CommandError):
+            call_command("jeu_demo_large", stdout=StringIO())
+
+
 class InitialisationAtelier(TestCase):
     @override_settings(
         ENVIRONNEMENT_ATELIER=True,
