@@ -23,12 +23,8 @@ from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from comptes.acces_transition import (
-    appartenance_courante,
-    est_direction,
-    profil_compatible,
-)
-
+from .autorisations import ACCEDER_APPLICATION, ADMINISTRER_ECOLE, autorise
+from .contexte_ecole import ecole_courante
 from .models import (
     Bilan,
     Classe,
@@ -71,13 +67,13 @@ def acces_requis(vue):
         if not request.user.is_authenticated:
             request.session["suivant"] = request.get_full_path()
             return redirect("connexion")
-        appartenance = appartenance_courante(request)
-        profil = profil_compatible(appartenance)
-        if not profil:
+        ecole = ecole_courante(request)
+        if ecole is None or not autorise(
+            request.user, ACCEDER_APPLICATION, ecole=ecole
+        ):
             return HttpResponseForbidden(
                 "Ce compte ne possède aucune responsabilité active dans cette école."
             )
-        request.session["role"] = profil
         return vue(request, *args, **kwargs)
 
     return _vue
@@ -87,18 +83,16 @@ def direction_requise(vue):
     @wraps(vue)
     @acces_requis
     def _vue(request, *args, **kwargs):
-        if not est_direction(appartenance_courante(request)):
+        ecole = ecole_courante(request)
+        if ecole is None or not autorise(
+            request.user, ADMINISTRER_ECOLE, ecole=ecole
+        ):
             return HttpResponseForbidden(
                 "Cette page est réservée à la direction."
             )
         return vue(request, *args, **kwargs)
 
     return _vue
-
-
-def ecole_courante(request):
-    appartenance = appartenance_courante(request)
-    return get_object_or_404(Ecole, pk=appartenance.ecole_id if appartenance else None)
 
 
 def connexion(request):
@@ -112,10 +106,10 @@ def connexion(request):
         )
         if utilisateur:
             login(request, utilisateur)
-            appartenance = appartenance_courante(request)
-            profil = profil_compatible(appartenance)
-            if profil:
-                request.session["role"] = profil
+            ecole = ecole_courante(request)
+            if ecole and autorise(
+                utilisateur, ACCEDER_APPLICATION, ecole=ecole
+            ):
                 return redirect(request.session.pop("suivant", None) or "accueil")
             logout(request)
         messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
