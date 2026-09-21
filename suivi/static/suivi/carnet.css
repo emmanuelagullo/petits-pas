@@ -148,6 +148,18 @@ h2 {
 .ligne-affectation + .ligne-affectation { border-top: 1px solid var(--trait); }
 .ligne-affectation select { margin: 0; min-width: 5rem; }
 
+.ligne-composition {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.65rem 0;
+}
+.ligne-composition + .ligne-composition { border-top: 1px solid var(--trait); }
+.ligne-composition .principal { flex: none; min-width: 8rem; font-weight: 550; }
+.ligne-composition form { display: flex; align-items: center; gap: 0.4rem; margin: 0; }
+.ligne-composition select { margin: 0; min-width: 4.5rem; }
+
 /* ---------- Listes de classes et d'élèves ---------- */
 
 .liste {
@@ -654,4 +666,5 @@ textarea { min-height: 7rem; resize: vertical; }
   .entete-pages .legende { margin-top: 0.4rem; text-align: left; }
   .carnet.colonnes-2 ul { columns: 1; }
   .ligne-affectation { grid-template-columns: 1fr; }
+  .ligne-composition { flex-direction: column; align-items: stretch; }
 }

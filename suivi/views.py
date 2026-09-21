@@ -1123,6 +1123,14 @@ def parcours_eleve(request, pk):
     )
 
 
+NIVEAU_SUIVANT = {"PS": "MS", "MS": "GS", "GS": None}
+
+
+def _annee_precedente(annee_scolaire):
+    debut = int(re.match(r"(\d{4})", annee_scolaire).group(1))
+    return f"{debut - 1}-{debut}"
+
+
 @direction_requise
 def importer_eleves(request, pk):
     """Coller la liste de la classe, un enfant par ligne."""
@@ -1135,8 +1143,7 @@ def importer_eleves(request, pk):
         )
         niveau = request.POST.get("niveau")
         if niveau not in {"PS", "MS", "GS"}:
-            messages.error(request, "Choisissez un niveau valide.")
-            return redirect("importer_eleves", pk=classe.pk)
+            niveau = "PS"
         if eleve.archive_le and request.POST.get("reactiver") != "on":
             messages.error(
                 request,
@@ -1166,11 +1173,13 @@ def importer_eleves(request, pk):
                 eleve.save(update_fields=["archive_le"])
             if scolarite:
                 deja_dans_classe = scolarite.classe_id == classe.pk
+                niveau_inchange = deja_dans_classe and scolarite.niveau == niveau
                 scolarite.classe = classe
                 scolarite.niveau = niveau
                 scolarite.save(update_fields=["classe", "niveau", "modifie_le"])
             else:
                 deja_dans_classe = False
+                niveau_inchange = False
                 Scolarite.objects.create(
                     eleve=eleve,
                     classe=classe,
@@ -1179,9 +1188,80 @@ def importer_eleves(request, pk):
                 )
 
         if deja_dans_classe and not reactive:
-            messages.info(request, f"{eleve.prenom} est déjà dans {classe}.")
+            if niveau_inchange:
+                messages.info(request, f"{eleve.prenom} est déjà dans {classe}.")
+            else:
+                messages.success(
+                    request, f"Niveau de {eleve.prenom} mis à jour : {niveau}."
+                )
         else:
             messages.success(request, f"{eleve.prenom} a été ajouté à {classe}.")
+        return redirect("importer_eleves", pk=classe.pk)
+
+    if request.method == "POST" and request.POST.get("action") == "retirer":
+        scolarite = get_object_or_404(
+            Scolarite,
+            eleve__pk=request.POST.get("eleve"),
+            eleve__ecole=ecole,
+            classe=classe,
+        )
+        if scolarite.bilans.exists() or scolarite.traces.exists():
+            messages.error(
+                request,
+                f"{scolarite.eleve.prenom} a des bilans ou des observations "
+                f"datées enregistrés pour {classe.annee_scolaire} : "
+                "utilisez plutôt « Déplacer vers une autre classe », ou "
+                "supprimez d'abord ces éléments.",
+            )
+        else:
+            prenom = scolarite.eleve.prenom
+            scolarite.delete()
+            messages.success(
+                request,
+                f"{prenom} a été retiré de {classe} : il n'a plus de scolarité "
+                f"pour {classe.annee_scolaire}.",
+            )
+        return redirect("importer_eleves", pk=classe.pk)
+
+    if request.method == "POST" and request.POST.get("action") == "retirer_et_archiver":
+        scolarite = get_object_or_404(
+            Scolarite,
+            eleve__pk=request.POST.get("eleve"),
+            eleve__ecole=ecole,
+            classe=classe,
+        )
+        eleve = scolarite.eleve
+        eleve.archive_le = timezone.now()
+        eleve.save(update_fields=["archive_le"])
+        messages.success(
+            request,
+            f"{eleve.prenom} a été retiré de {classe} et archivé sans supprimer "
+            "son parcours.",
+        )
+        return redirect("importer_eleves", pk=classe.pk)
+
+    if request.method == "POST" and request.POST.get("action") == "deplacer":
+        scolarite = get_object_or_404(
+            Scolarite,
+            eleve__pk=request.POST.get("eleve"),
+            eleve__ecole=ecole,
+            classe=classe,
+        )
+        destination = get_object_or_404(
+            Classe,
+            pk=request.POST.get("classe_destination"),
+            ecole=ecole,
+            annee_scolaire=classe.annee_scolaire,
+        )
+        if destination.pk == classe.pk:
+            messages.error(request, "Choisissez une autre classe que celle-ci.")
+        else:
+            scolarite.classe = destination
+            scolarite.save(update_fields=["classe", "modifie_le"])
+            messages.success(
+                request,
+                f"{scolarite.eleve.prenom} a été déplacé vers {destination}.",
+            )
         return redirect("importer_eleves", pk=classe.pk)
 
     if request.method == "POST":
@@ -1218,22 +1298,45 @@ def importer_eleves(request, pk):
         messages.success(request, f"{ajoutes} enfant(s) ajouté(s) à {classe}.")
         return redirect("classe_detail", pk=classe.pk)
 
+    annee_precedente = _annee_precedente(classe.annee_scolaire)
     scolarites_annee = Scolarite.objects.filter(
         eleve__ecole=ecole,
         eleve__archive_le__isnull=True,
         annee_scolaire=classe.annee_scolaire,
     ).select_related("eleve", "classe")
     ids_affectes = scolarites_annee.values_list("eleve_id", flat=True)
-    eleves_disponibles = ecole.eleves.filter(
-        archive_le__isnull=True
-    ).exclude(pk__in=ids_affectes)
+
+    eleves_disponibles = list(
+        ecole.eleves.filter(archive_le__isnull=True).exclude(pk__in=ids_affectes)
+    )
+    eleves_archives = list(ecole.eleves.filter(archive_le__isnull=False))
+    niveaux_annee_precedente = dict(
+        Scolarite.objects.filter(
+            eleve__in=eleves_disponibles + eleves_archives,
+            annee_scolaire=annee_precedente,
+        ).values_list("eleve_id", "niveau")
+    )
+    for eleve in eleves_disponibles + eleves_archives:
+        eleve.niveau_suggere = NIVEAU_SUIVANT.get(
+            niveaux_annee_precedente.get(eleve.pk)
+        )
+
     affectations_autres = scolarites_annee.exclude(classe=classe)
-    eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
+    composition = (
+        Scolarite.objects.filter(classe=classe, eleve__archive_le__isnull=True)
+        .select_related("eleve")
+        .order_by("eleve__prenom", "eleve__nom")
+    )
+    autres_classes_annee = Classe.objects.filter(
+        ecole=ecole, annee_scolaire=classe.annee_scolaire
+    ).exclude(pk=classe.pk)
     return render(
         request,
         "suivi/importer_eleves.html",
         {
             "classe": classe,
+            "composition": composition,
+            "autres_classes_annee": autres_classes_annee,
             "eleves_disponibles": eleves_disponibles,
             "affectations_autres": affectations_autres,
             "eleves_archives": eleves_archives,
