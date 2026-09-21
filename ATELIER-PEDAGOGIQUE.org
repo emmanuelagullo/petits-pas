@@ -54,8 +54,10 @@ Dans une plate-forme, préférer son mécanisme d'injection de secrets à la
 commande =export=. Retirer ces deux secrets après l'initialisation : Django ne
 conserve que leurs empreintes.
 
-La commande crée l'école, le référentiel, la classe, les élèves et les
-observations factices. Une seconde exécution reconnaît l'atelier et ne modifie
+La commande crée aussi les comptes techniques =enseignant-atelier= et
+=direction-atelier=, associés aux deux secrets. Elle crée ensuite l'école, le
+référentiel, la classe, les élèves et les observations factices. Une seconde
+exécution reconnaît l'atelier et ne modifie
 rien. Elle refuse toute base non vide qui ne correspond pas à cet atelier ;
 elle ne doit jamais servir à convertir ou écraser un autre environnement.
 

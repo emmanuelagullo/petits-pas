@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -60,9 +61,20 @@ class Command(BaseCommand):
                 "la première initialisation."
             )
 
-        ecole = Ecole(nom=NOM_ECOLE, commune=COMMUNE)
-        ecole.definir_mots_de_passe(enseignant, direction)
-        ecole.save()
+        ecole = Ecole.objects.create(nom=NOM_ECOLE, commune=COMMUNE)
+        Utilisateur = get_user_model()
+        Utilisateur.objects.create_user(
+            username="enseignant-atelier",
+            password=enseignant,
+            ecole=ecole,
+            profil_transition=Utilisateur.ENSEIGNANT,
+        )
+        Utilisateur.objects.create_user(
+            username="direction-atelier",
+            password=direction,
+            ecole=ecole,
+            profil_transition=Utilisateur.DIRECTION,
+        )
 
         call_command(
             "charger_referentiel",

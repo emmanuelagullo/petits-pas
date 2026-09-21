@@ -1,7 +1,6 @@
 import re
 import datetime
 
-from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -51,8 +50,6 @@ class Ecole(models.Model):
 
     nom = models.CharField(max_length=200)
     commune = models.CharField(max_length=200, blank=True)
-    mdp_enseignant = models.CharField(max_length=256, editable=False)
-    mdp_direction = models.CharField(max_length=256, editable=False)
     cree_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -61,19 +58,6 @@ class Ecole(models.Model):
 
     def __str__(self):
         return self.nom
-
-    def definir_mots_de_passe(self, enseignant, direction):
-        self.mdp_enseignant = make_password(enseignant)
-        self.mdp_direction = make_password(direction)
-
-    def verifier(self, mot_de_passe):
-        """Renvoie 'direction', 'enseignant' ou None."""
-        if self.mdp_direction and check_password(mot_de_passe, self.mdp_direction):
-            return "direction"
-        if self.mdp_enseignant and check_password(mot_de_passe, self.mdp_enseignant):
-            return "enseignant"
-        return None
-
 
 class ParametresCarnet(models.Model):
     ecole = models.OneToOneField(

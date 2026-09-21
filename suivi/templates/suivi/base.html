@@ -28,6 +28,7 @@
   <div class="bandeau-corps">
     <a class="marque" href="{% url 'accueil' %}">{{ ecole.nom }}</a>
     <nav>
+      {% if utilisateur_courant %}<span>{{ utilisateur_courant.get_full_name|default:utilisateur_courant.username }}</span>{% endif %}
       {% if est_direction %}<a href="{% url 'gestion' %}">Gérer l'école</a>{% endif %}
       <a href="{% url 'deconnexion' %}">Quitter</a>
     </nav>

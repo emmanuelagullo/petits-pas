@@ -8,6 +8,7 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.management import call_command
@@ -77,9 +78,20 @@ class AnneeScolaireUtilitaires(TestCase):
 
 class Base(TestCase):
     def setUp(self):
-        self.ecole = Ecole(nom="Les Tilleuls")
-        self.ecole.definir_mots_de_passe("ens-mdp", "dir-mdp")
-        self.ecole.save()
+        self.ecole = Ecole.objects.create(nom="Les Tilleuls")
+        Utilisateur = get_user_model()
+        self.enseignant = Utilisateur.objects.create_user(
+            username="enseignant-test",
+            password="ens-mdp",
+            ecole=self.ecole,
+            profil_transition=Utilisateur.ENSEIGNANT,
+        )
+        self.direction = Utilisateur.objects.create_user(
+            username="direction-test",
+            password="dir-mdp",
+            ecole=self.ecole,
+            profil_transition=Utilisateur.DIRECTION,
+        )
         self.classe = Classe.objects.create(ecole=self.ecole, nom="PS-MS")
         self.eleve = Eleve.objects.create(ecole=self.ecole, prenom="Lou")
         self.scolarite = Scolarite.objects.create(
@@ -93,8 +105,15 @@ class Base(TestCase):
             domaine=domaine, code="LANG-01", libelle="Je dis mon prénom", niveau="PS"
         )
 
-    def entrer(self, mdp="ens-mdp"):
-        return self.client.post(reverse("connexion"), {"mot_de_passe": mdp})
+    def entrer(self, mdp="ens-mdp", nom_utilisateur=None):
+        if nom_utilisateur is None:
+            nom_utilisateur = (
+                self.direction.username if mdp == "dir-mdp" else self.enseignant.username
+            )
+        return self.client.post(
+            reverse("connexion"),
+            {"nom_utilisateur": nom_utilisateur, "mot_de_passe": mdp},
+        )
 
     def creer_trace(self, observation=None, **champs):
         observation = observation or Observation.objects.create(
@@ -131,21 +150,54 @@ class Acces(Base):
         self.assertContains(r, "peut être vu par les autres visiteurs")
         self.assertContains(r, "15 minutes sans aucune visite")
 
-    def test_sans_mot_de_passe_on_est_renvoye_a_la_connexion(self):
+    def test_sans_compte_on_est_renvoye_a_la_connexion(self):
         r = self.client.get(reverse("accueil"))
         self.assertRedirects(r, reverse("connexion"))
 
-    def test_mot_de_passe_enseignant(self):
+    def test_compte_enseignant(self):
         self.entrer()
+        self.assertEqual(self.client.session["_auth_user_id"], str(self.enseignant.pk))
         self.assertEqual(self.client.session["role"], "enseignant")
 
-    def test_mot_de_passe_direction(self):
+    def test_compte_direction(self):
         self.entrer("dir-mdp")
+        self.assertEqual(self.client.session["_auth_user_id"], str(self.direction.pk))
         self.assertEqual(self.client.session["role"], "direction")
 
     def test_mauvais_mot_de_passe(self):
         self.entrer("nimporte")
-        self.assertNotIn("ecole_id", self.client.session)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_compte_desactive_refuse(self):
+        self.enseignant.is_active = False
+        self.enseignant.save(update_fields=["is_active"])
+
+        reponse = self.entrer()
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(reponse, "Nom d&#x27;utilisateur ou mot de passe incorrect")
+
+    def test_compte_sans_ecole_refuse(self):
+        Utilisateur = get_user_model()
+        Utilisateur.objects.create_user(
+            username="sans-ecole",
+            password="secret-test",
+            profil_transition=Utilisateur.ENSEIGNANT,
+        )
+
+        reponse = self.entrer("secret-test", "sans-ecole")
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_identite_individuelle_est_affichee(self):
+        self.enseignant.first_name = "Alice"
+        self.enseignant.last_name = "Martin"
+        self.enseignant.save(update_fields=["first_name", "last_name"])
+        self.entrer()
+
+        self.assertContains(self.client.get(reverse("accueil")), "Alice Martin")
 
     def test_la_gestion_est_fermee_aux_enseignants(self):
         self.entrer()
@@ -214,9 +266,7 @@ class Bascule(Base):
         self.assertEqual(self.client.get(self.url).status_code, 403)
 
     def test_on_ne_bascule_pas_un_eleve_d_une_autre_ecole(self):
-        autre = Ecole(nom="Ailleurs")
-        autre.definir_mots_de_passe("a", "b")
-        autre.save()
+        autre = Ecole.objects.create(nom="Ailleurs")
         autre_classe = Classe.objects.create(ecole=autre, nom="GS")
         eleve = Eleve.objects.create(ecole=autre, prenom="Zoé")
         Scolarite.objects.create(
@@ -2116,9 +2166,7 @@ class JeuDemoLarge(TestCase):
         call_command("charger_referentiel", chemin, ecole=ecole.pk, stdout=StringIO())
 
     def setUp(self):
-        self.ecole = Ecole(nom="École de démo")
-        self.ecole.definir_mots_de_passe("ens-mdp", "dir-mdp")
-        self.ecole.save()
+        self.ecole = Ecole.objects.create(nom="École de démo")
         self._charger_referentiel_demo(self.ecole)
 
     def test_genere_cinq_annees_avec_plusieurs_classes_chacune(self):
@@ -2223,7 +2271,16 @@ class InitialisationAtelier(TestCase):
         self.assertGreater(nombres[1], 0)
         self.assertGreater(nombres[3], 0)
         self.assertGreater(nombres[4], 0)
-        self.assertEqual(ecole.verifier("enseignant-factice"), "enseignant")
+        Utilisateur = get_user_model()
+        self.assertTrue(
+            Utilisateur.objects.get(username="enseignant-atelier").check_password(
+                "enseignant-factice"
+            )
+        )
+        self.assertEqual(
+            Utilisateur.objects.get(username="direction-atelier").ecole,
+            ecole,
+        )
 
         sortie = StringIO()
         call_command("initialiser_atelier", stdout=sortie)

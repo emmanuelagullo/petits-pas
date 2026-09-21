@@ -34,8 +34,10 @@ with open(sys.argv[1], encoding="utf-8") as fichier:
 
 valeurs = (
     configuration["ecole"],
-    configuration["identifiants"]["enseignant"],
-    configuration["identifiants"]["direction"],
+    configuration["identifiants"]["enseignant"]["utilisateur"],
+    configuration["identifiants"]["enseignant"]["mot_de_passe"],
+    configuration["identifiants"]["direction"]["utilisateur"],
+    configuration["identifiants"]["direction"]["mot_de_passe"],
 )
 for valeur in valeurs:
     if not isinstance(valeur, str) or not valeur or "\n" in valeur:
@@ -44,7 +46,7 @@ for valeur in valeurs:
 PY
 )
 
-if [[ "${#parametres_demo[@]}" -ne 3 ]]; then
+if [[ "${#parametres_demo[@]}" -ne 5 ]]; then
     echo "Refus : configuration de démonstration incomplète." >&2
     exit 1
 fi
@@ -55,8 +57,10 @@ python3 manage.py migrate --noinput
 
 python3 manage.py creer_ecole "${parametres_demo[0]}" \
   --commune "Bordeaux" \
-  --mdp-enseignant "${parametres_demo[1]}" \
-  --mdp-direction "${parametres_demo[2]}"
+  --utilisateur-enseignant "${parametres_demo[1]}" \
+  --mdp-enseignant "${parametres_demo[2]}" \
+  --utilisateur-direction "${parametres_demo[3]}" \
+  --mdp-direction "${parametres_demo[4]}"
 
 python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
 python3 manage.py jeu_demo_large

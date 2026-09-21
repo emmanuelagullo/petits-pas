@@ -71,7 +71,12 @@ def main():
         page.get_by_role("heading", name="Carnet de suivi des apprentissages").wait_for()
         capturer(page, options.output / "connexion.png")
 
-        page.locator("#mdp").fill(demonstration["identifiants"]["enseignant"])
+        page.locator("#nom_utilisateur").fill(
+            demonstration["identifiants"]["enseignant"]["utilisateur"]
+        )
+        page.locator("#mdp").fill(
+            demonstration["identifiants"]["enseignant"]["mot_de_passe"]
+        )
         page.get_by_role("button", name="Entrer").click()
         page.get_by_role("heading", name="Les classes").wait_for()
         premiere_classe = page.locator(".liste .entree").first
@@ -99,7 +104,12 @@ def main():
 
         contexte.clear_cookies()
         page.goto(f"{options.base_url}/connexion/")
-        page.locator("#mdp").fill(demonstration["identifiants"]["direction"])
+        page.locator("#nom_utilisateur").fill(
+            demonstration["identifiants"]["direction"]["utilisateur"]
+        )
+        page.locator("#mdp").fill(
+            demonstration["identifiants"]["direction"]["mot_de_passe"]
+        )
         page.get_by_role("button", name="Entrer").click()
         page.get_by_role("link", name="Gérer l'école").click()
         page.get_by_role("heading", name="Gérer l'école").wait_for()
