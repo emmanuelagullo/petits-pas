@@ -48,8 +48,18 @@ class Ecole(models.Model):
     l'école pour que l'ouverture à plusieurs établissements ne demande pas
     de migration douloureuse."""
 
+    PREPARATION = "preparation"
+    ACTIVE = "active"
+    DESACTIVEE = "desactivee"
+    ETATS = [
+        (PREPARATION, "En préparation"),
+        (ACTIVE, "Active"),
+        (DESACTIVEE, "Désactivée"),
+    ]
+
     nom = models.CharField(max_length=200)
     commune = models.CharField(max_length=200, blank=True)
+    etat = models.CharField(max_length=12, choices=ETATS, default=ACTIVE)
     cree_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -98,10 +108,20 @@ class ParametresCarnet(models.Model):
 
 
 class Classe(models.Model):
+    PREPARATION = "preparation"
+    ACTIVE = "active"
+    ARCHIVEE = "archivee"
+    ETATS = [
+        (PREPARATION, "En préparation"),
+        (ACTIVE, "Active"),
+        (ARCHIVEE, "Archivée"),
+    ]
+
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name="classes")
     nom = models.CharField(max_length=100, help_text="Par exemple : PS-MS de Nadia")
     annee_scolaire = models.CharField(max_length=9, default="2026-2027")
     ordre = models.PositiveSmallIntegerField(default=0)
+    etat = models.CharField(max_length=11, choices=ETATS, default=PREPARATION)
 
     class Meta:
         ordering = ["ordre", "nom"]
@@ -115,6 +135,21 @@ class Classe(models.Model):
     def __str__(self):
         return self.nom
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        super().clean()
+        if self.etat == self.ACTIVE and (
+            not self.pk or not self.responsables_actifs().exists()
+        ):
+            raise ValidationError(
+                {"etat": "Une classe ne peut être activée sans responsable actif."}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
     @property
     def statut_annee(self):
         return statut_annee_scolaire(self.annee_scolaire)
@@ -125,6 +160,34 @@ class Classe(models.Model):
             scolarites__classe=self,
             archive_le__isnull=True,
         ).distinct()
+
+    def responsables_actifs(self, date=None):
+        from comptes.models import AffectationClasse
+
+        date = date or timezone.localdate()
+        return self.affectations.filter(
+            type=AffectationClasse.RESPONSABLE,
+            appartenance__utilisateur__is_active=True,
+            appartenance__ecole__etat=Ecole.ACTIVE,
+            appartenance__etat=AffectationClasse.ACTIVE,
+            appartenance__date_debut__lte=date,
+            etat=AffectationClasse.ACTIVE,
+            date_debut__lte=date,
+        ).filter(
+            models.Q(date_fin__isnull=True) | models.Q(date_fin__gte=date),
+            models.Q(appartenance__date_fin__isnull=True)
+            | models.Q(appartenance__date_fin__gte=date),
+        )
+
+    def activer(self, date=None):
+        from django.core.exceptions import ValidationError
+
+        if not self.pk or not self.responsables_actifs(date).exists():
+            raise ValidationError(
+                "Une classe ne peut être activée sans responsable actif."
+            )
+        self.etat = self.ACTIVE
+        self.save(update_fields=["etat"])
 
 
 class Eleve(models.Model):

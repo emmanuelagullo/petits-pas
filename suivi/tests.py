@@ -19,6 +19,8 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from comptes.models import AffectationClasse, AppartenanceEcole, ResponsabiliteEcole
+
 from .models import (
     Attendu,
     Bilan,
@@ -83,16 +85,28 @@ class Base(TestCase):
         self.enseignant = Utilisateur.objects.create_user(
             username="enseignant-test",
             password="ens-mdp",
-            ecole=self.ecole,
-            profil_transition=Utilisateur.ENSEIGNANT,
         )
         self.direction = Utilisateur.objects.create_user(
             username="direction-test",
             password="dir-mdp",
-            ecole=self.ecole,
-            profil_transition=Utilisateur.DIRECTION,
         )
         self.classe = Classe.objects.create(ecole=self.ecole, nom="PS-MS")
+        self.appartenance_enseignant = AppartenanceEcole.objects.create(
+            utilisateur=self.enseignant, ecole=self.ecole
+        )
+        self.appartenance_direction = AppartenanceEcole.objects.create(
+            utilisateur=self.direction, ecole=self.ecole
+        )
+        ResponsabiliteEcole.objects.create(
+            appartenance=self.appartenance_direction,
+            type=ResponsabiliteEcole.DIRECTION,
+        )
+        AffectationClasse.objects.create(
+            appartenance=self.appartenance_enseignant,
+            classe=self.classe,
+            type=AffectationClasse.RESPONSABLE,
+        )
+        self.classe.activer()
         self.eleve = Eleve.objects.create(ecole=self.ecole, prenom="Lou")
         self.scolarite = Scolarite.objects.create(
             eleve=self.eleve,
@@ -183,7 +197,6 @@ class Acces(Base):
         Utilisateur.objects.create_user(
             username="sans-ecole",
             password="secret-test",
-            profil_transition=Utilisateur.ENSEIGNANT,
         )
 
         reponse = self.entrer("secret-test", "sans-ecole")
@@ -2278,7 +2291,9 @@ class InitialisationAtelier(TestCase):
             )
         )
         self.assertEqual(
-            Utilisateur.objects.get(username="direction-atelier").ecole,
+            Utilisateur.objects.get(
+                username="direction-atelier"
+            ).appartenances_ecoles.get().ecole,
             ecole,
         )
 

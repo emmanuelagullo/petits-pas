@@ -2,6 +2,8 @@ import random
 
 from django.core.management.base import BaseCommand, CommandError
 
+from comptes.models import AffectationClasse, AppartenanceEcole
+
 from suivi.models import Classe, Competence, Ecole, Eleve, Observation, Scolarite, Trace
 
 PRENOMS = [
@@ -40,6 +42,17 @@ class Command(BaseCommand):
         classe, _ = Classe.objects.get_or_create(
             ecole=ecole, nom="PS-MS-GS de Nadia", defaults={"ordre": 1}
         )
+        for appartenance in AppartenanceEcole.objects.filter(ecole=ecole).exclude(
+            responsabilites__type="direction",
+            responsabilites__etat="active",
+        ):
+            AffectationClasse.objects.get_or_create(
+                appartenance=appartenance,
+                classe=classe,
+                type=AffectationClasse.RESPONSABLE,
+            )
+        if classe.etat != Classe.ACTIVE and classe.responsables_actifs().exists():
+            classe.activer()
         if not classe.eleves.exists():
             for prenom, niveau in PRENOMS:
                 eleve = Eleve.objects.create(ecole=ecole, prenom=prenom)
