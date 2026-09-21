@@ -16,10 +16,18 @@ def instantane(objet, champs):
 
 
 def journaliser(acteur, action, objet, anciennes=None, nouvelles=None):
+    if hasattr(objet, "ecole"):
+        ecole = objet.ecole
+    elif hasattr(objet, "classe"):
+        ecole = objet.classe.ecole
+    elif hasattr(objet, "scolarite"):
+        ecole = objet.scolarite.classe.ecole
+    elif hasattr(objet, "eleve"):
+        ecole = objet.eleve.ecole
+    else:
+        raise ValueError("La ressource auditée n'est rattachée à aucune école.")
     return EvenementAudit.objects.create(
-        ecole=objet.scolarite.classe.ecole
-        if hasattr(objet, "scolarite")
-        else objet.eleve.ecole,
+        ecole=ecole,
         acteur=acteur,
         action=action,
         modele=objet._meta.label_lower,

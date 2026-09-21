@@ -27,8 +27,11 @@ from .autorisations import (
     toutes_autorisees,
 )
 from .models import (
+    AccesParcoursEleve,
+    Bilan,
     Classe,
     Competence,
+    DemandeRapprochementEleve,
     Domaine,
     Ecole,
     Eleve,
@@ -478,3 +481,181 @@ class LecturesCloisonnees(PolitiqueAutorisations):
 
         self.assertContains(reponse, "A1")
         self.assertNotContains(reponse, "B1")
+
+
+class AdministrationCouranteEleves(LecturesCloisonnees):
+    def _ancien_dossier(self, suffixe=""):
+        ancienne_classe = Classe.objects.create(
+            ecole=self.ecole_a,
+            nom=f"Ancienne classe{suffixe}",
+            annee_scolaire="2025-2026",
+        )
+        eleve = Eleve.objects.create(
+            ecole=self.ecole_a,
+            prenom="Lina",
+            nom="Martin",
+            annee_naissance=2021,
+        )
+        scolarite = Scolarite.objects.create(
+            eleve=eleve,
+            classe=ancienne_classe,
+            annee_scolaire="2025-2026",
+            niveau="PS",
+        )
+        observation = Observation.objects.create(
+            eleve=eleve,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+            date_observation=datetime.date(2026, 5, 10),
+        )
+        trace_publique = Trace.objects.create(
+            observation=observation,
+            scolarite=scolarite,
+            date_observation=datetime.date(2026, 5, 10),
+            commentaire="Acquisition antérieure publiée",
+            visible_carnet=True,
+            auteur=self.remi,
+        )
+        trace_interne = Trace.objects.create(
+            observation=observation,
+            scolarite=scolarite,
+            date_observation=datetime.date(2026, 5, 11),
+            commentaire="Note interne ancienne",
+            visible_carnet=False,
+            auteur=self.remi,
+        )
+        Bilan.objects.create(
+            scolarite=scolarite,
+            date_bilan=datetime.date(2026, 6, 20),
+            texte="Bilan final antérieur",
+            visible_carnet=True,
+            auteur=self.remi,
+        )
+        return eleve, trace_publique, trace_interne
+
+    def _demander_rapprochement(self):
+        eleve, trace_publique, trace_interne = self._ancien_dossier()
+        self.client.force_login(self.remi)
+        reponse = self.client.post(
+            f"/gestion/classe/{self.a1.pk}/eleves/",
+            {"liste": "Lina ; Martin ; MS ; 2021", "niveau": "MS"},
+        )
+        demande = DemandeRapprochementEleve.objects.get()
+        return eleve, trace_publique, trace_interne, demande, reponse
+
+    def test_t050_t051_responsable_cree_et_importe_nouveaux_eleves(self):
+        self.client.force_login(self.remi)
+
+        reponse = self.client.post(
+            f"/gestion/classe/{self.a1.pk}/eleves/",
+            {
+                "liste": "Nora ; Petit ; PS ; 2022\nYanis ; Roux ; MS ; 2021",
+                "niveau": "PS",
+            },
+        )
+
+        self.assertEqual(reponse.status_code, 302)
+        self.assertTrue(self.a1.eleves.filter(prenom="Nora").exists())
+        self.assertTrue(self.a1.eleves.filter(prenom="Yanis").exists())
+        self.assertEqual(
+            EvenementAudit.objects.filter(action="eleve.cree").count(), 2
+        )
+
+    def test_t052_correspondance_cree_demande_sans_liaison(self):
+        eleve, _, _, demande, reponse = self._demander_rapprochement()
+
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(Eleve.objects.filter(prenom="Lina").count(), 1)
+        self.assertFalse(eleve.scolarites.filter(classe=self.a1).exists())
+        self.assertEqual(demande.etat, DemandeRapprochementEleve.EN_ATTENTE)
+        self.assertTrue(
+            EvenementAudit.objects.filter(action="rapprochement.demande").exists()
+        )
+
+    def test_t053_responsable_ne_valide_pas_rapprochement(self):
+        eleve, _, _, demande, _ = self._demander_rapprochement()
+
+        reponse = self.client.post(
+            f"/gestion/classe/{self.a1.pk}/eleves/",
+            {
+                "action": "valider_rapprochement",
+                "demande": demande.pk,
+                "eleve": eleve.pk,
+            },
+        )
+
+        self.assertEqual(reponse.status_code, 404)
+        self.assertFalse(AccesParcoursEleve.objects.exists())
+
+    def test_t054_t056_direction_valide_et_ouvre_passe_publie(self):
+        eleve, _, _, demande, _ = self._demander_rapprochement()
+        self.client.force_login(self.diane)
+
+        validation = self.client.post(
+            f"/gestion/classe/{self.a1.pk}/eleves/",
+            {
+                "action": "valider_rapprochement",
+                "demande": demande.pk,
+                "eleve": eleve.pk,
+            },
+        )
+
+        self.assertEqual(validation.status_code, 302)
+        self.assertTrue(AccesParcoursEleve.objects.filter(eleve=eleve).exists())
+        self.assertTrue(eleve.scolarites.filter(classe=self.a1).exists())
+        self.client.force_login(self.remi)
+        carnet = self.client.get(f"/eleve/{eleve.pk}/carnet/")
+        self.assertContains(carnet, "Acquisition antérieure publiée")
+        self.assertContains(carnet, "Bilan final antérieur")
+        self.assertTrue(
+            EvenementAudit.objects.filter(action="rapprochement.valide").exists()
+        )
+
+    def test_t055_demande_non_validee_ne_donne_aucun_acces(self):
+        eleve, _, _, _, _ = self._demander_rapprochement()
+
+        reponse = self.client.get(f"/eleve/{eleve.pk}/carnet/")
+
+        self.assertEqual(reponse.status_code, 404)
+
+    def test_t057_passe_interne_reste_inaccessible(self):
+        eleve, _, trace_interne, demande, _ = self._demander_rapprochement()
+        self.client.force_login(self.diane)
+        self.client.post(
+            f"/gestion/classe/{self.a1.pk}/eleves/",
+            {
+                "action": "valider_rapprochement",
+                "demande": demande.pk,
+                "eleve": eleve.pk,
+            },
+        )
+        self.client.force_login(self.remi)
+
+        carnet = self.client.get(f"/eleve/{eleve.pk}/carnet/")
+        trace = self.client.get(
+            f"/eleve/{eleve.pk}/competence/{self.competence.pk}/"
+            f"trace/{trace_interne.pk}/"
+        )
+
+        self.assertNotContains(carnet, "Note interne ancienne")
+        self.assertEqual(trace.status_code, 404)
+
+    def test_t058_homonymes_ne_sont_jamais_fusionnes(self):
+        premier, _, _ = self._ancien_dossier(" 1")
+        second = Eleve.objects.create(
+            ecole=self.ecole_a,
+            prenom=premier.prenom,
+            nom=premier.nom,
+            annee_naissance=premier.annee_naissance,
+        )
+        self.client.force_login(self.remi)
+
+        self.client.post(
+            f"/gestion/classe/{self.a1.pk}/eleves/",
+            {"liste": "Lina ; Martin ; MS ; 2021", "niveau": "MS"},
+        )
+
+        self.assertEqual(Eleve.objects.filter(prenom="Lina").count(), 2)
+        self.assertEqual(DemandeRapprochementEleve.objects.count(), 1)
+        self.assertFalse(AccesParcoursEleve.objects.exists())
+        self.assertFalse(second.scolarites.filter(classe=self.a1).exists())

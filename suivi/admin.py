@@ -2,10 +2,12 @@ from django.contrib import admin
 
 from .models import (
     Attendu,
+    AccesParcoursEleve,
     Bilan,
     Classe,
     Competence,
     Domaine,
+    DemandeRapprochementEleve,
     Ecole,
     Eleve,
     EvenementAudit,
@@ -16,6 +18,25 @@ from .models import (
     SousDomaine,
     Trace,
 )
+
+
+@admin.register(DemandeRapprochementEleve)
+class DemandeRapprochementEleveAdmin(admin.ModelAdmin):
+    list_display = (
+        "demande_le",
+        "ecole",
+        "classe",
+        "prenom_propose",
+        "nom_propose",
+        "etat",
+    )
+    list_filter = ("ecole", "etat")
+
+
+@admin.register(AccesParcoursEleve)
+class AccesParcoursEleveAdmin(admin.ModelAdmin):
+    list_display = ("eleve", "classe", "valide_par", "valide_le")
+    list_filter = ("classe__ecole",)
 
 
 @admin.register(EvenementAudit)
