@@ -1,21 +1,21 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Parcours de {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
+<p class="fil">{% if retour_classe %}<a href="{% url 'importer_eleves' retour_classe.pk %}">← {{ retour_classe.nom }}</a>{% else %}<a href="{% url 'gestion' %}">Gérer l'école</a>{% endif %}</p>
 <h1>Parcours scolaire de {{ eleve.nom_court }}</h1>
 
 {% if eleve.archive_le %}
 <section class="encadre">
   <p>Cet élève est archivé depuis le {{ eleve.archive_le|date:"j F Y" }}.</p>
   <form method="post" class="actions">
-    {% csrf_token %}<input type="hidden" name="action" value="reactiver">
+    {% csrf_token %}<input type="hidden" name="action" value="reactiver">{% if retour_classe %}<input type="hidden" name="retour" value="{{ retour_classe.pk }}">{% endif %}
     <button class="bouton" type="submit">Réactiver cet élève</button>
   </form>
 </section>
 {% endif %}
 
 <form method="post" class="encadre">
-  {% csrf_token %}<input type="hidden" name="action" value="identite">
+  {% csrf_token %}<input type="hidden" name="action" value="identite">{% if retour_classe %}<input type="hidden" name="retour" value="{{ retour_classe.pk }}">{% endif %}
   <h2>Identité durable</h2>
   <label for="prenom">Prénom</label><input id="prenom" name="prenom" value="{{ eleve.prenom }}" required>
   <label for="nom">Nom</label><input id="nom" name="nom" value="{{ eleve.nom }}">
@@ -38,7 +38,7 @@
 </ul>
 
 <form method="post" class="encadre">
-  {% csrf_token %}<input type="hidden" name="action" value="scolarite">
+  {% csrf_token %}<input type="hidden" name="action" value="scolarite">{% if retour_classe %}<input type="hidden" name="retour" value="{{ retour_classe.pk }}">{% endif %}
   <h2>Préparer une année scolaire</h2>
   <p class="aide">Choisir une classe d'une nouvelle année ajoute une scolarité. Rechoisir une année existante corrige sa classe ou son niveau sans toucher aux autres années.</p>
   <label for="classe">Classe</label>

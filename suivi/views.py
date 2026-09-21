@@ -1064,6 +1064,15 @@ def creer_classe(request):
 def parcours_eleve(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
+    retour_pk = request.POST.get("retour") or request.GET.get("retour")
+    retour_classe = (
+        Classe.objects.filter(pk=retour_pk, ecole=ecole).first() if retour_pk else None
+    )
+
+    def _retour_url():
+        url = reverse("parcours_eleve", args=[eleve.pk])
+        return f"{url}?retour={retour_classe.pk}" if retour_classe else url
+
     if request.method == "POST" and request.POST.get("action") == "reactiver":
         eleve.archive_le = None
         eleve.save(update_fields=["archive_le"])
@@ -1076,7 +1085,7 @@ def parcours_eleve(request, pk):
                 f"{eleve.prenom} est de nouveau actif, mais n'a pas encore de "
                 "scolarité pour l'année en cours : ajoutez-en une ci-dessous.",
             )
-        return redirect("parcours_eleve", pk=eleve.pk)
+        return redirect(_retour_url())
 
     if request.method == "POST" and request.POST.get("action") == "identite":
         prenom = request.POST.get("prenom", "").strip()
@@ -1089,7 +1098,7 @@ def parcours_eleve(request, pk):
             eleve.annee_naissance = int(annee) if annee.isdigit() else None
             eleve.save(update_fields=["prenom", "nom", "annee_naissance"])
             messages.success(request, "Identité de l'élève enregistrée.")
-            return redirect("parcours_eleve", pk=eleve.pk)
+            return redirect(_retour_url())
 
     if request.method == "POST" and request.POST.get("action") == "scolarite":
         classe = get_object_or_404(
@@ -1110,7 +1119,7 @@ def parcours_eleve(request, pk):
                 request,
                 f"Scolarité {classe.annee_scolaire} enregistrée sans modifier les années précédentes.",
             )
-            return redirect("parcours_eleve", pk=eleve.pk)
+            return redirect(_retour_url())
 
     return render(
         request,
@@ -1119,6 +1128,7 @@ def parcours_eleve(request, pk):
             "eleve": eleve,
             "classes": ecole.classes.all(),
             "scolarites": eleve.scolarites.select_related("classe"),
+            "retour_classe": retour_classe,
         },
     )
 
@@ -1131,19 +1141,28 @@ def _annee_precedente(annee_scolaire):
     return f"{debut - 1}-{debut}"
 
 
+NIVEAUX_VALIDES = {"PS", "MS", "GS"}
+
+
+def _niveau_defaut_page(request):
+    valeur = request.GET.get("niveau_defaut") or request.POST.get("niveau_defaut")
+    return valeur if valeur in NIVEAUX_VALIDES else "PS"
+
+
 @direction_requise
 def importer_eleves(request, pk):
     """Coller la liste de la classe, un enfant par ligne."""
     ecole = ecole_courante(request)
     classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    niveau_defaut_page = _niveau_defaut_page(request)
 
     if request.method == "POST" and request.POST.get("action") == "affecter_existant":
         eleve = get_object_or_404(
             Eleve, pk=request.POST.get("eleve"), ecole=ecole
         )
         niveau = request.POST.get("niveau")
-        if niveau not in {"PS", "MS", "GS"}:
-            niveau = "PS"
+        if niveau not in NIVEAUX_VALIDES:
+            niveau = niveau_defaut_page
         if eleve.archive_le and request.POST.get("reactiver") != "on":
             messages.error(
                 request,
@@ -1265,7 +1284,7 @@ def importer_eleves(request, pk):
         return redirect("importer_eleves", pk=classe.pk)
 
     if request.method == "POST":
-        niveau_defaut = request.POST.get("niveau", "PS")
+        niveau_defaut = request.POST.get("niveau", niveau_defaut_page)
         ajoutes = 0
         for ligne in request.POST.get("liste", "").splitlines():
             ligne = ligne.strip()
@@ -1276,7 +1295,7 @@ def importer_eleves(request, pk):
             nom = parts[1] if len(parts) > 1 else ""
             niveau = (
                 parts[2].upper()
-                if len(parts) > 2 and parts[2].upper() in {"PS", "MS", "GS"}
+                if len(parts) > 2 and parts[2].upper() in NIVEAUX_VALIDES
                 else niveau_defaut
             )
             annee_naissance = None
@@ -1335,6 +1354,7 @@ def importer_eleves(request, pk):
         "suivi/importer_eleves.html",
         {
             "classe": classe,
+            "niveau_defaut_page": niveau_defaut_page,
             "composition": composition,
             "autres_classes_annee": autres_classes_annee,
             "eleves_disponibles": eleves_disponibles,
