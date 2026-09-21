@@ -1221,7 +1221,7 @@ class CompositionClasse(Base):
 
         r = self.client.get(reverse("importer_eleves", args=[nouvelle_classe.pk]))
 
-        self.assertContains(r, 'value="" selected>Vide')
+        self.assertContains(r, 'value="" selected>Niveau par')
 
     def test_pas_de_niveau_suivant_apres_la_gs(self):
         eleve = Eleve.objects.create(ecole=self.ecole, prenom="Elio")
@@ -1240,7 +1240,7 @@ class CompositionClasse(Base):
 
         r = self.client.get(reverse("importer_eleves", args=[nouvelle_classe.pk]))
 
-        self.assertContains(r, 'value="" selected>Vide')
+        self.assertContains(r, 'value="" selected>Niveau par')
 
     def test_un_niveau_absent_retombe_sur_ps(self):
         eleve = Eleve.objects.create(ecole=self.ecole, prenom="Malo")
@@ -1252,6 +1252,55 @@ class CompositionClasse(Base):
         self.assertEqual(
             eleve.scolarites.get(annee_scolaire="2026-2027").niveau, "PS"
         )
+
+    def test_un_niveau_absent_retombe_sur_le_niveau_par_defaut_de_la_page(self):
+        eleve = Eleve.objects.create(ecole=self.ecole, prenom="Malo")
+
+        self.client.post(
+            self.url,
+            {
+                "action": "affecter_existant",
+                "eleve": eleve.pk,
+                "niveau": "",
+                "niveau_defaut": "MS",
+            },
+        )
+
+        self.assertEqual(
+            eleve.scolarites.get(annee_scolaire="2026-2027").niveau, "MS"
+        )
+
+    def test_le_reglage_niveau_par_defaut_pre_selectionne_la_page(self):
+        r = self.client.get(self.url, {"niveau_defaut": "GS"})
+
+        self.assertContains(r, 'value="GS" selected>Grande section')
+
+    def test_le_nom_de_l_eleve_de_la_composition_mene_a_son_parcours(self):
+        r = self.client.get(self.url)
+
+        self.assertContains(
+            r,
+            f'href="{reverse("parcours_eleve", args=[self.eleve.pk])}?retour={self.classe.pk}"',
+        )
+
+    def test_la_composition_a_son_propre_titre_avec_date_de_naissance(self):
+        self.eleve.annee_naissance = 2021
+        self.eleve.save(update_fields=["annee_naissance"])
+
+        r = self.client.get(self.url)
+
+        self.assertContains(r, f"<h1>Composition de {self.classe.nom}</h1>")
+        self.assertContains(r, "Né(e) en 2021")
+
+    def test_le_parcours_ramene_vers_la_classe_d_origine(self):
+        r = self.client.get(
+            reverse("parcours_eleve", args=[self.eleve.pk]), {"retour": self.classe.pk}
+        )
+
+        self.assertContains(
+            r, f'href="{reverse("importer_eleves", args=[self.classe.pk])}"'
+        )
+        self.assertContains(r, self.classe.nom)
 
 
 class Import(Base):

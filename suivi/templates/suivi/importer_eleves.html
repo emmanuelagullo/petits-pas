@@ -2,18 +2,28 @@
 {% block titre %}Ajouter des enfants{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
-<h1>Ajouter des enfants à {{ classe.nom }}</h1>
-<p class="sous-titre">Ajoutez un élève déjà connu ou collez une liste de nouveaux élèves.</p>
+
+<form method="get" class="reglage-niveau-defaut">
+  <label for="niveau_defaut_page">Niveau par défaut de la classe</label>
+  <select id="niveau_defaut_page" name="niveau_defaut" onchange="this.form.submit()">
+    <option value="PS"{% if niveau_defaut_page == "PS" %} selected{% endif %}>Petite section</option>
+    <option value="MS"{% if niveau_defaut_page == "MS" %} selected{% endif %}>Moyenne section</option>
+    <option value="GS"{% if niveau_defaut_page == "GS" %} selected{% endif %}>Grande section</option>
+  </select>
+</form>
 
 {% if composition %}
+<h1>Composition de {{ classe.nom }}</h1>
+<p class="sous-titre">Modifier l'affectation d'un élève.</p>
 <section class="encadre">
   <h2>Composition actuelle de la classe</h2>
   {% for scolarite in composition %}
   <div class="ligne-composition">
-    <span class="principal">{{ scolarite.eleve.nom_court }}</span>
+    <a class="principal" href="{% url 'parcours_eleve' scolarite.eleve.pk %}?retour={{ classe.pk }}"><strong>{{ scolarite.eleve.nom_court }}</strong></a>
+    {% if scolarite.eleve.annee_naissance %}<span class="secondaire">Né(e) en {{ scolarite.eleve.annee_naissance }}</span>{% endif %}
     <form method="post" onsubmit="return confirm('Changer le niveau de {{ scolarite.eleve.prenom|escapejs }} ?');">
-      {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
-      <select name="niveau" aria-label="Niveau de {{ scolarite.eleve.prenom }}"><option value="PS"{% if scolarite.niveau == 'PS' %} selected{% endif %}>PS</option><option value="MS"{% if scolarite.niveau == 'MS' %} selected{% endif %}>MS</option><option value="GS"{% if scolarite.niveau == 'GS' %} selected{% endif %}>GS</option></select>
+      {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}"><input type="hidden" name="niveau_defaut" value="{{ niveau_defaut_page }}">
+      <select name="niveau" aria-label="Niveau de {{ scolarite.eleve.prenom }}" onchange="this.form.requestSubmit()"><option value="PS"{% if scolarite.niveau == 'PS' %} selected{% endif %}>PS</option><option value="MS"{% if scolarite.niveau == 'MS' %} selected{% endif %}>MS</option><option value="GS"{% if scolarite.niveau == 'GS' %} selected{% endif %}>GS</option></select>
       <button class="bouton discret" type="submit">Modifier le niveau</button>
     </form>
     <form method="post" onsubmit="return confirm('Retirer {{ scolarite.eleve.prenom|escapejs }} de {{ classe.nom|escapejs }} ?');">
@@ -38,15 +48,18 @@
 </section>
 {% endif %}
 
+<h1>Ajouter des enfants à {{ classe.nom }}</h1>
+<p class="sous-titre">Ajoutez un élève déjà connu ou collez une liste de nouveaux élèves.</p>
+
 {% if eleves_disponibles %}
 <section class="encadre">
   <h2>Élèves déjà connus, sans classe en {{ classe.annee_scolaire }}</h2>
   {% for eleve in eleves_disponibles %}
   <form method="post" class="ligne-affectation">
-    {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}">
-    <strong>{{ eleve.nom_court }}</strong>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
+    {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}"><input type="hidden" name="niveau_defaut" value="{{ niveau_defaut_page }}">
+    <a href="{% url 'parcours_eleve' eleve.pk %}?retour={{ classe.pk }}"><strong>{{ eleve.nom_court }}</strong></a>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
     <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}">
-      <option value=""{% if not eleve.niveau_suggere %} selected{% endif %}>Vide</option>
+      <option value=""{% if not eleve.niveau_suggere %} selected{% endif %}>Niveau par défaut de la classe</option>
       <option value="PS"{% if eleve.niveau_suggere == "PS" %} selected{% endif %}>PS</option>
       <option value="MS"{% if eleve.niveau_suggere == "MS" %} selected{% endif %}>MS</option>
       <option value="GS"{% if eleve.niveau_suggere == "GS" %} selected{% endif %}>GS</option>
@@ -64,7 +77,7 @@
   {% for scolarite in affectations_autres %}
   <form method="post" class="ligne-affectation">
     {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}"><input type="hidden" name="confirmer_deplacement" value="on">
-    <strong>{{ scolarite.eleve.nom_court }}</strong><span>{{ scolarite.classe.nom }}</span>
+    <a href="{% url 'parcours_eleve' scolarite.eleve.pk %}?retour={{ classe.pk }}"><strong>{{ scolarite.eleve.nom_court }}</strong></a><span>{{ scolarite.classe.nom }}</span>
     <select name="niveau" aria-label="Niveau de {{ scolarite.eleve.prenom }}"><option value="PS"{% if scolarite.niveau == 'PS' %} selected{% endif %}>PS</option><option value="MS"{% if scolarite.niveau == 'MS' %} selected{% endif %}>MS</option><option value="GS"{% if scolarite.niveau == 'GS' %} selected{% endif %}>GS</option></select>
     <button class="bouton discret" type="submit">Déplacer vers cette classe</button>
   </form>
@@ -77,10 +90,10 @@
   <h2>Élèves archivés</h2>
   {% for eleve in eleves_archives %}
   <form method="post" class="ligne-affectation">
-    {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}"><input type="hidden" name="reactiver" value="on"><input type="hidden" name="confirmer_deplacement" value="on">
-    <strong>{{ eleve.nom_court }}</strong>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
+    {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}"><input type="hidden" name="reactiver" value="on"><input type="hidden" name="confirmer_deplacement" value="on"><input type="hidden" name="niveau_defaut" value="{{ niveau_defaut_page }}">
+    <a href="{% url 'parcours_eleve' eleve.pk %}?retour={{ classe.pk }}"><strong>{{ eleve.nom_court }}</strong></a>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
     <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}">
-      <option value=""{% if not eleve.niveau_suggere %} selected{% endif %}>Vide</option>
+      <option value=""{% if not eleve.niveau_suggere %} selected{% endif %}>Niveau par défaut de la classe</option>
       <option value="PS"{% if eleve.niveau_suggere == "PS" %} selected{% endif %}>PS</option>
       <option value="MS"{% if eleve.niveau_suggere == "MS" %} selected{% endif %}>MS</option>
       <option value="GS"{% if eleve.niveau_suggere == "GS" %} selected{% endif %}>GS</option>
@@ -103,9 +116,9 @@
     <span class="aide">Appliqué aux lignes où vous ne l'avez pas précisé.</span>
   </label>
   <select id="niveau" name="niveau">
-    <option value="PS">Petite section</option>
-    <option value="MS">Moyenne section</option>
-    <option value="GS">Grande section</option>
+    <option value="PS"{% if niveau_defaut_page == "PS" %} selected{% endif %}>Petite section</option>
+    <option value="MS"{% if niveau_defaut_page == "MS" %} selected{% endif %}>Moyenne section</option>
+    <option value="GS"{% if niveau_defaut_page == "GS" %} selected{% endif %}>Grande section</option>
   </select>
 
   <div class="actions"><button class="bouton" type="submit">Ajouter ces enfants</button></div>

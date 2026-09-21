@@ -156,9 +156,20 @@ h2 {
   padding: 0.65rem 0;
 }
 .ligne-composition + .ligne-composition { border-top: 1px solid var(--trait); }
-.ligne-composition .principal { flex: none; min-width: 8rem; font-weight: 550; }
+.ligne-composition .principal { flex: none; min-width: 8rem; font-weight: 550; color: var(--ardoise); text-decoration: none; }
+.ligne-composition .principal:hover { text-decoration: underline; }
 .ligne-composition form { display: flex; align-items: center; gap: 0.4rem; margin: 0; }
 .ligne-composition select { margin: 0; min-width: 4.5rem; }
+
+.reglage-niveau-defaut {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.6rem 0 1.4rem;
+  font-size: 0.9rem;
+  color: var(--ardoise-clair);
+}
+.reglage-niveau-defaut select { margin: 0; }
 
 /* ---------- Listes de classes et d'élèves ---------- */
 
