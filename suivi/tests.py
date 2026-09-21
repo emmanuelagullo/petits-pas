@@ -129,6 +129,13 @@ class Base(TestCase):
             {"nom_utilisateur": nom_utilisateur, "mot_de_passe": mdp},
         )
 
+    def affecter_enseignant(self, classe, type=AffectationClasse.RESPONSABLE):
+        return AffectationClasse.objects.create(
+            appartenance=self.appartenance_enseignant,
+            classe=classe,
+            type=type,
+        )
+
     def creer_trace(self, observation=None, **champs):
         observation = observation or Observation.objects.create(
             eleve=self.eleve,
@@ -979,7 +986,7 @@ class ClasseStatutAnnee(Base):
 class TableauDeClasse(Base):
     def setUp(self):
         super().setUp()
-        self.entrer("dir-mdp")
+        self.entrer()
         domaine = self.competence.domaine
         self.competence_ms = Competence.objects.create(
             domaine=domaine, code="LANG-02", libelle="Je raconte une histoire",
@@ -1096,9 +1103,10 @@ class PageDesClasses(Base):
         self.assertContains(r, self.classe.annee_scolaire)
 
     def test_une_classe_future_est_signalee_et_groupee_avant_la_courante(self):
-        Classe.objects.create(
+        classe = Classe.objects.create(
             ecole=self.ecole, nom="Rentrée", annee_scolaire="2027-2028"
         )
+        self.affecter_enseignant(classe)
 
         r = self.client.get(reverse("accueil"))
 
@@ -1109,9 +1117,10 @@ class PageDesClasses(Base):
         )
 
     def test_par_defaut_les_annees_passees_sont_masquees(self):
-        Classe.objects.create(
+        classe = Classe.objects.create(
             ecole=self.ecole, nom="Ancienne", annee_scolaire="2024-2025"
         )
+        self.affecter_enseignant(classe)
 
         r = self.client.get(reverse("accueil"))
 
@@ -1119,9 +1128,10 @@ class PageDesClasses(Base):
         self.assertContains(r, "Voir aussi les années précédentes")
 
     def test_le_lien_affiche_aussi_les_annees_passees(self):
-        Classe.objects.create(
+        classe = Classe.objects.create(
             ecole=self.ecole, nom="Ancienne", annee_scolaire="2024-2025"
         )
+        self.affecter_enseignant(classe)
 
         r = self.client.get(reverse("accueil"), {"toutes": "1"})
 
@@ -1130,12 +1140,14 @@ class PageDesClasses(Base):
         self.assertContains(r, "Revenir aux classes à partir de l'année en cours")
 
     def test_une_annee_precedente_immediate_est_distinguee_des_plus_anciennes(self):
-        Classe.objects.create(
+        classe_1 = Classe.objects.create(
             ecole=self.ecole, nom="Année-1", annee_scolaire="2025-2026"
         )
-        Classe.objects.create(
+        classe_3 = Classe.objects.create(
             ecole=self.ecole, nom="Année-3", annee_scolaire="2023-2024"
         )
+        self.affecter_enseignant(classe_1)
+        self.affecter_enseignant(classe_3)
 
         r = self.client.get(reverse("accueil"), {"toutes": "1"})
 
@@ -1916,6 +1928,8 @@ class ParametrageCarnet(Base):
         self.assertFalse(parametres.inclure_bilans)
 
     def test_attendus_et_sous_domaine_sont_optionnels_dans_le_carnet(self):
+        self.client.logout()
+        self.entrer()
         sous_domaine = SousDomaine.objects.create(
             domaine=self.competence.domaine,
             code="ORAL",
