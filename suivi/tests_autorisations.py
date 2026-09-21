@@ -26,7 +26,17 @@ from .autorisations import (
     peut_terminer_affectation,
     toutes_autorisees,
 )
-from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
+from .models import (
+    Classe,
+    Competence,
+    Domaine,
+    Ecole,
+    Eleve,
+    EvenementAudit,
+    Observation,
+    Scolarite,
+    Trace,
+)
 
 
 class PolitiqueAutorisations(TestCase):
@@ -253,16 +263,166 @@ class LecturesCloisonnees(PolitiqueAutorisations):
             eleve=self.alice,
             competence=self.competence,
         )
+        trace_amina = Trace.objects.create(
+            observation=observation,
+            scolarite=self.alice.scolarite_courante(),
+            auteur=self.amina,
+            dernier_editeur=self.amina,
+            commentaire="Trace d'Amina",
+        )
         self.client.force_login(self.cora)
 
         suivi = self.client.get(f"/eleve/{self.alice.pk}/")
         trace = self.client.get(
-            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/trace/"
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/"
+            f"trace/{trace_amina.pk}/"
         )
 
         self.assertEqual(suivi.status_code, 404)
         self.assertEqual(trace.status_code, 404)
         self.assertTrue(Observation.objects.filter(pk=observation.pk).exists())
+
+    def test_t060_responsable_modifie_etat_et_audit(self):
+        self.client.force_login(self.remi)
+
+        reponse = self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/basculer/"
+        )
+
+        self.assertEqual(reponse.status_code, 200)
+        observation = Observation.objects.get(
+            eleve=self.alice, competence=self.competence
+        )
+        evenement = EvenementAudit.objects.get(action="observation.etat_modifie")
+        self.assertEqual(observation.statut, Observation.REUSSI)
+        self.assertEqual(evenement.acteur, self.remi)
+        self.assertEqual(evenement.anciennes_valeurs, {"statut": None})
+
+    def test_t061_associe_ne_modifie_pas_etat(self):
+        self.client.force_login(self.amina)
+
+        reponse = self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/basculer/"
+        )
+
+        self.assertEqual(reponse.status_code, 404)
+        self.assertFalse(Observation.objects.exists())
+
+    def _ajouter_trace(self, utilisateur, commentaire="Une contribution"):
+        self.client.force_login(utilisateur)
+        return self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/trace/",
+            {
+                "commentaire": commentaire,
+                "date_observation": self.aujourdhui.isoformat(),
+                "visible_carnet": "on",
+            },
+        )
+
+    def test_t062_associe_ajoute_trace_sans_fixer_etat(self):
+        reponse = self._ajouter_trace(self.amina)
+
+        self.assertEqual(reponse.status_code, 302)
+        trace = Trace.objects.get()
+        self.assertEqual(trace.auteur, self.amina)
+        self.assertEqual(trace.dernier_editeur, self.amina)
+        self.assertIsNone(trace.observation.statut)
+        self.assertTrue(EvenementAudit.objects.filter(action="trace.creee").exists())
+
+    def test_t063_t064_contributeur_ajoute_sans_voir_statut(self):
+        reponse = self._ajouter_trace(self.cora, "Photo commentée")
+
+        self.assertEqual(reponse.status_code, 302)
+        trace = Trace.objects.get()
+        self.assertEqual(trace.auteur, self.cora)
+        self.assertIsNone(trace.observation.statut)
+        page = self.client.get(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/trace/"
+        )
+        self.assertContains(page, "Photo commentée")
+        self.assertNotContains(page, "Réussi")
+
+    def test_t065_t067_auteur_et_editeur_restent_distincts(self):
+        self._ajouter_trace(self.cora, "Avant")
+        trace = Trace.objects.get()
+        self.client.force_login(self.remi)
+
+        reponse = self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/"
+            f"trace/{trace.pk}/",
+            {
+                "commentaire": "Après",
+                "date_observation": self.aujourdhui.isoformat(),
+                "visible_carnet": "on",
+            },
+        )
+
+        self.assertEqual(reponse.status_code, 302)
+        trace.refresh_from_db()
+        self.assertEqual(trace.auteur, self.cora)
+        self.assertEqual(trace.dernier_editeur, self.remi)
+        evenement = EvenementAudit.objects.get(action="trace.modifiee")
+        self.assertEqual(evenement.anciennes_valeurs["commentaire"], "Avant")
+
+    def test_t066_auteur_ne_corrige_plus_apres_affectation(self):
+        self._ajouter_trace(self.cora)
+        trace = Trace.objects.get()
+        affectation = AffectationClasse.objects.get(
+            appartenance=self.cora_a, classe=self.a1
+        )
+        affectation.etat = AffectationClasse.TERMINEE
+        affectation.save(update_fields=["etat"])
+
+        reponse = self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/"
+            f"trace/{trace.pk}/",
+            {"commentaire": "Interdit"},
+        )
+
+        self.assertEqual(reponse.status_code, 403)
+        trace.refresh_from_db()
+        self.assertEqual(trace.commentaire, "Une contribution")
+
+    def test_t068_associe_ne_modifie_pas_trace_autrui(self):
+        self._ajouter_trace(self.cora)
+        trace = Trace.objects.get()
+        self.client.force_login(self.amina)
+
+        reponse = self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/"
+            f"trace/{trace.pk}/",
+            {"commentaire": "Interdit"},
+        )
+
+        self.assertEqual(reponse.status_code, 404)
+
+    def test_t069_suppression_logique_et_restauration(self):
+        self._ajouter_trace(self.cora)
+        trace = Trace.objects.get()
+        self.client.force_login(self.remi)
+
+        suppression = self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/"
+            f"trace/{trace.pk}/supprimer/"
+        )
+        trace.refresh_from_db()
+        self.assertEqual(suppression.status_code, 302)
+        self.assertIsNotNone(trace.supprime_le)
+
+        restauration = self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/"
+            f"trace/{trace.pk}/restaurer/"
+        )
+        trace.refresh_from_db()
+        self.assertEqual(restauration.status_code, 302)
+        self.assertIsNone(trace.supprime_le)
+        self.assertQuerySetEqual(
+            EvenementAudit.objects.filter(
+                action__in=["trace.supprimee", "trace.restauree"]
+            ).order_by("cree_le"),
+            ["trace.supprimee", "trace.restauree"],
+            transform=lambda evenement: evenement.action,
+        )
 
     def test_t044_associe_voit_le_suivi_complet(self):
         self.client.force_login(self.amina)

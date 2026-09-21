@@ -29,14 +29,14 @@
 <ul class="liste">
   {% for e in eleves %}
   <li>
-    {% if suivi_complet %}<a class="entree" href="{% url 'saisie_eleve' e.pk %}">{% else %}<div class="entree">{% endif %}
+    {% if suivi_complet %}<a class="entree" href="{% url 'saisie_eleve' e.pk %}">{% elif vue_minimale %}<a class="entree" href="{% url 'contribuer_eleve' e.pk %}">{% else %}<div class="entree">{% endif %}
       <span class="pastille">{{ e.niveau }}</span>
       <span class="principal">{{ e.nom_affiche }}</span>
       {% if suivi_complet %}
       <span class="jauge" aria-hidden="true"><span style="width: {{ e.part_reussies }}%"></span></span>
       <span class="secondaire">{{ e.nb_reussies }}/{{ e.total_competences }} réussite{{ e.nb_reussies|pluralize }} · {{ e.nb_bilans }} bilan{{ e.nb_bilans|pluralize }}</span>
       {% endif %}
-    {% if suivi_complet %}</a>{% else %}</div>{% endif %}
+    {% if suivi_complet or vue_minimale %}</a>{% else %}</div>{% endif %}
     {% if est_direction %}<div class="actions"><a class="bouton discret" href="{% url 'parcours_eleve' e.pk %}">Parcours et rentrée</a><form method="post" action="{% url 'archiver_eleve' e.pk %}">{% csrf_token %}<button class="bouton discret" type="submit">Archiver sans supprimer</button></form></div>{% endif %}
   </li>
   {% endfor %}

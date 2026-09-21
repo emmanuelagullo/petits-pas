@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Une trace pour {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'saisie_eleve' eleve.pk %}">{{ eleve.prenom }} {{ eleve.nom }}</a></p>
+<p class="fil"><a href="{% if suivi_complet %}{% url 'saisie_eleve' eleve.pk %}{% else %}{% url 'contribuer_eleve' eleve.pk %}{% endif %}">{{ eleve.nom_court }}</a></p>
 <h1>{{ competence.libelle }}</h1>
 <p class="sous-titre">{{ competence.domaine.nom }}</p>
 
@@ -15,7 +15,8 @@
     <p><strong>{{ trace.date_observation|date:"j F Y" }}</strong>{% if not trace.visible_carnet %} · masquée dans le carnet{% endif %}</p>
     {% if trace.commentaire %}<p>{{ trace.commentaire }}</p>{% endif %}
     {% if trace.photo %}<img class="miniature" src="{{ trace.photo.url }}" alt="">{% endif %}
-    <p><a href="{% url 'modifier_trace' eleve.pk competence.pk trace.pk %}">Modifier cette trace</a></p>
+    {% if trace.peut_modifier %}<p><a href="{% url 'modifier_trace' eleve.pk competence.pk trace.pk %}">Modifier cette trace</a></p>{% endif %}
+    {% if responsable %}
     <form method="post" action="{% url 'basculer_visibilite_trace' eleve.pk competence.pk trace.pk %}" class="visibilite-trace">
       {% csrf_token %}
       <button class="bouton discret {% if trace.visible_carnet %}visible-carnet{% else %}masquee-carnet{% endif %}" type="submit">
@@ -23,10 +24,13 @@
       </button>
     </form>
     {% endif %}
-    <form method="post" action="{% url 'supprimer_trace' eleve.pk competence.pk trace.pk %}" class="supprimer-trace" onsubmit="return confirm('Supprimer définitivement cette trace ?');">
+    {% endif %}
+    {% if trace.peut_modifier %}
+    <form method="post" action="{% url 'supprimer_trace' eleve.pk competence.pk trace.pk %}" class="supprimer-trace" onsubmit="return confirm('Retirer cette trace ? Elle pourra être restaurée par un responsable.');">
       {% csrf_token %}
-      <button class="bouton discret" type="submit">Supprimer cette trace</button>
+      <button class="bouton discret" type="submit">Retirer cette trace</button>
     </form>
+    {% endif %}
   </article>
   {% endfor %}
   {% if not trace_obj %}
@@ -35,4 +39,17 @@
   </article>
   {% endif %}
 </section>
+{% if traces_supprimees %}
+<section class="encadre historique-traces">
+  <h2>Traces supprimées</h2>
+  {% for trace in traces_supprimees %}
+  <article class="trace-conservee">
+    <p><strong>{{ trace.date_observation|date:"j F Y" }}</strong> · supprimée logiquement</p>
+    <form method="post" action="{% url 'restaurer_trace' eleve.pk competence.pk trace.pk %}">
+      {% csrf_token %}<button class="bouton discret" type="submit">Restaurer cette trace</button>
+    </form>
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
 {% endblock %}

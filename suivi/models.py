@@ -1,6 +1,7 @@
 import re
 import datetime
 
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -277,6 +278,28 @@ class Bilan(models.Model):
     date_bilan = models.DateField()
     texte = models.TextField()
     visible_carnet = models.BooleanField(default=True)
+    auteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="bilans_crees",
+        blank=True,
+        null=True,
+    )
+    dernier_editeur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="bilans_modifies",
+        blank=True,
+        null=True,
+    )
+    supprime_le = models.DateTimeField(blank=True, null=True)
+    supprime_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="bilans_supprimes",
+        blank=True,
+        null=True,
+    )
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
@@ -421,7 +444,9 @@ class Observation(models.Model):
     competence = models.ForeignKey(
         Competence, on_delete=models.CASCADE, related_name="observations"
     )
-    statut = models.CharField(max_length=10, choices=STATUTS, default=REUSSI)
+    statut = models.CharField(
+        max_length=10, choices=STATUTS, default=REUSSI, blank=True, null=True
+    )
     date_observation = models.DateField(default=timezone.localdate)
     modifie_le = models.DateTimeField(auto_now=True)
 
@@ -439,11 +464,13 @@ class Observation(models.Model):
         )
         if traces_prefaites is not None:
             return max(
-                traces_prefaites,
+                (trace for trace in traces_prefaites if trace.supprime_le is None),
                 key=lambda trace: (trace.date_observation, trace.pk),
                 default=None,
             )
-        return self.traces.order_by("-date_observation", "-pk").first()
+        return self.traces.filter(supprime_le__isnull=True).order_by(
+            "-date_observation", "-pk"
+        ).first()
 
     @property
     def commentaire(self):
@@ -462,15 +489,25 @@ class Observation(models.Model):
     def a_un_commentaire(self):
         traces_prefaites = self._traces_prefaites()
         if traces_prefaites is not None:
-            return any(trace.commentaire for trace in traces_prefaites)
-        return self.traces.exclude(commentaire="").exists()
+            return any(
+                trace.commentaire
+                for trace in traces_prefaites
+                if trace.supprime_le is None
+            )
+        return self.traces.filter(supprime_le__isnull=True).exclude(
+            commentaire=""
+        ).exists()
 
     @cached_property
     def a_une_photo(self):
         traces_prefaites = self._traces_prefaites()
         if traces_prefaites is not None:
-            return any(trace.photo for trace in traces_prefaites)
-        return self.traces.exclude(photo="").exclude(photo__isnull=True).exists()
+            return any(
+                trace.photo for trace in traces_prefaites if trace.supprime_le is None
+            )
+        return self.traces.filter(supprime_le__isnull=True).exclude(
+            photo=""
+        ).exclude(photo__isnull=True).exists()
 
 
 class Trace(models.Model):
@@ -484,6 +521,28 @@ class Trace(models.Model):
     commentaire = models.TextField(blank=True)
     photo = models.ImageField(upload_to="traces/%Y/%m/", blank=True, null=True)
     visible_carnet = models.BooleanField(default=True)
+    auteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="traces_creees",
+        blank=True,
+        null=True,
+    )
+    dernier_editeur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="traces_modifiees",
+        blank=True,
+        null=True,
+    )
+    supprime_le = models.DateTimeField(blank=True, null=True)
+    supprime_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="traces_supprimees",
+        blank=True,
+        null=True,
+    )
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
@@ -492,3 +551,25 @@ class Trace(models.Model):
 
     def __str__(self):
         return f"{self.observation.eleve} — {self.date_observation:%d/%m/%Y}"
+
+
+class EvenementAudit(models.Model):
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, related_name="audit")
+    acteur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="evenements_audit",
+    )
+    action = models.CharField(max_length=80)
+    modele = models.CharField(max_length=80)
+    objet_id = models.CharField(max_length=80)
+    anciennes_valeurs = models.JSONField(default=dict, blank=True)
+    nouvelles_valeurs = models.JSONField(default=dict, blank=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-cree_le", "-pk"]
+        indexes = [models.Index(fields=["ecole", "cree_le"])]
+
+    def __str__(self):
+        return f"{self.action} {self.modele}#{self.objet_id}"

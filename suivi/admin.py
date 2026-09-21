@@ -8,6 +8,7 @@ from .models import (
     Domaine,
     Ecole,
     Eleve,
+    EvenementAudit,
     FormulationProposee,
     Observation,
     ParametresCarnet,
@@ -15,6 +16,31 @@ from .models import (
     SousDomaine,
     Trace,
 )
+
+
+@admin.register(EvenementAudit)
+class EvenementAuditAdmin(admin.ModelAdmin):
+    list_display = ("cree_le", "ecole", "acteur", "action", "modele", "objet_id")
+    list_filter = ("ecole", "action", "modele")
+    readonly_fields = (
+        "ecole",
+        "acteur",
+        "action",
+        "modele",
+        "objet_id",
+        "anciennes_valeurs",
+        "nouvelles_valeurs",
+        "cree_le",
+    )
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(ParametresCarnet)

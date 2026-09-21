@@ -26,11 +26,11 @@
   </label>
   <input type="file" id="photo" name="photo" accept="image/*">
 
-  <p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if not trace_obj or trace_obj.visible_carnet %}checked{% endif %}> Afficher cette trace dans le carnet</label></p>
+  {% if responsable %}<p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if not trace_obj or trace_obj.visible_carnet %}checked{% endif %}> Afficher cette trace dans le carnet</label></p>{% endif %}
 
   <div class="actions">
     <button class="bouton" type="submit">{% if trace_obj %}Enregistrer les modifications{% else %}Ajouter la trace{% endif %}</button>
-    <a class="bouton discret" href="{% if trace_obj %}{% url 'trace' eleve.pk competence.pk %}{% else %}{% url 'saisie_eleve' eleve.pk %}{% endif %}">Annuler</a>
+    <a class="bouton discret" href="{% if trace_obj %}{% url 'trace' eleve.pk competence.pk %}{% elif suivi_complet %}{% url 'saisie_eleve' eleve.pk %}{% else %}{% url 'contribuer_eleve' eleve.pk %}{% endif %}">Annuler</a>
   </div>
 </form>
 {% if formulations %}

@@ -1,0 +1,1 @@
+"""Opérations métier transactionnelles."""
