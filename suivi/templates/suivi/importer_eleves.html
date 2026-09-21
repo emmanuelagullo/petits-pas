@@ -5,6 +5,39 @@
 <h1>Ajouter des enfants à {{ classe.nom }}</h1>
 <p class="sous-titre">Ajoutez un élève déjà connu ou collez une liste de nouveaux élèves.</p>
 
+{% if composition %}
+<section class="encadre">
+  <h2>Composition actuelle de la classe</h2>
+  {% for scolarite in composition %}
+  <div class="ligne-composition">
+    <span class="principal">{{ scolarite.eleve.nom_court }}</span>
+    <form method="post" onsubmit="return confirm('Changer le niveau de {{ scolarite.eleve.prenom|escapejs }} ?');">
+      {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
+      <select name="niveau" aria-label="Niveau de {{ scolarite.eleve.prenom }}"><option value="PS"{% if scolarite.niveau == 'PS' %} selected{% endif %}>PS</option><option value="MS"{% if scolarite.niveau == 'MS' %} selected{% endif %}>MS</option><option value="GS"{% if scolarite.niveau == 'GS' %} selected{% endif %}>GS</option></select>
+      <button class="bouton discret" type="submit">Modifier le niveau</button>
+    </form>
+    <form method="post" onsubmit="return confirm('Retirer {{ scolarite.eleve.prenom|escapejs }} de {{ classe.nom|escapejs }} ?');">
+      {% csrf_token %}<input type="hidden" name="action" value="retirer"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
+      <button class="bouton discret" type="submit">Retirer de la classe</button>
+    </form>
+    <form method="post" onsubmit="return confirm('Retirer {{ scolarite.eleve.prenom|escapejs }} de {{ classe.nom|escapejs }} et l\'archiver ?');">
+      {% csrf_token %}<input type="hidden" name="action" value="retirer_et_archiver"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
+      <button class="bouton discret" type="submit">Retirer et archiver</button>
+    </form>
+    {% if autres_classes_annee %}
+    <form method="post">
+      {% csrf_token %}<input type="hidden" name="action" value="deplacer"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
+      <select name="classe_destination" aria-label="Déplacer {{ scolarite.eleve.prenom }} vers">
+        {% for autre in autres_classes_annee %}<option value="{{ autre.pk }}">{{ autre.nom }}</option>{% endfor %}
+      </select>
+      <button class="bouton discret" type="submit">Déplacer</button>
+    </form>
+    {% endif %}
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
 {% if eleves_disponibles %}
 <section class="encadre">
   <h2>Élèves déjà connus, sans classe en {{ classe.annee_scolaire }}</h2>
@@ -12,7 +45,12 @@
   <form method="post" class="ligne-affectation">
     {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}">
     <strong>{{ eleve.nom_court }}</strong>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
-    <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}"><option value="PS">PS</option><option value="MS">MS</option><option value="GS">GS</option></select>
+    <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}">
+      <option value=""{% if not eleve.niveau_suggere %} selected{% endif %}>Vide</option>
+      <option value="PS"{% if eleve.niveau_suggere == "PS" %} selected{% endif %}>PS</option>
+      <option value="MS"{% if eleve.niveau_suggere == "MS" %} selected{% endif %}>MS</option>
+      <option value="GS"{% if eleve.niveau_suggere == "GS" %} selected{% endif %}>GS</option>
+    </select>
     <button class="bouton discret" type="submit">Ajouter à la classe</button>
   </form>
   {% endfor %}
@@ -41,7 +79,12 @@
   <form method="post" class="ligne-affectation">
     {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ eleve.pk }}"><input type="hidden" name="reactiver" value="on"><input type="hidden" name="confirmer_deplacement" value="on">
     <strong>{{ eleve.nom_court }}</strong>{% if eleve.annee_naissance %}<span>Né(e) en {{ eleve.annee_naissance }}</span>{% endif %}
-    <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}"><option value="PS">PS</option><option value="MS">MS</option><option value="GS">GS</option></select>
+    <select name="niveau" aria-label="Niveau de {{ eleve.prenom }}">
+      <option value=""{% if not eleve.niveau_suggere %} selected{% endif %}>Vide</option>
+      <option value="PS"{% if eleve.niveau_suggere == "PS" %} selected{% endif %}>PS</option>
+      <option value="MS"{% if eleve.niveau_suggere == "MS" %} selected{% endif %}>MS</option>
+      <option value="GS"{% if eleve.niveau_suggere == "GS" %} selected{% endif %}>GS</option>
+    </select>
     <button class="bouton discret" type="submit">Réactiver et ajouter</button>
   </form>
   {% endfor %}

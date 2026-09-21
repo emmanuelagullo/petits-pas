@@ -1110,6 +1110,150 @@ class GestionClassesGroupees(Base):
         self.assertContains(r, "années antérieures")
 
 
+class CompositionClasse(Base):
+    def setUp(self):
+        super().setUp()
+        self.entrer("dir-mdp")
+        self.url = reverse("importer_eleves", args=[self.classe.pk])
+
+    def test_la_composition_actuelle_est_affichee_avec_ses_actions(self):
+        r = self.client.get(self.url)
+
+        self.assertContains(r, "Composition actuelle de la classe")
+        self.assertContains(r, "Lou")
+        self.assertContains(r, "Modifier le niveau")
+        self.assertContains(r, "Retirer de la classe")
+        self.assertContains(r, "Retirer et archiver")
+
+    def test_modifier_le_niveau_d_un_eleve_deja_dans_la_classe(self):
+        self.client.post(
+            self.url,
+            {"action": "affecter_existant", "eleve": self.eleve.pk, "niveau": "GS"},
+        )
+
+        self.scolarite.refresh_from_db()
+        self.assertEqual(self.scolarite.niveau, "GS")
+        self.assertEqual(self.scolarite.classe, self.classe)
+
+    def test_retirer_supprime_la_scolarite_et_libere_l_eleve(self):
+        self.client.post(self.url, {"action": "retirer", "eleve": self.eleve.pk})
+
+        self.assertFalse(
+            self.eleve.scolarites.filter(annee_scolaire="2026-2027").exists()
+        )
+        self.assertContains(self.client.get(self.url), "sans classe en 2026-2027")
+
+    def test_retirer_est_refuse_si_des_bilans_existent(self):
+        Bilan.objects.create(
+            scolarite=self.scolarite, date_bilan="2027-01-10", texte="Un bilan"
+        )
+
+        self.client.post(self.url, {"action": "retirer", "eleve": self.eleve.pk})
+
+        self.assertTrue(
+            self.eleve.scolarites.filter(annee_scolaire="2026-2027").exists()
+        )
+
+    def test_retirer_est_refuse_si_des_traces_existent(self):
+        observation = Observation.objects.create(
+            eleve=self.eleve, competence=self.competence, statut="reussi"
+        )
+        Trace.objects.create(observation=observation, scolarite=self.scolarite)
+
+        self.client.post(self.url, {"action": "retirer", "eleve": self.eleve.pk})
+
+        self.assertTrue(
+            self.eleve.scolarites.filter(annee_scolaire="2026-2027").exists()
+        )
+
+    def test_retirer_et_archiver_conserve_la_scolarite(self):
+        self.client.post(
+            self.url, {"action": "retirer_et_archiver", "eleve": self.eleve.pk}
+        )
+
+        self.eleve.refresh_from_db()
+        self.assertIsNotNone(self.eleve.archive_le)
+        self.assertTrue(
+            self.eleve.scolarites.filter(annee_scolaire="2026-2027").exists()
+        )
+
+    def test_deplacer_change_la_classe_de_la_scolarite(self):
+        autre_classe = Classe.objects.create(
+            ecole=self.ecole, nom="Autre", annee_scolaire=self.classe.annee_scolaire
+        )
+
+        self.client.post(
+            self.url,
+            {
+                "action": "deplacer",
+                "eleve": self.eleve.pk,
+                "classe_destination": autre_classe.pk,
+            },
+        )
+
+        self.scolarite.refresh_from_db()
+        self.assertEqual(self.scolarite.classe, autre_classe)
+
+    def test_le_niveau_est_pre_positionne_sur_le_niveau_suivant(self):
+        eleve = Eleve.objects.create(ecole=self.ecole, prenom="Nino")
+        classe_precedente = Classe.objects.create(
+            ecole=self.ecole, nom="MS d'avant", annee_scolaire="2025-2026"
+        )
+        Scolarite.objects.create(
+            eleve=eleve,
+            classe=classe_precedente,
+            annee_scolaire="2025-2026",
+            niveau="MS",
+        )
+        nouvelle_classe = Classe.objects.create(
+            ecole=self.ecole, nom="GS", annee_scolaire="2026-2027"
+        )
+
+        r = self.client.get(reverse("importer_eleves", args=[nouvelle_classe.pk]))
+
+        self.assertContains(r, 'value="GS" selected>GS')
+
+    def test_pas_de_pre_positionnement_sans_scolarite_l_annee_precedente(self):
+        Eleve.objects.create(ecole=self.ecole, prenom="Sami")
+        nouvelle_classe = Classe.objects.create(
+            ecole=self.ecole, nom="GS", annee_scolaire="2026-2027"
+        )
+
+        r = self.client.get(reverse("importer_eleves", args=[nouvelle_classe.pk]))
+
+        self.assertContains(r, 'value="" selected>Vide')
+
+    def test_pas_de_niveau_suivant_apres_la_gs(self):
+        eleve = Eleve.objects.create(ecole=self.ecole, prenom="Elio")
+        classe_precedente = Classe.objects.create(
+            ecole=self.ecole, nom="GS d'avant", annee_scolaire="2025-2026"
+        )
+        Scolarite.objects.create(
+            eleve=eleve,
+            classe=classe_precedente,
+            annee_scolaire="2025-2026",
+            niveau="GS",
+        )
+        nouvelle_classe = Classe.objects.create(
+            ecole=self.ecole, nom="Autre", annee_scolaire="2026-2027"
+        )
+
+        r = self.client.get(reverse("importer_eleves", args=[nouvelle_classe.pk]))
+
+        self.assertContains(r, 'value="" selected>Vide')
+
+    def test_un_niveau_absent_retombe_sur_ps(self):
+        eleve = Eleve.objects.create(ecole=self.ecole, prenom="Malo")
+
+        self.client.post(
+            self.url, {"action": "affecter_existant", "eleve": eleve.pk, "niveau": ""}
+        )
+
+        self.assertEqual(
+            eleve.scolarites.get(annee_scolaire="2026-2027").niveau, "PS"
+        )
+
+
 class Import(Base):
     def test_coller_une_liste_cree_les_eleves(self):
         self.entrer("dir-mdp")
