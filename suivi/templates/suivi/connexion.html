@@ -2,13 +2,15 @@
 {% block titre %}Entrer dans le carnet{% endblock %}
 {% block contenu %}
 <h1>Carnet de suivi des apprentissages</h1>
-<p class="sous-titre">Entrez le mot de passe de votre école pour commencer.</p>
+<p class="sous-titre">Connectez-vous avec votre compte Petits Pas.</p>
 <form method="post" class="encadre">
   {% csrf_token %}
-  <label for="mdp">Mot de passe de l'école
-    <span class="aide">Celui que la direction vous a donné, enseignant ou direction.</span>
+  <label for="nom_utilisateur">Nom d'utilisateur
+    <span class="aide">Celui associé à votre compte Petits Pas.</span>
   </label>
-  <input type="password" id="mdp" name="mot_de_passe" autocomplete="current-password" autofocus required>
+  <input type="text" id="nom_utilisateur" name="nom_utilisateur" autocomplete="username" autofocus required>
+  <label for="mdp">Mot de passe</label>
+  <input type="password" id="mdp" name="mot_de_passe" autocomplete="current-password" required>
   <div class="actions"><button class="bouton" type="submit">Entrer</button></div>
 </form>
 {% endblock %}

@@ -51,8 +51,10 @@ Les quatre niveaux de priorité employés ci-dessous sont :
 ** Existant
 
 - Création d'une école en ligne de commande.
-- Deux rôles accessibles par mots de passe partagés : équipe enseignante et
-  direction.
+- Comptes individuels identifiés par un nom d'utilisateur et un mot de passe.
+- Rattachement transitoire de chaque compte à une école et à l'un des deux
+  profils existants (équipe enseignante ou direction), dans l'attente des
+  appartenances et affectations détaillées de la phase 4.
 - Création de classes et import d'une liste d'élèves.
 - Rattachement d'un élève à une classe et à un niveau PS, MS ou GS.
 - Identité durable comprenant une année de naissance facultative.
@@ -76,7 +78,7 @@ Les quatre niveaux de priorité employés ci-dessous sont :
 
 ** Plus tard
 
-- Comptes individuels et attribution nominative des modifications.
+- Attribution nominative des modifications dans le journal d'audit.
 - Import ou rapprochement avec ONDE, si le cadre institutionnel le permet.
 
 * Saisir les apprentissages au quotidien

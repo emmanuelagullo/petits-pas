@@ -2,13 +2,13 @@
 <div class="demo-access">
   <article>
     <h2>Accès enseignant</h2>
-    <p>Mot de passe</p>
-    <code>{{ $demo.identifiants.enseignant }}</code>
+    <span>Utilisateur : <code>{{ $demo.identifiants.enseignant.utilisateur }}</code></span>
+    <span>Mot de passe : <code>{{ $demo.identifiants.enseignant.mot_de_passe }}</code></span>
   </article>
   <article>
     <h2>Accès direction</h2>
-    <p>Mot de passe</p>
-    <code>{{ $demo.identifiants.direction }}</code>
+    <span>Utilisateur : <code>{{ $demo.identifiants.direction.utilisateur }}</code></span>
+    <span>Mot de passe : <code>{{ $demo.identifiants.direction.mot_de_passe }}</code></span>
   </article>
 </div>
 <p class="actions">

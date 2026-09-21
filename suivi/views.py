@@ -8,6 +8,7 @@ from collections import OrderedDict
 from urllib.parse import quote, unquote
 
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.staticfiles import finders
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection, transaction
@@ -61,9 +62,13 @@ def health(request):
 def acces_requis(vue):
     @wraps(vue)
     def _vue(request, *args, **kwargs):
-        if not request.session.get("ecole_id"):
+        if not request.user.is_authenticated:
             request.session["suivant"] = request.get_full_path()
             return redirect("connexion")
+        if not request.user.ecole_id:
+            return HttpResponseForbidden("Ce compte n'est rattaché à aucune école.")
+        request.session["ecole_id"] = request.user.ecole_id
+        request.session["role"] = request.user.profil_transition
         return vue(request, *args, **kwargs)
 
     return _vue
@@ -73,9 +78,9 @@ def direction_requise(vue):
     @wraps(vue)
     @acces_requis
     def _vue(request, *args, **kwargs):
-        if request.session.get("role") != "direction":
+        if not request.user.est_direction:
             return HttpResponseForbidden(
-                "Cette page est réservée au mot de passe de direction."
+                "Cette page est réservée à la direction."
             )
         return vue(request, *args, **kwargs)
 
@@ -83,26 +88,29 @@ def direction_requise(vue):
 
 
 def ecole_courante(request):
-    return get_object_or_404(Ecole, pk=request.session["ecole_id"])
+    return get_object_or_404(Ecole, pk=request.user.ecole_id)
 
 
 def connexion(request):
+    if request.user.is_authenticated:
+        return redirect("accueil")
     if request.method == "POST":
-        saisi = request.POST.get("mot_de_passe", "")
-        for ecole in Ecole.objects.all():
-            role = ecole.verifier(saisi)
-            if role:
-                request.session["ecole_id"] = ecole.pk
-                request.session["role"] = role
-                return redirect(request.session.pop("suivant", None) or "accueil")
-        messages.error(
-            request, "Ce mot de passe ne correspond à aucune école. Vérifiez la casse."
+        utilisateur = authenticate(
+            request,
+            username=request.POST.get("nom_utilisateur", "").strip(),
+            password=request.POST.get("mot_de_passe", ""),
         )
+        if utilisateur and utilisateur.ecole_id and utilisateur.profil_transition:
+            login(request, utilisateur)
+            request.session["ecole_id"] = utilisateur.ecole_id
+            request.session["role"] = utilisateur.profil_transition
+            return redirect(request.session.pop("suivant", None) or "accueil")
+        messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     return render(request, "suivi/connexion.html")
 
 
 def deconnexion(request):
-    request.session.flush()
+    logout(request)
     return redirect("connexion")
 
 

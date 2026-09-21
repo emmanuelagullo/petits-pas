@@ -1,5 +1,9 @@
 url: https://petits-pas.onrender.com
 ecole: Ma Belle École
 identifiants:
-  enseignant: enseignant-render
-  direction: direction-render
+  enseignant:
+    utilisateur: enseignant-demo
+    mot_de_passe: enseignant-render
+  direction:
+    utilisateur: direction-demo
+    mot_de_passe: direction-render
