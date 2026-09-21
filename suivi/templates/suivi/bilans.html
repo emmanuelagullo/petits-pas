@@ -13,6 +13,7 @@
     {% else %}
       <p><strong>{{ bilan.date_bilan|date:"j F Y" }}</strong> · {{ bilan.scolarite.get_niveau_display }} — {{ bilan.scolarite.annee_scolaire }}{% if not bilan.visible_carnet %} · masqué dans le carnet{% endif %}</p>
       <p>{{ bilan.texte|linebreaksbr }}</p>
+      {% if responsable %}
       <p><a href="{% url 'modifier_bilan' eleve.pk bilan.pk %}">Modifier ce bilan</a></p>
       <form method="post" action="{% url 'basculer_visibilite_bilan' eleve.pk bilan.pk %}" class="visibilite-trace">
         {% csrf_token %}
@@ -20,14 +21,17 @@
           {% if bilan.visible_carnet %}✓ Affiché dans le carnet{% else %}○ Masqué du carnet{% endif %}
         </button>
       </form>
+      {% endif %}
     {% endif %}
-    <form method="post" action="{% url 'supprimer_bilan' eleve.pk bilan.pk %}" class="supprimer-trace" onsubmit="return confirm('Supprimer définitivement ce bilan ?');">
+    {% if responsable %}
+    <form method="post" action="{% url 'supprimer_bilan' eleve.pk bilan.pk %}" class="supprimer-trace" onsubmit="return confirm('Retirer ce bilan ?');">
       {% csrf_token %}
-      <button class="bouton discret" type="submit">Supprimer ce bilan</button>
+      <button class="bouton discret" type="submit">Retirer ce bilan</button>
     </form>
+    {% endif %}
   </article>
   {% endfor %}
-  {% if not bilan_obj %}
+  {% if not bilan_obj and responsable %}
   <article class="trace-conservee ajout-trace">
     {% include "suivi/partiels/formulaire_bilan.html" %}
   </article>

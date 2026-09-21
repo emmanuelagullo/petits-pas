@@ -881,7 +881,7 @@ class HistoriqueTraces(Base):
         self.assertContains(carnet, "Pour la famille")
 
     @patch("suivi.views.default_storage.delete")
-    def test_supprimer_une_trace_supprime_aussi_son_media_prive(self, supprimer):
+    def test_retirer_une_trace_conserve_son_media_pour_restauration(self, supprimer):
         observation = Observation.objects.create(
             eleve=self.eleve, competence=self.competence
         )
@@ -900,8 +900,10 @@ class HistoriqueTraces(Base):
             )
 
         self.assertRedirects(reponse, self.url)
-        self.assertFalse(Trace.objects.filter(pk=trace.pk).exists())
-        supprimer.assert_called_once_with("traces/a-supprimer.jpg")
+        trace.refresh_from_db()
+        self.assertIsNotNone(trace.supprime_le)
+        self.assertEqual(trace.photo.name, "traces/a-supprimer.jpg")
+        supprimer.assert_not_called()
         self.assertTrue(Observation.objects.filter(pk=observation.pk).exists())
 
     def test_supprimer_une_trace_exige_post(self):
@@ -1871,7 +1873,7 @@ class BilansEtPeriodes(Base):
         bilan.refresh_from_db()
         self.assertTrue(bilan.visible_carnet)
 
-    def test_un_bilan_peut_etre_supprime_explicitement(self):
+    def test_un_bilan_peut_etre_supprime_logiquement(self):
         bilan = Bilan.objects.create(
             scolarite=self.scolarite,
             date_bilan="2027-01-15",
@@ -1883,7 +1885,8 @@ class BilansEtPeriodes(Base):
         )
 
         self.assertRedirects(reponse, reverse("bilans_eleve", args=[self.eleve.pk]))
-        self.assertFalse(Bilan.objects.filter(pk=bilan.pk).exists())
+        bilan.refresh_from_db()
+        self.assertIsNotNone(bilan.supprime_le)
 
     def test_supprimer_un_bilan_exige_post(self):
         bilan = Bilan.objects.create(

@@ -34,6 +34,11 @@ urlpatterns = [
         name="grille_competence_pdf",
     ),
     path("eleve/<int:pk>/", views.saisie_eleve, name="saisie_eleve"),
+    path(
+        "eleve/<int:pk>/contribution/",
+        views.contribuer_eleve,
+        name="contribuer_eleve",
+    ),
     path("eleve/<int:pk>/carnet/", views.carnet, name="carnet"),
     path("eleve/<int:pk>/bilans/", views.bilans_eleve, name="bilans_eleve"),
     path(
@@ -75,6 +80,11 @@ urlpatterns = [
         "eleve/<int:eleve_pk>/competence/<int:competence_pk>/trace/<int:trace_pk>/supprimer/",
         views.supprimer_trace,
         name="supprimer_trace",
+    ),
+    path(
+        "eleve/<int:eleve_pk>/competence/<int:competence_pk>/trace/<int:trace_pk>/restaurer/",
+        views.restaurer_trace_vue,
+        name="restaurer_trace",
     ),
     path(
         "eleve/<int:eleve_pk>/competence/<int:competence_pk>/trace/<int:trace_pk>/visibilite/",

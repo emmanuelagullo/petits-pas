@@ -13,7 +13,7 @@ from django.contrib.staticfiles import finders
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection, transaction
 from django.db.models import Count, Prefetch, Q
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -55,6 +55,16 @@ from .models import (
     Trace,
     annee_scolaire_pour,
     bornes_annee_scolaire,
+)
+from .services.pedagogie import (
+    definir_visibilite_bilan,
+    definir_visibilite_trace,
+    enregistrer_bilan,
+    enregistrer_trace,
+    modifier_etat,
+    restaurer_trace,
+    supprimer_bilan_logiquement,
+    supprimer_trace_logiquement,
 )
 
 
@@ -261,7 +271,9 @@ def _bilans_par_eleve(eleves, classe, filtre="classe"):
     """
     if filtre == "tous":
         compte = dict(
-            Bilan.objects.filter(scolarite__eleve__in=eleves)
+            Bilan.objects.filter(
+                scolarite__eleve__in=eleves, supprime_le__isnull=True
+            )
             .values("scolarite__eleve_id")
             .annotate(n=Count("pk"))
             .values_list("scolarite__eleve_id", "n")
@@ -269,7 +281,9 @@ def _bilans_par_eleve(eleves, classe, filtre="classe"):
     elif filtre in {"PS", "MS", "GS"}:
         compte = dict(
             Bilan.objects.filter(
-                scolarite__eleve__in=eleves, scolarite__niveau=filtre
+                scolarite__eleve__in=eleves,
+                scolarite__niveau=filtre,
+                supprime_le__isnull=True,
             )
             .values("scolarite__eleve_id")
             .annotate(n=Count("pk"))
@@ -283,6 +297,7 @@ def _bilans_par_eleve(eleves, classe, filtre="classe"):
                 scolarite__eleve__in=eleves,
                 date_bilan__gte=debut,
                 date_bilan__lte=fin,
+                supprime_le__isnull=True,
             )
             .values("scolarite__eleve_id")
             .annotate(n=Count("pk"))
@@ -380,6 +395,24 @@ def saisie_eleve(request, pk):
         request,
         "suivi/saisie_eleve.html",
         {"eleve": eleve, "domaines": domaines, "filtre": filtre},
+    )
+
+
+@acces_requis
+def contribuer_eleve(request, pk):
+    ecole = ecole_courante(request)
+    eleve = charger_eleve_autorise(
+        request.user,
+        pk,
+        CONTRIBUER,
+        ecole=ecole,
+        actifs_seulement=True,
+    )
+    domaines = [(d, d.visibles) for d in _arbre(ecole) if d.visibles]
+    return render(
+        request,
+        "suivi/contribuer_eleve.html",
+        {"eleve": eleve, "domaines": domaines},
     )
 
 
@@ -516,16 +549,12 @@ def basculer(request, eleve_pk, competence_pk):
 
     suivant = SUITE[obs.statut if obs else None]
 
-    if obs is None:
-        obs = Observation.objects.create(
-            eleve=eleve,
-            competence=competence,
-            statut=suivant,
-        )
-    else:
-        obs.statut = suivant
-        obs.date_observation = timezone.localdate()
-        obs.save(update_fields=["statut", "date_observation", "modifie_le"])
+    obs = modifier_etat(
+        utilisateur=request.user,
+        eleve=eleve,
+        competence=competence,
+        statut=suivant,
+    )
 
     gabarit = (
         "suivi/partiels/case_eleve.html"
@@ -570,7 +599,7 @@ def supprimer_trace(request, eleve_pk, competence_pk, trace_pk):
         return HttpResponseForbidden("POST attendu.")
     ecole = ecole_courante(request)
     charger_eleve_autorise(
-        request.user, eleve_pk, MODIFIER_ETAT, ecole=ecole
+        request.user, eleve_pk, CONTRIBUER, ecole=ecole
     )
     trace_obj = get_object_or_404(
         Trace,
@@ -578,12 +607,29 @@ def supprimer_trace(request, eleve_pk, competence_pk, trace_pk):
         observation__eleve_id=eleve_pk,
         observation__competence_id=competence_pk,
         observation__eleve__ecole=ecole,
+        supprime_le__isnull=True,
     )
-    nom_photo = trace_obj.photo.name if trace_obj.photo else ""
-    with transaction.atomic():
-        trace_obj.delete()
-        _supprimer_media_apres_validation(nom_photo)
+    supprimer_trace_logiquement(utilisateur=request.user, trace=trace_obj)
     messages.success(request, "Trace supprimée.")
+    return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
+
+
+@acces_requis
+def restaurer_trace_vue(request, eleve_pk, competence_pk, trace_pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    ecole = ecole_courante(request)
+    charger_eleve_autorise(request.user, eleve_pk, MODIFIER_ETAT, ecole=ecole)
+    trace_obj = get_object_or_404(
+        Trace,
+        pk=trace_pk,
+        observation__eleve_id=eleve_pk,
+        observation__competence_id=competence_pk,
+        observation__eleve__ecole=ecole,
+        supprime_le__isnull=False,
+    )
+    restaurer_trace(utilisateur=request.user, trace=trace_obj)
+    messages.success(request, "Trace restaurée.")
     return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
 
 
@@ -601,9 +647,13 @@ def basculer_visibilite_trace(request, eleve_pk, competence_pk, trace_pk):
         observation__eleve_id=eleve_pk,
         observation__competence_id=competence_pk,
         observation__eleve__ecole=ecole,
+        supprime_le__isnull=True,
     )
-    trace_obj.visible_carnet = not trace_obj.visible_carnet
-    trace_obj.save(update_fields=["visible_carnet", "modifie_le"])
+    definir_visibilite_trace(
+        utilisateur=request.user,
+        trace=trace_obj,
+        visible=not trace_obj.visible_carnet,
+    )
     etat = "affichée dans le carnet" if trace_obj.visible_carnet else "masquée du carnet"
     messages.success(request, f"Trace {etat}.")
     return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
@@ -615,7 +665,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
     eleve = charger_eleve_autorise(
         request.user,
         eleve_pk,
-        VOIR_SUIVI,
+        CONTRIBUER,
         ecole=ecole,
         actifs_seulement=True,
     )
@@ -630,35 +680,72 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             observation__eleve=eleve,
             observation__competence=competence,
             scolarite=scolarite_courante,
+            supprime_le__isnull=True,
         )
+        if not (
+            autorise(request.user, MODIFIER_ETAT, eleve, ecole=ecole)
+            or trace_obj.auteur_id == request.user.pk
+        ):
+            raise Http404
 
     if request.method == "POST":
         if not autorise(request.user, CONTRIBUER, eleve, ecole=ecole):
             return HttpResponseForbidden("Contribution non autorisée.")
-        if obs is None:
-            obs = Observation.objects.create(eleve=eleve, competence=competence)
         scolarite = scolarite_courante
         if scolarite is None:
             return HttpResponseForbidden("Aucune scolarité n'est associée à cet élève.")
-        trace_obj = trace_obj or Trace(observation=obs, scolarite=scolarite)
-        ancien_nom_photo = trace_obj.photo.name if trace_obj.pk and trace_obj.photo else ""
-        trace_obj.commentaire = request.POST.get("commentaire", "").strip()
+        ancien_nom_photo = (
+            trace_obj.photo.name if trace_obj and trace_obj.photo else ""
+        )
+        valeurs = {
+            "commentaire": request.POST.get("commentaire", "").strip(),
+            "visible_carnet": request.POST.get("visible_carnet") == "on",
+        }
+        photo = trace_obj.photo if trace_obj else None
         if request.POST.get("retirer_photo"):
-            trace_obj.photo = None
+            photo = None
         if request.FILES.get("photo"):
-            trace_obj.photo = request.FILES["photo"]
+            photo = request.FILES["photo"]
+        valeurs["photo"] = photo
         date = request.POST.get("date_observation")
         if date:
-            trace_obj.date_observation = date
-        trace_obj.visible_carnet = request.POST.get("visible_carnet") == "on"
+            valeurs["date_observation"] = date
         with transaction.atomic():
-            trace_obj.save()
+            trace_obj = enregistrer_trace(
+                utilisateur=request.user,
+                eleve=eleve,
+                competence=competence,
+                scolarite=scolarite,
+                trace=trace_obj,
+                valeurs=valeurs,
+            )
             nouveau_nom_photo = trace_obj.photo.name if trace_obj.photo else ""
             if ancien_nom_photo and ancien_nom_photo != nouveau_nom_photo:
                 _supprimer_media_apres_validation(ancien_nom_photo)
         messages.success(request, f"Trace enregistrée pour {eleve.prenom}.")
         return redirect("trace", eleve_pk=eleve.pk, competence_pk=competence.pk)
 
+    traces = (
+        obs.traces.filter(
+            scolarite=scolarite_courante,
+            supprime_le__isnull=True,
+        ).select_related("scolarite")
+        if obs
+        else Trace.objects.none()
+    )
+    if not autorise(request.user, VOIR_SUIVI, eleve, ecole=ecole):
+        traces = traces.filter(auteur=request.user)
+    responsable = autorise(request.user, MODIFIER_ETAT, eleve, ecole=ecole)
+    for trace_conservee in traces:
+        trace_conservee.peut_modifier = (
+            responsable or trace_conservee.auteur_id == request.user.pk
+        )
+    traces_supprimees = Trace.objects.none()
+    if responsable and obs:
+        traces_supprimees = obs.traces.filter(
+            scolarite=scolarite_courante,
+            supprime_le__isnull=False,
+        )
     return render(
         request,
         "suivi/trace.html",
@@ -667,12 +754,11 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             "competence": competence,
             "obs": obs,
             "trace_obj": trace_obj,
-            "traces": (
-                obs.traces.filter(scolarite=scolarite_courante).select_related(
-                    "scolarite"
-                )
-                if obs
-                else Trace.objects.none()
+            "traces": traces,
+            "traces_supprimees": traces_supprimees,
+            "responsable": responsable,
+            "suivi_complet": autorise(
+                request.user, VOIR_SUIVI, eleve, ecole=ecole
             ),
             "formulations": [
                 formulation.texte.replace("{prenom}", eleve.prenom).replace(
@@ -730,7 +816,9 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     }
     for observation in etats.values():
         observation.traces_carnet = [
-            trace for trace in observation.traces.all() if trace.visible_carnet
+            trace
+            for trace in observation.traces.all()
+            if trace.visible_carnet and trace.supprime_le is None
         ]
     domaines = []
     for d in _arbre(ecole):
@@ -751,7 +839,9 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     scolarite = eleve.scolarite_courante()
     bilans = (
         Bilan.objects.filter(
-            scolarite__eleve=eleve, visible_carnet=True
+            scolarite__eleve=eleve,
+            visible_carnet=True,
+            supprime_le__isnull=True,
         ).select_related("scolarite")
         if inclure_bilans
         else Bilan.objects.none()
@@ -778,7 +868,7 @@ def _regrouper_lignes(eleve, lignes, regroupement):
         return [(None, lignes)]
 
     bilans = list(
-        Bilan.objects.filter(scolarite__eleve=eleve)
+        Bilan.objects.filter(scolarite__eleve=eleve, supprime_le__isnull=True)
         .select_related("scolarite")
         .order_by("date_bilan")
     )
@@ -1478,6 +1568,7 @@ def modifier_bilan(request, pk, bilan_pk):
 def _editer_bilan(request, pk, bilan_pk=None):
     ecole = ecole_courante(request)
     eleve = charger_eleve_autorise(request.user, pk, VOIR_SUIVI, ecole=ecole)
+    responsable = autorise(request.user, MODIFIER_ETAT, eleve, ecole=ecole)
     scolarites = eleve.scolarites.select_related("classe").order_by("-annee_scolaire")
     bilan_obj = None
     if bilan_pk is not None:
@@ -1485,6 +1576,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
             Bilan,
             pk=bilan_pk,
             scolarite__eleve=eleve,
+            supprime_le__isnull=True,
         )
     if request.method == "POST":
         scolarite = get_object_or_404(
@@ -1521,18 +1613,24 @@ def _editer_bilan(request, pk, bilan_pk=None):
                         "eleve": eleve,
                         "scolarites": scolarites,
                         "bilans": Bilan.objects.filter(
-                            scolarite__eleve=eleve
+                            scolarite__eleve=eleve,
+                            supprime_le__isnull=True,
                         ).select_related("scolarite"),
                         "bilan_obj": bilan_en_conflit,
                         "date_defaut": timezone.localdate(),
+                        "responsable": responsable,
                     },
                 )
-            bilan_obj = bilan_obj or Bilan()
-            bilan_obj.scolarite = scolarite
-            bilan_obj.date_bilan = date_bilan
-            bilan_obj.texte = texte
-            bilan_obj.visible_carnet = request.POST.get("visible_carnet") == "on"
-            bilan_obj.save()
+            bilan_obj = enregistrer_bilan(
+                utilisateur=request.user,
+                bilan=bilan_obj,
+                valeurs={
+                    "scolarite": scolarite,
+                    "date_bilan": date_bilan,
+                    "texte": texte,
+                    "visible_carnet": request.POST.get("visible_carnet") == "on",
+                },
+            )
             messages.success(request, "Quelques mots sur le parcours enregistrés.")
             return redirect("bilans_eleve", pk=eleve.pk)
         messages.error(request, "La date et le texte sont obligatoires.")
@@ -1542,11 +1640,12 @@ def _editer_bilan(request, pk, bilan_pk=None):
         {
             "eleve": eleve,
             "scolarites": scolarites,
-            "bilans": Bilan.objects.filter(scolarite__eleve=eleve).select_related(
-                "scolarite"
-            ),
+            "bilans": Bilan.objects.filter(
+                scolarite__eleve=eleve, supprime_le__isnull=True
+            ).select_related("scolarite"),
             "bilan_obj": bilan_obj,
             "date_defaut": timezone.localdate(),
+            "responsable": responsable,
         },
     )
 
@@ -1557,8 +1656,13 @@ def supprimer_bilan(request, pk, bilan_pk):
         return HttpResponseForbidden("POST attendu.")
     ecole = ecole_courante(request)
     eleve = charger_eleve_autorise(request.user, pk, MODIFIER_ETAT, ecole=ecole)
-    bilan = get_object_or_404(Bilan, pk=bilan_pk, scolarite__eleve=eleve)
-    bilan.delete()
+    bilan = get_object_or_404(
+        Bilan,
+        pk=bilan_pk,
+        scolarite__eleve=eleve,
+        supprime_le__isnull=True,
+    )
+    supprimer_bilan_logiquement(utilisateur=request.user, bilan=bilan)
     messages.success(request, "Bilan supprimé.")
     return redirect("bilans_eleve", pk=eleve.pk)
 
@@ -1569,9 +1673,17 @@ def basculer_visibilite_bilan(request, pk, bilan_pk):
         return HttpResponseForbidden("POST attendu.")
     ecole = ecole_courante(request)
     eleve = charger_eleve_autorise(request.user, pk, MODIFIER_ETAT, ecole=ecole)
-    bilan = get_object_or_404(Bilan, pk=bilan_pk, scolarite__eleve=eleve)
-    bilan.visible_carnet = not bilan.visible_carnet
-    bilan.save(update_fields=["visible_carnet", "modifie_le"])
+    bilan = get_object_or_404(
+        Bilan,
+        pk=bilan_pk,
+        scolarite__eleve=eleve,
+        supprime_le__isnull=True,
+    )
+    definir_visibilite_bilan(
+        utilisateur=request.user,
+        bilan=bilan,
+        visible=not bilan.visible_carnet,
+    )
     etat = "affiché dans le carnet" if bilan.visible_carnet else "masqué du carnet"
     messages.success(request, f"Bilan {etat}.")
     return redirect("bilans_eleve", pk=eleve.pk)
