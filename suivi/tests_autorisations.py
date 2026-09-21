@@ -26,7 +26,7 @@ from .autorisations import (
     peut_terminer_affectation,
     toutes_autorisees,
 )
-from .models import Classe, Ecole
+from .models import Classe, Competence, Domaine, Ecole, Eleve, Observation, Scolarite
 
 
 class PolitiqueAutorisations(TestCase):
@@ -39,6 +39,7 @@ class PolitiqueAutorisations(TestCase):
         self.b1 = Classe.objects.create(ecole=self.ecole_b, nom="B1")
         self.remi, self.remi_a = self._membre("remi", self.ecole_a)
         self.amina, self.amina_a = self._membre("amina", self.ecole_a)
+        self.cora, self.cora_a = self._membre("cora", self.ecole_a)
         self.diane, self.diane_a = self._membre("diane", self.ecole_a)
         self.bruno, self.bruno_b = self._membre("bruno", self.ecole_b)
         self.multi, self.multi_a = self._membre("multi", self.ecole_a)
@@ -51,6 +52,9 @@ class PolitiqueAutorisations(TestCase):
         )
         self._affecter(
             self.amina_a, self.a1, AffectationClasse.ENSEIGNANT_ASSOCIE
+        )
+        self._affecter(
+            self.cora_a, self.a1, AffectationClasse.CONTRIBUTEUR
         )
         self._affecter(
             self.bruno_b, self.b1, AffectationClasse.RESPONSABLE
@@ -196,3 +200,121 @@ class PolitiqueAutorisations(TestCase):
             classes_accessibles(self.remi, VOIR_SUIVI), [self.a1]
         )
         self.assertNotIn(self.b1, classes_accessibles(self.remi, VOIR_CLASSE))
+
+
+class LecturesCloisonnees(PolitiqueAutorisations):
+    def setUp(self):
+        super().setUp()
+        self.alice = self._eleve("Alice", "Dupont", "PS", self.a1)
+        self.alex_martin = self._eleve("Alex", "Martin", "MS", self.a1)
+        self.alex_moreau = self._eleve("Alex", "Moreau", "MS", self.a1)
+        self.domaine = Domaine.objects.create(
+            ecole=self.ecole_a, code="LANG", nom="Langage"
+        )
+        self.competence = Competence.objects.create(
+            domaine=self.domaine,
+            code="LANG-1",
+            libelle="S'exprimer",
+            niveau="PS",
+        )
+
+    def _eleve(self, prenom, nom, niveau, classe):
+        eleve = Eleve.objects.create(
+            ecole=classe.ecole, prenom=prenom, nom=nom
+        )
+        Scolarite.objects.create(
+            eleve=eleve,
+            classe=classe,
+            annee_scolaire=classe.annee_scolaire,
+            niveau=niveau,
+        )
+        return eleve
+
+    def test_t040_contributeur_ne_voit_que_identite_minimale(self):
+        self.client.force_login(self.cora)
+
+        reponse = self.client.get(f"/classe/{self.a1.pk}/")
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, "Alice D.")
+        self.assertNotContains(reponse, "Alice Dupont")
+        self.assertNotContains(reponse, "réussite")
+
+    def test_t041_homonymes_affichent_le_nom_complet(self):
+        self.client.force_login(self.cora)
+
+        reponse = self.client.get(f"/classe/{self.a1.pk}/")
+
+        self.assertContains(reponse, "Alex Martin")
+        self.assertContains(reponse, "Alex Moreau")
+
+    def test_t042_t043_contributeur_ne_voit_pas_le_suivi(self):
+        observation = Observation.objects.create(
+            eleve=self.alice,
+            competence=self.competence,
+        )
+        self.client.force_login(self.cora)
+
+        suivi = self.client.get(f"/eleve/{self.alice.pk}/")
+        trace = self.client.get(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/trace/"
+        )
+
+        self.assertEqual(suivi.status_code, 404)
+        self.assertEqual(trace.status_code, 404)
+        self.assertTrue(Observation.objects.filter(pk=observation.pk).exists())
+
+    def test_t044_associe_voit_le_suivi_complet(self):
+        self.client.force_login(self.amina)
+
+        reponse = self.client.get(f"/eleve/{self.alice.pk}/")
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, "S&#x27;exprimer")
+
+    def test_t045_associe_ne_voit_pas_une_autre_classe(self):
+        autre_responsable, appartenance = self._membre("autre", self.ecole_a)
+        a2 = Classe.objects.create(ecole=self.ecole_a, nom="A2")
+        self._affecter(appartenance, a2, AffectationClasse.RESPONSABLE)
+        a2.activer()
+        autre_eleve = self._eleve("Zoé", "Durand", "GS", a2)
+        self.client.force_login(self.amina)
+
+        self.assertEqual(self.client.get(f"/classe/{a2.pk}/").status_code, 404)
+        self.assertEqual(
+            self.client.get(f"/eleve/{autre_eleve.pk}/").status_code,
+            404,
+        )
+        self.assertTrue(autre_responsable.is_active)
+
+    def test_direction_seule_ne_voit_pas_le_contenu_pedagogique(self):
+        self.client.force_login(self.diane)
+
+        self.assertEqual(self.client.get(f"/classe/{self.a1.pk}/").status_code, 200)
+        self.assertEqual(self.client.get(f"/eleve/{self.alice.pk}/").status_code, 404)
+        self.assertEqual(
+            self.client.get(f"/eleve/{self.alice.pk}/carnet/").status_code,
+            404,
+        )
+
+    def test_ouvrir_formulaire_trace_ne_cree_pas_observation(self):
+        self.client.force_login(self.amina)
+
+        reponse = self.client.get(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/trace/"
+        )
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertFalse(
+            Observation.objects.filter(
+                eleve=self.alice, competence=self.competence
+            ).exists()
+        )
+
+    def test_accueil_est_limite_aux_classes_accessibles(self):
+        self.client.force_login(self.amina)
+
+        reponse = self.client.get("/")
+
+        self.assertContains(reponse, "A1")
+        self.assertNotContains(reponse, "B1")

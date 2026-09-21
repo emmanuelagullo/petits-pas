@@ -3,8 +3,9 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'accueil' %}">Les classes</a></p>
 <h1>{{ classe.nom }}</h1>
-<p class="sous-titre">{{ eleves|length }} enfant{{ eleves|length|pluralize }} · {{ total_competences }} compétences au référentiel</p>
+<p class="sous-titre">{{ eleves|length }} enfant{{ eleves|length|pluralize }}{% if suivi_complet %} · {{ total_competences }} compétences au référentiel{% endif %}</p>
 
+{% if suivi_complet %}
 <div class="filtres">
   <a href="?niveaux=classe" aria-current="{% if filtre == 'classe' %}true{% endif %}">Année de classe</a>
   <a href="?niveaux=tous" aria-current="{% if filtre == 'tous' %}true{% endif %}">Tout le cycle</a>
@@ -12,10 +13,15 @@
   <a href="?niveaux=MS" aria-current="{% if filtre == 'MS' %}true{% endif %}">Moyenne section</a>
   <a href="?niveaux=GS" aria-current="{% if filtre == 'GS' %}true{% endif %}">Grande section</a>
 </div>
+{% endif %}
 
 <div class="actions">
+  {% if suivi_complet %}
   <a class="bouton" href="{% url 'choisir_competence' classe.pk %}">Saisir pour toute la classe</a>
+  {% endif %}
+  {% if peut_generer %}
   <a class="bouton discret" href="{% url 'preparer_edition' classe.pk %}">Préparer les carnets PDF</a>
+  {% endif %}
   {% if est_direction %}<a class="bouton discret" href="{% url 'importer_eleves' classe.pk %}">Ajouter des enfants</a>{% endif %}
 </div>
 
@@ -23,12 +29,14 @@
 <ul class="liste">
   {% for e in eleves %}
   <li>
-    <a class="entree" href="{% url 'saisie_eleve' e.pk %}">
+    {% if suivi_complet %}<a class="entree" href="{% url 'saisie_eleve' e.pk %}">{% else %}<div class="entree">{% endif %}
       <span class="pastille">{{ e.niveau }}</span>
-      <span class="principal">{{ e.prenom }} {{ e.nom }}</span>
+      <span class="principal">{{ e.nom_affiche }}</span>
+      {% if suivi_complet %}
       <span class="jauge" aria-hidden="true"><span style="width: {{ e.part_reussies }}%"></span></span>
       <span class="secondaire">{{ e.nb_reussies }}/{{ e.total_competences }} réussite{{ e.nb_reussies|pluralize }} · {{ e.nb_bilans }} bilan{{ e.nb_bilans|pluralize }}</span>
-    </a>
+      {% endif %}
+    {% if suivi_complet %}</a>{% else %}</div>{% endif %}
     {% if est_direction %}<div class="actions"><a class="bouton discret" href="{% url 'parcours_eleve' e.pk %}">Parcours et rentrée</a><form method="post" action="{% url 'archiver_eleve' e.pk %}">{% csrf_token %}<button class="bouton discret" type="submit">Archiver sans supprimer</button></form></div>{% endif %}
   </li>
   {% endfor %}

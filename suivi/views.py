@@ -23,7 +23,24 @@ from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from .autorisations import ACCEDER_APPLICATION, ADMINISTRER_ECOLE, autorise
+from comptes.models import AffectationClasse
+
+from .autorisations import (
+    ACCEDER_APPLICATION,
+    ADMINISTRER_ECOLE,
+    CONTRIBUER,
+    GENERER_CARNET,
+    MODIFIER_ETAT,
+    PREVISUALISER_CARNET,
+    VOIR_CLASSE,
+    VOIR_LISTE_ELEVES,
+    VOIR_SUIVI,
+    affectation_active,
+    autorise,
+    charger_classe_autorisee,
+    charger_eleve_autorise,
+    classes_accessibles,
+)
 from .contexte_ecole import ecole_courante
 from .models import (
     Bilan,
@@ -153,7 +170,7 @@ def _grouper_classes_par_annee(classes, toutes):
 @acces_requis
 def accueil(request):
     ecole = ecole_courante(request)
-    classes = ecole.classes.annotate(
+    classes = classes_accessibles(request.user, VOIR_CLASSE, ecole).annotate(
         nb_eleves=Count(
             "scolarites__eleve",
             filter=Q(scolarites__eleve__archive_le__isnull=True),
@@ -278,13 +295,34 @@ def _bilans_par_eleve(eleves, classe, filtre="classe"):
 @acces_requis
 def classe_detail(request, pk):
     ecole = ecole_courante(request)
-    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    classe = charger_classe_autorisee(
+        request.user, pk, VOIR_LISTE_ELEVES, ecole=ecole
+    )
     eleves = list(classe.eleves)
+    suivi_complet = autorise(request.user, VOIR_SUIVI, classe, ecole=ecole)
+    peut_generer = autorise(request.user, GENERER_CARNET, classe, ecole=ecole)
+    affectation = affectation_active(request.user, classe)
+    vue_minimale = bool(
+        affectation and affectation.type == AffectationClasse.CONTRIBUTEUR
+    )
+    if vue_minimale:
+        groupes_noms = {}
+        for eleve in eleves:
+            cle = (eleve.prenom.casefold(), eleve.nom[:1].casefold(), eleve.niveau)
+            groupes_noms.setdefault(cle, []).append(eleve)
+        for groupe in groupes_noms.values():
+            for eleve in groupe:
+                eleve.nom_affiche = str(eleve) if len(groupe) > 1 else eleve.nom_court
+    else:
+        for eleve in eleves:
+            eleve.nom_affiche = str(eleve)
     filtre = request.GET.get("niveaux", "classe")
     if filtre not in FILTRES_NIVEAU_CLASSE:
         filtre = "classe"
-    total = _progression(eleves, ecole, filtre)
-    _bilans_par_eleve(eleves, classe, filtre)
+    total = 0
+    if suivi_complet:
+        total = _progression(eleves, ecole, filtre)
+        _bilans_par_eleve(eleves, classe, filtre)
     return render(
         request,
         "suivi/classe.html",
@@ -293,6 +331,9 @@ def classe_detail(request, pk):
             "eleves": eleves,
             "total_competences": total,
             "filtre": filtre,
+            "suivi_complet": suivi_complet,
+            "peut_generer": peut_generer,
+            "vue_minimale": vue_minimale,
         },
     )
 
@@ -316,7 +357,13 @@ def _arbre(ecole, niveaux=None):
 def saisie_eleve(request, pk):
     """L'écran du quotidien : un enfant, tout ce qu'il sait faire."""
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole, archive_le__isnull=True)
+    eleve = charger_eleve_autorise(
+        request.user,
+        pk,
+        VOIR_SUIVI,
+        ecole=ecole,
+        actifs_seulement=True,
+    )
     filtre = request.GET.get("niveaux", "tous")
     niveaux = None if filtre == "tous" else [filtre]
 
@@ -339,7 +386,7 @@ def saisie_eleve(request, pk):
 @acces_requis
 def choisir_competence(request, pk):
     ecole = ecole_courante(request)
-    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
     domaines = [(d, d.visibles) for d in _arbre(ecole) if d.visibles]
     return render(
         request,
@@ -352,7 +399,7 @@ def choisir_competence(request, pk):
 def saisie_competence(request, pk, competence_pk):
     """La saisie éclair : une compétence, toute la classe d'un coup."""
     ecole = ecole_courante(request)
-    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
     etats = {
         o.eleve_id: o
@@ -370,7 +417,7 @@ def saisie_competence(request, pk, competence_pk):
 
 def _contexte_grille_competence(request, pk, competence_pk):
     ecole = ecole_courante(request)
-    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
     competence = get_object_or_404(
         Competence, pk=competence_pk, domaine__ecole=ecole
     )
@@ -453,7 +500,13 @@ def basculer(request, eleve_pk, competence_pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=eleve_pk, ecole=ecole, archive_le__isnull=True)
+    eleve = charger_eleve_autorise(
+        request.user,
+        eleve_pk,
+        MODIFIER_ETAT,
+        ecole=ecole,
+        actifs_seulement=True,
+    )
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
 
     obs = Observation.objects.filter(
@@ -516,6 +569,9 @@ def supprimer_trace(request, eleve_pk, competence_pk, trace_pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
     ecole = ecole_courante(request)
+    charger_eleve_autorise(
+        request.user, eleve_pk, MODIFIER_ETAT, ecole=ecole
+    )
     trace_obj = get_object_or_404(
         Trace,
         pk=trace_pk,
@@ -536,6 +592,9 @@ def basculer_visibilite_trace(request, eleve_pk, competence_pk, trace_pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
     ecole = ecole_courante(request)
+    charger_eleve_autorise(
+        request.user, eleve_pk, MODIFIER_ETAT, ecole=ecole
+    )
     trace_obj = get_object_or_404(
         Trace,
         pk=trace_pk,
@@ -553,15 +612,32 @@ def basculer_visibilite_trace(request, eleve_pk, competence_pk, trace_pk):
 def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
     """Ajouter ou modifier une trace datée sans écraser les précédentes."""
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=eleve_pk, ecole=ecole, archive_le__isnull=True)
+    eleve = charger_eleve_autorise(
+        request.user,
+        eleve_pk,
+        VOIR_SUIVI,
+        ecole=ecole,
+        actifs_seulement=True,
+    )
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
-    obs, _ = Observation.objects.get_or_create(eleve=eleve, competence=competence)
+    obs = Observation.objects.filter(eleve=eleve, competence=competence).first()
+    scolarite_courante = eleve.scolarite_courante()
     trace_obj = None
     if trace_pk is not None:
-        trace_obj = get_object_or_404(Trace, pk=trace_pk, observation=obs)
+        trace_obj = get_object_or_404(
+            Trace,
+            pk=trace_pk,
+            observation__eleve=eleve,
+            observation__competence=competence,
+            scolarite=scolarite_courante,
+        )
 
     if request.method == "POST":
-        scolarite = eleve.scolarite_courante()
+        if not autorise(request.user, CONTRIBUER, eleve, ecole=ecole):
+            return HttpResponseForbidden("Contribution non autorisée.")
+        if obs is None:
+            obs = Observation.objects.create(eleve=eleve, competence=competence)
+        scolarite = scolarite_courante
         if scolarite is None:
             return HttpResponseForbidden("Aucune scolarité n'est associée à cet élève.")
         trace_obj = trace_obj or Trace(observation=obs, scolarite=scolarite)
@@ -591,7 +667,13 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             "competence": competence,
             "obs": obs,
             "trace_obj": trace_obj,
-            "traces": obs.traces.select_related("scolarite"),
+            "traces": (
+                obs.traces.filter(scolarite=scolarite_courante).select_related(
+                    "scolarite"
+                )
+                if obs
+                else Trace.objects.none()
+            ),
             "formulations": [
                 formulation.texte.replace("{prenom}", eleve.prenom).replace(
                     "<prenom>", eleve.prenom
@@ -608,9 +690,11 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
 # --------------------------------------------------------------------------
 
 
-def _contexte_carnet(request, pk, options=None):
+def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
+    eleve = charger_eleve_autorise(
+        request.user, pk, operation, ecole=ecole
+    )
     parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
     options = request.GET if options is None else options
     modes = {"reussites", "observes", "tout"}
@@ -784,14 +868,14 @@ def carnet(request, pk):
 @acces_requis
 @require_safe
 def carnet_pdf(request, pk):
-    contenu, nom = _contenu_pdf_carnet(request, pk)
+    contenu, nom = _contenu_pdf_carnet(request, pk, operation=GENERER_CARNET)
     reponse = HttpResponse(contenu, content_type="application/pdf")
     reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
     return reponse
 
 
-def _contenu_pdf_carnet(request, pk, options=None):
-    contexte = _contexte_carnet(request, pk, options)
+def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
+    contexte = _contexte_carnet(request, pk, options, operation)
     noms_media = []
     for _domaine, groupes in contexte["domaines"]:
         for _titre, lignes in groupes:
@@ -825,7 +909,9 @@ def _contenu_pdf_carnet(request, pk, options=None):
 @acces_requis
 def preparer_edition(request, pk):
     ecole = ecole_courante(request)
-    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    classe = charger_classe_autorisee(
+        request.user, pk, GENERER_CARNET, ecole=ecole
+    )
     eleves = list(classe.eleves)
     parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
 
@@ -1391,7 +1477,7 @@ def modifier_bilan(request, pk, bilan_pk):
 
 def _editer_bilan(request, pk, bilan_pk=None):
     ecole = ecole_courante(request)
-    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
+    eleve = charger_eleve_autorise(request.user, pk, VOIR_SUIVI, ecole=ecole)
     scolarites = eleve.scolarites.select_related("classe").order_by("-annee_scolaire")
     bilan_obj = None
     if bilan_pk is not None:
@@ -1469,7 +1555,8 @@ def _editer_bilan(request, pk, bilan_pk=None):
 def supprimer_bilan(request, pk, bilan_pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
-    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+    ecole = ecole_courante(request)
+    eleve = charger_eleve_autorise(request.user, pk, MODIFIER_ETAT, ecole=ecole)
     bilan = get_object_or_404(Bilan, pk=bilan_pk, scolarite__eleve=eleve)
     bilan.delete()
     messages.success(request, "Bilan supprimé.")
@@ -1480,7 +1567,8 @@ def supprimer_bilan(request, pk, bilan_pk):
 def basculer_visibilite_bilan(request, pk, bilan_pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
-    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+    ecole = ecole_courante(request)
+    eleve = charger_eleve_autorise(request.user, pk, MODIFIER_ETAT, ecole=ecole)
     bilan = get_object_or_404(Bilan, pk=bilan_pk, scolarite__eleve=eleve)
     bilan.visible_carnet = not bilan.visible_carnet
     bilan.save(update_fields=["visible_carnet", "modifie_le"])

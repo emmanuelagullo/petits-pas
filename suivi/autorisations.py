@@ -18,6 +18,7 @@ ACCEDER_APPLICATION = "acceder_application"
 ADMINISTRER_ECOLE = "administrer_ecole"
 VOIR_CLASSES = "voir_classes"
 VOIR_CLASSE = "voir_classe"
+VOIR_LISTE_ELEVES = "voir_liste_eleves"
 GERER_CLASSE = "gerer_classe"
 VOIR_AFFECTATIONS_ECOLE = "voir_affectations_ecole"
 VOIR_AFFECTATIONS_CLASSE = "voir_affectations_classe"
@@ -196,7 +197,7 @@ def autorise(utilisateur, operation, ressource=None, *, ecole=None, date=None):
         ).exists()
     if classe is None:
         return False
-    if operation in {VOIR_CLASSE, VOIR_AFFECTATIONS_CLASSE}:
+    if operation in {VOIR_CLASSE, VOIR_LISTE_ELEVES, VOIR_AFFECTATIONS_CLASSE}:
         return direction or affectation_active(utilisateur, classe, date=date) is not None
     if operation in {VOIR_SUIVI, PREVISUALISER_CARNET}:
         return peut_voir_suivi(utilisateur, classe, date)
@@ -239,10 +240,11 @@ def classes_accessibles(utilisateur, operation=VOIR_CLASSE, ecole=None, date=Non
         utilisateur,
         types=types,
         date=date,
-        exiger_classe_active=operation not in {VOIR_CLASSE, VOIR_AFFECTATIONS_CLASSE},
+        exiger_classe_active=operation
+        not in {VOIR_CLASSE, VOIR_LISTE_ELEVES, VOIR_AFFECTATIONS_CLASSE},
     )
     condition = Q(pk__in=affectations.values("classe_id"))
-    if operation in {VOIR_CLASSE, VOIR_AFFECTATIONS_CLASSE}:
+    if operation in {VOIR_CLASSE, VOIR_LISTE_ELEVES, VOIR_AFFECTATIONS_CLASSE}:
         directions = responsabilites_direction_actives(utilisateur, date=date)
         condition |= Q(ecole_id__in=directions.values("appartenance__ecole_id"))
     return base.filter(condition).distinct()
@@ -259,6 +261,25 @@ def charger_ressource_autorisee(queryset, utilisateur, operation, *, ecole=None,
     if not autorise(utilisateur, operation, ressource, ecole=ecole, date=date):
         raise Http404
     return ressource
+
+
+def charger_eleve_autorise(
+    utilisateur, pk, operation=VOIR_SUIVI, *, ecole=None, date=None, actifs_seulement=False
+):
+    from .models import Eleve
+
+    candidats = Eleve.objects.all()
+    if ecole is not None:
+        candidats = candidats.filter(ecole=ecole)
+    if actifs_seulement:
+        candidats = candidats.filter(archive_le__isnull=True)
+    eleve = get_object_or_404(candidats, pk=pk)
+    classe = _classe_ressource(eleve)
+    if classe is None or not autorise(
+        utilisateur, operation, classe, ecole=ecole, date=date
+    ):
+        raise Http404
+    return eleve
 
 
 def exiger(utilisateur, operation, ressource=None, *, ecole=None, date=None):
