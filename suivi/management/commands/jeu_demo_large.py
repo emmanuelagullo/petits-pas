@@ -4,6 +4,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from comptes.models import AffectationClasse, AppartenanceEcole
+
 from suivi.models import (
     Attendu,
     Bilan,
@@ -125,6 +127,7 @@ class Command(BaseCommand):
             )
 
         classes = self._creer_classes(ecole)
+        self._affecter_comptes_demo(ecole, classes[ANNEE_COURANTE])
         self._creer_cohortes_standard(ecole, classes)
         self._creer_parcours_non_standards(ecole, classes)
 
@@ -155,11 +158,33 @@ class Command(BaseCommand):
                     ecole=ecole,
                     nom=nom,
                     annee_scolaire=annee,
-                    defaults={"ordre": i + 1},
+                    defaults={
+                        "ordre": i + 1,
+                        "etat": (
+                            Classe.PREPARATION
+                            if annee == ANNEE_COURANTE
+                            else Classe.ARCHIVEE
+                        ),
+                    },
                 )[0]
                 for i, nom in enumerate(NOMS_CLASSES)
             ]
         return classes
+
+    def _affecter_comptes_demo(self, ecole, classes_courantes):
+        appartenances = AppartenanceEcole.objects.filter(ecole=ecole).exclude(
+            responsabilites__type="direction",
+            responsabilites__etat="active",
+        )
+        for appartenance in appartenances:
+            for classe in classes_courantes:
+                AffectationClasse.objects.get_or_create(
+                    appartenance=appartenance,
+                    classe=classe,
+                    type=AffectationClasse.RESPONSABLE,
+                )
+                if classe.etat != Classe.ACTIVE:
+                    classe.activer()
 
     def _inscrire(self, eleve, classes, annee, niveau, indice_classe):
         Scolarite.objects.create(

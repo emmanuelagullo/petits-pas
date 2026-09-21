@@ -6,6 +6,7 @@ from django.db import transaction
 from django.utils.text import slugify
 
 from suivi.models import Ecole
+from comptes.models import AppartenanceEcole, ResponsabiliteEcole
 
 MOTS = (
     "cerise soleil tortue nuage crayon panda cabane brindille flocon "
@@ -41,17 +42,23 @@ class Command(BaseCommand):
         )
         ecole = Ecole.objects.create(nom=options["nom"], commune=options["commune"])
         Utilisateur = get_user_model()
-        Utilisateur.objects.create_user(
+        compte_enseignant = Utilisateur.objects.create_user(
             username=utilisateur_enseignant,
             password=enseignant,
-            ecole=ecole,
-            profil_transition=Utilisateur.ENSEIGNANT,
         )
-        Utilisateur.objects.create_user(
+        AppartenanceEcole.objects.create(
+            utilisateur=compte_enseignant, ecole=ecole
+        )
+        compte_direction = Utilisateur.objects.create_user(
             username=utilisateur_direction,
             password=direction,
-            ecole=ecole,
-            profil_transition=Utilisateur.DIRECTION,
+        )
+        appartenance_direction = AppartenanceEcole.objects.create(
+            utilisateur=compte_direction, ecole=ecole
+        )
+        ResponsabiliteEcole.objects.create(
+            appartenance=appartenance_direction,
+            type=ResponsabiliteEcole.DIRECTION,
         )
         self.stdout.write(self.style.SUCCESS(f"École créée : {ecole} (id {ecole.pk})"))
         self.stdout.write(f"  compte enseignant : {utilisateur_enseignant}")

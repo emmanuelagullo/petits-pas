@@ -1,36 +1,214 @@
+from datetime import date
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
+from django.utils import timezone
 
 
-class Utilisateur(AbstractUser):
-    """Identité individuelle Petits Pas.
+class RelationsActivesQuerySet(models.QuerySet):
+    def a_la_date(self, date=None):
+        date = date or timezone.localdate()
+        return self.filter(
+            etat="active",
+            date_debut__lte=date,
+        ).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=date))
 
-    ``ecole`` et ``profil_transition`` maintiennent le périmètre fonctionnel
-    actuel jusqu'à l'introduction des appartenances et affectations en #A2.
-    Ils ne constituent pas le modèle d'autorisation définitif.
-    """
 
-    ENSEIGNANT = "enseignant"
-    DIRECTION = "direction"
-    PROFILS_TRANSITION = [
-        (ENSEIGNANT, "Enseignant"),
-        (DIRECTION, "Direction"),
+class RelationTemporelle(models.Model):
+    ACTIVE = "active"
+    SUSPENDUE = "suspendue"
+    TERMINEE = "terminee"
+    ETATS = [
+        (ACTIVE, "Active"),
+        (SUSPENDUE, "Suspendue"),
+        (TERMINEE, "Terminée"),
     ]
 
-    ecole = models.ForeignKey(
-        "suivi.Ecole",
+    etat = models.CharField(max_length=10, choices=ETATS, default=ACTIVE)
+    date_debut = models.DateField(default=timezone.localdate)
+    date_fin = models.DateField(blank=True, null=True)
+    attribue_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
-        related_name="utilisateurs_transition",
+        related_name="%(app_label)s_%(class)s_attributions",
         blank=True,
         null=True,
     )
-    profil_transition = models.CharField(
-        max_length=12,
-        choices=PROFILS_TRANSITION,
+    attribue_le = models.DateTimeField(auto_now_add=True)
+    termine_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="%(app_label)s_%(class)s_retraits",
         blank=True,
-        help_text="Remplacé par les responsabilités et affectations en #A2.",
+        null=True,
+    )
+    termine_le = models.DateTimeField(blank=True, null=True)
+    motif = models.TextField(blank=True)
+
+    objects = RelationsActivesQuerySet.as_manager()
+
+    class Meta:
+        abstract = True
+
+    def clean(self):
+        super().clean()
+        if self.date_fin and self.date_fin < self.date_debut:
+            raise ValidationError(
+                {"date_fin": "La date de fin doit suivre la date de début."}
+            )
+
+    def est_active(self, date=None):
+        date = date or timezone.localdate()
+        return (
+            self.etat == self.ACTIVE
+            and self.date_debut <= date
+            and (self.date_fin is None or self.date_fin >= date)
+        )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
+class Utilisateur(AbstractUser):
+    """Identité individuelle Petits Pas, indépendante de toute école."""
+
+
+class AppartenanceEcole(RelationTemporelle):
+    utilisateur = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="appartenances_ecoles",
+    )
+    ecole = models.ForeignKey(
+        "suivi.Ecole",
+        on_delete=models.PROTECT,
+        related_name="appartenances",
     )
 
-    @property
-    def est_direction(self):
-        return self.profil_transition == self.DIRECTION
+    class Meta:
+        ordering = ["ecole", "utilisateur", "-date_debut"]
+
+    def clean(self):
+        super().clean()
+        if not self.utilisateur_id or not self.ecole_id or self.etat != self.ACTIVE:
+            return
+        chevauchements = AppartenanceEcole.objects.filter(
+            utilisateur=self.utilisateur,
+            ecole=self.ecole,
+            etat=self.ACTIVE,
+            date_debut__lte=self.date_fin or date.max,
+        ).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=self.date_debut))
+        if self.pk:
+            chevauchements = chevauchements.exclude(pk=self.pk)
+        if chevauchements.exists():
+            raise ValidationError(
+                "Deux appartenances actives à la même école ne peuvent se chevaucher."
+            )
+
+    def est_active(self, date=None):
+        return (
+            super().est_active(date)
+            and self.utilisateur.is_active
+            and self.ecole.etat == self.ecole.ACTIVE
+        )
+
+    def __str__(self):
+        return f"{self.utilisateur} — {self.ecole}"
+
+
+class ResponsabiliteEcole(RelationTemporelle):
+    DIRECTION = "direction"
+    TYPES = [(DIRECTION, "Direction")]
+
+    appartenance = models.ForeignKey(
+        AppartenanceEcole,
+        on_delete=models.PROTECT,
+        related_name="responsabilites",
+    )
+    type = models.CharField(max_length=20, choices=TYPES, default=DIRECTION)
+
+    class Meta:
+        ordering = ["appartenance", "type", "-date_debut"]
+
+    def clean(self):
+        super().clean()
+        if not self.appartenance_id or self.etat != self.ACTIVE:
+            return
+        chevauchements = ResponsabiliteEcole.objects.filter(
+            appartenance=self.appartenance,
+            type=self.type,
+            etat=self.ACTIVE,
+            date_debut__lte=self.date_fin or date.max,
+        ).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=self.date_debut))
+        if self.pk:
+            chevauchements = chevauchements.exclude(pk=self.pk)
+        if chevauchements.exists():
+            raise ValidationError(
+                "Deux responsabilités identiques actives ne peuvent se chevaucher."
+            )
+
+    def est_active(self, date=None):
+        return super().est_active(date) and self.appartenance.est_active(date)
+
+
+class AffectationClasse(RelationTemporelle):
+    RESPONSABLE = "responsable"
+    ENSEIGNANT_ASSOCIE = "enseignant_associe"
+    CONTRIBUTEUR = "contributeur"
+    TYPES = [
+        (RESPONSABLE, "Responsable de classe"),
+        (ENSEIGNANT_ASSOCIE, "Enseignant associé"),
+        (CONTRIBUTEUR, "Contributeur"),
+    ]
+
+    appartenance = models.ForeignKey(
+        AppartenanceEcole,
+        on_delete=models.PROTECT,
+        related_name="affectations_classes",
+    )
+    classe = models.ForeignKey(
+        "suivi.Classe",
+        on_delete=models.PROTECT,
+        related_name="affectations",
+    )
+    type = models.CharField(max_length=20, choices=TYPES)
+
+    class Meta:
+        ordering = ["classe", "appartenance", "-date_debut"]
+
+    def clean(self):
+        super().clean()
+        if (
+            self.appartenance_id
+            and self.classe_id
+            and self.appartenance.ecole_id != self.classe.ecole_id
+        ):
+            raise ValidationError(
+                {"classe": "L'appartenance et la classe doivent relever de la même école."}
+            )
+        if not self.appartenance_id or not self.classe_id or self.etat != self.ACTIVE:
+            return
+        chevauchements = AffectationClasse.objects.filter(
+            appartenance__utilisateur=self.appartenance.utilisateur,
+            classe=self.classe,
+            etat=self.ACTIVE,
+            date_debut__lte=self.date_fin or date.max,
+        ).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=self.date_debut))
+        if self.pk:
+            chevauchements = chevauchements.exclude(pk=self.pk)
+        if chevauchements.exists():
+            raise ValidationError(
+                "Une personne ne peut avoir qu'un niveau d'affectation actif "
+                "dans une classe pour une même période."
+            )
+
+    def est_active(self, date=None):
+        return (
+            super().est_active(date)
+            and self.appartenance.est_active(date)
+            and self.classe.etat == self.classe.ACTIVE
+        )

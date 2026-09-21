@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from suivi.models import Ecole
+from comptes.models import AppartenanceEcole, ResponsabiliteEcole
 
 
 NOM_ECOLE = "École fictive Petits Pas"
@@ -63,17 +64,23 @@ class Command(BaseCommand):
 
         ecole = Ecole.objects.create(nom=NOM_ECOLE, commune=COMMUNE)
         Utilisateur = get_user_model()
-        Utilisateur.objects.create_user(
+        compte_enseignant = Utilisateur.objects.create_user(
             username="enseignant-atelier",
             password=enseignant,
-            ecole=ecole,
-            profil_transition=Utilisateur.ENSEIGNANT,
         )
-        Utilisateur.objects.create_user(
+        AppartenanceEcole.objects.create(
+            utilisateur=compte_enseignant, ecole=ecole
+        )
+        compte_direction = Utilisateur.objects.create_user(
             username="direction-atelier",
             password=direction,
-            ecole=ecole,
-            profil_transition=Utilisateur.DIRECTION,
+        )
+        appartenance_direction = AppartenanceEcole.objects.create(
+            utilisateur=compte_direction, ecole=ecole
+        )
+        ResponsabiliteEcole.objects.create(
+            appartenance=appartenance_direction,
+            type=ResponsabiliteEcole.DIRECTION,
         )
 
         call_command(

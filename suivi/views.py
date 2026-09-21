@@ -23,6 +23,12 @@ from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
+from comptes.acces_transition import (
+    appartenance_courante,
+    est_direction,
+    profil_compatible,
+)
+
 from .models import (
     Bilan,
     Classe,
@@ -65,10 +71,13 @@ def acces_requis(vue):
         if not request.user.is_authenticated:
             request.session["suivant"] = request.get_full_path()
             return redirect("connexion")
-        if not request.user.ecole_id:
-            return HttpResponseForbidden("Ce compte n'est rattaché à aucune école.")
-        request.session["ecole_id"] = request.user.ecole_id
-        request.session["role"] = request.user.profil_transition
+        appartenance = appartenance_courante(request)
+        profil = profil_compatible(appartenance)
+        if not profil:
+            return HttpResponseForbidden(
+                "Ce compte ne possède aucune responsabilité active dans cette école."
+            )
+        request.session["role"] = profil
         return vue(request, *args, **kwargs)
 
     return _vue
@@ -78,7 +87,7 @@ def direction_requise(vue):
     @wraps(vue)
     @acces_requis
     def _vue(request, *args, **kwargs):
-        if not request.user.est_direction:
+        if not est_direction(appartenance_courante(request)):
             return HttpResponseForbidden(
                 "Cette page est réservée à la direction."
             )
@@ -88,7 +97,8 @@ def direction_requise(vue):
 
 
 def ecole_courante(request):
-    return get_object_or_404(Ecole, pk=request.user.ecole_id)
+    appartenance = appartenance_courante(request)
+    return get_object_or_404(Ecole, pk=appartenance.ecole_id if appartenance else None)
 
 
 def connexion(request):
@@ -100,11 +110,14 @@ def connexion(request):
             username=request.POST.get("nom_utilisateur", "").strip(),
             password=request.POST.get("mot_de_passe", ""),
         )
-        if utilisateur and utilisateur.ecole_id and utilisateur.profil_transition:
+        if utilisateur:
             login(request, utilisateur)
-            request.session["ecole_id"] = utilisateur.ecole_id
-            request.session["role"] = utilisateur.profil_transition
-            return redirect(request.session.pop("suivant", None) or "accueil")
+            appartenance = appartenance_courante(request)
+            profil = profil_compatible(appartenance)
+            if profil:
+                request.session["role"] = profil
+                return redirect(request.session.pop("suivant", None) or "accueil")
+            logout(request)
         messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     return render(request, "suivi/connexion.html")
 

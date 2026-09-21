@@ -52,9 +52,10 @@ Les quatre niveaux de priorité employés ci-dessous sont :
 
 - Création d'une école en ligne de commande.
 - Comptes individuels identifiés par un nom d'utilisateur et un mot de passe.
-- Rattachement transitoire de chaque compte à une école et à l'un des deux
-  profils existants (équipe enseignante ou direction), dans l'attente des
-  appartenances et affectations détaillées de la phase 4.
+- Appartenances datées aux écoles, responsabilités de direction et affectations
+  de classe distinctes (responsable, enseignant associé ou contributeur).
+- Une classe en préparation peut ne pas avoir de responsable ; son activation
+  exige au moins un responsable actif.
 - Création de classes et import d'une liste d'élèves.
 - Rattachement d'un élève à une classe et à un niveau PS, MS ou GS.
 - Identité durable comprenant une année de naissance facultative.
