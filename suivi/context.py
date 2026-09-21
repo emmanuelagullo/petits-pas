@@ -1,20 +1,21 @@
 from django.conf import settings
 
-from comptes.acces_transition import (
-    appartenance_courante,
-    est_direction,
-    profil_compatible,
-)
+from .autorisations import ADMINISTRER_ECOLE, autorise
+from .contexte_ecole import ecole_courante
 
 
 def session_ecole(request):
     utilisateur = request.user if request.user.is_authenticated else None
-    appartenance = appartenance_courante(request) if utilisateur else None
-    ecole = appartenance.ecole if appartenance else None
+    ecole = ecole_courante(request) if utilisateur else None
+    direction = bool(
+        utilisateur
+        and ecole
+        and autorise(utilisateur, ADMINISTRER_ECOLE, ecole=ecole)
+    )
     return {
         "ecole": ecole,
-        "role": profil_compatible(appartenance),
-        "est_direction": est_direction(appartenance),
+        "role": "direction" if direction else ("enseignant" if ecole else None),
+        "est_direction": direction,
         "utilisateur_courant": utilisateur,
         "environnement_atelier": settings.ENVIRONNEMENT_ATELIER,
         "environnement_ephemere": settings.ENVIRONNEMENT_EPHEMERE,

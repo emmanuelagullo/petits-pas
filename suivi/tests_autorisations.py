@@ -1,0 +1,198 @@
+import datetime
+
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.http import Http404
+from django.test import TestCase
+from django.utils import timezone
+
+from comptes.models import AffectationClasse, AppartenanceEcole, ResponsabiliteEcole
+
+from .autorisations import (
+    ACCEDER_APPLICATION,
+    CONTRIBUER,
+    GERER_CLASSE,
+    MODIFIER_ETAT,
+    VOIR_CLASSE,
+    VOIR_SUIVI,
+    affectation_active,
+    appartenance_active,
+    autorise,
+    charger_classe_autorisee,
+    classes_accessibles,
+    peut_activer_classe,
+    peut_auto_attribuer_temporairement,
+    peut_suspendre_urgence,
+    peut_terminer_affectation,
+    toutes_autorisees,
+)
+from .models import Classe, Ecole
+
+
+class PolitiqueAutorisations(TestCase):
+    def setUp(self):
+        self.aujourdhui = timezone.localdate()
+        self.ecole_a = Ecole.objects.create(nom="École A")
+        self.ecole_b = Ecole.objects.create(nom="École B")
+        self.a1 = Classe.objects.create(ecole=self.ecole_a, nom="A1")
+        self.a3 = Classe.objects.create(ecole=self.ecole_a, nom="A3")
+        self.b1 = Classe.objects.create(ecole=self.ecole_b, nom="B1")
+        self.remi, self.remi_a = self._membre("remi", self.ecole_a)
+        self.amina, self.amina_a = self._membre("amina", self.ecole_a)
+        self.diane, self.diane_a = self._membre("diane", self.ecole_a)
+        self.bruno, self.bruno_b = self._membre("bruno", self.ecole_b)
+        self.multi, self.multi_a = self._membre("multi", self.ecole_a)
+        self.multi_b = AppartenanceEcole.objects.create(
+            utilisateur=self.multi, ecole=self.ecole_b
+        )
+        ResponsabiliteEcole.objects.create(appartenance=self.diane_a)
+        self.affectation_remi = self._affecter(
+            self.remi_a, self.a1, AffectationClasse.RESPONSABLE
+        )
+        self._affecter(
+            self.amina_a, self.a1, AffectationClasse.ENSEIGNANT_ASSOCIE
+        )
+        self._affecter(
+            self.bruno_b, self.b1, AffectationClasse.RESPONSABLE
+        )
+        self._affecter(
+            self.multi_a, self.a1, AffectationClasse.ENSEIGNANT_ASSOCIE
+        )
+        self._affecter(
+            self.multi_b, self.b1, AffectationClasse.ENSEIGNANT_ASSOCIE
+        )
+        self.a1.activer()
+        self.b1.activer()
+
+    def _membre(self, nom, ecole):
+        utilisateur = get_user_model().objects.create_user(nom)
+        appartenance = AppartenanceEcole.objects.create(
+            utilisateur=utilisateur, ecole=ecole
+        )
+        return utilisateur, appartenance
+
+    def _affecter(self, appartenance, classe, type, **champs):
+        return AffectationClasse.objects.create(
+            appartenance=appartenance, classe=classe, type=type, **champs
+        )
+
+    def test_t002_compte_desactive_est_refuse(self):
+        self.remi.is_active = False
+        self.remi.save(update_fields=["is_active"])
+        self.assertFalse(autorise(self.remi, VOIR_SUIVI, self.a1))
+
+    def test_t003_appartenance_terminee_est_refusee(self):
+        self.remi_a.etat = AppartenanceEcole.TERMINEE
+        self.remi_a.save(update_fields=["etat"])
+        self.assertIsNone(appartenance_active(self.remi, self.ecole_a))
+        self.assertFalse(autorise(self.remi, ACCEDER_APPLICATION, ecole=self.ecole_a))
+
+    def test_t004_t005_t006_bornes_temporelles(self):
+        utilisateur, appartenance = self._membre("temporaire", self.ecole_a)
+        self._affecter(
+            appartenance,
+            self.a1,
+            AffectationClasse.RESPONSABLE,
+            date_debut=self.aujourdhui - datetime.timedelta(days=3),
+            date_fin=self.aujourdhui - datetime.timedelta(days=1),
+        )
+        debut = self.aujourdhui + datetime.timedelta(days=1)
+        self._affecter(
+            appartenance,
+            self.a1,
+            AffectationClasse.RESPONSABLE,
+            date_debut=debut,
+        )
+        self.assertIsNone(affectation_active(utilisateur, self.a1))
+        self.assertFalse(autorise(utilisateur, VOIR_SUIVI, self.a1))
+        self.assertIsNotNone(affectation_active(utilisateur, self.a1, date=debut))
+
+    def test_t010_et_t013_isolation_inter_ecoles(self):
+        self.assertFalse(autorise(self.remi, VOIR_SUIVI, self.b1))
+        with self.assertRaises(Http404):
+            charger_classe_autorisee(self.remi, self.b1.pk, VOIR_SUIVI)
+        self.assertTrue(autorise(self.multi, VOIR_SUIVI, self.b1))
+        self.assertFalse(
+            autorise(self.multi, VOIR_SUIVI, self.b1, ecole=self.ecole_a)
+        )
+
+    def test_t014_lot_inter_ecoles_est_refuse(self):
+        self.assertFalse(
+            toutes_autorisees(
+                self.remi, CONTRIBUER, [self.a1, self.b1], ecole=self.ecole_a
+            )
+        )
+
+    def test_t020_direction_sans_acces_pedagogique(self):
+        self.assertTrue(autorise(self.diane, GERER_CLASSE, self.a1))
+        self.assertFalse(autorise(self.diane, VOIR_SUIVI, self.a1))
+        self.assertFalse(autorise(self.diane, MODIFIER_ETAT, self.a1))
+
+    def test_t022_t023_auto_attribution_temporaire(self):
+        fin = self.aujourdhui + datetime.timedelta(days=10)
+        self.assertFalse(
+            peut_auto_attribuer_temporairement(self.diane, self.a1, "", fin)
+        )
+        self.assertFalse(
+            peut_auto_attribuer_temporairement(self.diane, self.a1, "Motif", None)
+        )
+        self.assertTrue(
+            peut_auto_attribuer_temporairement(self.diane, self.a1, "Motif", fin)
+        )
+
+    def test_t024_t025_affectation_temporaire_de_direction(self):
+        fin = self.aujourdhui + datetime.timedelta(days=1)
+        self._affecter(
+            self.diane_a,
+            self.a1,
+            AffectationClasse.RESPONSABLE,
+            date_fin=fin,
+            motif="Continuité",
+        )
+        self.assertTrue(autorise(self.diane, VOIR_SUIVI, self.a1))
+        self.assertFalse(
+            autorise(
+                self.diane,
+                VOIR_SUIVI,
+                self.a1,
+                date=fin + datetime.timedelta(days=1),
+            )
+        )
+
+    def test_t030_t031_t032_activation_de_classe(self):
+        self.assertEqual(self.a3.etat, Classe.PREPARATION)
+        self.assertFalse(peut_activer_classe(self.diane, self.a3))
+        self._affecter(
+            self.remi_a, self.a3, AffectationClasse.RESPONSABLE
+        )
+        self.assertTrue(peut_activer_classe(self.diane, self.a3))
+
+    def test_t033_t034_dernier_responsable_et_remplacement(self):
+        self.assertFalse(
+            peut_terminer_affectation(self.diane, self.affectation_remi)
+        )
+        _, appartenance = self._membre("remplacant", self.ecole_a)
+        remplacement = self._affecter(
+            appartenance, self.a1, AffectationClasse.RESPONSABLE
+        )
+        self.assertTrue(
+            peut_terminer_affectation(
+                self.diane, self.affectation_remi, remplacement
+            )
+        )
+
+    def test_t035_suspension_urgente_possible(self):
+        self.assertTrue(peut_suspendre_urgence(self.diane, self.affectation_remi))
+
+    def test_t036_niveaux_simultanes_refuses(self):
+        with self.assertRaises(ValidationError):
+            self._affecter(
+                self.amina_a, self.a1, AffectationClasse.CONTRIBUTEUR
+            )
+
+    def test_refus_par_defaut_et_selecteurs(self):
+        self.assertFalse(autorise(self.remi, "inconnue", self.a1))
+        self.assertQuerySetEqual(
+            classes_accessibles(self.remi, VOIR_SUIVI), [self.a1]
+        )
+        self.assertNotIn(self.b1, classes_accessibles(self.remi, VOIR_CLASSE))

@@ -171,12 +171,12 @@ class Acces(Base):
     def test_compte_enseignant(self):
         self.entrer()
         self.assertEqual(self.client.session["_auth_user_id"], str(self.enseignant.pk))
-        self.assertEqual(self.client.session["role"], "enseignant")
+        self.assertNotIn("role", self.client.session)
 
     def test_compte_direction(self):
         self.entrer("dir-mdp")
         self.assertEqual(self.client.session["_auth_user_id"], str(self.direction.pk))
-        self.assertEqual(self.client.session["role"], "direction")
+        self.assertNotIn("role", self.client.session)
 
     def test_mauvais_mot_de_passe(self):
         self.entrer("nimporte")
