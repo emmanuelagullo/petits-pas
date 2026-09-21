@@ -10,6 +10,7 @@ from urllib.parse import quote, unquote
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.staticfiles import finders
+from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection, transaction
 from django.db.models import Count, Prefetch, Q
@@ -30,6 +31,7 @@ from .autorisations import (
     ADMINISTRER_ECOLE,
     CONTRIBUER,
     GENERER_CARNET,
+    GERER_ELEVES_CLASSE,
     MODIFIER_ETAT,
     PREVISUALISER_CARNET,
     VOIR_CLASSE,
@@ -40,12 +42,15 @@ from .autorisations import (
     charger_classe_autorisee,
     charger_eleve_autorise,
     classes_accessibles,
+    est_direction,
 )
 from .contexte_ecole import ecole_courante
 from .models import (
+    AccesParcoursEleve,
     Bilan,
     Classe,
     Competence,
+    DemandeRapprochementEleve,
     Domaine,
     Ecole,
     Eleve,
@@ -55,6 +60,15 @@ from .models import (
     Trace,
     annee_scolaire_pour,
     bornes_annee_scolaire,
+)
+from .services.eleves import (
+    archiver,
+    correspondances,
+    desarchiver,
+    importer_nouveaux_eleves,
+    modifier_identite,
+    modifier_niveau_courant,
+    valider_rapprochement,
 )
 from .services.pedagogie import (
     definir_visibilite_bilan,
@@ -316,6 +330,9 @@ def classe_detail(request, pk):
     eleves = list(classe.eleves)
     suivi_complet = autorise(request.user, VOIR_SUIVI, classe, ecole=ecole)
     peut_generer = autorise(request.user, GENERER_CARNET, classe, ecole=ecole)
+    peut_gerer_eleves = autorise(
+        request.user, GERER_ELEVES_CLASSE, classe, ecole=ecole
+    )
     affectation = affectation_active(request.user, classe)
     vue_minimale = bool(
         affectation and affectation.type == AffectationClasse.CONTRIBUTEUR
@@ -348,6 +365,7 @@ def classe_detail(request, pk):
             "filtre": filtre,
             "suivi_complet": suivi_complet,
             "peut_generer": peut_generer,
+            "peut_gerer_eleves": peut_gerer_eleves,
             "vue_minimale": vue_minimale,
         },
     )
@@ -368,6 +386,36 @@ def _arbre(ecole, niveaux=None):
     )
 
 
+def _scolarites_visibles(utilisateur, eleve):
+    courante = eleve.scolarite_courante()
+    if courante is None:
+        return Scolarite.objects.none(), None
+    ids = [courante.pk]
+    if AccesParcoursEleve.objects.filter(
+        eleve=eleve, classe=courante.classe
+    ).exists() and autorise(utilisateur, VOIR_SUIVI, courante.classe):
+        ids = list(eleve.scolarites.values_list("pk", flat=True))
+    return eleve.scolarites.filter(pk__in=ids), courante
+
+
+def _observations_visibles(utilisateur, eleve):
+    scolarites, courante = _scolarites_visibles(utilisateur, eleve)
+    if courante is None:
+        return Observation.objects.none()
+    condition_dates = Q()
+    for annee in scolarites.values_list("annee_scolaire", flat=True):
+        debut, fin = bornes_annee_scolaire(annee)
+        condition_dates |= Q(date_observation__range=(debut, fin))
+    traces = Trace.objects.filter(
+        Q(scolarite=courante)
+        | Q(scolarite__in=scolarites.exclude(pk=courante.pk), visible_carnet=True),
+        supprime_le__isnull=True,
+    )
+    return eleve.observations.filter(
+        condition_dates | Q(traces__in=traces)
+    ).distinct().prefetch_related(Prefetch("traces", queryset=traces))
+
+
 @acces_requis
 def saisie_eleve(request, pk):
     """L'écran du quotidien : un enfant, tout ce qu'il sait faire."""
@@ -382,9 +430,7 @@ def saisie_eleve(request, pk):
     filtre = request.GET.get("niveaux", "tous")
     niveaux = None if filtre == "tous" else [filtre]
 
-    etats = {
-        o.competence_id: o for o in eleve.observations.prefetch_related("traces")
-    }
+    etats = {o.competence_id: o for o in _observations_visibles(request.user, eleve)}
     domaines = []
     for d in _arbre(ecole, niveaux):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
@@ -808,10 +854,11 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     if regroupement not in {"aucun", "annuel", "mensuel", "bilan"}:
         regroupement = "aucun"
 
+    scolarites_visibles, _ = _scolarites_visibles(request.user, eleve)
     etats = {
         o.competence_id: o
-        for o in eleve.observations.select_related("competence").prefetch_related(
-            "traces"
+        for o in _observations_visibles(request.user, eleve).select_related(
+            "competence"
         )
     }
     for observation in etats.values():
@@ -834,12 +881,20 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
                 if o and o.statut in (Observation.REUSSI, Observation.EN_COURS)
             ]
         if lignes:
-            domaines.append((d, _regrouper_lignes(eleve, lignes, regroupement)))
+            domaines.append(
+                (
+                    d,
+                    _regrouper_lignes(
+                        eleve, lignes, regroupement, scolarites_visibles
+                    ),
+                )
+            )
 
     scolarite = eleve.scolarite_courante()
     bilans = (
         Bilan.objects.filter(
             scolarite__eleve=eleve,
+            scolarite__in=scolarites_visibles,
             visible_carnet=True,
             supprime_le__isnull=True,
         ).select_related("scolarite")
@@ -863,12 +918,17 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     }
 
 
-def _regrouper_lignes(eleve, lignes, regroupement):
+def _regrouper_lignes(eleve, lignes, regroupement, scolarites=None):
     if regroupement == "aucun":
         return [(None, lignes)]
 
+    filtre_bilans = Bilan.objects.filter(
+        scolarite__eleve=eleve, supprime_le__isnull=True
+    )
+    if scolarites is not None:
+        filtre_bilans = filtre_bilans.filter(scolarite__in=scolarites)
     bilans = list(
-        Bilan.objects.filter(scolarite__eleve=eleve, supprime_le__isnull=True)
+        filtre_bilans
         .select_related("scolarite")
         .order_by("date_bilan")
     )
@@ -1251,7 +1311,7 @@ def creer_classe(request):
     return render(request, "suivi/creer_classe.html")
 
 
-@direction_requise
+@acces_requis
 def parcours_eleve(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
@@ -1259,14 +1319,23 @@ def parcours_eleve(request, pk):
     retour_classe = (
         Classe.objects.filter(pk=retour_pk, ecole=ecole).first() if retour_pk else None
     )
+    direction = est_direction(request.user, ecole)
+    classe = retour_classe or eleve.classe
+    if not direction and (
+        classe is None
+        or not eleve.scolarites.filter(classe=classe).exists()
+        or not autorise(
+            request.user, GERER_ELEVES_CLASSE, classe, ecole=ecole
+        )
+    ):
+        raise Http404
 
     def _retour_url():
         url = reverse("parcours_eleve", args=[eleve.pk])
         return f"{url}?retour={retour_classe.pk}" if retour_classe else url
 
     if request.method == "POST" and request.POST.get("action") == "reactiver":
-        eleve.archive_le = None
-        eleve.save(update_fields=["archive_le"])
+        desarchiver(utilisateur=request.user, eleve=eleve, classe=classe)
         ou = _message_scolarite_courante(eleve)
         if ou:
             messages.success(request, f"{eleve.prenom} est de nouveau actif, dans {ou}.")
@@ -1284,14 +1353,22 @@ def parcours_eleve(request, pk):
             messages.error(request, "Le prénom est obligatoire.")
         else:
             annee = request.POST.get("annee_naissance", "").strip()
-            eleve.prenom = prenom
-            eleve.nom = request.POST.get("nom", "").strip()
-            eleve.annee_naissance = int(annee) if annee.isdigit() else None
-            eleve.save(update_fields=["prenom", "nom", "annee_naissance"])
+            modifier_identite(
+                utilisateur=request.user,
+                eleve=eleve,
+                classe=classe,
+                valeurs={
+                    "prenom": prenom,
+                    "nom": request.POST.get("nom", "").strip(),
+                    "annee_naissance": int(annee) if annee.isdigit() else None,
+                },
+            )
             messages.success(request, "Identité de l'élève enregistrée.")
             return redirect(_retour_url())
 
     if request.method == "POST" and request.POST.get("action") == "scolarite":
+        if not direction:
+            raise Http404
         classe = get_object_or_404(
             Classe,
             pk=request.POST.get("classe"),
@@ -1320,6 +1397,7 @@ def parcours_eleve(request, pk):
             "classes": ecole.classes.all(),
             "scolarites": eleve.scolarites.select_related("classe"),
             "retour_classe": retour_classe,
+            "direction": direction,
         },
     )
 
@@ -1340,17 +1418,53 @@ def _niveau_defaut_page(request):
     return valeur if valeur in NIVEAUX_VALIDES else "PS"
 
 
-@direction_requise
+@acces_requis
 def importer_eleves(request, pk):
     """Coller la liste de la classe, un enfant par ligne."""
     ecole = ecole_courante(request)
-    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    classe = charger_classe_autorisee(
+        request.user, pk, GERER_ELEVES_CLASSE, ecole=ecole
+    )
+    direction = est_direction(request.user, ecole)
     niveau_defaut_page = _niveau_defaut_page(request)
+    action = request.POST.get("action") if request.method == "POST" else None
+    if not direction and action in {
+        "retirer",
+        "deplacer",
+        "valider_rapprochement",
+    }:
+        raise Http404
+
+    if action == "valider_rapprochement":
+        demande = get_object_or_404(
+            DemandeRapprochementEleve,
+            pk=request.POST.get("demande"),
+            ecole=ecole,
+            classe=classe,
+            etat=DemandeRapprochementEleve.EN_ATTENTE,
+        )
+        eleve = get_object_or_404(
+            Eleve, pk=request.POST.get("eleve"), ecole=ecole
+        )
+        try:
+            valider_rapprochement(
+                utilisateur=request.user, demande=demande, eleve=eleve
+            )
+        except ValidationError as erreur:
+            messages.error(request, "; ".join(erreur.messages))
+        else:
+            messages.success(
+                request,
+                f"Le dossier de {eleve.prenom} a été rapproché de {classe}.",
+            )
+        return redirect("importer_eleves", pk=classe.pk)
 
     if request.method == "POST" and request.POST.get("action") == "affecter_existant":
         eleve = get_object_or_404(
             Eleve, pk=request.POST.get("eleve"), ecole=ecole
         )
+        if not direction and not eleve.scolarites.filter(classe=classe).exists():
+            raise Http404
         niveau = request.POST.get("niveau")
         if niveau not in NIVEAUX_VALIDES:
             niveau = niveau_defaut_page
@@ -1384,9 +1498,18 @@ def importer_eleves(request, pk):
             if scolarite:
                 deja_dans_classe = scolarite.classe_id == classe.pk
                 niveau_inchange = deja_dans_classe and scolarite.niveau == niveau
-                scolarite.classe = classe
-                scolarite.niveau = niveau
-                scolarite.save(update_fields=["classe", "niveau", "modifie_le"])
+                if deja_dans_classe:
+                    modifier_niveau_courant(
+                        utilisateur=request.user,
+                        scolarite=scolarite,
+                        niveau=niveau,
+                    )
+                else:
+                    scolarite.classe = classe
+                    scolarite.niveau = niveau
+                    scolarite.save(
+                        update_fields=["classe", "niveau", "modifie_le"]
+                    )
             else:
                 deja_dans_classe = False
                 niveau_inchange = False
@@ -1441,8 +1564,7 @@ def importer_eleves(request, pk):
             classe=classe,
         )
         eleve = scolarite.eleve
-        eleve.archive_le = timezone.now()
-        eleve.save(update_fields=["archive_le"])
+        archiver(utilisateur=request.user, eleve=eleve, classe=classe)
         messages.success(
             request,
             f"{eleve.prenom} a été retiré de {classe} et archivé sans supprimer "
@@ -1474,9 +1596,9 @@ def importer_eleves(request, pk):
             )
         return redirect("importer_eleves", pk=classe.pk)
 
-    if request.method == "POST":
+    if request.method == "POST" and not action:
         niveau_defaut = request.POST.get("niveau", niveau_defaut_page)
-        ajoutes = 0
+        lignes = []
         for ligne in request.POST.get("liste", "").splitlines():
             ligne = ligne.strip()
             if not ligne:
@@ -1492,20 +1614,25 @@ def importer_eleves(request, pk):
             annee_naissance = None
             if len(parts) > 3 and parts[3].isdigit():
                 annee_naissance = int(parts[3])
-            eleve = Eleve.objects.create(
-                ecole=ecole,
-                prenom=prenom,
-                nom=nom,
-                annee_naissance=annee_naissance,
+            lignes.append(
+                {
+                    "prenom": prenom,
+                    "nom": nom,
+                    "niveau": niveau,
+                    "annee_naissance": annee_naissance,
+                }
             )
-            Scolarite.objects.create(
-                eleve=eleve,
-                classe=classe,
-                annee_scolaire=classe.annee_scolaire,
-                niveau=niveau,
-            )
-            ajoutes += 1
-        messages.success(request, f"{ajoutes} enfant(s) ajouté(s) à {classe}.")
+        resultat = importer_nouveaux_eleves(
+            utilisateur=request.user,
+            classe=classe,
+            lignes=lignes,
+            niveau_defaut=niveau_defaut,
+        )
+        messages.success(
+            request,
+            f"{resultat['crees']} enfant(s) ajouté(s) à {classe}. "
+            f"{resultat['demandes']} rapprochement(s) à valider par la direction.",
+        )
         return redirect("classe_detail", pk=classe.pk)
 
     annee_precedente = _annee_precedente(classe.annee_scolaire)
@@ -1518,8 +1645,10 @@ def importer_eleves(request, pk):
 
     eleves_disponibles = list(
         ecole.eleves.filter(archive_le__isnull=True).exclude(pk__in=ids_affectes)
+    ) if direction else []
+    eleves_archives = (
+        list(ecole.eleves.filter(archive_le__isnull=False)) if direction else []
     )
-    eleves_archives = list(ecole.eleves.filter(archive_le__isnull=False))
     niveaux_annee_precedente = dict(
         Scolarite.objects.filter(
             eleve__in=eleves_disponibles + eleves_archives,
@@ -1531,7 +1660,11 @@ def importer_eleves(request, pk):
             niveaux_annee_precedente.get(eleve.pk)
         )
 
-    affectations_autres = scolarites_annee.exclude(classe=classe)
+    affectations_autres = (
+        scolarites_annee.exclude(classe=classe)
+        if direction
+        else Scolarite.objects.none()
+    )
     composition = (
         Scolarite.objects.filter(classe=classe, eleve__archive_le__isnull=True)
         .select_related("eleve")
@@ -1539,7 +1672,19 @@ def importer_eleves(request, pk):
     )
     autres_classes_annee = Classe.objects.filter(
         ecole=ecole, annee_scolaire=classe.annee_scolaire
-    ).exclude(pk=classe.pk)
+    ).exclude(pk=classe.pk) if direction else Classe.objects.none()
+    demandes = []
+    if direction:
+        for demande in DemandeRapprochementEleve.objects.filter(
+            classe=classe, etat=DemandeRapprochementEleve.EN_ATTENTE
+        ):
+            demande.candidats = correspondances(
+                ecole,
+                demande.prenom_propose,
+                demande.nom_propose,
+                demande.annee_naissance_proposee,
+            )
+            demandes.append(demande)
     return render(
         request,
         "suivi/importer_eleves.html",
@@ -1551,6 +1696,8 @@ def importer_eleves(request, pk):
             "eleves_disponibles": eleves_disponibles,
             "affectations_autres": affectations_autres,
             "eleves_archives": eleves_archives,
+            "direction": direction,
+            "demandes_rapprochement": demandes,
         },
     )
 
@@ -1569,13 +1716,33 @@ def _editer_bilan(request, pk, bilan_pk=None):
     ecole = ecole_courante(request)
     eleve = charger_eleve_autorise(request.user, pk, VOIR_SUIVI, ecole=ecole)
     responsable = autorise(request.user, MODIFIER_ETAT, eleve, ecole=ecole)
-    scolarites = eleve.scolarites.select_related("classe").order_by("-annee_scolaire")
+    scolarites_visibles, scolarite_courante = _scolarites_visibles(
+        request.user, eleve
+    )
+    scolarites = scolarites_visibles.filter(pk=scolarite_courante.pk).select_related(
+        "classe"
+    )
+    bilans = list(
+        Bilan.objects.filter(
+            Q(scolarite=scolarite_courante)
+            | Q(
+                scolarite__in=scolarites_visibles.exclude(pk=scolarite_courante.pk),
+                visible_carnet=True,
+            ),
+            supprime_le__isnull=True,
+        ).select_related("scolarite")
+    )
+    for bilan in bilans:
+        bilan.peut_modifier = responsable and (
+            bilan.scolarite_id == scolarite_courante.pk
+        )
     bilan_obj = None
     if bilan_pk is not None:
         bilan_obj = get_object_or_404(
             Bilan,
             pk=bilan_pk,
             scolarite__eleve=eleve,
+            scolarite=scolarite_courante,
             supprime_le__isnull=True,
         )
     if request.method == "POST":
@@ -1612,10 +1779,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
                     {
                         "eleve": eleve,
                         "scolarites": scolarites,
-                        "bilans": Bilan.objects.filter(
-                            scolarite__eleve=eleve,
-                            supprime_le__isnull=True,
-                        ).select_related("scolarite"),
+                        "bilans": bilans,
                         "bilan_obj": bilan_en_conflit,
                         "date_defaut": timezone.localdate(),
                         "responsable": responsable,
@@ -1640,9 +1804,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
         {
             "eleve": eleve,
             "scolarites": scolarites,
-            "bilans": Bilan.objects.filter(
-                scolarite__eleve=eleve, supprime_le__isnull=True
-            ).select_related("scolarite"),
+            "bilans": bilans,
             "bilan_obj": bilan_obj,
             "date_defaut": timezone.localdate(),
             "responsable": responsable,
@@ -1660,6 +1822,7 @@ def supprimer_bilan(request, pk, bilan_pk):
         Bilan,
         pk=bilan_pk,
         scolarite__eleve=eleve,
+        scolarite=eleve.scolarite_courante(),
         supprime_le__isnull=True,
     )
     supprimer_bilan_logiquement(utilisateur=request.user, bilan=bilan)
@@ -1677,6 +1840,7 @@ def basculer_visibilite_bilan(request, pk, bilan_pk):
         Bilan,
         pk=bilan_pk,
         scolarite__eleve=eleve,
+        scolarite=eleve.scolarite_courante(),
         supprime_le__isnull=True,
     )
     definir_visibilite_bilan(
@@ -1689,24 +1853,28 @@ def basculer_visibilite_bilan(request, pk, bilan_pk):
     return redirect("bilans_eleve", pk=eleve.pk)
 
 
-@direction_requise
+@acces_requis
 def archiver_eleve(request, pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
-    eleve.archive_le = timezone.now()
-    eleve.save(update_fields=["archive_le"])
+    classe = eleve.classe
+    if classe is None and not est_direction(request.user, eleve.ecole):
+        raise Http404
+    archiver(utilisateur=request.user, eleve=eleve, classe=classe)
     messages.success(request, f"{eleve.prenom} a été archivé sans supprimer son parcours.")
     return redirect("gestion")
 
 
-@direction_requise
+@acces_requis
 def desarchiver_eleve(request, pk):
     if request.method != "POST":
         return HttpResponseForbidden("POST attendu.")
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
-    eleve.archive_le = None
-    eleve.save(update_fields=["archive_le"])
+    classe = eleve.classe
+    if classe is None and not est_direction(request.user, eleve.ecole):
+        raise Http404
+    desarchiver(utilisateur=request.user, eleve=eleve, classe=classe)
     ou = _message_scolarite_courante(eleve)
     if ou:
         messages.success(request, f"{eleve.prenom} est de nouveau actif, dans {ou}.")

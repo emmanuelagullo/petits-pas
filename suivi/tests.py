@@ -1556,12 +1556,14 @@ class ParcoursLongitudinal(Base):
             self.eleve.scolarites.filter(annee_scolaire="2026-2027").exists()
         )
 
-    def test_un_enseignant_ne_peut_pas_modifier_le_parcours_administratif(self):
+    def test_un_responsable_peut_corriger_identite_sans_voir_le_passe(self):
         self.entrer()
 
         reponse = self.client.get(reverse("parcours_eleve", args=[self.eleve.pk]))
 
-        self.assertEqual(reponse.status_code, 403)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotContains(reponse, "Scolarités conservées")
+        self.assertNotContains(reponse, "Préparer une année scolaire")
 
     def test_un_eleve_ne_peut_avoir_deux_scolarites_la_meme_annee(self):
         autre_classe = Classe.objects.create(

@@ -271,6 +271,81 @@ class Scolarite(models.Model):
         return f"{self.eleve} — {self.niveau} {self.annee_scolaire}"
 
 
+class DemandeRapprochementEleve(models.Model):
+    EN_ATTENTE = "en_attente"
+    VALIDEE = "validee"
+    REFUSEE = "refusee"
+    ETATS = [
+        (EN_ATTENTE, "En attente"),
+        (VALIDEE, "Validée"),
+        (REFUSEE, "Refusée"),
+    ]
+
+    ecole = models.ForeignKey(
+        Ecole, on_delete=models.PROTECT, related_name="demandes_rapprochement"
+    )
+    classe = models.ForeignKey(
+        Classe, on_delete=models.PROTECT, related_name="demandes_rapprochement"
+    )
+    prenom_propose = models.CharField(max_length=100)
+    nom_propose = models.CharField(max_length=100, blank=True)
+    annee_naissance_proposee = models.PositiveSmallIntegerField(blank=True, null=True)
+    niveau_propose = models.CharField(max_length=2, choices=NIVEAUX)
+    demande_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="demandes_rapprochement_creees",
+    )
+    demande_le = models.DateTimeField(auto_now_add=True)
+    etat = models.CharField(max_length=10, choices=ETATS, default=EN_ATTENTE)
+    eleve_retenu = models.ForeignKey(
+        Eleve,
+        on_delete=models.PROTECT,
+        related_name="demandes_rapprochement",
+        blank=True,
+        null=True,
+    )
+    decide_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="demandes_rapprochement_decidees",
+        blank=True,
+        null=True,
+    )
+    decide_le = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["demande_le", "pk"]
+
+
+class AccesParcoursEleve(models.Model):
+    demande = models.OneToOneField(
+        DemandeRapprochementEleve,
+        on_delete=models.PROTECT,
+        related_name="acces_parcours",
+    )
+    eleve = models.ForeignKey(
+        Eleve, on_delete=models.PROTECT, related_name="acces_parcours"
+    )
+    classe = models.ForeignKey(
+        Classe, on_delete=models.PROTECT, related_name="acces_parcours_eleves"
+    )
+    valide_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="acces_parcours_valides",
+    )
+    valide_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["eleve", "classe"],
+                name="acces_parcours_unique_par_eleve_classe",
+            )
+        ]
+
+
 class Bilan(models.Model):
     scolarite = models.ForeignKey(
         Scolarite, on_delete=models.CASCADE, related_name="bilans"

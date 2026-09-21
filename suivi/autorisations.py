@@ -20,6 +20,7 @@ VOIR_CLASSES = "voir_classes"
 VOIR_CLASSE = "voir_classe"
 VOIR_LISTE_ELEVES = "voir_liste_eleves"
 GERER_CLASSE = "gerer_classe"
+GERER_ELEVES_CLASSE = "gerer_eleves_classe"
 VOIR_AFFECTATIONS_ECOLE = "voir_affectations_ecole"
 VOIR_AFFECTATIONS_CLASSE = "voir_affectations_classe"
 GERER_AFFECTATIONS = "gerer_affectations"
@@ -203,6 +204,8 @@ def autorise(utilisateur, operation, ressource=None, *, ecole=None, date=None):
         return peut_voir_suivi(utilisateur, classe, date)
     if operation in {MODIFIER_ETAT, GENERER_CARNET}:
         return peut_modifier_etat(utilisateur, classe, date)
+    if operation == GERER_ELEVES_CLASSE:
+        return direction or peut_modifier_etat(utilisateur, classe, date)
     if operation == CONTRIBUER:
         return peut_contribuer(utilisateur, classe, date)
     return False
@@ -235,16 +238,26 @@ def classes_accessibles(utilisateur, operation=VOIR_CLASSE, ecole=None, date=Non
         MODIFIER_ETAT: [AffectationClasse.RESPONSABLE],
         GENERER_CARNET: [AffectationClasse.RESPONSABLE],
         CONTRIBUER: list(dict(AffectationClasse.TYPES)),
+        GERER_ELEVES_CLASSE: [AffectationClasse.RESPONSABLE],
     }.get(operation)
     affectations = affectations_actives(
         utilisateur,
         types=types,
         date=date,
         exiger_classe_active=operation
-        not in {VOIR_CLASSE, VOIR_LISTE_ELEVES, VOIR_AFFECTATIONS_CLASSE},
+        not in {
+            VOIR_CLASSE,
+            VOIR_LISTE_ELEVES,
+            VOIR_AFFECTATIONS_CLASSE,
+        },
     )
     condition = Q(pk__in=affectations.values("classe_id"))
-    if operation in {VOIR_CLASSE, VOIR_LISTE_ELEVES, VOIR_AFFECTATIONS_CLASSE}:
+    if operation in {
+        VOIR_CLASSE,
+        VOIR_LISTE_ELEVES,
+        VOIR_AFFECTATIONS_CLASSE,
+        GERER_ELEVES_CLASSE,
+    }:
         directions = responsabilites_direction_actives(utilisateur, date=date)
         condition |= Q(ecole_id__in=directions.values("appartenance__ecole_id"))
     return base.filter(condition).distinct()

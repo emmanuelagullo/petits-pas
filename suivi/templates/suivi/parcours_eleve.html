@@ -23,6 +23,7 @@
   <div class="actions"><button class="bouton" type="submit">Enregistrer l'identité</button></div>
 </form>
 
+{% if direction %}
 <h2>Scolarités conservées</h2>
 <ul class="liste">
   {% for scolarite in scolarites %}
@@ -49,4 +50,5 @@
   <select id="niveau" name="niveau"><option>PS</option><option>MS</option><option>GS</option></select>
   <div class="actions"><button class="bouton" type="submit">Enregistrer cette scolarité</button></div>
 </form>
+{% endif %}
 {% endblock %}

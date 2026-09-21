@@ -26,10 +26,11 @@
       <select name="niveau" aria-label="Niveau de {{ scolarite.eleve.prenom }}" onchange="this.form.requestSubmit()"><option value="PS"{% if scolarite.niveau == 'PS' %} selected{% endif %}>PS</option><option value="MS"{% if scolarite.niveau == 'MS' %} selected{% endif %}>MS</option><option value="GS"{% if scolarite.niveau == 'GS' %} selected{% endif %}>GS</option></select>
       <button class="bouton discret" type="submit">Modifier le niveau</button>
     </form>
-    <form method="post" onsubmit="return confirm('Retirer {{ scolarite.eleve.prenom|escapejs }} de {{ classe.nom|escapejs }} ?');">
+    {% if direction %}<form method="post" onsubmit="return confirm('Retirer {{ scolarite.eleve.prenom|escapejs }} de {{ classe.nom|escapejs }} ?');">
       {% csrf_token %}<input type="hidden" name="action" value="retirer"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
       <button class="bouton discret" type="submit">Retirer de la classe</button>
     </form>
+    {% endif %}
     <form method="post" onsubmit="return confirm('Retirer {{ scolarite.eleve.prenom|escapejs }} de {{ classe.nom|escapejs }} et l\'archiver ?');">
       {% csrf_token %}<input type="hidden" name="action" value="retirer_et_archiver"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
       <button class="bouton discret" type="submit">Retirer et archiver</button>
@@ -49,7 +50,25 @@
 {% endif %}
 
 <h1>Ajouter des enfants à {{ classe.nom }}</h1>
-<p class="sous-titre">Ajoutez un élève déjà connu ou collez une liste de nouveaux élèves.</p>
+<p class="sous-titre">Collez une liste de nouveaux élèves. Toute correspondance avec un dossier existant sera soumise à la direction, sans fusion automatique.</p>
+
+{% if demandes_rapprochement %}
+<section class="encadre">
+  <h2>Rapprochements à valider</h2>
+  {% for demande in demandes_rapprochement %}
+  <article class="trace-conservee">
+    <p><strong>{{ demande.prenom_propose }} {{ demande.nom_propose }}</strong>{% if demande.annee_naissance_proposee %} · {{ demande.annee_naissance_proposee }}{% endif %}</p>
+    {% for candidat in demande.candidats %}
+    <form method="post" class="ligne-affectation">
+      {% csrf_token %}<input type="hidden" name="action" value="valider_rapprochement"><input type="hidden" name="demande" value="{{ demande.pk }}"><input type="hidden" name="eleve" value="{{ candidat.pk }}">
+      <span>Dossier existant : {{ candidat }}{% if candidat.annee_naissance %} · {{ candidat.annee_naissance }}{% endif %}{% if candidat.classe %} · dernière classe : {{ candidat.classe }}{% endif %}</span>
+      <button class="bouton discret" type="submit">Valider ce dossier nominativement</button>
+    </form>
+    {% endfor %}
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
 
 {% if eleves_disponibles %}
 <section class="encadre">
