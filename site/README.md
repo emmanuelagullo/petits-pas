@@ -35,11 +35,18 @@ confondre la variabilité d'un runner CI avec un échec applicatif.
 Les ressources graphiques permanentes et leurs informations de licence peuvent
 en revanche être versionnées dans `static/`.
 
-Les scénarios documentaires et leurs chemins de sortie sont déclarés dans
-`data/demonstration.yaml`. Trois parcours représentatifs possèdent également
-une variante mobile de 390 × 844 pixels. Avant chaque capture, Playwright
-contrôle la présence d'un contenu principal, d'un titre de page et d'un unique
-`h1`, ainsi que l'absence de débordement horizontal.
+Les scénarios documentaires, leurs chemins de sortie et les éventuels cadrages
+ciblés sont déclarés dans `data/demonstration.yaml`. Trois parcours
+représentatifs possèdent également une variante mobile de 390 × 844 pixels.
+Avant chaque capture, Playwright contrôle la présence d'un contenu principal,
+d'un titre de page et d'un unique `h1`, ainsi que l'absence de débordement
+horizontal.
+
+Le contrôle final refuse une capture manquante ou non déclarée, un format ou
+des dimensions inattendus, un fichier de plus de 2 Mio ou un ensemble dépassant
+12 Mio. Ces bornes empêchent une modification d'interface d'alourdir
+silencieusement le site public ; elles doivent être réévaluées explicitement si
+un nouveau besoin documentaire le justifie.
 
 Les paramètres publics partagés par le site et la démonstration Render sont
 centralisés dans `data/demonstration.yaml`. Toute modification de ce fichier

@@ -210,6 +210,8 @@ captures-demonstration:
       python3 scripts/capturer-demonstration.py \
         --base-url "http://127.0.0.1:$PORT" \
         --output site/static/captures
+      python3 scripts/verifier-captures-demonstration.py \
+        --input site/static/captures
       kill "$application_pid"
       wait "$application_pid" || true
       trap - EXIT
