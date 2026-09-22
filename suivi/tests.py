@@ -3183,6 +3183,40 @@ class EquipeEtGouvernance(Base):
                 email="ATTENTE@example.test",
             )
 
+    def test_la_direction_recoit_le_lien_une_seule_fois_et_sait_le_transmettre(self):
+        self.entrer("dir-mdp")
+        reponse = self.client.post(
+            reverse("equipe_ecole"),
+            {"action": "inviter", "email": "a-transmettre@example.test"},
+            follow=True,
+        )
+        self.assertContains(reponse, "Petits Pas n’envoie pas encore de courriel")
+        self.assertContains(reponse, "affiché une seule fois")
+        invitation = Invitation.objects.get(email="a-transmettre@example.test")
+        fragment = f"/invitation/{invitation.selecteur}/"
+        self.assertContains(reponse, fragment)
+
+        reponse_suivante = self.client.get(reverse("equipe_ecole"))
+        self.assertNotContains(reponse_suivante, fragment)
+
+    def test_une_invitation_expiree_est_signalee_sans_action_de_revocation(self):
+        invitation, _ = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="ancienne-invitation@example.test",
+        )
+        invitation.expire_le = timezone.now() - timedelta(minutes=1)
+        invitation.save(update_fields=["expire_le"])
+        self.entrer("dir-mdp")
+
+        reponse = self.client.get(reverse("equipe_ecole"))
+        contenu = reponse.content.decode()
+        debut = contenu.index("ancienne-invitation@example.test")
+        fin = contenu.index("</li>", debut)
+        ligne = contenu[debut:fin]
+        self.assertIn("Expirée", ligne)
+        self.assertNotIn("Révoquer", ligne)
+
     def test_derniere_affectation_responsable_ne_peut_etre_terminee(self):
         affectation = AffectationClasse.objects.get(
             classe=self.classe, type=AffectationClasse.RESPONSABLE

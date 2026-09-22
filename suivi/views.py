@@ -1503,15 +1503,16 @@ def equipe_ecole(request):
                     ecole=ecole,
                     email=request.POST.get("email", ""),
                 )
+                request.session["lien_invitation_creee"] = request.build_absolute_uri(
+                    reverse(
+                        "accepter_invitation",
+                        args=[invitation.selecteur, jeton],
+                    )
+                )
                 messages.success(
                     request,
-                    "Invitation créée. Lien à transmettre : "
-                    + request.build_absolute_uri(
-                        reverse(
-                            "accepter_invitation",
-                            args=[invitation.selecteur, jeton],
-                        )
-                    ),
+                    "Invitation créée. Copiez maintenant le lien affiché : "
+                    "il ne sera présenté qu’une fois.",
                 )
             elif action == "revoquer_invitation":
                 revoquer_invitation(
@@ -1619,13 +1620,23 @@ def equipe_ecole(request):
                     .filter(Q(date_fin__isnull=True) | Q(date_fin__gte=aujourd_hui))
                     .exists()
                 ]
+    invitations = list(ecole.invitations.all())
+    maintenant = timezone.now()
+    for invitation in invitations:
+        invitation.est_expiree = bool(
+            invitation.etat == Invitation.EN_ATTENTE
+            and invitation.expire_le < maintenant
+        )
     return render(
         request,
         "suivi/equipe.html",
         {
             "appartenances": appartenances,
             "membres_affectables": membres_affectables,
-            "invitations": ecole.invitations.all(),
+            "invitations": invitations,
+            "lien_invitation_creee": request.session.pop(
+                "lien_invitation_creee", None
+            ),
             "classes": ecole.classes.all(),
             "types_affectation": AffectationClasse.TYPES,
             "anomalies": ecole.anomalies_gouvernance.filter(resolue_le__isnull=True),
