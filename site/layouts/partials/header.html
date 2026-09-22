@@ -3,6 +3,7 @@
     <a class="brand" href="{{ "" | relURL }}" aria-label="Accueil Petits Pas"{{ if .IsHome }} aria-current="page"{{ end }}><span>petits</span> pas</a>
     <nav aria-label="Navigation principale">
       <a href="{{ "projet/" | relURL }}"{{ if eq .Section "projet" }} aria-current="page"{{ end }}>Le projet</a>
+      <a href="{{ "guide/" | relURL }}"{{ if eq .Section "guide" }} aria-current="page"{{ end }}>Guide pratique</a>
       <a href="{{ "equipes-pedagogiques/" | relURL }}"{{ if eq .Section "equipes-pedagogiques" }} aria-current="page"{{ end }}>Équipes pédagogiques</a>
       <a href="{{ "dsi/" | relURL }}"{{ if eq .Section "dsi" }} aria-current="page"{{ end }}>DSI</a>
       <a href="{{ "contribuer/" | relURL }}"{{ if eq .Section "contribuer" }} aria-current="page"{{ end }}>Contribuer</a>
