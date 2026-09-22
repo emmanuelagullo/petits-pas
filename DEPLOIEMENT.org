@@ -257,8 +257,10 @@ rattachée ni à PostgreSQL ni à S3. Pour la recréer, arrêter l'application,
 supprimer uniquement son fichier local =carnet.sqlite3= et son répertoire
 =media/=, puis relancer =./start-render.sh=. Le script applique les migrations,
 crée les deux comptes individuels publics décrits dans
-=site/data/demonstration.yaml=, recharge le référentiel et génère le jeu de
-démonstration.
+=site/data/demonstration.yaml=, recharge le référentiel et génère les jeux de
+démonstration pédagogique et d'équipe. Les profils supplémentaires sont tous
+fictifs et utilisent, dans cette seule démonstration publique, le mot de passe
+enseignant affiché par le site.
 
 Ne jamais utiliser cette procédure sur l'atelier ou le pilote : leur remise à
 zéro passe par une sauvegarde préalable et par des ressources PostgreSQL/S3

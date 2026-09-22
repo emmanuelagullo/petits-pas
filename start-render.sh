@@ -64,6 +64,9 @@ python3 manage.py creer_ecole "${parametres_demo[0]}" \
 
 python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
 python3 manage.py jeu_demo_large
+python3 manage.py jeu_demo_equipe \
+  --mot-de-passe "${parametres_demo[2]}" \
+  --confirmer-donnees-fictives
 
 python3 manage.py collectstatic --noinput
 
