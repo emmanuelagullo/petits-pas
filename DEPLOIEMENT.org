@@ -32,6 +32,13 @@ des URL temporaires signées.
 - =CARNET_DEBUG=0= : désactive les pages d’erreur détaillées ;
 - =CARNET_HOSTS= : noms DNS acceptés, séparés par des virgules ;
 - =CARNET_CSRF_ORIGINS= : origines HTTPS complètes, séparées par des virgules.
+- =CARNET_FORCER_HTTPS=oui= : redirection HTTPS et cookies sécurisés.
+
+Lorsque =CARNET_FORCER_HTTPS=oui=, Django force HTTPS et marque les cookies de
+session et CSRF comme sécurisés. L'en-tête =X-Frame-Options= interdit par ailleurs
+l'intégration des écrans dans un site tiers. HSTS reste à activer au niveau de
+l'hébergeur une fois le domaine HTTPS définitif validé : l'activer trop tôt
+peut rendre un retour en arrière difficile.
 
 ** Selon le fournisseur S3
 
@@ -242,6 +249,20 @@ Le script refuse de s’exécuter sans
 que pour une base et un bucket jetables. Le succès du job prouve la
 reproductibilité du déploiement et de la reprise, mais pas la persistance entre
 deux jobs CI ni les garanties du futur hébergeur.
+
+* Recréer la démonstration publique
+
+La démonstration Render ne contient que des données fictives et ne doit être
+rattachée ni à PostgreSQL ni à S3. Pour la recréer, arrêter l'application,
+supprimer uniquement son fichier local =carnet.sqlite3= et son répertoire
+=media/=, puis relancer =./start-render.sh=. Le script applique les migrations,
+crée les deux comptes individuels publics décrits dans
+=site/data/demonstration.yaml=, recharge le référentiel et génère le jeu de
+démonstration.
+
+Ne jamais utiliser cette procédure sur l'atelier ou le pilote : leur remise à
+zéro passe par une sauvegarde préalable et par des ressources PostgreSQL/S3
+explicitement identifiées par l'hébergeur.
 
 * Profils
 
