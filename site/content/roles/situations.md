@@ -8,13 +8,9 @@ sur quelle ressource, dans quelle école ou classe, et à quelle date ?** Les
 mêmes mots — enseigner, contribuer, remplacer — peuvent donc conduire à des
 écrans différents selon le contexte.
 
-## Les parcours en images
-
-Les captures suivantes sont recréées automatiquement avec l'application et les
-comptes fictifs. Elles montrent les actions proposées aujourd'hui ; l'absence
-d'un bouton ne remplace jamais le contrôle effectué par le serveur.
-
-{{< scenarios-demonstration >}}
+Les captures sont recréées automatiquement avec l'application et les comptes
+fictifs. Elles montrent les actions proposées aujourd'hui ; l'absence d'un
+bouton ne remplace jamais le contrôle effectué par le serveur.
 
 ## Partager une classe
 
@@ -25,6 +21,15 @@ Nadia est également responsable des Papillons. Cette seconde affectation
 étend son périmètre à cette classe, mais ne lui attribue aucun droit de
 direction sur l'école.
 
+## Contribuer sans consulter tout le suivi
+
+Cora intervient comme ATSEM contributrice chez les Coccinelles. Elle peut
+ajouter une observation à un élève, mais ne consulte ni le suivi pédagogique
+complet ni les contributions des autres membres. L'écran lui donne uniquement
+les informations et l'action nécessaires à cette contribution.
+
+{{< scenarios-demonstration ids="cora-contribution" >}}
+
 ## Changer de fonction selon la classe
 
 Samir est contributeur chez les Coccinelles et enseignant associé chez les
@@ -32,6 +37,8 @@ Papillons. Chez les Coccinelles, il voit seulement l'identité minimale des
 élèves nécessaire à une contribution. Chez les Papillons, il consulte le suivi
 complet et peut ajouter des traces. Les droits reçus dans une classe ne se
 propagent jamais à l'autre.
+
+{{< scenarios-demonstration ids="samir-coccinelles,samir-papillons" >}}
 
 ## Remplacer pour une période limitée
 
@@ -63,6 +70,8 @@ La démonstration contient une invitation en attente et une invitation révoqué
 Leurs adresses utilisent le domaine réservé `example.test` et les jetons
 fictifs publiés ne permettent aucune invitation réelle.
 
+{{< scenarios-demonstration ids="direction-equipe" >}}
+
 ## Refuser sans dévoiler
 
 Un refus n'est pas toujours montré par une grande page « accès interdit » :
@@ -78,6 +87,8 @@ Un refus n'est pas toujours montré par une grande page « accès interdit » :
 
 Ces choix réduisent les informations révélées à une personne qui essaierait de
 deviner une adresse ou un identifiant.
+
+{{< scenarios-demonstration ids="direction-classe-sans-suivi" >}}
 
 ## Procédures de secours
 
