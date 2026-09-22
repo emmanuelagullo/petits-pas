@@ -1,6 +1,7 @@
 import hashlib
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -14,17 +15,7 @@ from comptes.models import (
     ResponsabiliteEcole,
 )
 from suivi.models import Bilan, Classe, Ecole, Observation, Trace
-
-
-PROFILS = (
-    ("nadia-demo", "Nadia", "Co-titulaire"),
-    ("amina-demo", "Amina", "Associée"),
-    ("cora-demo", "Cora", "ATSEM"),
-    ("samir-demo", "Samir", "Intervenant"),
-    ("lea-demo", "Léa", "Remplaçante"),
-    ("marc-demo", "Marc", "Sans affectation"),
-    ("alice-demo", "Alice", "Ancienne intervenante"),
-)
+from suivi.configuration_demo import charger_configuration_demo
 
 
 class Command(BaseCommand):
@@ -33,6 +24,10 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("--ecole", type=int)
         parser.add_argument("--mot-de-passe", required=True)
+        parser.add_argument(
+            "--configuration",
+            default=settings.BASE_DIR / "site" / "data" / "demonstration.yaml",
+        )
         parser.add_argument(
             "--confirmer-donnees-fictives",
             action="store_true",
@@ -55,79 +50,57 @@ class Command(BaseCommand):
             ecole = None
         if ecole is None:
             raise CommandError("École introuvable ou ambiguë : précisez --ecole.")
-        if get_user_model().objects.filter(username="nadia-demo").exists():
+        try:
+            configuration = charger_configuration_demo(options["configuration"])
+        except (OSError, ValueError) as erreur:
+            raise CommandError(str(erreur)) from erreur
+        profils = {profil["id"]: profil for profil in configuration["profils"]}
+        comptes_a_creer = [
+            profil["utilisateur"]
+            for profil in profils.values()
+            if "compte_initial" not in profil
+        ]
+        if get_user_model().objects.filter(username__in=comptes_a_creer).exists():
             raise CommandError(
                 "L'équipe de démonstration existe déjà. Repartez d'une base vide."
             )
 
-        classes = list(
-            ecole.classes.filter(annee_scolaire="2026-2027").order_by("ordre", "pk")
-        )
-        if len(classes) < 2:
-            raise CommandError(
-                "Le scénario riche exige deux classes en 2026-2027 ; "
-                "lancez d'abord jeu_demo_large."
-            )
-        coccinelles, papillons = classes[:2]
-        direction = self._compte_existant(
-            ecole, ResponsabiliteEcole.DIRECTION, "Diane", "Direction"
-        )
+        classes = self._classes_configuration(ecole, configuration)
+        coccinelles = classes["coccinelles"]
+        papillons = classes["papillons"]
+        direction = self._compte_existant(ecole, ResponsabiliteEcole.DIRECTION)
         remi = self._enseignant_existant(ecole)
-        remi.first_name, remi.last_name = "Rémi", "Responsable"
-        remi.save(update_fields=["first_name", "last_name"])
-
-        utilisateurs = {"remi": remi, "direction": direction}
-        for username, prenom, nom in PROFILS:
-            utilisateurs[username.split("-")[0]] = self._creer_membre(
-                ecole, username, prenom, nom, options["mot_de_passe"], direction
+        utilisateurs = {"diane": direction, "remi": remi}
+        for identifiant, utilisateur in utilisateurs.items():
+            self._nommer(utilisateur, profils[identifiant])
+        for identifiant, profil in profils.items():
+            if identifiant in utilisateurs:
+                continue
+            utilisateurs[identifiant] = self._creer_membre(
+                ecole, profil, options["mot_de_passe"], direction
             )
 
         # Le jeu large historique donnait parfois toutes les classes au compte
         # enseignant. La démonstration riche repart d'affectations explicites.
         AffectationClasse.objects.filter(
             appartenance__ecole=ecole,
-            classe__annee_scolaire="2026-2027",
+            classe__in=(coccinelles, papillons),
         ).delete()
 
-        self._affecter(utilisateurs["remi"], coccinelles, "responsable", direction)
-        self._affecter(utilisateurs["nadia"], coccinelles, "responsable", direction)
-        self._affecter(utilisateurs["nadia"], papillons, "responsable", direction)
-        self._affecter(utilisateurs["amina"], coccinelles, "enseignant_associe", direction)
-        self._affecter(utilisateurs["cora"], coccinelles, "contributeur", direction)
-        self._affecter(utilisateurs["samir"], coccinelles, "contributeur", direction)
-        self._affecter(utilisateurs["samir"], papillons, "enseignant_associe", direction)
-        self._affecter(
-            utilisateurs["lea"],
-            papillons,
-            "responsable",
-            direction,
-            date_fin=timezone.localdate() + timedelta(days=30),
-            motif="Remplacement temporaire de démonstration",
-        )
-        ancienne = self._affecter(
-            utilisateurs["alice"],
-            coccinelles,
-            "contributeur",
-            direction,
-            date_debut=timezone.localdate() - timedelta(days=90),
-            date_fin=timezone.localdate() - timedelta(days=30),
-            motif="Intervention ponctuelle terminée",
-            etat=AffectationClasse.TERMINEE,
-        )
-        ancienne.termine_par = direction
-        ancienne.termine_le = timezone.now() - timedelta(days=30)
-        ancienne.save(update_fields=["termine_par", "termine_le"])
+        for identifiant, profil in profils.items():
+            for affectation in profil["affectations"]:
+                self._affecter_depuis_configuration(
+                    utilisateurs[identifiant],
+                    classes[affectation["classe"]],
+                    affectation,
+                    direction,
+                )
 
         for classe in (coccinelles, papillons):
             if classe.etat != Classe.ACTIVE:
                 classe.activer()
 
-        lucioles, _ = Classe.objects.get_or_create(
-            ecole=ecole,
-            nom="Les Lucioles — rentrée suivante",
-            annee_scolaire="2027-2028",
-            defaults={"ordre": 3, "etat": Classe.PREPARATION},
-        )
+        lucioles = classes["lucioles"]
         AnomalieGouvernance.objects.create(
             ecole=ecole,
             classe=lucioles,
@@ -146,7 +119,29 @@ class Command(BaseCommand):
             )
         )
 
-    def _compte_existant(self, ecole, type_responsabilite, prenom, nom):
+    def _classes_configuration(self, ecole, configuration):
+        classes = {}
+        for identifiant, donnees in configuration["classes"].items():
+            classe = ecole.classes.filter(
+                nom=donnees["nom"], annee_scolaire=donnees["annee_scolaire"]
+            ).first()
+            if classe is None and identifiant == "lucioles":
+                classe = Classe.objects.create(
+                    ecole=ecole,
+                    nom=donnees["nom"],
+                    annee_scolaire=donnees["annee_scolaire"],
+                    ordre=3,
+                    etat=Classe.PREPARATION,
+                )
+            if classe is None:
+                raise CommandError(
+                    f"Classe de démonstration introuvable : {donnees['nom']} "
+                    f"({donnees['annee_scolaire']}). Lancez d'abord jeu_demo_large."
+                )
+            classes[identifiant] = classe
+        return classes
+
+    def _compte_existant(self, ecole, type_responsabilite):
         responsabilite = ResponsabiliteEcole.objects.filter(
             appartenance__ecole=ecole,
             type=type_responsabilite,
@@ -154,10 +149,7 @@ class Command(BaseCommand):
         ).select_related("appartenance__utilisateur").first()
         if responsabilite is None:
             raise CommandError("Aucun compte de direction initial n'existe.")
-        utilisateur = responsabilite.appartenance.utilisateur
-        utilisateur.first_name, utilisateur.last_name = prenom, nom
-        utilisateur.save(update_fields=["first_name", "last_name"])
-        return utilisateur
+        return responsabilite.appartenance.utilisateur
 
     def _enseignant_existant(self, ecole):
         appartenance = ecole.appartenances.exclude(
@@ -168,18 +160,58 @@ class Command(BaseCommand):
             raise CommandError("Aucun compte enseignant initial n'existe.")
         return appartenance.utilisateur
 
-    def _creer_membre(self, ecole, username, prenom, nom, mot_de_passe, direction):
+    def _nommer(self, utilisateur, profil):
+        utilisateur.first_name = profil["prenom"]
+        utilisateur.last_name = profil["nom_famille"]
+        utilisateur.save(update_fields=["first_name", "last_name"])
+
+    def _creer_membre(self, ecole, profil, mot_de_passe, direction):
         utilisateur = get_user_model().objects.create_user(
-            username=username,
-            email=f"{username}@example.test",
+            username=profil["utilisateur"],
+            email=f"{profil['utilisateur']}@example.test",
             password=mot_de_passe,
-            first_name=prenom,
-            last_name=nom,
+            first_name=profil["prenom"],
+            last_name=profil["nom_famille"],
         )
         AppartenanceEcole.objects.create(
             utilisateur=utilisateur, ecole=ecole, attribue_par=direction
         )
         return utilisateur
+
+    def _affecter_depuis_configuration(
+        self, utilisateur, classe, configuration, direction
+    ):
+        aujourd_hui = timezone.localdate()
+        periode = configuration["periode"]
+        parametres = {
+            "motif": configuration.get("motif", ""),
+        }
+        if periode == "temporaire":
+            parametres["date_fin"] = aujourd_hui + timedelta(
+                days=configuration["duree_jours"]
+            )
+        elif periode == "terminee":
+            parametres.update(
+                date_debut=aujourd_hui
+                - timedelta(days=configuration["debut_jours_avant"]),
+                date_fin=aujourd_hui
+                - timedelta(days=configuration["fin_jours_avant"]),
+                etat=AffectationClasse.TERMINEE,
+            )
+        affectation = self._affecter(
+            utilisateur,
+            classe,
+            configuration["type"],
+            direction,
+            **parametres,
+        )
+        if periode == "terminee":
+            affectation.termine_par = direction
+            affectation.termine_le = timezone.now() - timedelta(
+                days=configuration["fin_jours_avant"]
+            )
+            affectation.save(update_fields=["termine_par", "termine_le"])
+        return affectation
 
     def _affecter(
         self,
