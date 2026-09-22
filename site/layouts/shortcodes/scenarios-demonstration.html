@@ -1,0 +1,12 @@
+{{- $demo := .Site.Data.demonstration -}}
+<div class="screenshot-gallery role-scenarios">
+  {{- range $demo.scenarios }}
+  <figure id="scenario-{{ .id }}">
+    <a class="screenshot-link" href="{{ printf "captures/%s" .capture | relURL }}" target="_blank" rel="noopener">
+      <img src="{{ printf "captures/%s" .capture | relURL }}" alt="{{ .titre }} dans la démonstration fictive de Petits Pas" loading="lazy">
+      <span class="visually-hidden">Ouvrir l'image en grand dans un nouvel onglet</span>
+    </a>
+    <figcaption><b>{{ .titre }}</b><br>{{ .legende }}</figcaption>
+  </figure>
+  {{- end }}
+</div>

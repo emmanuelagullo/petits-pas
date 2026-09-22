@@ -55,6 +55,10 @@ règles en scène avec neuf personnages : direction, co-responsables, enseignant
 associée, contributrice, profil mixte, remplacement temporaire, membre sans
 affectation et ancienne intervenante.
 
+Les [situations et parcours illustrés]({{< relref "/roles/situations/" >}})
+expliquent ensuite les cumuls de fonctions, les périodes, les invitations, les
+refus significatifs et les procédures de secours.
+
 La [démonstration publique]({{< relref "/demonstration/" >}}) permet d'essayer
 ces situations avec une équipe entièrement fictive. Pour approfondir les
 règles, leurs justifications et les scénarios de refus, consultez les
