@@ -4,8 +4,10 @@
     <h1>{{ .Title }}</h1>
     {{ with .Description }}<p class="lede">{{ . }}</p>{{ end }}
     {{ .Content }}
-    {{ range .Pages }}
-      <p><a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ with .Description }} — {{ . }}{{ end }}</p>
+    {{ if ne .Params.showChildren false }}
+      {{ range .Pages }}
+        <p><a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ with .Description }} — {{ . }}{{ end }}</p>
+      {{ end }}
     {{ end }}
   </article>
 {{ end }}

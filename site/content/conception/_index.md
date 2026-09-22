@@ -1,6 +1,7 @@
 +++
 title = "Documents de conception"
 description = "Le modèle, la politique et les scénarios de référence des rôles et autorisations."
+showChildren = false
 +++
 
 Cette rubrique rassemble les documents ayant servi à concevoir puis à
@@ -41,7 +42,6 @@ avec le comportement observé doit être signalée et traitée explicitement.
    décrit l'état antérieur au chantier et le découpage qui a conduit à
    l'implémentation des autorisations.
 
-Ces textes constituent la documentation approfondie. Une présentation plus
-directe et illustrée, destinée en priorité aux équipes pédagogiques, sera
-ajoutée séparément afin de ne pas imposer ce niveau de détail lors d'une
-première visite.
+Ces textes constituent la documentation approfondie. La présentation [« Qui
+peut faire quoi ? »]({{< relref "/roles/" >}}) propose une lecture plus directe
+et illustrée, destinée en priorité aux équipes pédagogiques.
