@@ -1,0 +1,13 @@
+{{ $fiches := where .Site.RegularPages "Params.fiche" true }}
+<section class="guide-search" data-guide-search>
+  <label for="recherche-guide">Je voudrais faire…</label>
+  <input id="recherche-guide" type="search" inputmode="search" autocomplete="off" placeholder="Ex. ajouter une photo, générer un carnet…" data-guide-query>
+  <p class="guide-search-count" aria-live="polite" data-guide-count>{{ len $fiches }} fiches pratiques</p>
+  <div class="guide-grid" data-guide-results>
+    {{ range $fiches.ByTitle }}
+      {{ partial "guide-card.html" (dict "page" . "site" $.Site) }}
+    {{ end }}
+  </div>
+  <p class="guide-empty" hidden data-guide-empty>Aucune fiche ne correspond à cette recherche.</p>
+</section>
+<script src="{{ "js/guide.js" | relURL }}" defer></script>

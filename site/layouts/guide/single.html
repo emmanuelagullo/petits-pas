@@ -1,0 +1,33 @@
+{{ define "main" }}
+<main id="contenu" class="shell page" tabindex="-1">
+  <article class="prose guide-sheet">
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="lede">{{ . }}</p>{{ end }}
+
+    {{ if .Params.fiche }}
+      <dl class="guide-facts">
+        <div>
+          <dt>Pour qui ?</dt>
+          <dd>
+            {{ range $index, $public := .Params.publics }}{{ if $index }}, {{ end }}{{ with index $.Site.Data.guide.publics $public }}{{ . }}{{ else }}{{ $public }}{{ end }}{{ end }}
+          </dd>
+        </div>
+        <div>
+          <dt>Prérequis</dt>
+          <dd>{{ .Params.prerequis | markdownify }}</dd>
+        </div>
+        <div>
+          <dt>Point de départ</dt>
+          <dd>{{ .Params.depart | markdownify }}</dd>
+        </div>
+        <div>
+          <dt>Disponibilité</dt>
+          <dd>{{ with index .Site.Data.guide.statuts .Params.statut }}{{ . }}{{ else }}{{ .Params.statut }}{{ end }}</dd>
+        </div>
+      </dl>
+    {{ end }}
+
+    {{ .Content }}
+  </article>
+</main>
+{{ end }}

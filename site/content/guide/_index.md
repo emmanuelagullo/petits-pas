@@ -1,6 +1,7 @@
 +++
 title = "Guide pratique"
 description = "Retrouver rapidement comment accomplir une tâche dans Petits Pas."
+liste_auto = false
 +++
 
 Ce guide part d’une intention concrète — **« Je voudrais faire… »** — puis
@@ -8,7 +9,11 @@ indique où commencer, qui peut agir et ce que l’application doit produire.
 Il décrit l’interface disponible aujourd’hui ; lorsqu’une fonction n’est pas
 encore proposée, cela est signalé explicitement.
 
-## Observer et documenter
+{{< recherche-guide >}}
+
+## Parcourir par intention
+
+### [Observer et documenter](observer/)
 
 - mettre à jour l’acquisition d’un élève ;
 - saisir une compétence pour toute la classe ;
@@ -17,7 +22,7 @@ encore proposée, cela est signalé explicitement.
 - consulter ou imprimer une grille de suivi ;
 - ajouter quelques mots sur le parcours d’un élève.
 
-## Préparer les carnets
+### [Préparer les carnets](carnets/)
 
 - prévisualiser le carnet d’un élève ;
 - choisir les apprentissages et leur regroupement ;
@@ -25,7 +30,7 @@ encore proposée, cela est signalé explicitement.
 - préparer une archive de carnets pour toute une classe ;
 - définir les paramètres habituels de l’école.
 
-## Gérer les élèves et les classes
+### [Gérer les élèves et les classes](eleves-classes/)
 
 - créer puis activer une classe ;
 - ajouter de nouveaux élèves ou retrouver des dossiers existants ;
@@ -34,7 +39,7 @@ encore proposée, cela est signalé explicitement.
 - préparer la rentrée suivante ;
 - valider un rapprochement entre deux dossiers possibles.
 
-## Organiser l’équipe
+### [Organiser l’équipe](equipe/)
 
 - inviter une personne et activer son compte ;
 - attribuer une fonction dans une classe ;
@@ -42,7 +47,7 @@ encore proposée, cela est signalé explicitement.
 - terminer ou suspendre une affectation ;
 - comprendre une anomalie de gouvernance.
 
-## Comprendre un refus
+### [Comprendre un refus](depannage/)
 
 Une action peut être absente, refusée ou présentée comme une ressource
 introuvable selon le contexte. Les futures fiches expliqueront notamment
@@ -56,12 +61,14 @@ périodes, les cumuls et les refus significatifs.
 
 ## Entrer par son rôle
 
-- **Responsable de classe** : suivi complet, états d’acquisition, élèves et
+[Afficher les fiches regroupées par rôle](roles/), ou choisir directement :
+
+- [**Responsable de classe**](roles/responsable/) : suivi complet, états d’acquisition, élèves et
   production finale des carnets.
-- **Enseignant associé** : consultation du suivi, contributions et relecture
+- [**Enseignant associé**](roles/associe/) : consultation du suivi, contributions et relecture
   des carnets sans décision éditoriale finale.
-- **Contributeur** : contribution ciblée sans ouverture du suivi complet.
-- **Direction** : classes, élèves, équipe et paramètres durables, sans accès
+- [**Contributeur**](roles/contributeur/) : contribution ciblée sans ouverture du suivi complet.
+- [**Direction**](roles/direction/) : classes, élèves, équipe et paramètres durables, sans accès
   pédagogique automatique.
 
 L’[inventaire des tâches et de leur disponibilité](inventaire/) constitue la

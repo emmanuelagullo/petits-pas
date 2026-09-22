@@ -1,0 +1,6 @@
+<figure class="guide-capture">
+  <a href="{{ (.Get "src") | relURL }}">
+    <img src="{{ (.Get "src") | relURL }}" alt="{{ .Get "alt" }}" loading="lazy">
+  </a>
+  {{ with .Get "caption" }}<figcaption>{{ . | markdownify }}</figcaption>{{ end }}
+</figure>

@@ -1,0 +1,25 @@
+{{ define "main" }}
+<main id="contenu" class="shell page" tabindex="-1">
+  <article class="prose">
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="lede">{{ . }}</p>{{ end }}
+    {{ .Content }}
+
+    {{ if ne .Params.liste_auto false }}
+      {{ $fiches := where .RegularPagesRecursive "Params.fiche" true }}
+      {{ with .Params.public }}
+        {{ $fiches = where (where $.Site.RegularPages "Params.fiche" true) "Params.publics" "intersect" (slice .) }}
+      {{ end }}
+      {{ if $fiches }}
+        <div class="guide-grid">
+          {{ range $fiches.ByTitle }}
+            {{ partial "guide-card.html" (dict "page" . "site" $.Site) }}
+          {{ end }}
+        </div>
+      {{ else }}
+        <p class="guide-empty">Les fiches de cette rubrique seront ajoutées lors des prochains jalons.</p>
+      {{ end }}
+    {{ end }}
+  </article>
+</main>
+{{ end }}
