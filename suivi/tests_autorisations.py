@@ -765,9 +765,10 @@ class AdministrationCouranteEleves(LecturesCloisonnees):
         self.client.force_login(self.cora)
 
         reponse = self.client.get(f"/media/trace/{trace.pk}/original/")
+        contenu = b"".join(reponse.streaming_content)
 
         self.assertEqual(reponse.status_code, 200)
-        reponse.close()
+        self.assertEqual(contenu, b"image")
         self.assertTrue(
             EvenementAudit.objects.filter(
                 action="media.original_telecharge", acteur=self.cora
