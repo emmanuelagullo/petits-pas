@@ -14,7 +14,7 @@
     {% else %}
     <p><strong>{{ trace.date_observation|date:"j F Y" }}</strong>{% if not trace.visible_carnet %} · masquée dans le carnet{% endif %}</p>
     {% if trace.commentaire %}<p>{{ trace.commentaire }}</p>{% endif %}
-    {% if trace.photo %}<img class="miniature" src="{{ trace.photo.url }}" alt="">{% endif %}
+    {% if trace.photo %}<img class="miniature" src="{% url 'afficher_media_trace' trace.pk %}" alt="">{% if trace.peut_telecharger_original %}<p><a href="{% url 'telecharger_media_trace' trace.pk %}">Télécharger la photo originale</a></p>{% endif %}{% endif %}
     {% if trace.peut_modifier %}<p><a href="{% url 'modifier_trace' eleve.pk competence.pk trace.pk %}">Modifier cette trace</a></p>{% endif %}
     {% if responsable %}
     <form method="post" action="{% url 'basculer_visibilite_trace' eleve.pk competence.pk trace.pk %}" class="visibilite-trace">
