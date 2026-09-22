@@ -11,6 +11,15 @@
     <span>Mot de passe : <code>{{ $demo.identifiants.direction.mot_de_passe }}</code></span>
   </article>
 </div>
+<details>
+  <summary>Essayer les autres profils fictifs</summary>
+  <p>Ces comptes utilisent le mot de passe enseignant affiché ci-dessus.</p>
+  <ul>
+    {{- range $demo.profils }}
+    <li><code>{{ .utilisateur }}</code> — {{ .nom }}</li>
+    {{- end }}
+  </ul>
+</details>
 <p class="actions">
   <a class="button primary" href="{{ $demo.url }}" rel="external">Ouvrir la démonstration</a>
 </p>

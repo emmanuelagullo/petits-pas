@@ -7,3 +7,11 @@ identifiants:
   direction:
     utilisateur: direction-demo
     mot_de_passe: direction-render
+profils:
+  - { utilisateur: enseignant-demo, nom: "Rémi — responsable des Coccinelles" }
+  - { utilisateur: nadia-demo, nom: "Nadia — co-responsable de deux classes" }
+  - { utilisateur: amina-demo, nom: "Amina — enseignante associée" }
+  - { utilisateur: cora-demo, nom: "Cora — ATSEM contributrice" }
+  - { utilisateur: samir-demo, nom: "Samir — profil mixte selon la classe" }
+  - { utilisateur: lea-demo, nom: "Léa — remplaçante temporaire" }
+  - { utilisateur: marc-demo, nom: "Marc — membre sans affectation" }

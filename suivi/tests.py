@@ -2317,6 +2317,25 @@ class JeuDemoLarge(TestCase):
         self.ecole = Ecole.objects.create(nom="École de démo")
         self._charger_referentiel_demo(self.ecole)
 
+    def _creer_comptes_initiaux(self):
+        Utilisateur = get_user_model()
+        enseignant = Utilisateur.objects.create_user(
+            username="enseignant-demo", password="demo-factice"
+        )
+        direction = Utilisateur.objects.create_user(
+            username="direction-demo", password="direction-factice"
+        )
+        AppartenanceEcole.objects.create(
+            utilisateur=enseignant, ecole=self.ecole
+        )
+        appartenance_direction = AppartenanceEcole.objects.create(
+            utilisateur=direction, ecole=self.ecole
+        )
+        ResponsabiliteEcole.objects.create(
+            appartenance=appartenance_direction,
+            type=ResponsabiliteEcole.DIRECTION,
+        )
+
     def test_genere_cinq_annees_avec_plusieurs_classes_chacune(self):
         call_command("jeu_demo_large", stdout=StringIO())
 
@@ -2390,6 +2409,96 @@ class JeuDemoLarge(TestCase):
 
         with self.assertRaises(CommandError):
             call_command("jeu_demo_large", stdout=StringIO())
+
+    def test_cree_un_scenario_d_equipe_riche(self):
+        self._creer_comptes_initiaux()
+        call_command("jeu_demo_large", stdout=StringIO())
+
+        call_command(
+            "jeu_demo_equipe",
+            "--mot-de-passe",
+            "demo-factice",
+            "--confirmer-donnees-fictives",
+            stdout=StringIO(),
+        )
+
+        Utilisateur = get_user_model()
+        nadia = Utilisateur.objects.get(username="nadia-demo")
+        samir = Utilisateur.objects.get(username="samir-demo")
+        lea = Utilisateur.objects.get(username="lea-demo")
+        marc = Utilisateur.objects.get(username="marc-demo")
+        alice = Utilisateur.objects.get(username="alice-demo")
+        self.assertEqual(
+            AffectationClasse.objects.filter(
+                appartenance__utilisateur=nadia,
+                type=AffectationClasse.RESPONSABLE,
+            ).count(),
+            2,
+        )
+        self.assertEqual(
+            set(
+                AffectationClasse.objects.filter(
+                    appartenance__utilisateur=samir
+                ).values_list("type", flat=True)
+            ),
+            {
+                AffectationClasse.ENSEIGNANT_ASSOCIE,
+                AffectationClasse.CONTRIBUTEUR,
+            },
+        )
+        temporaire = AffectationClasse.objects.get(
+            appartenance__utilisateur=lea
+        )
+        self.assertIsNotNone(temporaire.date_fin)
+        self.assertIn("temporaire", temporaire.motif)
+        self.assertFalse(
+            AffectationClasse.objects.filter(appartenance__utilisateur=marc).exists()
+        )
+        self.assertTrue(
+            AffectationClasse.objects.filter(
+                appartenance__utilisateur=alice,
+                etat=AffectationClasse.TERMINEE,
+            ).exists()
+        )
+        self.assertEqual(Invitation.objects.filter(ecole=self.ecole).count(), 2)
+        self.assertTrue(
+            AnomalieGouvernance.objects.filter(
+                ecole=self.ecole,
+                type=AnomalieGouvernance.CLASSE_SANS_RESPONSABLE,
+                resolue_le__isnull=True,
+            ).exists()
+        )
+        self.assertEqual(
+            self.ecole.classes.filter(
+                annee_scolaire="2026-2027", etat=Classe.ACTIVE
+            ).count(),
+            2,
+        )
+        self.assertFalse(
+            Trace.objects.filter(
+                scolarite__classe__annee_scolaire="2026-2027",
+                auteur__isnull=True,
+            ).exists()
+        )
+        for username in ("amina-demo", "cora-demo", "samir-demo"):
+            self.assertTrue(
+                Trace.objects.filter(auteur__username=username).exists(), username
+            )
+        self.assertFalse(
+            Bilan.objects.filter(
+                scolarite__classe__annee_scolaire="2026-2027",
+                auteur__isnull=True,
+            ).exists()
+        )
+
+    def test_refuse_le_scenario_d_equipe_sans_confirmation_fictive(self):
+        with self.assertRaisesMessage(CommandError, "donnée réelle"):
+            call_command(
+                "jeu_demo_equipe",
+                "--mot-de-passe",
+                "demo-factice",
+                stdout=StringIO(),
+            )
 
 
 class InitialisationAtelier(TestCase):
