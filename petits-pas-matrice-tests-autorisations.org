@@ -1,0 +1,466 @@
+#+title: Petits Pas — Matrice normative et tests d'autorisation
+#+author: Équipe Petits Pas
+#+date: 2026-09-21
+
+* Statut du document
+
+Ce document dérive de :
+
+- =petits-pas-modele-metier-identites-affectations.org= ;
+- =ROLES-ET-DROITS.org=.
+
+Il transforme la politique en règles normatives et en scénarios de tests. En
+cas de divergence, la politique d'autorisation doit être corrigée ou la
+divergence explicitement décidée avant l'implémentation.
+
+* Convention de lecture
+
+** Résultats normatifs
+
+- =A= : opération autorisée ;
+- =D= : opération refusée ;
+- =C= : autorisée si toutes les conditions indiquées sont satisfaites ;
+- =S= : procédure de secours ou exceptionnelle, absente du parcours ordinaire.
+
+** Acteurs
+
+- =PAT= : administration technique de la plateforme ;
+- =DIR= : membre de la direction de l'école ;
+- =RES= : responsable de la classe concernée ;
+- =ASS= : enseignant associé à la classe concernée ;
+- =CON= : contributeur de la classe concernée ;
+- =MEM= : membre actif de l'école sans responsabilité active ;
+- =EXT= : utilisateur sans appartenance à l'école ;
+- =ANON= : personne non authentifiée.
+
+Un même utilisateur peut porter plusieurs qualités. Chaque autorisation est
+évaluée dans le périmètre précis de l'opération.
+
+* Préconditions universelles
+
+Une opération fonctionnelle exige, sauf indication contraire :
+
+1. un utilisateur authentifié et actif ;
+2. une école active ;
+3. une appartenance active à cette école ;
+4. une responsabilité ou affectation active autorisant l'opération ;
+5. une ressource appartenant à la même école ;
+6. le respect des bornes temporelles ;
+7. le respect des états de la ressource et des contraintes métier.
+
+L'échec d'une précondition entraîne =D= avant toute mutation.
+
+* Matrice normative
+
+** Compte personnel
+
+| ID    | Opération                                  | PAT | DIR | RES | ASS | CON | MEM | EXT |
+|-------+--------------------------------------------+-----+-----+-----+-----+-----+-----+-----|
+| CP-01 | Consulter son propre profil               | A   | A   | A   | A   | A   | A   | A   |
+| CP-02 | Modifier son propre nom affiché            | A   | A   | A   | A   | A   | A   | A   |
+| CP-03 | Modifier le profil d'autrui                | D   | D   | D   | D   | D   | D   | D   |
+| CP-04 | Récupérer son moyen de connexion           | C   | C   | C   | C   | C   | C   | C   |
+| CP-05 | Désactiver globalement un compte           | A   | D   | D   | D   | D   | D   | D   |
+
+=CP-04= dépend du mécanisme d'authentification futur. La direction peut terminer
+une appartenance mais ne désactive pas le compte global.
+
+** Appartenances, invitations et direction
+
+| ID    | Opération                                      | PAT | DIR | RES | ASS | CON | MEM |
+|-------+------------------------------------------------+-----+-----+-----+-----+-----+-----|
+| AP-01 | Inviter dans l'école                          | D   | A   | D   | D   | D   | D   |
+| AP-02 | Révoquer ou renvoyer une invitation           | D   | A   | D   | D   | D   | D   |
+| AP-03 | Accepter une invitation                       | D   | C   | C   | C   | C   | C   |
+| AP-04 | Voir la liste complète de l'équipe            | D   | A   | D   | D   | D   | D   |
+| AP-05 | Voir les collaborateurs de sa classe          | D   | A   | A   | A   | A   | D   |
+| AP-06 | Suspendre ou terminer une appartenance        | S   | A   | D   | D   | D   | D   |
+| AP-07 | Attribuer ou retirer la direction              | S   | C   | D   | D   | D   | D   |
+| AP-08 | Retirer la dernière direction active           | S   | D   | D   | D   | D   | D   |
+
+Conditions :
+
+- =AP-03= : jeton valide, non expiré, non révoqué et utilisé par le
+  destinataire ;
+- =AP-05= : seuls le nom affiché, la fonction et la période utile sont exposés ;
+- =AP-07= : le dernier membre de direction ne peut se retirer sans transfert ;
+- =AP-08= : seule une récupération de secours par la plateforme est admise.
+
+** École
+
+| ID    | Opération                         | PAT | DIR | RES | ASS | CON | MEM |
+|-------+-----------------------------------+-----+-----+-----+-----+-----+-----|
+| EC-01 | Créer une école                   | A   | D   | D   | D   | D   | D   |
+| EC-02 | Modifier nom ou commune           | C   | A   | D   | D   | D   | D   |
+| EC-03 | Activer une école préparée        | A   | D   | D   | D   | D   | D   |
+| EC-04 | Suspendre ou désactiver une école | A   | D   | D   | D   | D   | D   |
+| EC-05 | Consulter l'état technique        | A   | A   | D   | D   | D   | D   |
+| EC-06 | Supprimer définitivement          | S   | D   | D   | D   | D   | D   |
+
+** Classes
+
+| ID    | Opération                          | DIR | RES | ASS | CON | MEM |
+|-------+------------------------------------+-----+-----+-----+-----+-----|
+| CL-01 | Voir ses classes                   | A   | A   | A   | A   | D   |
+| CL-02 | Voir toutes les classes de l'école | A   | D   | D   | D   | D   |
+| CL-03 | Créer une classe en préparation    | A   | D   | D   | D   | D   |
+| CL-04 | Modifier nom, année ou ordre        | A   | D   | D   | D   | D   |
+| CL-05 | Activer une classe                  | C   | D   | D   | D   | D   |
+| CL-06 | Archiver ou réouvrir une classe     | A   | D   | D   | D   | D   |
+| CL-07 | Supprimer définitivement            | S   | D   | D   | D   | D   |
+
+=CL-05= exige au moins un responsable actif.
+
+** Affectations de classe
+
+| ID    | Opération                                  | DIR | RES | ASS | CON | MEM |
+|-------+--------------------------------------------+-----+-----+-----+-----+-----|
+| AF-01 | Voir toutes les affectations de l'école   | A   | D   | D   | D   | D   |
+| AF-02 | Voir les affectations de sa classe         | A   | A   | A   | C   | D   |
+| AF-03 | Créer ou modifier une affectation          | A   | D   | D   | D   | D   |
+| AF-04 | Terminer une affectation                   | A   | D   | D   | D   | D   |
+| AF-05 | Retirer le dernier responsable actif       | C   | D   | D   | D   | D   |
+| AF-06 | Suspendre d'urgence le dernier responsable | A   | D   | D   | D   | D   |
+| AF-07 | Auto-attribution temporaire de direction   | C   | D   | D   | D   | D   |
+
+Conditions :
+
+- =AF-02= pour un contributeur : nom affiché, fonction et période seulement ;
+- =AF-03= : même école, appartenance active, absence de chevauchement entre
+  niveaux d'affectation ;
+- =AF-05= : autorisée seulement si un remplacement prend effet sans laisser la
+  classe active sans responsable ;
+- =AF-06= : toujours possible et crée l'anomalie « classe sans responsable » ;
+- =AF-07= : motif et date de fin obligatoires, événement d'audit distinct.
+
+** Élèves et scolarités
+
+| ID    | Opération                                          | DIR | RES | ASS | CON | MEM |
+|-------+----------------------------------------------------+-----+-----+-----+-----+-----|
+| EL-01 | Voir tous les élèves de l'école                    | A   | D   | D   | D   | D   |
+| EL-02 | Voir les élèves de sa classe                       | A   | A   | A   | C   | D   |
+| EL-03 | Créer un élève nouveau dans sa classe              | A   | A   | D   | D   | D   |
+| EL-04 | Importer une liste d'élèves nouveaux               | A   | A   | D   | D   | D   |
+| EL-05 | Rattacher automatiquement un dossier existant      | D   | D   | D   | D   | D   |
+| EL-06 | Demander le rapprochement d'un dossier existant    | A   | A   | D   | D   | D   |
+| EL-07 | Valider un rapprochement                           | A   | D   | D   | D   | D   |
+| EL-08 | Corriger identité et niveau courants               | A   | A   | D   | D   | D   |
+| EL-09 | Transférer vers une autre classe                   | A   | D   | D   | D   | D   |
+| EL-10 | Modifier une scolarité antérieure                  | A   | D   | D   | D   | D   |
+| EL-11 | Archiver ou désarchiver dans sa classe             | A   | A   | D   | D   | D   |
+| EL-12 | Fusionner des doublons                             | A   | D   | D   | D   | D   |
+| EL-13 | Supprimer définitivement                           | S   | D   | D   | D   | D   |
+
+=EL-02= pour un contributeur expose seulement prénom, initiale du nom et
+niveau ; le nom complet est affiché uniquement pour lever une ambiguïté dans la
+classe.
+
+=EL-04= n'autorise pas un rapprochement implicite. Une correspondance possible
+est mise en attente pour =EL-06= et =EL-07=.
+
+** Parcours antérieur
+
+| ID    | Ressource antérieure                               | DIR | RES courant | ASS courant | CON |
+|-------+----------------------------------------------------+-----+-------------+-------------+-----|
+| PA-01 | Carnet finalisé                                    | C   | C           | C           | D   |
+| PA-02 | Bilan antérieur                                    | C   | C           | C           | D   |
+| PA-03 | État d'apprentissage utile au suivi                | C   | C           | C           | D   |
+| PA-04 | Trace interne d'une ancienne classe                | D   | D           | D           | D   |
+| PA-05 | Brouillon ou photo non publiée d'une ancienne classe | D | D           | D           | D   |
+| PA-06 | Autres élèves de l'ancienne classe                 | D   | D           | D           | D   |
+
+Conditions =PA-01= à =PA-03= : scolarité courante validée et dossier rapproché
+selon la procédure. La direction ne consulte le contenu qu'au titre d'une
+affectation pédagogique active ; sa capacité administrative se limite à la
+validation du rattachement.
+
+** Observations et traces
+
+| ID    | Opération                                  | DIR seule | RES | ASS | CON |
+|-------+--------------------------------------------+-----------+-----+-----+-----|
+| OT-01 | Voir le suivi complet                      | D         | A   | A   | D   |
+| OT-02 | Voir l'historique complet des traces       | D         | A   | A   | D   |
+| OT-03 | Voir ses propres contributions             | D         | A   | A   | A   |
+| OT-04 | Modifier l'état synthétique                | D         | A   | D   | D   |
+| OT-05 | Ajouter une trace complète                 | D         | A   | A   | D   |
+| OT-06 | Ajouter une contribution limitée           | D         | A   | A   | A   |
+| OT-07 | Modifier ou retirer sa contribution        | D         | A   | C   | C   |
+| OT-08 | Modifier la contribution d'autrui          | D         | A   | D   | D   |
+| OT-09 | Retirer une trace du carnet familial       | D         | A   | D   | D   |
+| OT-10 | Supprimer logiquement ou restaurer         | D         | A   | D   | D   |
+| OT-11 | Supprimer définitivement                   | D         | S   | D   | D   |
+
+=OT-07= exige une affectation active, une classe active et que l'utilisateur
+soit l'auteur. Après la fin de l'affectation ou l'archivage, un responsable
+effectue la correction. Toute modification conserve l'auteur d'origine,
+l'éditeur, la date et les anciennes valeurs.
+
+** Bilans et carnets
+
+| ID    | Opération                              | DIR seule | RES | ASS | CON |
+|-------+----------------------------------------+-----------+-----+-----+-----|
+| BC-01 | Voir les bilans                        | D         | A   | A   | D   |
+| BC-02 | Créer, modifier, clore ou rouvrir      | D         | A   | D   | D   |
+| BC-03 | Supprimer logiquement ou restaurer     | D         | A   | D   | D   |
+| BC-04 | Prévisualiser un carnet                | D         | A   | A   | D   |
+| BC-05 | Modifier la composition                | D         | A   | D   | D   |
+| BC-06 | Générer ou télécharger un PDF travail  | D         | A   | D   | D   |
+| BC-07 | Produire la version finale             | D         | A   | D   | D   |
+| BC-08 | Supprimer logiquement un PDF            | D         | A   | D   | D   |
+| BC-09 | Supprimer définitivement                | D         | S   | D   | D   |
+
+** Paramètres et référentiel
+
+| ID    | Opération                                      | DIR | RES | ASS | CON |
+|-------+------------------------------------------------+-----+-----+-----+-----|
+| PR-01 | Voir paramètres durables de l'école            | A   | A   | D   | D   |
+| PR-02 | Modifier paramètres durables                   | A   | D   | D   | D   |
+| PR-03 | Régler un carnet particulier                   | D   | A   | D   | D   |
+| PR-04 | Voir le référentiel pédagogique                | A   | A   | A   | D   |
+| PR-05 | Paramétrer le référentiel actif de l'école     | A   | D   | D   | D   |
+| PR-06 | Gérer ses préférences personnelles             | A   | A   | A   | A   |
+
+** Médias privés et sorties de données
+
+| ID    | Opération                                      | DIR seule | RES | ASS | CON |
+|-------+------------------------------------------------+-----------+-----+-----+-----|
+| MD-01 | Téléverser un média dans une trace complète   | D         | A   | A   | D   |
+| MD-02 | Téléverser un média en contribution limitée   | D         | A   | A   | A   |
+| MD-03 | Afficher un média autorisé                     | D         | A   | A   | C   |
+| MD-04 | Télécharger explicitement l'original          | D         | A   | A   | C   |
+| MD-05 | Accéder par clé ou URL sans autorisation      | D         | D   | D   | D   |
+| MD-06 | Exporter un ensemble de médias                | D         | A   | D   | D   |
+
+Pour =MD-03= et =MD-04=, le contributeur n'accède qu'à ses propres
+contributions. Toute opération respecte aussi les politiques de format, taille
+et quota.
+
+* Matrice d'audit
+
+| Catégorie d'action                              | Succès | Refus significatif |
+|-------------------------------------------------+--------+--------------------|
+| Invitation, appartenance, responsabilité        | Oui    | Oui                |
+| Affectation de classe                           | Oui    | Oui                |
+| Auto-attribution temporaire de direction        | Oui    | Oui                |
+| Création, activation, archivage de classe       | Oui    | Oui                |
+| Identité, scolarité, archivage d'élève           | Oui    | Oui                |
+| Demande et validation de rapprochement          | Oui    | Oui                |
+| Modification ou retrait de trace                | Oui    | Oui                |
+| Bilan et carnet final                           | Oui    | Oui                |
+| Génération ou téléchargement de PDF             | Oui    | Oui                |
+| Export ou téléchargement explicite d'un original | Oui   | Oui                |
+| Affichage ordinaire, vignette, prévisualisation | Non    | Non, sauf anomalie  |
+| Tentative d'accès inter-écoles                  | —      | Oui                |
+
+Un refus significatif est un refus révélant une tentative d'élévation de
+privilège, un accès inter-écoles ou une opération exceptionnelle invalide. Les
+erreurs ordinaires de formulaire ne sont pas des événements de sécurité.
+
+* Jeu de données commun aux tests
+
+** Écoles et classes
+
+- École =A= active ; classes =A1= et =A2= actives ; classe =A3= en préparation.
+- École =B= active ; classe =B1= active.
+- Classe =A1= : Alice et Arthur.
+- Classe =A2= : Béatrice.
+- Classe =B1= : Bilal.
+
+** Utilisateurs
+
+- =paul= : administration plateforme uniquement ;
+- =diane= : direction de A, sans affectation pédagogique ;
+- =remi= : responsable de A1 ;
+- =rosa= : responsable de A2 ;
+- =amina= : enseignante associée à A1 ;
+- =cora= : contributrice de A1 ;
+- =marc= : membre de A sans responsabilité ;
+- =bruno= : responsable de B1 ;
+- =multi= : responsable de A1 et enseignant associé à B1 ;
+- =expire= : ancienne responsable de A1, affectation terminée hier ;
+- =futur= : future responsable de A1, affectation commençant demain ;
+- =suspendu= : compte désactivé ayant été responsable de A1.
+
+** Données pédagogiques
+
+- =trace_remi= : trace d'Alice créée par Rémi ;
+- =trace_amina= : trace d'Alice créée par Amina ;
+- =trace_cora= : contribution limitée d'Alice créée par Cora ;
+- =bilan_alice= et =carnet_alice= dans A1 ;
+- =photo_cora= rattachée à =trace_cora= ;
+- =trace_bilal= dans B1.
+
+* Scénarios de tests prioritaires
+
+** Authentification et préconditions
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T001 | ANON | ouvre une page protégée | redirection authentification, aucune donnée |
+| T002 | compte suspendu | appelle une opération métier | refus |
+| T003 | appartenance terminée | utilise une ancienne session | refus immédiat |
+| T004 | affectation expirée | consulte A1 | refus |
+| T005 | affectation future | consulte A1 aujourd'hui | refus |
+| T006 | affectation devenant active | consulte à la date de début | autorisation |
+
+** Isolation inter-écoles
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T010 | Rémi, responsable A1 | demande Bilal par identifiant | refus sans fuite d'existence |
+| T011 | Rémi | modifie =trace_bilal= par requête forgée | refus, aucune mutation, audit sécurité |
+| T012 | Bruno | télécharge =carnet_alice= | refus, audit sécurité |
+| T013 | =multi= connecté dans A | utilise un identifiant de B1 | décision selon son affectation B, jamais celle de A |
+| T014 | action groupée mélange A1 et B1 | soumet l'ensemble | refus atomique, aucune mutation |
+
+** Direction sans accès pédagogique implicite
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T020 | Diane, direction seule | ouvre le suivi d'Alice | refus |
+| T021 | Diane | ouvre =photo_cora= | refus |
+| T022 | Diane | s'attribue A1 sans motif ou sans fin | refus |
+| T023 | Diane | s'attribue A1 avec motif et fin | autorisation et audit distinct |
+| T024 | Diane affectée temporairement à A1 | ouvre le suivi | autorisation pendant la période |
+| T025 | affectation temporaire expirée | réutilise la page ouverte | refus |
+
+** Affectations et classes
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T030 | A3 sans responsable | reste en préparation | autorisé |
+| T031 | A3 sans responsable | Diane tente l'activation | refus |
+| T032 | A3 avec Rémi responsable | Diane active | autorisation et audit |
+| T033 | A1 avec Rémi seul responsable | retrait ordinaire de Rémi | refus |
+| T034 | remplacement atomique Rémi → Amina responsable | applique le changement | autorisation, pas d'intervalle orphelin |
+| T035 | urgence de sécurité | suspend le seul responsable | autorisation et anomalie créée |
+| T036 | Amina déjà associée à A1 | lui ajoute contributeur simultané | refus de chevauchement |
+
+** Visibilité des élèves
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T040 | Cora | liste A1 | prénom, initiale et niveau seulement |
+| T041 | deux « Alex M. — MS » dans A1 | Cora liste A1 | nom complet seulement pour les deux ambiguïtés |
+| T042 | Cora | consulte année de naissance d'Alice | refus |
+| T043 | Cora | consulte les traces d'Amina | refus |
+| T044 | Amina | consulte le suivi complet d'Alice | autorisation |
+| T045 | Amina | consulte A2 | refus |
+
+** Création, import et rapprochement
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T050 | Rémi | crée un élève nouveau dans A1 | autorisation et audit |
+| T051 | Rémi | importe uniquement des élèves nouveaux | autorisation |
+| T052 | import contenant Alice existante | exécute l'import | aucune liaison automatique, demande créée |
+| T053 | Rémi | tente de valider lui-même le rapprochement | refus |
+| T054 | Diane | valide le rapprochement vers A1 | autorisation et audit |
+| T055 | rapprochement non validé | Rémi demande l'ancien carnet | refus |
+| T056 | rapprochement validé | Rémi demande l'ancien carnet final | autorisation |
+| T057 | rapprochement validé | Rémi demande une ancienne trace interne | refus |
+| T058 | homonymes nom/prénom/année | importe | aucune fusion automatique |
+
+** Observations et contributions
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T060 | Rémi | modifie l'état d'Alice | autorisation et audit |
+| T061 | Amina | modifie l'état d'Alice | refus |
+| T062 | Amina | ajoute une trace datée | autorisation et audit |
+| T063 | Cora | ajoute photo et commentaire court | autorisation et audit |
+| T064 | Cora | lit le statut d'Alice | refus |
+| T065 | Cora, affectation active | corrige =trace_cora= | autorisation, auteur conservé |
+| T066 | Cora après fin d'affectation | corrige =trace_cora= | refus |
+| T067 | Rémi | corrige =trace_cora= | autorisation, auteur Cora et éditeur Rémi conservés |
+| T068 | Amina | modifie =trace_cora= | refus |
+| T069 | Rémi | supprime logiquement puis restaure une trace | autorisation, deux événements d'audit |
+
+** Bilans, carnets et sorties
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T070 | Amina | prévisualise =carnet_alice= | autorisation, pas d'audit de consultation |
+| T071 | Amina | demande le PDF | refus |
+| T072 | Rémi | génère le PDF de travail | autorisation et audit |
+| T073 | Rémi | télécharge un PDF | autorisation et audit |
+| T074 | Cora | prévisualise le carnet | refus |
+| T075 | affichage ordinaire de =photo_cora= | charge la page | pas d'événement de téléchargement |
+| T076 | Rémi | télécharge l'original de =photo_cora= | autorisation et audit |
+| T077 | Cora | télécharge sa propre photo originale | autorisation et audit |
+| T078 | Cora | télécharge une photo d'Amina | refus |
+
+** Équipe et données personnelles des adultes
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T080 | Diane | consulte l'équipe de A | liste complète et informations de gestion |
+| T081 | Rémi | consulte l'équipe de A | refus de la liste complète |
+| T082 | Rémi | consulte les collaborateurs de A1 | noms, fonctions, périodes uniquement |
+| T083 | Cora | consulte les collaborateurs de A1 | noms, fonctions, périodes uniquement |
+| T084 | Cora | demande l'adresse électronique d'Amina | refus |
+| T085 | Marc sans affectation | demande les collaborateurs de A1 | refus |
+
+** Audit et atomicité
+
+| Test | Étant donné | Quand | Alors |
+|------+-------------+-------+-------|
+| T090 | modification d'une trace | succès | auteur, éditeur, date et valeurs utiles enregistrés |
+| T091 | retrait d'une affectation | succès | ancienne et nouvelle période enregistrées |
+| T092 | tentative inter-écoles | refus | événement de sécurité sans contenu sensible |
+| T093 | formulaire ordinaire invalide | refus de validation | pas d'événement de sécurité |
+| T094 | action groupée partiellement interdite | soumission | transaction annulée entièrement |
+| T095 | audit d'une photo | enregistrement | métadonnées, jamais copie du fichier |
+
+* Propriétés à tester systématiquement
+
+Au-delà des scénarios nommés, les suites automatisées doivent vérifier les
+propriétés suivantes pour chaque opération sensible :
+
+1. même acteur, même rôle, autre école → refus ;
+2. même acteur, même école, autre classe → refus sauf permission d'école ;
+3. compte suspendu → refus ;
+4. appartenance suspendue ou terminée → refus ;
+5. affectation future ou expirée → refus ;
+6. ressource archivée → mutation refusée sauf opération de réouverture prévue ;
+7. identifiant direct forgé → même décision que la navigation normale ;
+8. requête HTMX, requête HTML et téléchargement → même décision métier ;
+9. opération refusée → aucune mutation partielle ;
+10. opération auditée → événement écrit dans la même transaction logique.
+
+* Organisation recommandée des tests Django
+
+Sans figer les noms de modules, séparer au minimum :
+
+- tests unitaires des prédicats d'autorisation ;
+- tests des services métier et de leurs invariants ;
+- tests d'intégration des vues HTML et HTMX ;
+- tests des téléchargements privés ;
+- tests de l'audit ;
+- tests de non-régression inter-écoles ;
+- tests aux bornes temporelles.
+
+Les tests d'autorisation ne doivent pas dépendre seulement de la présence ou de
+l'absence d'un bouton dans le HTML. Chaque opération doit être appelée
+directement avec des paramètres autorisés et interdits.
+
+* Critère de couverture avant pilote
+
+Avant tout pilote avec données réelles :
+
+- chaque ligne normative doit être couverte par au moins un test positif lorsque
+  l'opération est autorisable et un test négatif ;
+- chaque opération portant un identifiant d'objet doit avoir un test
+  inter-écoles ;
+- chaque affectation temporaire doit avoir des tests avant, pendant et après sa
+  période ;
+- chaque mutation auditée doit vérifier l'événement produit ;
+- les téléchargements privés doivent être testés sans dépendre de l'obscurité de
+  leur URL ;
+- aucune action sensible ne doit reposer uniquement sur le template ou le
+  navigateur.
+
+* Étape suivante
+
+Confronter cette matrice au code actuel, identifier les écarts structurants et
+produire un plan d'implémentation incrémental avant toute modification du dépôt.

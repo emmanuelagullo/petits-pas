@@ -1,0 +1,569 @@
+#+title: Petits Pas — Modèle métier des identités et affectations
+#+author: Équipe Petits Pas
+#+date: 2026-09-21
+
+* Statut du document
+
+Ce document consolide le modèle métier préalable aux comptes, rôles et
+autorisations de Petits Pas.
+
+Il décrit les personnes, leurs rattachements aux écoles et leurs responsabilités
+sur les classes. Il ne définit pas encore :
+
+- la matrice détaillée des permissions ;
+- le mécanisme d'authentification ;
+- les écrans d'invitation et d'administration ;
+- la mise en œuvre Django ;
+- les politiques de quotas et de médias.
+
+Ces éléments devront s'appuyer sur le présent modèle sans le déformer.
+
+* Principes structurants
+
+1. Une identité représente une personne ; elle n'est ni un rôle, ni une école.
+
+2. Les responsabilités sont représentées par des rattachements explicites à une
+   école ou à une classe.
+
+3. Une même personne peut appartenir à plusieurs écoles, exercer plusieurs
+   responsabilités et intervenir dans plusieurs classes.
+
+4. Une même classe peut avoir plusieurs responsables pédagogiques disposant du
+   même niveau de responsabilité.
+
+5. Une responsabilité temporaire est une affectation ordinaire munie de dates
+   de début et de fin, et non un rôle particulier.
+
+6. Les responsabilités administratives et pédagogiques sont indépendantes.
+   Faire partie de la direction ne rend pas automatiquement responsable
+   pédagogique de toutes les classes.
+
+7. Toute donnée pédagogique appartient à une école et, lorsque cela a un sens,
+   à une classe, une scolarité ou un élève de cette école.
+
+8. Une personne ne peut agir dans une classe qu'au titre d'une appartenance
+   active à l'école de cette classe et d'une affectation compatible.
+
+9. La désactivation d'un compte ou la fin d'une affectation ne supprime ni les
+   données produites ni leur attribution historique.
+
+10. Les pouvoirs techniques de l'hébergeur ou de la DSI sont distincts des
+    responsabilités exercées dans une école.
+
+* Vocabulaire
+
+** Utilisateur
+
+Identité individuelle permettant d'attribuer durablement les actions à une
+personne.
+
+Un utilisateur n'a, à lui seul, aucun droit sur une école ou une classe. Ses
+droits futurs découleront de ses appartenances et affectations actives.
+
+L'identité doit rester stable si la personne change d'adresse électronique, de
+nom affiché, d'école ou de responsabilité.
+
+** École
+
+Périmètre principal d'isolation des données et d'administration fonctionnelle.
+
+Chaque classe, élève, scolarité, observation, trace, bilan, carnet, paramètre et
+fichier privé est rattaché directement ou indirectement à une seule école.
+
+** Appartenance à une école
+
+Relation entre un utilisateur et une école. Elle signifie que la personne fait
+partie de l'équipe habilitée de cette école pendant une période donnée.
+
+Une appartenance ne confère pas nécessairement, à elle seule, un accès aux
+données pédagogiques. Elle sert de précondition aux responsabilités exercées
+dans l'école ou ses classes.
+
+** Responsabilité de direction
+
+Responsabilité exercée à l'échelle d'une école pour constituer l'équipe,
+administrer les classes et les élèves, attribuer les responsabilités et gérer
+les paramètres durables de l'école.
+
+Elle ne confère pas automatiquement la responsabilité éditoriale sur les
+observations, photos, bilans et carnets de chaque classe, ni leur consultation
+détaillée. Cet accès découle d'une affectation pédagogique sur la classe
+concernée.
+
+Pour assurer la continuité du service ou traiter une situation exceptionnelle,
+la direction peut créer une affectation temporaire justifiée, y compris pour
+l'un de ses propres membres. Cette attribution est explicite et auditée.
+
+Une école peut avoir plusieurs membres de direction.
+
+** Affectation à une classe
+
+Relation entre une appartenance à une école et une classe de cette même école.
+Elle précise la responsabilité exercée et sa période de validité.
+
+Les responsabilités de classe prévues sont :
+
+- =responsable= : responsabilité pédagogique complète sur la classe ;
+- =enseignant_associe= : consultation du suivi et contribution pédagogique,
+  sans responsabilité structurelle ou éditoriale complète ;
+- =contributeur= : contribution limitée sans accès au suivi pédagogique.
+
+Une personne possède au plus une affectation active dans une même classe parmi
+=responsable=, =enseignant_associe= et =contributeur=. Ces affectations forment
+des niveaux fonctionnels exclusifs : lorsqu'une personne change de niveau,
+l'ancienne affectation est terminée et la nouvelle est créée, sans effacer
+l'historique.
+
+Cette exclusivité ne s'applique qu'à une même classe et une même période : une
+personne peut exercer des responsabilités différentes dans plusieurs classes.
+
+** Responsable de classe
+
+Personne pédagogiquement responsable d'une classe.
+
+Une classe peut avoir plusieurs responsables, permanents ou temporaires. Tous
+les responsables actifs d'une même classe ont le même niveau de responsabilité.
+
+Le terme « responsable de classe » est retenu dans le modèle afin d'éviter
+l'ambiguïté administrative du mot « titulaire ». L'interface pourra employer
+« titulaire » si ce vocabulaire est préféré par l'équipe pilote.
+
+** Enseignant associé
+
+Personne autorisée à consulter et enrichir le suivi pédagogique d'une classe
+sans en porter la responsabilité complète.
+
+Il s'agit d'une responsabilité fonctionnelle dans Petits Pas, non d'un statut
+professionnel. Une ATSEM ou une autre personne peut la recevoir si l'équipe
+pédagogique le décide et si le cadre applicable le permet.
+
+** Contributeur
+
+Personne autorisée à déposer des contributions limitées pour une classe sans
+consulter le suivi pédagogique complet.
+
+Ce rôle peut convenir à une ATSEM ou à un intervenant ponctuel. Son usage dépend
+de la décision locale de l'école ; aucune catégorie professionnelle ne reçoit
+automatiquement cette affectation.
+
+** Administration de la plateforme
+
+Responsabilité technique exercée en dehors du périmètre d'une école.
+
+Elle permet notamment de gérer l'existence des écoles, leur état de service et
+les politiques maximales imposées par l'hébergeur ou la DSI. Elle ne transforme
+pas son détenteur en membre de la direction des écoles et ne lui donne pas, par
+défaut, un droit fonctionnel de consultation des données pédagogiques.
+
+** Hébergeur et DSI
+
+L'hébergeur exploite l'infrastructure. La DSI ou l'administration technique
+administre le service, les écoles et les politiques globales selon
+l'organisation retenue.
+
+Ces acteurs pourront être portés par une même organisation ou par des
+organisations différentes. Leur qualification juridique au regard des données
+personnelles devra être établie séparément du présent modèle d'autorisation.
+
+* Entités et relations
+
+** Utilisateur
+
+Attributs métier minimaux :
+
+- identifiant interne stable ;
+- nom d'usage ou nom affiché ;
+- adresse électronique ou autre identifiant de connexion ;
+- état du compte : actif ou désactivé ;
+- dates de création et de désactivation éventuelle.
+
+Le modèle ne suppose pas que l'adresse électronique soit l'identifiant interne
+ni qu'elle reste immuable.
+
+** Ecole
+
+Attributs métier minimaux :
+
+- identifiant interne stable ;
+- nom ;
+- commune ;
+- état : préparation, active ou désactivée ;
+- date de création.
+
+La désactivation d'une école suspend son usage sans effacer ses données.
+
+** AppartenanceEcole
+
+Attributs métier minimaux :
+
+- utilisateur ;
+- école ;
+- date de début ;
+- date de fin facultative ;
+- état éventuel : active, suspendue ou terminée ;
+- auteur et date de l'attribution ;
+- auteur et date de la suspension ou de la fin ;
+- motif facultatif.
+
+Une appartenance est active lorsque son état et ses dates le permettent et que
+l'utilisateur comme l'école sont actifs.
+
+Une appartenance active peut n'être assortie d'aucune responsabilité active.
+Elle ne confère alors, par elle-même, aucun accès aux données de l'école ou de
+ses classes. Avant l'acceptation d'une invitation, il n'existe pas encore
+d'appartenance à l'école.
+
+** ResponsabiliteEcole
+
+Relation accordant une responsabilité à l'échelle d'une école.
+
+Première valeur prévue :
+
+- =direction=.
+
+La responsabilité possède une période de validité, l'identité de la personne
+qui l'a attribuée et, si nécessaire, un motif.
+
+Cette entité reste distincte de =AppartenanceEcole= afin qu'un membre de
+l'équipe puisse appartenir à l'école sans faire partie de sa direction.
+
+** Classe
+
+La classe existante demeure rattachée à une école et à une année scolaire.
+
+Une classe constitue un périmètre pédagogique annuel. Deux classes de deux
+années scolaires différentes sont deux objets distincts, même si elles portent
+le même nom et assurent une continuité pédagogique.
+
+Une classe peut être en préparation sans avoir encore de responsable. Son
+activation pour l'année scolaire exige au moins un responsable actif.
+
+Une classe désactivée ou archivée conserve ses affectations et son historique,
+mais ne peut plus recevoir de nouvelles contributions ordinaires.
+
+** AffectationClasse
+
+Attributs métier minimaux :
+
+- appartenance à l'école ;
+- classe ;
+- type : responsable, enseignant associé ou contributeur ;
+- date de début ;
+- date de fin facultative ;
+- auteur et date de l'attribution ;
+- auteur et date du retrait ;
+- motif facultatif, notamment pour un remplacement.
+
+L'affectation doit porter sur une classe appartenant à la même école que
+l'appartenance.
+
+** Invitation
+
+Invitation adressée à une personne afin qu'elle crée ou réutilise son identité
+et rejoigne une école.
+
+Elle peut préparer une appartenance et les responsabilités qui seront activées
+après acceptation. Elle doit être temporaire, révocable et à usage unique.
+
+L'invitation relève du parcours de gestion des comptes ; elle n'est pas une
+responsabilité et ne donne aucun accès aux données avant son acceptation.
+
+** Action attribuable
+
+Toute création ou modification importante doit pouvoir référencer :
+
+- l'utilisateur qui a agi, lorsque l'accès est nominatif ;
+- dans la démonstration éphémère, une identité technique représentant
+  explicitement l'accès de démonstration utilisé ;
+- la date de l'action ;
+- l'école concernée ;
+- lorsque pertinent, la classe et l'élève concernés.
+
+L'auteur historique d'une action n'est jamais remplacé lorsque ses
+responsabilités changent ou que son compte est désactivé.
+
+* Cardinalités principales
+
+- Un utilisateur peut avoir zéro, une ou plusieurs appartenances à des écoles.
+- Une école peut avoir zéro, un ou plusieurs utilisateurs membres.
+- Une appartenance concerne exactement un utilisateur et une école.
+- Une appartenance peut porter zéro, une ou plusieurs responsabilités d'école.
+- Une école active doit disposer d'au moins un membre de direction actif.
+- Une classe appartient exactement à une école et à une année scolaire.
+- Une appartenance peut porter plusieurs affectations de classe.
+- Une affectation concerne exactement une classe de l'école de l'appartenance.
+- Une classe active doit normalement avoir au moins un responsable actif.
+- Un utilisateur peut être responsable de plusieurs classes.
+- Une classe peut avoir plusieurs responsables.
+
+* Temporalité
+
+** Validité des rattachements
+
+Les appartenances, responsabilités d'école et affectations de classe peuvent
+être permanentes ou bornées par une date de fin.
+
+Une responsabilité n'est effective que si toutes les conditions suivantes sont
+réunies :
+
+- le compte est actif ;
+- l'école est active ;
+- l'appartenance à l'école est active ;
+- la responsabilité ou l'affectation est active à la date considérée ;
+- pour une affectation de classe, la classe appartient à l'école concernée.
+
+** Remplacements
+
+Un remplacement est représenté par une affectation =responsable= ordinaire avec
+une date de début et une date de fin prévue.
+
+Le responsable remplacé peut, selon la situation réelle :
+
+- conserver son affectation ;
+- voir son affectation suspendue ;
+- voir son affectation terminée.
+
+Le modèle ne déduit pas automatiquement l'une de ces situations du seul ajout
+du remplaçant.
+
+** Changement d'année scolaire
+
+Les affectations sont liées aux classes annuelles et ne sont pas reconduites
+implicitement vers les classes de l'année suivante.
+
+Petits Pas pourra proposer de recopier ou préparer les affectations, mais cette
+opération donnera lieu à de nouvelles affectations explicitement validées.
+
+* Invariants métier
+
+** Isolation entre écoles
+
+1. Une classe et ses élèves ne peuvent appartenir qu'à une seule école.
+2. Une affectation ne peut relier une appartenance et une classe d'écoles
+   différentes.
+3. Une donnée d'une école ne peut référencer une donnée privée d'une autre
+   école.
+4. Le simple fait qu'un utilisateur appartienne à plusieurs écoles ne crée
+   aucune circulation de données entre celles-ci.
+
+** Cohérence des responsabilités
+
+1. Toute responsabilité d'école ou de classe dépend d'une appartenance à
+   l'école concernée.
+2. La fin d'une appartenance rend inactives toutes les responsabilités qui en
+   dépendent, sans les supprimer.
+3. Deux affectations identiques et simultanément actives pour une même personne,
+   une même classe et un même type ne doivent pas se chevaucher inutilement.
+   Plus généralement, deux affectations de classe de types différents ne
+   peuvent pas non plus être simultanément actives pour une même personne et
+   une même classe.
+4. Une classe en préparation peut ne pas avoir de responsable. Une classe ne
+   peut être activée qu'avec au moins un responsable actif.
+5. Le retrait ordinaire du dernier responsable d'une classe active est refusé
+   tant qu'un remplacement n'est pas désigné.
+6. Une suspension de sécurité ou la désactivation urgente d'un compte ne doit
+   jamais être bloquée par cette règle. Si elle laisse une classe active sans
+   responsable, Petits Pas crée et signale une anomalie à régulariser.
+7. Une école active ne devrait pas rester sans membre de direction ; le dernier
+   retrait doit passer par un transfert ou une intervention d'administration de
+   la plateforme.
+
+** Conservation de l'historique
+
+1. Une personne ayant produit des données ne doit pas être supprimée de manière
+   à rendre ses actions anonymes ou orphelines.
+2. Une appartenance ou affectation utilisée dans l'historique est terminée ou
+   suspendue plutôt que supprimée.
+3. Une classe annuelle archivée conserve ses responsables et contributeurs
+   historiques.
+4. La correction d'une erreur d'affectation doit laisser une trace de
+   l'attribution et de son retrait lorsqu'elle a déjà produit des effets.
+
+* Cas métier de référence
+
+** Direction enseignant également dans une classe
+
+La personne possède :
+
+- une appartenance active à l'école ;
+- une responsabilité =direction= sur l'école ;
+- une affectation =responsable= sur sa classe.
+
+Ses pouvoirs administratifs et pédagogiques proviennent de deux responsabilités
+distinctes.
+
+** Classe partagée par deux enseignants
+
+Chaque personne possède sa propre affectation =responsable= sur la même classe.
+Les deux affectations sont indépendantes et de même niveau.
+
+** Enseignant responsable de plusieurs classes
+
+Une seule appartenance à l'école porte plusieurs affectations =responsable=,
+une par classe.
+
+** Remplacement long
+
+Le remplaçant reçoit une affectation =responsable= bornée dans le temps. Le sort
+de l'affectation de la personne remplacée est décidé explicitement selon la
+situation réelle.
+
+** ATSEM contribuant dans une classe
+
+L'ATSEM possède une appartenance à l'école et une affectation =contributeur= sur
+la classe. Elle ne reçoit aucun accès du seul fait de sa profession.
+
+L'école peut lui attribuer à la place, ou en complément, une affectation
+=enseignant_associe= si cela correspond à l'organisation locale et au cadre
+applicable.
+
+** Intervenant dans plusieurs classes
+
+La personne possède une appartenance à l'école et une affectation distincte
+pour chacune des classes concernées. La fin d'une intervention dans une classe
+n'affecte pas les autres.
+
+** Personne travaillant dans plusieurs écoles
+
+Le même utilisateur possède une appartenance distincte dans chaque école. Les
+responsabilités, suspensions et fins d'appartenance sont indépendantes.
+
+** Départ d'une personne
+
+La direction termine l'appartenance ou les seules affectations concernées. Le
+compte global n'est désactivé que si la personne ne doit plus accéder du tout à
+Petits Pas.
+
+Les observations, traces et décisions déjà produites conservent leur auteur.
+
+** Accès de la démonstration éphémère
+
+À la date de rédaction, Petits Pas n'est déployé qu'en démonstration éphémère
+avec des données factices. Il n'existe donc aucun compte durable ni aucune base
+de données réelle à migrer.
+
+Le premier déploiement persistant destiné à un pilote utilise directement les
+comptes individuels, appartenances et affectations définis dans ce document. Il
+n'est pas prévu de créer des mots de passe partagés par école ou par classe
+pour ce déploiement.
+
+La démonstration publique peut conserver des accès génériques enseignant et
+direction pour faciliter sa visite. Ils sont représentés comme des identités
+techniques de démonstration, n'agissent que sur des données factices et ne
+constituent pas un mécanisme de transition vers le pilote réel. Leurs actions
+ne sont jamais attribuées a posteriori à une personne.
+
+* Articulation avec les politiques hiérarchiques
+
+Le présent modèle fournit les périmètres auxquels les futures politiques
+pourront s'appliquer :
+
+- plateforme ou hébergeur ;
+- école ;
+- classe ;
+- responsable de classe, lorsqu'une délégation individuelle est utile.
+
+Une politique fixée à un niveau inférieur doit rester dans les limites
+effectives des niveaux supérieurs. Une école pourra donc restreindre une valeur
+autorisée par la plateforme, mais pas la dépasser ; une classe ou un responsable
+pourra à son tour la restreindre sans dépasser la limite de l'école.
+
+Les règles exactes de combinaison, les valeurs héritées et les possibilités de
+délégation feront l'objet d'un document distinct. Elles devront s'appuyer sur
+les identités et affectations définies ici et non introduire de nouveaux rôles
+ad hoc pour chaque quota.
+
+* Hors périmètre à ce stade
+
+- SSO académique ou fédération d'identité ;
+- comptes de parents ou d'élèves ;
+- import automatique depuis ONDE ou un annuaire institutionnel ;
+- délégation fine de chaque permission ;
+- accès technique exceptionnel au contenu d'une école ;
+- qualification RGPD des organisations ;
+- règles détaillées de conservation et de suppression ;
+- implémentation des quotas et politiques médias.
+
+Ces sujets ne sont pas rejetés ; ils ne sont simplement pas nécessaires pour
+stabiliser le modèle métier du premier pilote.
+
+* Décisions consolidées
+
+- L'identité, l'appartenance à une école et l'affectation à une classe sont des
+  concepts distincts.
+- La direction est une responsabilité d'école.
+- Responsable, enseignant associé et contributeur sont des affectations de
+  classe.
+- Les responsabilités temporaires utilisent les mêmes affectations avec des
+  bornes temporelles.
+- Les responsabilités administrative et pédagogique ne sont pas confondues.
+- Les catégories professionnelles, notamment ATSEM, ne déterminent pas
+  automatiquement les droits dans Petits Pas.
+- L'administration de la plateforme n'obtient pas par défaut un accès
+  fonctionnel aux données pédagogiques.
+- Les changements de responsabilité ne détruisent jamais l'attribution
+  historique des actions.
+- Comme aucune base réelle n'existe encore, le premier déploiement persistant
+  adopte directement les comptes individuels et les affectations. Il n'existe
+  pas de phase de coexistence à organiser avec les mots de passe partagés.
+- Les accès génériques peuvent subsister dans la seule démonstration éphémère à
+  données factices, sous la forme d'identités techniques de démonstration. Ils
+  ne sont déclinés ni par école réelle ni par classe.
+- Le terme de référence du modèle métier et du code est « responsable de
+  classe ». Le mot « titulaire » n'est pas employé comme concept métier, afin
+  d'éviter toute confusion avec le statut administratif des enseignants.
+- Une appartenance active sans responsabilité active est autorisée. Elle ne
+  confère par elle-même aucun accès aux données de l'école ou de ses classes.
+- L'acceptation d'une invitation crée l'appartenance ; une invitation en attente
+  n'est pas une appartenance à l'école.
+- Responsable, enseignant associé et contributeur sont des niveaux
+  d'affectation mutuellement exclusifs pour une même personne, une même classe
+  et une même période. Un changement de niveau conserve l'historique des
+  affectations successives.
+- Une classe peut être préparée sans responsable, mais son activation exige au
+  moins un responsable actif.
+- Le retrait ordinaire du dernier responsable d'une classe active exige un
+  remplacement. Une suspension ou désactivation urgente reste toujours
+  possible et produit, si nécessaire, une anomalie « classe sans responsable »
+  à régulariser.
+- La responsabilité de direction ne donne pas automatiquement accès au contenu
+  pédagogique détaillé des classes. Cet accès exige une affectation de classe.
+  La direction peut créer une affectation temporaire justifiée pour assurer la
+  continuité ou traiter une situation exceptionnelle ; cette action est
+  auditée.
+
+* Validation du modèle
+
+Les décisions structurantes recensées pour cette première consolidation ont
+été tranchées. Le modèle métier est prêt à servir de base à la politique
+d'autorisation détaillée.
+
+* Questions différées
+
+** Transfert d'une scolarité entre écoles
+
+L'isolation stricte signifie qu'une classe, un élève et une scolarité donnés
+relèvent d'une seule école dans Petits Pas. Elle n'interdit pas de prévoir une
+opération explicite permettant à une école d'accueil d'importer tout ou partie
+du parcours antérieur d'un élève provenant d'une autre école.
+
+Ce besoin devra être étudié séparément, car plusieurs modèles sont possibles :
+
+- transfert de responsabilité sur un dossier unique ;
+- copie contrôlée d'une archive produite par l'école de départ ;
+- import limité de certains bilans ou carnets finalisés ;
+- remise de l'archive à la famille, puis import par l'école d'accueil.
+
+Il faudra notamment déterminer qui déclenche et autorise l'opération, quelles
+données sont transmissibles, si l'école de départ conserve son propre
+historique, comment éviter les doublons et comment tracer le transfert.
+
+Cette question ne remet donc pas en cause l'invariant d'isolation : aucun accès
+direct d'une école aux données d'une autre ne doit résulter du seul changement
+d'école de l'élève.
+
+* Étape suivante
+
+Après validation de ce modèle, établir la politique d'autorisation : pour chaque
+opération métier, préciser le périmètre requis, la responsabilité nécessaire,
+les conditions supplémentaires, les effets et les événements d'audit produits.

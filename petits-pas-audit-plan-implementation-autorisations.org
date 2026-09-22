@@ -1,0 +1,589 @@
+#+title: Petits Pas — Audit du code et plan d'implémentation des autorisations
+#+author: Équipe Petits Pas
+#+date: 2026-09-21
+
+* Statut du document
+
+Audit en lecture seule de la branche =main= au commit
+=50c75cd59e1c77c9a46741cb45e468344663bdb6=.
+
+Ce document confronte le code actuel au modèle métier, à la politique
+d'autorisation et à la matrice de tests validés. Il propose un plan
+d'implémentation incrémental, mais ne modifie pas le dépôt.
+
+* Références
+
+- =petits-pas-modele-metier-identites-affectations.org=
+- =ROLES-ET-DROITS.org=
+- =petits-pas-matrice-tests-autorisations.org=
+
+* Résumé exécutif
+
+Le code actuel possède déjà deux qualités importantes :
+
+- presque toutes les ressources sont filtrées par l'école courante ;
+- 147 méthodes de test couvrent les parcours existants, notamment plusieurs
+  refus inter-écoles.
+
+Le principal écart est structurel : l'autorisation repose sur deux mots de
+passe partagés et sur =request.session["role"]=. Toute personne utilisant le
+mot de passe enseignant peut lire et modifier toutes les données pédagogiques
+de toutes les classes de l'école. Il n'existe ni identité individuelle, ni
+appartenance, ni affectation de classe, ni auteur des contributions, ni audit.
+
+La transition peut être directe puisqu'aucune base réelle n'existe. Les bases
+éphémères, de démonstration et de développement pourront être recréées. Cette
+situation rend possible l'introduction immédiate du bon modèle d'identité sans
+maintenir une compatibilité durable avec les mots de passe partagés.
+
+Le chantier doit néanmoins rester incrémental. L'ordre recommandé est :
+
+1. socle d'identité et données de démonstration ;
+2. appartenances et affectations ;
+3. moteur central d'autorisation ;
+4. lecture cloisonnée ;
+5. mutations pédagogiques ;
+6. administration des élèves et rapprochements ;
+7. PDF, médias et audit des sorties ;
+8. durcissement et suppression du système historique.
+
+* État actuel observé
+
+** Authentification
+
+=Ecole= contient deux secrets hachés : =mdp_enseignant= et =mdp_direction=.
+
+La connexion parcourt toutes les écoles, vérifie le secret puis écrit dans la
+session :
+
+- =ecole_id= ;
+- =role= valant =enseignant= ou =direction=.
+
+Le middleware d'authentification Django est installé, mais les utilisateurs
+Django ne participent pas au parcours applicatif.
+
+** Autorisation
+
+Deux décorateurs seulement structurent les accès :
+
+- =acces_requis= vérifie la présence de =ecole_id= en session ;
+- =direction_requise= vérifie en plus =role == "direction"=.
+
+Toutes les vues pédagogiques ordinaires utilisent uniquement =acces_requis=.
+Le rôle enseignant partagé permet donc actuellement :
+
+- de voir toutes les classes de l'école ;
+- de voir tous les élèves actifs ;
+- de modifier les états d'apprentissage ;
+- d'ajouter, modifier et supprimer toutes les traces ;
+- de modifier ou supprimer les bilans ;
+- de prévisualiser et télécharger tous les carnets PDF ;
+- de produire des archives ZIP pour toute classe.
+
+** Isolation entre écoles
+
+Le filtrage par =ecole_courante(request)= est fréquent et généralement bien
+appliqué aux objets racines. Des tests vérifient déjà certains accès
+inter-écoles sur les carnets, compétences et affectations d'élèves.
+
+Cette base est utile mais insuffisante :
+
+- le filtrage ne limite pas à une classe affectée ;
+- certaines relations enfants reposent sur le filtrage de l'objet parent plutôt
+  que sur une politique uniforme ;
+- aucune abstraction ne garantit qu'une nouvelle vue appliquera les mêmes
+  règles ;
+- un utilisateur appartenant demain à plusieurs écoles ne pourra pas être
+  représenté par l'unique =ecole_id= de session sans choix explicite de
+  contexte.
+
+** Modèle de données
+
+Sont déjà présents :
+
+- =Ecole= ;
+- =Classe= avec école et année scolaire ;
+- =Eleve= avec école ;
+- =Scolarite= reliant élève et classe, avec validation de la cohérence d'école ;
+- =Observation= unique par couple élève-compétence ;
+- =Trace= reliée à une observation et une scolarité ;
+- =Bilan= relié à une scolarité ;
+- paramètres et référentiel rattachés à l'école.
+
+Manquent :
+
+- utilisateur applicatif individuel ;
+- appartenance à une école ;
+- responsabilité de direction ;
+- affectation de classe datée ;
+- état préparation/active/archivée de la classe ;
+- invitation ;
+- auteur et dernier éditeur des données pédagogiques ;
+- suppression logique des traces et bilans ;
+- journal d'audit ;
+- demande et validation de rapprochement d'élèves.
+
+** Effets de bord en lecture
+
+La fonction =_editer_trace= appelle
+=Observation.objects.get_or_create(...)= avant de distinguer GET et POST.
+L'ouverture du formulaire peut donc créer une observation avec le statut par
+défaut =reussi=. Ce comportement doit être supprimé avant d'introduire l'audit
+et la distinction entre associé et responsable.
+
+=_contexte_carnet= et plusieurs écrans appellent aussi
+=ParametresCarnet.objects.get_or_create=. Cet effet est moins critique, mais les
+lectures devraient idéalement utiliser des paramètres garantis lors de la
+création de l'école plutôt que muter silencieusement la base.
+
+** Mutations et suppression
+
+Les mutations sont directement codées dans =views.py=. Plusieurs sont protégées
+par POST, mais il n'existe pas de couche de services métier commune.
+
+Les traces et bilans sont supprimés physiquement par =delete()=. Les fichiers
+privés associés aux traces sont également supprimés après validation de la
+transaction. Cela ne permet ni restauration logique ni historique métier.
+
+Les modèles ne conservent pas l'auteur. Après passage aux comptes individuels,
+une migration fonctionnelle sera nécessaire pour toutes les créations et
+modifications futures, mais aucune attribution historique réelle n'est à
+reprendre puisque les bases existantes sont factices.
+
+** Élèves et continuité
+
+Le parcours direction sait déjà :
+
+- créer une scolarité annuelle sans écraser les précédentes ;
+- déplacer explicitement un élève ;
+- réactiver un élève archivé ;
+- refuser certains retraits lorsqu'il existe des bilans ou traces ;
+- empêcher l'affectation d'un élève d'une autre école.
+
+L'import actuel permet toutefois de sélectionner et affecter directement un
+élève existant. Dans le nouveau modèle, cette opération devra devenir une
+demande de rapprochement lorsqu'elle ouvre un historique au responsable.
+
+** PDF et médias
+
+La génération PDF privée possède déjà un mécanisme intéressant : seuls les noms
+de médias explicitement collectés pour le carnet sont acceptés par le
+récupérateur WeasyPrint. L'accès au carnet racine reste cependant gouverné par
+le seul accès partagé à l'école.
+
+Les PDF et ZIP sont produits à la volée. Aucun objet métier représentant une
+version finale ou un téléchargement n'est actuellement enregistré. Il n'existe
+donc pas d'audit de génération ou de sortie.
+
+** Tests
+
+Le fichier =suivi/tests.py= contient 147 méthodes de test. Elles couvrent bien
+le comportement fonctionnel actuel et plusieurs contraintes longitudinales.
+
+La suite n'a pas pu être exécutée dans l'environnement de cet audit car Django
+n'y est pas installé. L'échec intervient avant le chargement du projet avec
+=ModuleNotFoundError: django=. Ce constat n'indique aucune régression du dépôt ;
+la validation devra être effectuée dans l'environnement Guix ou CI prévu par le
+projet.
+
+* Écarts par niveau de criticité
+
+** Bloquants avant données réelles
+
+| Écart | Risque | Réponse requise |
+|-------+--------+-----------------|
+| Absence de compte individuel | aucune attribution, révocation personnelle impossible | socle d'identité |
+| Accès enseignant à toute l'école | exposition de toutes les classes | affectations et filtrage central |
+| Direction pédagogique implicite | contradiction avec moindre privilège | séparation responsabilité/affectation |
+| Aucun auteur sur traces et bilans | audit et correction impossibles | champs auteur/éditeur |
+| Suppression physique ordinaire | perte irréversible et absence de restauration | suppression logique |
+| Pas d'audit | impossibilité de retracer les actions | événement d'audit transactionnel |
+| GET créant une observation réussie | mutation silencieuse et statut erroné | lecture sans effet de bord |
+
+** Importants pour le pilote
+
+| Écart | Conséquence |
+|-------+-------------|
+| Pas d'état de classe | activation sans responsable impossible à garantir |
+| Pas de période d'affectation | remplacement temporaire non représentable |
+| Import rattachant directement un dossier | accès indu à l'historique possible |
+| Pas de distinction état/trace pour l'associé | l'ajout d'une trace peut créer ou affecter le statut |
+| PDF accessibles à tout accès enseignant | sortie de données trop large |
+| Aucun audit de téléchargement | sorties non retraçables |
+| Pas de contexte multi-écoles nominatif | ambiguïté pour un utilisateur multi-écoles |
+
+** Différables après le premier socle
+
+- accès d'assistance exceptionnel de la plateforme ;
+- transfert inter-écoles ;
+- suppression définitive automatisée ;
+- fédération d'identité ou SSO académique ;
+- import ONDE ;
+- politiques de quota médias ;
+- interface exhaustive de consultation de l'audit.
+
+* Architecture cible minimale
+
+** Identité Django
+
+Introduire un modèle utilisateur substituable avant toute base réelle. La voie
+la plus durable est un =Utilisateur= dérivé d'=AbstractUser= et déclaré par
+=AUTH_USER_MODEL=.
+
+Conserver au départ les mécanismes Django standards et ne pas figer encore le
+SSO. La clé primaire de l'utilisateur constitue l'identité stable ; le nom,
+l'adresse électronique et le futur identifiant de connexion peuvent évoluer.
+
+Le changement de =AUTH_USER_MODEL= après création d'une base durable est
+coûteux. L'absence actuelle de données réelles justifie de le faire maintenant,
+quitte à recréer les bases de démonstration et de développement.
+
+** Entités d'autorisation
+
+Ajouter :
+
+- =AppartenanceEcole= ;
+- =ResponsabiliteEcole= avec type =direction= ;
+- =AffectationClasse= avec type =responsable=, =enseignant_associe= ou
+  =contributeur= ;
+- états et bornes temporelles ;
+- contraintes d'unicité et de non-chevauchement applicables ;
+- =Invitation= lorsque le parcours d'invitation sera implémenté ;
+- =EvenementAudit= ;
+- =DemandeRapprochementEleve=.
+
+** Couche de politique
+
+Créer une couche Python indépendante des vues, par exemple :
+
+- =suivi/autorisations.py= pour les prédicats et périmètres ;
+- =suivi/services/= pour les opérations multi-objets ;
+- =suivi/audit.py= pour la production d'événements.
+
+Les fonctions doivent recevoir un utilisateur, une opération et un objet ou
+contexte explicite. Elles ne doivent pas lire directement un rôle textuel dans
+la session.
+
+Exemples de primitives :
+
+- =appartenance_active(utilisateur, ecole, date)= ;
+- =est_direction(utilisateur, ecole, date)= ;
+- =affectation_active(utilisateur, classe, date)= ;
+- =peut_voir_suivi(utilisateur, classe)= ;
+- =peut_modifier_etat(utilisateur, classe)= ;
+- =peut_contribuer(utilisateur, classe)= ;
+- =peut_generer_pdf(utilisateur, classe)= ;
+- =classes_accessibles(utilisateur, operation)=.
+
+Les services métier appliquent ensuite ces décisions et écrivent l'audit dans
+la même transaction logique que la mutation.
+
+** Contexte d'école
+
+Un utilisateur pouvant appartenir à plusieurs écoles, la session peut conserver
+une école courante, mais celle-ci devient seulement un choix de contexte. Chaque
+requête vérifie que l'utilisateur possède encore une appartenance active à
+cette école.
+
+Le changement d'école est explicite. Aucun droit n'est transféré d'une école à
+l'autre.
+
+* Plan incrémental
+
+** #A1 — Introduire l'identité individuelle
+
+Objectif : remplacer l'identité implicite du mot de passe partagé par un
+utilisateur Django, sans encore ouvrir les rôles fins.
+
+Travaux :
+
+- créer le modèle =Utilisateur= substituable ;
+- définir =AUTH_USER_MODEL= ;
+- utiliser l'authentification Django ;
+- adapter connexion, déconnexion et contexte de template ;
+- recréer les comptes techniques de la démonstration ;
+- retirer la recherche d'une école par mot de passe partagé du parcours
+  persistant ;
+- prévoir la recréation explicite des bases factices existantes.
+
+Critères :
+
+- chaque requête connaît =request.user= ;
+- compte inactif refusé immédiatement ;
+- la démonstration éphémère reste visitable avec des identités techniques ;
+- aucune donnée réelle à migrer.
+
+** #A2 — Ajouter appartenances, responsabilités et affectations
+
+Objectif : représenter le modèle métier sans encore réécrire toutes les vues.
+
+Travaux :
+
+- créer =AppartenanceEcole=, =ResponsabiliteEcole= et =AffectationClasse= ;
+- ajouter états, dates, auteurs d'attribution et motifs ;
+- garantir même école entre appartenance et classe ;
+- interdire les niveaux simultanés pour une personne et une classe ;
+- ajouter l'état de classe : préparation, active, archivée ;
+- initialiser le jeu de démonstration avec utilisateurs et affectations ;
+- créer les fabriques de tests communes.
+
+Critères :
+
+- classes multi-responsables ;
+- utilisateur multi-classes et multi-écoles ;
+- affectations future, active et expirée ;
+- classe en préparation sans responsable ;
+- activation refusée sans responsable.
+
+** #A3 — Centraliser le moteur d'autorisation
+
+Objectif : disposer d'une décision métier unique avant de migrer les écrans.
+
+Travaux :
+
+- créer les prédicats et sélecteurs de périmètre ;
+- remplacer =acces_requis= et =direction_requise= par des garde-fous fondés sur
+  =request.user= et la politique ;
+- séparer choix de l'école courante et autorisation ;
+- fournir des fonctions de chargement filtré des objets ;
+- ajouter les tests T001–T036 et les propriétés inter-écoles.
+
+Critères :
+
+- refus par défaut ;
+- même décision pour HTML, HTMX et téléchargement ;
+- aucune nouvelle vue ne dépend du seul masquage d'un bouton ;
+- tests inter-écoles systématiques.
+
+** #A4 — Cloisonner toutes les lectures
+
+Objectif : rendre la navigation conforme avant d'autoriser les mutations fines.
+
+Travaux :
+
+- accueil limité aux classes accessibles ;
+- annuaire complet réservé à la direction ;
+- listes minimales pour les contributeurs ;
+- suivi complet réservé aux responsables et associés ;
+- composition de l'équipe limitée aux collaborateurs de la classe ;
+- direction sans lecture pédagogique implicite ;
+- parcours antérieur limité aux objets validés ;
+- supprimer les effets de bord des GET, notamment dans =_editer_trace=.
+
+Critères :
+
+- scénarios T040–T045 ;
+- ouverture d'un formulaire ne crée aucun objet ;
+- les identifiants forgés ne contournent pas les listes filtrées.
+
+** #A5 — Sécuriser les mutations pédagogiques et l'attribution
+
+Objectif : appliquer responsable/associé/contributeur aux observations, traces
+et bilans.
+
+Travaux :
+
+- ajouter auteur, dernier éditeur et dates utiles aux traces et bilans ;
+- distinguer création d'une trace et modification de l'état synthétique ;
+- permettre à l'associé d'ajouter une trace sans modifier le statut ;
+- limiter le contributeur à une contribution photo/commentaire ;
+- permettre la correction de sa propre contribution selon l'état métier ;
+- permettre au responsable d'éditer toute contribution de sa classe sans
+  changer l'auteur d'origine ;
+- introduire suppression logique et restauration ;
+- déplacer les mutations dans des services transactionnels ;
+- écrire les événements d'audit correspondants.
+
+Critères :
+
+- scénarios T060–T069 ;
+- auteur et éditeur distincts ;
+- anciennes valeurs disponibles dans l'audit ;
+- plus aucun =delete()= ordinaire sur trace ou bilan.
+
+** #A6 — Déléguer l'administration courante des élèves
+
+Objectif : rendre le responsable autonome dans sa classe sans lui ouvrir
+l'historique arbitrairement.
+
+Travaux :
+
+- autoriser création, import de nouveaux élèves, correction courante et
+  archivage dans sa classe ;
+- réserver transferts, passé scolaire et doublons à la direction ;
+- introduire =DemandeRapprochementEleve= ;
+- détecter les correspondances sans les fusionner ;
+- validation nominative par la direction ;
+- matérialiser le périmètre longitudinal autorisé ;
+- exclure les anciennes traces internes et photos non publiées.
+
+Critères :
+
+- scénarios T050–T058 ;
+- aucun nom/prénom/année ne déclenche une fusion automatique ;
+- l'audit seul n'est jamais utilisé comme autorisation ;
+- demande, validation et accès sont traçables.
+
+** #A7 — Restreindre PDF, ZIP et médias privés
+
+Objectif : contrôler toute sortie de données selon l'affectation.
+
+Travaux :
+
+- prévisualisation de carnet pour responsable et associé ;
+- génération et téléchargement réservés au responsable ;
+- ZIP de classe réservé au responsable ;
+- autorisation dérivée de la trace pour chaque média ;
+- téléchargement d'original explicite et audité ;
+- affichage ordinaire non journalisé ;
+- audit de génération et téléchargement des PDF ;
+- conserver la liste blanche actuelle du récupérateur PDF.
+
+Critères :
+
+- scénarios T070–T078 ;
+- aucune clé de stockage ne constitue une autorisation ;
+- accès expiré refusé même avec une ancienne URL applicative ;
+- audit sans copie du contenu sensible.
+
+** #A8 — Parcours de direction et anomalies
+
+Objectif : fournir l'administration complète du modèle sans accès pédagogique
+implicite.
+
+Travaux :
+
+- écran membres, appartenances et invitations ;
+- attribution et fin des responsabilités ;
+- affectations datées ;
+- auto-attribution temporaire avec motif et fin ;
+- signalement « classe sans responsable » ;
+- impossibilité de retirer la dernière direction sans transfert ;
+- récupération technique minimale pour une école sans direction.
+
+Critères :
+
+- scénarios T020–T025, T030–T036 et T080–T085 ;
+- toute élévation temporaire est visible et auditée ;
+- aucune administration technique ordinaire du contenu pédagogique.
+
+** #A9 — Durcissement et retrait du système historique
+
+Objectif : fermer les voies de contournement avant le pilote.
+
+Travaux :
+
+- supprimer =mdp_enseignant=, =mdp_direction= et =Ecole.verifier= du modèle
+  persistant ;
+- supprimer le rôle textuel de session ;
+- vérifier toutes les URL et méthodes HTTP ;
+- rendre atomiques autorisation, mutation et audit ;
+- compléter les tests génériques de propriétés ;
+- documenter la recréation de la démonstration ;
+- mettre à jour le diagnostic de déploiement ;
+- exécuter la suite complète, les migrations à blanc et les contrôles de
+  reprise.
+
+Critères :
+
+- chaque ligne autorisable de la matrice possède un test positif et négatif ;
+- toute opération sur identifiant possède un test inter-écoles ;
+- aucune dépendance applicative aux mots de passe partagés hors démonstration ;
+- aucune donnée réelle n'est introduite avant validation de ce jalon.
+
+* Découpage de commits recommandé
+
+Chaque incrément peut comporter plusieurs commits courts. Exemple :
+
+1. =Comptes: introduire Utilisateur et l'authentification Django=
+2. =Comptes: peupler les identités techniques de démonstration=
+3. =Autorisations: ajouter les appartenances aux écoles=
+4. =Autorisations: ajouter les responsabilités et affectations datées=
+5. =Autorisations: centraliser les prédicats et périmètres=
+6. =Autorisations: cloisonner les lectures par classe=
+7. =Autorisations: attribuer les traces et bilans=
+8. =Autorisations: journaliser les mutations pédagogiques=
+9. =Élèves: introduire les demandes de rapprochement=
+10. =Médias: contrôler et tracer les sorties privées=
+11. =Autorisations: retirer les accès partagés persistants=
+
+Le numéro exact devra suivre la convention de jalons retenue pour la Phase 4.
+
+* Risques de mise en œuvre
+
+** Changement d'utilisateur Django
+
+=AUTH_USER_MODEL= doit être introduit avant toute base durable. Les bases locales
+déjà migrées devront être recréées ; tenter de convertir silencieusement une
+ancienne base factice compliquerait inutilement le chantier.
+
+** Observation et trace
+
+Le modèle actuel crée parfois une =Observation= pour pouvoir ajouter une
+=Trace=. La nouvelle règle autorise l'associé à créer une trace sans fixer le
+statut synthétique. Il faudra donc éviter qu'une création technique choisisse
+implicitement =reussi=.
+
+Deux solutions restent possibles lors de #A5 :
+
+- permettre une observation sans état synthétique ;
+- dissocier davantage la trace de l'observation synthétique.
+
+Le choix doit être fait à partir des usages et du coût de migration, sans
+réintroduire un statut décidé par l'associé.
+
+** Suppression logique des médias
+
+La suppression physique différée doit rester cohérente avec les sauvegardes,
+restaurations et quotas. #A5 doit d'abord masquer et historiser ; la purge
+physique pourra être gouvernée plus tard par la politique de conservation.
+
+** Audit volumineux
+
+Le journal doit conserver les valeurs utiles sans recopier les photos ni les
+longs contenus sensibles. Les changements de commentaire pourront nécessiter
+un compromis entre reconstitution complète et minimisation ; pour le pilote,
+une conservation ciblée des anciennes valeurs textuelles peut être retenue avec
+une durée de conservation à définir.
+
+* Tests et validation à chaque incrément
+
+À chaque jalon :
+
+- =python3 manage.py test= ;
+- =python3 manage.py makemigrations --check --dry-run= ;
+- contrôles syntaxiques des scripts ;
+- =git diff --check= ;
+- tests positifs et négatifs du périmètre ajouté ;
+- au moins un test inter-écoles par nouvelle opération ;
+- vérification qu'une requête directe obtient la même décision que l'interface.
+
+Pour les jalons touchant l'identité ou les migrations, tester aussi :
+
+- base neuve ;
+- initialisation de la démonstration ;
+- initialisation de l'atelier persistant factice ;
+- diagnostics de déploiement ;
+- sauvegarde et restauration sur données factices.
+
+* Décision d'implémentation validée
+
+Pour #A1, le choix suivant est validé :
+
+#+begin_quote
+Introduire dès maintenant un =AUTH_USER_MODEL= personnalisé minimal dérivé
+d'=AbstractUser=, puisque aucune base réelle n'existe, tout en conservant pour
+le premier jalon l'authentification Django standard et sans intégrer de SSO.
+#+end_quote
+
+Ce choix évite une migration difficile après le pilote tout en ne
+surdimensionnant pas l'authentification.
+
+Conséquences retenues :
+
+- le modèle personnalisé est introduit avant toute base réelle ;
+- l'authentification du premier jalon reste celle fournie par Django ;
+- aucun SSO ni fédération d'identité n'est ajouté à ce stade ;
+- les bases locales, d'atelier et de démonstration contenant exclusivement des
+  données factices peuvent être recréées ;
+- aucune stratégie de migration de comptes réels n'est nécessaire.

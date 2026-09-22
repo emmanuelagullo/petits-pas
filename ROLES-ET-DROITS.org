@@ -1,0 +1,504 @@
+#+title: Petits Pas — Politique d'autorisation détaillée
+#+author: Équipe Petits Pas
+#+date: 2026-09-21
+
+* Statut du document
+
+Ce document traduit le modèle métier des identités et affectations en règles
+d'autorisation applicables aux opérations de Petits Pas.
+
+Il constitue une première proposition consolidée. Les décisions explicitement
+signalées comme ouvertes devront être tranchées avant l'implémentation.
+
+* Documents de référence
+
+- =petits-pas-modele-metier-identites-affectations.org=
+- =CARNET-REFERENCE.org=
+- =MODELE-LONGITUDINAL.org=
+- =PARCOURS-ENSEIGNANT.org=
+
+* Objet d'une autorisation
+
+Une autorisation répond à la question suivante :
+
+#+begin_quote
+Un utilisateur donné peut-il exécuter une opération donnée sur une ressource
+donnée, dans le contexte courant ?
+#+end_quote
+
+La réponse dépend au minimum :
+
+- de l'état du compte ;
+- de l'état de l'école ;
+- de l'appartenance de l'utilisateur à cette école ;
+- des responsabilités d'école et affectations de classe actives ;
+- du rattachement de la ressource à l'école, la classe ou l'élève ;
+- de conditions propres à l'opération ;
+- de l'état de la ressource : préparation, active, archivée ou supprimée
+  logiquement.
+
+* Principes généraux
+
+** Refus par défaut
+
+Toute opération qui n'est pas explicitement autorisée est refusée.
+
+L'absence d'un bouton ou d'un lien dans l'interface ne constitue jamais un
+contrôle d'autorisation. La règle est vérifiée côté serveur pour chaque requête,
+y compris les requêtes HTMX, les téléchargements et les actions groupées.
+
+** Isolation préalable par école
+
+Avant d'évaluer un rôle, Petits Pas vérifie que :
+
+- la ressource appartient à l'école visée ;
+- l'utilisateur possède une appartenance active à cette école ;
+- toute classe, scolarité, observation, trace, bilan, carnet ou fichier fourni
+  dans la requête appartient également à cette école.
+
+Une discordance d'école entraîne un refus, même si l'utilisateur possède une
+responsabilité analogue dans une autre école.
+
+** Périmètre minimal
+
+Une responsabilité de direction s'exerce sur son école.
+
+Une affectation pédagogique s'exerce uniquement sur la classe correspondante.
+Elle peut donner accès aux élèves de cette classe dans le cadre de leur
+scolarité dans cette classe, mais pas à leurs données relevant d'une autre
+école ou d'une autre classe hors des règles longitudinales prévues.
+
+** Séparation des responsabilités
+
+La direction administre l'école, les personnes, les classes, les élèves et les
+paramètres durables. Elle n'accède pas automatiquement au contenu pédagogique
+détaillé.
+
+Le responsable de classe assume la responsabilité pédagogique complète de sa
+classe. L'enseignant associé consulte et contribue sans administrer la
+structure. Le contributeur ajoute des contributions limitées sans consulter le
+suivi pédagogique.
+
+** Autorisations calculées au moment de l'action
+
+La validité des appartenances et affectations est réévaluée au moment de chaque
+opération. Une page ouverte avant la fin d'une affectation ne permet pas de
+continuer à agir après celle-ci.
+
+** Pas d'escalade implicite
+
+La possession de plusieurs responsabilités n'étend les droits que dans leurs
+périmètres respectifs. Elle ne crée pas de permission nouvelle par analogie.
+
+L'administration technique de la plateforme ne donne aucun accès fonctionnel
+implicite aux données pédagogiques.
+
+* Notation de la politique
+
+Les tableaux emploient les termes suivants :
+
+- =Direction= : responsabilité de direction active dans l'école ;
+- =Responsable= : affectation responsable active sur la classe ;
+- =Associé= : affectation enseignant associé active sur la classe ;
+- =Contributeur= : affectation contributeur active sur la classe ;
+- =Soi= : opération limitée à sa propre identité ou à sa propre contribution ;
+- =Non= : opération refusée ;
+- =Condition= : autorisation soumise aux précisions indiquées.
+
+* Comptes et profil personnel
+
+| Opération                                  | Utilisateur concerné | Direction | Administration plateforme |
+|--------------------------------------------+-----------------------+-----------+----------------------------|
+| Consulter son profil                       | Soi                   | Non       | Non                        |
+| Modifier son nom affiché                   | Soi                   | Non       | Non                        |
+| Modifier son moyen de connexion            | Soi                   | Non       | Condition                  |
+| Changer ou réinitialiser son authentifiant | Soi                   | Non       | Condition                  |
+| Désactiver globalement un compte           | Non                   | Non       | Oui                        |
+| Consulter les appartenances d'un compte    | Soi                   | Son école | Condition                  |
+
+Une direction désactive une appartenance à son école ; elle ne désactive pas le
+compte global d'une personne susceptible d'appartenir à une autre école.
+
+Une intervention de l'administration sur le moyen de connexion doit être
+limitée au scénario de récupération de compte et ne doit jamais permettre de
+connaître le secret de l'utilisateur.
+
+* Invitations et appartenances à l'école
+
+| Opération                                      | Direction | Autre membre | Administration plateforme |
+|------------------------------------------------+-----------+--------------+----------------------------|
+| Inviter une personne dans l'école              | Oui       | Non          | Non                        |
+| Renvoyer ou révoquer une invitation            | Oui       | Non          | Non                        |
+| Accepter une invitation                        | Destinataire uniquement | Non | Non                    |
+| Consulter la liste complète des membres         | Oui       | Non          | Non                        |
+| Voir les collaborateurs de ses classes          | Oui       | Oui, limité  | Non                        |
+| Suspendre une appartenance                      | Oui       | Non          | Condition                  |
+| Terminer une appartenance                       | Oui       | Non          | Condition                  |
+| Réactiver une appartenance suspendue            | Oui       | Non          | Condition                  |
+| Ajouter ou retirer la responsabilité direction | Oui       | Non          | Secours uniquement         |
+
+Conditions :
+
+- une invitation est temporaire, révocable et à usage unique ;
+- son acceptation par une autre identité que son destinataire est refusée ;
+- le dernier membre de direction ne peut pas retirer sa propre responsabilité
+  sans transfert préalable ;
+- l'administration de la plateforme n'intervient que pour créer la première
+  direction d'une école ou résoudre l'absence de toute direction active ;
+- une suspension urgente reste possible même si elle crée une anomalie à
+  régulariser.
+
+La direction voit la liste complète des membres, leurs informations de gestion,
+l'état de leur appartenance et leurs affectations. Les autres membres voient
+uniquement le nom affiché, la fonction et la période utile des personnes
+affectées aux mêmes classes qu'eux. Ils ne voient ni leurs coordonnées de
+connexion, ni les invitations et suspensions, ni leurs affectations dans les
+autres classes.
+
+* Écoles
+
+| Opération                         | Direction | Administration plateforme |
+|-----------------------------------+-----------+----------------------------|
+| Créer une école                   | Non       | Oui                        |
+| Modifier nom et commune           | Oui       | Oui, correction technique  |
+| Activer une école préparée        | Non       | Oui                        |
+| Suspendre ou désactiver une école | Non       | Oui                        |
+| Consulter l'état technique        | Oui       | Oui                        |
+| Supprimer définitivement l'école  | Non       | Procédure exceptionnelle   |
+
+La suppression définitive d'une école ne relève pas d'une opération ordinaire
+d'interface. Elle dépendra de la politique de conservation et d'une procédure
+spécifique de vérification.
+
+* Classes
+
+| Opération                              | Direction | Responsable | Associé | Contributeur |
+|----------------------------------------+-----------+-------------+---------+--------------|
+| Consulter la liste administrative      | Oui       | Ses classes | Ses classes | Ses classes |
+| Créer une classe en préparation        | Oui       | Non         | Non     | Non          |
+| Modifier nom, année ou ordre            | Oui       | Non         | Non     | Non          |
+| Activer une classe                      | Oui       | Non         | Non     | Non          |
+| Archiver une classe                     | Oui       | Non         | Non     | Non          |
+| Réouvrir une classe archivée            | Oui       | Non         | Non     | Non          |
+| Supprimer définitivement une classe     | Procédure exceptionnelle | Non | Non | Non      |
+
+L'activation exige au moins un responsable actif. Le retrait ordinaire du
+dernier responsable est refusé. Une suspension urgente reste possible et crée
+une anomalie « classe sans responsable ».
+
+« Consulter la liste administrative » ne signifie pas consulter le suivi
+pédagogique. Pour un contributeur, elle expose seulement les informations
+nécessaires à l'identification des élèves autorisés.
+
+* Affectations de classe
+
+| Opération                                  | Direction | Responsable | Associé | Contributeur |
+|--------------------------------------------+-----------+-------------+---------+--------------|
+| Consulter les affectations de l'école      | Oui       | Non         | Non     | Non          |
+| Consulter les affectations de sa classe    | Oui       | Oui         | Oui     | Oui, limité  |
+| Attribuer une affectation                   | Oui       | Non         | Non     | Non          |
+| Modifier les dates d'une affectation       | Oui       | Non         | Non     | Non          |
+| Terminer ou suspendre une affectation      | Oui       | Non         | Non     | Non          |
+| S'attribuer une affectation temporaire     | Direction, avec justification | Non | Non | Non |
+
+Conditions :
+
+- la personne affectée doit avoir une appartenance active à l'école ;
+- la classe doit appartenir à cette école ;
+- une personne ne peut avoir qu'un niveau d'affectation actif par classe ;
+- les dates ne doivent pas créer de chevauchement entre deux niveaux ;
+- toute attribution, modification, suspension ou fin est auditée ;
+- l'auto-attribution temporaire par la direction exige un motif et une date de
+  fin ; elle donne lieu à un événement d'audit clairement identifiable.
+
+* Élèves et scolarités
+
+| Opération                                     | Direction | Responsable | Associé | Contributeur |
+|-----------------------------------------------+-----------+-------------+---------+--------------|
+| Voir la liste complète des élèves de l'école  | Oui       | Non         | Non     | Non          |
+| Voir les élèves de sa classe                  | Oui       | Oui         | Oui     | Limité       |
+| Créer un élève nouveau dans une classe        | Oui       | Oui, sa classe | Non   | Non          |
+| Importer une liste d'élèves nouveaux          | Oui       | Oui, sa classe | Non   | Non          |
+| Rattacher un dossier existant à une classe    | Oui       | Demande soumise à validation | Non | Non |
+| Corriger l'identité administrative            | Oui       | Oui, élève de sa classe | Non | Non   |
+| Gérer la scolarité courante                   | Oui       | Oui, dans sa classe | Non | Non        |
+| Transférer vers une autre classe              | Oui       | Non         | Non     | Non          |
+| Modifier une scolarité antérieure             | Oui       | Non         | Non     | Non          |
+| Archiver ou désarchiver un élève              | Oui       | Oui, élève de sa classe | Non | Non   |
+| Supprimer définitivement un élève             | Procédure exceptionnelle | Non | Non | Non      |
+| Consulter le parcours des années antérieures  | Oui, administratif | Condition | Condition | Non |
+
+Pour le contributeur, la liste est limitée aux élèves des classes auxquelles il
+est affecté. Elle affiche le prénom, l'initiale du nom et le niveau, sans photo
+d'identité dédiée. Le nom complet n'est révélé que lorsqu'il est nécessaire
+pour distinguer des élèves qui auraient le même prénom, la même initiale et le
+même niveau dans une classe.
+
+Le contributeur ne voit ni l'année de naissance, ni l'état des apprentissages,
+ni les traces déposées par autrui, ni les bilans ou carnets.
+
+La création d'un élève réellement nouveau ne donne accès à aucun historique.
+Lorsqu'un import détecte un dossier existant ou un possible doublon, Petits Pas
+ne le rattache pas automatiquement : la ligne est placée « à rapprocher » et la
+direction valide le dossier concerné. Le nom, le prénom et l'année de naissance
+ne suffisent jamais à fusionner automatiquement deux dossiers.
+
+Le rapprochement validé ouvre aux responsables et enseignants associés de la
+classe courante l'accès au parcours nécessaire à la continuité pédagogique :
+carnets finalisés, bilans antérieurs et états d'apprentissage utiles au suivi
+longitudinal. Il n'ouvre pas automatiquement les traces internes, brouillons ou
+photos non publiées des anciennes classes.
+
+La consultation longitudinale ne donne jamais un accès général aux anciennes
+classes ni aux autres élèves qui les composaient. La demande de rapprochement,
+la validation par la direction et les accès au parcours sont auditables.
+
+Le responsable peut corriger le prénom, le nom, l'année de naissance et le
+niveau de la scolarité courante d'un élève de sa classe. Il peut l'archiver ou
+le désarchiver. La direction conserve seule le pouvoir de transférer l'élève
+vers une autre classe, de modifier une scolarité antérieure, de rapprocher des
+doublons, d'organiser un transfert inter-écoles ou de supprimer définitivement
+le dossier.
+
+* Référentiel de compétences
+
+| Opération                                  | Direction | Responsable | Associé | Contributeur |
+|--------------------------------------------+-----------+-------------+---------+--------------|
+| Consulter le référentiel                   | Oui       | Oui         | Oui     | Non          |
+| Modifier un référentiel officiel           | Non       | Non         | Non     | Non          |
+| Activer ou paramétrer un référentiel école | Oui       | Lecture     | Non     | Non          |
+
+La création de référentiels personnalisés n'est pas couverte à ce stade.
+
+* Observations et traces pédagogiques
+
+Une observation exprime l'état d'un apprentissage. Une trace est un élément
+daté qui peut comporter un commentaire, une photo et une indication de
+publication ou non dans le carnet familial.
+
+| Opération                                      | Direction seule | Responsable | Associé | Contributeur |
+|------------------------------------------------+-----------------+-------------+---------+--------------|
+| Voir le suivi complet                          | Non             | Oui         | Oui     | Non          |
+| Voir l'historique complet des traces           | Non             | Oui         | Oui     | Non          |
+| Voir ses propres contributions limitées        | Non             | Oui         | Oui     | Oui          |
+| Modifier l'état d'un apprentissage              | Non             | Oui         | Non     | Non          |
+| Ajouter une trace complète                      | Non             | Oui         | Oui     | Non          |
+| Ajouter une contribution limitée                | Non             | Oui         | Oui     | Oui          |
+| Modifier sa propre contribution                 | Non             | Oui         | Oui, sous conditions | Oui, sous conditions |
+| Retirer sa propre contribution                  | Non             | Oui         | Oui, sous conditions | Oui, sous conditions |
+| Modifier la contribution d'autrui               | Non             | Oui, avec audit | Non  | Non          |
+| Retirer une trace du carnet familial            | Non             | Oui         | Non     | Non          |
+| Supprimer logiquement une trace                  | Non             | Oui         | Non     | Non          |
+| Restaurer une trace supprimée logiquement       | Non             | Oui         | Non     | Non          |
+| Supprimer définitivement une trace               | Non             | Procédure exceptionnelle | Non | Non |
+
+Une contribution limitée permet au minimum de sélectionner un élève autorisé,
+d'ajouter une photo et, si retenu, un commentaire court. Elle ne révèle ni
+l'état des compétences ni les observations d'autrui.
+
+L'enseignant associé peut ajouter des traces datées mais ne fixe ni ne modifie
+l'état synthétique « réussi / en cours / non observé ». Cet état relève de la
+responsabilité pédagogique des responsables de classe.
+
+La mise en œuvre devra préserver cette séparation même si le modèle actuel lie
+les traces à une =Observation= portant elle-même le statut synthétique.
+
+Un enseignant associé ou un contributeur peut modifier ou retirer sa propre
+contribution tant que son affectation et la classe sont actives. Il n'est pas
+appliqué de délai arbitraire. Après la fin de l'affectation ou l'archivage de la
+classe, la correction passe par un responsable.
+
+Toute modification ou tout retrait est historisé. Un PDF final déjà produit
+reste un instantané historique ; la correction s'applique aux prévisualisations
+et générations ultérieures sans réécrire ce document existant.
+
+Un responsable possède la responsabilité éditoriale sur les contributions de
+sa classe. Il peut modifier une contribution d'autrui, la retirer du carnet
+familial, la supprimer logiquement ou la restaurer. L'auteur d'origine reste
+enregistré ; l'identité du responsable intervenu, la date et les anciennes
+valeurs sont conservées dans l'audit. Une modification ne réattribue jamais
+silencieusement la contribution à son éditeur.
+
+Une trace marquée « interne » reste visible uniquement aux responsables et
+enseignants associés autorisés sur la classe. La direction seule n'y accède pas.
+
+* Bilans
+
+| Opération                         | Direction seule | Responsable | Associé | Contributeur |
+|-----------------------------------+-----------------+-------------+---------+--------------|
+| Voir les bilans                   | Non             | Oui         | Oui     | Non          |
+| Créer un bilan                    | Non             | Oui         | Non     | Non          |
+| Modifier un bilan                 | Non             | Oui         | Non     | Non          |
+| Clore ou rouvrir un bilan         | Non             | Oui         | Non     | Non          |
+| Supprimer logiquement un bilan    | Non             | Oui         | Non     | Non          |
+| Supprimer définitivement un bilan | Non             | Procédure exceptionnelle | Non | Non |
+
+* Carnets et PDF
+
+| Opération                                 | Direction seule | Responsable | Associé | Contributeur |
+|-------------------------------------------+-----------------+-------------+---------+--------------|
+| Prévisualiser un carnet                   | Non             | Oui         | Oui, lecture | Non       |
+| Modifier la composition du carnet         | Non             | Oui         | Non     | Non          |
+| Générer un PDF de travail                 | Non             | Oui         | Non     | Non          |
+| Produire la version finale                | Non             | Oui         | Non     | Non          |
+| Télécharger un PDF existant               | Non             | Oui         | Non     | Non          |
+| Supprimer logiquement un PDF               | Non             | Oui         | Non     | Non          |
+
+Les droits sur un PDF dérivent de ceux sur l'élève, la classe et le carnet dont
+il provient. Connaître ou deviner l'adresse d'un fichier ne suffit jamais à le
+télécharger.
+
+L'enseignant associé peut prévisualiser un carnet dans l'application afin de le
+relire, mais il ne peut générer ni télécharger un PDF, même de travail. La
+production d'une copie autonome et la version finale relèvent des responsables
+de classe.
+
+* Paramètres
+
+| Opération                                      | Direction | Responsable | Associé | Contributeur |
+|------------------------------------------------+-----------+-------------+---------+--------------|
+| Voir les paramètres durables de l'école        | Oui       | Lecture     | Non     | Non          |
+| Modifier les paramètres durables de l'école    | Oui       | Non         | Non     | Non          |
+| Définir des choix pour un carnet particulier   | Non       | Oui         | Non     | Non          |
+| Gérer ses préférences personnelles             | Oui       | Oui         | Oui     | Oui          |
+
+Les futurs paramètres de politique et de quota feront l'objet de règles
+spécifiques respectant la hiérarchie plateforme → école → classe → responsable.
+
+* Médias privés
+
+Les autorisations sur un média ne sont jamais évaluées uniquement à partir de
+sa clé de stockage. Elles dérivent de l'objet métier auquel il est rattaché.
+
+Pour chaque téléversement ou téléchargement, Petits Pas vérifie :
+
+- l'école propriétaire ;
+- la classe et l'élève concernés ;
+- l'affectation active de l'utilisateur ;
+- le type d'opération autorisé ;
+- les politiques de format, taille et quota applicables.
+
+Une URL signée éventuelle est courte, liée à un objet autorisé et n'est produite
+qu'après ce contrôle.
+
+La suppression logique de la trace masque le média. La suppression physique et
+sa temporisation relèveront de la politique de conservation.
+
+* Administration de la plateforme
+
+L'administration de la plateforme peut :
+
+- créer, activer, suspendre et désactiver une école ;
+- désigner sa première direction ;
+- résoudre une école sans direction active ;
+- gérer les politiques maximales et quotas de la plateforme ;
+- consulter les diagnostics techniques sans contenu pédagogique ;
+- déclencher les opérations techniques de sauvegarde et restauration.
+
+Elle ne peut pas, par défaut :
+
+- parcourir les élèves ;
+- consulter les observations, commentaires, photos, bilans ou carnets ;
+- se substituer silencieusement à un membre d'une école ;
+- modifier une donnée pédagogique.
+
+Un futur accès exceptionnel d'assistance devra être temporaire, justifié,
+autorisé selon une procédure explicite et intégralement audité. Il n'est pas
+nécessaire au premier pilote.
+
+* Audit
+
+** Événements obligatoires
+
+Sont journalisés au minimum :
+
+- invitations, acceptations et révocations ;
+- création, suspension, réactivation et fin d'appartenance ;
+- attribution, modification, suspension et fin de responsabilité ou
+  d'affectation ;
+- auto-attribution temporaire d'une direction ;
+- création, activation, archivage et réouverture d'une classe ;
+- création, modification, archivage et désarchivage d'un élève ou d'une
+  scolarité ;
+- création, modification, retrait, restauration et suppression d'une
+  observation, trace ou bilan ;
+- génération finale et suppression logique d'un carnet PDF ;
+- génération et téléchargement d'un PDF ;
+- export groupé et téléchargement explicite d'un média original ;
+- modification des paramètres durables ;
+- opération exceptionnelle de suppression définitive ;
+- refus significatif lié à une tentative d'accès inter-écoles ou à une
+  élévation de privilège.
+
+** Contenu minimal d'un événement
+
+Chaque événement contient lorsque pertinent :
+
+- l'auteur ou l'identité technique ;
+- la date et l'heure ;
+- l'école ;
+- l'opération ;
+- le type et l'identifiant de la ressource ;
+- la classe et l'élève concernés ;
+- le résultat : succès ou refus ;
+- le motif obligatoire pour une opération exceptionnelle ;
+- les anciennes et nouvelles valeurs utiles à la compréhension de l'action.
+
+Le journal d'audit ne doit pas dupliquer inutilement les commentaires, photos ou
+autres données sensibles. Il enregistre les métadonnées nécessaires à la
+traçabilité.
+
+** Consultations non journalisées au démarrage
+
+Les consultations ordinaires de pages, listes et prévisualisations ne sont pas
+journalisées individuellement pendant le premier pilote. Le chargement d'une
+photo dans une page, d'une vignette ou d'une image dans une prévisualisation
+n'est pas non plus un événement d'audit individuel.
+
+En revanche, la génération ou le téléchargement d'un PDF, un export groupé et
+le téléchargement explicite d'un média original sont journalisés comme des
+sorties de données privées hors de l'interface ordinaire.
+
+* Refus et réponses HTTP
+
+Une opération non autorisée est refusée côté serveur sans révéler l'existence de
+données d'une autre école.
+
+La distinction exacte entre réponse « introuvable » et « interdite » relève de
+l'implémentation, mais les accès inter-écoles doivent en principe éviter toute
+fuite d'information par différence de réponse.
+
+Une action groupée est atomique du point de vue de l'autorisation : chaque
+ressource est vérifiée avant toute modification. Une ressource non autorisée
+entraîne le refus de l'ensemble, sauf scénario métier explicitement conçu pour
+retourner un résultat partiel.
+
+* Règles d'implémentation futures
+
+- Centraliser les décisions d'autorisation dans une couche métier réutilisable,
+  distincte des vues et des templates.
+- Filtrer les collections en amont ; ne jamais charger un objet globalement puis
+  se fier uniquement à un test d'affichage.
+- Appliquer les mêmes fonctions aux vues HTML, requêtes HTMX, téléchargements,
+  tâches asynchrones et commandes métier.
+- Tester systématiquement les accès autorisés, les refus dans la même école et
+  les refus inter-écoles.
+- Tester les bornes temporelles des affectations et leur expiration pendant une
+  session existante.
+- Ne pas déduire les droits du seul nom d'un groupe Django ; les périmètres
+  d'école et de classe font partie de la décision.
+
+* Validation de la politique
+
+Les décisions recensées pour cette première politique d'autorisation ont été
+tranchées. La politique est prête à être transformée en matrice normative et en
+scénarios de tests.
+
+* Étape suivante
+
+Trancher les décisions ouvertes, puis dériver :
+
+- une matrice normative définitive ;
+- les scénarios de tests d'autorisation ;
+- les services métier requis ;
+- enfin seulement, le schéma Django et le plan d'implémentation.
