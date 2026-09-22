@@ -49,11 +49,20 @@
 
 <section id="invitations">
 <h2>Inviter un membre</h2>
+<p>Le lien permet à la personne de créer son compte individuel, ou de rattacher un compte existant utilisant la même adresse. Il est valable sept jours.</p>
+<p class="aide">Petits Pas n’envoie pas encore de courriel automatiquement : transmettez vous-même le lien par un canal approprié. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>
+{% if lien_invitation_creee %}
+<div class="encadre" role="status">
+  <label for="lien-invitation">Lien à transmettre — affiché une seule fois</label>
+  <input id="lien-invitation" value="{{ lien_invitation_creee }}" readonly onclick="this.select()">
+  <p><a href="{{ lien_invitation_creee }}">Vérifier le lien d’invitation</a></p>
+</div>
+{% endif %}
 <form method="post">{% csrf_token %}<input type="hidden" name="action" value="inviter">
   <label>Adresse électronique <input type="email" name="email" required></label>
   <button class="bouton" type="submit">Créer l'invitation</button>
 </form>
-{% if invitations %}<ul class="liste">{% for invitation in invitations %}<li class="entree"><span class="principal">{{ invitation.email }}</span><span class="secondaire">{{ invitation.get_etat_display }} · expire le {{ invitation.expire_le }}</span>{% if invitation.etat == "en_attente" %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoquer_invitation"><input type="hidden" name="invitation" value="{{ invitation.pk }}"><button class="bouton discret">Révoquer</button></form>{% endif %}</li>{% endfor %}</ul>{% endif %}
+{% if invitations %}<ul class="liste">{% for invitation in invitations %}<li class="entree"><span class="principal">{{ invitation.email }}</span><span class="secondaire">{% if invitation.est_expiree %}Expirée{% else %}{{ invitation.get_etat_display }}{% endif %} · expire le {{ invitation.expire_le }}</span>{% if invitation.etat == "en_attente" and not invitation.est_expiree %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoquer_invitation"><input type="hidden" name="invitation" value="{{ invitation.pk }}"><button class="bouton discret">Révoquer</button></form>{% endif %}</li>{% endfor %}</ul>{% endif %}
 </section>
 
 <section id="gouvernance">
