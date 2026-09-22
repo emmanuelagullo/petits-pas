@@ -12,7 +12,7 @@ signalées comme ouvertes devront être tranchées avant l'implémentation.
 
 * Documents de référence
 
-- =petits-pas-modele-metier-identites-affectations.org=
+- =MODELE-IDENTITES-ET-AFFECTATIONS.org=
 - =CARNET-REFERENCE.org=
 - =MODELE-LONGITUDINAL.org=
 - =PARCOURS-ENSEIGNANT.org=

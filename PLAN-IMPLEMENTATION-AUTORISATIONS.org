@@ -13,9 +13,9 @@ d'implémentation incrémental, mais ne modifie pas le dépôt.
 
 * Références
 
-- =petits-pas-modele-metier-identites-affectations.org=
-- =ROLES-ET-DROITS.org=
-- =petits-pas-matrice-tests-autorisations.org=
+- =MODELE-IDENTITES-ET-AFFECTATIONS.org=
+- =POLITIQUE-AUTORISATION.org=
+- =MATRICE-AUTORISATIONS.org=
 
 * Résumé exécutif
 
