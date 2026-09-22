@@ -13,6 +13,7 @@ PARCOURS_CAPTURE = {
     "contribution",
     "classe_contribution",
     "classe_suivi",
+    "collaborateurs",
 }
 
 
@@ -187,6 +188,13 @@ def charger_configuration_demo(chemin):
                     f"{chemin_scenario}.capture_mobile."
                 )
             captures.add(capture_mobile)
+        cible = scenario.get("cible")
+        if cible is not None:
+            _exiger_chaine(cible, f"{chemin_scenario}.cible")
+            if not cible.startswith("#"):
+                raise ValueError(
+                    f"Configuration de démonstration invalide : {chemin_scenario}.cible."
+                )
         classe = scenario.get("classe")
         if classe is not None and classe not in classes:
             raise ValueError(

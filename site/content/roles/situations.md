@@ -21,6 +21,8 @@ Nadia est également responsable des Papillons. Cette seconde affectation
 étend son périmètre à cette classe, mais ne lui attribue aucun droit de
 direction sur l'école.
 
+{{< scenarios-demonstration ids="nadia-collaborateurs" >}}
+
 ## Contribuer sans consulter tout le suivi
 
 Cora intervient comme ATSEM contributrice chez les Coccinelles. Elle peut
@@ -52,12 +54,16 @@ contributions restent conservées et attribuées à son identité, mais elle ne
 peut plus rouvrir la classe ni les modifier. Historique et autorisation
 présente sont ainsi deux notions distinctes.
 
+{{< scenarios-demonstration ids="lea-remplacement,alice-affectation-terminee" >}}
+
 ## Appartenir à l'école sans être affecté
 
 Marc possède un compte et une appartenance active à Ma Belle École, mais aucune
 responsabilité ni affectation. Cette appartenance ne lui ouvre aucune classe et
 ne suffit pas à entrer dans l'application. Elle permet de préparer une future
 fonction sans accorder de droits par anticipation.
+
+{{< scenarios-demonstration ids="marc-sans-affectation" >}}
 
 ## Inviter une personne
 
@@ -70,7 +76,7 @@ La démonstration contient une invitation en attente et une invitation révoqué
 Leurs adresses utilisent le domaine réservé `example.test` et les jetons
 fictifs publiés ne permettent aucune invitation réelle.
 
-{{< scenarios-demonstration ids="direction-equipe" >}}
+{{< scenarios-demonstration ids="invitations" >}}
 
 ## Refuser sans dévoiler
 
@@ -101,6 +107,8 @@ du dernier responsable. La classe n'est pas présentée comme normalement géré
 pour autant : une anomalie de gouvernance signale alors qu'un nouveau
 responsable doit être désigné. La classe fictive des Lucioles illustre une
 classe en préparation qui ne peut être activée avant cette désignation.
+
+{{< scenarios-demonstration ids="gouvernance-secours" >}}
 
 Pour les règles normatives et leurs tests associés, consultez la [matrice des
 autorisations]({{< relref "/conception/documents/matrice-autorisations.org" >}}).
