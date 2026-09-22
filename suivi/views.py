@@ -35,7 +35,9 @@ from comptes.models import (
     AffectationClasse,
     AppartenanceEcole,
     Invitation,
+    Utilisateur,
 )
+from comptes.forms import CreationCompteInvitationForm
 
 from .autorisations import (
     ACCEDER_APPLICATION,
@@ -100,6 +102,8 @@ from .services.equipe import (
     accepter_invitation,
     activer_classe,
     attribuer_affectation,
+    creer_compte_et_accepter_invitation,
+    invitation_est_utilisable,
     inviter,
     remplacer_responsable,
     revoquer_invitation,
@@ -190,22 +194,65 @@ def deconnexion(request):
 
 def accepter_invitation_vue(request, selecteur, jeton):
     invitation = get_object_or_404(Invitation, selecteur=selecteur)
-    if request.method == "POST":
-        utilisateur = authenticate(
+    if not invitation_est_utilisable(invitation, jeton):
+        return render(
             request,
-            username=request.POST.get("nom_utilisateur", "").strip(),
-            password=request.POST.get("mot_de_passe", ""),
+            "suivi/accepter_invitation.html",
+            {"invitation": invitation, "invalide": True},
         )
-        if utilisateur:
-            try:
-                accepter_invitation(
-                    utilisateur=utilisateur, invitation=invitation, jeton=jeton
-                )
-            except PermissionDenied:
+    compte_existant = Utilisateur.objects.filter(
+        email__iexact=invitation.email
+    ).first()
+    formulaire = None
+    if not compte_existant:
+        formulaire = CreationCompteInvitationForm(
+            request.POST or None, email=invitation.email
+        )
+    if request.method == "POST":
+        if compte_existant:
+            utilisateur = authenticate(
+                request,
+                username=request.POST.get("nom_utilisateur", "").strip(),
+                password=request.POST.get("mot_de_passe", ""),
+            )
+            if not utilisateur:
                 messages.error(
-                    request,
-                    "Invitation invalide, expirée ou destinée à une autre adresse.",
+                    request, "Nom d'utilisateur ou mot de passe incorrect."
                 )
+            else:
+                try:
+                    accepter_invitation(
+                        utilisateur=utilisateur, invitation=invitation, jeton=jeton
+                    )
+                except (PermissionDenied, ValidationError):
+                    messages.error(
+                        request,
+                        "Invitation invalide, expirée ou destinée à une autre adresse.",
+                    )
+                else:
+                    logout(request)
+                    return render(
+                        request,
+                        "suivi/accepter_invitation.html",
+                        {"invitation": invitation, "acceptee": True},
+                    )
+        elif formulaire.is_valid():
+            try:
+                creer_compte_et_accepter_invitation(
+                    invitation=invitation,
+                    jeton=jeton,
+                    username=formulaire.cleaned_data["username"],
+                    first_name=formulaire.cleaned_data["first_name"],
+                    last_name=formulaire.cleaned_data["last_name"],
+                    password=formulaire.cleaned_data["password1"],
+                )
+            except (PermissionDenied, ValidationError) as erreur:
+                detail = (
+                    "; ".join(erreur.messages)
+                    if hasattr(erreur, "messages")
+                    else "Invitation invalide ou expirée."
+                )
+                formulaire.add_error(None, detail)
             else:
                 logout(request)
                 return render(
@@ -213,10 +260,14 @@ def accepter_invitation_vue(request, selecteur, jeton):
                     "suivi/accepter_invitation.html",
                     {"invitation": invitation, "acceptee": True},
                 )
-        else:
-            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     return render(
-        request, "suivi/accepter_invitation.html", {"invitation": invitation}
+        request,
+        "suivi/accepter_invitation.html",
+        {
+            "invitation": invitation,
+            "compte_existant": compte_existant,
+            "formulaire": formulaire,
+        },
     )
 
 

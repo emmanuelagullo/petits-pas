@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 from django.utils import timezone
 
@@ -132,6 +133,15 @@ class ModeleAffectations(TestCase):
         self.classe.etat = Classe.ACTIVE
         with self.assertRaises(ValidationError):
             self.classe.save()
+
+    def test_les_adresses_non_vides_sont_uniques_sans_tenir_compte_de_la_casse(self):
+        Utilisateur = get_user_model()
+        Utilisateur.objects.create_user("premier", "unique@example.test")
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Utilisateur.objects.create_user("second", "UNIQUE@example.test")
+
+        Utilisateur.objects.create_user("sans-email-1", "")
+        Utilisateur.objects.create_user("sans-email-2", "")
 
     def test_activation_avec_plusieurs_responsables(self):
         autre = get_user_model().objects.create_user("bob")

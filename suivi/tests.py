@@ -1,6 +1,6 @@
 import hashlib
 import os
-from datetime import date
+from datetime import date, timedelta
 from zipfile import ZipFile
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -3036,6 +3036,152 @@ class EquipeEtGouvernance(Base):
         self.assertTrue(
             AppartenanceEcole.objects.filter(utilisateur=invitee, ecole=self.ecole).exists()
         )
+
+    def test_une_invitation_permet_de_creer_un_compte_avec_un_mot_de_passe_fort(self):
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="Nouvelle.Personne@Example.Test",
+        )
+        url = reverse("accepter_invitation", args=[invitation.selecteur, jeton])
+
+        page = self.client.get(url)
+        self.assertContains(page, "Créer mon compte et rejoindre l’école")
+        self.assertContains(page, "minimum 12 caractères")
+
+        reponse = self.client.post(
+            url,
+            {
+                "username": "nouvelle-personne",
+                "first_name": "Nouvelle",
+                "last_name": "Personne",
+                "password1": "École ! Rivière 2026 solide",
+                "password2": "École ! Rivière 2026 solide",
+            },
+        )
+        self.assertContains(reponse, "Votre compte est activé")
+        utilisateur = get_user_model().objects.get(username="nouvelle-personne")
+        self.assertEqual(utilisateur.email, "nouvelle.personne@example.test")
+        self.assertTrue(utilisateur.check_password("École ! Rivière 2026 solide"))
+        self.assertTrue(
+            AppartenanceEcole.objects.filter(
+                utilisateur=utilisateur, ecole=self.ecole
+            ).exists()
+        )
+        invitation.refresh_from_db()
+        self.assertEqual(invitation.etat, Invitation.ACCEPTEE)
+
+    def test_un_mot_de_passe_faible_ne_cree_ni_compte_ni_appartenance(self):
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="faible@example.test",
+        )
+        url = reverse("accepter_invitation", args=[invitation.selecteur, jeton])
+        reponse = self.client.post(
+            url,
+            {
+                "username": "faible",
+                "first_name": "Mot",
+                "last_name": "Faible",
+                "password1": "1234",
+                "password2": "1234",
+            },
+        )
+        self.assertContains(reponse, "trop court")
+        self.assertContains(reponse, "entièrement numérique")
+        self.assertFalse(get_user_model().objects.filter(username="faible").exists())
+        invitation.refresh_from_db()
+        self.assertEqual(invitation.etat, Invitation.EN_ATTENTE)
+
+    def test_un_compte_existant_s_authentifie_sans_etre_recree(self):
+        invitee = get_user_model().objects.create_user(
+            "invitee", "invitee@example.test", "secret-existant"
+        )
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="INVITEE@example.test",
+        )
+        url = reverse("accepter_invitation", args=[invitation.selecteur, jeton])
+        page = self.client.get(url)
+        self.assertContains(page, "Un compte existe déjà")
+        self.assertNotContains(page, "Créer mon compte")
+
+        reponse = self.client.post(
+            url,
+            {"nom_utilisateur": "invitee", "mot_de_passe": "secret-existant"},
+        )
+        self.assertContains(reponse, "Votre compte est activé")
+        self.assertEqual(
+            get_user_model().objects.filter(email__iexact="invitee@example.test").count(),
+            1,
+        )
+        self.assertTrue(
+            AppartenanceEcole.objects.filter(
+                utilisateur=invitee, ecole=self.ecole
+            ).exists()
+        )
+
+    def test_une_invitation_invalide_ou_deja_acceptee_ne_devoile_pas_l_adresse(self):
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="discrete@example.test",
+        )
+        mauvais_url = reverse(
+            "accepter_invitation", args=[invitation.selecteur, "mauvais-jeton"]
+        )
+        reponse = self.client.get(mauvais_url)
+        self.assertContains(reponse, "n’est plus utilisable")
+        self.assertNotContains(reponse, "discrete@example.test")
+
+        invitee = get_user_model().objects.create_user(
+            "discrete", "discrete@example.test", "secret"
+        )
+        accepter_invitation(
+            utilisateur=invitee, invitation=invitation, jeton=jeton
+        )
+        bon_url = reverse(
+            "accepter_invitation", args=[invitation.selecteur, jeton]
+        )
+        reponse = self.client.get(bon_url)
+        self.assertContains(reponse, "n’est plus utilisable")
+        self.assertNotContains(reponse, "discrete@example.test")
+
+    def test_une_invitation_expiree_ne_permet_pas_de_creer_un_compte(self):
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="expiree@example.test",
+        )
+        invitation.expire_le = timezone.now() - timedelta(minutes=1)
+        invitation.save(update_fields=["expire_le"])
+        url = reverse("accepter_invitation", args=[invitation.selecteur, jeton])
+
+        reponse = self.client.get(url)
+        self.assertContains(reponse, "n’est plus utilisable")
+        self.assertNotContains(reponse, "expiree@example.test")
+
+    def test_on_ne_reinvite_pas_un_membre_ou_une_adresse_deja_invitee(self):
+        with self.assertRaisesMessage(ValidationError, "déjà membre"):
+            inviter(
+                utilisateur=self.direction,
+                ecole=self.ecole,
+                email="REMI@example.test",
+            )
+
+        inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="attente@example.test",
+        )
+        with self.assertRaisesMessage(ValidationError, "encore valable"):
+            inviter(
+                utilisateur=self.direction,
+                ecole=self.ecole,
+                email="ATTENTE@example.test",
+            )
 
     def test_derniere_affectation_responsable_ne_peut_etre_terminee(self):
         affectation = AffectationClasse.objects.get(

@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.utils import timezone
 
 
@@ -76,6 +77,15 @@ class RelationTemporelle(models.Model):
 
 class Utilisateur(AbstractUser):
     """Identité individuelle Petits Pas, indépendante de toute école."""
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower("email"),
+                condition=~Q(email=""),
+                name="utilisateur_email_unique_sans_casse",
+            )
+        ]
 
 
 class AppartenanceEcole(RelationTemporelle):

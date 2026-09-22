@@ -3,14 +3,24 @@
 {% block contenu %}
 <h1>Rejoindre {{ invitation.ecole.nom }}</h1>
 {% if acceptee %}
-<p>Votre compte est maintenant membre de l'école. La direction peut à présent vous attribuer une fonction dans une classe.</p>
+<p>Votre compte est activé et maintenant membre de l'école. La direction peut à présent vous attribuer une fonction dans une classe.</p>
 <p><a class="bouton" href="{% url 'connexion' %}">Revenir à la connexion</a></p>
-{% else %}
-<p>Connectez-vous avec le compte associé à l'adresse {{ invitation.email }}.</p>
-<form method="post">{% csrf_token %}
-  <label>Nom d'utilisateur <input name="nom_utilisateur" required autofocus></label>
-  <label>Mot de passe <input name="mot_de_passe" type="password" required></label>
+{% elif invalide %}
+<p>Cette invitation n’est plus utilisable. Elle a peut-être expiré, été révoquée ou déjà acceptée.</p>
+<p>Demandez à la direction de l’école de créer une nouvelle invitation si nécessaire.</p>
+<p><a class="bouton" href="{% url 'connexion' %}">Revenir à la connexion</a></p>
+{% elif compte_existant %}
+<p>Un compte existe déjà pour l’adresse <strong>{{ invitation.email }}</strong>. Authentifiez-vous avec ce compte pour rejoindre l’école.</p>
+<form method="post" class="encadre">{% csrf_token %}
+  <label>Nom d'utilisateur <input name="nom_utilisateur" required autofocus autocomplete="username"></label>
+  <label>Mot de passe <input name="mot_de_passe" type="password" required autocomplete="current-password"></label>
   <button class="bouton" type="submit">Accepter l'invitation</button>
+</form>
+{% else %}
+<p>Créez votre compte individuel pour rejoindre l’école avec l’adresse <strong>{{ invitation.email }}</strong>.</p>
+<form method="post" class="encadre">{% csrf_token %}
+  {{ formulaire.as_p }}
+  <button class="bouton" type="submit">Créer mon compte et rejoindre l’école</button>
 </form>
 {% endif %}
 {% endblock %}
