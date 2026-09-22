@@ -13,6 +13,20 @@ Ces documents conservent également la chronologie et le contexte des décisions
 une formulation prospective ou un audit portant sur un ancien commit doit donc
 être lu à la date indiquée dans le document.
 
+## État du chantier
+
+Les incréments `#A1` à `#A9` ont introduit les comptes individuels, les
+appartenances aux écoles, les responsabilités de direction, les affectations
+datées aux classes, le moteur central d'autorisation, le cloisonnement des
+lectures et mutations, ainsi que l'audit des principales actions et sorties de
+données. `#A10` fournit une équipe fictive riche pour exercer ces situations ;
+`#A11` conserve les documents ayant guidé le chantier.
+
+Le plan d'implémentation ci-dessous reste donc un **audit historique de la
+situation antérieure à `#A1`**, et non une description du code courant. Les
+autres documents expriment les décisions métier de référence ; une divergence
+avec le comportement observé doit être signalée et traitée explicitement.
+
 ## Les quatre documents de référence
 
 1. [Modèle des identités et des affectations]({{< relref "documents/modele-identites-et-affectations.org" >}})
