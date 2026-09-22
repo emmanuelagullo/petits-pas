@@ -150,8 +150,9 @@ deploiement-ephemere:
     CARNET_S3_URL_EXPIRATION: "300"
     CARNET_SECRET_KEY: "ci-only-persistent-secret-key-never-used-in-production"
     CARNET_DEBUG: "0"
+    CARNET_FORCER_HTTPS: "oui"
     CARNET_HOSTS: "localhost,127.0.0.1"
-    CARNET_CSRF_ORIGINS: "http://localhost:8000,http://127.0.0.1:8000"
+    CARNET_CSRF_ORIGINS: "https://localhost:8000,https://127.0.0.1:8000"
     CARNET_ENVIRONNEMENT_EPHEMERE: "oui"
   before_script:
     - apt-get update
