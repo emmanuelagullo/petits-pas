@@ -2428,6 +2428,8 @@ class JeuDemoLarge(TestCase):
         lea = Utilisateur.objects.get(username="lea-demo")
         marc = Utilisateur.objects.get(username="marc-demo")
         alice = Utilisateur.objects.get(username="alice-demo")
+        self.assertEqual(nadia.first_name, "Nadia")
+        self.assertEqual(nadia.last_name, "Co-titulaire")
         self.assertEqual(
             AffectationClasse.objects.filter(
                 appartenance__utilisateur=nadia,
