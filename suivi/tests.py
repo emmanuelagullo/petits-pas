@@ -3043,3 +3043,56 @@ class EquipeEtGouvernance(Base):
         )
         with self.assertRaises(ValidationError):
             terminer_affectation(utilisateur=self.direction, affectation=affectation)
+
+    def test_la_direction_remplace_le_dernier_responsable_atomiquement(self):
+        self.entrer("dir-mdp")
+        affectation = AffectationClasse.objects.get(
+            classe=self.classe, type=AffectationClasse.RESPONSABLE
+        )
+        appartenance_marc = self.marc.appartenances_ecoles.get(ecole=self.ecole)
+
+        page = self.client.get(reverse("equipe_ecole"))
+        self.assertContains(page, "doit être remplacé")
+        self.assertContains(page, "Remplacer le responsable")
+
+        reponse = self.client.post(
+            reverse("equipe_ecole"),
+            {
+                "action": "remplacer_responsable",
+                "affectation": affectation.pk,
+                "remplacement": appartenance_marc.pk,
+                "motif": "Changement de titulaire",
+            },
+            follow=True,
+        )
+        affectation.refresh_from_db()
+        remplacement = AffectationClasse.objects.get(
+            classe=self.classe,
+            appartenance=appartenance_marc,
+            type=AffectationClasse.RESPONSABLE,
+        )
+        self.assertEqual(affectation.etat, AffectationClasse.TERMINEE)
+        self.assertTrue(remplacement.est_active())
+        self.assertContains(reponse, "Responsable remplacé")
+
+    def test_terminer_et_suspendre_sont_des_actions_explicites(self):
+        appartenance_cora = self.cora.appartenances_ecoles.get(ecole=self.ecole)
+        affectation = appartenance_cora.affectations_classes.get(classe=self.classe)
+        self.entrer("dir-mdp")
+
+        page = self.client.get(reverse("equipe_ecole"))
+        self.assertContains(page, "Terminer cette affectation ?")
+        self.assertContains(page, "Motif de la suspension d’urgence")
+
+        reponse = self.client.post(
+            reverse("equipe_ecole"),
+            {
+                "action": "suspendre_affectation",
+                "affectation": affectation.pk,
+                "motif": "Accès à interrompre immédiatement",
+            },
+            follow=True,
+        )
+        affectation.refresh_from_db()
+        self.assertEqual(affectation.etat, AffectationClasse.SUSPENDUE)
+        self.assertContains(reponse, "Affectation suspendue en urgence")
