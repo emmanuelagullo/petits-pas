@@ -10,7 +10,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Locator, Page, sync_playwright
 
 RACINE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RACINE))
@@ -35,8 +35,7 @@ def attendre_application(base_url, delai=120):
     )
 
 
-def capturer(page: Page, chemin: Path):
-    chemin.parent.mkdir(parents=True, exist_ok=True)
+def preparer_capture(page: Page):
     page.add_style_tag(
         content="""
             *, *::before, *::after {
@@ -47,7 +46,16 @@ def capturer(page: Page, chemin: Path):
         """
     )
     verifier_page(page)
-    page.screenshot(path=chemin)
+
+
+def capturer(page: Page, chemin: Path, cible: Locator | None = None):
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    preparer_capture(page)
+    if cible is not None:
+        cible.scroll_into_view_if_needed()
+        cible.screenshot(path=chemin)
+    else:
+        page.screenshot(path=chemin)
     print(f"Capture créée : {chemin}")
 
 
@@ -115,8 +123,12 @@ def jouer_scenario(page, base_url, output, demonstration, scenario):
             page.get_by_role(
                 "heading", name=re.compile(r"^Ajouter une contribution pour")
             ).wait_for()
+        elif parcours == "collaborateurs":
+            page.get_by_role("link", name="Collaborateurs").click()
+            page.get_by_role("heading", name="Collaborateurs", exact=True).wait_for()
     normaliser_contenu_instable(page)
-    capturer(page, output / scenario["capture"])
+    cible = page.locator(scenario["cible"]) if "cible" in scenario else None
+    capturer(page, output / scenario["capture"], cible)
 
 
 def nouveau_contexte(navigateur, viewport):

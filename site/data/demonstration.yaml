@@ -191,6 +191,48 @@ scenarios:
     capture: roles/diane/classe-sans-suivi.png
     titre: Administrer sans consulter le suivi
     legende: Diane peut gérer la classe, mais les acquisitions et carnets ne lui sont pas ouverts par sa seule fonction.
+  - id: nadia-collaborateurs
+    profil: nadia
+    parcours: collaborateurs
+    classe: coccinelles
+    capture: roles/nadia/collaborateurs.png
+    titre: Partager la responsabilité d'une classe
+    legende: Nadia retrouve les autres personnes affectées aux Coccinelles et la fonction exercée par chacune.
+  - id: lea-remplacement
+    profil: diane
+    parcours: equipe_direction
+    cible: "#membre-lea-demo"
+    capture: roles/lea/remplacement.png
+    titre: Borner un remplacement dans le temps
+    legende: L'affectation de Léa indique sa fonction temporaire, ses dates et son état actuel.
+  - id: alice-affectation-terminee
+    profil: diane
+    parcours: equipe_direction
+    cible: "#membre-alice-demo"
+    capture: roles/alice/affectation-terminee.png
+    titre: Conserver une affectation terminée dans l'historique
+    legende: Alice reste identifiée dans l'équipe, mais son ancienne affectation est explicitement terminée.
+  - id: marc-sans-affectation
+    profil: diane
+    parcours: equipe_direction
+    cible: "#membre-marc-demo"
+    capture: roles/marc/sans-affectation.png
+    titre: Être membre sans recevoir de droits pédagogiques
+    legende: Marc appartient à l'école sans qu'aucune fonction de classe ne lui soit attribuée.
+  - id: invitations
+    profil: diane
+    parcours: equipe_direction
+    cible: "#invitations"
+    capture: roles/diane/invitations.png
+    titre: Créer ou révoquer une invitation
+    legende: Diane distingue l'invitation encore utilisable de celle qui a été révoquée.
+  - id: gouvernance-secours
+    profil: diane
+    parcours: equipe_direction
+    cible: "#gouvernance"
+    capture: roles/diane/gouvernance-secours.png
+    titre: Attribuer une fonction et traiter les anomalies
+    legende: La procédure de secours reste explicite et les classes sans responsable sont signalées à la direction.
   - id: cora-contribution
     profil: cora
     parcours: contribution

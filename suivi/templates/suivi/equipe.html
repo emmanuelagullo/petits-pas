@@ -4,10 +4,11 @@
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Équipe pédagogique</h1>
 
+<section id="membres">
 <h2>Membres</h2>
 <ul class="liste">
 {% for appartenance in appartenances %}
-  <li class="entree">
+  <li class="entree" id="membre-{{ appartenance.utilisateur.username|slugify }}">
     <span class="principal">{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</span>
     <span class="secondaire">{{ appartenance.utilisateur.email }} · membre du {{ appartenance.date_debut }}{% if appartenance.date_fin %} au {{ appartenance.date_fin }}{% endif %} · {{ appartenance.get_etat_display }}</span>
     {% for responsabilite in appartenance.responsabilites.all %}<span class="secondaire">{{ responsabilite.get_type_display }} — {{ responsabilite.get_etat_display }}</span>{% endfor %}
@@ -15,14 +16,18 @@
   </li>
 {% empty %}<li>Aucun membre.</li>{% endfor %}
 </ul>
+</section>
 
+<section id="invitations">
 <h2>Inviter un membre</h2>
 <form method="post">{% csrf_token %}<input type="hidden" name="action" value="inviter">
   <label>Adresse électronique <input type="email" name="email" required></label>
   <button class="bouton" type="submit">Créer l'invitation</button>
 </form>
 {% if invitations %}<ul class="liste">{% for invitation in invitations %}<li class="entree"><span class="principal">{{ invitation.email }}</span><span class="secondaire">{{ invitation.get_etat_display }} · expire le {{ invitation.expire_le }}</span>{% if invitation.etat == "en_attente" %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoquer_invitation"><input type="hidden" name="invitation" value="{{ invitation.pk }}"><button class="bouton discret">Révoquer</button></form>{% endif %}</li>{% endfor %}</ul>{% endif %}
+</section>
 
+<section id="gouvernance">
 <h2>Attribuer une fonction dans une classe</h2>
 <form method="post">{% csrf_token %}<input type="hidden" name="action" value="affecter">
   <label>Membre <select name="appartenance">{% for appartenance in appartenances %}<option value="{{ appartenance.pk }}">{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</option>{% endfor %}</select></label>
@@ -34,4 +39,5 @@
 </form>
 
 {% if anomalies %}<h2>Anomalies à traiter</h2><ul class="liste">{% for anomalie in anomalies %}<li>{{ anomalie.get_type_display }}{% if anomalie.classe %} — {{ anomalie.classe.nom }}{% endif %} : {{ anomalie.motif }}</li>{% endfor %}</ul>{% endif %}
+</section>
 {% endblock %}
