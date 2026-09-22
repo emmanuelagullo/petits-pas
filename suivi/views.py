@@ -97,6 +97,7 @@ from .services.pedagogie import (
 )
 from .services.equipe import (
     accepter_invitation,
+    activer_classe,
     attribuer_affectation,
     inviter,
     revoquer_invitation,
@@ -1413,6 +1414,11 @@ def gestion(request):
             distinct=True,
         )
     )
+    for classe in classes:
+        classe.peut_etre_activee = bool(
+            classe.etat == Classe.PREPARATION
+            and classe.responsables_actifs().exists()
+        )
     toutes = request.GET.get("toutes") == "1"
     groupes, a_des_annees_passees = _grouper_classes_par_annee(classes, toutes)
     eleves_archives = ecole.eleves.filter(archive_le__isnull=False)
@@ -1586,6 +1592,21 @@ def creer_classe(request):
             {"nom": nom, "annee_scolaire": annee_scolaire},
         )
     return render(request, "suivi/creer_classe.html")
+
+
+@direction_requise
+def activer_classe_vue(request, pk):
+    if request.method != "POST":
+        return HttpResponseForbidden("POST attendu.")
+    ecole = ecole_courante(request)
+    classe = get_object_or_404(Classe, pk=pk, ecole=ecole)
+    try:
+        activer_classe(utilisateur=request.user, classe=classe)
+    except ValidationError as erreur:
+        messages.error(request, "; ".join(erreur.messages))
+    else:
+        messages.success(request, f"La classe {classe.nom} est maintenant active.")
+    return redirect("gestion")
 
 
 @acces_requis

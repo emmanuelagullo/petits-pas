@@ -6,10 +6,23 @@
   </h2>
   <ul class="liste">
     {% for c in groupe.classes %}
-    <li><a class="entree" href="{% url url_nom c.pk %}">
-      <span class="principal">{{ c.nom }}</span>
-      <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }}{{ suffixe|default:"" }}</span>
-    </a></li>
+    <li>
+      <a class="entree" href="{% url url_nom c.pk %}">
+        <span class="principal">{{ c.nom }}</span>
+        <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }}{{ suffixe|default:"" }}{% if gestion_classes %} · {{ c.get_etat_display|lower }}{% endif %}</span>
+      </a>
+      {% if gestion_classes and c.etat == "preparation" %}
+      <div class="actions">
+        {% if c.peut_etre_activee %}
+        <form method="post" action="{% url 'activer_classe' c.pk %}" onsubmit="return confirm('Activer la classe {{ c.nom|escapejs }} ?');">
+          {% csrf_token %}<button class="bouton" type="submit">Activer la classe</button>
+        </form>
+        {% else %}
+        <span class="aide">Attribuez d’abord un responsable depuis l’équipe pédagogique pour pouvoir activer cette classe.</span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </li>
     {% endfor %}
   </ul>
 </section>
