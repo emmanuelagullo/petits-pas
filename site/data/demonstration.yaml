@@ -181,6 +181,7 @@ scenarios:
     profil: diane
     parcours: equipe_direction
     capture: roles/diane/equipe.png
+    capture_mobile: roles/diane/equipe-mobile.png
     titre: Administrer l'équipe
     legende: Diane voit les membres, leurs périodes, les invitations et les anomalies à traiter.
   - id: direction-classe-sans-suivi
@@ -195,6 +196,7 @@ scenarios:
     parcours: contribution
     classe: coccinelles
     capture: roles/cora/contribution.png
+    capture_mobile: roles/cora/contribution-mobile.png
     titre: Ajouter une contribution limitée
     legende: Cora choisit un élève puis un apprentissage sans accéder à l'ensemble de son suivi.
   - id: samir-coccinelles
@@ -209,5 +211,6 @@ scenarios:
     parcours: classe_suivi
     classe: papillons
     capture: roles/samir/papillons.png
+    capture_mobile: roles/samir/papillons-mobile.png
     titre: Samir suit les Papillons
     legende: Dans cette autre classe, son affectation d'enseignant associé ouvre le suivi et la prévisualisation des carnets.

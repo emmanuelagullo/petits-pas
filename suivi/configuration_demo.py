@@ -172,6 +172,21 @@ def charger_configuration_demo(chemin):
             raise ValueError(
                 f"Configuration de démonstration invalide : {chemin_scenario}.capture."
             )
+        capture_mobile = scenario.get("capture_mobile")
+        if capture_mobile is not None:
+            _exiger_chaine(capture_mobile, f"{chemin_scenario}.capture_mobile")
+            chemin_mobile = Path(capture_mobile)
+            if (
+                chemin_mobile.is_absolute()
+                or ".." in chemin_mobile.parts
+                or chemin_mobile.suffix != ".png"
+                or capture_mobile in captures
+            ):
+                raise ValueError(
+                    "Configuration de démonstration invalide : "
+                    f"{chemin_scenario}.capture_mobile."
+                )
+            captures.add(capture_mobile)
         classe = scenario.get("classe")
         if classe is not None and classe not in classes:
             raise ValueError(

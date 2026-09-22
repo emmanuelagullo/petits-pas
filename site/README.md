@@ -31,6 +31,12 @@ qui les publient sous `captures/`.
 Les ressources graphiques permanentes et leurs informations de licence peuvent
 en revanche être versionnées dans `static/`.
 
+Les scénarios documentaires et leurs chemins de sortie sont déclarés dans
+`data/demonstration.yaml`. Trois parcours représentatifs possèdent également
+une variante mobile de 390 × 844 pixels. Avant chaque capture, Playwright
+contrôle la présence d'un contenu principal, d'un titre de page et d'un unique
+`h1`, ainsi que l'absence de débordement horizontal.
+
 Les paramètres publics partagés par le site et la démonstration Render sont
 centralisés dans `data/demonstration.yaml`. Toute modification de ce fichier
 affecte également `start-render.sh` et déclenche donc les contrôles de
