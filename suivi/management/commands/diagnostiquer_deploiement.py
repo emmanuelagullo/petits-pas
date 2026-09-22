@@ -1,5 +1,7 @@
+from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.urls import Resolver404, resolve
 
 
 CLE_SECRETE_DE_DEVELOPPEMENT = (
@@ -48,9 +50,27 @@ class Command(BaseCommand):
             "HTTP_X_FORWARDED_PROTO",
             "https",
         )
+        https_force = bool(
+            settings.SECURE_SSL_REDIRECT
+            and settings.SESSION_COOKIE_SECURE
+            and settings.CSRF_COOKIE_SECURE
+        )
         atelier = settings.ENVIRONNEMENT_ATELIER
         ephemere = settings.ENVIRONNEMENT_EPHEMERE
         version = settings.VERSION_APPLICATION
+        modele_ecole = apps.get_model("suivi", "Ecole")
+        champs_ecole = {champ.name for champ in modele_ecole._meta.get_fields()}
+        acces_historiques_absents = not (
+            {"mdp_enseignant", "mdp_direction"} & champs_ecole
+            or hasattr(modele_ecole, "verifier")
+        )
+        identites_individuelles = settings.AUTH_USER_MODEL == "comptes.Utilisateur"
+        try:
+            resolve("/admin/")
+        except Resolver404:
+            administration_web_fermee = True
+        else:
+            administration_web_fermee = False
 
         self.stdout.write("Diagnostic du déploiement")
         self.stdout.write(
@@ -87,6 +107,10 @@ class Command(BaseCommand):
             + ("configuré" if proxy_https else "non configuré")
         )
         self.stdout.write(
+            "- HTTPS et cookies sécurisés : "
+            + ("forcés" if https_force else "non forcés")
+        )
+        self.stdout.write(
             "- Environnement : "
             + (
                 "atelier pédagogique factice"
@@ -96,6 +120,18 @@ class Command(BaseCommand):
         )
         self.stdout.write(
             "- Version affichée : " + (version if version else "absente")
+        )
+        self.stdout.write(
+            "- Identités individuelles : "
+            + ("configurées" if identites_individuelles else "absentes")
+        )
+        self.stdout.write(
+            "- Accès partagés persistants : "
+            + ("absents" if acces_historiques_absents else "encore présents")
+        )
+        self.stdout.write(
+            "- Administration Django sur le Web : "
+            + ("fermée" if administration_web_fermee else "exposée")
         )
 
         erreurs = []
@@ -118,6 +154,14 @@ class Command(BaseCommand):
             )
         if not proxy_https:
             erreurs.append("le proxy HTTPS n'est pas configuré")
+        if not https_force:
+            erreurs.append("HTTPS et les cookies sécurisés ne sont pas forcés")
+        if not identites_individuelles:
+            erreurs.append("le modèle d'identité individuelle n'est pas configuré")
+        if not acces_historiques_absents:
+            erreurs.append("les accès partagés historiques sont encore présents")
+        if not administration_web_fermee:
+            erreurs.append("l'administration Django est exposée sur le Web")
 
         erreurs_atelier = list(erreurs)
         if not atelier:

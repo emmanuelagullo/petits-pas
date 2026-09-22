@@ -48,6 +48,7 @@ from .models import (
 )
 from .views import _recuperateur_pdf
 from .services.equipe import accepter_invitation, inviter, terminer_affectation
+from .services.pedagogie import modifier_etat
 
 
 class AnneeScolaireUtilitaires(TestCase):
@@ -2066,6 +2067,17 @@ class Referentiel(Base):
 
 
 class DiagnosticDeploiement(TestCase):
+    def test_confirme_le_retrait_des_acces_historiques_et_de_l_admin_web(self):
+        sortie = StringIO()
+
+        call_command("diagnostiquer_deploiement", stdout=sortie)
+
+        texte = sortie.getvalue()
+        self.assertIn("Identités individuelles : configurées", texte)
+        self.assertIn("Accès partagés persistants : absents", texte)
+        self.assertIn("Administration Django sur le Web : fermée", texte)
+        self.assertEqual(self.client.get("/admin/").status_code, 404)
+
     @override_settings(
         DEBUG=True,
         SECRET_KEY="dev-seulement-a-changer-avant-toute-mise-en-ligne",
@@ -2103,6 +2115,9 @@ class DiagnosticDeploiement(TestCase):
             "HTTP_X_FORWARDED_PROTO",
             "https",
         ),
+        SECURE_SSL_REDIRECT=True,
+        SESSION_COOKIE_SECURE=True,
+        CSRF_COOKIE_SECURE=True,
         STORAGES={
             "default": {
                 "BACKEND": "storages.backends.s3.S3Storage",
@@ -2141,6 +2156,9 @@ class DiagnosticDeploiement(TestCase):
         ALLOWED_HOSTS=["atelier.petits-pas.inria.fr"],
         CSRF_TRUSTED_ORIGINS=["https://atelier.petits-pas.inria.fr"],
         SECURE_PROXY_SSL_HEADER=("HTTP_X_FORWARDED_PROTO", "https"),
+        SECURE_SSL_REDIRECT=True,
+        SESSION_COOKIE_SECURE=True,
+        CSRF_COOKIE_SECURE=True,
         ENVIRONNEMENT_ATELIER=True,
         ENVIRONNEMENT_EPHEMERE=False,
         VERSION_APPLICATION="0.3",
@@ -2183,6 +2201,96 @@ class DiagnosticDeploiement(TestCase):
                 stdout=StringIO(),
                 stderr=StringIO(),
             )
+
+
+class DurcissementAutorisations(Base):
+    def test_la_session_ne_porte_aucun_role_textuel(self):
+        self.entrer("dir-mdp")
+
+        self.assertNotIn("role", self.client.session)
+        self.assertNotIn("ecole_role", self.client.session)
+
+    def test_le_modele_ecole_ne_porte_plus_les_secrets_historiques(self):
+        champs = {champ.name for champ in Ecole._meta.get_fields()}
+
+        self.assertNotIn("mdp_enseignant", champs)
+        self.assertNotIn("mdp_direction", champs)
+        self.assertFalse(hasattr(Ecole, "verifier"))
+
+    def test_une_erreur_d_audit_annule_la_mutation(self):
+        with (
+            patch(
+                "suivi.services.pedagogie.journaliser",
+                side_effect=RuntimeError("audit indisponible"),
+            ),
+            self.assertRaises(RuntimeError),
+        ):
+            modifier_etat(
+                utilisateur=self.enseignant,
+                eleve=self.eleve,
+                competence=self.competence,
+                statut=Observation.REUSSI,
+            )
+
+        self.assertFalse(
+            Observation.objects.filter(
+                eleve=self.eleve, competence=self.competence
+            ).exists()
+        )
+
+    def test_les_urls_de_mutation_refusent_get(self):
+        self.entrer("dir-mdp")
+        observation = Observation.objects.create(
+            eleve=self.eleve, competence=self.competence
+        )
+        trace = self.creer_trace(observation)
+        trace_supprimee = self.creer_trace(observation)
+        trace_supprimee.supprime_le = timezone.now()
+        trace_supprimee.save(update_fields=["supprime_le"])
+        bilan = Bilan.objects.create(
+            scolarite=self.scolarite,
+            date_bilan="2027-01-15",
+            texte="Bilan inchangé",
+        )
+        urls = [
+            reverse("basculer", args=[self.eleve.pk, self.competence.pk]),
+            reverse(
+                "supprimer_trace",
+                args=[self.eleve.pk, self.competence.pk, trace.pk],
+            ),
+            reverse(
+                "basculer_visibilite_trace",
+                args=[self.eleve.pk, self.competence.pk, trace.pk],
+            ),
+            reverse(
+                "restaurer_trace",
+                args=[
+                    self.eleve.pk,
+                    self.competence.pk,
+                    trace_supprimee.pk,
+                ],
+            ),
+            reverse("supprimer_bilan", args=[self.eleve.pk, bilan.pk]),
+            reverse(
+                "basculer_visibilite_bilan", args=[self.eleve.pk, bilan.pk]
+            ),
+            reverse("archiver_eleve", args=[self.eleve.pk]),
+            reverse("desarchiver_eleve", args=[self.eleve.pk]),
+        ]
+
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 403)
+
+        self.eleve.refresh_from_db()
+        trace.refresh_from_db()
+        trace_supprimee.refresh_from_db()
+        bilan.refresh_from_db()
+        self.assertIsNone(self.eleve.archive_le)
+        self.assertIsNone(trace.supprime_le)
+        self.assertIsNotNone(trace_supprimee.supprime_le)
+        self.assertTrue(trace.visible_carnet)
+        self.assertTrue(bilan.visible_carnet)
 
 
 class JeuDemoLarge(TestCase):

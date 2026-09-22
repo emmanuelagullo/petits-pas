@@ -24,6 +24,7 @@ from suivi.autorisations import (
     peut_suspendre_urgence,
     peut_terminer_affectation,
 )
+from suivi.models import Classe, Ecole
 
 
 def _empreinte(jeton):
@@ -88,6 +89,7 @@ def accepter_invitation(*, utilisateur, invitation, jeton):
 
 @transaction.atomic
 def revoquer_invitation(*, utilisateur, invitation):
+    invitation = Invitation.objects.select_for_update().get(pk=invitation.pk)
     _exiger_direction(utilisateur, invitation.ecole)
     if invitation.etat != Invitation.EN_ATTENTE:
         raise ValidationError("Seule une invitation en attente peut être révoquée.")
@@ -102,6 +104,10 @@ def revoquer_invitation(*, utilisateur, invitation):
 def attribuer_affectation(
     *, utilisateur, appartenance, classe, type, date_debut=None, date_fin=None, motif=""
 ):
+    appartenance = AppartenanceEcole.objects.select_for_update().get(
+        pk=appartenance.pk
+    )
+    classe = Classe.objects.select_for_update().get(pk=classe.pk)
     if not autorise(utilisateur, GERER_AFFECTATIONS, classe, ecole=classe.ecole):
         raise PermissionDenied
     if not appartenance.est_active() or appartenance.ecole_id != classe.ecole_id:
@@ -163,7 +169,15 @@ def auto_attribuer_temporairement(
 
 @transaction.atomic
 def terminer_affectation(*, utilisateur, affectation, remplacement=None):
+    Classe.objects.select_for_update().get(pk=affectation.classe_id)
     affectation = AffectationClasse.objects.select_for_update().get(pk=affectation.pk)
+    list(
+        AffectationClasse.objects.select_for_update().filter(
+            classe=affectation.classe,
+            type=AffectationClasse.RESPONSABLE,
+            etat=AffectationClasse.ACTIVE,
+        )
+    )
     if not peut_terminer_affectation(utilisateur, affectation, remplacement):
         raise ValidationError("Le dernier responsable doit d'abord être remplacé.")
     ancien = {
@@ -243,7 +257,12 @@ def suspendre_affectation_urgence(*, utilisateur, affectation, motif):
 
 @transaction.atomic
 def attribuer_direction(*, utilisateur, appartenance):
+    appartenance = AppartenanceEcole.objects.select_for_update().get(
+        pk=appartenance.pk
+    )
     _exiger_direction(utilisateur, appartenance.ecole)
+    if not appartenance.est_active():
+        raise ValidationError("L'appartenance à l'école n'est pas active.")
     responsabilite = ResponsabiliteEcole.objects.create(
         appartenance=appartenance,
         attribue_par=utilisateur,
@@ -254,20 +273,31 @@ def attribuer_direction(*, utilisateur, appartenance):
 
 @transaction.atomic
 def terminer_direction(*, utilisateur, responsabilite):
-    _exiger_direction(utilisateur, responsabilite.appartenance.ecole)
+    ecole_id = responsabilite.appartenance.ecole_id
+    Ecole.objects.select_for_update().get(pk=ecole_id)
+    responsabilite = ResponsabiliteEcole.objects.select_for_update().select_related(
+        "appartenance__ecole"
+    ).get(pk=responsabilite.pk)
+    ecole = responsabilite.appartenance.ecole
+    _exiger_direction(utilisateur, ecole)
     aujourd_hui = timezone.localdate()
-    autres = ResponsabiliteEcole.objects.a_la_date(aujourd_hui).filter(
-        appartenance__ecole=responsabilite.appartenance.ecole,
-        appartenance__etat=AppartenanceEcole.ACTIVE,
-        appartenance__date_debut__lte=aujourd_hui,
-        appartenance__utilisateur__is_active=True,
-        appartenance__ecole__etat="active",
-        type=ResponsabiliteEcole.DIRECTION,
-    ).filter(
-        models.Q(appartenance__date_fin__isnull=True)
-        | models.Q(appartenance__date_fin__gte=aujourd_hui)
-    ).exclude(pk=responsabilite.pk)
-    if not autres.exists():
+    actives = list(
+        ResponsabiliteEcole.objects.select_for_update()
+        .a_la_date(aujourd_hui)
+        .filter(
+            appartenance__ecole=ecole,
+            appartenance__etat=AppartenanceEcole.ACTIVE,
+            appartenance__date_debut__lte=aujourd_hui,
+            appartenance__utilisateur__is_active=True,
+            appartenance__ecole__etat="active",
+            type=ResponsabiliteEcole.DIRECTION,
+        )
+        .filter(
+            models.Q(appartenance__date_fin__isnull=True)
+            | models.Q(appartenance__date_fin__gte=aujourd_hui)
+        )
+    )
+    if not any(active.pk != responsabilite.pk for active in actives):
         raise ValidationError("La dernière direction active ne peut pas être retirée.")
     responsabilite.etat = ResponsabiliteEcole.TERMINEE
     responsabilite.date_fin = aujourd_hui

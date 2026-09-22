@@ -41,6 +41,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ROOT_URLCONF = "carnet.urls"
@@ -130,6 +131,7 @@ STORAGES = {
 # requête en HTTP au conteneur : sans ceci, Django croit que tout est en
 # clair et les cookies/CSRF se comportent mal derrière le proxy.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = os.environ.get("CARNET_FORCER_HTTPS", "") == "oui"
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = Path(os.environ.get("CARNET_MEDIA_ROOT", BASE_DIR / "media"))
@@ -140,6 +142,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ouverte indéfiniment sur l'ordinateur du couloir.
 SESSION_COOKIE_AGE = 60 * 60 * 12
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = SECURE_SSL_REDIRECT
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
+CSRF_COOKIE_SAMESITE = "Lax"
 
 # Limite de taille d'une photo de trace (5 Mo).
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
