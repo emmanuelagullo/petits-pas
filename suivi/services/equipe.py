@@ -12,6 +12,7 @@ from comptes.models import (
     AppartenanceEcole,
     Invitation,
     ResponsabiliteEcole,
+    Utilisateur,
 )
 from suivi.audit import journaliser
 from suivi.autorisations import (
@@ -31,6 +32,33 @@ def _empreinte(jeton):
     return hashlib.sha256(jeton.encode()).hexdigest()
 
 
+def invitation_est_utilisable(invitation, jeton):
+    return bool(
+        invitation.etat == Invitation.EN_ATTENTE
+        and invitation.expire_le >= timezone.now()
+        and secrets.compare_digest(invitation.empreinte_jeton, _empreinte(jeton))
+    )
+
+
+def _accepter_invitation_verrouillee(*, utilisateur, invitation):
+    appartenance = AppartenanceEcole.objects.create(
+        utilisateur=utilisateur,
+        ecole=invitation.ecole,
+        attribue_par=invitation.cree_par,
+    )
+    invitation.etat = Invitation.ACCEPTEE
+    invitation.acceptee_par = utilisateur
+    invitation.acceptee_le = timezone.now()
+    invitation.save(update_fields=["etat", "acceptee_par", "acceptee_le"])
+    journaliser(
+        utilisateur,
+        "invitation.acceptee",
+        invitation,
+        nouvelles={"appartenance_id": appartenance.pk},
+    )
+    return appartenance
+
+
 def _exiger_direction(utilisateur, ecole):
     if not autorise(utilisateur, ADMINISTRER_ECOLE, ecole, ecole=ecole):
         raise PermissionDenied
@@ -42,6 +70,18 @@ def inviter(*, utilisateur, ecole, email, duree_jours=7):
     email = email.strip().casefold()
     if not email:
         raise ValidationError("L'adresse électronique est obligatoire.")
+    compte = Utilisateur.objects.filter(email__iexact=email).first()
+    if compte and AppartenanceEcole.objects.a_la_date().filter(
+        utilisateur=compte, ecole=ecole
+    ).exists():
+        raise ValidationError("Cette personne est déjà membre de l'école.")
+    if Invitation.objects.filter(
+        ecole=ecole,
+        email__iexact=email,
+        etat=Invitation.EN_ATTENTE,
+        expire_le__gte=timezone.now(),
+    ).exists():
+        raise ValidationError("Une invitation encore valable existe déjà pour cette adresse.")
     jeton = secrets.token_urlsafe(32)
     invitation = Invitation.objects.create(
         ecole=ecole,
@@ -63,28 +103,37 @@ def inviter(*, utilisateur, ecole, email, duree_jours=7):
 def accepter_invitation(*, utilisateur, invitation, jeton):
     invitation = Invitation.objects.select_for_update().get(pk=invitation.pk)
     if (
-        invitation.etat != Invitation.EN_ATTENTE
-        or invitation.expire_le < timezone.now()
-        or not secrets.compare_digest(invitation.empreinte_jeton, _empreinte(jeton))
+        not invitation_est_utilisable(invitation, jeton)
         or utilisateur.email.strip().casefold() != invitation.email.casefold()
     ):
         raise PermissionDenied
-    appartenance = AppartenanceEcole.objects.create(
-        utilisateur=utilisateur,
-        ecole=invitation.ecole,
-        attribue_par=invitation.cree_par,
+    return _accepter_invitation_verrouillee(
+        utilisateur=utilisateur, invitation=invitation
     )
-    invitation.etat = Invitation.ACCEPTEE
-    invitation.acceptee_par = utilisateur
-    invitation.acceptee_le = timezone.now()
-    invitation.save(update_fields=["etat", "acceptee_par", "acceptee_le"])
-    journaliser(
-        utilisateur,
-        "invitation.acceptee",
-        invitation,
-        nouvelles={"appartenance_id": appartenance.pk},
+
+
+@transaction.atomic
+def creer_compte_et_accepter_invitation(
+    *, invitation, jeton, username, first_name, last_name, password
+):
+    invitation = Invitation.objects.select_for_update().get(pk=invitation.pk)
+    if not invitation_est_utilisable(invitation, jeton):
+        raise PermissionDenied
+    if Utilisateur.objects.filter(email__iexact=invitation.email).exists():
+        raise ValidationError(
+            "Un compte existe déjà pour cette adresse : connectez-vous avec celui-ci."
+        )
+    utilisateur = Utilisateur.objects.create_user(
+        username=username,
+        email=invitation.email.strip().casefold(),
+        password=password,
+        first_name=first_name.strip(),
+        last_name=last_name.strip(),
     )
-    return appartenance
+    _accepter_invitation_verrouillee(
+        utilisateur=utilisateur, invitation=invitation
+    )
+    return utilisateur
 
 
 @transaction.atomic
