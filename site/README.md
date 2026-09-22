@@ -14,6 +14,12 @@ simple : titres, paragraphes, listes, liens, tableaux, blocs de code et images.
 Un document nécessitant les fonctions avancées d'Org devra disposer d'une
 étape d'export explicite et testée.
 
+Les quatre documents de conception des autorisations restent édités à la
+racine du dépôt. `scripts/preparer-site.sh` copie exclusivement cette liste
+blanche, avec des noms d'URL stables, dans
+`content/conception/documents/`. Ce répertoire généré est ignoré par Git : les
+originaux sont les seules sources à modifier.
+
 ## Captures de démonstration
 
 Les captures fonctionnelles ne sont pas versionnées dans Git. Le pipeline
@@ -33,6 +39,7 @@ l'application.
 ## Construction locale
 
 ```sh
+scripts/preparer-site.sh
 hugo --source site --minify
 ```
 

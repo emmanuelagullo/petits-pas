@@ -166,6 +166,10 @@ deploiement-ephemere:
     - changes:
         - .env.example
         - .gitlab-ci.yml
+        - MATRICE-AUTORISATIONS.org
+        - MODELE-IDENTITES-ET-AFFECTATIONS.org
+        - PLAN-IMPLEMENTATION-AUTORISATIONS.org
+        - POLITIQUE-AUTORISATION.org
         - "*.py"
         - "carnet/**/*"
         - "referentiel/**/*"
@@ -222,6 +226,7 @@ captures-demonstration:
     entrypoint: [""]
   cache: []
   before_script:
+    - scripts/preparer-site.sh
     - hugo version
 
 site-public:
@@ -254,6 +259,10 @@ pages:
       changes:
         - .env.example
         - .gitlab-ci.yml
+        - MATRICE-AUTORISATIONS.org
+        - MODELE-IDENTITES-ET-AFFECTATIONS.org
+        - PLAN-IMPLEMENTATION-AUTORISATIONS.org
+        - POLITIQUE-AUTORISATION.org
         - "*.py"
         - "carnet/**/*"
         - "referentiel/**/*"

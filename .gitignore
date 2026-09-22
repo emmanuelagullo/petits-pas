@@ -10,6 +10,7 @@ staticfiles/
 backups/
 .ci-deploiement-ephemere.log
 site/public/
+site/content/conception/documents/
 site/static/captures/
 site/resources/_gen/
 site/.hugo_build.lock
