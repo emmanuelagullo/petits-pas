@@ -1,0 +1,27 @@
+categories:
+  observer:
+    label: Observer et documenter
+    description: Acquisitions, traces, grilles et bilans de parcours.
+  carnets:
+    label: Préparer les carnets
+    description: Prévisualisation, choix éditoriaux et génération des carnets.
+  eleves-classes:
+    label: Gérer les élèves et les classes
+    description: Classes, inscriptions, identités, niveaux et changements d’année.
+  equipe:
+    label: Organiser l’équipe
+    description: Invitations, fonctions, remplacements et fins d’affectation.
+  depannage:
+    label: Comprendre un refus
+    description: Actions absentes, accès refusés et contraintes de gouvernance.
+
+publics:
+  responsable: Responsable de classe
+  associe: Enseignant associé
+  contributeur: Contributeur
+  direction: Direction
+
+statuts:
+  disponible: Disponible
+  partiel: Partiellement disponible
+  absent: Non disponible dans l’interface

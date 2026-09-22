@@ -1,0 +1,13 @@
+{{ $page := .page }}
+{{ $site := .site }}
+<article class="guide-card" data-guide-entry data-guide-text="{{ printf "%s %s %s %s" $page.Title $page.Description (delimit $page.Params.intentions " ") (delimit $page.Params.publics " ") | plainify }}">
+  <p class="guide-card-meta">
+    {{ with index $site.Data.guide.categories $page.Params.categorie }}{{ .label }}{{ end }}
+    {{ with index $site.Data.guide.statuts $page.Params.statut }}<span>{{ . }}</span>{{ end }}
+  </p>
+  <h2><a href="{{ $page.RelPermalink }}">{{ $page.Title }}</a></h2>
+  {{ with $page.Description }}<p>{{ . }}</p>{{ end }}
+  <p class="guide-card-publics">
+    {{ range $index, $public := $page.Params.publics }}{{ if $index }} · {{ end }}{{ with index $site.Data.guide.publics $public }}{{ . }}{{ end }}{{ end }}
+  </p>
+</article>
