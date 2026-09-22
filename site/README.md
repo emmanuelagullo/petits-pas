@@ -28,6 +28,10 @@ navigateur, une taille de fenêtre et des dates fixées. Le job
 `captures-demonstration` les transmet comme artefacts aux constructions Hugo,
 qui les publient sous `captures/`.
 
+Le démarrage peut inclure migrations et génération du jeu riche. Le script de
+capture attend donc jusqu'à deux minutes que `/health/` réponde, afin de ne pas
+confondre la variabilité d'un runner CI avec un échec applicatif.
+
 Les ressources graphiques permanentes et leurs informations de licence peuvent
 en revanche être versionnées dans `static/`.
 

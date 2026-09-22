@@ -18,15 +18,21 @@ sys.path.insert(0, str(RACINE))
 from suivi.configuration_demo import charger_configuration_demo
 
 
-def attendre_application(base_url, tentatives=60):
-    for _ in range(tentatives):
+def attendre_application(base_url, delai=120):
+    derniere_erreur = None
+    echeance = time.monotonic() + delai
+    while time.monotonic() < echeance:
         try:
-            with urllib.request.urlopen(f"{base_url}/health/", timeout=1) as reponse:
+            with urllib.request.urlopen(f"{base_url}/health/", timeout=2) as reponse:
                 if reponse.status == 200:
                     return
-        except (OSError, urllib.error.URLError):
-            time.sleep(0.5)
-    raise RuntimeError("La démonstration locale ne répond pas.")
+        except (OSError, urllib.error.URLError) as erreur:
+            derniere_erreur = erreur
+        time.sleep(min(1, max(0, echeance - time.monotonic())))
+    raise RuntimeError(
+        f"La démonstration locale ne répond pas après {delai} secondes. "
+        f"Dernière erreur : {derniere_erreur}"
+    )
 
 
 def capturer(page: Page, chemin: Path):
