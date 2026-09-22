@@ -43,8 +43,12 @@ def verifier_dimensions(chemin, dimensions, type_capture):
         raise RuntimeError(
             f"{chemin} : dimensions {largeur} × {hauteur}, attendu 390 × 844."
         )
+    # Une ligne représentant un membre sans affectation est volontairement
+    # très compacte (28 px avec la feuille de style actuelle). On conserve
+    # une borne basse pour détecter un sélecteur ou un rendu dégénéré, sans
+    # imposer artificiellement du contenu à ce cas documentaire légitime.
     if type_capture == "cible" and not (
-        240 <= largeur <= 1440 and 40 <= hauteur <= 3000
+        240 <= largeur <= 1440 and 24 <= hauteur <= 3000
     ):
         raise RuntimeError(
             f"{chemin} : cadrage ciblé incohérent ({largeur} × {hauteur})."
