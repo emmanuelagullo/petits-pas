@@ -19,7 +19,14 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from comptes.models import AffectationClasse, AppartenanceEcole, ResponsabiliteEcole
+from comptes.models import (
+    AffectationClasse,
+    AnomalieGouvernance,
+    AppartenanceEcole,
+    Invitation,
+    ResponsabiliteEcole,
+)
+from django.core.exceptions import PermissionDenied, ValidationError
 
 from .models import (
     Attendu,
@@ -40,6 +47,7 @@ from .models import (
     statut_annee_scolaire,
 )
 from .views import _recuperateur_pdf
+from .services.equipe import accepter_invitation, inviter, terminer_affectation
 
 
 class AnneeScolaireUtilitaires(TestCase):
@@ -2657,3 +2665,86 @@ class VerificationRepriseRestauree(Base):
                     "verifier_reprise_restauree",
                     stdout=StringIO(),
                 )
+
+
+class EquipeEtGouvernance(Base):
+    def setUp(self):
+        super().setUp()
+        self.direction.first_name = "Diane"
+        self.direction.last_name = "Direction"
+        self.direction.email = "diane@example.test"
+        self.direction.save()
+        self.enseignant.first_name = "Rémi"
+        self.enseignant.last_name = "Responsable"
+        self.enseignant.email = "remi@example.test"
+        self.enseignant.save()
+        Utilisateur = get_user_model()
+        self.cora = Utilisateur.objects.create_user(
+            "cora", "cora@example.test", "cora-mdp",
+            first_name="Cora", last_name="Contribution",
+        )
+        appartenance = AppartenanceEcole.objects.create(
+            utilisateur=self.cora, ecole=self.ecole
+        )
+        AffectationClasse.objects.create(
+            appartenance=appartenance,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+        )
+        self.marc = Utilisateur.objects.create_user(
+            "marc", "marc@example.test", "marc-mdp",
+            first_name="Marc", last_name="Sans affectation",
+        )
+        AppartenanceEcole.objects.create(utilisateur=self.marc, ecole=self.ecole)
+
+    def test_t080_direction_voit_toute_l_equipe_et_les_coordonnees(self):
+        self.entrer("dir-mdp")
+        reponse = self.client.get(reverse("equipe_ecole"))
+        self.assertContains(reponse, "Rémi Responsable")
+        self.assertContains(reponse, "remi@example.test")
+        self.assertContains(reponse, "Responsable de classe")
+
+    def test_t081_responsable_ne_voit_pas_l_equipe_complete(self):
+        self.entrer()
+        self.assertEqual(self.client.get(reverse("equipe_ecole")).status_code, 403)
+
+    def test_t082_responsable_voit_les_collaborateurs_sans_coordonnees(self):
+        self.entrer()
+        reponse = self.client.get(reverse("collaborateurs_classe", args=[self.classe.pk]))
+        self.assertContains(reponse, "Cora Contribution")
+        self.assertContains(reponse, "Contributeur")
+        self.assertNotContains(reponse, "cora@example.test")
+
+    def test_t083_t084_contributrice_voit_la_liste_limitee(self):
+        self.entrer("cora-mdp", "cora")
+        reponse = self.client.get(reverse("collaborateurs_classe", args=[self.classe.pk]))
+        self.assertContains(reponse, "Rémi Responsable")
+        self.assertNotContains(reponse, "remi@example.test")
+        self.assertEqual(self.client.get(reverse("equipe_ecole")).status_code, 403)
+
+    def test_t085_membre_sans_affectation_ne_voit_pas_les_collaborateurs(self):
+        self.client.force_login(self.marc)
+        reponse = self.client.get(reverse("collaborateurs_classe", args=[self.classe.pk]))
+        self.assertIn(reponse.status_code, (403, 404))
+
+    def test_invitation_est_hachee_et_liee_a_l_adresse(self):
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="invitee@example.test",
+        )
+        self.assertNotEqual(invitation.empreinte_jeton, jeton)
+        invitee = get_user_model().objects.create_user(
+            "invitee", "invitee@example.test", "secret"
+        )
+        accepter_invitation(utilisateur=invitee, invitation=invitation, jeton=jeton)
+        self.assertTrue(
+            AppartenanceEcole.objects.filter(utilisateur=invitee, ecole=self.ecole).exists()
+        )
+
+    def test_derniere_affectation_responsable_ne_peut_etre_terminee(self):
+        affectation = AffectationClasse.objects.get(
+            classe=self.classe, type=AffectationClasse.RESPONSABLE
+        )
+        with self.assertRaises(ValidationError):
+            terminer_affectation(utilisateur=self.direction, affectation=affectation)

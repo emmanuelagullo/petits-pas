@@ -11,7 +11,7 @@ from urllib.parse import quote, unquote
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.staticfiles import finders
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection, transaction
 from django.db.models import Count, Prefetch, Q
@@ -31,7 +31,11 @@ from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from comptes.models import AffectationClasse
+from comptes.models import (
+    AffectationClasse,
+    AppartenanceEcole,
+    Invitation,
+)
 
 from .autorisations import (
     ACCEDER_APPLICATION,
@@ -46,6 +50,7 @@ from .autorisations import (
     VOIR_LISTE_ELEVES,
     VOIR_SUIVI,
     VOIR_MEDIA,
+    VOIR_AFFECTATIONS_CLASSE,
     affectation_active,
     autorise,
     charger_classe_autorisee,
@@ -89,6 +94,14 @@ from .services.pedagogie import (
     restaurer_trace,
     supprimer_bilan_logiquement,
     supprimer_trace_logiquement,
+)
+from .services.equipe import (
+    accepter_invitation,
+    attribuer_affectation,
+    inviter,
+    revoquer_invitation,
+    suspendre_affectation_urgence,
+    terminer_affectation,
 )
 
 
@@ -170,6 +183,38 @@ def connexion(request):
 def deconnexion(request):
     logout(request)
     return redirect("connexion")
+
+
+def accepter_invitation_vue(request, selecteur, jeton):
+    invitation = get_object_or_404(Invitation, selecteur=selecteur)
+    if request.method == "POST":
+        utilisateur = authenticate(
+            request,
+            username=request.POST.get("nom_utilisateur", "").strip(),
+            password=request.POST.get("mot_de_passe", ""),
+        )
+        if utilisateur:
+            try:
+                accepter_invitation(
+                    utilisateur=utilisateur, invitation=invitation, jeton=jeton
+                )
+            except PermissionDenied:
+                messages.error(
+                    request,
+                    "Invitation invalide, expirée ou destinée à une autre adresse.",
+                )
+            else:
+                logout(request)
+                return render(
+                    request,
+                    "suivi/accepter_invitation.html",
+                    {"invitation": invitation, "acceptee": True},
+                )
+        else:
+            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+    return render(
+        request, "suivi/accepter_invitation.html", {"invitation": invitation}
+    )
 
 
 # --------------------------------------------------------------------------
@@ -378,6 +423,22 @@ def classe_detail(request, pk):
             "peut_gerer_eleves": peut_gerer_eleves,
             "vue_minimale": vue_minimale,
         },
+    )
+
+
+@acces_requis
+def collaborateurs_classe(request, pk):
+    ecole = ecole_courante(request)
+    classe = charger_classe_autorisee(
+        request.user, pk, VOIR_AFFECTATIONS_CLASSE, ecole=ecole
+    )
+    affectations = classe.affectations.select_related(
+        "appartenance__utilisateur"
+    ).order_by("appartenance__utilisateur__last_name", "date_debut")
+    return render(
+        request,
+        "suivi/collaborateurs_classe.html",
+        {"classe": classe, "affectations": affectations},
     )
 
 
@@ -1371,6 +1432,91 @@ def gestion(request):
     )
 
 
+@direction_requise
+def equipe_ecole(request):
+    ecole = ecole_courante(request)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        try:
+            if action == "inviter":
+                invitation, jeton = inviter(
+                    utilisateur=request.user,
+                    ecole=ecole,
+                    email=request.POST.get("email", ""),
+                )
+                messages.success(
+                    request,
+                    "Invitation créée. Lien à transmettre : "
+                    + request.build_absolute_uri(
+                        reverse(
+                            "accepter_invitation",
+                            args=[invitation.selecteur, jeton],
+                        )
+                    ),
+                )
+            elif action == "revoquer_invitation":
+                revoquer_invitation(
+                    utilisateur=request.user,
+                    invitation=get_object_or_404(
+                        Invitation, pk=request.POST.get("invitation"), ecole=ecole
+                    ),
+                )
+            elif action == "affecter":
+                attribuer_affectation(
+                    utilisateur=request.user,
+                    appartenance=get_object_or_404(
+                        AppartenanceEcole,
+                        pk=request.POST.get("appartenance"),
+                        ecole=ecole,
+                    ),
+                    classe=get_object_or_404(
+                        Classe, pk=request.POST.get("classe"), ecole=ecole
+                    ),
+                    type=request.POST.get("type"),
+                    date_fin=request.POST.get("date_fin") or None,
+                    motif=request.POST.get("motif", ""),
+                )
+                messages.success(request, "Affectation enregistrée.")
+            elif action in {"terminer_affectation", "suspendre_affectation"}:
+                affectation = get_object_or_404(
+                    AffectationClasse,
+                    pk=request.POST.get("affectation"),
+                    classe__ecole=ecole,
+                )
+                if action == "terminer_affectation":
+                    terminer_affectation(
+                        utilisateur=request.user, affectation=affectation
+                    )
+                else:
+                    suspendre_affectation_urgence(
+                        utilisateur=request.user,
+                        affectation=affectation,
+                        motif=request.POST.get("motif", ""),
+                    )
+                messages.success(request, "Affectation mise à jour.")
+        except (ValidationError, PermissionDenied) as erreur:
+            detail = (
+                "; ".join(erreur.messages)
+                if hasattr(erreur, "messages")
+                else "Action refusée."
+            )
+            messages.error(request, detail)
+        return redirect("equipe_ecole")
+
+    appartenances = ecole.appartenances.select_related("utilisateur").prefetch_related(
+        "responsabilites", "affectations_classes__classe"
+    )
+    return render(
+        request,
+        "suivi/equipe.html",
+        {
+            "appartenances": appartenances,
+            "invitations": ecole.invitations.all(),
+            "classes": ecole.classes.all(),
+            "types_affectation": AffectationClasse.TYPES,
+            "anomalies": ecole.anomalies_gouvernance.filter(resolue_le__isnull=True),
+        },
+    )
 @direction_requise
 def parametres_carnet(request):
     ecole = ecole_courante(request)

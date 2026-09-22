@@ -16,6 +16,7 @@
 {% endif %}
 
 <div class="actions">
+  <a class="bouton discret" href="{% url 'collaborateurs_classe' classe.pk %}">Collaborateurs</a>
   {% if suivi_complet %}
   <a class="bouton" href="{% url 'choisir_competence' classe.pk %}">Saisir pour toute la classe</a>
   {% endif %}
