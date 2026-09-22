@@ -12,7 +12,36 @@
     <span class="principal">{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</span>
     <span class="secondaire">{{ appartenance.utilisateur.email }} · membre du {{ appartenance.date_debut }}{% if appartenance.date_fin %} au {{ appartenance.date_fin }}{% endif %} · {{ appartenance.get_etat_display }}</span>
     {% for responsabilite in appartenance.responsabilites.all %}<span class="secondaire">{{ responsabilite.get_type_display }} — {{ responsabilite.get_etat_display }}</span>{% endfor %}
-    {% for affectation in appartenance.affectations_classes.all %}<span class="secondaire">{{ affectation.classe.nom }} · {{ affectation.get_type_display }} · {{ affectation.date_debut }}{% if affectation.date_fin %} → {{ affectation.date_fin }}{% endif %} · {{ affectation.get_etat_display }}</span>{% if affectation.etat == "active" %}<form method="post">{% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}"><button class="bouton discret" name="action" value="terminer_affectation">Terminer</button><input name="motif" placeholder="Motif d'urgence"><button class="bouton discret" name="action" value="suspendre_affectation">Suspendre en urgence</button></form>{% endif %}{% endfor %}
+    {% for affectation in appartenance.affectations_classes.all %}
+    <span class="secondaire">{{ affectation.classe.nom }} · {{ affectation.get_type_display }} · {{ affectation.date_debut }}{% if affectation.date_fin %} → {{ affectation.date_fin }}{% endif %} · {{ affectation.get_etat_display }}</span>
+    {% if affectation.est_active_aujourdhui %}
+    <div class="actions">
+      {% if affectation.peut_terminer_directement %}
+      <form method="post" onsubmit="return confirm('Terminer cette affectation ?');">
+        {% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}">
+        <button class="bouton discret" name="action" value="terminer_affectation">Terminer</button>
+      </form>
+      {% elif affectation.type == "responsable" %}
+      <span class="aide">Ce responsable doit être remplacé avant la fin de son affectation.</span>
+      {% endif %}
+      <form method="post" onsubmit="return confirm('Suspendre cette affectation en urgence ?');">
+        {% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}">
+        <input name="motif" placeholder="Motif d’urgence" aria-label="Motif de la suspension d’urgence" required>
+        <button class="bouton discret" name="action" value="suspendre_affectation">Suspendre en urgence</button>
+      </form>
+    </div>
+    {% if affectation.type == "responsable" and affectation.remplacants %}
+    <form method="post" class="encadre" onsubmit="return confirm('Remplacer ce responsable ?');">
+      {% csrf_token %}<input type="hidden" name="action" value="remplacer_responsable"><input type="hidden" name="affectation" value="{{ affectation.pk }}">
+      <label>Remplacer par
+        <select name="remplacement" required>{% for candidat in affectation.remplacants %}<option value="{{ candidat.pk }}">{{ candidat.utilisateur.get_full_name|default:candidat.utilisateur.username }}</option>{% endfor %}</select>
+      </label>
+      <label>Motif <input name="motif"></label>
+      <button class="bouton" type="submit">Remplacer le responsable</button>
+    </form>
+    {% endif %}
+    {% endif %}
+    {% endfor %}
   </li>
 {% empty %}<li>Aucun membre.</li>{% endfor %}
 </ul>
@@ -30,7 +59,7 @@
 <section id="gouvernance">
 <h2>Attribuer une fonction dans une classe</h2>
 <form method="post">{% csrf_token %}<input type="hidden" name="action" value="affecter">
-  <label>Membre <select name="appartenance">{% for appartenance in appartenances %}<option value="{{ appartenance.pk }}">{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</option>{% endfor %}</select></label>
+  <label>Membre <select name="appartenance">{% for appartenance in membres_affectables %}<option value="{{ appartenance.pk }}">{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</option>{% endfor %}</select></label>
   <label>Classe <select name="classe">{% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.nom }}</option>{% endfor %}</select></label>
   <label>Fonction <select name="type">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
   <label>Fin éventuelle <input type="date" name="date_fin"></label>

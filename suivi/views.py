@@ -57,6 +57,7 @@ from .autorisations import (
     charger_eleve_autorise,
     classes_accessibles,
     est_direction,
+    peut_terminer_affectation,
 )
 from .audit import journaliser
 from .contexte_ecole import ecole_courante
@@ -100,6 +101,7 @@ from .services.equipe import (
     activer_classe,
     attribuer_affectation,
     inviter,
+    remplacer_responsable,
     revoquer_invitation,
     suspendre_affectation_urgence,
     terminer_affectation,
@@ -1483,6 +1485,26 @@ def equipe_ecole(request):
                     motif=request.POST.get("motif", ""),
                 )
                 messages.success(request, "Affectation enregistrée.")
+            elif action == "remplacer_responsable":
+                affectation = get_object_or_404(
+                    AffectationClasse,
+                    pk=request.POST.get("affectation"),
+                    classe__ecole=ecole,
+                    type=AffectationClasse.RESPONSABLE,
+                    etat=AffectationClasse.ACTIVE,
+                )
+                remplacement = get_object_or_404(
+                    AppartenanceEcole,
+                    pk=request.POST.get("remplacement"),
+                    ecole=ecole,
+                )
+                remplacer_responsable(
+                    utilisateur=request.user,
+                    affectation=affectation,
+                    appartenance_remplacante=remplacement,
+                    motif=request.POST.get("motif", ""),
+                )
+                messages.success(request, "Responsable remplacé.")
             elif action in {"terminer_affectation", "suspendre_affectation"}:
                 affectation = get_object_or_404(
                     AffectationClasse,
@@ -1499,7 +1521,12 @@ def equipe_ecole(request):
                         affectation=affectation,
                         motif=request.POST.get("motif", ""),
                     )
-                messages.success(request, "Affectation mise à jour.")
+                messages.success(
+                    request,
+                    "Affectation terminée."
+                    if action == "terminer_affectation"
+                    else "Affectation suspendue en urgence.",
+                )
         except (ValidationError, PermissionDenied) as erreur:
             detail = (
                 "; ".join(erreur.messages)
@@ -1509,14 +1536,44 @@ def equipe_ecole(request):
             messages.error(request, detail)
         return redirect("equipe_ecole")
 
-    appartenances = ecole.appartenances.select_related("utilisateur").prefetch_related(
-        "responsabilites", "affectations_classes__classe"
+    appartenances = list(
+        ecole.appartenances.select_related("utilisateur").prefetch_related(
+            "responsabilites", "affectations_classes__classe"
+        )
     )
+    aujourd_hui = timezone.localdate()
+    membres_affectables = [
+        appartenance
+        for appartenance in appartenances
+        if appartenance.est_active(aujourd_hui)
+    ]
+    for appartenance in appartenances:
+        for affectation in appartenance.affectations_classes.all():
+            affectation.est_active_aujourdhui = affectation.est_active(aujourd_hui)
+            if not affectation.est_active_aujourdhui:
+                continue
+            affectation.peut_terminer_directement = peut_terminer_affectation(
+                request.user, affectation, date=aujourd_hui
+            )
+            if affectation.type == AffectationClasse.RESPONSABLE:
+                affectation.remplacants = [
+                    candidat
+                    for candidat in membres_affectables
+                    if candidat.utilisateur_id != appartenance.utilisateur_id
+                    and not candidat.affectations_classes.filter(
+                        classe=affectation.classe,
+                        etat=AffectationClasse.ACTIVE,
+                        date_debut__lte=aujourd_hui,
+                    )
+                    .filter(Q(date_fin__isnull=True) | Q(date_fin__gte=aujourd_hui))
+                    .exists()
+                ]
     return render(
         request,
         "suivi/equipe.html",
         {
             "appartenances": appartenances,
+            "membres_affectables": membres_affectables,
             "invitations": ecole.invitations.all(),
             "classes": ecole.classes.all(),
             "types_affectation": AffectationClasse.TYPES,
