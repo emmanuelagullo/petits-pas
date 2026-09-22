@@ -1,6 +1,11 @@
 {{- $demo := .Site.Data.demonstration -}}
-<div class="screenshot-gallery role-scenarios">
+{{- $ids := slice -}}
+{{- with .Get "ids" -}}
+  {{- $ids = split . "," -}}
+{{- end -}}
+<div class="screenshot-gallery role-scenarios{{ if eq (len $ids) 1 }} single{{ end }}">
   {{- range $demo.scenarios }}
+  {{- if or (eq (len $ids) 0) (in $ids .id) }}
   <figure id="scenario-{{ .id }}">
     <a class="screenshot-link" href="{{ printf "captures/%s" .capture | relURL }}" target="_blank" rel="noopener">
       <picture>
@@ -13,5 +18,6 @@
     </a>
     <figcaption><b>{{ .titre }}</b><br>{{ .legende }}</figcaption>
   </figure>
+  {{- end }}
   {{- end }}
 </div>
