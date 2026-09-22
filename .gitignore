@@ -4,7 +4,7 @@ __pycache__/
 *.private.org
 *.pyc
 .venv/
-carnet.sqlite3
+/carnet.sqlite3*
 media/
 staticfiles/
 backups/
