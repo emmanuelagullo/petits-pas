@@ -1,0 +1,14 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Collaborateurs — {{ classe.nom }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
+<h1>Collaborateurs</h1>
+<ul class="liste">
+{% for affectation in affectations %}
+  <li class="entree">
+    <span class="principal">{{ affectation.appartenance.utilisateur.get_full_name|default:affectation.appartenance.utilisateur.username }}</span>
+    <span class="secondaire">{{ affectation.get_type_display }} · du {{ affectation.date_debut }}{% if affectation.date_fin %} au {{ affectation.date_fin }}{% else %}, sans date de fin{% endif %} · {{ affectation.get_etat_display }}</span>
+  </li>
+{% empty %}<li>Aucun collaborateur enregistré.</li>{% endfor %}
+</ul>
+{% endblock %}

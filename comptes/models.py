@@ -1,4 +1,5 @@
 from datetime import date
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -212,3 +213,78 @@ class AffectationClasse(RelationTemporelle):
             and self.appartenance.est_active(date)
             and self.classe.etat == self.classe.ACTIVE
         )
+
+
+class Invitation(models.Model):
+    EN_ATTENTE = "en_attente"
+    ACCEPTEE = "acceptee"
+    REVOQUEE = "revoquee"
+    EXPIREE = "expiree"
+    ETATS = [
+        (EN_ATTENTE, "En attente"),
+        (ACCEPTEE, "Acceptée"),
+        (REVOQUEE, "Révoquée"),
+        (EXPIREE, "Expirée"),
+    ]
+
+    ecole = models.ForeignKey(
+        "suivi.Ecole", on_delete=models.PROTECT, related_name="invitations"
+    )
+    email = models.EmailField()
+    selecteur = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    empreinte_jeton = models.CharField(max_length=64, editable=False)
+    expire_le = models.DateTimeField()
+    etat = models.CharField(max_length=10, choices=ETATS, default=EN_ATTENTE)
+    cree_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="invitations_creees",
+    )
+    cree_le = models.DateTimeField(auto_now_add=True)
+    acceptee_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="invitations_acceptees",
+        blank=True,
+        null=True,
+    )
+    acceptee_le = models.DateTimeField(blank=True, null=True)
+    revoquee_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="invitations_revoquees",
+        blank=True,
+        null=True,
+    )
+    revoquee_le = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-cree_le"]
+
+
+class AnomalieGouvernance(models.Model):
+    CLASSE_SANS_RESPONSABLE = "classe_sans_responsable"
+    TYPES = [(CLASSE_SANS_RESPONSABLE, "Classe sans responsable")]
+
+    ecole = models.ForeignKey(
+        "suivi.Ecole", on_delete=models.PROTECT, related_name="anomalies_gouvernance"
+    )
+    classe = models.ForeignKey(
+        "suivi.Classe",
+        on_delete=models.PROTECT,
+        related_name="anomalies_gouvernance",
+        blank=True,
+        null=True,
+    )
+    type = models.CharField(max_length=40, choices=TYPES)
+    motif = models.TextField()
+    ouverte_le = models.DateTimeField(auto_now_add=True)
+    ouverte_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="anomalies_gouvernance_ouvertes",
+    )
+    resolue_le = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ["-ouverte_le"]

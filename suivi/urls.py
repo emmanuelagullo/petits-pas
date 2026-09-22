@@ -7,7 +7,17 @@ urlpatterns = [
     path("", views.accueil, name="accueil"),
     path("connexion/", views.connexion, name="connexion"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
+    path(
+        "invitation/<uuid:selecteur>/<str:jeton>/",
+        views.accepter_invitation_vue,
+        name="accepter_invitation",
+    ),
     path("classe/<int:pk>/", views.classe_detail, name="classe_detail"),
+    path(
+        "classe/<int:pk>/collaborateurs/",
+        views.collaborateurs_classe,
+        name="collaborateurs_classe",
+    ),
     path(
         "classe/<int:pk>/edition/",
         views.preparer_edition,
@@ -102,6 +112,7 @@ urlpatterns = [
         name="basculer_visibilite_trace",
     ),
     path("gestion/", views.gestion, name="gestion"),
+    path("gestion/equipe/", views.equipe_ecole, name="equipe_ecole"),
     path("gestion/eleves/", views.annuaire_eleves, name="annuaire_eleves"),
     path(
         "gestion/parametres-carnet/",

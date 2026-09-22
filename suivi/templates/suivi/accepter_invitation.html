@@ -1,0 +1,16 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Rejoindre {{ invitation.ecole.nom }}{% endblock %}
+{% block contenu %}
+<h1>Rejoindre {{ invitation.ecole.nom }}</h1>
+{% if acceptee %}
+<p>Votre compte est maintenant membre de l'école. La direction peut à présent vous attribuer une fonction dans une classe.</p>
+<p><a class="bouton" href="{% url 'connexion' %}">Revenir à la connexion</a></p>
+{% else %}
+<p>Connectez-vous avec le compte associé à l'adresse {{ invitation.email }}.</p>
+<form method="post">{% csrf_token %}
+  <label>Nom d'utilisateur <input name="nom_utilisateur" required autofocus></label>
+  <label>Mot de passe <input name="mot_de_passe" type="password" required></label>
+  <button class="bouton" type="submit">Accepter l'invitation</button>
+</form>
+{% endif %}
+{% endblock %}
