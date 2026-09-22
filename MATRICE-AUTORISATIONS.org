@@ -6,8 +6,8 @@
 
 Ce document dérive de :
 
-- =petits-pas-modele-metier-identites-affectations.org= ;
-- =ROLES-ET-DROITS.org=.
+- =MODELE-IDENTITES-ET-AFFECTATIONS.org= ;
+- =POLITIQUE-AUTORISATION.org=.
 
 Il transforme la politique en règles normatives et en scénarios de tests. En
 cas de divergence, la politique d'autorisation doit être corrigée ou la
