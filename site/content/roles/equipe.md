@@ -13,4 +13,6 @@ pas une seconde description maintenue à la main.
 Les comptes sont publics et les données entièrement fictives. La
 [démonstration]({{< relref "/demonstration/" >}}) est partagée et jetable :
 n'y saisissez jamais d'information réelle. La [présentation synthétique des
-fonctions]({{< relref "/roles/" >}}) permet de revenir aux principes communs.
+fonctions]({{< relref "/roles/" >}}) permet de revenir aux principes communs ;
+les [situations illustrées]({{< relref "/roles/situations/" >}}) montrent
+comment ils s'appliquent dans les parcours.
