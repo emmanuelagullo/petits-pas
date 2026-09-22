@@ -40,8 +40,33 @@ def capturer(page: Page, chemin: Path):
             }
         """
     )
+    verifier_page(page)
     page.screenshot(path=chemin)
     print(f"Capture créée : {chemin}")
+
+
+def verifier_page(page: Page):
+    if page.locator("main").count() != 1:
+        raise RuntimeError("La page doit contenir un unique élément main.")
+    if page.get_by_role("heading", level=1).count() != 1:
+        raise RuntimeError("La page doit contenir un unique titre h1.")
+    if not page.title().strip():
+        raise RuntimeError("La page doit posséder un titre de document.")
+    deborde = page.evaluate(
+        "document.documentElement.scrollWidth > window.innerWidth + 1"
+    )
+    if deborde:
+        raise RuntimeError("La page déborde horizontalement de la fenêtre.")
+
+
+def normaliser_contenu_instable(page: Page):
+    page.locator(".secondaire").evaluate_all(
+        """elements => elements.forEach(element => {
+            element.textContent = element.textContent
+                .replace(/\\b\\d{1,2} [^\\s]+ \\d{4}\\b/g, '1 septembre 2026')
+                .replace(/\\b\\d{1,2}:\\d{2}\\b/g, '09:00');
+        })"""
+    )
 
 
 def profil(demonstration, identifiant):
@@ -84,7 +109,19 @@ def jouer_scenario(page, base_url, output, demonstration, scenario):
             page.get_by_role(
                 "heading", name=re.compile(r"^Ajouter une contribution pour")
             ).wait_for()
+    normaliser_contenu_instable(page)
     capturer(page, output / scenario["capture"])
+
+
+def nouveau_contexte(navigateur, viewport):
+    return navigateur.new_context(
+        viewport=viewport,
+        device_scale_factor=1,
+        color_scheme="light",
+        locale="fr-FR",
+        reduced_motion="reduce",
+        timezone_id="Europe/Paris",
+    )
 
 
 def main():
@@ -108,13 +145,7 @@ def main():
         if executable_chromium:
             lancement["executable_path"] = executable_chromium
         navigateur = playwright.chromium.launch(**lancement)
-        contexte = navigateur.new_context(
-            viewport={"width": 1440, "height": 1000},
-            color_scheme="light",
-            locale="fr-FR",
-            reduced_motion="reduce",
-            timezone_id="Europe/Paris",
-        )
+        contexte = nouveau_contexte(navigateur, {"width": 1440, "height": 1000})
         page = contexte.new_page()
 
         page.goto(f"{options.base_url}/connexion/")
@@ -158,6 +189,24 @@ def main():
                 demonstration,
                 scenario,
             )
+
+        contexte.close()
+        contexte_mobile = nouveau_contexte(
+            navigateur, {"width": 390, "height": 844}
+        )
+        page_mobile = contexte_mobile.new_page()
+        for scenario in demonstration["scenarios"]:
+            if "capture_mobile" not in scenario:
+                continue
+            scenario_mobile = dict(scenario, capture=scenario["capture_mobile"])
+            jouer_scenario(
+                page_mobile,
+                options.base_url,
+                options.output,
+                demonstration,
+                scenario_mobile,
+            )
+        contexte_mobile.close()
 
         navigateur.close()
 

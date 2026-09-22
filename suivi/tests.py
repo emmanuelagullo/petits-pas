@@ -2525,6 +2525,10 @@ class JeuDemoLarge(TestCase):
             {scenario["profil"] for scenario in configuration["scenarios"]},
             {"diane", "cora", "samir"},
         )
+        self.assertEqual(
+            sum("capture_mobile" in scenario for scenario in configuration["scenarios"]),
+            3,
+        )
 
 
 class InitialisationAtelier(TestCase):
