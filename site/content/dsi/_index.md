@@ -80,12 +80,30 @@ traitement. Celle-ci dépend également des responsabilités, contrats,
 habilitations, durées de conservation, sauvegardes et pratiques de chaque
 déploiement.
 
+### Socle déjà implémenté
+
+Le socle applicatif ne repose plus sur deux mots de passe partagés. Chaque
+personne utilise un compte individuel, relié à une ou plusieurs écoles puis,
+selon ses fonctions, à des responsabilités d'école ou à des affectations de
+classe datées.
+
+Le serveur réévalue les autorisations au moment de l'action. Une responsabilité
+de direction permet d'administrer l'école, mais n'ouvre pas à elle seule le
+suivi pédagogique. Les responsables, enseignants associés et contributeurs
+reçoivent des capacités différentes, limitées aux classes auxquelles ils sont
+affectés. Les sorties sensibles, comme les PDF et les téléchargements de médias
+originaux, font l'objet de contrôles et d'événements d'audit spécifiques.
+
+### Garanties restant à consolider
+
 Avant tout usage avec des données réelles, il reste notamment à consolider :
 
-- les comptes individuels et le niveau de finesse des habilitations ;
-- les procédures d'arrivée, de changement de rôle et de départ des personnes ;
+- l'intégration des comptes individuels aux procédures réelles d'arrivée, de
+  changement de fonction et de départ des personnes ;
+- la revue systématique de la couverture des autorisations et de leur
+  journalisation, y compris face aux requêtes forgées et aux accès
+  inter-écoles ;
 - les politiques de conservation, d'effacement et d'export ;
-- la journalisation utile sans collecte excessive ;
 - la revue de sécurité, l'accessibilité et les conditions d'exploitation ;
 - la répartition documentée des responsabilités entre école, collectivité et
   hébergeur.
@@ -93,6 +111,11 @@ Avant tout usage avec des données réelles, il reste notamment à consolider :
 Ces éléments relèvent à la fois du logiciel, de l'infrastructure et de
 l'organisation. Ils ne seront pas présentés comme acquis avant d'avoir été
 définis et éprouvés.
+
+Cette implémentation ne dispense pas d'une revue avant pilote. Les [documents
+de conception des rôles et autorisations]({{< relref "/conception/" >}})
+présentent le modèle métier, la politique détaillée, la matrice de tests et
+l'audit initial qui a conduit à ce socle.
 
 ## Reproductibilité et intégration continue
 

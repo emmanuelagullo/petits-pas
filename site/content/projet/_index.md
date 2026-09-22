@@ -61,11 +61,19 @@ prévisualiser un carnet et produire son PDF. Une démonstration jetable et un
 profil d'atelier pédagogique persistant sont distingués des futurs
 déploiements utilisant des données réelles.
 
-Cette base n'est pas encore présentée comme un service de production. Le
-modèle d'habilitation, l'exploitation dans la durée, l'accessibilité, la
-sécurité et le cadre de traitement des données doivent notamment être éprouvés
-avant tout pilote réel. La [présentation destinée aux DSI et aux
-hébergeurs]({{< relref "/dsi/" >}}) expose les choix techniques et leurs limites.
+Cette base n'est pas encore présentée comme un service de production. Petits
+Pas dispose désormais de comptes individuels et d'autorisations calculées à
+partir des responsabilités d'école, des affectations de classe et de leurs
+périodes de validité. Ces règles séparent notamment l'administration de
+l'école de l'accès aux contenus pédagogiques.
+
+Ce socle doit encore être confronté aux usages, audité et complété par des
+procédures d'exploitation avant tout pilote réel. L'accessibilité, la sécurité
+globale et le cadre de traitement des données restent également à éprouver. La
+[présentation destinée aux DSI et aux hébergeurs]({{< relref "/dsi/" >}})
+expose les choix techniques et leurs limites ; les [documents de
+conception]({{< relref "/conception/" >}}) permettent d'approfondir le modèle
+d'autorisation.
 
 ## Les prochaines étapes
 
@@ -73,7 +81,8 @@ Le projet avance par petits jalons vérifiables :
 
 1. consolider le cahier des charges avec des équipes pédagogiques ;
 2. éprouver le parcours quotidien de saisie et la forme des carnets ;
-3. renforcer les habilitations et les garanties adaptées aux données réelles ;
+3. éprouver les habilitations et compléter les garanties adaptées aux données
+   réelles ;
 4. documenter et tester le déploiement, les sauvegardes et la reprise ;
 5. préparer un pilote seulement lorsque ces conditions seront réunies.
 
