@@ -2500,6 +2500,25 @@ class JeuDemoLarge(TestCase):
                 stdout=StringIO(),
             )
 
+    def test_configuration_publique_decrit_neuf_profils_valides(self):
+        from django.conf import settings
+
+        from suivi.configuration_demo import charger_configuration_demo
+
+        configuration = charger_configuration_demo(
+            settings.BASE_DIR / "site" / "data" / "demonstration.yaml"
+        )
+
+        self.assertEqual(len(configuration["profils"]), 9)
+        self.assertEqual(
+            {profil["id"] for profil in configuration["profils"]},
+            {"diane", "remi", "nadia", "amina", "cora", "samir", "lea", "marc", "alice"},
+        )
+        alice = next(
+            profil for profil in configuration["profils"] if profil["id"] == "alice"
+        )
+        self.assertEqual(alice["affectations"][0]["periode"], "terminee")
+
 
 class InitialisationAtelier(TestCase):
     @override_settings(

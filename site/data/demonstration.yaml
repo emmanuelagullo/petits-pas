@@ -7,11 +7,171 @@ identifiants:
   direction:
     utilisateur: direction-demo
     mot_de_passe: direction-render
+classes:
+  coccinelles:
+    nom: Les Coccinelles
+    annee_scolaire: 2026-2027
+  papillons:
+    nom: Les Papillons
+    annee_scolaire: 2026-2027
+  lucioles:
+    nom: Les Lucioles — rentrée suivante
+    annee_scolaire: 2027-2028
 profils:
-  - { utilisateur: enseignant-demo, nom: "Rémi — responsable des Coccinelles" }
-  - { utilisateur: nadia-demo, nom: "Nadia — co-responsable de deux classes" }
-  - { utilisateur: amina-demo, nom: "Amina — enseignante associée" }
-  - { utilisateur: cora-demo, nom: "Cora — ATSEM contributrice" }
-  - { utilisateur: samir-demo, nom: "Samir — profil mixte selon la classe" }
-  - { utilisateur: lea-demo, nom: "Léa — remplaçante temporaire" }
-  - { utilisateur: marc-demo, nom: "Marc — membre sans affectation" }
+  - id: diane
+    utilisateur: direction-demo
+    compte_initial: direction
+    prenom: Diane
+    nom_famille: Direction
+    fonction: Direction
+    nom: Diane — direction de Ma Belle École
+    resume: Administre l'école sans accéder automatiquement au suivi pédagogique.
+    responsabilite: direction
+    affectations: []
+    peut:
+      - gérer les membres, les classes et leurs affectations
+      - administrer les élèves et les paramètres durables de l'école
+      - traiter les anomalies de gouvernance
+    ne_peut_pas:
+      - consulter les observations, photos, bilans ou carnets par sa seule fonction de direction
+      - s'attribuer durablement une classe sans suivre la procédure prévue
+    pourquoi: La responsabilité administrative et la responsabilité pédagogique restent séparées.
+
+  - id: remi
+    utilisateur: enseignant-demo
+    compte_initial: enseignant
+    prenom: Rémi
+    nom_famille: Responsable
+    fonction: Responsable de classe
+    nom: Rémi — responsable des Coccinelles
+    resume: Assume la responsabilité pédagogique complète des Coccinelles.
+    affectations:
+      - { classe: coccinelles, type: responsable, periode: active }
+    peut:
+      - consulter et modifier le suivi des élèves des Coccinelles
+      - relire les contributions de l'équipe et préparer les carnets
+      - générer les PDF et télécharger les médias originaux autorisés
+    ne_peut_pas:
+      - administrer l'équipe complète ou les paramètres durables de l'école
+      - consulter les classes auxquelles il n'est pas affecté
+    pourquoi: Une affectation de responsable donne les droits pédagogiques complets dans sa classe seulement.
+
+  - id: nadia
+    utilisateur: nadia-demo
+    prenom: Nadia
+    nom_famille: Co-titulaire
+    fonction: Co-responsable
+    nom: Nadia — co-responsable de deux classes
+    resume: Partage la responsabilité des Coccinelles et des Papillons.
+    affectations:
+      - { classe: coccinelles, type: responsable, periode: active }
+      - { classe: papillons, type: responsable, periode: active }
+    peut:
+      - exercer les mêmes droits pédagogiques dans ses deux classes
+      - préparer les carnets et PDF des élèves de ces classes
+    ne_peut_pas:
+      - administrer l'école par le seul fait d'être responsable de plusieurs classes
+      - accéder à une autre classe sans affectation
+    pourquoi: Les droits se cumulent par périmètre sans créer une responsabilité d'école.
+
+  - id: amina
+    utilisateur: amina-demo
+    prenom: Amina
+    nom_famille: Associée
+    fonction: Enseignante associée
+    nom: Amina — enseignante associée
+    resume: Consulte le suivi et ajoute des traces sans piloter les états ni les carnets.
+    affectations:
+      - { classe: coccinelles, type: enseignant_associe, periode: active }
+    peut:
+      - consulter le suivi complet des élèves des Coccinelles
+      - ajouter et corriger ses propres traces pendant son affectation
+      - prévisualiser les carnets pour les relire
+    ne_peut_pas:
+      - modifier l'état d'acquisition d'un élève
+      - générer ou télécharger un PDF de carnet
+    pourquoi: Elle contribue au suivi sans recevoir la responsabilité éditoriale finale de la classe.
+
+  - id: cora
+    utilisateur: cora-demo
+    prenom: Cora
+    nom_famille: ATSEM
+    fonction: Contributrice
+    nom: Cora — ATSEM contributrice
+    resume: Ajoute des contributions ciblées sans consulter le suivi pédagogique.
+    affectations:
+      - { classe: coccinelles, type: contributeur, periode: active }
+    peut:
+      - voir l'identité minimale nécessaire des élèves des Coccinelles
+      - ajouter une photo ou un commentaire et corriger sa propre contribution
+      - télécharger l'original d'un média dont elle est l'autrice
+    ne_peut_pas:
+      - consulter les acquisitions, les traces d'autrui ou les carnets
+      - modifier l'état d'acquisition d'un élève
+    pourquoi: Le rôle permet de contribuer sans ouvrir l'ensemble du dossier pédagogique.
+
+  - id: samir
+    utilisateur: samir-demo
+    prenom: Samir
+    nom_famille: Intervenant
+    fonction: Profil mixte
+    nom: Samir — profil mixte selon la classe
+    resume: Contributeur chez les Coccinelles, enseignant associé chez les Papillons.
+    affectations:
+      - { classe: coccinelles, type: contributeur, periode: active }
+      - { classe: papillons, type: enseignant_associe, periode: active }
+    peut:
+      - ajouter une contribution limitée chez les Coccinelles
+      - consulter le suivi et ajouter des traces chez les Papillons
+    ne_peut_pas:
+      - utiliser chez les Coccinelles les droits reçus chez les Papillons
+      - modifier les états ou générer les carnets dans l'une ou l'autre classe
+    pourquoi: Les autorisations sont recalculées pour chaque classe et ne se propagent pas d'un périmètre à l'autre.
+
+  - id: lea
+    utilisateur: lea-demo
+    prenom: Léa
+    nom_famille: Remplaçante
+    fonction: Responsable temporaire
+    nom: Léa — remplaçante temporaire
+    resume: Dispose temporairement des droits de responsable chez les Papillons.
+    affectations:
+      - { classe: papillons, type: responsable, periode: temporaire, duree_jours: 30, motif: "Remplacement temporaire de démonstration" }
+    peut:
+      - assurer le suivi et préparer les carnets des Papillons pendant son remplacement
+      - exercer les mêmes droits qu'un responsable tant que son affectation est active
+    ne_peut_pas:
+      - conserver ces droits après la date de fin
+      - intervenir dans une autre classe sans affectation
+    pourquoi: La fonction et sa période de validité sont vérifiées au moment de chaque action.
+
+  - id: marc
+    utilisateur: marc-demo
+    prenom: Marc
+    nom_famille: Sans affectation
+    fonction: Membre sans affectation
+    nom: Marc — membre sans affectation
+    resume: Appartient à l'école mais n'exerce actuellement aucune fonction.
+    affectations: []
+    peut:
+      - conserver une appartenance individuelle à l'école
+    ne_peut_pas:
+      - ouvrir une classe ou consulter une liste d'élèves
+      - accéder à l'application sans responsabilité ou affectation active
+    pourquoi: L'appartenance établit le lien avec l'école, mais ne confère aucun droit pédagogique par elle-même.
+
+  - id: alice
+    utilisateur: alice-demo
+    prenom: Alice
+    nom_famille: Ancienne intervenante
+    fonction: Affectation terminée
+    nom: Alice — ancienne intervenante
+    resume: Son ancienne contribution reste attribuée, mais ses droits ont pris fin.
+    affectations:
+      - { classe: coccinelles, type: contributeur, periode: terminee, debut_jours_avant: 90, fin_jours_avant: 30, motif: "Intervention ponctuelle terminée" }
+    peut:
+      - rester identifiée comme autrice de ses contributions historiques
+    ne_peut_pas:
+      - rouvrir la classe ou corriger une contribution après la fin de son affectation
+      - retrouver un accès grâce à une ancienne page ou une ancienne URL
+    pourquoi: L'attribution historique est conservée, tandis que l'autorisation dépend d'une affectation active aujourd'hui.
