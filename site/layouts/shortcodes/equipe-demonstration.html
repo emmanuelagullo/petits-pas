@@ -1,0 +1,49 @@
+{{- $demo := .Site.Data.demonstration -}}
+{{- $types := dict "responsable" "Responsable" "enseignant_associe" "Enseignant associé" "contributeur" "Contributeur" -}}
+{{- $periodes := dict "active" "Affectation active" "temporaire" "Affectation temporaire" "terminee" "Affectation terminée" -}}
+<div class="person-grid">
+  {{- range $demo.profils }}
+  <article class="person-card" id="{{ .id }}" aria-labelledby="person-{{ .id }}">
+    <header>
+      <p class="person-function">{{ .fonction }}</p>
+      <h2 id="person-{{ .id }}">{{ .prenom }}</h2>
+      <p>{{ .resume }}</p>
+      <p class="person-login">Compte fictif : <code>{{ .utilisateur }}</code></p>
+    </header>
+
+    <h3>Périmètre</h3>
+    {{- if .responsabilite }}
+    <p class="person-scope"><b>{{ $demo.ecole }}</b><span>Direction active</span></p>
+    {{- else if .affectations }}
+    <ul class="person-scopes">
+      {{- range .affectations }}
+      {{- $classe := index $demo.classes .classe -}}
+      <li>
+        <b>{{ $classe.nom }}</b>
+        <span>{{ index $types .type }} · {{ index $periodes .periode }}</span>
+      </li>
+      {{- end }}
+    </ul>
+    {{- else }}
+    <p class="person-scope"><b>{{ $demo.ecole }}</b><span>Membre sans affectation de classe</span></p>
+    {{- end }}
+
+    <div class="person-capabilities">
+      <section>
+        <h3>Peut</h3>
+        <ul>
+          {{- range .peut }}<li>{{ . }}</li>{{ end }}
+        </ul>
+      </section>
+      <section>
+        <h3>Ne peut pas</h3>
+        <ul>
+          {{- range .ne_peut_pas }}<li>{{ . }}</li>{{ end }}
+        </ul>
+      </section>
+    </div>
+
+    <p class="person-why"><b>Pourquoi ?</b> {{ .pourquoi }}</p>
+  </article>
+  {{- end }}
+</div>
