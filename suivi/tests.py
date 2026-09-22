@@ -2520,6 +2520,11 @@ class JeuDemoLarge(TestCase):
             profil for profil in configuration["profils"] if profil["id"] == "alice"
         )
         self.assertEqual(alice["affectations"][0]["periode"], "terminee")
+        self.assertEqual(len(configuration["scenarios"]), 5)
+        self.assertEqual(
+            {scenario["profil"] for scenario in configuration["scenarios"]},
+            {"diane", "cora", "samir"},
+        )
 
 
 class InitialisationAtelier(TestCase):

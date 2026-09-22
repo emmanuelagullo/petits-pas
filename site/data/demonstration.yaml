@@ -175,3 +175,39 @@ profils:
       - rouvrir la classe ou corriger une contribution après la fin de son affectation
       - retrouver un accès grâce à une ancienne page ou une ancienne URL
     pourquoi: L'attribution historique est conservée, tandis que l'autorisation dépend d'une affectation active aujourd'hui.
+
+scenarios:
+  - id: direction-equipe
+    profil: diane
+    parcours: equipe_direction
+    capture: roles/diane/equipe.png
+    titre: Administrer l'équipe
+    legende: Diane voit les membres, leurs périodes, les invitations et les anomalies à traiter.
+  - id: direction-classe-sans-suivi
+    profil: diane
+    parcours: classe_direction
+    classe: coccinelles
+    capture: roles/diane/classe-sans-suivi.png
+    titre: Administrer sans consulter le suivi
+    legende: Diane peut gérer la classe, mais les acquisitions et carnets ne lui sont pas ouverts par sa seule fonction.
+  - id: cora-contribution
+    profil: cora
+    parcours: contribution
+    classe: coccinelles
+    capture: roles/cora/contribution.png
+    titre: Ajouter une contribution limitée
+    legende: Cora choisit un élève puis un apprentissage sans accéder à l'ensemble de son suivi.
+  - id: samir-coccinelles
+    profil: samir
+    parcours: classe_contribution
+    classe: coccinelles
+    capture: roles/samir/coccinelles.png
+    titre: Samir contribue chez les Coccinelles
+    legende: Dans cette classe, Samir voit la liste minimale nécessaire pour ajouter une contribution.
+  - id: samir-papillons
+    profil: samir
+    parcours: classe_suivi
+    classe: papillons
+    capture: roles/samir/papillons.png
+    titre: Samir suit les Papillons
+    legende: Dans cette autre classe, son affectation d'enseignant associé ouvre le suivi et la prévisualisation des carnets.

@@ -7,6 +7,13 @@ import yaml
 
 TYPES_AFFECTATION = {"responsable", "enseignant_associe", "contributeur"}
 PERIODES_AFFECTATION = {"active", "temporaire", "terminee"}
+PARCOURS_CAPTURE = {
+    "equipe_direction",
+    "classe_direction",
+    "contribution",
+    "classe_contribution",
+    "classe_suivi",
+}
 
 
 def _exiger_chaine(valeur, chemin):
@@ -133,4 +140,41 @@ def charger_configuration_demo(chemin):
         raise ValueError(
             "Configuration de démonstration invalide : comptes initiaux incomplets."
         )
+
+    scenarios = configuration.get("scenarios")
+    if not isinstance(scenarios, list) or not scenarios:
+        raise ValueError("Configuration de démonstration invalide : scenarios.")
+    ids_scenarios, captures = set(), set()
+    for indice, scenario in enumerate(scenarios):
+        chemin_scenario = f"scenarios[{indice}]"
+        if not isinstance(scenario, dict):
+            raise ValueError(
+                f"Configuration de démonstration invalide : {chemin_scenario}."
+            )
+        for cle in ("id", "profil", "parcours", "capture", "titre", "legende"):
+            _exiger_chaine(scenario.get(cle), f"{chemin_scenario}.{cle}")
+        if scenario["id"] in ids_scenarios or scenario["capture"] in captures:
+            raise ValueError(
+                f"Configuration de démonstration invalide : scénario dupliqué {scenario['id']}."
+            )
+        ids_scenarios.add(scenario["id"])
+        captures.add(scenario["capture"])
+        if scenario["profil"] not in ids:
+            raise ValueError(
+                f"Configuration de démonstration invalide : {chemin_scenario}.profil."
+            )
+        if scenario["parcours"] not in PARCOURS_CAPTURE:
+            raise ValueError(
+                f"Configuration de démonstration invalide : {chemin_scenario}.parcours."
+            )
+        capture = Path(scenario["capture"])
+        if capture.is_absolute() or ".." in capture.parts or capture.suffix != ".png":
+            raise ValueError(
+                f"Configuration de démonstration invalide : {chemin_scenario}.capture."
+            )
+        classe = scenario.get("classe")
+        if classe is not None and classe not in classes:
+            raise ValueError(
+                f"Configuration de démonstration invalide : {chemin_scenario}.classe."
+            )
     return configuration
