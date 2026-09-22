@@ -127,7 +127,9 @@ La CI vérifie actuellement :
 - un déploiement complet avec PostgreSQL et MinIO ;
 - la sauvegarde puis la restauration dans des cibles temporaires ;
 - la construction du site public et la génération de captures fictives dans un
-  navigateur épinglé.
+  navigateur épinglé, sur ordinateur et pour plusieurs parcours mobiles ;
+- des contrôles structurels et l'absence de débordement horizontal sur les
+  pages capturées.
 
 Les détails et limites des profils sont suivis dans la
 [documentation de déploiement](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/DEPLOIEMENT.org)

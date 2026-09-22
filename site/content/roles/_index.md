@@ -1,6 +1,7 @@
 +++
 title = "Qui peut faire quoi ?"
 description = "Comprendre rapidement les fonctions, leurs périmètres et leurs limites dans Petits Pas."
+showChildren = false
 +++
 
 Dans Petits Pas, un intitulé de fonction ne donne jamais accès à toute l'école.

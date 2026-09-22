@@ -17,6 +17,14 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Comptes individuels, appartenances aux écoles, responsabilités de direction
+  et affectations de classe datées, avec moteur central d'autorisation,
+  cloisonnement des lectures et mutations, attribution des contributions et
+  audit des principales actions et sorties de données.
+- Documentation publique progressive des rôles : synthèse des fonctions,
+  neuf personnages fictifs alimentés par la configuration partagée, situations
+  métier, refus et procédures de secours, documents Org complets et captures
+  Playwright reproductibles sur ordinateur et mobile.
 - Affectation depuis la constitution d'une classe d'un élève déjà connu,
   avec déplacement annuel ou réactivation explicites et sans perdre son
   parcours antérieur.
