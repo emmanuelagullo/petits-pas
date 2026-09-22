@@ -1195,6 +1195,40 @@ class GestionClassesGroupees(Base):
         self.assertContains(r, "Ancienne")
         self.assertContains(r, "années antérieures")
 
+    def test_la_direction_active_une_classe_apres_attribution_d_un_responsable(self):
+        classe = Classe.objects.create(
+            ecole=self.ecole,
+            nom="MS-GS",
+            annee_scolaire="2027-2028",
+        )
+        r = self.client.get(reverse("gestion"))
+        self.assertContains(r, "Attribuez d’abord un responsable")
+        self.assertNotContains(r, reverse("activer_classe", args=[classe.pk]))
+
+        AffectationClasse.objects.create(
+            appartenance=self.appartenance_enseignant,
+            classe=classe,
+            type=AffectationClasse.RESPONSABLE,
+        )
+        r = self.client.get(reverse("gestion"))
+        self.assertContains(r, reverse("activer_classe", args=[classe.pk]))
+
+        r = self.client.post(
+            reverse("activer_classe", args=[classe.pk]), follow=True
+        )
+        classe.refresh_from_db()
+        self.assertEqual(classe.etat, Classe.ACTIVE)
+        self.assertContains(r, "est maintenant active")
+
+    def test_activer_une_classe_exige_post_et_un_responsable(self):
+        classe = Classe.objects.create(ecole=self.ecole, nom="MS-GS")
+        url = reverse("activer_classe", args=[classe.pk])
+        self.assertEqual(self.client.get(url).status_code, 403)
+        r = self.client.post(url, follow=True)
+        classe.refresh_from_db()
+        self.assertEqual(classe.etat, Classe.PREPARATION)
+        self.assertContains(r, "doit avoir un responsable actif")
+
 
 class CompositionClasse(Base):
     def setUp(self):

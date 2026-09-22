@@ -13,7 +13,7 @@
 
 <h2>Les classes</h2>
 {% if groupes %}
-  {% include "suivi/partiels/groupes_classes.html" with url_nom="importer_eleves" suffixe=" · ajouter des enfants" %}
+  {% include "suivi/partiels/groupes_classes.html" with url_nom="importer_eleves" suffixe=" · ajouter des enfants" gestion_classes=True %}
 {% else %}<div class="vide"><p>Aucune classe pour l'instant.</p></div>{% endif %}
 
 {% if eleves_archives %}

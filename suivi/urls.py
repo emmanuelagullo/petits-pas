@@ -121,6 +121,11 @@ urlpatterns = [
     ),
     path("gestion/classe/nouvelle/", views.creer_classe, name="creer_classe"),
     path(
+        "gestion/classe/<int:pk>/activer/",
+        views.activer_classe_vue,
+        name="activer_classe",
+    ),
+    path(
         "gestion/eleve/<int:pk>/parcours/",
         views.parcours_eleve,
         name="parcours_eleve",
