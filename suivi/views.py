@@ -1,6 +1,7 @@
 from functools import wraps
 import logging
 import mimetypes
+from pathlib import Path
 import re
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -14,7 +15,13 @@ from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection, transaction
 from django.db.models import Count, Prefetch, Q
-from django.http import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import (
+    FileResponse,
+    Http404,
+    HttpResponse,
+    HttpResponseForbidden,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -34,9 +41,11 @@ from .autorisations import (
     GERER_ELEVES_CLASSE,
     MODIFIER_ETAT,
     PREVISUALISER_CARNET,
+    TELECHARGER_MEDIA_ORIGINAL,
     VOIR_CLASSE,
     VOIR_LISTE_ELEVES,
     VOIR_SUIVI,
+    VOIR_MEDIA,
     affectation_active,
     autorise,
     charger_classe_autorisee,
@@ -44,6 +53,7 @@ from .autorisations import (
     classes_accessibles,
     est_direction,
 )
+from .audit import journaliser
 from .contexte_ecole import ecole_courante
 from .models import (
     AccesParcoursEleve,
@@ -494,9 +504,11 @@ def saisie_competence(request, pk, competence_pk):
     )
 
 
-def _contexte_grille_competence(request, pk, competence_pk):
+def _contexte_grille_competence(
+    request, pk, competence_pk, operation=VOIR_SUIVI
+):
     ecole = ecole_courante(request)
-    classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
+    classe = charger_classe_autorisee(request.user, pk, operation, ecole=ecole)
     competence = get_object_or_404(
         Competence, pk=competence_pk, domaine__ecole=ecole
     )
@@ -542,7 +554,9 @@ def grille_competence(request, pk, competence_pk):
 @acces_requis
 @require_safe
 def grille_competence_pdf(request, pk, competence_pk):
-    contexte = _contexte_grille_competence(request, pk, competence_pk)
+    contexte = _contexte_grille_competence(
+        request, pk, competence_pk, GENERER_CARNET
+    )
     html = render_to_string(
         "suivi/grille_competence.html",
         {**contexte, "generation_pdf": True},
@@ -555,6 +569,21 @@ def grille_competence_pdf(request, pk, competence_pk):
         html,
         request.build_absolute_uri("/"),
         feuille_style,
+    )
+    journaliser(
+        request.user,
+        "pdf.grille_genere",
+        contexte["classe"],
+        nouvelles={
+            "competence_id": contexte["competence"].pk,
+            "taille": len(contenu),
+        },
+    )
+    journaliser(
+        request.user,
+        "pdf.grille_telecharge",
+        contexte["classe"],
+        nouvelles={"competence_id": contexte["competence"].pk},
     )
     nom_classe = slugify(contexte["classe"].nom) or "classe"
     nom_competence = slugify(contexte["competence"].code) or "competence"
@@ -622,6 +651,66 @@ def trace(request, eleve_pk, competence_pk):
 @acces_requis
 def modifier_trace(request, eleve_pk, competence_pk, trace_pk):
     return _editer_trace(request, eleve_pk, competence_pk, trace_pk)
+
+
+def _charger_trace_media(request, trace_pk, operation):
+    ecole = ecole_courante(request)
+    trace_obj = get_object_or_404(
+        Trace.objects.select_related(
+            "auteur",
+            "observation__eleve",
+            "scolarite__classe",
+        ),
+        pk=trace_pk,
+        observation__eleve__ecole=ecole,
+        supprime_le__isnull=True,
+    )
+    if not autorise(request.user, operation, trace_obj, ecole=ecole):
+        raise Http404
+    return trace_obj
+
+
+@never_cache
+@acces_requis
+@require_safe
+def afficher_media_trace(request, trace_pk):
+    trace_obj = _charger_trace_media(request, trace_pk, VOIR_MEDIA)
+    nom = Path(trace_obj.photo.name).name
+    return FileResponse(
+        default_storage.open(trace_obj.photo.name, "rb"),
+        content_type=mimetypes.guess_type(nom)[0] or "application/octet-stream",
+        filename=nom,
+    )
+
+
+@never_cache
+@acces_requis
+@require_safe
+def telecharger_media_trace(request, trace_pk):
+    trace_obj = _charger_trace_media(
+        request, trace_pk, TELECHARGER_MEDIA_ORIGINAL
+    )
+    nom = Path(trace_obj.photo.name).name
+    try:
+        taille = trace_obj.photo.size
+    except OSError:
+        taille = None
+    journaliser(
+        request.user,
+        "media.original_telecharge",
+        trace_obj,
+        nouvelles={
+            "nom_fichier": nom,
+            "type_mime": mimetypes.guess_type(nom)[0],
+            "taille": taille,
+        },
+    )
+    return FileResponse(
+        default_storage.open(trace_obj.photo.name, "rb"),
+        as_attachment=True,
+        filename=nom,
+        content_type=mimetypes.guess_type(nom)[0] or "application/octet-stream",
+    )
 
 
 def _supprimer_media_apres_validation(nom):
@@ -786,6 +875,12 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
         trace_conservee.peut_modifier = (
             responsable or trace_conservee.auteur_id == request.user.pk
         )
+        trace_conservee.peut_telecharger_original = autorise(
+            request.user,
+            TELECHARGER_MEDIA_ORIGINAL,
+            trace_conservee,
+            ecole=ecole,
+        )
     traces_supprimees = Trace.objects.none()
     if responsable and obs:
         traces_supprimees = obs.traces.filter(
@@ -915,6 +1010,9 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         "afficher_sous_domaines": afficher_sous_domaines,
         "inclure_bilans": inclure_bilans,
         "edite_le": timezone.localdate(),
+        "peut_generer": autorise(
+            request.user, GENERER_CARNET, eleve, ecole=ecole
+        ),
     }
 
 
@@ -1019,6 +1117,13 @@ def carnet(request, pk):
 @require_safe
 def carnet_pdf(request, pk):
     contenu, nom = _contenu_pdf_carnet(request, pk, operation=GENERER_CARNET)
+    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+    journaliser(
+        request.user,
+        "pdf.carnet_telecharge",
+        eleve,
+        nouvelles={"nom_fichier": nom, "taille": len(contenu)},
+    )
     reponse = HttpResponse(contenu, content_type="application/pdf")
     reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
     return reponse
@@ -1052,6 +1157,17 @@ def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
     )
 
     nom = slugify(contexte["eleve"].nom_court) or "eleve"
+    journaliser(
+        request.user,
+        "pdf.carnet_genere",
+        contexte["eleve"],
+        nouvelles={
+            "mode": contexte["mode"],
+            "colonnes": contexte["colonnes"],
+            "regroupement": contexte["regroupement"],
+            "taille": len(contenu),
+        },
+    )
     return contenu, f"carnet-{nom}.pdf"
 
 
@@ -1098,6 +1214,21 @@ def preparer_edition(request, pk):
             )
             reponse["Content-Disposition"] = (
                 f'attachment; filename="carnets-{nom_classe}.zip"'
+            )
+            journaliser(
+                request.user,
+                "zip.classe_genere",
+                classe,
+                nouvelles={
+                    "nombre_eleves": len(selection),
+                    "taille": len(archive.getvalue()),
+                },
+            )
+            journaliser(
+                request.user,
+                "zip.classe_telecharge",
+                classe,
+                nouvelles={"nombre_eleves": len(selection)},
             )
             return reponse
 

@@ -17,7 +17,7 @@
 
   {% if trace_obj.photo %}
   <label>Photo actuelle</label>
-  <img class="miniature" src="{{ trace_obj.photo.url }}" alt="">
+  <img class="miniature" src="{% url 'afficher_media_trace' trace_obj.pk %}" alt="">
   <p><label class="choix-simple"><input type="checkbox" name="retirer_photo"> Retirer cette photo</label></p>
   {% endif %}
 

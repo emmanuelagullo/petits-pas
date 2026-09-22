@@ -1,4 +1,6 @@
 import datetime
+from io import BytesIO
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -659,3 +661,139 @@ class AdministrationCouranteEleves(LecturesCloisonnees):
         self.assertEqual(DemandeRapprochementEleve.objects.count(), 1)
         self.assertFalse(AccesParcoursEleve.objects.exists())
         self.assertFalse(second.scolarites.filter(classe=self.a1).exists())
+
+    def _trace_photo(self, auteur):
+        observation = Observation.objects.create(
+            eleve=self.alice,
+            competence=self.competence,
+            statut=Observation.REUSSI,
+        )
+        return Trace.objects.create(
+            observation=observation,
+            scolarite=self.alice.scolarite_courante(),
+            auteur=auteur,
+            dernier_editeur=auteur,
+            photo="traces/original-test.jpg",
+            commentaire="Une photo",
+        )
+
+    def test_t070_associe_previsualise_sans_audit(self):
+        self.client.force_login(self.amina)
+
+        reponse = self.client.get(f"/eleve/{self.alice.pk}/carnet/")
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertFalse(EvenementAudit.objects.exists())
+        self.assertNotContains(reponse, "Télécharger le PDF")
+
+    def test_t071_associe_ne_genere_pas_pdf_ni_zip(self):
+        self.client.force_login(self.amina)
+
+        pdf = self.client.get(f"/eleve/{self.alice.pk}/carnet.pdf")
+        archive = self.client.post(
+            f"/classe/{self.a1.pk}/edition/", {"eleves": [self.alice.pk]}
+        )
+
+        self.assertEqual(pdf.status_code, 404)
+        self.assertEqual(archive.status_code, 404)
+        self.assertFalse(EvenementAudit.objects.exists())
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
+    def test_t072_t073_responsable_genere_et_telecharge_pdf(self, _generer):
+        self.client.force_login(self.remi)
+
+        reponse = self.client.get(f"/eleve/{self.alice.pk}/carnet.pdf")
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertTrue(
+            EvenementAudit.objects.filter(action="pdf.carnet_genere").exists()
+        )
+        self.assertTrue(
+            EvenementAudit.objects.filter(
+                action="pdf.carnet_telecharge"
+            ).exists()
+        )
+
+    def test_t074_contributeur_ne_previsualise_pas_carnet(self):
+        self.client.force_login(self.cora)
+
+        reponse = self.client.get(f"/eleve/{self.alice.pk}/carnet/")
+
+        self.assertEqual(reponse.status_code, 404)
+
+    @patch("suivi.views.default_storage.open", return_value=BytesIO(b"image"))
+    def test_t075_affichage_ordinaire_media_n_est_pas_audite(self, _ouvrir):
+        trace = self._trace_photo(self.cora)
+        self.client.force_login(self.remi)
+
+        reponse = self.client.get(f"/media/trace/{trace.pk}/")
+        contenu = b"".join(reponse.streaming_content)
+        cle_devinee = self.client.get("/media/traces/original-test.jpg")
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(contenu, b"image")
+        self.assertEqual(cle_devinee.status_code, 404)
+        self.assertFalse(
+            EvenementAudit.objects.filter(
+                action="media.original_telecharge"
+            ).exists()
+        )
+
+    @patch("suivi.views.default_storage.size", return_value=5)
+    @patch("suivi.views.default_storage.open", return_value=BytesIO(b"image"))
+    def test_t076_responsable_telecharge_original_et_audit(
+        self, _ouvrir, _taille
+    ):
+        trace = self._trace_photo(self.cora)
+        self.client.force_login(self.remi)
+
+        reponse = self.client.get(f"/media/trace/{trace.pk}/original/")
+        contenu = b"".join(reponse.streaming_content)
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(contenu, b"image")
+        evenement = EvenementAudit.objects.get(
+            action="media.original_telecharge"
+        )
+        self.assertEqual(evenement.objet_id, str(trace.pk))
+        self.assertNotIn("contenu", evenement.nouvelles_valeurs)
+
+    @patch("suivi.views.default_storage.size", return_value=5)
+    @patch("suivi.views.default_storage.open", return_value=BytesIO(b"image"))
+    def test_t077_contributeur_telecharge_sa_photo(self, _ouvrir, _taille):
+        trace = self._trace_photo(self.cora)
+        self.client.force_login(self.cora)
+
+        reponse = self.client.get(f"/media/trace/{trace.pk}/original/")
+
+        self.assertEqual(reponse.status_code, 200)
+        reponse.close()
+        self.assertTrue(
+            EvenementAudit.objects.filter(
+                action="media.original_telecharge", acteur=self.cora
+            ).exists()
+        )
+
+    def test_t078_contributeur_ne_telecharge_pas_photo_autrui(self):
+        trace = self._trace_photo(self.amina)
+        self.client.force_login(self.cora)
+
+        affichage = self.client.get(f"/media/trace/{trace.pk}/")
+        original = self.client.get(f"/media/trace/{trace.pk}/original/")
+
+        self.assertEqual(affichage.status_code, 404)
+        self.assertEqual(original.status_code, 404)
+        self.assertFalse(EvenementAudit.objects.exists())
+
+    def test_ancienne_url_applicative_est_refusee_apres_fin_affectation(self):
+        trace = self._trace_photo(self.cora)
+        affectation = AffectationClasse.objects.get(
+            appartenance=self.cora_a, classe=self.a1
+        )
+        affectation.etat = AffectationClasse.TERMINEE
+        affectation.save(update_fields=["etat"])
+        self.client.force_login(self.cora)
+
+        reponse = self.client.get(f"/media/trace/{trace.pk}/")
+
+        self.assertEqual(reponse.status_code, 403)

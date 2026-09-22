@@ -29,6 +29,8 @@ MODIFIER_ETAT = "modifier_etat"
 CONTRIBUER = "contribuer"
 PREVISUALISER_CARNET = "previsualiser_carnet"
 GENERER_CARNET = "generer_carnet"
+VOIR_MEDIA = "voir_media"
+TELECHARGER_MEDIA_ORIGINAL = "telecharger_media_original"
 
 
 def _utilisateur_actif(utilisateur):
@@ -136,6 +138,40 @@ def peut_contribuer(utilisateur, classe, date=None):
     ) is not None
 
 
+def peut_voir_media(utilisateur, trace, date=None):
+    from .models import AccesParcoursEleve
+
+    if trace.supprime_le is not None or not trace.photo:
+        return False
+    eleve = trace.observation.eleve
+    scolarite_courante = eleve.scolarite_courante()
+    if scolarite_courante is None:
+        return False
+    if trace.scolarite_id == scolarite_courante.pk:
+        return peut_voir_suivi(utilisateur, scolarite_courante.classe, date) or (
+            trace.auteur_id == utilisateur.pk
+            and peut_contribuer(utilisateur, scolarite_courante.classe, date)
+        )
+    return bool(
+        trace.visible_carnet
+        and peut_voir_suivi(utilisateur, scolarite_courante.classe, date)
+        and AccesParcoursEleve.objects.filter(
+            eleve=eleve, classe=scolarite_courante.classe
+        ).exists()
+    )
+
+
+def peut_telecharger_media_original(utilisateur, trace, date=None):
+    if not peut_voir_media(utilisateur, trace, date):
+        return False
+    classe_courante = trace.observation.eleve.classe
+    return peut_modifier_etat(utilisateur, classe_courante, date) or (
+        trace.auteur_id == utilisateur.pk
+        and trace.scolarite_id == trace.observation.eleve.scolarite_courante().pk
+        and peut_contribuer(utilisateur, classe_courante, date)
+    )
+
+
 def _ecole_ressource(ressource):
     if isinstance(ressource, Ecole):
         return ressource
@@ -208,6 +244,10 @@ def autorise(utilisateur, operation, ressource=None, *, ecole=None, date=None):
         return direction or peut_modifier_etat(utilisateur, classe, date)
     if operation == CONTRIBUER:
         return peut_contribuer(utilisateur, classe, date)
+    if operation == VOIR_MEDIA:
+        return peut_voir_media(utilisateur, ressource, date)
+    if operation == TELECHARGER_MEDIA_ORIGINAL:
+        return peut_telecharger_media_original(utilisateur, ressource, date)
     return False
 
 

@@ -72,6 +72,16 @@ urlpatterns = [
         name="trace",
     ),
     path(
+        "media/trace/<int:trace_pk>/",
+        views.afficher_media_trace,
+        name="afficher_media_trace",
+    ),
+    path(
+        "media/trace/<int:trace_pk>/original/",
+        views.telecharger_media_trace,
+        name="telecharger_media_trace",
+    ),
+    path(
         "eleve/<int:eleve_pk>/competence/<int:competence_pk>/trace/<int:trace_pk>/",
         views.modifier_trace,
         name="modifier_trace",
