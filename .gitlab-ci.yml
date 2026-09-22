@@ -226,7 +226,7 @@ captures-demonstration:
     entrypoint: [""]
   cache: []
   before_script:
-    - scripts/preparer-site.sh
+    - sh scripts/preparer-site.sh
     - hugo version
 
 site-public:

@@ -39,9 +39,12 @@ l'application.
 ## Construction locale
 
 ```sh
-scripts/preparer-site.sh
+sh scripts/preparer-site.sh
 hugo --source site --minify
 ```
+
+La même préparation est nécessaire avant `hugo server` dans un clone neuf et
+après chaque modification de l'un des quatre documents Org sources.
 
 Le résultat est écrit dans `site/public/`, répertoire ignoré par Git.
 
