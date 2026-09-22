@@ -7,6 +7,11 @@ Petits Pas vise un parcours quotidien court : retrouver sa classe, documenter
 une observation, associer une acquisition et préparer progressivement le
 carnet de chaque enfant.
 
+Le travail en équipe ne donne pas les mêmes responsabilités à chaque personne.
+La présentation [« Qui peut faire quoi ? »]({{< relref "/roles/" >}}) explique
+en quelques minutes les différences entre direction, responsables, enseignants
+associés et contributeurs.
+
 ## De l'observation au carnet
 
 1. Choisir un élève ou un groupe.

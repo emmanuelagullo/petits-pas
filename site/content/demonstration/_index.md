@@ -8,6 +8,9 @@ direction de Petits Pas. Elle est partagée par toutes les personnes qui la
 visitent : vous pouvez donc voir leurs essais, comme elles peuvent voir les
 vôtres.
 
+Avant de choisir un compte, la page [« Qui peut faire quoi ? »]({{< relref "/roles/" >}})
+donne une vue rapide des fonctions et de leurs limites.
+
 {{< acces-demonstration >}}
 
 ## Avant de commencer
