@@ -16,9 +16,12 @@
   <p>Ces comptes utilisent le mot de passe enseignant affiché ci-dessus.</p>
   <ul>
     {{- range $demo.profils }}
+    {{- if not .compte_initial }}
     <li><code>{{ .utilisateur }}</code> — {{ .nom }}</li>
     {{- end }}
+    {{- end }}
   </ul>
+  <p><a href="{{ "roles/equipe/" | relURL }}">Comprendre le périmètre de chaque personnage</a></p>
 </details>
 <p class="actions">
   <a class="button primary" href="{{ $demo.url }}" rel="external">Ouvrir la démonstration</a>

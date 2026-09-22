@@ -9,7 +9,9 @@ visitent : vous pouvez donc voir leurs essais, comme elles peuvent voir les
 vôtres.
 
 Avant de choisir un compte, la page [« Qui peut faire quoi ? »]({{< relref "/roles/" >}})
-donne une vue rapide des fonctions et de leurs limites.
+donne une vue rapide des fonctions et de leurs limites. Les [fiches de l'équipe
+fictive]({{< relref "/roles/equipe/" >}}) présentent ensuite chaque compte et
+son périmètre.
 
 {{< acces-demonstration >}}
 

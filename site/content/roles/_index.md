@@ -50,6 +50,11 @@ mais chacune continue de s'appliquer dans son propre périmètre.
 - Une direction qui doit exceptionnellement intervenir pédagogiquement suit
   une procédure d'affectation temporaire, motivée et limitée dans le temps.
 
+L'[équipe fictive de Ma Belle École]({{< relref "/roles/equipe/" >}}) met ces
+règles en scène avec neuf personnages : direction, co-responsables, enseignante
+associée, contributrice, profil mixte, remplacement temporaire, membre sans
+affectation et ancienne intervenante.
+
 La [démonstration publique]({{< relref "/demonstration/" >}}) permet d'essayer
 ces situations avec une équipe entièrement fictive. Pour approfondir les
 règles, leurs justifications et les scénarios de refus, consultez les
