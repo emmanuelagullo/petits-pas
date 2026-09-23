@@ -304,6 +304,12 @@ class ReinitialisationMotDePasse(Base):
         self.assertContains(reponse, "Mot de passe oublié ?")
         self.assertContains(reponse, reverse("mot_de_passe_oublie"))
 
+    def test_le_script_d_affichage_du_mot_de_passe_est_charge(self):
+        reponse = self.client.get(reverse("connexion"))
+        self.assertRegex(
+            reponse.content.decode(), r"suivi/mot_de_passe\.[0-9a-f]+\.js"
+        )
+
     def test_une_adresse_inconnue_ne_revele_rien_et_n_envoie_aucun_email(self):
         reponse = self.demander_reinitialisation("inconnue@example.test")
 
