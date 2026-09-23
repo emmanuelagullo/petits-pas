@@ -21,6 +21,8 @@ statut = "disponible"
    cette trace dans le carnet**.
 6. Sélectionner **Ajouter la trace**.
 
+{{< capture-guide src="captures/guide/observer/trace.png" alt="Formulaire d’ajout d’une trace avec commentaire, date et photographie" caption="Le cadrage montre uniquement les champs utiles, avec les données fictives de la démonstration." >}}
+
 ## Résultat attendu
 
 La nouvelle trace rejoint l’historique daté de la compétence. Des indicateurs

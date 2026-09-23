@@ -20,7 +20,7 @@ statut = "disponible"
 La classe est créée **en préparation**. Vous pouvez déjà en composer l’effectif,
 mais elle n’ouvre pas encore les droits pédagogiques ordinaires.
 
-{{< capture-guide src="captures/direction.png" alt="Page de gestion de l’école fictive avec ses classes" caption="La gestion de l’école fictive, générée automatiquement depuis la démonstration." >}}
+{{< capture-guide src="captures/guide/classes/creer-classe.png" alt="Formulaire de création d’une classe fictive" caption="Le formulaire ciblé est reproduit automatiquement depuis la démonstration." >}}
 
 ## Attribuer un responsable et activer
 

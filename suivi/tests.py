@@ -2638,10 +2638,10 @@ class JeuDemoLarge(TestCase):
             profil for profil in configuration["profils"] if profil["id"] == "alice"
         )
         self.assertEqual(alice["affectations"][0]["periode"], "terminee")
-        self.assertEqual(len(configuration["scenarios"]), 11)
+        self.assertEqual(len(configuration["scenarios"]), 17)
         self.assertEqual(
             {scenario["profil"] for scenario in configuration["scenarios"]},
-            {"diane", "nadia", "cora", "samir"},
+            {"diane", "remi", "nadia", "cora", "samir"},
         )
         self.assertEqual(
             sum("capture_mobile" in scenario for scenario in configuration["scenarios"]),
@@ -2659,6 +2659,12 @@ class JeuDemoLarge(TestCase):
                 "#membre-marc-demo",
                 "#invitations",
                 "#gouvernance",
+                "#creer-classe",
+                "#composition-classe",
+                "#formulaire-trace",
+                "#formulaire-bilan",
+                "#preparer-carnets",
+                "#membre-enseignant-demo form.encadre",
             },
         )
 

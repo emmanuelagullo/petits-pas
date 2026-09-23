@@ -256,3 +256,69 @@ scenarios:
     capture_mobile: roles/samir/papillons-mobile.png
     titre: Samir suit les Papillons
     legende: Dans cette autre classe, son affectation d'enseignant associé ouvre le suivi et la prévisualisation des carnets.
+  - id: guide-creer-classe
+    profil: diane
+    parcours: guide
+    etapes:
+      - { action: lien, nom: "Gérer l'école" }
+      - { action: lien, nom: "Créer une classe" }
+      - { action: titre, nom: "Créer une classe" }
+    cible: "#creer-classe"
+    capture: guide/classes/creer-classe.png
+    titre: Créer une classe en préparation
+    legende: Le nom et l'année scolaire sont les deux informations nécessaires avant de composer la classe fictive.
+  - id: guide-composition-classe
+    profil: diane
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: lien, nom: "Gérer les enfants" }
+      - { action: titre, nom: "Composition de Les Coccinelles" }
+    cible: "#composition-classe"
+    capture: guide/classes/composition.png
+    titre: Gérer la composition d'une classe
+    legende: La direction retrouve les niveaux, déplacements, retraits et parcours des seuls élèves fictifs.
+  - id: guide-trace
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: selecteur, selecteur: ".liste .entree" }
+      - { action: selecteur, selecteur: ".trace-lien:not(.pleine)" }
+    cible: "#formulaire-trace"
+    capture: guide/observer/trace.png
+    titre: Ajouter une trace datée
+    legende: Le formulaire associe un commentaire ou une photographie fictive à une compétence sans en changer l'état.
+  - id: guide-bilan
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: selecteur, selecteur: ".liste .entree" }
+      - { action: lien, nom: "Quelques mots sur son parcours" }
+    cible: "#formulaire-bilan"
+    capture: guide/observer/bilan.png
+    titre: Ajouter un bilan de parcours
+    legende: Le responsable choisit l'année, la date, le texte et la présence du bilan fictif dans le carnet.
+  - id: guide-preparer-carnets
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: lien, nom: "Préparer les carnets PDF" }
+      - { action: titre, nom: "Préparer les carnets PDF" }
+    cible: "#preparer-carnets"
+    capture: guide/carnets/preparer-classe.png
+    titre: Préparer les carnets d'une classe
+    legende: La sélection des élèves et les options communes précèdent la création de l'archive fictive.
+  - id: guide-remplacer-responsable
+    profil: diane
+    parcours: guide
+    etapes:
+      - { action: lien, nom: "Gérer l'école" }
+      - { action: lien, nom: "Équipe pédagogique" }
+      - { action: titre, nom: "Équipe pédagogique" }
+    cible: "#membre-enseignant-demo form.encadre"
+    capture: guide/equipe/remplacer-responsable.png
+    titre: Remplacer un responsable
+    legende: Le formulaire prépare la nouvelle responsabilité avant de terminer l'ancienne dans les données fictives.

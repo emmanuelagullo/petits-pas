@@ -1,4 +1,4 @@
-<form method="post" class="formulaire-trace">
+<form method="post" class="formulaire-trace" id="formulaire-bilan">
   {% csrf_token %}
   <h2>{% if bilan_obj %}Modifier le bilan{% else %}Ajouter un bilan{% endif %}</h2>
   <label for="scolarite">Année scolaire</label>

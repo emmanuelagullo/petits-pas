@@ -14,7 +14,9 @@ PARCOURS_CAPTURE = {
     "classe_contribution",
     "classe_suivi",
     "collaborateurs",
+    "guide",
 }
+ACTIONS_CAPTURE_GUIDE = {"classe", "lien", "selecteur", "titre"}
 
 
 def _exiger_chaine(valeur, chemin):
@@ -199,5 +201,37 @@ def charger_configuration_demo(chemin):
         if classe is not None and classe not in classes:
             raise ValueError(
                 f"Configuration de démonstration invalide : {chemin_scenario}.classe."
+            )
+        etapes = scenario.get("etapes")
+        if scenario["parcours"] == "guide":
+            if not isinstance(etapes, list) or not etapes:
+                raise ValueError(
+                    f"Configuration de démonstration invalide : {chemin_scenario}.etapes."
+                )
+            for sous_indice, etape in enumerate(etapes):
+                chemin_etape = f"{chemin_scenario}.etapes[{sous_indice}]"
+                if not isinstance(etape, dict):
+                    raise ValueError(
+                        f"Configuration de démonstration invalide : {chemin_etape}."
+                    )
+                action = etape.get("action")
+                if action not in ACTIONS_CAPTURE_GUIDE:
+                    raise ValueError(
+                        f"Configuration de démonstration invalide : {chemin_etape}.action."
+                    )
+                if action == "classe":
+                    if etape.get("classe") not in classes:
+                        raise ValueError(
+                            f"Configuration de démonstration invalide : {chemin_etape}.classe."
+                        )
+                elif action in {"lien", "titre"}:
+                    _exiger_chaine(etape.get("nom"), f"{chemin_etape}.nom")
+                else:
+                    _exiger_chaine(
+                        etape.get("selecteur"), f"{chemin_etape}.selecteur"
+                    )
+        elif etapes is not None:
+            raise ValueError(
+                f"Configuration de démonstration invalide : {chemin_scenario}.etapes."
             )
     return configuration
