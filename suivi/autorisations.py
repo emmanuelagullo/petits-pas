@@ -100,7 +100,9 @@ def affectations_actives(
     if types is not None:
         resultat = resultat.filter(type__in=types)
     if exiger_classe_active:
-        resultat = resultat.filter(classe__etat=Classe.ACTIVE)
+        resultat = resultat.filter(
+            Q(classe__etat=Classe.ACTIVE) | Q(acces_historique=True)
+        )
     return resultat.distinct()
 
 

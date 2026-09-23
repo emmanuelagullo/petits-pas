@@ -100,6 +100,20 @@ class ModeleAffectations(TestCase):
             .exists()
         )
 
+    def test_acces_historique_rend_active_une_affectation_de_classe_archivee(self):
+        self.classe.etat = Classe.ARCHIVEE
+        self.classe.save(update_fields=["etat"])
+        affectation = AffectationClasse.objects.create(
+            appartenance=self.appartenance,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+        )
+
+        self.assertFalse(affectation.est_active())
+        affectation.acces_historique = True
+        affectation.save(update_fields=["acces_historique"])
+        self.assertTrue(affectation.est_active())
+
     def test_affectation_inter_ecoles_refusee(self):
         autre_ecole = Ecole.objects.create(nom="Ailleurs")
         autre_classe = Classe.objects.create(ecole=autre_ecole, nom="GS")

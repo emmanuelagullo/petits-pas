@@ -38,14 +38,14 @@
   <a href="?vue=personnes{% if afficher_historique %}&historique=1{% endif %}" aria-current="{% if vue_equipe == 'personnes' %}page{% endif %}">Personnes</a>
 </nav>
 
-<p class="controle-historique">{% if afficher_historique %}<a href="?vue={{ vue_equipe }}">Masquer les affectations terminées et les anciennes classes</a>{% else %}<a href="?vue={{ vue_equipe }}&historique=1">Afficher l’historique</a>{% endif %}</p>
+<p class="controle-historique">{% if afficher_historique %}<a href="?vue={{ vue_equipe }}">Revenir aux affectations courantes et futures</a>{% else %}<a href="?vue={{ vue_equipe }}&historique=1">Afficher aussi les années passées et les affectations terminées</a>{% endif %}</p>
 
 {% if vue_equipe == "classes" %}
 <div class="cartes-equipe">
 {% for classe in classes_visibles %}
 <section class="carte-equipe" id="classe-{{ classe.pk }}">
   <header class="carte-equipe-entete">
-    <div><h2>{{ classe.nom }}</h2><p>{{ classe.annee_scolaire }} · {{ classe.libelle_statut_annee }} · {{ classe.get_etat_display }}</p></div>
+    <div><h2>{{ classe.nom }}</h2><p>{{ classe.annee_scolaire }} · <span class="pastille pastille-annee annee-{{ classe.statut_annee }}">{{ classe.libelle_statut_annee }}</span> · {{ classe.get_etat_display }}</p></div>
     {% if classe.anomalie_ouverte %}<span class="pastille alerte">Responsable requis</span>{% endif %}
   </header>
 

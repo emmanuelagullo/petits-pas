@@ -26,7 +26,6 @@ def _peut_corriger_trace(utilisateur, trace):
     return _est_responsable(utilisateur, classe) or (
         trace.auteur_id == utilisateur.pk
         and autorise(utilisateur, CONTRIBUER, classe)
-        and classe.etat == classe.ACTIVE
     )
 
 

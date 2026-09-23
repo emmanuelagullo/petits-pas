@@ -29,6 +29,11 @@ seulement et pendant la période active.
 La vue **Personnes** permet la même opération dans l’autre sens avec
 **Attribuer une fonction à…** : la personne est alors déjà sélectionnée.
 
+Pour retrouver une classe d’une année passée, sélectionner **Afficher aussi les
+années passées et les affectations terminées**. Une fonction attribuée dans ce
+mode rouvre explicitement l’accès pédagogique à cette classe ; elle est signalée
+comme un **accès historique** et peut être terminée comme toute autre affectation.
+
 Une affectation responsable active résout l’anomalie signalant une classe sans
 responsable. Elle permet ensuite à la direction d’activer une classe encore en
 préparation.
