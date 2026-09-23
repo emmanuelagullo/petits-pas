@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Ajouter une contribution pour {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' eleve.classe.pk %}">{{ eleve.classe.nom }}</a></p>
+<p class="fil"><a href="{% url 'classe_detail' eleve.classe.pk %}">{{ eleve.classe.libelle_avec_annee }}</a></p>
 <h1>Ajouter une contribution pour {{ eleve.nom_court }}</h1>
 <p class="sous-titre">Choisissez l'apprentissage auquel rattacher la photo ou le commentaire.</p>
 

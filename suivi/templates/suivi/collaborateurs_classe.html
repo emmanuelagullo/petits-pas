@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Collaborateurs — {{ classe.nom }}{% endblock %}
+{% block titre %}Collaborateurs — {{ classe.libelle_avec_annee }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Collaborateurs</h1>
 <ul class="liste">
 {% for affectation in affectations %}

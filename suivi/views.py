@@ -39,7 +39,7 @@ from comptes.models import (
     Invitation,
     Utilisateur,
 )
-from comptes.forms import CreationCompteInvitationForm
+from comptes.forms import CreationCompteInvitationForm, ProfilForm
 
 from .autorisations import (
     ACCEDER_APPLICATION,
@@ -206,6 +206,25 @@ def mot_de_passe_oublie(request):
 def deconnexion(request):
     logout(request)
     return redirect("connexion")
+
+
+@acces_requis
+def mon_compte(request):
+    formulaire = ProfilForm(request.POST or None, instance=request.user)
+    if request.method == "POST" and formulaire.is_valid():
+        formulaire.save()
+        messages.success(request, "Votre identité a été mise à jour.")
+        return redirect("mon_compte")
+    affectations = (
+        AffectationClasse.objects.filter(appartenance__utilisateur=request.user)
+        .select_related("classe", "classe__ecole")
+        .order_by("-classe__annee_scolaire", "classe__ecole__nom", "classe__nom")
+    )
+    return render(
+        request,
+        "suivi/mon_compte.html",
+        {"formulaire": formulaire, "affectations": affectations},
+    )
 
 
 def accepter_invitation_vue(request, selecteur, jeton):

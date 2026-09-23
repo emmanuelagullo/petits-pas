@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Saisir pour toute la classe{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Quelle compétence venez-vous d'observer&nbsp;?</h1>
 <p class="sous-titre">Vous cocherez ensuite tous les enfants concernés sur un seul écran.</p>
 

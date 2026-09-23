@@ -29,7 +29,35 @@
   <div class="bandeau-corps">
     <a class="marque" href="{% url 'accueil' %}">{{ ecole.nom }}</a>
     <nav>
-      {% if utilisateur_courant %}<span>{{ utilisateur_courant.get_full_name|default:utilisateur_courant.username }}</span>{% endif %}
+      {% if utilisateur_courant %}
+      <details class="menu-utilisateur">
+        <summary>{{ utilisateur_courant.get_full_name|default:utilisateur_courant.username }}</summary>
+        <div class="menu-utilisateur-contenu">
+          {% if affectations_utilisateur_recentes %}
+          <strong>Mes classes</strong>
+          <ul>
+            {% for affectation in affectations_utilisateur_recentes %}
+            <li>
+              {% if affectation.classe_accessible %}<a href="{% url 'classe_detail' affectation.classe.pk %}">{% endif %}{{ affectation.classe.libelle_avec_annee }}{% if affectation.classe_accessible %}</a>{% endif %}
+              <small>{{ affectation.get_type_display }}{% if affectation.est_future %} · à partir du {{ affectation.date_debut }}{% endif %} · {{ affectation.classe.libelle_statut_annee }}</small>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+          {% if affectations_utilisateur_passees %}
+          <details class="affectations-passees">
+            <summary>Affectations passées</summary>
+            <ul>
+              {% for affectation in affectations_utilisateur_passees %}
+              <li>{{ affectation.classe.libelle_avec_annee }}<small>{{ affectation.get_type_display }}</small></li>
+              {% endfor %}
+            </ul>
+          </details>
+          {% endif %}
+          <a class="lien-compte" href="{% url 'mon_compte' %}">Mon compte</a>
+        </div>
+      </details>
+      {% endif %}
       {% if est_direction %}<a href="{% url 'gestion' %}">Gérer l'école</a>{% endif %}
       <a href="{% url 'deconnexion' %}">Quitter</a>
     </nav>

@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Préparer les carnets de {{ classe.nom }}{% endblock %}
+{% block titre %}Préparer les carnets de {{ classe.libelle_avec_annee }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Préparer les carnets PDF</h1>
 <p class="sous-titre">Chaque enfant sélectionné aura son propre PDF dans une archive ZIP.</p>
 

@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}{{ competence.libelle }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a> · <a href="{% url 'choisir_competence' classe.pk %}">Changer de compétence</a></p>
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'choisir_competence' classe.pk %}">Changer de compétence</a></p>
 <h1>{{ competence.libelle }}</h1>
 <p class="sous-titre">{{ competence.domaine.nom }} · repère {{ competence.get_niveau_display|lower }}</p>
 
