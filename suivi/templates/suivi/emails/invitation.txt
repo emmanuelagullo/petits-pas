@@ -1,0 +1,16 @@
+Bonjour,
+
+{{ ecole.nom }} vous invite à rejoindre Petits Pas, le carnet de suivi
+des apprentissages en maternelle.
+
+Pour créer votre compte (ou rattacher votre compte existant à cette
+école), ouvrez le lien suivant :
+
+{{ lien }}
+
+Ce lien est à usage unique et expire le {{ expire_le|date:"d/m/Y à H:i" }}.
+
+Si vous n'êtes pas à l'origine de cette invitation, vous pouvez
+ignorer ce message.
+
+— Petits Pas

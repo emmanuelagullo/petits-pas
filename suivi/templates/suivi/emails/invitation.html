@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Invitation Petits Pas</title>
+</head>
+<body style="margin:0; padding:0; background:#f2f4f0; font:16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; color:#1f2a33;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:1.5rem 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width:34rem; background:#ffffff; border:1px solid #d2d9cf; border-radius:6px; padding:1.5rem;" cellpadding="0" cellspacing="0">
+          <tr><td>
+            <p>Bonjour,</p>
+            <p><strong>{{ ecole.nom }}</strong> vous invite à rejoindre Petits Pas, le carnet de suivi des apprentissages en maternelle.</p>
+            <p>Pour créer votre compte (ou rattacher votre compte existant à cette école), ouvrez le lien suivant :</p>
+            <p><a href="{{ lien }}" style="color:#2d4e8a;">{{ lien }}</a></p>
+            <p>Ce lien est à usage unique et expire le {{ expire_le|date:"d/m/Y à H:i" }}.</p>
+            <p style="color:#5b6b74; font-size:0.9rem;">Si vous n'êtes pas à l'origine de cette invitation, vous pouvez ignorer ce message.</p>
+            <p>— Petits Pas</p>
+          </td></tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

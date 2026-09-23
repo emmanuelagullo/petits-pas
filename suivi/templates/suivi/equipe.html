@@ -50,10 +50,10 @@
 <section id="invitations">
 <h2>Inviter un membre</h2>
 <p>Le lien permet à la personne de créer son compte individuel, ou de rattacher un compte existant utilisant la même adresse. Il est valable sept jours.</p>
-<p class="aide">Petits Pas n’envoie pas encore de courriel automatiquement : transmettez vous-même le lien par un canal approprié. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>
+<p class="aide">L’invitation est envoyée par e-mail à l’adresse saisie. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>
 {% if lien_invitation_creee %}
 <div class="encadre" role="status">
-  <label for="lien-invitation">Lien à transmettre — affiché une seule fois</label>
+  <label for="lien-invitation">Lien de secours — affiché une seule fois, au cas où l’e-mail n’arriverait pas</label>
   <input id="lien-invitation" value="{{ lien_invitation_creee }}" readonly onclick="this.select()">
   <p><a href="{{ lien_invitation_creee }}">Vérifier le lien d’invitation</a></p>
 </div>

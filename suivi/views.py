@@ -103,6 +103,7 @@ from .services.equipe import (
     activer_classe,
     attribuer_affectation,
     creer_compte_et_accepter_invitation,
+    envoyer_email_invitation,
     invitation_est_utilisable,
     inviter,
     remplacer_responsable,
@@ -1503,17 +1504,29 @@ def equipe_ecole(request):
                     ecole=ecole,
                     email=request.POST.get("email", ""),
                 )
-                request.session["lien_invitation_creee"] = request.build_absolute_uri(
+                lien = request.build_absolute_uri(
                     reverse(
                         "accepter_invitation",
                         args=[invitation.selecteur, jeton],
                     )
                 )
-                messages.success(
-                    request,
-                    "Invitation créée. Copiez maintenant le lien affiché : "
-                    "il ne sera présenté qu’une fois.",
-                )
+                request.session["lien_invitation_creee"] = lien
+                if envoyer_email_invitation(
+                    utilisateur=request.user, invitation=invitation, lien=lien
+                ):
+                    messages.success(
+                        request,
+                        f"Invitation envoyée par e-mail à {invitation.email}. "
+                        "Le lien reste aussi affiché ci-dessous en secours, "
+                        "au cas où l’e-mail n’arriverait pas.",
+                    )
+                else:
+                    messages.warning(
+                        request,
+                        "Invitation créée, mais l’envoi de l’e-mail a "
+                        "échoué. Copiez le lien affiché ci-dessous et "
+                        "transmettez-le vous-même.",
+                    )
             elif action == "revoquer_invitation":
                 revoquer_invitation(
                     utilisateur=request.user,

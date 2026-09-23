@@ -37,6 +37,7 @@ from .models import (
     Domaine,
     Ecole,
     Eleve,
+    EvenementAudit,
     FormulationProposee,
     Observation,
     ParametresCarnet,
@@ -48,7 +49,12 @@ from .models import (
     statut_annee_scolaire,
 )
 from .views import _recuperateur_pdf
-from .services.equipe import accepter_invitation, inviter, terminer_affectation
+from .services.equipe import (
+    accepter_invitation,
+    envoyer_email_invitation,
+    inviter,
+    terminer_affectation,
+)
 from .services.pedagogie import modifier_etat
 
 
@@ -3184,21 +3190,44 @@ class EquipeEtGouvernance(Base):
                 email="ATTENTE@example.test",
             )
 
-    def test_la_direction_recoit_le_lien_une_seule_fois_et_sait_le_transmettre(self):
+    def test_l_invitation_est_envoyee_par_email_et_le_lien_reste_en_secours(self):
         self.entrer("dir-mdp")
         reponse = self.client.post(
             reverse("equipe_ecole"),
             {"action": "inviter", "email": "a-transmettre@example.test"},
             follow=True,
         )
-        self.assertContains(reponse, "Petits Pas n’envoie pas encore de courriel")
+        self.assertContains(reponse, "Invitation envoyée par e-mail")
         self.assertContains(reponse, "affiché une seule fois")
         invitation = Invitation.objects.get(email="a-transmettre@example.test")
         fragment = f"/invitation/{invitation.selecteur}/"
         self.assertContains(reponse, fragment)
 
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["a-transmettre@example.test"])
+        self.assertIn(fragment, mail.outbox[0].body)
+
         reponse_suivante = self.client.get(reverse("equipe_ecole"))
         self.assertNotContains(reponse_suivante, fragment)
+
+    def test_l_invitation_reste_utilisable_si_l_envoi_d_email_echoue(self):
+        self.entrer("dir-mdp")
+
+        with patch(
+            "suivi.services.equipe.EmailMultiAlternatives.send",
+            side_effect=OSError("connexion refusée"),
+        ):
+            reponse = self.client.post(
+                reverse("equipe_ecole"),
+                {"action": "inviter", "email": "secours@example.test"},
+                follow=True,
+            )
+
+        self.assertContains(reponse, "l’envoi de l’e-mail a échoué")
+        invitation = Invitation.objects.get(email="secours@example.test")
+        fragment = f"/invitation/{invitation.selecteur}/"
+        self.assertContains(reponse, fragment)
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_une_invitation_expiree_est_signalee_sans_action_de_revocation(self):
         invitation, _ = inviter(
@@ -3217,6 +3246,50 @@ class EquipeEtGouvernance(Base):
         ligne = contenu[debut:fin]
         self.assertIn("Expirée", ligne)
         self.assertNotIn("Révoquer", ligne)
+
+    def test_l_email_d_invitation_contient_le_lien_et_l_ecole(self):
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="contenu@example.test",
+        )
+        lien = f"https://petits-pas.example.test/invitation/{invitation.selecteur}/{jeton}/"
+
+        envoye = envoyer_email_invitation(
+            utilisateur=self.direction, invitation=invitation, lien=lien
+        )
+
+        self.assertTrue(envoye)
+        self.assertEqual(len(mail.outbox), 1)
+        message = mail.outbox[0]
+        self.assertEqual(message.to, ["contenu@example.test"])
+        self.assertIn(self.ecole.nom, message.subject)
+        self.assertIn(lien, message.body)
+        self.assertIn(lien, message.alternatives[0][0])
+
+    def test_l_echec_d_envoi_est_consigne_sans_lever_d_exception(self):
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="echec@example.test",
+        )
+        lien = f"https://petits-pas.example.test/invitation/{invitation.selecteur}/{jeton}/"
+
+        with patch(
+            "suivi.services.equipe.EmailMultiAlternatives.send",
+            side_effect=OSError("connexion refusée"),
+        ):
+            envoye = envoyer_email_invitation(
+                utilisateur=self.direction, invitation=invitation, lien=lien
+            )
+
+        self.assertFalse(envoye)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertTrue(
+            EvenementAudit.objects.filter(
+                action="invitation.email_echec", objet_id=str(invitation.pk)
+            ).exists()
+        )
 
     def test_derniere_affectation_responsable_ne_peut_etre_terminee(self):
         affectation = AffectationClasse.objects.get(
