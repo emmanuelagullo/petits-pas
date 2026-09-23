@@ -400,6 +400,33 @@ input[type="email"], input[type="file"], select, textarea {
 }
 textarea { min-height: 7rem; resize: vertical; }
 
+.champ-mot-de-passe {
+  display: flex;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+.champ-mot-de-passe input[type="password"],
+.champ-mot-de-passe input[type="text"] {
+  flex: 1;
+}
+.bouton-oeil {
+  flex-shrink: 0;
+  padding: 0 0.9rem;
+  min-height: 46px;
+  background: var(--surface);
+  color: var(--ardoise);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.bouton-oeil[aria-pressed="true"] {
+  background: var(--ardoise);
+  color: #fff;
+  border-color: var(--ardoise);
+}
+
 .encadre {
   background: var(--surface);
   border: 1px solid var(--trait);
