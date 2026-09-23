@@ -4,7 +4,10 @@ description = "Fonctions accessibles, publics concernés et limites actuelles de
 +++
 
 Cet inventaire est établi à partir des vues, formulaires, autorisations, tests
-et scénarios de démonstration. Il sera tenu à jour avec les fiches du guide.
+et scénarios de démonstration. L’audit final de cette première série couvre 31
+fiches pratiques dans cinq rubriques. Il prend comme référence l’interface et
+les tests après la consolidation initiale de l’authentification (#C2 à #C4),
+ainsi que les scénarios documentaires jusqu’à #G8.
 
 Les statuts employés sont :
 
@@ -21,6 +24,7 @@ Les statuts employés sont :
 | Me connecter et revenir à la page demandée | Toute personne autorisée | Disponible | Le compte doit posséder une responsabilité ou une affectation active. |
 | Créer mon compte depuis une invitation | Personne invitée | Disponible | Le mot de passe doit satisfaire les contrôles de sécurité affichés. |
 | Rattacher mon compte existant à une école | Personne invitée | Disponible | L’adresse du compte doit correspondre à l’invitation. |
+| Réinitialiser mon mot de passe | Toute personne disposant d’un compte | Disponible | Le courriel ne révèle pas si l’adresse est connue. |
 | Réutiliser un lien accepté, révoqué ou expiré | — | Refusé | Une nouvelle invitation doit être créée. |
 | Choisir entre plusieurs écoles | Personne rattachée à plusieurs écoles | Absent | Le contexte d’école est actuellement choisi automatiquement. |
 
@@ -115,7 +119,7 @@ Elles restent documentées dans les rubriques [DSI]({{< relref "/dsi/" >}}) et
 [Conception]({{< relref "/conception/" >}}), sans être mélangées aux gestes
 quotidiens des équipes pédagogiques.
 
-## Couverture illustrée initiale
+## Bilan de couverture
 
 Les captures reproductibles existantes couvrent déjà la connexion, une classe,
 les acquisitions, un carnet, la gestion de l’école, les collaborateurs, les
@@ -127,3 +131,30 @@ avec photographie, bilan, préparation des PDF et remplacement d’un responsabl
 Ils sont déclarés dans la configuration YAML fictive commune et rejoués par le
 même scénario Playwright que les captures des rôles. Une capture n’est pas
 ajoutée lorsqu’un court texte suffit.
+
+Le contrôle automatique du guide vérifie désormais, avant les captures en CI :
+
+- les métadonnées nécessaires à la recherche par intention et aux entrées par
+  rôle ;
+- l’existence des cibles de liens internes et des renvois vers la documentation
+  détaillée des autorisations ;
+- la déclaration YAML de chaque capture utilisée et l’utilisation effective de
+  chaque capture propre au guide ;
+- la présence d’un texte alternatif et d’une légende pour chaque illustration.
+
+Hugo conserve en complément son contrôle strict de construction, puis
+Playwright régénère les images et le vérificateur d’images contrôle inventaire,
+dimensions et budget total.
+
+## Écarts restant ouverts
+
+Le guide ne présente pas comme disponibles les parcours que l’interface ne
+propose pas encore : choix entre plusieurs écoles, renommage et archivage d’une
+classe, ou attribution d’une responsabilité de direction. La création d’une
+trace vide reste techniquement acceptée et est signalée dans la fiche
+concernée. Les opérations d’exploitation restent séparées des gestes
+quotidiens.
+
+La reprise #G6b est volontairement différée : elle réexaminera les fiches
+d’invitation, de compte et d’affectation après les évolutions ultérieures de la
+phase d’authentification, sans bloquer le présent guide.

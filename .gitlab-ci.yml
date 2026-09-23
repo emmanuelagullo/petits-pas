@@ -203,6 +203,8 @@ captures-demonstration:
     - python3 -m pip check
   script:
     - test ! -e carnet.sqlite3
+    - sh scripts/preparer-site.sh
+    - python3 scripts/verifier-guide-pratique.py
     - |
       bash ./start-render.sh >.ci-captures-demonstration.log 2>&1 &
       application_pid=$!
