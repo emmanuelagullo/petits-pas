@@ -123,7 +123,9 @@ def jouer_etapes_guide(page, demonstration, etapes):
         elif action == "selecteur":
             page.locator(etape["selecteur"]).first.click()
         elif action == "titre":
-            page.get_by_role("heading", name=etape["nom"], exact=True).wait_for()
+            page.get_by_role(
+                "heading", name=etape["nom"], exact=etape.get("exact", True)
+            ).wait_for()
 
 
 def jouer_scenario(page, base_url, output, demonstration, scenario):

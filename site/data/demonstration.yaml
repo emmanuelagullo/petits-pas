@@ -273,7 +273,7 @@ scenarios:
     etapes:
       - { action: classe, classe: coccinelles }
       - { action: lien, nom: "Gérer les enfants" }
-      - { action: titre, nom: "Composition de Les Coccinelles" }
+      - { action: titre, nom: "Composition de Les Coccinelles", exact: false }
     cible: "#composition-classe"
     capture: guide/classes/composition.png
     titre: Gérer la composition d'une classe

@@ -226,6 +226,15 @@ def charger_configuration_demo(chemin):
                         )
                 elif action in {"lien", "titre"}:
                     _exiger_chaine(etape.get("nom"), f"{chemin_etape}.nom")
+                    if (
+                        action == "titre"
+                        and "exact" in etape
+                        and not isinstance(etape["exact"], bool)
+                    ):
+                        raise ValueError(
+                            f"Configuration de démonstration invalide : "
+                            f"{chemin_etape}.exact."
+                        )
                 else:
                     _exiger_chaine(
                         etape.get("selecteur"), f"{chemin_etape}.selecteur"
