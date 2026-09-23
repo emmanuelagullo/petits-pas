@@ -17,6 +17,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Envoi automatique de l'e-mail d'invitation à l'adresse saisie par la
+  direction, avec lien affiché à l'écran conservé comme secours en cas
+  d'échec d'envoi.
 - Comptes individuels, appartenances aux écoles, responsabilités de direction
   et affectations de classe datées, avec moteur central d'autorisation,
   cloisonnement des lectures et mutations, attribution des contributions et

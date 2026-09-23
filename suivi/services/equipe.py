@@ -1,9 +1,12 @@
 import hashlib
+import logging
 import secrets
 from datetime import timedelta
 
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction
+from django.template.loader import render_to_string
 from django.utils import timezone
 
 from comptes.models import (
@@ -26,6 +29,9 @@ from suivi.autorisations import (
     peut_terminer_affectation,
 )
 from suivi.models import Classe, Ecole
+
+
+logger = logging.getLogger(__name__)
 
 
 def _empreinte(jeton):
@@ -97,6 +103,46 @@ def inviter(*, utilisateur, ecole, email, duree_jours=7):
         nouvelles={"email": email, "expire_le": invitation.expire_le.isoformat()},
     )
     return invitation, jeton
+
+
+def envoyer_email_invitation(*, utilisateur, invitation, lien):
+    """Envoie l'e-mail d'invitation.
+
+    Un échec d'envoi est consigné mais ne remet jamais en cause
+    l'invitation déjà créée : le lien affiché à l'écran de la direction
+    reste utilisable en secours (voir
+    AUDIT-AUTHENTIFICATION-INVITATIONS.org, §3.4). Renvoie True si
+    l'envoi a réussi, False sinon.
+    """
+    contexte = {
+        "ecole": invitation.ecole,
+        "lien": lien,
+        "expire_le": invitation.expire_le,
+    }
+    corps_texte = render_to_string("suivi/emails/invitation.txt", contexte)
+    corps_html = render_to_string("suivi/emails/invitation.html", contexte)
+    message = EmailMultiAlternatives(
+        subject=f"Invitation à rejoindre {invitation.ecole.nom} sur Petits Pas",
+        body=corps_texte,
+        to=[invitation.email],
+    )
+    message.attach_alternative(corps_html, "text/html")
+    try:
+        message.send(fail_silently=False)
+    except Exception as erreur:
+        logger.warning(
+            "Échec de l'envoi de l'e-mail d'invitation %s : %s",
+            invitation.pk,
+            erreur,
+        )
+        journaliser(
+            utilisateur,
+            "invitation.email_echec",
+            invitation,
+            nouvelles={"erreur": str(erreur)},
+        )
+        return False
+    return True
 
 
 @transaction.atomic
