@@ -1,0 +1,248 @@
+#+title: Petits Pas — Audit et feuille de route authentification / invitations
+#+author: Équipe Petits Pas
+#+date: 2026-09-23
+
+* Statut du document
+
+Ce document consigne un audit des politiques d'authentification et
+d'invitation actuelles de Petits Pas, les options envisagées pour les
+faire évoluer vers un standard moderne, les décisions retenues et une
+feuille de route par jalons.
+
+Les décisions marquées =Ouvert= restent à trancher ; le reste engage
+l'implémentation.
+
+* Documents de référence
+
+- =POLITIQUE-AUTORISATION.org=
+- =MODELE-IDENTITES-ET-AFFECTATIONS.org=
+- =CHANGELOG.org=
+
+* 1. Constat — état actuel
+
+** Ce qui est déjà solide
+
+- Le modèle =comptes.models.Invitation= suit le pattern
+  sélecteur/vérificateur recommandé pour les liens à usage unique :
+  jeton haute entropie (=secrets.token_urlsafe(32)=) jamais stocké,
+  seule son empreinte SHA-256 est en base, comparaison en temps
+  constant (=secrets.compare_digest=). Expiration, état
+  (=en_attente/acceptee/revoquee/expiree=) et verrouillage
+  transactionnel (=select_for_update=) à l'acceptation sont corrects.
+- Le lien d'invitation n'est révélé qu'une fois, via un message flash
+  de session (=lien_invitation_creee=), jamais re-consultable ensuite.
+- La migration =0009_supprime_mots_de_passe_partages= a retiré les
+  mots de passe partagés par école (=mdp_enseignant=,
+  =mdp_direction=) au profit d'identités individuelles
+  (=Utilisateur= = =AbstractUser=), indépendantes des écoles —
+  cohérent avec =POLITIQUE-AUTORISATION.org=.
+- Fondamentaux Django propres : validateurs de mot de passe (dont
+  longueur minimale 12), CSRF actif, cookies de session
+  =HttpOnly=/=SameSite=Lax=/=Secure= conditionnés au HTTPS forcé,
+  session courte (12h).
+
+** Ce qui manque
+
+| Manque                                  | Détail                                                                                    |
+|------------------------------------------+--------------------------------------------------------------------------------------------|
+| Envoi d'e-mail                          | Aucun =EMAIL_BACKEND= configuré ; le lien d'invitation est transmis à la main              |
+| Récupération de mot de passe            | Prévue par =POLITIQUE-AUTORISATION.org= (administration, secours) mais aucune vue self-service implémentée |
+| Vues de connexion réimplémentées        | =connexion()= et la branche =compte_existant= de =accepter_invitation_vue()= réimplémentent =authenticate()=/=login()= au lieu des vues Django standard |
+| Anti-bruteforce                         | Aucun blocage après tentatives échouées                                                    |
+| Audit des connexions                    | =journaliser()= exige un objet rattaché à une école ; les échecs de connexion ne sont pas tracés |
+| UI du mot de passe                      | Champs =password= bruts, pas de bouton « afficher en clair », pas d'indicateur de robustesse |
+| Authentification à deux facteurs         | Absente                                                                                     |
+
+* 2. Options envisagées
+
+** Brique d'authentification complète (=django-allauth=) — écartée
+
+=django-allauth= apporte vérification d'e-mail, social login, 2FA
+(=allauth.mfa=), gestion multi-comptes. Écarté parce que le modèle
+=Invitation= de Petits Pas n'est pas un simple pré-compte : c'est un
+lien invitation ↔ école ↔ future appartenance, avec des règles
+d'autorisation propres. Adopter allauth reviendrait soit à contourner
+son modèle d'invitation, soit à dupliquer à côté la logique déjà
+écrite — pour un bénéfice marginal, la majeure partie de son poids
+(vues, templates propriétaires, signaux) ne servant à rien ici.
+
+** Brique d'invitation dédiée (=django-invitations=) — écartée
+
+Même raisonnement : le modèle d'invitation du projet (lié à une
+école, jeton haute entropie, empreinte seule stockée) est déjà plus
+rigoureux que ce que gère ce package par défaut.
+
+** Composition de briques standard Django — retenue
+
+Combler chaque manque avec l'outil le plus proportionné, sans
+réécrire le modèle métier existant :
+
+- Envoi d'e-mail : =django-anymail= au-dessus d'un =EMAIL_BACKEND=
+  SMTP générique.
+- Mot de passe oublié : =PasswordResetView=/=PasswordResetConfirmView=
+  de =django.contrib.auth.views=, déjà dans Django.
+- Anti-bruteforce : =django-axes=, paramétrable par variables
+  d'environnement (voir § 3.5).
+- UI mot de passe : JavaScript vanilla (bouton afficher/masquer),
+  cohérent avec l'absence de framework frontend du projet.
+- 2FA : =django-otp= + =qrcode=, activable par compte.
+
+* 3. Décisions retenues
+
+** 3.1 Fournisseur d'e-mail
+
+Backend SMTP générique via =django-anymail=, sans lien figé à un
+fournisseur : le choix du prestataire (SendGrid, Mailgun, Postmark,
+Brevo…) reste ouvert et n'impacte pas le code appelant.
+
+** 3.2 Domaine d'envoi
+
+=Ouvert=. Pas de domaine dédié pour le prototype actuel ; les futurs
+hébergeurs du pilote devraient en fournir un. Tant qu'aucun domaine
+avec SPF/DKIM n'est disponible, les e-mails d'invitation risquent
+d'être classés indésirables — point à vérifier avant la mise en
+service du Jalon 2 chez un hébergeur donné.
+
+** 3.3 Authentification à deux facteurs
+
+Activable pour la direction et pour l'ensemble du personnel, mais
+=non activée par défaut= en phase de prototype. Implémentation prévue
+au Jalon 7, sans blocage sur les jalons précédents.
+
+** 3.4 Lien d'invitation affiché une fois
+
+Conservé comme canal de secours après la mise en place de l'e-mail
+(Jalon 2), plutôt que retiré :
+
+- ce n'est pas l'affichage ponctuel qui est risqué (rien n'est
+  journalisé ni re-consultable) ;
+- le risque réel — un jeton porteur circulant hors bande — existe
+  quel que soit le canal de transmission, e-mail compris ;
+- utile en secours si l'envoi d'e-mail échoue, ou si la direction
+  préfère transmettre en main propre pour une raison locale.
+
+** 3.5 Anti-bruteforce, paramétrable par déploiement
+
+Retenu : =django-axes=, avec des seuils lus depuis l'environnement
+(même pattern que =CARNET_HOSTS=, =CARNET_DEBUG=, etc.), pour permettre
+des réglages différents entre la démonstration publique Render et un
+futur pilote réel.
+
+#+begin_src python
+# carnet/settings.py
+AXES_FAILURE_LIMIT = int(os.environ.get("CARNET_CONNEXION_TENTATIVES_MAX", "5"))
+AXES_COOLOFF_TIME = timedelta(
+    minutes=int(os.environ.get("CARNET_CONNEXION_BLOCAGE_MINUTES", "15"))
+)
+AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
+#+end_src
+
+Valeurs par défaut proposées :
+
+| Déploiement                          | Tentatives max | Blocage    | Justification                                                        |
+|----------------------------------------+-----------------+------------+------------------------------------------------------------------------|
+| Démonstration publique (Render)        | 10              | 5 minutes  | Données fictives, usage exploratoire par des visiteurs multiples ; on privilégie la fluidité |
+| Pilote (données réelles d'école)       | 5               | 15 minutes | Données d'enfants réelles ; seuil aligné sur les pratiques usuelles   |
+
+=ENVIRONNEMENT_ATELIER= et =ENVIRONNEMENT_EPHEMERE=, déjà présents
+dans =settings.py=, peuvent fixer les valeurs par défaut
+automatiquement ; les variables =CARNET_CONNEXION_*= restent la voie
+de surcharge explicite par déploiement.
+
+** 3.6 Priorité et urgence
+
+Aucun jalon n'est bloquant à court terme, mais le démarrage est
+souhaité dès maintenant plutôt que reporté.
+
+* 4. Feuille de route
+
+Suite de la série =#C= ouverte par ce document (=#C1=). Ordre
+recommandé : =1 → 2 → 3 → 4 → 5 → 6 → 7 → 8=. Le jalon 4 est
+détachable et peut être traité en parallèle des autres.
+
+** Jalon 1 — #C2 Infrastructure e-mail (fondation)
+
+- Ajouter =django-anymail= à =requirements.txt=.
+- Configurer =EMAIL_BACKEND= et =ANYMAIL= dans =settings.py= via
+  variables d'environnement.
+- Ajouter =DEFAULT_FROM_EMAIL=.
+- Gabarit d'e-mail HTML/texte minimal, sobre.
+- Vérifier la configuration DNS (SPF/DKIM) dès qu'un domaine est
+  disponible (§ 3.2).
+- Livrable : commande de test d'envoi, vérifiée en local puis sur
+  chaque déploiement.
+
+** Jalon 2 — #C3 E-mail d'invitation
+
+- Dans =inviter()= (=suivi/services/equipe.py=), envoyer l'e-mail
+  avec le lien déjà construit, juste après la création de
+  l'=Invitation=.
+- Garder l'affichage du lien en session comme filet de secours
+  (§ 3.4) ; journaliser un échec d'envoi.
+- Adapter le message de succès dans =equipe_ecole= : « l'invitation a
+  été envoyée à *email* » plutôt que « copiez le lien ».
+- Tests : backend =locmem= en test, vérification du contenu et du
+  lien généré.
+- Dépend de : Jalon 1.
+
+** Jalon 3 — #C4 Mot de passe oublié (self-service)
+
+- Brancher =PasswordResetView=, =PasswordResetDoneView=,
+  =PasswordResetConfirmView=, =PasswordResetCompleteView= dans
+  =suivi/urls.py=.
+- Quatre templates sobres, dans le style de =connexion.html=.
+- Lien « mot de passe oublié » ajouté sur =connexion.html=.
+- Dépend de : Jalon 1 (réutilise le même backend mail).
+
+** Jalon 4 — #C5 UX du champ mot de passe (indépendant)
+
+- Bouton « afficher en clair » en JavaScript vanilla sur les champs
+  =password1=/=password2=/=mot_de_passe=.
+- Aide contextuelle basée sur =AUTH_PASSWORD_VALIDATORS= déjà en
+  place (aucun changement de validation, seulement d'affichage).
+- Appliqué aux trois formulaires concernés : connexion, création de
+  compte par invitation, futur reset.
+
+** Jalon 5 — #C6 Anti-bruteforce et audit des connexions
+
+- =django-axes= sur la vue =connexion= et la branche connexion de
+  =accepter_invitation_vue=, avec seuils paramétrés par déploiement
+  (§ 3.5).
+- Étendre =journaliser()=/=EvenementAudit= pour accepter un
+  événement sans école (ou journal de connexions séparé), afin de
+  tracer les échecs — actuellement invisibles.
+- Logiquement après le Jalon 3 (sinon un compte bloqué sans reset
+  disponible laisse l'utilisateur sans issue).
+
+** Jalon 6 — #C7 Bascule vers les vues de connexion standard Django
+
+- Remplacer =connexion()= par
+  =django.contrib.auth.views.LoginView= avec un
+  =AuthenticationForm= personnalisé si besoin (conserve la
+  vérification d'école après connexion via =get_success_url= ou le
+  formulaire).
+- Bénéfice : moins de code maison à maintenir, meilleure
+  compatibilité avec =django-axes=, qui s'accroche à
+  =AuthenticationForm=.
+
+** Jalon 7 — #C8 2FA pour la direction et le personnel
+
+- =django-otp= + =qrcode=, activable par compte, non activée par
+  défaut en phase de prototype (§ 3.3).
+- Écran d'activation dans =equipe.html= ou un nouvel écran
+  « sécurité du compte ».
+
+** Jalon 8 — #C9 Cosmétique
+
+- Tâche planifiée (commande =manage.py= + cron ou tâche planifiée
+  côté hébergeur) pour marquer =EXPIREE= les invitations dont
+  =expire_le= est dépassé, plutôt que de le calculer dynamiquement au
+  template.
+
+* 5. Points encore ouverts
+
+- Domaine d'envoi et accès DNS pour SPF/DKIM (§ 3.2).
+- Confirmation que Render (et le futur hébergeur du pilote)
+  autorisent l'envoi SMTP sortant, ou nécessitent une passerelle API
+  (=django-anymail= gère les deux cas).
+- Choix définitif du fournisseur d'e-mail transactionnel.
