@@ -18,11 +18,15 @@ Les procédures locales et les profils de déploiement sont décrits dans
 Le site de présentation est construit avec Hugo depuis le répertoire `site/` :
 
 ```sh
+sh scripts/preparer-site.sh
+python3 scripts/verifier-guide-pratique.py
 hugo --source site --minify
 ```
 
 Hugo rend directement les contenus Markdown et Org-mode. Seuls les documents
-explicitement placés dans `site/content/` sont publiés.
+explicitement placés dans `site/content/` sont publiés. Le contrôle préalable
+vérifie les métadonnées des fiches pratiques, leurs liens internes et la
+cohérence entre les captures utilisées et les scénarios fictifs déclarés.
 
 ## Licence
 
