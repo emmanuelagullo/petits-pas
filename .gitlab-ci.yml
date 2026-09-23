@@ -35,7 +35,6 @@ cache:
     files:
       - requirements.txt
       - requirements.lock
-      - requirements-anymail.txt
   paths:
     - .cache/pip
 
