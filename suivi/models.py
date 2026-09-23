@@ -136,6 +136,25 @@ class Classe(models.Model):
     def __str__(self):
         return self.nom
 
+    def libelle(self, avec_annee=False):
+        """Nom court, ou libellé autonome qui reste non ambigu hors contexte."""
+        if avec_annee:
+            return f"{self.nom} — {self.annee_scolaire}"
+        return self.nom
+
+    @property
+    def libelle_avec_annee(self):
+        return self.libelle(avec_annee=True)
+
+    @property
+    def libelle_statut_annee(self):
+        return {
+            "courante": "année en cours",
+            "future": "à venir",
+            "passee": "année précédente",
+            "ancienne": "année antérieure",
+        }[self.statut_annee]
+
     def clean(self):
         from django.core.exceptions import ValidationError
 

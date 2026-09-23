@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}{{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'accueil' %}">Les classes</a> · <a href="{% url 'classe_detail' eleve.classe.pk %}">{{ eleve.classe.nom }}</a></p>
+<p class="fil"><a href="{% url 'accueil' %}">Les classes</a> · <a href="{% url 'classe_detail' eleve.classe.pk %}">{{ eleve.classe.libelle_avec_annee }}</a></p>
 <h1>{{ eleve.prenom }} {{ eleve.nom }}</h1>
 <p class="sous-titre">Touchez une ligne pour la marquer réussie. Une deuxième fois pour « en cours », une troisième pour l'effacer.</p>
 

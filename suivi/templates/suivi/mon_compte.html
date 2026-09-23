@@ -1,0 +1,26 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Mon compte{% endblock %}
+{% block contenu %}
+<h1>Mon compte</h1>
+<p class="sous-titre">{{ utilisateur_courant.email }}</p>
+
+<form method="post" class="encadre formulaire-compte">
+  {% csrf_token %}
+  {{ formulaire.as_p }}
+  <button class="bouton" type="submit">Enregistrer mon identité</button>
+</form>
+
+<h2>Mes affectations</h2>
+{% if affectations %}
+<ul class="liste">
+  {% for affectation in affectations %}
+  <li class="entree affectation-compte">
+    <span class="principal">{{ affectation.classe.libelle_avec_annee }}</span>
+    <span class="secondaire">{{ affectation.classe.ecole.nom }} · {{ affectation.get_type_display }} · {{ affectation.date_debut }}{% if affectation.date_fin %} → {{ affectation.date_fin }}{% endif %} · {{ affectation.get_etat_display }}</span>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="vide"><p>Aucune affectation de classe.</p></div>
+{% endif %}
+{% endblock %}

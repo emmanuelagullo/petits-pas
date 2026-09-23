@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Ajouter des enfants{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.nom }}</a></p>
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 
 <form method="get" class="reglage-niveau-defaut">
   <label for="niveau_defaut_page">Niveau par défaut de la classe</label>
@@ -13,7 +13,7 @@
 </form>
 
 {% if composition %}
-<h1>Composition de {{ classe.nom }}</h1>
+<h1>Composition de {{ classe.libelle_avec_annee }}</h1>
 <p class="sous-titre">Modifier l'affectation d'un élève.</p>
 <section class="encadre" id="composition-classe">
   <h2>Composition actuelle de la classe</h2>
@@ -50,9 +50,9 @@
 {% endif %}
 
 {% if composition %}
-<h2>Ajouter des enfants à {{ classe.nom }}</h2>
+<h2>Ajouter des enfants à {{ classe.libelle_avec_annee }}</h2>
 {% else %}
-<h1>Ajouter des enfants à {{ classe.nom }}</h1>
+<h1>Ajouter des enfants à {{ classe.libelle_avec_annee }}</h1>
 {% endif %}
 <p class="sous-titre">Collez une liste de nouveaux élèves. Toute correspondance avec un dossier existant sera soumise à la direction, sans fusion automatique.</p>
 
@@ -100,7 +100,7 @@
   {% for scolarite in affectations_autres %}
   <form method="post" class="ligne-affectation">
     {% csrf_token %}<input type="hidden" name="action" value="affecter_existant"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}"><input type="hidden" name="confirmer_deplacement" value="on">
-    <a href="{% url 'parcours_eleve' scolarite.eleve.pk %}?retour={{ classe.pk }}"><strong>{{ scolarite.eleve.nom_court }}</strong></a><span>{{ scolarite.classe.nom }}</span>
+    <a href="{% url 'parcours_eleve' scolarite.eleve.pk %}?retour={{ classe.pk }}"><strong>{{ scolarite.eleve.nom_court }}</strong></a><span>{{ scolarite.classe.libelle_avec_annee }}</span>
     <select name="niveau" aria-label="Niveau de {{ scolarite.eleve.prenom }}"><option value="PS"{% if scolarite.niveau == 'PS' %} selected{% endif %}>PS</option><option value="MS"{% if scolarite.niveau == 'MS' %} selected{% endif %}>MS</option><option value="GS"{% if scolarite.niveau == 'GS' %} selected{% endif %}>GS</option></select>
     <button class="bouton discret" type="submit">Déplacer vers cette classe</button>
   </form>

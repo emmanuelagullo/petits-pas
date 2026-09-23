@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Parcours de {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-<p class="fil">{% if retour_classe %}<a href="{% url 'importer_eleves' retour_classe.pk %}">← {{ retour_classe.nom }}</a>{% else %}<a href="{% url 'gestion' %}">Gérer l'école</a>{% endif %}</p>
+<p class="fil">{% if retour_classe %}<a href="{% url 'importer_eleves' retour_classe.pk %}">← {{ retour_classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'gestion' %}">Gérer l'école</a>{% endif %}</p>
 <h1>Parcours scolaire de {{ eleve.nom_court }}</h1>
 
 {% if eleve.archive_le %}
@@ -44,7 +44,7 @@
   <p class="aide">Choisir une classe d'une nouvelle année ajoute une scolarité. Rechoisir une année existante corrige sa classe ou son niveau sans toucher aux autres années.</p>
   <label for="classe">Classe</label>
   <select id="classe" name="classe" required>
-    {% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.annee_scolaire }} — {{ classe.nom }}</option>{% endfor %}
+    {% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}
   </select>
   <label for="niveau">Niveau</label>
   <select id="niveau" name="niveau"><option>PS</option><option>MS</option><option>GS</option></select>

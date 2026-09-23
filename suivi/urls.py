@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.accueil, name="accueil"),
     path("connexion/", views.connexion, name="connexion"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
+    path("mon-compte/", views.mon_compte, name="mon_compte"),
     path(
         "mot-de-passe/oublie/",
         views.mot_de_passe_oublie,

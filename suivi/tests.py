@@ -96,6 +96,18 @@ class AnneeScolaireUtilitaires(TestCase):
             "ancienne",
         )
 
+    def test_libelle_autonome_de_classe_inclut_l_annee(self):
+        ecole = Ecole.objects.create(nom="Les Tilleuls")
+        classe = Classe.objects.create(
+            ecole=ecole, nom="Les Lucioles", annee_scolaire="2026-2027"
+        )
+
+        self.assertEqual(classe.libelle(), "Les Lucioles")
+        self.assertEqual(
+            classe.libelle(avec_annee=True), "Les Lucioles — 2026-2027"
+        )
+        self.assertEqual(classe.libelle_statut_annee, "année en cours")
+
 
 class Base(TestCase):
     def setUp(self):
@@ -237,6 +249,53 @@ class Acces(Base):
         self.entrer()
 
         self.assertContains(self.client.get(reverse("accueil")), "Alice Martin")
+
+    def test_menu_utilisateur_donne_acces_aux_affectations_et_au_compte(self):
+        self.enseignant.first_name = "Alice"
+        self.enseignant.last_name = "Martin"
+        self.enseignant.save(update_fields=["first_name", "last_name"])
+        ancienne_classe = Classe.objects.create(
+            ecole=self.ecole,
+            nom="Les Coccinelles",
+            annee_scolaire="2025-2026",
+            etat=Classe.ARCHIVEE,
+        )
+        AffectationClasse.objects.create(
+            appartenance=self.appartenance_enseignant,
+            classe=ancienne_classe,
+            type=AffectationClasse.ENSEIGNANT_ASSOCIE,
+            date_debut=date(2025, 9, 1),
+            date_fin=date(2026, 8, 31),
+            etat=AffectationClasse.TERMINEE,
+        )
+        self.entrer()
+
+        page = self.client.get(reverse("accueil"))
+
+        self.assertContains(page, "PS-MS — 2026-2027")
+        self.assertContains(page, "Affectations passées")
+        self.assertContains(page, "Les Coccinelles — 2025-2026")
+        self.assertContains(page, reverse("mon_compte"))
+
+    def test_mon_compte_permet_de_corriger_son_identite(self):
+        self.entrer()
+
+        reponse = self.client.post(
+            reverse("mon_compte"),
+            {"first_name": "Alice", "last_name": "Martin"},
+        )
+
+        self.assertRedirects(reponse, reverse("mon_compte"))
+        self.enseignant.refresh_from_db()
+        self.assertEqual(self.enseignant.get_full_name(), "Alice Martin")
+
+    def test_page_classe_signale_explicitement_son_annee(self):
+        self.entrer()
+
+        page = self.client.get(reverse("classe_detail", args=[self.classe.pk]))
+
+        self.assertContains(page, "PS-MS — 2026-2027", html=False)
+        self.assertContains(page, "année en cours")
 
     def test_la_gestion_est_fermee_aux_enseignants(self):
         self.entrer()
@@ -1239,7 +1298,13 @@ class PageDesClasses(Base):
 
         r = self.client.get(reverse("accueil"))
 
-        self.assertNotContains(r, "Ancienne")
+        classes_affichees = [
+            classe_affichee
+            for groupe in r.context["groupes"]
+            for classe_affichee in groupe["classes"]
+        ]
+        self.assertNotIn(classe, classes_affichees)
+        self.assertContains(r, "Ancienne — 2024-2025")
         self.assertContains(r, "Voir aussi les années précédentes")
 
     def test_le_lien_affiche_aussi_les_annees_passees(self):
@@ -1513,8 +1578,12 @@ class CompositionClasse(Base):
 
         r = self.client.get(self.url)
 
-        self.assertContains(r, f"<h1>Composition de {self.classe.nom}</h1>")
-        self.assertContains(r, f"<h2>Ajouter des enfants à {self.classe.nom}</h2>")
+        self.assertContains(
+            r, f"<h1>Composition de {self.classe.libelle_avec_annee}</h1>"
+        )
+        self.assertContains(
+            r, f"<h2>Ajouter des enfants à {self.classe.libelle_avec_annee}</h2>"
+        )
         self.assertEqual(r.content.count(b"<h1>"), 1)
         self.assertContains(r, "Né(e) en 2021")
 
@@ -1523,7 +1592,9 @@ class CompositionClasse(Base):
 
         r = self.client.get(reverse("importer_eleves", args=[classe_vide.pk]))
 
-        self.assertContains(r, "<h1>Ajouter des enfants à Classe vide</h1>")
+        self.assertContains(
+            r, "<h1>Ajouter des enfants à Classe vide — 2026-2027</h1>"
+        )
         self.assertEqual(r.content.count(b"<h1>"), 1)
 
     def test_le_parcours_ramene_vers_la_classe_d_origine(self):
