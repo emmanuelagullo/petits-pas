@@ -121,8 +121,9 @@ Les captures reproductibles existantes couvrent déjà la connexion, une classe,
 les acquisitions, un carnet, la gestion de l’école, les collaborateurs, les
 fonctions de l’équipe, les invitations et plusieurs différences de périmètre.
 
-Les prochaines fiches devront prioritairement illustrer les formulaires qui
-apportent une information nouvelle : création et activation d’une classe,
-composition d’une classe, trace avec photographie, bilan, préparation des PDF
-et remplacement d’un responsable. Une capture ne sera pas ajoutée lorsqu’un
-court texte suffit.
+Les formulaires qui apportent une information nouvelle sont désormais couverts
+par des cadrages ciblés : création d’une classe, composition d’une classe, trace
+avec photographie, bilan, préparation des PDF et remplacement d’un responsable.
+Ils sont déclarés dans la configuration YAML fictive commune et rejoués par le
+même scénario Playwright que les captures des rôles. Une capture n’est pas
+ajoutée lorsqu’un court texte suffit.

@@ -19,6 +19,8 @@ statut = "disponible"
 4. Sélectionner **Télécharger l’archive ZIP**.
 5. Décompresser l’archive et contrôler quelques fichiers avant diffusion.
 
+{{< capture-guide src="captures/guide/carnets/preparer-classe.png" alt="Formulaire de préparation des carnets PDF d’une classe fictive" caption="Les élèves et les options communes sont choisis avant la génération de l’archive." >}}
+
 ## Résultat attendu
 
 Le fichier `carnets-nom-de-la-classe.zip` contient un PDF par élève. Chaque PDF

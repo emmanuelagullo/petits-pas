@@ -3,7 +3,7 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Créer une classe</h1>
-<form method="post" class="encadre">
+<form method="post" class="encadre" id="creer-classe">
   {% csrf_token %}
   <label for="nom">Nom de la classe
     <span class="aide">Celui que les collègues utilisent entre elles : « PS-MS de Nadia », « Les coccinelles ».</span>

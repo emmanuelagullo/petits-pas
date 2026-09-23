@@ -17,6 +17,8 @@ statut = "disponible"
 2. Ajouter un motif si utile.
 3. Sélectionner **Remplacer le responsable**, puis confirmer.
 
+{{< capture-guide src="captures/guide/equipe/remplacer-responsable.png" alt="Formulaire de remplacement du responsable fictif d’une classe" caption="Le remplaçant et le motif sont choisis avant l’opération atomique de remplacement." >}}
+
 ## Résultat attendu
 
 Petits Pas attribue d’abord la responsabilité au remplaçant, puis termine

@@ -19,6 +19,8 @@ statut = "disponible"
 4. Choisir si le bilan doit apparaître dans le carnet.
 5. Sélectionner **Ajouter le bilan**.
 
+{{< capture-guide src="captures/guide/observer/bilan.png" alt="Formulaire d’ajout de quelques mots sur le parcours d’un élève fictif" caption="Année, date, texte et visibilité dans le carnet sont regroupés dans un même formulaire." >}}
+
 ## Modifier, masquer ou retirer
 
 Le responsable peut ensuite modifier le bilan courant, basculer entre

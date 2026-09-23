@@ -81,6 +81,9 @@ def normaliser_contenu_instable(page: Page):
                 .replace(/\\b\\d{1,2}:\\d{2}\\b/g, '09:00');
         })"""
     )
+    page.locator('input[type="date"]').evaluate_all(
+        "elements => elements.forEach(element => element.value = '2026-09-01')"
+    )
 
 
 def profil(demonstration, identifiant):
@@ -109,10 +112,26 @@ def ouvrir_classe(page, demonstration, identifiant):
     page.get_by_role("heading", name=nom, exact=True).wait_for()
 
 
+def jouer_etapes_guide(page, demonstration, etapes):
+    """Exécute un petit parcours déclaratif réservé aux captures du guide."""
+    for etape in etapes:
+        action = etape["action"]
+        if action == "classe":
+            ouvrir_classe(page, demonstration, etape["classe"])
+        elif action == "lien":
+            page.get_by_role("link", name=etape["nom"], exact=True).click()
+        elif action == "selecteur":
+            page.locator(etape["selecteur"]).first.click()
+        elif action == "titre":
+            page.get_by_role("heading", name=etape["nom"], exact=True).wait_for()
+
+
 def jouer_scenario(page, base_url, output, demonstration, scenario):
     connecter(page, base_url, demonstration, scenario["profil"])
     parcours = scenario["parcours"]
-    if parcours == "equipe_direction":
+    if parcours == "guide":
+        jouer_etapes_guide(page, demonstration, scenario["etapes"])
+    elif parcours == "equipe_direction":
         page.get_by_role("link", name="Gérer l'école").click()
         page.get_by_role("link", name="Équipe pédagogique").click()
         page.get_by_role("heading", name="Équipe pédagogique").wait_for()

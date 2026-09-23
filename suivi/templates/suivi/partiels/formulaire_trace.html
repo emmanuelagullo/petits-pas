@@ -1,4 +1,4 @@
-<form method="post" enctype="multipart/form-data" class="formulaire-trace">
+<form method="post" enctype="multipart/form-data" class="formulaire-trace" id="formulaire-trace">
   {% csrf_token %}
   <h2>{% if trace_obj %}Modifier la trace{% else %}Ajouter une trace{% endif %}</h2>
   <label for="commentaire">Le mot qui accompagne la réussite

@@ -21,6 +21,8 @@ statut = "disponible"
 Le niveau écrit sur une ligne remplace le niveau par défaut. Les tabulations
 sont acceptées comme séparateurs à la place des points-virgules.
 
+{{< capture-guide src="captures/guide/classes/composition.png" alt="Composition d’une classe avec ses élèves fictifs et les actions de gestion" caption="La composition permet de corriger un niveau, déplacer, retirer ou ouvrir le parcours d’un élève fictif." >}}
+
 ## Résultat attendu
 
 Le message final distingue les dossiers créés des rapprochements à faire
