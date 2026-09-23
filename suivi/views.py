@@ -10,6 +10,8 @@ from urllib.parse import quote, unquote
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import views as auth_views
+from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import default_storage
@@ -24,7 +26,7 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.text import slugify
@@ -186,6 +188,19 @@ def connexion(request):
             logout(request)
         messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     return render(request, "suivi/connexion.html")
+
+
+def mot_de_passe_oublie(request):
+    if not settings.EMAIL_DISPONIBLE:
+        return render(request, "suivi/mot_de_passe_oublie.html")
+    return auth_views.PasswordResetView.as_view(
+        template_name="suivi/mot_de_passe_oublie.html",
+        email_template_name="suivi/emails/mot_de_passe_reinitialisation.txt",
+        subject_template_name=(
+            "suivi/emails/mot_de_passe_reinitialisation_objet.txt"
+        ),
+        success_url=reverse_lazy("mot_de_passe_oublie_envoye"),
+    )(request)
 
 
 def deconnexion(request):
@@ -1511,7 +1526,14 @@ def equipe_ecole(request):
                     )
                 )
                 request.session["lien_invitation_creee"] = lien
-                if envoyer_email_invitation(
+                if not settings.EMAIL_DISPONIBLE:
+                    messages.warning(
+                        request,
+                        "Invitation créée. L’envoi de courriel est désactivé : "
+                        "copiez le lien affiché ci-dessous et transmettez-le "
+                        "vous-même.",
+                    )
+                elif envoyer_email_invitation(
                     utilisateur=request.user, invitation=invitation, lien=lien
                 ):
                     messages.success(

@@ -133,6 +133,13 @@ class Command(BaseCommand):
             "- Administration Django sur le Web : "
             + ("fermée" if administration_web_fermee else "exposée")
         )
+        if settings.EMAIL_DISPONIBLE:
+            etat_email = f"actif ({settings.EMAIL_BACKEND})"
+        elif settings.EMAIL_CONFIGURATION_EXPLICITE:
+            etat_email = "désactivé explicitement"
+        else:
+            etat_email = "non configuré"
+        self.stdout.write(f"- Courriel : {etat_email}")
 
         erreurs = []
 
@@ -162,6 +169,10 @@ class Command(BaseCommand):
             erreurs.append("les accès partagés historiques sont encore présents")
         if not administration_web_fermee:
             erreurs.append("l'administration Django est exposée sur le Web")
+        if not settings.EMAIL_CONFIGURATION_EXPLICITE:
+            erreurs.append(
+                "le courriel n'est ni configuré ni désactivé explicitement"
+            )
 
         erreurs_atelier = list(erreurs)
         if not atelier:

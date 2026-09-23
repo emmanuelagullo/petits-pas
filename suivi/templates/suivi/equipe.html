@@ -50,10 +50,10 @@
 <section id="invitations">
 <h2>Inviter un membre</h2>
 <p>Le lien permet à la personne de créer son compte individuel, ou de rattacher un compte existant utilisant la même adresse. Il est valable sept jours.</p>
-<p class="aide">L’invitation est envoyée par e-mail à l’adresse saisie. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>
+{% if email_disponible %}<p class="aide">L’invitation est envoyée par e-mail à l’adresse saisie. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>{% else %}<p class="aide">L’envoi de courriel est désactivé sur cette installation. Le lien devra être copié et transmis par la direction. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>{% endif %}
 {% if lien_invitation_creee %}
 <div class="encadre" role="status">
-  <label for="lien-invitation">Lien de secours — affiché une seule fois, au cas où l’e-mail n’arriverait pas</label>
+  <label for="lien-invitation">{% if email_disponible %}Lien de secours — {% endif %}affiché une seule fois{% if email_disponible %}, au cas où l’e-mail n’arriverait pas{% endif %}</label>
   <input id="lien-invitation" value="{{ lien_invitation_creee }}" readonly onclick="this.select()">
   <p><a href="{{ lien_invitation_creee }}">Vérifier le lien d’invitation</a></p>
 </div>

@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+** Changed
+
+- Envoi de courriel désormais facultatif : SMTP fonctionne sans
+  =django-anymail=, disponible comme extension, et le mode sans courriel doit
+  être choisi explicitement pour un déploiement persistant.
+
 ** Fixed
 
 - Alignement de la saisie des bilans sur l'historique des traces : date du

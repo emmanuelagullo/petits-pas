@@ -15,6 +15,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         destinataire = options["destinataire"]
 
+        if not settings.EMAIL_DISPONIBLE:
+            raise CommandError(
+                "L'envoi de courriel est désactivé sur cette installation."
+            )
+
         self.stdout.write(f"- Backend : {settings.EMAIL_BACKEND}")
         self.stdout.write(f"- Expéditeur : {settings.DEFAULT_FROM_EMAIL}")
 

@@ -77,8 +77,8 @@ rigoureux que ce que gère ce package par défaut.
 Combler chaque manque avec l'outil le plus proportionné, sans
 réécrire le modèle métier existant :
 
-- Envoi d'e-mail : =django-anymail= au-dessus d'un =EMAIL_BACKEND=
-  SMTP générique.
+- Envoi d'e-mail : backend SMTP natif de Django ; =django-anymail=
+  facultatif pour les fournisseurs transactionnels qui le nécessitent.
 - Mot de passe oublié : =PasswordResetView=/=PasswordResetConfirmView=
   de =django.contrib.auth.views=, déjà dans Django.
 - Anti-bruteforce : =django-axes=, paramétrable par variables
@@ -91,9 +91,12 @@ réécrire le modèle métier existant :
 
 ** 3.1 Fournisseur d'e-mail
 
-Backend SMTP générique via =django-anymail=, sans lien figé à un
-fournisseur : le choix du prestataire (SendGrid, Mailgun, Postmark,
-Brevo…) reste ouvert et n'impacte pas le code appelant.
+Backend SMTP générique natif de Django, sans lien figé à un fournisseur.
+=django-anymail= reste une extension facultative pour SendGrid, Mailgun,
+Postmark, Brevo… et n'impacte pas le code appelant. Un déploiement sans
+courriel reste possible s'il est choisi explicitement ; les invitations
+sont alors transmises manuellement et le self-service de réinitialisation
+est indisponible.
 
 ** 3.2 Domaine d'envoi
 
@@ -162,9 +165,10 @@ détachable et peut être traité en parallèle des autres.
 
 ** Jalon 1 — #C2 Infrastructure e-mail (fondation)
 
-- Ajouter =django-anymail= à =requirements.txt=.
-- Configurer =EMAIL_BACKEND= et =ANYMAIL= dans =settings.py= via
-  variables d'environnement.
+- Configurer =EMAIL_BACKEND= dans =settings.py= via l'environnement, ou
+  exiger une désactivation explicite du courriel en production.
+- Proposer =django-anymail= dans un fichier de dépendances facultatif et
+  configurer =ANYMAIL= uniquement pour les prestataires concernés.
 - Ajouter =DEFAULT_FROM_EMAIL=.
 - Gabarit d'e-mail HTML/texte minimal, sobre.
 - Vérifier la configuration DNS (SPF/DKIM) dès qu'un domaine est

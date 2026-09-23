@@ -1,0 +1,3 @@
+# Extension facultative pour les fournisseurs transactionnels pris en charge
+# par django-anymail. Le backend SMTP natif de Django n'en dépend pas.
+django-anymail>=15,<16

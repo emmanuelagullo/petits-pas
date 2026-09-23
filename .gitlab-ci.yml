@@ -35,6 +35,7 @@ cache:
     files:
       - requirements.txt
       - requirements.lock
+      - requirements-anymail.txt
   paths:
     - .cache/pip
 
@@ -60,6 +61,7 @@ test:
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
         - site/data/demonstration.yaml
@@ -119,6 +121,7 @@ deploiement-ephemere:
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
         - site/data/demonstration.yaml
@@ -175,6 +178,7 @@ deploiement-ephemere:
         - "carnet/**/*"
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
         - "site/**/*"
@@ -272,6 +276,7 @@ pages:
         - "carnet/**/*"
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
         - "site/**/*"

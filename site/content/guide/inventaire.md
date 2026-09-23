@@ -24,7 +24,7 @@ Les statuts employés sont :
 | Me connecter et revenir à la page demandée | Toute personne autorisée | Disponible | Le compte doit posséder une responsabilité ou une affectation active. |
 | Créer mon compte depuis une invitation | Personne invitée | Disponible | Le mot de passe doit satisfaire les contrôles de sécurité affichés. |
 | Rattacher mon compte existant à une école | Personne invitée | Disponible | L’adresse du compte doit correspondre à l’invitation. |
-| Réinitialiser mon mot de passe | Toute personne disposant d’un compte | Disponible | Le courriel ne révèle pas si l’adresse est connue. |
+| Réinitialiser mon mot de passe | Toute personne disposant d’un compte | Selon l’installation | Nécessite l’envoi de courriel ; la réponse ne révèle pas si l’adresse est connue. |
 | Réutiliser un lien accepté, révoqué ou expiré | — | Refusé | Une nouvelle invitation doit être créée. |
 | Choisir entre plusieurs écoles | Personne rattachée à plusieurs écoles | Absent | Le contexte d’école est actuellement choisi automatiquement. |
 
@@ -95,7 +95,7 @@ Les statuts employés sont :
 | --- | --- | --- |
 | Voir les membres et leurs coordonnées | Disponible | Direction. |
 | Voir les collaborateurs d’une classe | Disponible | Personnes affectées ; coordonnées non affichées. |
-| Inviter une nouvelle personne | Disponible | Direction ; courriel envoyé automatiquement, avec lien de secours affiché une seule fois. |
+| Inviter une nouvelle personne | Disponible | Direction ; courriel automatique si configuré, sinon lien à transmettre manuellement, affiché une seule fois. |
 | Révoquer une invitation encore valable | Disponible | Direction. |
 | Attribuer une fonction de classe | Disponible | Responsable, enseignant associé ou contributeur. |
 | Limiter une affectation dans le temps | Disponible | Date de fin facultative et motif conservé. |

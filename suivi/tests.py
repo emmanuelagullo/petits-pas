@@ -304,6 +304,20 @@ class ReinitialisationMotDePasse(Base):
         self.assertContains(reponse, "Mot de passe oublié ?")
         self.assertContains(reponse, reverse("mot_de_passe_oublie"))
 
+    @override_settings(EMAIL_DISPONIBLE=False)
+    def test_le_mode_sans_courriel_est_explique_sans_formulaire(self):
+        connexion = self.client.get(reverse("connexion"))
+        self.assertContains(connexion, "Contactez la direction")
+        self.assertNotContains(connexion, reverse("mot_de_passe_oublie"))
+
+        reponse = self.client.get(reverse("mot_de_passe_oublie"))
+        self.assertContains(reponse, "n’est pas disponible")
+        self.assertNotContains(reponse, "Envoyer le lien")
+
+        reponse = self.demander_reinitialisation("oubli@example.test")
+        self.assertContains(reponse, "n’est pas disponible")
+        self.assertEqual(len(mail.outbox), 0)
+
     def test_le_script_d_affichage_du_mot_de_passe_est_charge(self):
         reponse = self.client.get(reverse("connexion"))
         self.assertRegex(
@@ -2252,6 +2266,8 @@ class DiagnosticDeploiement(TestCase):
         SECURE_SSL_REDIRECT=True,
         SESSION_COOKIE_SECURE=True,
         CSRF_COOKIE_SECURE=True,
+        EMAIL_CONFIGURATION_EXPLICITE=True,
+        EMAIL_DISPONIBLE=False,
         STORAGES={
             "default": {
                 "BACKEND": "storages.backends.s3.S3Storage",
@@ -2296,6 +2312,8 @@ class DiagnosticDeploiement(TestCase):
         ENVIRONNEMENT_ATELIER=True,
         ENVIRONNEMENT_EPHEMERE=False,
         VERSION_APPLICATION="0.3",
+        EMAIL_CONFIGURATION_EXPLICITE=True,
+        EMAIL_DISPONIBLE=False,
         STORAGES={
             "default": {"BACKEND": "storages.backends.s3.S3Storage"},
             "staticfiles": {
@@ -3328,6 +3346,21 @@ class EquipeEtGouvernance(Base):
         self.assertContains(reponse, fragment)
         self.assertEqual(len(mail.outbox), 0)
 
+    @override_settings(EMAIL_DISPONIBLE=False)
+    def test_l_invitation_est_transmise_manuellement_sans_tenter_d_envoi(self):
+        self.entrer("dir-mdp")
+        with patch("suivi.services.equipe.EmailMultiAlternatives.send") as envoi:
+            reponse = self.client.post(
+                reverse("equipe_ecole"),
+                {"action": "inviter", "email": "manuel@example.test"},
+                follow=True,
+            )
+
+        self.assertContains(reponse, "L’envoi de courriel est désactivé")
+        self.assertContains(reponse, "affiché une seule fois")
+        self.assertNotContains(reponse, "Lien de secours")
+        envoi.assert_not_called()
+
     def test_une_invitation_expiree_est_signalee_sans_action_de_revocation(self):
         invitation, _ = inviter(
             utilisateur=self.direction,
@@ -3478,3 +3511,12 @@ class VerificationEnvoiEmail(TestCase):
                     "verification@example.test",
                     stdout=sortie,
                 )
+
+    @override_settings(EMAIL_DISPONIBLE=False)
+    def test_refuse_la_verification_quand_le_courriel_est_desactive(self):
+        with self.assertRaisesMessage(CommandError, "désactivé"):
+            call_command(
+                "verifier_envoi_email",
+                "verification@example.test",
+                stdout=StringIO(),
+            )
