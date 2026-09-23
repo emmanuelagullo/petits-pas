@@ -3221,8 +3221,6 @@ class EquipeEtGouvernance(Base):
             classe=ancienne_classe,
             type=AffectationClasse.CONTRIBUTEUR,
             date_debut=date(2024, 9, 1),
-            date_fin=date(2025, 8, 31),
-            etat=AffectationClasse.TERMINEE,
         )
         self.entrer("dir-mdp")
 
@@ -3230,10 +3228,18 @@ class EquipeEtGouvernance(Base):
         historique = self.client.get(
             reverse("equipe_ecole"), {"vue": "classes", "historique": "1"}
         )
+        personnes_courantes = self.client.get(
+            reverse("equipe_ecole"), {"vue": "personnes"}
+        )
+        personnes_historiques = self.client.get(
+            reverse("equipe_ecole"), {"vue": "personnes", "historique": "1"}
+        )
 
         self.assertNotContains(courante, "Les Anciennes Lucioles")
         self.assertContains(historique, "Les Anciennes Lucioles")
-        self.assertContains(historique, "terminée le 31 août 2025")
+        self.assertContains(historique, "classe archivée")
+        self.assertNotContains(personnes_courantes, "Les Anciennes Lucioles")
+        self.assertContains(personnes_historiques, "Les Anciennes Lucioles")
 
     def test_t081_responsable_ne_voit_pas_l_equipe_complete(self):
         self.entrer()

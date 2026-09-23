@@ -95,7 +95,7 @@
   <details class="ajout-contextuel">
     <summary>Attribuer une fonction à {{ appartenance.utilisateur.first_name|default:appartenance.utilisateur.username }}</summary>
     <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="affecter"><input type="hidden" name="appartenance" value="{{ appartenance.pk }}"><input type="hidden" name="vue" value="personnes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
-      <label>Classe <select name="classe">{% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}</select></label>
+      <label>Classe <select name="classe">{% for classe in classes_affectables %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}</select></label>
       <label>Fonction <select name="type">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
       <label>Fin éventuelle <input type="date" name="date_fin"></label><label>Motif <input name="motif"></label><button class="bouton" type="submit">Attribuer</button>
     </form>
