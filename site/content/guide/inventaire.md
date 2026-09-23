@@ -91,7 +91,7 @@ Les statuts employés sont :
 | --- | --- | --- |
 | Voir les membres et leurs coordonnées | Disponible | Direction. |
 | Voir les collaborateurs d’une classe | Disponible | Personnes affectées ; coordonnées non affichées. |
-| Inviter une nouvelle personne | Disponible | Direction ; le lien est transmis manuellement et affiché une seule fois. |
+| Inviter une nouvelle personne | Disponible | Direction ; courriel envoyé automatiquement, avec lien de secours affiché une seule fois. |
 | Révoquer une invitation encore valable | Disponible | Direction. |
 | Attribuer une fonction de classe | Disponible | Responsable, enseignant associé ou contributeur. |
 | Limiter une affectation dans le temps | Disponible | Date de fin facultative et motif conservé. |
