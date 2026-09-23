@@ -1494,7 +1494,17 @@ class CompositionClasse(Base):
         r = self.client.get(self.url)
 
         self.assertContains(r, f"<h1>Composition de {self.classe.nom}</h1>")
+        self.assertContains(r, f"<h2>Ajouter des enfants à {self.classe.nom}</h2>")
+        self.assertEqual(r.content.count(b"<h1>"), 1)
         self.assertContains(r, "Né(e) en 2021")
+
+    def test_une_classe_vide_conserve_un_titre_principal(self):
+        classe_vide = Classe.objects.create(ecole=self.ecole, nom="Classe vide")
+
+        r = self.client.get(reverse("importer_eleves", args=[classe_vide.pk]))
+
+        self.assertContains(r, "<h1>Ajouter des enfants à Classe vide</h1>")
+        self.assertEqual(r.content.count(b"<h1>"), 1)
 
     def test_le_parcours_ramene_vers_la_classe_d_origine(self):
         r = self.client.get(

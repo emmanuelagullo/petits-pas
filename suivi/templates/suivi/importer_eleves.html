@@ -49,7 +49,11 @@
 </section>
 {% endif %}
 
+{% if composition %}
+<h2>Ajouter des enfants à {{ classe.nom }}</h2>
+{% else %}
 <h1>Ajouter des enfants à {{ classe.nom }}</h1>
+{% endif %}
 <p class="sous-titre">Collez une liste de nouveaux élèves. Toute correspondance avec un dossier existant sera soumise à la direction, sans fusion automatique.</p>
 
 {% if demandes_rapprochement %}
