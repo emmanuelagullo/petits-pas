@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "anymail",
     "comptes",
     "suivi",
 ]
@@ -165,3 +166,46 @@ CSRF_COOKIE_SAMESITE = "Lax"
 # Limite de taille d'une photo de trace (5 Mo).
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+
+# --------------------------------------------------------------------------
+# Envoi d'e-mail
+# --------------------------------------------------------------------------
+#
+# Backend SMTP générique par défaut : fonctionne avec n'importe quel
+# fournisseur SMTP classique, sans lien figé à un prestataire. django-anymail
+# est disponible en dépendance pour basculer vers un backend spécifique à un
+# fournisseur d'envoi transactionnel (ESP) sans changer le code appelant : il
+# suffit de renseigner CARNET_EMAIL_BACKEND (par exemple
+# "anymail.backends.sendgrid.EmailBackend") et les clés ANYMAIL
+# correspondantes ci-dessous.
+#
+# En développement (CARNET_DEBUG=1), les messages sont affichés dans la
+# console plutôt qu'envoyés, sauf si CARNET_EMAIL_BACKEND est renseigné
+# explicitement.
+EMAIL_BACKEND = os.environ.get(
+    "CARNET_EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend"
+    if DEBUG
+    else "django.core.mail.backends.smtp.EmailBackend",
+)
+EMAIL_HOST = os.environ.get("CARNET_EMAIL_HOTE", "localhost")
+EMAIL_PORT = int(os.environ.get("CARNET_EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("CARNET_EMAIL_UTILISATEUR", "")
+EMAIL_HOST_PASSWORD = os.environ.get("CARNET_EMAIL_MOT_DE_PASSE", "")
+EMAIL_USE_TLS = os.environ.get("CARNET_EMAIL_TLS", "oui") == "oui"
+EMAIL_TIMEOUT = 10
+
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "CARNET_EMAIL_EXPEDITEUR", "Petits Pas <ne-pas-repondre@petits-pas.example>"
+)
+
+# Configuration Anymail : lue depuis l'environnement, vide par défaut. Sans
+# effet tant que CARNET_EMAIL_BACKEND ne pointe pas vers un backend
+# anymail.backends.*.
+ANYMAIL = {
+    "SENDGRID_API_KEY": os.environ.get("CARNET_ANYMAIL_SENDGRID_CLE", ""),
+    "MAILGUN_API_KEY": os.environ.get("CARNET_ANYMAIL_MAILGUN_CLE", ""),
+    "MAILGUN_SENDER_DOMAIN": os.environ.get("CARNET_ANYMAIL_MAILGUN_DOMAINE", ""),
+    "POSTMARK_SERVER_TOKEN": os.environ.get("CARNET_ANYMAIL_POSTMARK_JETON", ""),
+    "BREVO_API_KEY": os.environ.get("CARNET_ANYMAIL_BREVO_CLE", ""),
+}

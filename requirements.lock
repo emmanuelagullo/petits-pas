@@ -5,13 +5,17 @@ asgiref==3.12.1
 boto3==1.43.95
 botocore==1.43.95
 brotli==1.2.0
+certifi==2026.7.22
 cffi==2.1.1
+charset-normalizer==3.5.1
 cssselect2==0.10.1
 dj-database-url==3.1.2
 Django==6.1.1
+django-anymail==15.2
 django-storages==1.14.6
 fonttools==4.65.0
 gunicorn==26.2.0
+idna==3.20
 jmespath==1.1.0
 Pillow==12.3.0
 psycopg==3.3.5
@@ -21,6 +25,7 @@ pydyf==0.12.1
 Pyphen==0.18.1
 python-dateutil==2.9.0.post0
 PyYAML==6.0.3
+requests==2.34.2
 s3transfer==0.19.2
 six==1.17.0
 sqlparse==0.6.0
