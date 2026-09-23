@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.management import call_command
@@ -3276,3 +3277,32 @@ class EquipeEtGouvernance(Base):
         affectation.refresh_from_db()
         self.assertEqual(affectation.etat, AffectationClasse.SUSPENDUE)
         self.assertContains(reponse, "Affectation suspendue en urgence")
+
+
+class VerificationEnvoiEmail(TestCase):
+    def test_envoie_un_message_de_verification(self):
+        sortie = StringIO()
+
+        call_command(
+            "verifier_envoi_email", "verification@example.test", stdout=sortie
+        )
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["verification@example.test"])
+        self.assertIn("Message envoyé", sortie.getvalue())
+
+    def test_signale_un_echec_d_envoi(self):
+        sortie = StringIO()
+
+        with override_settings(
+            EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
+        ), patch(
+            "django.core.mail.backends.locmem.EmailBackend.send_messages",
+            side_effect=OSError("connexion refusée"),
+        ):
+            with self.assertRaises(CommandError):
+                call_command(
+                    "verifier_envoi_email",
+                    "verification@example.test",
+                    stdout=sortie,
+                )
