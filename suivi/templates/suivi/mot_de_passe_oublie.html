@@ -1,0 +1,13 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Mot de passe oublié{% endblock %}
+{% block contenu %}
+<h1>Mot de passe oublié</h1>
+<p class="sous-titre">Indiquez l'adresse électronique associée à votre compte Petits Pas.</p>
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <label for="id_email">Adresse électronique</label>
+  {{ form.email }}
+  <div class="actions"><button class="bouton" type="submit">Envoyer le lien de réinitialisation</button></div>
+</form>
+<p><a href="{% url 'connexion' %}">Retour à la connexion</a></p>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Choisir un nouveau mot de passe{% endblock %}
+{% block contenu %}
+{% if validlink %}
+<h1>Choisir un nouveau mot de passe</h1>
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <label for="id_new_password1">Nouveau mot de passe
+    <span class="aide">Minimum 12 caractères.</span>
+  </label>
+  {{ form.new_password1 }}
+  <label for="id_new_password2">Confirmer le nouveau mot de passe</label>
+  {{ form.new_password2 }}
+  {% if form.errors %}
+  <ul class="messages">
+    {% for erreurs in form.errors.values %}{% for erreur in erreurs %}<li class="error">{{ erreur }}</li>{% endfor %}{% endfor %}
+  </ul>
+  {% endif %}
+  <div class="actions"><button class="bouton" type="submit">Enregistrer le mot de passe</button></div>
+</form>
+{% else %}
+<h1>Lien de réinitialisation invalide</h1>
+<p>Ce lien n'est plus utilisable : il a peut-être déjà servi ou a expiré.</p>
+<p><a href="{% url 'mot_de_passe_oublie' %}">Demander un nouveau lien</a></p>
+{% endif %}
+{% endblock %}

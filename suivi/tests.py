@@ -1,5 +1,6 @@
 import hashlib
 import os
+import re
 from datetime import date, timedelta
 from zipfile import ZipFile
 from io import BytesIO, StringIO
@@ -19,6 +20,8 @@ from django.db.models.deletion import ProtectedError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from comptes.models import (
     AffectationClasse,
@@ -274,6 +277,80 @@ class Acces(Base):
         self.client.get(cible)
         r = self.entrer()
         self.assertRedirects(r, cible)
+
+
+class ReinitialisationMotDePasse(Base):
+    def setUp(self):
+        super().setUp()
+        self.enseignant.email = "oubli@example.test"
+        self.enseignant.save(update_fields=["email"])
+
+    def demander_reinitialisation(self, email):
+        return self.client.post(
+            reverse("mot_de_passe_oublie"), {"email": email}, follow=True
+        )
+
+    def suivre_le_lien_de_l_email(self):
+        message = mail.outbox[0]
+        lien = re.search(r"https?://\S+/mot-de-passe/reinitialiser/\S+/", message.body)
+        chemin = lien.group(0).split("testserver", 1)[-1]
+        # Django échange le jeton de l'URL contre un jeton de session dès
+        # la première visite, pour éviter qu'il ne fuite via l'historique
+        # ou l'en-tête Referer.
+        return self.client.get(chemin, follow=True)
+
+    def test_le_lien_de_connexion_oublie_est_present(self):
+        reponse = self.client.get(reverse("connexion"))
+        self.assertContains(reponse, "Mot de passe oublié ?")
+        self.assertContains(reponse, reverse("mot_de_passe_oublie"))
+
+    def test_une_adresse_inconnue_ne_revele_rien_et_n_envoie_aucun_email(self):
+        reponse = self.demander_reinitialisation("inconnue@example.test")
+
+        self.assertContains(reponse, "Lien envoyé")
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_le_mot_de_passe_peut_etre_reinitialise_de_bout_en_bout(self):
+        reponse = self.demander_reinitialisation("oubli@example.test")
+        self.assertContains(reponse, "Lien envoyé")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["oubli@example.test"])
+
+        page_saisie = self.suivre_le_lien_de_l_email()
+        self.assertContains(page_saisie, "Choisir un nouveau mot de passe")
+
+        reponse = self.client.post(
+            page_saisie.request["PATH_INFO"],
+            {
+                "new_password1": "un-nouveau-mot-de-passe-solide",
+                "new_password2": "un-nouveau-mot-de-passe-solide",
+            },
+            follow=True,
+        )
+        self.assertContains(reponse, "Mot de passe mis à jour")
+
+        self.assertFalse(
+            self.client.login(
+                username=self.enseignant.username, password="ens-mdp"
+            )
+        )
+        self.assertTrue(
+            self.client.login(
+                username=self.enseignant.username,
+                password="un-nouveau-mot-de-passe-solide",
+            )
+        )
+
+    def test_un_lien_invalide_est_signale_sans_formulaire(self):
+        reponse = self.client.get(
+            reverse(
+                "mot_de_passe_reinitialiser",
+                args=[urlsafe_base64_encode(force_bytes(self.enseignant.pk)), "jeton-invalide"],
+            ),
+            follow=True,
+        )
+        self.assertContains(reponse, "Lien de réinitialisation invalide")
+        self.assertNotContains(reponse, "new_password1")
 
 
 class Bascule(Base):
