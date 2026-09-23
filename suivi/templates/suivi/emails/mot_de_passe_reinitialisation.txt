@@ -1,0 +1,13 @@
+Bonjour {{ user.get_full_name|default:user.get_username }},
+
+Vous avez demandé la réinitialisation de votre mot de passe sur Petits
+Pas. Pour choisir un nouveau mot de passe, ouvrez le lien suivant :
+
+{{ protocol }}://{{ domain }}{% url 'mot_de_passe_reinitialiser' uidb64=uid token=token %}
+
+Ce lien est à usage unique et expire au bout de quelques jours.
+
+Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer ce
+message : votre mot de passe reste inchangé.
+
+— Petits Pas

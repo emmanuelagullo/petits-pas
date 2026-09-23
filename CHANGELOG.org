@@ -17,6 +17,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Réinitialisation de mot de passe en libre-service, par lien envoyé par
+  e-mail, sans intervention de l'administration technique.
 - Envoi automatique de l'e-mail d'invitation à l'adresse saisie par la
   direction, avec lien affiché à l'écran conservé comme secours en cas
   d'échec d'envoi.
