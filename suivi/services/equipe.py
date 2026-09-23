@@ -3,6 +3,7 @@ import logging
 import secrets
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction
@@ -114,6 +115,9 @@ def envoyer_email_invitation(*, utilisateur, invitation, lien):
     AUDIT-AUTHENTIFICATION-INVITATIONS.org, §3.4). Renvoie True si
     l'envoi a réussi, False sinon.
     """
+    if not settings.EMAIL_DISPONIBLE:
+        return False
+
     contexte = {
         "ecole": invitation.ecole,
         "lien": lien,

@@ -10,12 +10,7 @@ urlpatterns = [
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path(
         "mot-de-passe/oublie/",
-        auth_views.PasswordResetView.as_view(
-            template_name="suivi/mot_de_passe_oublie.html",
-            email_template_name="suivi/emails/mot_de_passe_reinitialisation.txt",
-            subject_template_name="suivi/emails/mot_de_passe_reinitialisation_objet.txt",
-            success_url=reverse_lazy("mot_de_passe_oublie_envoye"),
-        ),
+        views.mot_de_passe_oublie,
         name="mot_de_passe_oublie",
     ),
     path(

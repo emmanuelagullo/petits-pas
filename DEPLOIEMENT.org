@@ -87,6 +87,21 @@ Avant de lancer Gunicorn, ce script :
 Une erreur à l’une de ces étapes doit faire échouer le déploiement. Le script
 ne crée aucune école et ne charge aucune donnée métier.
 
+* Envoi de courriel
+
+Un déploiement persistant doit choisir explicitement son fonctionnement :
+
+- configurer =CARNET_EMAIL_BACKEND=, notamment avec le backend SMTP natif de
+  Django, qui ne nécessite pas =django-anymail= ;
+- ou définir =CARNET_EMAIL_DESACTIVE=oui= pour conserver les invitations par
+  lien transmis manuellement. La réinitialisation de mot de passe par courriel
+  est alors indisponible.
+
+=django-anymail= est une extension facultative, installable avec
+=requirements-anymail.txt= lorsqu'un backend =anymail.backends.*= est choisi.
+Le diagnostic de déploiement refuse un profil persistant où aucun de ces deux
+choix n'est explicite.
+
 * Sondes
 
 La sonde non authentifiée =GET /health/= renvoie :

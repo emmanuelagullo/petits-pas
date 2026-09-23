@@ -1,6 +1,9 @@
 import os
-import dj_database_url
+from importlib.util import find_spec
 from pathlib import Path
+
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,7 +30,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "anymail",
     "comptes",
     "suivi",
 ]
@@ -171,23 +173,33 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 # Envoi d'e-mail
 # --------------------------------------------------------------------------
 #
-# Backend SMTP générique par défaut : fonctionne avec n'importe quel
-# fournisseur SMTP classique, sans lien figé à un prestataire. django-anymail
-# est disponible en dépendance pour basculer vers un backend spécifique à un
-# fournisseur d'envoi transactionnel (ESP) sans changer le code appelant : il
-# suffit de renseigner CARNET_EMAIL_BACKEND (par exemple
-# "anymail.backends.sendgrid.EmailBackend") et les clés ANYMAIL
-# correspondantes ci-dessous.
+# Le transport est un choix explicite hors développement : backend SMTP natif
+# de Django ou backend optionnel django-anymail. Un déploiement peut aussi
+# assumer un mode sans courrier avec CARNET_EMAIL_DESACTIVE=oui.
 #
-# En développement (CARNET_DEBUG=1), les messages sont affichés dans la
-# console plutôt qu'envoyés, sauf si CARNET_EMAIL_BACKEND est renseigné
-# explicitement.
-EMAIL_BACKEND = os.environ.get(
-    "CARNET_EMAIL_BACKEND",
+EMAIL_BACKEND_CONFIGURE = os.environ.get("CARNET_EMAIL_BACKEND", "").strip()
+EMAIL_DESACTIVE = os.environ.get("CARNET_EMAIL_DESACTIVE", "") == "oui"
+if EMAIL_BACKEND_CONFIGURE and EMAIL_DESACTIVE:
+    raise ImproperlyConfigured(
+        "CARNET_EMAIL_BACKEND et CARNET_EMAIL_DESACTIVE=oui sont incompatibles."
+    )
+
+EMAIL_CONFIGURATION_EXPLICITE = bool(EMAIL_BACKEND_CONFIGURE or EMAIL_DESACTIVE)
+EMAIL_DISPONIBLE = not EMAIL_DESACTIVE and bool(EMAIL_BACKEND_CONFIGURE or DEBUG)
+EMAIL_BACKEND = EMAIL_BACKEND_CONFIGURE or (
     "django.core.mail.backends.console.EmailBackend"
     if DEBUG
-    else "django.core.mail.backends.smtp.EmailBackend",
+    else "django.core.mail.backends.dummy.EmailBackend"
 )
+
+if EMAIL_BACKEND.startswith("anymail.backends."):
+    if find_spec("anymail") is None:
+        raise ImproperlyConfigured(
+            "Un backend Anymail est configuré, mais django-anymail n'est pas "
+            "installé. Installez requirements-anymail.txt ou choisissez le "
+            "backend SMTP natif de Django."
+        )
+    INSTALLED_APPS.append("anymail")
 EMAIL_HOST = os.environ.get("CARNET_EMAIL_HOTE", "localhost")
 EMAIL_PORT = int(os.environ.get("CARNET_EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("CARNET_EMAIL_UTILISATEUR", "")
@@ -199,9 +211,7 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     "CARNET_EMAIL_EXPEDITEUR", "Petits Pas <ne-pas-repondre@petits-pas.example>"
 )
 
-# Configuration Anymail : lue depuis l'environnement, vide par défaut. Sans
-# effet tant que CARNET_EMAIL_BACKEND ne pointe pas vers un backend
-# anymail.backends.*.
+# Configuration optionnelle Anymail : sans effet avec le backend SMTP natif.
 ANYMAIL = {
     "SENDGRID_API_KEY": os.environ.get("CARNET_ANYMAIL_SENDGRID_CLE", ""),
     "MAILGUN_API_KEY": os.environ.get("CARNET_ANYMAIL_MAILGUN_CLE", ""),

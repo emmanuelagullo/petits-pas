@@ -20,4 +20,5 @@ def session_ecole(request):
         "environnement_atelier": settings.ENVIRONNEMENT_ATELIER,
         "environnement_ephemere": settings.ENVIRONNEMENT_EPHEMERE,
         "version_application": settings.VERSION_APPLICATION,
+        "email_disponible": settings.EMAIL_DISPONIBLE,
     }

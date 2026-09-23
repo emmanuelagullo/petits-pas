@@ -2,6 +2,10 @@
 {% block titre %}Mot de passe oublié{% endblock %}
 {% block contenu %}
 <h1>Mot de passe oublié</h1>
+{% if not email_disponible %}
+<p class="sous-titre">La réinitialisation par courriel n’est pas disponible sur cette installation.</p>
+<p>Contactez la direction de l’école pour retrouver l’accès à votre compte.</p>
+{% else %}
 <p class="sous-titre">Indiquez l'adresse électronique associée à votre compte Petits Pas.</p>
 <form method="post" class="encadre">
   {% csrf_token %}
@@ -9,5 +13,6 @@
   {{ form.email }}
   <div class="actions"><button class="bouton" type="submit">Envoyer le lien de réinitialisation</button></div>
 </form>
+{% endif %}
 <p><a href="{% url 'connexion' %}">Retour à la connexion</a></p>
 {% endblock %}

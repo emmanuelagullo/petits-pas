@@ -76,6 +76,13 @@ courante. `requirements.txt` conserve des plages plus larges afin de permettre
 d’autres résolutions compatibles, notamment un futur environnement Guix. La
 séparation et ses limites sont détaillées dans `REPRODUCTIBILITE.org`.
 
+L’envoi par SMTP repose uniquement sur Django. `django-anymail` est une
+extension facultative pour certains fournisseurs transactionnels ; elle
+s’installe séparément avec `requirements-anymail.txt` lorsque le backend choisi
+en a besoin. En production, il faut configurer explicitement un backend avec
+`CARNET_EMAIL_BACKEND`, ou assumer le mode manuel avec
+`CARNET_EMAIL_DESACTIVE=oui`.
+
 Pour voir l'outil rempli avant de le montrer à quelqu'un :
 
 ```sh
