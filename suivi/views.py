@@ -1696,7 +1696,14 @@ def equipe_ecole(request):
             affectation.etat == AffectationClasse.ACTIVE
             and affectation.date_debut > aujourd_hui
         )
-        affectation.est_presente_ou_future = est_presente_ou_future(affectation)
+        affectation.est_presente_ou_future = (
+            est_presente_ou_future(affectation)
+            and affectation.classe.statut_annee in {"courante", "future"}
+        )
+        affectation.classe_historique = affectation.classe.statut_annee in {
+            "passee",
+            "ancienne",
+        }
         return affectation
 
     affectations_par_classe = {}
@@ -1752,6 +1759,11 @@ def equipe_ecole(request):
         or classe.statut_annee in {"courante", "future"}
         or classe.anomalie_ouverte
     ]
+    classes_affectables = [
+        classe
+        for classe in classes_equipe
+        if classe.statut_annee in {"courante", "future"}
+    ]
     personnes_visibles = [
         appartenance
         for appartenance in appartenances
@@ -1776,6 +1788,7 @@ def equipe_ecole(request):
             ),
             "classes": classes_equipe,
             "classes_visibles": classes_visibles,
+            "classes_affectables": classes_affectables,
             "types_affectation": AffectationClasse.TYPES,
             "anomalies": anomalies,
             "vue_equipe": vue_equipe,
