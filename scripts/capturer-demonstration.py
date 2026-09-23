@@ -140,7 +140,7 @@ def jouer_scenario(page, base_url, output, demonstration, scenario):
         if scenario.get("vue_equipe") == "personnes":
             page.get_by_role("link", name="Personnes", exact=True).click()
         if scenario.get("historique"):
-            page.get_by_role("link", name="Afficher l’historique").click()
+            page.get_by_role("link", name="Afficher aussi les années passées et les affectations terminées").click()
     else:
         ouvrir_classe(page, demonstration, scenario["classe"])
         if parcours == "contribution":
