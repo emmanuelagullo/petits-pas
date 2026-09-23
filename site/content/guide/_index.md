@@ -50,7 +50,7 @@ encore proposée, cela est signalé explicitement.
 ### [Comprendre un refus](depannage/)
 
 Une action peut être absente, refusée ou présentée comme une ressource
-introuvable selon le contexte. Les futures fiches expliqueront notamment
+introuvable selon le contexte. Les fiches de diagnostic expliquent notamment
 pourquoi une personne ne voit pas une classe, peut prévisualiser mais pas
 générer un carnet, ou ne peut pas terminer la dernière affectation responsable.
 
