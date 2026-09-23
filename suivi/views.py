@@ -1576,6 +1576,16 @@ def equipe_ecole(request):
                     ),
                 )
             elif action == "affecter":
+                classe = get_object_or_404(
+                    Classe, pk=request.POST.get("classe"), ecole=ecole
+                )
+                if (
+                    classe.statut_annee in {"passee", "ancienne"}
+                    and request.POST.get("historique") != "1"
+                ):
+                    raise ValidationError(
+                        "Affichez les années passées avant d’y attribuer une fonction."
+                    )
                 attribuer_affectation(
                     utilisateur=request.user,
                     appartenance=get_object_or_404(
@@ -1583,9 +1593,7 @@ def equipe_ecole(request):
                         pk=request.POST.get("appartenance"),
                         ecole=ecole,
                     ),
-                    classe=get_object_or_404(
-                        Classe, pk=request.POST.get("classe"), ecole=ecole
-                    ),
+                    classe=classe,
                     type=request.POST.get("type"),
                     date_fin=request.POST.get("date_fin") or None,
                     motif=request.POST.get("motif", ""),
@@ -1712,6 +1720,14 @@ def equipe_ecole(request):
             preparer_affectation(affectation)
             for affectation in appartenance.affectations_classes.all()
         ]
+        affectations.sort(
+            key=lambda affectation: (
+                -int(affectation.classe.annee_scolaire[:4]),
+                affectation.classe.ordre,
+                affectation.classe.nom.casefold(),
+                -affectation.date_debut.toordinal(),
+            )
+        )
         appartenance.affectations_visibles = [
             affectation
             for affectation in affectations
@@ -1737,7 +1753,9 @@ def equipe_ecole(request):
         for anomalie in anomalies
         if anomalie.classe_id is not None
     }
-    classes_equipe = list(ecole.classes.all())
+    classes_equipe = list(
+        ecole.classes.order_by("-annee_scolaire", "ordre", "nom")
+    )
     for classe in classes_equipe:
         affectations = affectations_par_classe.get(classe.pk, [])
         classe.affectations_visibles = [
@@ -1762,7 +1780,8 @@ def equipe_ecole(request):
     classes_affectables = [
         classe
         for classe in classes_equipe
-        if classe.statut_annee in {"courante", "future"}
+        if afficher_historique
+        or classe.statut_annee in {"courante", "future"}
     ]
     personnes_visibles = [
         appartenance

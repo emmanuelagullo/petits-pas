@@ -187,6 +187,13 @@ class AffectationClasse(RelationTemporelle):
         related_name="affectations",
     )
     type = models.CharField(max_length=20, choices=TYPES)
+    acces_historique = models.BooleanField(
+        default=False,
+        help_text=(
+            "Autorise explicitement l’accès pédagogique à une classe d’une "
+            "année scolaire passée."
+        ),
+    )
 
     class Meta:
         ordering = ["classe", "appartenance", "-date_debut"]
@@ -221,7 +228,10 @@ class AffectationClasse(RelationTemporelle):
         return (
             super().est_active(date)
             and self.appartenance.est_active(date)
-            and self.classe.etat == self.classe.ACTIVE
+            and (
+                self.classe.etat == self.classe.ACTIVE
+                or self.acces_historique
+            )
         )
 
 

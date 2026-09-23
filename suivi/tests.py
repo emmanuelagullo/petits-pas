@@ -3237,9 +3237,80 @@ class EquipeEtGouvernance(Base):
 
         self.assertNotContains(courante, "Les Anciennes Lucioles")
         self.assertContains(historique, "Les Anciennes Lucioles")
-        self.assertContains(historique, "classe archivée")
+        self.assertContains(historique, "année antérieure")
+        self.assertNotContains(historique, "classe archivée")
         self.assertNotContains(personnes_courantes, "Les Anciennes Lucioles")
         self.assertContains(personnes_historiques, "Les Anciennes Lucioles")
+
+    def test_historique_trie_les_classes_et_affectations_par_annee_decroissante(self):
+        future = Classe.objects.create(
+            ecole=self.ecole,
+            nom="Les Futures Libellules",
+            annee_scolaire="2027-2028",
+        )
+        ancienne = Classe.objects.create(
+            ecole=self.ecole,
+            nom="Les Anciennes Libellules",
+            annee_scolaire="2024-2025",
+            etat=Classe.ARCHIVEE,
+        )
+        for classe in (future, ancienne):
+            AffectationClasse.objects.create(
+                appartenance=self.appartenance_enseignant,
+                classe=classe,
+                type=AffectationClasse.CONTRIBUTEUR,
+            )
+        self.entrer("dir-mdp")
+
+        par_classe = self.client.get(
+            reverse("equipe_ecole"), {"vue": "classes", "historique": "1"}
+        )
+        par_personne = self.client.get(
+            reverse("equipe_ecole"), {"vue": "personnes", "historique": "1"}
+        )
+
+        self.assertEqual(
+            [classe.annee_scolaire for classe in par_classe.context["classes_visibles"]],
+            ["2027-2028", "2026-2027", "2024-2025"],
+        )
+        remi = next(
+            appartenance
+            for appartenance in par_personne.context["appartenances"]
+            if appartenance.utilisateur_id == self.enseignant.pk
+        )
+        affectations = remi.affectations_visibles + remi.affectations_historiques
+        self.assertEqual(
+            [affectation.classe.annee_scolaire for affectation in affectations],
+            ["2027-2028", "2026-2027", "2024-2025"],
+        )
+
+    def test_affecter_une_annee_passee_ouvre_un_acces_historique_explicite(self):
+        ancienne_classe = Classe.objects.create(
+            ecole=self.ecole,
+            nom="Les Lucioles 2024",
+            annee_scolaire="2024-2025",
+            etat=Classe.ARCHIVEE,
+        )
+        self.entrer("dir-mdp")
+
+        reponse = self.client.post(
+            reverse("equipe_ecole"),
+            {
+                "action": "affecter",
+                "appartenance": self.appartenance_enseignant.pk,
+                "classe": ancienne_classe.pk,
+                "type": AffectationClasse.CONTRIBUTEUR,
+                "vue": "personnes",
+                "historique": "1",
+            },
+        )
+
+        self.assertRedirects(
+            reponse, reverse("equipe_ecole") + "?vue=personnes&historique=1"
+        )
+        affectation = AffectationClasse.objects.get(classe=ancienne_classe)
+        self.assertTrue(affectation.acces_historique)
+        self.assertTrue(affectation.est_active())
 
     def test_t081_responsable_ne_voit_pas_l_equipe_complete(self):
         self.entrer()

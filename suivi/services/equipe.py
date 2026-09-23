@@ -215,6 +215,7 @@ def attribuer_affectation(
         appartenance=appartenance,
         classe=classe,
         type=type,
+        acces_historique=classe.statut_annee in {"passee", "ancienne"},
         date_debut=date_debut or timezone.localdate(),
         date_fin=date_fin,
         motif=motif.strip(),
@@ -226,6 +227,7 @@ def attribuer_affectation(
         affectation,
         nouvelles={
             "type": type,
+            "acces_historique": affectation.acces_historique,
             "date_debut": affectation.date_debut.isoformat(),
             "date_fin": affectation.date_fin.isoformat() if affectation.date_fin else None,
             "utilisateur_id": appartenance.utilisateur_id,

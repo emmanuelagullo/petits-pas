@@ -178,6 +178,23 @@ class PolitiqueAutorisations(TestCase):
             )
         )
 
+    def test_acces_a_une_classe_passee_exige_une_autorisation_explicite(self):
+        ancienne = Classe.objects.create(
+            ecole=self.ecole_a,
+            nom="Ancienne classe",
+            annee_scolaire="2024-2025",
+            etat=Classe.ARCHIVEE,
+        )
+        affectation = self._affecter(
+            self.remi_a, ancienne, AffectationClasse.ENSEIGNANT_ASSOCIE
+        )
+
+        self.assertFalse(autorise(self.remi, VOIR_SUIVI, ancienne))
+        affectation.acces_historique = True
+        affectation.save(update_fields=["acces_historique"])
+        self.assertTrue(autorise(self.remi, VOIR_SUIVI, ancienne))
+        self.assertIn(ancienne, classes_accessibles(self.remi, VOIR_SUIVI))
+
     def test_t030_t031_t032_activation_de_classe(self):
         self.assertEqual(self.a3.etat, Classe.PREPARATION)
         self.assertFalse(peut_activer_classe(self.diane, self.a3))
