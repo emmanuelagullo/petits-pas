@@ -1640,6 +1640,13 @@ def equipe_ecole(request):
                 else "Action refusée."
             )
             messages.error(request, detail)
+        vue_retour = request.POST.get("vue")
+        historique_retour = request.POST.get("historique") == "1"
+        if vue_retour in {"classes", "personnes"}:
+            suffixe = f"?vue={vue_retour}"
+            if historique_retour:
+                suffixe += "&historique=1"
+            return redirect(f"{reverse('equipe_ecole')}{suffixe}")
         return redirect("equipe_ecole")
 
     appartenances = list(
@@ -1674,6 +1681,82 @@ def equipe_ecole(request):
                     .filter(Q(date_fin__isnull=True) | Q(date_fin__gte=aujourd_hui))
                     .exists()
                 ]
+    vue_equipe = request.GET.get("vue", "classes")
+    if vue_equipe not in {"classes", "personnes"}:
+        vue_equipe = "classes"
+    afficher_historique = request.GET.get("historique") == "1"
+
+    def est_presente_ou_future(relation):
+        return relation.etat == relation.ACTIVE and (
+            relation.date_fin is None or relation.date_fin >= aujourd_hui
+        )
+
+    def preparer_affectation(affectation):
+        affectation.est_future = (
+            affectation.etat == AffectationClasse.ACTIVE
+            and affectation.date_debut > aujourd_hui
+        )
+        affectation.est_presente_ou_future = est_presente_ou_future(affectation)
+        return affectation
+
+    affectations_par_classe = {}
+    for appartenance in appartenances:
+        affectations = [
+            preparer_affectation(affectation)
+            for affectation in appartenance.affectations_classes.all()
+        ]
+        appartenance.affectations_visibles = [
+            affectation
+            for affectation in affectations
+            if affectation.est_presente_ou_future
+        ]
+        appartenance.affectations_historiques = [
+            affectation
+            for affectation in affectations
+            if not affectation.est_presente_ou_future
+        ]
+        for affectation in affectations:
+            affectations_par_classe.setdefault(affectation.classe_id, []).append(
+                affectation
+            )
+
+    anomalies = list(
+        ecole.anomalies_gouvernance.filter(resolue_le__isnull=True).select_related(
+            "classe"
+        )
+    )
+    anomalies_par_classe = {
+        anomalie.classe_id: anomalie
+        for anomalie in anomalies
+        if anomalie.classe_id is not None
+    }
+    classes_equipe = list(ecole.classes.all())
+    for classe in classes_equipe:
+        affectations = affectations_par_classe.get(classe.pk, [])
+        classe.affectations_visibles = [
+            affectation
+            for affectation in affectations
+            if affectation.est_presente_ou_future
+        ]
+        classe.affectations_historiques = [
+            affectation
+            for affectation in affectations
+            if not affectation.est_presente_ou_future
+        ]
+        classe.anomalie_ouverte = anomalies_par_classe.get(classe.pk)
+
+    classes_visibles = [
+        classe
+        for classe in classes_equipe
+        if afficher_historique
+        or classe.statut_annee in {"courante", "future"}
+        or classe.anomalie_ouverte
+    ]
+    personnes_visibles = [
+        appartenance
+        for appartenance in appartenances
+        if afficher_historique or est_presente_ou_future(appartenance)
+    ]
     invitations = list(ecole.invitations.all())
     maintenant = timezone.now()
     for invitation in invitations:
@@ -1685,15 +1768,18 @@ def equipe_ecole(request):
         request,
         "suivi/equipe.html",
         {
-            "appartenances": appartenances,
+            "appartenances": personnes_visibles,
             "membres_affectables": membres_affectables,
             "invitations": invitations,
             "lien_invitation_creee": request.session.pop(
                 "lien_invitation_creee", None
             ),
-            "classes": ecole.classes.all(),
+            "classes": classes_equipe,
+            "classes_visibles": classes_visibles,
             "types_affectation": AffectationClasse.TYPES,
-            "anomalies": ecole.anomalies_gouvernance.filter(resolue_le__isnull=True),
+            "anomalies": anomalies,
+            "vue_equipe": vue_equipe,
+            "afficher_historique": afficher_historique,
         },
     )
 @direction_requise

@@ -6,14 +6,15 @@ categorie = "equipe"
 publics = ["direction"]
 intentions = ["terminer", "suspendre", "urgence", "affectation", "droits", "départ", "fin de fonction"]
 prerequis = "L’affectation est active et vous exercez la fonction de direction."
-depart = "Gérer l’école → Équipe pédagogique → affectation du membre"
+depart = "Gérer l’école → Équipe pédagogique → affectation → Gérer"
 statut = "disponible"
 +++
 
 ## Fin normale
 
-1. Sélectionner **Terminer** sous l’affectation.
-2. Confirmer l’action.
+1. Ouvrir **Gérer** sur l’affectation concernée.
+2. Sélectionner **Terminer l’affectation**.
+3. Confirmer l’action.
 
 L’état devient terminé et la date de fin prend la date du jour. Les droits
 cessent, tandis que l’identité, l’affectation et les contributions historiques
@@ -21,8 +22,9 @@ restent conservées.
 
 ## Suspension d’urgence
 
-1. Saisir obligatoirement le motif d’urgence.
-2. Sélectionner **Suspendre en urgence**, puis confirmer.
+1. Ouvrir **Gérer** sur l’affectation concernée.
+2. Saisir obligatoirement le motif d’urgence.
+3. Sélectionner **Suspendre en urgence**, puis confirmer.
 
 La suspension coupe immédiatement les droits. Si elle retire le dernier
 responsable de la classe, une anomalie de gouvernance est ouverte pour rendre la

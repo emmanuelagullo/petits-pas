@@ -195,6 +195,121 @@ h2 {
 }
 .reglage-niveau-defaut select { margin: 0; }
 
+/* ---------- Équipe pédagogique ---------- */
+
+.entete-equipe {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.action-principale { position: relative; flex: none; }
+.action-principale > summary, .gerer-affectation > summary { list-style: none; }
+.action-principale > summary::-webkit-details-marker,
+.gerer-affectation > summary::-webkit-details-marker { display: none; }
+.panneau-action {
+  position: absolute;
+  z-index: 8;
+  right: 0;
+  width: min(32rem, calc(100vw - 2rem));
+  margin-top: 0.45rem;
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: 0 0.35rem 1rem rgb(31 42 51 / 15%);
+}
+.panneau-action h2 { margin-top: 0; }
+.alerte-gouvernance {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  flex-wrap: wrap;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  color: #773816;
+  background: var(--en-cours-fond);
+  border: 1px solid var(--en-cours);
+  border-radius: var(--rayon);
+}
+.vues-equipe {
+  display: inline-flex;
+  padding: 0.2rem;
+  margin: 0.5rem 0;
+  background: var(--trait);
+  border-radius: var(--rayon);
+}
+.vues-equipe a {
+  min-width: 7rem;
+  padding: 0.5rem 1rem;
+  color: var(--ardoise);
+  text-align: center;
+  text-decoration: none;
+  border-radius: calc(var(--rayon) - 2px);
+}
+.vues-equipe a[aria-current="page"] { background: var(--surface); font-weight: 650; }
+.controle-historique { margin: 0.35rem 0 1.25rem; font-size: 0.9rem; }
+.cartes-equipe { display: grid; gap: 1.2rem; }
+.carte-equipe {
+  background: var(--surface);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  overflow: visible;
+}
+.carte-equipe-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--trait);
+}
+.carte-equipe-entete h2 { margin: 0; color: var(--ardoise); font-size: 1.2rem; }
+.carte-equipe-entete p { margin: 0.15rem 0 0; color: var(--ardoise-clair); font-size: 0.9rem; }
+.pastille.alerte { color: var(--en-cours); border-color: var(--en-cours); background: var(--en-cours-fond); }
+.message-anomalie { padding: 0.8rem 1rem; background: var(--en-cours-fond); border-bottom: 1px solid var(--trait); }
+.message-anomalie p { margin: 0 0 0.5rem; }
+.ligne-equipe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 64px;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--trait);
+}
+.ligne-equipe.historique { background: var(--papier); color: var(--ardoise-clair); }
+.identite-affectation strong, .identite-affectation span { display: block; }
+.identite-affectation span { margin-top: 0.1rem; color: var(--ardoise-clair); font-size: 0.9rem; }
+.gerer-affectation { position: relative; flex: none; }
+.gerer-affectation .panneau-action { min-width: 25rem; }
+.gerer-affectation form + form { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--trait); }
+.danger-discret { background: var(--surface); color: #8a2f24; border-color: #b86a60; }
+.ajout-contextuel { padding: 0.75rem 1rem; }
+.ajout-contextuel > summary { cursor: pointer; color: var(--lien); }
+.formulaire-contextuel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(12rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+}
+.formulaire-contextuel label { margin: 0; }
+.formulaire-contextuel .bouton { align-self: end; justify-self: start; }
+.vide-compact { margin: 0; padding: 1rem; color: var(--ardoise-clair); border-bottom: 1px solid var(--trait); }
+.invitations-equipe { margin-top: 1.5rem; }
+.invitations-equipe > summary { cursor: pointer; font-weight: 650; }
+.invitations-equipe .liste { margin-top: 0.6rem; }
+
+@media (max-width: 640px) {
+  .entete-equipe { display: block; }
+  .action-principale { display: inline-block; margin-bottom: 1rem; }
+  .action-principale .panneau-action { left: 0; right: auto; }
+  .carte-equipe-entete, .ligne-equipe { align-items: flex-start; }
+  .formulaire-contextuel { grid-template-columns: 1fr; }
+  .gerer-affectation .panneau-action { min-width: min(25rem, calc(100vw - 3rem)); }
+}
+
 /* ---------- Listes de classes et d'élèves ---------- */
 
 .liste {

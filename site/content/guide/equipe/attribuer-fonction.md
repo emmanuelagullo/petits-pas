@@ -6,14 +6,14 @@ categorie = "equipe"
 publics = ["direction"]
 intentions = ["attribuer", "fonction", "affectation", "responsable", "enseignant associé", "contributeur", "date de fin"]
 prerequis = "La personne est membre actif de l’école et la classe existe."
-depart = "Gérer l’école → Équipe pédagogique → Attribuer une fonction dans une classe"
+depart = "Gérer l’école → Équipe pédagogique → Classes"
 statut = "disponible"
 +++
 
 ## Étapes
 
-1. Choisir le membre et la classe.
-2. Choisir **Responsable de classe**, **Enseignant associé** ou
+1. Repérer la classe, puis ouvrir **Ajouter une personne à cette classe**.
+2. Choisir la personne et sa fonction : **Responsable de classe**, **Enseignant associé** ou
    **Contributeur**.
 3. Ajouter si nécessaire une date de fin et un motif.
 4. Sélectionner **Attribuer**.
@@ -22,9 +22,12 @@ statut = "disponible"
 
 ## Résultat attendu
 
-L’affectation apparaît sous le membre avec sa classe, sa fonction, ses dates et
+L’affectation apparaît dans la classe avec la personne, sa fonction, ses dates et
 son état. Ses droits sont calculés à partir de cette fonction, pour cette classe
 seulement et pendant la période active.
+
+La vue **Personnes** permet la même opération dans l’autre sens avec
+**Attribuer une fonction à…** : la personne est alors déjà sélectionnée.
 
 Une affectation responsable active résout l’anomalie signalant une classe sans
 responsable. Elle permet ensuite à la direction d’activer une classe encore en

@@ -170,6 +170,23 @@ def charger_configuration_demo(chemin):
             raise ValueError(
                 f"Configuration de démonstration invalide : {chemin_scenario}.parcours."
             )
+        vue_equipe = scenario.get("vue_equipe")
+        if vue_equipe is not None and (
+            scenario["parcours"] != "equipe_direction"
+            or vue_equipe not in {"classes", "personnes"}
+        ):
+            raise ValueError(
+                f"Configuration de démonstration invalide : "
+                f"{chemin_scenario}.vue_equipe."
+            )
+        if "historique" in scenario and (
+            scenario["parcours"] != "equipe_direction"
+            or not isinstance(scenario["historique"], bool)
+        ):
+            raise ValueError(
+                f"Configuration de démonstration invalide : "
+                f"{chemin_scenario}.historique."
+            )
         capture = Path(scenario["capture"])
         if capture.is_absolute() or ".." in capture.parts or capture.suffix != ".png":
             raise ValueError(
