@@ -6,16 +6,17 @@ categorie = "equipe"
 publics = ["direction"]
 intentions = ["remplacer", "remplacement", "responsable", "titulaire", "classe", "continuité"]
 prerequis = "Le responsable à remplacer est actif et un autre membre actif peut prendre sa fonction."
-depart = "Gérer l’école → Équipe pédagogique → membre responsable"
+depart = "Gérer l’école → Équipe pédagogique → responsable → Gérer"
 statut = "disponible"
 +++
 
 ## Étapes
 
-1. Sous l’affectation responsable concernée, choisir la personne dans
+1. Ouvrir **Gérer** sur l’affectation responsable concernée.
+2. Choisir la personne dans
    **Remplacer par**.
-2. Ajouter un motif si utile.
-3. Sélectionner **Remplacer le responsable**, puis confirmer.
+3. Ajouter un motif si utile.
+4. Sélectionner **Remplacer le responsable**, puis confirmer.
 
 {{< capture-guide src="captures/guide/equipe/remplacer-responsable.png" alt="Formulaire de remplacement du responsable fictif d’une classe" caption="Le remplaçant et le motif sont choisis avant l’opération atomique de remplacement." >}}
 

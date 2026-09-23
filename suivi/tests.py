@@ -2769,7 +2769,7 @@ class JeuDemoLarge(TestCase):
                 "#formulaire-trace",
                 "#formulaire-bilan",
                 "#preparer-carnets",
-                "#membre-enseignant-demo form.encadre",
+                "#membre-enseignant-demo .gerer-affectation .panneau-action",
             },
         )
 
@@ -3193,6 +3193,47 @@ class EquipeEtGouvernance(Base):
         self.assertContains(reponse, "Rémi Responsable")
         self.assertContains(reponse, "remi@example.test")
         self.assertContains(reponse, "Responsable de classe")
+
+    def test_equipe_est_presentee_par_classe_puis_par_personne(self):
+        self.entrer("dir-mdp")
+
+        par_classe = self.client.get(reverse("equipe_ecole"))
+        self.assertEqual(par_classe.context["vue_equipe"], "classes")
+        self.assertContains(par_classe, "Ajouter une personne à cette classe")
+        self.assertContains(par_classe, "Gérer")
+
+        par_personne = self.client.get(
+            reverse("equipe_ecole"), {"vue": "personnes"}
+        )
+        self.assertEqual(par_personne.context["vue_equipe"], "personnes")
+        self.assertContains(par_personne, "Attribuer une fonction à Rémi")
+        self.assertContains(par_personne, 'id="membre-marc"')
+
+    def test_historique_masque_les_anciennes_classes_par_defaut(self):
+        ancienne_classe = Classe.objects.create(
+            ecole=self.ecole,
+            nom="Les Anciennes Lucioles",
+            annee_scolaire="2024-2025",
+            etat=Classe.ARCHIVEE,
+        )
+        AffectationClasse.objects.create(
+            appartenance=self.appartenance_enseignant,
+            classe=ancienne_classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+            date_debut=date(2024, 9, 1),
+            date_fin=date(2025, 8, 31),
+            etat=AffectationClasse.TERMINEE,
+        )
+        self.entrer("dir-mdp")
+
+        courante = self.client.get(reverse("equipe_ecole"))
+        historique = self.client.get(
+            reverse("equipe_ecole"), {"vue": "classes", "historique": "1"}
+        )
+
+        self.assertNotContains(courante, "Les Anciennes Lucioles")
+        self.assertContains(historique, "Les Anciennes Lucioles")
+        self.assertContains(historique, "terminée le 31 août 2025")
 
     def test_t081_responsable_ne_voit_pas_l_equipe_complete(self):
         self.entrer()

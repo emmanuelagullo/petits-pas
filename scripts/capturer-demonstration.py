@@ -137,6 +137,10 @@ def jouer_scenario(page, base_url, output, demonstration, scenario):
         page.get_by_role("link", name="Gérer l'école").click()
         page.get_by_role("link", name="Équipe pédagogique").click()
         page.get_by_role("heading", name="Équipe pédagogique").wait_for()
+        if scenario.get("vue_equipe") == "personnes":
+            page.get_by_role("link", name="Personnes", exact=True).click()
+        if scenario.get("historique"):
+            page.get_by_role("link", name="Afficher l’historique").click()
     else:
         ouvrir_classe(page, demonstration, scenario["classe"])
         if parcours == "contribution":

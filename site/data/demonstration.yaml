@@ -201,6 +201,7 @@ scenarios:
   - id: lea-remplacement
     profil: diane
     parcours: equipe_direction
+    vue_equipe: personnes
     cible: "#membre-lea-demo"
     capture: roles/lea/remplacement.png
     titre: Borner un remplacement dans le temps
@@ -208,6 +209,8 @@ scenarios:
   - id: alice-affectation-terminee
     profil: diane
     parcours: equipe_direction
+    vue_equipe: personnes
+    historique: true
     cible: "#membre-alice-demo"
     capture: roles/alice/affectation-terminee.png
     titre: Conserver une affectation terminée dans l'historique
@@ -215,6 +218,7 @@ scenarios:
   - id: marc-sans-affectation
     profil: diane
     parcours: equipe_direction
+    vue_equipe: personnes
     cible: "#membre-marc-demo"
     capture: roles/marc/sans-affectation.png
     titre: Être membre sans recevoir de droits pédagogiques
@@ -318,7 +322,9 @@ scenarios:
       - { action: lien, nom: "Gérer l'école" }
       - { action: lien, nom: "Équipe pédagogique" }
       - { action: titre, nom: "Équipe pédagogique" }
-    cible: "#membre-enseignant-demo form.encadre"
+      - { action: lien, nom: "Personnes" }
+      - { action: selecteur, selecteur: "#membre-enseignant-demo .gerer-affectation > summary" }
+    cible: "#membre-enseignant-demo .gerer-affectation .panneau-action"
     capture: guide/equipe/remplacer-responsable.png
     titre: Remplacer un responsable
     legende: Le formulaire prépare la nouvelle responsabilité avant de terminer l'ancienne dans les données fictives.

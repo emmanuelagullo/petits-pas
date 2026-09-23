@@ -2,55 +2,22 @@
 {% block titre %}Équipe pédagogique{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
-<h1>Équipe pédagogique</h1>
-
-<section id="membres">
-<h2>Membres</h2>
-<ul class="liste">
-{% for appartenance in appartenances %}
-  <li class="entree" id="membre-{{ appartenance.utilisateur.username|slugify }}">
-    <span class="principal">{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</span>
-    <span class="secondaire">{{ appartenance.utilisateur.email }} · membre du {{ appartenance.date_debut }}{% if appartenance.date_fin %} au {{ appartenance.date_fin }}{% endif %} · {{ appartenance.get_etat_display }}</span>
-    {% for responsabilite in appartenance.responsabilites.all %}<span class="secondaire">{{ responsabilite.get_type_display }} — {{ responsabilite.get_etat_display }}</span>{% endfor %}
-    {% for affectation in appartenance.affectations_classes.all %}
-    <span class="secondaire">{{ affectation.classe.libelle_avec_annee }} · {{ affectation.get_type_display }} · {{ affectation.date_debut }}{% if affectation.date_fin %} → {{ affectation.date_fin }}{% endif %} · {{ affectation.get_etat_display }}</span>
-    {% if affectation.est_active_aujourdhui %}
-    <div class="actions">
-      {% if affectation.peut_terminer_directement %}
-      <form method="post" onsubmit="return confirm('Terminer cette affectation ?');">
-        {% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}">
-        <button class="bouton discret" name="action" value="terminer_affectation">Terminer</button>
-      </form>
-      {% elif affectation.type == "responsable" %}
-      <span class="aide">Ce responsable doit être remplacé avant la fin de son affectation.</span>
-      {% endif %}
-      <form method="post" onsubmit="return confirm('Suspendre cette affectation en urgence ?');">
-        {% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}">
-        <input name="motif" placeholder="Motif d’urgence" aria-label="Motif de la suspension d’urgence" required>
-        <button class="bouton discret" name="action" value="suspendre_affectation">Suspendre en urgence</button>
+<div class="entete-equipe">
+  <div><h1>Équipe pédagogique</h1><p class="sous-titre">Organiser les fonctions de chacun dans les classes.</p></div>
+  <details class="action-principale">
+    <summary class="bouton">Inviter une personne</summary>
+    <div class="panneau-action">
+      <h2>Inviter une personne</h2>
+      <p>Le lien lui permettra de créer son compte individuel ou de rattacher un compte existant utilisant la même adresse.</p>
+      {% if email_disponible %}<p class="aide">L’invitation sera envoyée par e-mail et restera valable sept jours.</p>{% else %}<p class="aide">L’envoi de courriel est désactivé : le lien devra être copié et transmis par la direction.</p>{% endif %}
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="inviter"><input type="hidden" name="vue" value="{{ vue_equipe }}">
+        <label>Adresse électronique <input type="email" name="email" required></label>
+        <button class="bouton" type="submit">Créer l'invitation</button>
       </form>
     </div>
-    {% if affectation.type == "responsable" and affectation.remplacants %}
-    <form method="post" class="encadre" onsubmit="return confirm('Remplacer ce responsable ?');">
-      {% csrf_token %}<input type="hidden" name="action" value="remplacer_responsable"><input type="hidden" name="affectation" value="{{ affectation.pk }}">
-      <label>Remplacer par
-        <select name="remplacement" required>{% for candidat in affectation.remplacants %}<option value="{{ candidat.pk }}">{{ candidat.utilisateur.get_full_name|default:candidat.utilisateur.username }}</option>{% endfor %}</select>
-      </label>
-      <label>Motif <input name="motif"></label>
-      <button class="bouton" type="submit">Remplacer le responsable</button>
-    </form>
-    {% endif %}
-    {% endif %}
-    {% endfor %}
-  </li>
-{% empty %}<li>Aucun membre.</li>{% endfor %}
-</ul>
-</section>
+  </details>
+</div>
 
-<section id="invitations">
-<h2>Inviter un membre</h2>
-<p>Le lien permet à la personne de créer son compte individuel, ou de rattacher un compte existant utilisant la même adresse. Il est valable sept jours.</p>
-{% if email_disponible %}<p class="aide">L’invitation est envoyée par e-mail à l’adresse saisie. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>{% else %}<p class="aide">L’envoi de courriel est désactivé sur cette installation. Le lien devra être copié et transmis par la direction. L’appartenance créée ne donne aucun droit pédagogique tant qu’aucune fonction de classe n’est attribuée.</p>{% endif %}
 {% if lien_invitation_creee %}
 <div class="encadre" role="status">
   <label for="lien-invitation">{% if email_disponible %}Lien de secours — {% endif %}affiché une seule fois{% if email_disponible %}, au cas où l’e-mail n’arriverait pas{% endif %}</label>
@@ -58,24 +25,91 @@
   <p><a href="{{ lien_invitation_creee }}">Vérifier le lien d’invitation</a></p>
 </div>
 {% endif %}
-<form method="post">{% csrf_token %}<input type="hidden" name="action" value="inviter">
-  <label>Adresse électronique <input type="email" name="email" required></label>
-  <button class="bouton" type="submit">Créer l'invitation</button>
-</form>
-{% if invitations %}<ul class="liste">{% for invitation in invitations %}<li class="entree"><span class="principal">{{ invitation.email }}</span><span class="secondaire">{% if invitation.est_expiree %}Expirée{% else %}{{ invitation.get_etat_display }}{% endif %} · expire le {{ invitation.expire_le }}</span>{% if invitation.etat == "en_attente" and not invitation.est_expiree %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoquer_invitation"><input type="hidden" name="invitation" value="{{ invitation.pk }}"><button class="bouton discret">Révoquer</button></form>{% endif %}</li>{% endfor %}</ul>{% endif %}
-</section>
 
-<section id="gouvernance">
-<h2>Attribuer une fonction dans une classe</h2>
-<form method="post">{% csrf_token %}<input type="hidden" name="action" value="affecter">
-  <label>Membre <select name="appartenance">{% for appartenance in membres_affectables %}<option value="{{ appartenance.pk }}">{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</option>{% endfor %}</select></label>
-  <label>Classe <select name="classe">{% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}</select></label>
-  <label>Fonction <select name="type">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
-  <label>Fin éventuelle <input type="date" name="date_fin"></label>
-  <label>Motif <input name="motif"></label>
-  <button class="bouton" type="submit">Attribuer</button>
-</form>
+{% if anomalies %}
+<aside class="alerte-gouvernance" id="gouvernance">
+  <strong>{{ anomalies|length }} anomalie{{ anomalies|length|pluralize }} à traiter</strong>
+  {% for anomalie in anomalies %}{% if anomalie.classe %}<a href="?vue=classes#classe-{{ anomalie.classe.pk }}">{{ anomalie.classe.libelle_avec_annee }}</a>{% endif %}{% endfor %}
+</aside>
+{% endif %}
 
-{% if anomalies %}<h2>Anomalies à traiter</h2><ul class="liste">{% for anomalie in anomalies %}<li>{{ anomalie.get_type_display }}{% if anomalie.classe %} — {{ anomalie.classe.libelle_avec_annee }}{% endif %} : {{ anomalie.motif }}</li>{% endfor %}</ul>{% endif %}
+<nav class="vues-equipe" aria-label="Présentation de l'équipe">
+  <a href="?vue=classes{% if afficher_historique %}&historique=1{% endif %}" aria-current="{% if vue_equipe == 'classes' %}page{% endif %}">Classes</a>
+  <a href="?vue=personnes{% if afficher_historique %}&historique=1{% endif %}" aria-current="{% if vue_equipe == 'personnes' %}page{% endif %}">Personnes</a>
+</nav>
+
+<p class="controle-historique">{% if afficher_historique %}<a href="?vue={{ vue_equipe }}">Masquer les affectations terminées et les anciennes classes</a>{% else %}<a href="?vue={{ vue_equipe }}&historique=1">Afficher l’historique</a>{% endif %}</p>
+
+{% if vue_equipe == "classes" %}
+<div class="cartes-equipe">
+{% for classe in classes_visibles %}
+<section class="carte-equipe" id="classe-{{ classe.pk }}">
+  <header class="carte-equipe-entete">
+    <div><h2>{{ classe.nom }}</h2><p>{{ classe.annee_scolaire }} · {{ classe.libelle_statut_annee }} · {{ classe.get_etat_display }}</p></div>
+    {% if classe.anomalie_ouverte %}<span class="pastille alerte">Responsable requis</span>{% endif %}
+  </header>
+
+  {% if classe.anomalie_ouverte %}
+  <div class="message-anomalie">
+    <p>{{ classe.anomalie_ouverte.motif }}</p>
+    <details><summary class="bouton discret">Attribuer un responsable</summary>
+      <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="affecter"><input type="hidden" name="classe" value="{{ classe.pk }}"><input type="hidden" name="type" value="responsable"><input type="hidden" name="vue" value="classes">
+        <label>Personne <select name="appartenance" required>{% for membre in membres_affectables %}<option value="{{ membre.pk }}">{{ membre.utilisateur.get_full_name|default:membre.utilisateur.username }}</option>{% endfor %}</select></label>
+        <label>Fin éventuelle <input type="date" name="date_fin"></label><label>Motif <input name="motif"></label><button class="bouton" type="submit">Attribuer</button>
+      </form>
+    </details>
+  </div>
+  {% endif %}
+
+  <div class="lignes-equipe">
+  {% for affectation in classe.affectations_visibles %}{% include "suivi/partiels/affectation_equipe.html" with vue="classes" %}{% empty %}<p class="vide-compact">Aucune fonction en cours ou planifiée dans cette classe.</p>{% endfor %}
+  {% if afficher_historique %}{% for affectation in classe.affectations_historiques %}{% include "suivi/partiels/affectation_equipe.html" with vue="classes" historique=True %}{% endfor %}{% endif %}
+  </div>
+
+  <details class="ajout-contextuel">
+    <summary>Ajouter une personne à cette classe</summary>
+    <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="affecter"><input type="hidden" name="classe" value="{{ classe.pk }}"><input type="hidden" name="vue" value="classes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
+      <label>Personne <select name="appartenance" required>{% for membre in membres_affectables %}<option value="{{ membre.pk }}">{{ membre.utilisateur.get_full_name|default:membre.utilisateur.username }}</option>{% endfor %}</select></label>
+      <label>Fonction <select name="type">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
+      <label>Fin éventuelle <input type="date" name="date_fin"></label><label>Motif <input name="motif"></label><button class="bouton" type="submit">Attribuer</button>
+    </form>
+  </details>
 </section>
+{% empty %}<div class="vide"><p>Aucune classe à afficher.</p></div>{% endfor %}
+</div>
+{% else %}
+<div class="cartes-equipe">
+{% for appartenance in appartenances %}
+<section class="carte-equipe" id="membre-{{ appartenance.utilisateur.username|slugify }}">
+  <header class="carte-equipe-entete">
+    <div><h2>{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</h2><p>{{ appartenance.utilisateur.email }}{% if appartenance.date_fin %} · membre jusqu’au {{ appartenance.date_fin }}{% else %} · membre depuis le {{ appartenance.date_debut }}{% endif %} · {{ appartenance.get_etat_display }}</p></div>
+    {% for responsabilite in appartenance.responsabilites.all %}<span class="pastille">{{ responsabilite.get_type_display }}</span>{% endfor %}
+  </header>
+
+  <div class="lignes-equipe">
+  {% for affectation in appartenance.affectations_visibles %}{% include "suivi/partiels/affectation_equipe.html" with vue="personnes" %}{% empty %}<p class="vide-compact">Aucune fonction de classe en cours ou planifiée.</p>{% endfor %}
+  {% if afficher_historique %}{% for affectation in appartenance.affectations_historiques %}{% include "suivi/partiels/affectation_equipe.html" with vue="personnes" historique=True %}{% endfor %}{% endif %}
+  </div>
+
+  {% if appartenance in membres_affectables %}
+  <details class="ajout-contextuel">
+    <summary>Attribuer une fonction à {{ appartenance.utilisateur.first_name|default:appartenance.utilisateur.username }}</summary>
+    <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="affecter"><input type="hidden" name="appartenance" value="{{ appartenance.pk }}"><input type="hidden" name="vue" value="personnes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
+      <label>Classe <select name="classe">{% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}</select></label>
+      <label>Fonction <select name="type">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
+      <label>Fin éventuelle <input type="date" name="date_fin"></label><label>Motif <input name="motif"></label><button class="bouton" type="submit">Attribuer</button>
+    </form>
+  </details>
+  {% endif %}
+</section>
+{% empty %}<div class="vide"><p>Aucune personne à afficher.</p></div>{% endfor %}
+</div>
+{% endif %}
+
+{% if invitations %}
+<details class="invitations-equipe" id="invitations">
+  <summary>Invitations en attente ou récentes ({{ invitations|length }})</summary>
+  <ul class="liste">{% for invitation in invitations %}<li class="entree"><span class="principal">{{ invitation.email }}</span><span class="secondaire">{% if invitation.est_expiree %}Expirée{% else %}{{ invitation.get_etat_display }}{% endif %} · expire le {{ invitation.expire_le }}</span>{% if invitation.etat == "en_attente" and not invitation.est_expiree %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoquer_invitation"><input type="hidden" name="invitation" value="{{ invitation.pk }}"><input type="hidden" name="vue" value="{{ vue_equipe }}"><button class="bouton discret">Révoquer</button></form>{% endif %}</li>{% endfor %}</ul>
+</details>
+{% endif %}
 {% endblock %}

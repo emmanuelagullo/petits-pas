@@ -6,13 +6,13 @@ categorie = "equipe"
 publics = ["direction"]
 intentions = ["inviter", "membre", "équipe", "courriel", "email", "lien", "révoquer"]
 prerequis = "Vous exercez la fonction de direction et connaissez l’adresse électronique individuelle de la personne."
-depart = "Gérer l’école → Équipe pédagogique → Inviter un membre"
+depart = "Gérer l’école → Équipe pédagogique → Inviter une personne"
 statut = "disponible"
 +++
 
 ## Étapes
 
-1. Saisir l’adresse électronique de la personne.
+1. Ouvrir **Inviter une personne**, puis saisir son adresse électronique.
 2. Sélectionner **Créer l’invitation**.
 3. Vérifier le message : il indique si le courriel a été envoyé, si son envoi
    a échoué ou si cette installation fonctionne sans courriel.
@@ -23,7 +23,7 @@ statut = "disponible"
 
 ## Résultat attendu
 
-L’invitation apparaît dans la liste avec son état et son expiration. Elle est
+L’invitation apparaît dans le volet **Invitations en attente ou récentes** avec son état et son expiration. Elle est
 valable sept jours et son lien n’est utilisable qu’une fois. Lorsque l’envoi est
 configuré, le courriel explique comment créer un compte ou rattacher un compte
 existant.
@@ -33,7 +33,7 @@ session ; la liste ne permet pas de le retrouver ultérieurement.
 
 ## Révoquer avant utilisation
 
-Tant que l’invitation est en attente et non expirée, sélectionner **Révoquer**.
+Déplier **Invitations en attente ou récentes**. Tant que l’invitation est en attente et non expirée, sélectionner **Révoquer**.
 Le lien ne permettra alors plus de rejoindre l’école.
 
 ## Limites et refus
