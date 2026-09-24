@@ -13,7 +13,7 @@ et les supports publics utilisent exclusivement des données fictives.
 Les procédures locales et les profils de déploiement sont décrits dans
 `DEPLOIEMENT.org`, `ATELIER-PEDAGOGIQUE.org` et `REPRODUCTIBILITE.org`.
 
-### Prototype de fenêtre locale (#L1)
+### Application locale (#L1–L2)
 
 Avec les dépendances Python du projet installées, dans le shell Guix habituel,
 ajouter `python-pygobject` et `webkitgtk-for-gtk3` au `use guix` de `.envrc`.
@@ -49,18 +49,39 @@ s'exécute pas automatiquement lors des lancements suivants, afin de ne pas
 réinitialiser les choix pédagogiques de l'école.
 
 Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
-port libre. Fermer la fenêtre arrête le serveur. Par défaut, il crée
-`./paquet-autonome/` à la racine du projet, avec `carnet.sqlite3`, `media/` et
-`secret-key`, ainsi que `staticfiles/` (fichiers générés à partir du code) ;
-ce répertoire est exclu de Git. Le lanceur rassemble les fichiers statiques
-avant de démarrer le serveur et vérifie que sa feuille CSS est accessible.
-Le chemin se règle aussi par
-`PETITS_PAS_PAQUET_AUTONOME` (l'option `--paquet` a priorité). Un chemin
-relatif est interprété depuis le répertoire de lancement. Les migrations
-s'appliquent automatiquement à la base de ce paquet. Les anciennes données
-de développement à la racine du dépôt ne sont pas importées ; aucun compte
-ni jeu de démonstration n'est créé au lancement ordinaire. Le courrier est
-désactivé.
+port libre. Fermer la fenêtre arrête le serveur. Par défaut, les nouveaux
+paquets résident sous `~/.local/share/petits-pas/paquet-autonome/` (ou sous
+`$XDG_DATA_HOME/petits-pas/paquet-autonome/` si cette variable est définie),
+hors du dépôt : une nouvelle extraction ou mise à jour du code conserve ainsi
+les données. Le chemin se règle par `PETITS_PAS_PAQUET_AUTONOME` ou `--paquet`
+(prioritaire). Un chemin relatif est interprété depuis le répertoire de
+lancement. Le paquet contient `carnet.sqlite3`, `media/`, `secret-key`, les
+éventuelles `sauvegardes-migrations/`, et `staticfiles/` (recréé depuis le
+code). Le courrier est désactivé.
+
+**Paquet créé avec #L1 dans le dépôt :** fermer la fenêtre, puis le copier
+explicitement vers le nouvel emplacement par défaut :
+
+```sh
+python scripts/lancer-local.py --paquet ./paquet-autonome \
+  --deplacer-paquet "${XDG_DATA_HOME:-$HOME/.local/share}/petits-pas/paquet-autonome"
+python scripts/lancer-local.py
+```
+
+Le transfert vérifie la copie SQLite et conserve le paquet d'origine. Il ne
+remplace jamais une destination existante. Le lanceur refuse de créer un paquet
+vide à l'emplacement par défaut s'il détecte encore l'ancien paquet dans le
+dépôt : il affiche la commande de transfert. Après vérification du nouveau
+paquet, l'ancien peut être archivé ou supprimé manuellement pour éviter de
+modifier par mégarde deux jeux de données divergents. Pour rester sur l'ancien
+emplacement sans transfert, lancer explicitement
+`python scripts/lancer-local.py --paquet ./paquet-autonome`.
+
+Les migrations s'appliquent au démarrage. Lorsqu'une mise à jour du code exige
+une migration, une copie de la base SQLite est créée d'abord dans
+`sauvegardes-migrations/`. Le lanceur refuse aussi l'ouverture simultanée du
+même paquet dans deux instances. Ces copies techniques ne remplacent pas une
+sauvegarde complète de la base **et** des médias, prévue pour #L4.
 
 Après la première connexion, créer une classe, ajouter une trace avec photo,
 générer son carnet PDF et fermer la fenêtre. Relancer ensuite la même commande
@@ -72,9 +93,8 @@ Ce jalon est un prototype à lancer depuis les sources, sans installateur :
 le téléchargement des PDF dépend du moteur Web installé. Conserver ensemble
 la base, les médias et la clé du paquet pour préparer une sauvegarde ou un
 transfert ; `staticfiles/` peut être reconstruit au lancement depuis le code.
-une copie faite pendant que l'application tourne peut être incohérente.
-Les jalons suivants traiteront la sauvegarde, le premier compte et la
-distribution.
+Une copie faite pendant que l'application tourne peut être incohérente.
+Les jalons suivants traiteront la sauvegarde et la distribution.
 
 ## Site public
 
