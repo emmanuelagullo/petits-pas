@@ -32,10 +32,21 @@ python scripts/lancer-local.py
 python scripts/lancer-local.py --paquet /chemin/vers/mon-paquet
 ```
 
-La commande `--creer-ecole` utilise la création d'école existante et affiche
+La commande `--creer-ecole` utilise la création d'école existante, charge
+`referentiel/trame-cycle1.yaml` (une trame pédagogique provisoire) et affiche
 les identifiants initiaux dans le terminal. Elle refuse d'ajouter une seconde
 école dans ce paquet. Pour un autre chemin, lui passer aussi `--paquet`.
 Ne lancer l'initialisation qu'une fois et conserver les mots de passe affichés.
+Si une école a été créée avec la première version de #L1, charger la trame
+explicitement, sans recréer l'école :
+
+```sh
+python scripts/lancer-local.py --charger-referentiel
+```
+
+Cette commande met à jour les compétences de la trame par code ; elle ne
+s'exécute pas automatiquement lors des lancements suivants, afin de ne pas
+réinitialiser les choix pédagogiques de l'école.
 
 Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
 port libre. Fermer la fenêtre arrête le serveur. Par défaut, il crée

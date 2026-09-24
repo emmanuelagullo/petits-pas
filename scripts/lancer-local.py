@@ -33,9 +33,16 @@ def main():
         help="initialiser une école et ses comptes dans ce paquet, puis quitter",
     )
     analyseur.add_argument("--commune", default="", help="commune de l'école créée")
+    analyseur.add_argument(
+        "--charger-referentiel",
+        action="store_true",
+        help="charger la trame pédagogique provisoire dans l'école existante, puis quitter",
+    )
     arguments = analyseur.parse_args()
     if arguments.commune and not arguments.creer_ecole:
         analyseur.error("--commune nécessite --creer-ecole")
+    if arguments.creer_ecole and arguments.charger_referentiel:
+        analyseur.error("--creer-ecole charge déjà le référentiel")
     paquet = arguments.paquet.expanduser().resolve()
     if paquet == projet:
         raise SystemExit(
@@ -87,12 +94,17 @@ def main():
     # sans dépendre de collectstatic ni modifier la configuration partagée.
     application = StaticFilesHandler(get_wsgi_application())
     call_command("migrate", interactive=False, verbosity=0)
+    referentiel = projet / "referentiel" / "trame-cycle1.yaml"
     if arguments.creer_ecole:
         from suivi.models import Ecole
 
         if Ecole.objects.exists():
             raise SystemExit("Ce paquet contient déjà une école.")
         call_command("creer_ecole", arguments.creer_ecole, commune=arguments.commune)
+        call_command("charger_referentiel", str(referentiel))
+        return
+    if arguments.charger_referentiel:
+        call_command("charger_referentiel", str(referentiel))
         return
 
     try:
