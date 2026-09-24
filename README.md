@@ -15,14 +15,27 @@ Les procédures locales et les profils de déploiement sont décrits dans
 
 ### Prototype de fenêtre locale (#L1)
 
-Avec les dépendances Python du projet installées :
+Avec les dépendances Python du projet installées, dans le shell Guix habituel,
+ajouter `python-pygobject` et `webkitgtk-for-gtk3` au `use guix` de `.envrc`.
+PyWebView sous Linux requiert PyGObject et l'API `WebKit2` 4.1 de WebKitGTK.
+Le paquet `webkitgtk` seul n'expose pas cette API. Recharger `direnv`, puis
+créer un environnement Python qui voit les paquets Guix :
 
 ```sh
-python3 -m pip install -r requirements-local.txt
-python3 scripts/lancer-local.py
+python3 -m venv --system-site-packages .venv
+source .venv/bin/activate
+python -m pip install -r requirements-local.txt
+python -c "import gi; gi.require_version('WebKit2', '4.1'); from gi.repository import WebKit2"
+python scripts/lancer-local.py --creer-ecole "Mon école" --commune "Ma commune"
+python scripts/lancer-local.py
 # Ou, pour un autre emplacement :
-python3 scripts/lancer-local.py --paquet /chemin/vers/mon-paquet
+python scripts/lancer-local.py --paquet /chemin/vers/mon-paquet
 ```
+
+La commande `--creer-ecole` utilise la création d'école existante et affiche
+les identifiants initiaux dans le terminal. Elle refuse d'ajouter une seconde
+école dans ce paquet. Pour un autre chemin, lui passer aussi `--paquet`.
+Ne lancer l'initialisation qu'une fois et conserver les mots de passe affichés.
 
 Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
 port libre. Fermer la fenêtre arrête le serveur. Par défaut, il crée
@@ -32,7 +45,14 @@ port libre. Fermer la fenêtre arrête le serveur. Par défaut, il crée
 relatif est interprété depuis le répertoire de lancement. Les migrations
 s'appliquent automatiquement à la base de ce paquet. Les anciennes données
 de développement à la racine du dépôt ne sont pas importées ; aucun compte
-ni jeu de démonstration n'est créé. Le courrier est désactivé.
+ni jeu de démonstration n'est créé au lancement ordinaire. Le courrier est
+désactivé.
+
+Après la première connexion, créer une classe, ajouter une trace avec photo,
+générer son carnet PDF et fermer la fenêtre. Relancer ensuite la même commande
+et vérifier que l'école, la trace et le PDF sont toujours disponibles. Si le
+moteur Web n'offre pas le téléchargement attendu, relever précisément le
+comportement avant de considérer cette vérification acquise.
 
 Ce jalon est un prototype à lancer depuis les sources, sans installateur :
 le téléchargement des PDF dépend du moteur Web installé. Conserver ensemble
