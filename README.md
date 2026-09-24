@@ -13,6 +13,34 @@ et les supports publics utilisent exclusivement des données fictives.
 Les procédures locales et les profils de déploiement sont décrits dans
 `DEPLOIEMENT.org`, `ATELIER-PEDAGOGIQUE.org` et `REPRODUCTIBILITE.org`.
 
+### Prototype de fenêtre locale (#L1)
+
+Avec les dépendances Python du projet installées :
+
+```sh
+python3 -m pip install -r requirements-local.txt
+python3 scripts/lancer-local.py
+# Ou, pour un autre emplacement :
+python3 scripts/lancer-local.py --paquet /chemin/vers/mon-paquet
+```
+
+Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
+port libre. Fermer la fenêtre arrête le serveur. Par défaut, il crée
+`./paquet-autonome/` à la racine du projet, avec `carnet.sqlite3`, `media/` et
+`secret-key` ; ce répertoire est exclu de Git. Le chemin se règle aussi par
+`PETITS_PAS_PAQUET_AUTONOME` (l'option `--paquet` a priorité). Un chemin
+relatif est interprété depuis le répertoire de lancement. Les migrations
+s'appliquent automatiquement à la base de ce paquet. Les anciennes données
+de développement à la racine du dépôt ne sont pas importées ; aucun compte
+ni jeu de démonstration n'est créé. Le courrier est désactivé.
+
+Ce jalon est un prototype à lancer depuis les sources, sans installateur :
+le téléchargement des PDF dépend du moteur Web installé. Conserver ensemble
+les trois éléments du paquet pour préparer une sauvegarde ou un transfert ;
+une copie faite pendant que l'application tourne peut être incohérente.
+Les jalons suivants traiteront la sauvegarde, le premier compte et la
+distribution.
+
 ## Site public
 
 Le site de présentation est construit avec Hugo depuis le répertoire `site/` :

@@ -1,0 +1,2 @@
+# Fenêtre du prototype local (#L1). Installer avec requirements.txt.
+pywebview>=5,<7

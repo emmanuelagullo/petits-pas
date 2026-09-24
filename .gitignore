@@ -5,6 +5,7 @@ __pycache__/
 *.pyc
 .venv/
 /carnet.sqlite3*
+/paquet-autonome/
 media/
 staticfiles/
 backups/

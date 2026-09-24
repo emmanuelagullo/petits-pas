@@ -85,7 +85,9 @@ else:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "carnet.sqlite3",
+            "NAME": Path(
+                os.environ.get("CARNET_SQLITE_PATH", BASE_DIR / "carnet.sqlite3")
+            ),
         }
     }
 
