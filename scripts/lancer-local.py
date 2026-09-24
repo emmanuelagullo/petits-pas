@@ -27,7 +27,15 @@ def main():
         ),
         help="répertoire des données autonomes (défaut : ./paquet-autonome)",
     )
+    analyseur.add_argument(
+        "--creer-ecole",
+        metavar="NOM",
+        help="initialiser une école et ses comptes dans ce paquet, puis quitter",
+    )
+    analyseur.add_argument("--commune", default="", help="commune de l'école créée")
     arguments = analyseur.parse_args()
+    if arguments.commune and not arguments.creer_ecole:
+        analyseur.error("--commune nécessite --creer-ecole")
     paquet = arguments.paquet.expanduser().resolve()
     if paquet == projet:
         raise SystemExit(
@@ -67,20 +75,32 @@ def main():
     os.environ["DJANGO_SETTINGS_MODULE"] = "carnet.settings"
 
     try:
-        import webview
         from django.contrib.staticfiles.handlers import StaticFilesHandler
         from django.core.management import call_command
         from django.core.wsgi import get_wsgi_application
     except ImportError as exc:
         raise SystemExit(
-            "Dépendance absente : installez requirements.txt et "
-            "requirements-local.txt."
+            f"Dépendance Python absente : {exc}. Vérifiez l'environnement du projet."
         ) from exc
 
     # StaticFilesHandler sert les fichiers du dépôt pendant ce prototype,
     # sans dépendre de collectstatic ni modifier la configuration partagée.
     application = StaticFilesHandler(get_wsgi_application())
     call_command("migrate", interactive=False, verbosity=0)
+    if arguments.creer_ecole:
+        from suivi.models import Ecole
+
+        if Ecole.objects.exists():
+            raise SystemExit("Ce paquet contient déjà une école.")
+        call_command("creer_ecole", arguments.creer_ecole, commune=arguments.commune)
+        return
+
+    try:
+        import webview
+    except ImportError as exc:
+        raise SystemExit(
+            f"PyWebView est absent : {exc}. Installez requirements-local.txt."
+        ) from exc
     serveur = make_server("127.0.0.1", 0, application, server_class=ServeurLocal)
     thread = Thread(target=serveur.serve_forever, name="petits-pas-local", daemon=True)
     thread.start()
