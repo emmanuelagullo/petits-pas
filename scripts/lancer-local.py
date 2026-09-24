@@ -5,6 +5,7 @@ import argparse
 import os
 import secrets
 import sys
+from urllib.request import urlopen
 from pathlib import Path
 from socketserver import ThreadingMixIn
 from threading import Thread
@@ -79,10 +80,12 @@ def main():
     os.environ["CARNET_SECRET_KEY"] = cle
     os.environ["CARNET_SQLITE_PATH"] = str(paquet / "carnet.sqlite3")
     os.environ["CARNET_MEDIA_ROOT"] = str(paquet / "media")
+    os.environ["CARNET_STATIC_ROOT"] = str(paquet / "staticfiles")
+    os.environ["CARNET_STATIC_URL"] = "/static/"
     os.environ["DJANGO_SETTINGS_MODULE"] = "carnet.settings"
 
     try:
-        from django.contrib.staticfiles.handlers import StaticFilesHandler
+        import django
         from django.core.management import call_command
         from django.core.wsgi import get_wsgi_application
     except ImportError as exc:
@@ -90,9 +93,12 @@ def main():
             f"Dépendance Python absente : {exc}. Vérifiez l'environnement du projet."
         ) from exc
 
-    # StaticFilesHandler sert les fichiers du dépôt pendant ce prototype,
-    # sans dépendre de collectstatic ni modifier la configuration partagée.
-    application = StaticFilesHandler(get_wsgi_application())
+    # Avec DEBUG désactivé, WhiteNoise lit les fichiers collectés au moment
+    # de la construction de l'application WSGI. Collecter d'abord et isoler
+    # cette sortie du staticfiles des autres profils du projet.
+    django.setup()
+    call_command("collectstatic", interactive=False, verbosity=0)
+    application = get_wsgi_application()
     call_command("migrate", interactive=False, verbosity=0)
     referentiel = projet / "referentiel" / "trame-cycle1.yaml"
     if arguments.creer_ecole:
@@ -117,6 +123,15 @@ def main():
     thread = Thread(target=serveur.serve_forever, name="petits-pas-local", daemon=True)
     thread.start()
     try:
+        try:
+            with urlopen(
+                f"http://127.0.0.1:{serveur.server_port}/static/suivi/carnet.css",
+                timeout=5,
+            ) as reponse:
+                if "text/css" not in reponse.headers.get("Content-Type", ""):
+                    raise RuntimeError("Le CSS local n'est pas servi correctement.")
+        except Exception as exc:
+            raise SystemExit(f"Échec du chargement du CSS local : {exc}") from exc
         webview.create_window(
             "Petits Pas", f"http://127.0.0.1:{serveur.server_port}/"
         )

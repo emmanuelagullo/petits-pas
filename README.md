@@ -51,7 +51,10 @@ réinitialiser les choix pédagogiques de l'école.
 Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
 port libre. Fermer la fenêtre arrête le serveur. Par défaut, il crée
 `./paquet-autonome/` à la racine du projet, avec `carnet.sqlite3`, `media/` et
-`secret-key` ; ce répertoire est exclu de Git. Le chemin se règle aussi par
+`secret-key`, ainsi que `staticfiles/` (fichiers générés à partir du code) ;
+ce répertoire est exclu de Git. Le lanceur rassemble les fichiers statiques
+avant de démarrer le serveur et vérifie que sa feuille CSS est accessible.
+Le chemin se règle aussi par
 `PETITS_PAS_PAQUET_AUTONOME` (l'option `--paquet` a priorité). Un chemin
 relatif est interprété depuis le répertoire de lancement. Les migrations
 s'appliquent automatiquement à la base de ce paquet. Les anciennes données
@@ -67,7 +70,8 @@ comportement avant de considérer cette vérification acquise.
 
 Ce jalon est un prototype à lancer depuis les sources, sans installateur :
 le téléchargement des PDF dépend du moteur Web installé. Conserver ensemble
-les trois éléments du paquet pour préparer une sauvegarde ou un transfert ;
+la base, les médias et la clé du paquet pour préparer une sauvegarde ou un
+transfert ; `staticfiles/` peut être reconstruit au lancement depuis le code.
 une copie faite pendant que l'application tourne peut être incohérente.
 Les jalons suivants traiteront la sauvegarde, le premier compte et la
 distribution.
