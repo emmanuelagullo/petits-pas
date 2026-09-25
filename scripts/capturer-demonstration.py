@@ -171,6 +171,10 @@ def main():
     analyseur = argparse.ArgumentParser()
     analyseur.add_argument("--base-url", required=True)
     analyseur.add_argument("--output", type=Path, required=True)
+    analyseur.add_argument(
+        "--mode-local", action="store_true",
+        help="Capturer les écrans fictifs avec CARNET_MODE_LOCAL=oui.",
+    )
     options = analyseur.parse_args()
 
     demonstration = charger_configuration_demo(
@@ -190,6 +194,19 @@ def main():
         navigateur = playwright.chromium.launch(**lancement)
         contexte = nouveau_contexte(navigateur, {"width": 1440, "height": 1000})
         page = contexte.new_page()
+
+        if options.mode_local:
+            connecter(page, options.base_url, demonstration, "diane")
+            page.get_by_role("link", name="Gérer l'école").click()
+            page.get_by_role("heading", name="Gérer l'école").wait_for()
+            page.get_by_role("link", name="Sauvegardes locales").wait_for()
+            capturer(page, options.output / "guide/local/gestion.png")
+            page.get_by_role("link", name="Sauvegardes locales").click()
+            page.get_by_role("heading", name="Sauvegardes locales").wait_for()
+            capturer(page, options.output / "guide/local/sauvegardes.png")
+            contexte.close()
+            navigateur.close()
+            return
 
         page.goto(f"{options.base_url}/connexion/")
         page.get_by_role("heading", name="Carnet de suivi des apprentissages").wait_for()

@@ -35,6 +35,8 @@ CAPTURES_GENERALES = {
     "captures/acquisitions.png",
     "captures/carnet.png",
     "captures/direction.png",
+    "captures/guide/local/gestion.png",
+    "captures/guide/local/sauvegardes.png",
 }
 
 
@@ -52,12 +54,17 @@ def lire_entete(chemin):
         raise RuntimeError(f"{chemin} : en-tête TOML invalide : {erreur}") from erreur
 
 
-def resoudre_contenu(page, cible):
+def resoudre_contenu(page, cible, *, lien_page=False):
     cible = unquote(urlsplit(cible).path)
     if cible.startswith("/"):
         base = CONTENU / cible.lstrip("/")
     else:
-        base = page.parent / cible
+        # Sur le site, une fiche.md est publiée sous fiche/ : les liens
+        # relatifs partent de cette URL, pas du dossier source de fiche.md.
+        repertoire_url = (
+            page.with_suffix("") if lien_page and page.name != "_index.md" else page.parent
+        )
+        base = repertoire_url / cible
     candidats = [base]
     if base.suffix not in {".md", ".org"}:
         candidats.extend((base.with_suffix(".md"), base / "_index.md"))
@@ -78,7 +85,7 @@ def verifier_liens(page, corps, erreurs):
             or urlsplit(cible).scheme
         ):
             continue
-        if resoudre_contenu(page, cible) is None:
+        if resoudre_contenu(page, cible, lien_page=True) is None:
             erreurs.append(f"{page} : lien interne introuvable : {cible}")
 
 

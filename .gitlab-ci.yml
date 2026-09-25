@@ -218,6 +218,13 @@ captures-demonstration:
       python3 scripts/capturer-demonstration.py \
         --base-url "http://127.0.0.1:$PORT" \
         --output site/static/captures
+      kill "$application_pid"
+      wait "$application_pid" || true
+      CARNET_MODE_LOCAL=oui gunicorn carnet.wsgi:application --bind "127.0.0.1:$PORT" >.ci-captures-local.log 2>&1 &
+      application_pid=$!
+      python3 scripts/capturer-demonstration.py \
+        --base-url "http://127.0.0.1:$PORT" \
+        --output site/static/captures --mode-local
       python3 scripts/verifier-captures-demonstration.py \
         --input site/static/captures
       kill "$application_pid"
@@ -228,6 +235,7 @@ captures-demonstration:
     paths:
       - site/static/captures
       - .ci-captures-demonstration.log
+      - .ci-captures-local.log
     expire_in: 1 week
 
 .hugo:

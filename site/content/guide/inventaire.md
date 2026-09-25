@@ -104,7 +104,7 @@ Les statuts employés sont :
 | Suspendre une affectation en urgence | Disponible | Motif obligatoire ; une anomalie peut être ouverte. |
 | Attribuer ou retirer une responsabilité de direction | Interne | Services présents, sans interface publique. |
 
-## Utiliser le mode local sur un ordinateur
+## Utiliser le mode autonome local
 
 | Je voudrais… | État | Point important |
 | --- | --- | --- |

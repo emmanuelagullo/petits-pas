@@ -12,6 +12,14 @@ statut = "disponible"
 
 ## Télécharger et conserver
 
+La commande ci-dessous n’apparaît que dans le mode autonome local, pour un
+compte de direction. En mode hébergé, l’hébergeur ou la DSI gère la sauvegarde
+de la base partagée et des médias : la page **Gérer l’école** n’affiche pas
+**Sauvegardes locales**. La [comparaison des interfaces]({{< relref "/guide/local/" >}})
+montre cette différence.
+
+{{< capture-guide src="captures/guide/local/sauvegardes.png" alt="Page Sauvegardes locales d’une école fictive, avec les commandes de téléchargement et de vérification du ZIP" caption="Les sauvegardes locales sont réservées au programme autonome et à la direction." >}}
+
 Dans **Gérer l’école**, ouvrez **Sauvegardes locales** et cliquez sur
 **Télécharger une sauvegarde**. Enregistrez le fichier ZIP dans un emplacement
 protégé, distinct du dossier du programme et du paquet de travail. Il contient
@@ -23,6 +31,6 @@ avant de compter sur cette copie. Répétez l’opération selon les besoins de
 l’école, notamment avant une mise à jour du programme. Le téléchargement
 ne supprime pas le paquet en cours.
 
-Pour [restaurer une archive](restaurer-paquet/), revenez dans la même page.
+Pour [restaurer une archive]({{< relref "/guide/local/restaurer-paquet.md" >}}), revenez dans la même page.
 Les installations avec serveur disposent d’une autre procédure de sauvegarde,
 décrite dans la [rubrique DSI]({{< relref "/dsi/" >}}).

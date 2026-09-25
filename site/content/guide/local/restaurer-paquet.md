@@ -12,6 +12,10 @@ statut = "disponible"
 
 ## Vérifier, confirmer, redémarrer
 
+Cette procédure n’existe que dans le mode autonome local : la direction ne
+peut pas remplacer depuis son navigateur la base d’une installation hébergée
+partagée. Voir la [comparaison des deux modes]({{< relref "/guide/local/" >}}).
+
 1. Sélectionnez l’archive ZIP et cliquez sur **Vérifier la sauvegarde**.
    L’application présente sa date et le nombre de médias après vérification.
    Le paquet actuel n’est pas encore remplacé.
@@ -28,4 +32,4 @@ chemin où l’ancien paquet a été conservé. Celui-ci contient la base, les m
 et la clé précédents : c’est un dossier, **pas** un ZIP. L’archive choisie pour
 la restauration reste distincte du paquet restauré ; conservez-en votre copie
 dans un lieu sûr. Le retour à une ancienne version du **programme** est une
-opération différente, décrite dans la [fiche d’installation](installer-programme/).
+opération différente, décrite dans la [fiche d’installation]({{< relref "/guide/local/installer-programme.md" >}}).
