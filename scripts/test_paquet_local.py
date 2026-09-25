@@ -48,6 +48,8 @@ class PaquetLocalTests(unittest.TestCase):
 
                 def analyser(scripts, **kwargs):
                     appels.extend(scripts)
+                    self.assertIn("whitenoise.storage", kwargs["hiddenimports"])
+                    self.assertIn("whitenoise.middleware", kwargs["hiddenimports"])
                     return SimpleNamespace(pure=[], scripts=[], binaries=[], datas=[])
 
                 espace = {

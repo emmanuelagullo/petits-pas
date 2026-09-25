@@ -136,10 +136,14 @@ def verifier_distribution(projet):
     import webview
     from django.core.management import call_command
     from django.contrib.staticfiles import finders
+    from django.core.files.storage import storages
     from django.template.loader import get_template
+    from django.core.wsgi import get_wsgi_application
 
     django.setup()
     call_command("check")
+    get_wsgi_application()  # Vérifie les middlewares chargés par leur nom.
+    storages["staticfiles"]  # Vérifie le backend avant collectstatic.
     get_template("suivi/connexion.html")
     if not finders.find("suivi/carnet.css"):
         raise SystemExit("La feuille de style est absente de la distribution.")

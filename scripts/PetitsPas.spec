@@ -24,7 +24,11 @@ donnees = [
 ]
 donnees += collect_data_files("django.contrib.admin", includes=["templates/**", "static/**"])
 
-imports = ["carnet.settings", "carnet.urls", "carnet.wsgi"]
+imports = [
+    "carnet.settings", "carnet.urls", "carnet.wsgi",
+    # Django importe ces modules via des chaînes dans MIDDLEWARE et STORAGES.
+    "whitenoise.middleware", "whitenoise.storage",
+]
 imports += collect_submodules("comptes", filter=lambda nom: not nom.endswith(".tests"))
 imports += collect_submodules("suivi", filter=lambda nom: not nom.endswith(".tests"))
 if os.name == "nt":
