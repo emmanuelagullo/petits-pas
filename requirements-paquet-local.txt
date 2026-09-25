@@ -1,0 +1,10 @@
+# Dépendances de l'application autonome (sans PostgreSQL, S3 ni Gunicorn).
+Django>=5.2,<7
+dj-database-url>=2
+PyYAML>=6
+Pillow>=10
+tzdata
+whitenoise
+weasyprint>=68,<69
+pywebview>=5,<7
+pyinstaller>=6,<7
