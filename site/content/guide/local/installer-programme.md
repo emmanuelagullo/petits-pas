@@ -5,16 +5,18 @@ fiche = true
 categorie = "local"
 publics = ["direction"]
 intentions = ["installer", "mettre à jour", "Ubuntu", "Windows", "revenir à une version", "nettoyer"]
-prerequis = "Disposer d’une archive adaptée à Ubuntu ou Windows et d’un ordinateur compatible."
+prerequis = "Avoir téléchargé l’archive adaptée à Ubuntu ou Windows et disposer d’un ordinateur compatible."
 depart = "Archive PetitsPas extraite sur l’ordinateur"
 statut = "partiel"
 +++
 
 ## Installer et ouvrir
 
-Téléchargez l’archive correspondant à votre système auprès du projet, puis
-extrayez-la entièrement. Les archives produites par GitHub Actions peuvent
-contenir un second fichier ZIP : extrayez aussi celui-ci avant l’installation.
+[Téléchargez la version publiée]({{< relref "/guide/local/telecharger-programme.md" >}})
+correspondant à votre système, puis extrayez-la entièrement. Pour essayer une
+construction avant publication, les artefacts GitHub Actions comportent un
+ZIP enveloppe supplémentaire à extraire ; ce n’est pas le cas des archives
+publiées dans une release.
 
 - **Ubuntu** : dans un terminal ouvert dans le dossier `PetitsPas` extrait,
   exécutez `bash installer-paquet-linux.sh`. Lancez ensuite **Petits Pas** depuis

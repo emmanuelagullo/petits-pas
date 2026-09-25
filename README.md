@@ -209,22 +209,43 @@ git push inria v0.3.0-local.1
 git push github v0.3.0-local.1
 ```
 
-Créer ensuite une release sur chaque forge, avec les **mêmes archives** de
-l'exécution validée :
+Après avoir poussé le tag, publier les archives de l’exécution validée :
 
 ```sh
 bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
 ```
 
-Cette commande nécessite `gh auth login`, `glab auth login --hostname
-gitlab.inria.fr` et des droits de publication sur les deux dépôts. Elle
-vérifie que le tag local et les tags distants désignent le commit construit,
-puis crée une release brouillon GitHub, une release GitLab avec les archives
-chargées dans son registre de paquets, et publie le brouillon GitHub.
+Le script détecte `gh` et `glab`. Avec `gh` seul, il récupère les archives
+GitHub Actions, vérifie le commit de l’exécution et les tags sur les deux
+forges, puis publie une préversion GitHub contenant les binaires. Il indique
+ensuite comment créer la release GitLab depuis son interface, avec deux liens
+vers les mêmes archives GitHub. Avec les deux CLI, il publie aussi les archives
+dans le registre de paquets GitLab et crée les deux releases.
+
+Sans `gh`, mais avec `glab`, télécharger manuellement les deux archives de la
+même exécution GitHub Actions (après extraction de leurs ZIP enveloppes),
+vérifier son SHA dans GitHub Actions puis lancer :
+
+```sh
+bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG \
+  /chemin/PetitsPas-linux.tar.gz /chemin/PetitsPas-windows.zip SHA_DU_COMMIT
+```
+
+Le script vérifie que le SHA fourni correspond aux tags, mais ne peut pas
+contrôler automatiquement l’exécution GitHub sans `gh`. Sans aucun des deux
+CLI, il ne publie rien et donne les étapes pour les deux interfaces web.
+L’authentification et les droits de publication restent nécessaires sur les
+forges utilisées (`gh auth login`, éventuellement
+`glab auth login --hostname gitlab.inria.fr`).
 Si une étape distante échoue, vérifier les releases déjà créées avant toute
 nouvelle tentative : le script ne remplace pas une release existante.
 Une release GitHub, même marquée « pre-release », requiert un tag ; les
 artefacts Actions permettent de tester sans tag.
+
+Pour les utilisateurs, le point d’entrée du site public est la
+[fiche de téléchargement](https://petits-pas.gitlabpages.inria.fr/petits-pas/guide/local/telecharger-programme/) :
+elle renvoie vers les versions GitHub publiées et distingue les archives Linux
+et Windows des artefacts temporaires d’Actions.
 La console reste visible pour diagnostiquer ce premier prototype. Le poste
 doit disposer du moteur Microsoft WebView2 ; la génération PDF exige aussi
 Pango et ses dépendances (voir la documentation WeasyPrint pour Windows,

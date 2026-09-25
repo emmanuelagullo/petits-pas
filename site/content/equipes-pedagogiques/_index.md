@@ -14,8 +14,10 @@ associés et contributeurs.
 
 Le mode autonome local peut aussi être installé sur un seul poste, sans serveur
 distant, pour un usage non collaboratif. Les données restent sur ce poste :
-consultez le [guide du mode local]({{< relref "/guide/local/" >}}) pour l’installation
-et les sauvegardes. Le mode hébergé reste adapté au travail partagé entre postes.
+la [fiche de téléchargement]({{< relref "/guide/local/telecharger-programme.md" >}})
+indique où obtenir le programme, et le [guide du mode local]({{< relref "/guide/local/" >}})
+décrit l’installation et les sauvegardes. Le mode hébergé reste adapté au
+travail partagé entre postes.
 
 ## De l'observation au carnet
 
