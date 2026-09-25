@@ -3,10 +3,33 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l’école</a></p>
 <h1>Sauvegardes locales</h1>
-<p class="sous-titre">Une sauvegarde contient l’école, les comptes, les carnets, les photos et la clé du paquet. Conservez ce fichier dans un lieu sûr.</p>
-{% if restauration_attente %}
-<div class="encadre"><strong>Restauration prête.</strong> Fermez la fenêtre Petits Pas maintenant, puis relancez l’application. Les changements effectués après la demande de restauration ne seront pas conservés.</div>
+{% if resultat %}
+<section class="encadre">
+  <h2>Restauration terminée</h2>
+  <p>La sauvegarde <strong>{{ resultat.nom_archive }}</strong> du <strong>{{ date_resultat }}</strong> a été restaurée dans <code>{{ paquet }}</code>.</p>
+  <p>La base, la clé et {{ resultat.nombre_medias }} fichier{{ resultat.nombre_medias|pluralize }} média ont été restaurés. L’ancien paquet, avec sa base et ses médias, est conservé dans <code>{{ resultat.ancien }}</code>.</p>
+  <p>Restauration appliquée le {{ date_application }}.</p>
+  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="accuser"><button class="bouton" type="submit">J’ai pris connaissance du résultat</button></form>
+</section>
+{% elif restauration_attente %}
+<section class="encadre">
+  <h2>Restauration confirmée</h2>
+  <p>La sauvegarde <strong>{{ preparation.nom_archive }}</strong> du <strong>{{ date_sauvegarde }}</strong> remplacera le paquet <code>{{ paquet }}</code> à la fermeture de cette fenêtre.</p>
+  <p>Le paquet actuel sera conservé dans <code>{{ preparation.ancien }}</code>. Fermez la fenêtre Petits Pas, puis relancez l’application pour consulter le résultat.</p>
+</section>
+{% elif preparation %}
+<section class="encadre">
+  <h2>Confirmer la restauration</h2>
+  <p>La sauvegarde <strong>{{ preparation.nom_archive }}</strong>, créée le <strong>{{ date_sauvegarde }}</strong>, a été vérifiée. Elle contient une base SQLite, une clé et {{ preparation.nombre_medias }} fichier{{ preparation.nombre_medias|pluralize }} média.</p>
+  <p>Si vous confirmez, Petits Pas restaurera cette sauvegarde dans <code>{{ paquet }}</code> après la fermeture de la fenêtre. Avant de remplacer le paquet, il conservera la base et les médias actuels dans <code>{{ preparation.ancien }}</code>.</p>
+  <p>Après confirmation, les nouvelles modifications seront bloquées jusqu’à la fermeture de la fenêtre.</p>
+  <div class="actions">
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="confirmer"><button class="bouton" type="submit">Confirmer la restauration</button></form>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="annuler"><button type="submit">Annuler</button></form>
+  </div>
+</section>
 {% else %}
+<p class="sous-titre">Une sauvegarde contient l’école, les comptes, les carnets, les photos et la clé du paquet. Conservez ce fichier dans un lieu sûr.</p>
 <section class="encadre">
   <h2>Exporter le paquet</h2>
   <p>Enregistrer une copie complète au format ZIP sur votre ordinateur.</p>
@@ -14,12 +37,12 @@
 </section>
 <section class="encadre">
   <h2>Restaurer une sauvegarde</h2>
-  <p>Le fichier est vérifié avant toute modification. La restauration sera effectuée seulement après la fermeture de la fenêtre ; le paquet actuel sera conservé à côté du nouveau.</p>
+  <p>Le fichier est vérifié avant toute modification. La restauration sera effectuée après confirmation et fermeture de la fenêtre.</p>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}<input type="hidden" name="action" value="restaurer">
     <label for="archive">Fichier ZIP Petits Pas</label>
     <input type="file" id="archive" name="archive" accept=".zip,application/zip" required>
-    <div class="actions"><button class="bouton" type="submit">Vérifier et préparer la restauration</button></div>
+    <div class="actions"><button class="bouton" type="submit">Vérifier la sauvegarde</button></div>
   </form>
 </section>
 {% endif %}
