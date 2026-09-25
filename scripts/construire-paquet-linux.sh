@@ -18,6 +18,7 @@ if ! ./dist/PetitsPas/PetitsPas --verifier-distribution; then
     bash scripts/corriger-interpreteur-linux.sh ./dist/PetitsPas/PetitsPas
     ./dist/PetitsPas/PetitsPas --verifier-distribution
 fi
+cp scripts/installer-paquet-linux.sh dist/PetitsPas/installer-paquet-linux.sh
 tar -C dist -czf dist/PetitsPas-linux.tar.gz PetitsPas
 printf 'Paquet Linux : %s/dist/PetitsPas-linux.tar.gz\n' "$PWD"
 printf 'Lancer : %s/dist/PetitsPas/PetitsPas\n' "$PWD"

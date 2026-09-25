@@ -102,7 +102,7 @@ le téléchargement des PDF dépend du moteur Web installé. Conserver ensemble
 la base, les médias et la clé du paquet pour préparer une sauvegarde ou un
 transfert ; `staticfiles/` peut être reconstruit au lancement depuis le code.
 Une copie faite pendant que l'application tourne peut être incohérente.
-La distribution sous forme d'installateur reste un jalon ultérieur.
+Un installateur système complet reste un jalon ultérieur.
 
 ### Dossiers autonomes Linux et Windows (prototype)
 
@@ -110,7 +110,27 @@ Les constructions PyInstaller sont propres à chaque système : construire
 **sous Linux** pour Linux, **sous Windows** pour Windows. Elles embarquent
 Django, les modèles, les gabarits, les statiques et la trame pédagogique ;
 les données de l'école restent **hors** de l'exécutable. Il ne s'agit pas
-encore d'un installateur ni d'une distribution universelle testée.
+d'une distribution universelle testée.
+
+Après extraction, l'installation facultative par utilisateur (#L7) copie
+le programme dans un dossier portant l'empreinte de l'exécutable et crée un
+lanceur. Elle ne nécessite pas de droits administrateur :
+
+```sh
+# Ubuntu : dans le dossier PetitsPas extrait
+bash installer-paquet-linux.sh
+```
+
+Sous Windows, ouvrir `PetitsPas/Installer-PetitsPas.cmd` dans l'Explorateur :
+un raccourci « Petits Pas » est créé dans le menu Démarrer. Le programme peut
+également être lancé directement depuis le dossier extrait. Pour mettre à
+jour, extraire la nouvelle archive et relancer son installateur : l'ancienne
+version reste dans son dossier pour permettre un retour manuel. Les données
+restent dans `paquet-autonome`, à l'emplacement déjà configuré ; installer ou
+mettre à jour le programme ne copie ni ne restaure les données. Quitter
+l'application avant de démarrer la version nouvellement installée. Le lanceur
+Ubuntu reste destiné à un environnement disposant de GTK, WebKit2 et Pango ;
+la construction Ubuntu n'est pas une distribution Guix.
 
 Sous Linux, dans le shell Guix déjà utilisé pour ouvrir la fenêtre locale
 (avec PyGObject et WebKit2 disponibles) :

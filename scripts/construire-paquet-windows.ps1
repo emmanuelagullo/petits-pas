@@ -22,6 +22,8 @@ $env:DJANGO_SETTINGS_MODULE = 'carnet.settings'
 if ($LASTEXITCODE -ne 0) { throw 'La construction PyInstaller a échoué.' }
 & .\dist\PetitsPas\PetitsPas.exe --verifier-distribution
 if ($LASTEXITCODE -ne 0) { throw 'Le contrôle du paquet Windows a échoué.' }
+Copy-Item scripts\Installer-PetitsPas.ps1 dist\PetitsPas\Installer-PetitsPas.ps1
+Copy-Item scripts\Installer-PetitsPas.cmd dist\PetitsPas\Installer-PetitsPas.cmd
 $zip = Join-Path (Resolve-Path dist).Path 'PetitsPas-windows.zip'
 if (Test-Path $zip) { Remove-Item $zip }
 Compress-Archive -Path dist\PetitsPas -DestinationPath $zip

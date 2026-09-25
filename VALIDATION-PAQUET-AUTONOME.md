@@ -69,6 +69,18 @@ terminés.
 
 ## Compte rendu
 
+Après les vérifications directes, tester aussi l'installation facultative
+#L7 sur le même OS : sous Ubuntu lancer `bash PetitsPas/installer-paquet-linux.sh`
+depuis le dossier extrait et ouvrir « Petits Pas » dans le menu des
+applications ; sous Windows ouvrir `PetitsPas/Installer-PetitsPas.cmd` et
+utiliser le raccourci du menu Démarrer. Le raccourci ouvre le paquet par
+défaut ; pour contrôler un paquet de test situé ailleurs, relancer l'exécutable
+installé avec le même `--paquet`. Confirmer que l'installation n'a modifié
+aucun des deux paquets.
+Pour tester une mise à jour, installer une seconde archive, contrôler que le
+raccourci pointe sur la nouvelle version et que le dossier de l'ancienne est
+toujours présent.
+
 | Contrôle | Résultat / remarque |
 | --- | --- |
 | OS, version, exécution Actions | |
@@ -80,6 +92,7 @@ terminés.
 | Restauration et redémarrage | |
 | Ancien paquet et ZIP conservés | |
 | Persistance après second lancement | |
+| Installation, raccourci et mise à jour (#L7) | |
 
 En cas d'échec, noter l'étape, le message et le moteur graphique ; ne jamais
 envoyer une base ou un ZIP contenant des données réelles dans un ticket public.
