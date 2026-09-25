@@ -9,6 +9,7 @@
   <a class="bouton discret" href="{% url 'annuaire_eleves' %}">Annuaire des élèves</a>
   <a class="bouton discret" href="{% url 'parametres_carnet' %}">Paramétrer le carnet</a>
   <a class="bouton discret" href="{% url 'equipe_ecole' %}">Équipe pédagogique</a>
+  {% if mode_local %}<a class="bouton discret" href="{% url 'sauvegardes_locales' %}">Sauvegardes locales</a>{% endif %}
 </div>
 
 <h2>Les classes</h2>

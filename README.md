@@ -102,7 +102,24 @@ le téléchargement des PDF dépend du moteur Web installé. Conserver ensemble
 la base, les médias et la clé du paquet pour préparer une sauvegarde ou un
 transfert ; `staticfiles/` peut être reconstruit au lancement depuis le code.
 Une copie faite pendant que l'application tourne peut être incohérente.
-Les jalons suivants traiteront la sauvegarde et la distribution.
+La distribution sous forme d'installateur reste un jalon ultérieur.
+
+### Sauvegarde et restauration du paquet local (#L4)
+
+Dans la fenêtre locale, la direction ouvre **Gérer l'école → Sauvegardes
+locales**. « Télécharger une sauvegarde » produit un ZIP avec la base SQLite,
+les médias et la clé du paquet. Le téléchargement peut demander de choisir un
+emplacement selon le moteur Web installé. Le ZIP contient des données privées :
+à conserver comme le paquet lui-même.
+
+Pour restaurer, sélectionner ce ZIP dans la même page. Le contenu et la base
+SQLite sont vérifiés avant toute modification. Fermer ensuite la fenêtre pour
+appliquer la restauration, puis relancer Petits Pas. Le paquet remplacé est
+conservé dans un dossier voisin dont le chemin est affiché dans le terminal.
+Une restauration en attente bloque les nouvelles écritures. Les éventuels
+fichiers `staticfiles/` sont reconstruits au démarrage ; les copies techniques
+`sauvegardes-migrations/` restent dans le paquet remplacé. Il n'est pas
+nécessaire de restaurer un compte ou un référentiel séparément.
 
 ## Site public
 

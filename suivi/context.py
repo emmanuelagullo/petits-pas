@@ -54,6 +54,7 @@ def session_ecole(request):
         "environnement_ephemere": settings.ENVIRONNEMENT_EPHEMERE,
         "version_application": settings.VERSION_APPLICATION,
         "email_disponible": settings.EMAIL_DISPONIBLE,
+        "mode_local": settings.MODE_LOCAL,
         "affectations_utilisateur_recentes": affectations_recentes,
         "affectations_utilisateur_passees": affectations_passees,
     }

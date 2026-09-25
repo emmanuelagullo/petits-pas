@@ -142,6 +142,7 @@ urlpatterns = [
         name="basculer_visibilite_trace",
     ),
     path("gestion/", views.gestion, name="gestion"),
+    path("gestion/sauvegardes-locales/", views.sauvegardes_locales, name="sauvegardes_locales"),
     path("gestion/equipe/", views.equipe_ecole, name="equipe_ecole"),
     path("gestion/eleves/", views.annuaire_eleves, name="annuaire_eleves"),
     path(

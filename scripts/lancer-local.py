@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from socketserver import ThreadingMixIn
-from threading import Thread
+from threading import RLock, Thread
 from urllib.request import urlopen
 from wsgiref.simple_server import WSGIServer, make_server
 
@@ -30,7 +30,8 @@ def paquet_par_defaut():
 
 @contextmanager
 def verrouiller(paquet):
-    with (paquet / ".verrou").open("a+b") as verrou:
+    # Le verrou doit survivre au renommage du paquet lors d'une restauration.
+    with (paquet.parent / f".{paquet.name}.verrou").open("a+b") as verrou:
         try:
             fcntl.flock(verrou, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as exc:
@@ -240,7 +241,28 @@ def executer(paquet, projet, arguments):
         raise SystemExit(
             f"PyWebView est absent : {exc}. Installez requirements-local.txt."
         ) from exc
-    serveur = make_server("127.0.0.1", 0, application, server_class=ServeurLocal)
+    from suivi.paquet_local import appliquer_restauration, restauration_en_attente
+
+    requetes = RLock()
+
+    def application_locale(environ, start_response):
+        # Un export attend la fin des écritures en cours, y compris les médias.
+        with requetes:
+            if (
+                restauration_en_attente() is not None
+                and environ.get("REQUEST_METHOD") not in {"GET", "HEAD", "OPTIONS"}
+            ):
+                start_response("423 Locked", [("Content-Type", "text/plain; charset=utf-8")])
+                yield "Restauration prête : fermez la fenêtre Petits Pas.\n".encode("utf-8")
+                return
+            iterable = application(environ, start_response)
+            try:
+                yield from iterable
+            finally:
+                if hasattr(iterable, "close"):
+                    iterable.close()
+
+    serveur = make_server("127.0.0.1", 0, application_locale, server_class=ServeurLocal)
     thread = Thread(target=serveur.serve_forever, name="petits-pas-local", daemon=True)
     thread.start()
     try:
@@ -261,6 +283,14 @@ def executer(paquet, projet, arguments):
         serveur.shutdown()
         thread.join(timeout=5)
         serveur.server_close()
+        etape = restauration_en_attente()
+        if etape is not None:
+            with requetes:
+                from django.db import connections
+
+                connections.close_all()
+                ancien = appliquer_restauration(paquet, etape)
+                print(f"Restauration appliquée. Paquet précédent conservé : {ancien}")
 
 
 if __name__ == "__main__":
