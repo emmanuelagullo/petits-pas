@@ -131,6 +131,28 @@ mettre à jour le programme ne copie ni ne restaure les données. Quitter
 l'application avant de démarrer la version nouvellement installée. Le lanceur
 Ubuntu reste destiné à un environnement disposant de GTK, WebKit2 et Pango ;
 la construction Ubuntu n'est pas une distribution Guix.
+Pour gérer les versions déjà installées (#L8), exécuter depuis le dossier
+extrait (fermer l'application avant un retour ou un nettoyage) :
+
+```sh
+bash gerer-versions-linux.sh --lister
+bash gerer-versions-linux.sh --revenir
+bash gerer-versions-linux.sh --nettoyer
+```
+
+Sous Windows, lancer depuis l'archive extraite :
+
+```powershell
+.\Installer-PetitsPas.cmd -Action Lister
+.\Installer-PetitsPas.cmd -Action Revenir
+.\Installer-PetitsPas.cmd -Action Nettoyer
+```
+
+Une version est identifiée par l'empreinte du programme **et de ses ressources**.
+Le retour change seulement le raccourci et peut être inversé par un second
+retour. Le nettoyage ne retire que les versions plus anciennes que l'active
+et la précédente ; il ne touche ni aux ZIP de sauvegarde ni au paquet de
+données. Une ancienne archive peut être réinstallée si nécessaire.
 
 Sous Linux, dans le shell Guix déjà utilisé pour ouvrir la fenêtre locale
 (avec PyGObject et WebKit2 disponibles) :

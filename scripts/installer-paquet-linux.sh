@@ -27,6 +27,12 @@ fi
 
 applications="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
 mkdir -p "$applications"
+if [[ -f "$racine/actuelle" ]]; then
+    precedente=$(<"$racine/actuelle")
+    if [[ "$precedente" != "$empreinte" ]]; then
+        printf '%s\n' "$precedente" > "$racine/precedente"
+    fi
+fi
 cat > "$applications/petits-pas.desktop" <<EOF
 [Desktop Entry]
 Type=Application
@@ -36,5 +42,7 @@ Exec="$destination/PetitsPas"
 Terminal=true
 Categories=Education;
 EOF
+printf '%s\n' "$empreinte" > "$racine/actuelle"
 printf 'Application installée : %s\nLanceur : %s/petits-pas.desktop\n' "$destination" "$applications"
+printf 'Version installée : %s\n' "$empreinte"
 printf 'Les données de l’école restent dans le paquet autonome, séparé du programme.\n'

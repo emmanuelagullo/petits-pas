@@ -115,6 +115,8 @@ class PaquetLocalTests(unittest.TestCase):
             executable.chmod(0o755)
             script = sources / "installer-paquet-linux.sh"
             script.write_bytes((racine / "scripts" / script.name).read_bytes())
+            gestion = sources / "gerer-versions-linux.sh"
+            gestion.write_bytes((racine / "scripts" / gestion.name).read_bytes())
             donnees = dossier / "donnees"
             paquet = donnees / "petits-pas" / "paquet-autonome"
             paquet.mkdir(parents=True)
@@ -127,18 +129,28 @@ class PaquetLocalTests(unittest.TestCase):
 
             installer()
             programmes = donnees / "petits-pas" / "programmes"
-            self.assertEqual(len(list(programmes.iterdir())), 1)
+            versions = lambda: [p for p in programmes.iterdir() if p.is_dir()]
+            self.assertEqual(len(versions()), 1)
             installer()
-            self.assertEqual(len(list(programmes.iterdir())), 1)
+            self.assertEqual(len(versions()), 1)
             executable.write_bytes(b"seconde version")
             installer()
-            versions = list(programmes.iterdir())
-            self.assertEqual(len(versions), 2)
-            self.assertEqual({(p / "PetitsPas").read_bytes() for p in versions},
+            self.assertEqual(len(versions()), 2)
+            self.assertEqual({(p / "PetitsPas").read_bytes() for p in versions()},
                              {b"premiere version", b"seconde version"})
             (sources / "_internal" / "style.css").write_bytes(b"nouveau style")
             installer()
-            self.assertEqual(len(list(programmes.iterdir())), 3)
+            self.assertEqual(len(versions()), 3)
+            actif = (programmes / "actuelle").read_text().strip()
+            avant = (programmes / "precedente").read_text().strip()
+            self.assertNotEqual(actif, avant)
+            subprocess.run(["bash", str(gestion), "--revenir"], check=True,
+                           env=environnement, capture_output=True)
+            self.assertEqual((programmes / "actuelle").read_text().strip(), avant)
+            self.assertIn(avant, (donnees / "applications" / "petits-pas.desktop").read_text())
+            subprocess.run(["bash", str(gestion), "--nettoyer"], check=True,
+                           env=environnement, capture_output=True)
+            self.assertEqual(len(versions()), 2)
             self.assertEqual((paquet / "carnet.sqlite3").read_bytes(), b"base fictive")
             lanceur = (donnees / "applications" / "petits-pas.desktop").read_text()
             self.assertIn("PetitsPas", lanceur)
