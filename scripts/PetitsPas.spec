@@ -35,7 +35,15 @@ if os.name == "nt":
     imports += ["webview.platforms.winforms", "webview.platforms.edgechromium"]
     donnees += collect_data_files("webview", includes=["lib/**"])
 else:
-    imports += ["webview.platforms.gtk"]
+    imports += ["webview.platforms.gtk", "gi.repository.Gtk", "gi.repository.WebKit2"]
+    # PyInstaller ne voit pas les imports dynamiques de PyWebView. Sur Guix,
+    # les typelibs WebKit sont fournis par GI_TYPELIB_PATH et non par Python.
+    chemins_typelibs = [Path(chemin) for chemin in os.environ.get("GI_TYPELIB_PATH", "").split(os.pathsep) if chemin]
+    chemins_typelibs += [Path("/usr/lib/x86_64-linux-gnu/girepository-1.0"), Path("/usr/lib/girepository-1.0")]
+    for version in ("4.1", "4.0"):
+        typelib = next((dossier / f"WebKit2-{version}.typelib" for dossier in chemins_typelibs if (dossier / f"WebKit2-{version}.typelib").is_file()), None)
+        if typelib:
+            donnees.append((str(typelib), "gi_typelibs"))
 
 analyse = Analysis(
     [str(racine / "scripts" / "lancer-local.py")],
