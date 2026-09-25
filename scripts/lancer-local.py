@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from socketserver import ThreadingMixIn
-from threading import RLock, Thread
+from threading import Event, RLock, Thread
 from urllib.request import urlopen
 from wsgiref.simple_server import WSGIServer, make_server
 
@@ -172,6 +172,14 @@ def main():
             analyseur.error("la source et la destination sont identiques")
         copier_paquet(paquet, destination)
         return
+    if not paquet.exists():
+        precedents = sorted(paquet.parent.glob(f".{paquet.name}-avant-restauration-*"))
+        if precedents:
+            raise SystemExit(
+                f"Paquet absent : {paquet}. Une restauration a peut-être été interrompue.\n"
+                f"Paquet(s) précédent(s) conservé(s) : {', '.join(map(str, precedents))}\n"
+                "Vérifiez ces dossiers avant de relancer ou de restaurer depuis un ZIP."
+            )
     if (
         paquet == defaut.resolve() and not (paquet / "carnet.sqlite3").exists()
         and ancien_paquet.is_dir()
@@ -201,7 +209,9 @@ def main():
 
     with verrouiller(paquet):
         configurer_environnement(paquet, cle)
-        executer(paquet, projet, arguments)
+        redemarrer = executer(paquet, projet, arguments)
+    if redemarrer:
+        os.execv(sys.executable, [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]])
 
 
 def executer(paquet, projet, arguments):
@@ -244,6 +254,21 @@ def executer(paquet, projet, arguments):
     from suivi.paquet_local import annuler_preparation, appliquer_restauration, restauration_en_attente
 
     requetes = RLock()
+    redemarrage_demande = Event()
+
+    class CommandesFenetre:
+        def __init__(self):
+            self.fenetre = None
+
+        def appliquer_et_redemarrer(self):
+            # L'API JS n'a accès à cette commande qu'après confirmation Django.
+            if restauration_en_attente() is None or self.fenetre is None:
+                return False
+            redemarrage_demande.set()
+            self.fenetre.destroy()
+            return True
+
+    commandes = CommandesFenetre()
 
     def application_locale(environ, start_response):
         # Un export attend la fin des écritures en cours, y compris les médias.
@@ -253,7 +278,7 @@ def executer(paquet, projet, arguments):
                 and environ.get("REQUEST_METHOD") not in {"GET", "HEAD", "OPTIONS"}
             ):
                 start_response("423 Locked", [("Content-Type", "text/plain; charset=utf-8")])
-                yield "Restauration prête : fermez la fenêtre Petits Pas.\n".encode("utf-8")
+                yield "Restauration prête : appliquez et redémarrez Petits Pas.\n".encode("utf-8")
                 return
             iterable = application(environ, start_response)
             try:
@@ -278,8 +303,9 @@ def executer(paquet, projet, arguments):
                     raise RuntimeError("Le CSS local n'est pas servi correctement.")
         except Exception as exc:
             raise SystemExit(f"Échec du chargement du CSS local : {exc}") from exc
-        webview.create_window(
-            "Petits Pas", f"http://127.0.0.1:{serveur.server_port}/"
+        commandes.fenetre = webview.create_window(
+            "Petits Pas", f"http://127.0.0.1:{serveur.server_port}/",
+            js_api=commandes,
         )
         webview.start()
     finally:
@@ -296,6 +322,7 @@ def executer(paquet, projet, arguments):
                 print(f"Restauration appliquée. Paquet précédent conservé : {ancien}")
         else:
             annuler_preparation()
+    return redemarrage_demande.is_set()
 
 
 if __name__ == "__main__":

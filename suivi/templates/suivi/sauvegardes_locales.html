@@ -15,7 +15,28 @@
 <section class="encadre">
   <h2>Restauration confirmée</h2>
   <p>La sauvegarde <strong>{{ preparation.nom_archive }}</strong> du <strong>{{ date_sauvegarde }}</strong> remplacera le paquet <code>{{ paquet }}</code> à la fermeture de cette fenêtre.</p>
-  <p>Le paquet actuel sera conservé dans <code>{{ preparation.ancien }}</code>. Fermez la fenêtre Petits Pas, puis relancez l’application pour consulter le résultat.</p>
+  <p>Le paquet actuel sera conservé dans <code>{{ preparation.ancien }}</code>. Appliquez la restauration pour fermer proprement l’application et la redémarrer sur le résultat.</p>
+  <button class="bouton" type="button" id="redemarrer-local">Appliquer la restauration et redémarrer</button>
+  <p id="etat-redemarrage" role="status" aria-live="polite">Si vous utilisez un navigateur externe, fermez la fenêtre, puis relancez Petits Pas manuellement.</p>
+  <script>
+    document.getElementById('redemarrer-local').addEventListener('click', function () {
+      if (!window.pywebview || !window.pywebview.api) {
+        document.getElementById('etat-redemarrage').textContent = 'Redémarrage automatique indisponible : fermez la fenêtre et relancez Petits Pas.';
+        return;
+      }
+      this.disabled = true;
+      document.getElementById('etat-redemarrage').textContent = 'Arrêt du serveur, restauration du paquet et redémarrage en cours…';
+      window.pywebview.api.appliquer_et_redemarrer().then(function (accepte) {
+        if (!accepte) {
+          document.getElementById('etat-redemarrage').textContent = 'Restauration non confirmée : rechargez cette page.';
+          document.getElementById('redemarrer-local').disabled = false;
+        }
+      }).catch(function () {
+        document.getElementById('etat-redemarrage').textContent = 'Redémarrage automatique indisponible : fermez la fenêtre et relancez Petits Pas.';
+        document.getElementById('redemarrer-local').disabled = false;
+      });
+    });
+  </script>
 </section>
 {% elif preparation %}
 <section class="encadre">
@@ -42,8 +63,15 @@
     {% csrf_token %}<input type="hidden" name="action" value="restaurer">
     <label for="archive">Fichier ZIP Petits Pas</label>
     <input type="file" id="archive" name="archive" accept=".zip,application/zip" required>
-    <div class="actions"><button class="bouton" type="submit">Vérifier la sauvegarde</button></div>
+    <div class="actions"><button class="bouton" type="submit" id="verifier-local">Vérifier la sauvegarde</button></div>
+    <p id="etat-verification" role="status" aria-live="polite" hidden>Vérification de la sauvegarde, de la base et des médias en cours… <progress aria-label="Vérification en cours"></progress></p>
   </form>
+  <script>
+    document.querySelector('form[enctype="multipart/form-data"]').addEventListener('submit', function () {
+      document.getElementById('verifier-local').disabled = true;
+      document.getElementById('etat-verification').hidden = false;
+    });
+  </script>
 </section>
 {% endif %}
 {% endblock %}

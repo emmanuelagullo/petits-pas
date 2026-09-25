@@ -115,8 +115,11 @@ selon le moteur Web installé. Le ZIP contient des données privées :
 Pour restaurer, sélectionner ce ZIP dans la même page. Le contenu et la base
 SQLite sont vérifiés avant toute modification. La page indique la date de
 création de la sauvegarde, le paquet à remplacer et le chemin où sera conservé
-le paquet actuel. Confirmer explicitement, fermer la fenêtre pour appliquer
-la restauration, puis relancer Petits Pas. Un récapitulatif apparaît à la
+le paquet actuel. Confirmer explicitement, puis utiliser « Appliquer la
+restauration et redémarrer » : le serveur s'arrête, le paquet est remplacé et
+la fenêtre se rouvre. En dehors de PyWebView, fermer la fenêtre et relancer
+manuellement. Un indicateur d'activité accompagne la vérification du ZIP.
+Un récapitulatif apparaît à la
 connexion de la direction. Les archives antérieures restent utilisables, mais
 leur date de création ne peut pas être affichée. Une préparation annulée ou
 abandonnée à la fermeture ne modifie pas le paquet.
