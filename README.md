@@ -108,8 +108,8 @@ La distribution sous forme d'installateur reste un jalon ultérieur.
 
 Dans la fenêtre locale, la direction ouvre **Gérer l'école → Sauvegardes
 locales**. « Télécharger une sauvegarde » produit un ZIP avec la base SQLite,
-les médias et la clé du paquet. Le téléchargement peut demander de choisir un
-emplacement selon le moteur Web installé. Le ZIP contient des données privées :
+les médias et la clé du paquet. PyWebView ouvre une boîte d'enregistrement
+selon le moteur Web installé. Le ZIP contient des données privées :
 à conserver comme le paquet lui-même.
 
 Pour restaurer, sélectionner ce ZIP dans la même page. Le contenu et la base
