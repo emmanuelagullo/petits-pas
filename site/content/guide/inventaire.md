@@ -4,8 +4,8 @@ description = "Fonctions accessibles, publics concernés et limites actuelles de
 +++
 
 Cet inventaire est établi à partir des vues, formulaires, autorisations, tests
-et scénarios de démonstration. L’audit final de cette première série couvre 31
-fiches pratiques dans cinq rubriques. Il prend comme référence l’interface et
+et scénarios de démonstration. La première série comptait 31 fiches ; le guide
+couvre maintenant 34 fiches dans six rubriques. Il prend comme référence l’interface et
 les tests après la consolidation initiale de l’authentification (#C2 à #C4),
 ainsi que les scénarios documentaires jusqu’à #G8.
 
@@ -103,6 +103,20 @@ Les statuts employés sont :
 | Terminer une affectation | Disponible | Le dernier responsable doit d’abord être remplacé. |
 | Suspendre une affectation en urgence | Disponible | Motif obligatoire ; une anomalie peut être ouverte. |
 | Attribuer ou retirer une responsabilité de direction | Interne | Services présents, sans interface publique. |
+
+## Utiliser le mode local sur un ordinateur
+
+| Je voudrais… | État | Point important |
+| --- | --- | --- |
+| Installer ou mettre à jour le programme | Prototype | Archives distinctes pour Ubuntu et Windows ; les données restent dans un dossier séparé. |
+| Revenir à la version précédente du programme | Disponible après installation | Fermer l’application ; une migration de la base peut empêcher une ancienne version de la relire. |
+| Télécharger un ZIP du paquet local | Disponible en mode local | Direction ; conserve la base, les médias et la clé du paquet. |
+| Restaurer un ZIP du paquet local | Disponible en mode local | Direction ; après vérification et confirmation, l’application redémarre et l’ancien paquet reste dans un dossier séparé. |
+
+Ce mode fonctionne sur un seul ordinateur, sans serveur distant et sans
+collaboration entre postes. Les [fiches du mode local]({{< relref "/guide/local/" >}})
+décrivent les manipulations. Le déploiement serveur garde ses propres procédures
+de sauvegarde et de reprise.
 
 ## Fonctions d’exploitation hors du guide quotidien
 
