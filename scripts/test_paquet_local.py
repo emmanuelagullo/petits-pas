@@ -2,6 +2,7 @@
 
 import importlib.util
 import sqlite3
+import sys
 import tempfile
 import unittest
 from io import BytesIO
@@ -29,6 +30,18 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_paquet_absent_apres_interruption_ne_devient_pas_un_paquet_vide(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            racine = Path(temporaire)
+            paquet = racine / "paquet"
+            ancien = racine / ".paquet-avant-restauration-20260925-100000-abcd1234"
+            ancien.mkdir()
+            with patch.object(sys, "argv", ["lancer-local.py", "--paquet", str(paquet)]):
+                with patch.dict("os.environ", {"DATABASE_URL": "", "CARNET_S3_BUCKET": "", "CARNET_ENVIRONNEMENT_EPHEMERE": ""}):
+                    with self.assertRaisesRegex(SystemExit, "restauration a peut-être été interrompue"):
+                        local.main()
+            self.assertFalse(paquet.exists())
+
     def test_sauvegarde_et_restauration_complete(self):
         with tempfile.TemporaryDirectory() as temporaire:
             racine = Path(temporaire)
