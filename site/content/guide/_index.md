@@ -54,7 +54,13 @@ introuvable selon le contexte. Les fiches de diagnostic expliquent notamment
 pourquoi une personne ne voit pas une classe, peut prévisualiser mais pas
 générer un carnet, ou ne peut pas terminer la dernière affectation responsable.
 
-### [Utiliser Petits Pas sur un ordinateur](local/)
+### [Utiliser le mode autonome local]({{< relref "/guide/local/" >}})
+
+Le mode hébergé, comme la démonstration en ligne, s’ouvre dans un navigateur
+et partage un serveur distant entre plusieurs utilisateurs. Le mode autonome
+local s’installe sur un seul poste : les données et le programme y restent
+et aucun serveur distant n’est nécessaire. Les sauvegardes se gèrent alors
+depuis l’application locale.
 
 - installer ou mettre à jour le programme autonome sous Ubuntu ou Windows ;
 - retrouver une version précédente sans toucher aux données de l’école ;

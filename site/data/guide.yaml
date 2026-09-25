@@ -15,7 +15,7 @@ categories:
     label: Comprendre un refus
     description: Actions absentes, accès refusés et contraintes de gouvernance.
   local:
-    label: Utiliser Petits Pas sur un ordinateur
+    label: Utiliser le mode autonome local
     description: Installation locale, sauvegardes et restauration du paquet autonome.
 
 publics:

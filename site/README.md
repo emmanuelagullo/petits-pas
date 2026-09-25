@@ -28,6 +28,11 @@ navigateur, une taille de fenêtre et des dates fixées. Le job
 `captures-demonstration` les transmet comme artefacts aux constructions Hugo,
 qui les publient sous `captures/`.
 
+Les deux captures du mode autonome utilisent le même jeu fictif que le mode
+hébergé. La CI termine le serveur de démonstration puis relance Django sur
+`127.0.0.1` avec `CARNET_MODE_LOCAL=oui` pour montrer le vrai bouton de
+sauvegarde et son écran, avant de construire le site.
+
 Le démarrage peut inclure migrations et génération du jeu riche. Le script de
 capture attend donc jusqu'à deux minutes que `/health/` réponde, afin de ne pas
 confondre la variabilité d'un runner CI avec un échec applicatif.

@@ -46,7 +46,7 @@ vous pouvez consulter les versions et revenir à la précédente :
 Le nettoyage conserve la version active et la précédente ainsi que les données
 de l’école. Revenez à une ancienne version seulement si elle sait lire le format
 actuel de la base : une mise à jour avec migration peut rendre ce retour
-impossible. [Sauvegardez le paquet](sauvegarder-paquet/) avant une mise à jour.
+impossible. [Sauvegardez le paquet]({{< relref "/guide/local/sauvegarder-paquet.md" >}}) avant une mise à jour.
 
 ## Limites
 

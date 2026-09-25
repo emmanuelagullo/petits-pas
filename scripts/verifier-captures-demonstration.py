@@ -18,6 +18,8 @@ CAPTURES_GENERALES = {
     "acquisitions.png",
     "carnet.png",
     "direction.png",
+    "guide/local/gestion.png",
+    "guide/local/sauvegardes.png",
 }
 TAILLE_MAXIMALE = 2 * 1024 * 1024
 BUDGET_TOTAL = 12 * 1024 * 1024

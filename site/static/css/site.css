@@ -76,6 +76,7 @@ h2 { font-family: Georgia, serif; }
 .demo-access span { display: block; white-space: nowrap; font-size: clamp(.78rem, 3.5vw, 1rem); }
 .demo-access code { font-size: 1em; }
 .screenshot-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; max-width: 1120px; margin-top: 32px; }
+.prose > .screenshot-gallery { max-width: 1120px; }
 .role-scenarios.single { grid-template-columns: minmax(0, 760px); }
 .screenshot-gallery figure { margin: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: white; box-shadow: 0 14px 36px #25483b12; }
 .screenshot-link { display: block; }
