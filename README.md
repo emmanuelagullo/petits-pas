@@ -156,6 +156,20 @@ puis `PetitsPas-windows.zip`). Télécharger l'artefact Linux puis extraire
 nécessite les bibliothèques GTK/WebKit/Pango de la machine cible. Les Actions
 doivent être activées sur le miroir et le workflow présent sur sa branche
 par défaut pour que le lancement manuel soit disponible.
+Pour partager une construction avant validation, transmettre les artefacts
+Actions de la même exécution : aucun tag n'est créé. Après les essais Linux
+et Windows, créer une release brouillon avec les archives de cette exécution :
+
+```sh
+bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
+```
+
+Cette commande nécessite `gh auth login` et un accès en écriture au miroir.
+Elle vérifie le succès de l'exécution et les archives, puis crée le tag sur le
+commit construit et joint les deux archives au brouillon. Choisir un tag de
+test (par exemple `v0.3.0-local.1`) et publier le brouillon depuis l'interface
+GitHub après relecture. Une release GitHub, même marquée « pre-release »,
+requiert un tag ; les artefacts Actions permettent de tester sans tag.
 La console reste visible pour diagnostiquer ce premier prototype. Le poste
 doit disposer du moteur Microsoft WebView2 ; la génération PDF exige aussi
 Pango et ses dépendances (voir la documentation WeasyPrint pour Windows,
