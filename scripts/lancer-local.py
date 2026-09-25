@@ -8,7 +8,7 @@ import shutil
 import sqlite3
 import sys
 import tempfile
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from datetime import datetime
 from pathlib import Path
 from socketserver import ThreadingMixIn
@@ -76,8 +76,8 @@ def copier_paquet(source, destination):
                 shutil.copytree(source / "media", temporaire / "media")
             else:
                 (temporaire / "media").mkdir()
-            with sqlite3.connect(source / "carnet.sqlite3") as ancienne:
-                with sqlite3.connect(temporaire / "carnet.sqlite3") as nouvelle:
+            with closing(sqlite3.connect(source / "carnet.sqlite3")) as ancienne:
+                with closing(sqlite3.connect(temporaire / "carnet.sqlite3")) as nouvelle:
                     ancienne.backup(nouvelle)
                     if nouvelle.execute("PRAGMA quick_check").fetchone()[0] != "ok":
                         raise RuntimeError("La copie SQLite ne passe pas le contrôle d'intégrité.")
@@ -108,7 +108,7 @@ def proteger_avant_migration(paquet):
     base = paquet / "carnet.sqlite3"
     if not base.is_file():
         return
-    with sqlite3.connect(base) as connexion:
+    with closing(sqlite3.connect(base)) as connexion:
         if not connexion.execute(
             "SELECT 1 FROM sqlite_master WHERE name = 'django_migrations'"
         ).fetchone():
@@ -122,7 +122,7 @@ def proteger_avant_migration(paquet):
     sauvegardes = paquet / "sauvegardes-migrations"
     sauvegardes.mkdir(exist_ok=True)
     chemin = sauvegardes / f"avant-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
-    with sqlite3.connect(base) as origine, sqlite3.connect(chemin) as copie:
+    with closing(sqlite3.connect(base)) as origine, closing(sqlite3.connect(chemin)) as copie:
         origine.backup(copie)
         if copie.execute("PRAGMA quick_check").fetchone()[0] != "ok":
             chemin.unlink()
