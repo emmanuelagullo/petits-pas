@@ -158,18 +158,31 @@ doivent être activées sur le miroir et le workflow présent sur sa branche
 par défaut pour que le lancement manuel soit disponible.
 Pour partager une construction avant validation, transmettre les artefacts
 Actions de la même exécution : aucun tag n'est créé. Après les essais Linux
-et Windows, créer une release brouillon avec les archives de cette exécution :
+et Windows, créer **un seul tag Git local** sur le commit de l'exécution
+validée, puis le pousser vers les deux dépôts (remplacer le tag d'exemple) :
+
+```sh
+git tag -a v0.3.0-local.1 SHA_DU_COMMIT_VALIDE -m 'Petits Pas v0.3.0-local.1'
+git push inria v0.3.0-local.1
+git push github v0.3.0-local.1
+```
+
+Créer ensuite une release sur chaque forge, avec les **mêmes archives** de
+l'exécution validée :
 
 ```sh
 bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
 ```
 
-Cette commande nécessite `gh auth login` et un accès en écriture au miroir.
-Elle vérifie le succès de l'exécution et les archives, puis crée le tag sur le
-commit construit et joint les deux archives au brouillon. Choisir un tag de
-test (par exemple `v0.3.0-local.1`) et publier le brouillon depuis l'interface
-GitHub après relecture. Une release GitHub, même marquée « pre-release »,
-requiert un tag ; les artefacts Actions permettent de tester sans tag.
+Cette commande nécessite `gh auth login`, `glab auth login --hostname
+gitlab.inria.fr` et des droits de publication sur les deux dépôts. Elle
+vérifie que le tag local et les tags distants désignent le commit construit,
+puis crée une release brouillon GitHub, une release GitLab avec les archives
+chargées dans son registre de paquets, et publie le brouillon GitHub.
+Si une étape distante échoue, vérifier les releases déjà créées avant toute
+nouvelle tentative : le script ne remplace pas une release existante.
+Une release GitHub, même marquée « pre-release », requiert un tag ; les
+artefacts Actions permettent de tester sans tag.
 La console reste visible pour diagnostiquer ce premier prototype. Le poste
 doit disposer du moteur Microsoft WebView2 ; la génération PDF exige aussi
 Pango et ses dépendances (voir la documentation WeasyPrint pour Windows,
