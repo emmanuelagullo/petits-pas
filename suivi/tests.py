@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import smtplib
 from datetime import date, timedelta
 from zipfile import ZipFile
 from io import BytesIO, StringIO
@@ -351,6 +352,25 @@ class Acces(Base):
 
         self.assertEqual(reponse.status_code, 200)
         self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(
+            reponse, "Nom d&#x27;utilisateur ou mot de passe incorrect"
+        )
+
+    def test_membre_sans_fonction_recoit_un_message_distinct(self):
+        Utilisateur = get_user_model()
+        membre = Utilisateur.objects.create_user(
+            username="sans-fonction", password="secret-test"
+        )
+        AppartenanceEcole.objects.create(utilisateur=membre, ecole=self.ecole)
+
+        reponse = self.entrer("secret-test", "sans-fonction")
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.assertContains(reponse, "aucune fonction ne vous a")
+        self.assertNotContains(
+            reponse, "Nom d&#x27;utilisateur ou mot de passe incorrect"
+        )
 
     def test_identite_individuelle_est_affichee(self):
         self.enseignant.first_name = "Alice"
@@ -3793,14 +3813,13 @@ class VerificationEnvoiEmail(TestCase):
 
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ["verification@example.test"])
-        self.assertIn("Message envoyé", sortie.getvalue())
+        self.assertIn("Message accepté par le serveur", sortie.getvalue())
+        self.assertIn("livraison en boîte de réception", sortie.getvalue())
 
-    def test_signale_un_echec_d_envoi(self):
+    def test_signale_un_echec_d_envoi_generique(self):
         sortie = StringIO()
 
-        with override_settings(
-            EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"
-        ), patch(
+        with patch(
             "django.core.mail.backends.locmem.EmailBackend.send_messages",
             side_effect=OSError("connexion refusée"),
         ):
@@ -3810,6 +3829,53 @@ class VerificationEnvoiEmail(TestCase):
                     "verification@example.test",
                     stdout=sortie,
                 )
+
+    def test_signale_precisement_un_echec_d_authentification(self):
+        with patch(
+            "django.core.mail.backends.locmem.EmailBackend.send_messages",
+            side_effect=smtplib.SMTPAuthenticationError(535, b"auth failed"),
+        ):
+            with self.assertRaisesMessage(CommandError, "Authentification refusée"):
+                call_command(
+                    "verifier_envoi_email",
+                    "verification@example.test",
+                    stdout=StringIO(),
+                )
+
+    def test_signale_precisement_une_erreur_de_connexion(self):
+        with patch(
+            "django.core.mail.backends.locmem.EmailBackend.send_messages",
+            side_effect=ConnectionRefusedError("refusée"),
+        ):
+            with self.assertRaisesMessage(CommandError, "Impossible de joindre"):
+                call_command(
+                    "verifier_envoi_email",
+                    "verification@example.test",
+                    stdout=StringIO(),
+                )
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend")
+    def test_avertit_quand_le_backend_est_la_console(self):
+        sortie = StringIO()
+
+        call_command(
+            "verifier_envoi_email", "verification@example.test", stdout=sortie
+        )
+
+        self.assertIn("rien n'est transmis sur le réseau", sortie.getvalue())
+
+    @override_settings(
+        DEFAULT_FROM_EMAIL="Petits Pas <ne-pas-repondre@petits-pas.example>"
+    )
+    def test_avertit_sur_un_domaine_expediteur_reserve(self):
+        sortie = StringIO()
+
+        call_command(
+            "verifier_envoi_email", "verification@example.test", stdout=sortie
+        )
+
+        self.assertIn("domaine expéditeur", sortie.getvalue())
+        self.assertIn("réservé", sortie.getvalue())
 
     @override_settings(EMAIL_DISPONIBLE=False)
     def test_refuse_la_verification_quand_le_courriel_est_desactive(self):
