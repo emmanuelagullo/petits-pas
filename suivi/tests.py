@@ -153,9 +153,13 @@ class SauvegardesLocalesAccesTests(TestCase):
             reponse = self.client.post(
                 reverse("sauvegardes_locales"), {"action": "sauvegarder"}
             )
-            self.assertEqual(reponse.status_code, 200)
-            self.assertEqual(b"".join(reponse.streaming_content), b"ZIP")
-            reponse.close()
+            try:
+                self.assertEqual(reponse.status_code, 200)
+                self.assertEqual(b"".join(reponse.streaming_content), b"ZIP")
+            finally:
+                # response.close() émet request_finished et peut fermer la
+                # connexion PostgreSQL pendant la transaction du TestCase.
+                reponse.file_to_stream.close()
 
     def test_page_absente_en_mode_serveur(self):
         self.assertEqual(self.client.get(reverse("sauvegardes_locales")).status_code, 404)
