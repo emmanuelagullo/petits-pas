@@ -266,6 +266,9 @@ def executer(paquet, projet, arguments):
     thread = Thread(target=serveur.serve_forever, name="petits-pas-local", daemon=True)
     thread.start()
     try:
+        # PyWebView désactive les téléchargements par défaut. Sans cette
+        # option, une réponse ZIP valide n'ouvre aucune boîte d'enregistrement.
+        webview.settings["ALLOW_DOWNLOADS"] = True
         try:
             with urlopen(
                 f"http://127.0.0.1:{serveur.server_port}/static/suivi/carnet.css",
