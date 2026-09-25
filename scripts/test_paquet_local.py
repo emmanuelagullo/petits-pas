@@ -208,7 +208,10 @@ class PaquetLocalTests(unittest.TestCase):
                 )
 
     def test_repertoire_xdg(self):
-        with patch.dict("os.environ", {"XDG_DATA_HOME": "/tmp/donnees-test"}):
+        environnement = SimpleNamespace(
+            name="posix", environ={"XDG_DATA_HOME": "/tmp/donnees-test"}
+        )
+        with patch.object(local, "os", environnement):
             self.assertEqual(
                 local.paquet_par_defaut(),
                 Path("/tmp/donnees-test/petits-pas/paquet-autonome"),

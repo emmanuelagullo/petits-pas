@@ -139,10 +139,16 @@ powershell -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1
 Le script produit `dist/PetitsPas-windows.zip` : décompresser **tout** le
 dossier `PetitsPas` sur le poste de destination, puis ouvrir `PetitsPas.exe`.
 Si le miroir GitHub contient ce changement et que ses Actions sont activées,
-il est aussi possible de lancer manuellement l'action **Paquet autonome Windows
-(prototype)** sur le miroir : télécharger son artefact `PetitsPas-windows`,
-puis décompresser le ZIP obtenu, suivi de `PetitsPas-windows.zip`. Cette
-construction à distance permet de tester sur un poste sans Python.
+l'action **Paquets autonomes Linux et Windows (prototype)** construit les deux
+dossiers à chaque modification du code sur `main`. Elle peut aussi être
+lancée depuis l'onglet **Actions → Run workflow**. Chaque exécution fournit
+les artefacts `PetitsPas-windows` et `PetitsPas-linux`. Télécharger l'artefact
+Windows et décompresser ses deux niveaux de ZIP (l'archive fournie par GitHub
+puis `PetitsPas-windows.zip`). Télécharger l'artefact Linux puis extraire
+`PetitsPas-linux.tar.gz` ; ce binaire est construit sur Ubuntu 24.04 et
+nécessite les bibliothèques GTK/WebKit/Pango de la machine cible. Les Actions
+doivent être activées sur le miroir et le workflow présent sur sa branche
+par défaut pour que le lancement manuel soit disponible.
 La console reste visible pour diagnostiquer ce premier prototype. Le poste
 doit disposer du moteur Microsoft WebView2 ; la génération PDF exige aussi
 Pango et ses dépendances (voir la documentation WeasyPrint pour Windows,

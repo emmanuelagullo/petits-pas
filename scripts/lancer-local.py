@@ -145,6 +145,15 @@ def verifier_distribution(projet):
         raise SystemExit("La feuille de style est absente de la distribution.")
     if not (projet / "referentiel" / "trame-cycle1.yaml").is_file():
         raise SystemExit("La trame pédagogique est absente de la distribution.")
+    if os.name != "nt":
+        import gi
+
+        try:
+            gi.require_version("WebKit2", "4.1")
+        except ValueError:
+            gi.require_version("WebKit2", "4.0")
+        from gi.repository import Gtk, WebKit2  # noqa: F401
+
     print(f"Django {django.get_version()} et PyWebView : distribution vérifiée.")
 
 
