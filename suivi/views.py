@@ -1,11 +1,14 @@
 from functools import wraps
 from io import StringIO
+import tempfile
 import logging
 import mimetypes
 from pathlib import Path
 import re
+import shutil
+import sqlite3
 from io import BytesIO
-from zipfile import ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 from collections import OrderedDict
 from urllib.parse import quote, unquote
 
@@ -83,6 +86,12 @@ from .models import (
     Trace,
     annee_scolaire_pour,
     bornes_annee_scolaire,
+)
+from .paquet_local import (
+    creer_sauvegarde,
+    preparer_restauration,
+    programmer_restauration,
+    restauration_en_attente,
 )
 from .services.eleves import (
     archiver,
@@ -234,6 +243,53 @@ def installation_locale(request):
         messages.success(request, "École créée. Vous pouvez maintenant préparer une classe.")
         return redirect("gestion")
     return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
+
+
+@never_cache
+@direction_requise
+def sauvegardes_locales(request):
+    if not settings.MODE_LOCAL:
+        raise Http404
+    paquet = Path(settings.DATABASES["default"]["NAME"]).parent
+    if request.method == "POST" and restauration_en_attente() is None:
+        if request.POST.get("action") == "sauvegarder":
+            fichier = tempfile.TemporaryFile(dir=paquet.parent)
+            try:
+                creer_sauvegarde(paquet, fichier)
+                fichier.seek(0)
+                return FileResponse(
+                    fichier, as_attachment=True,
+                    filename=f"petits-pas-{timezone.now():%Y%m%d-%H%M%S}.zip",
+                    content_type="application/zip",
+                )
+            except Exception:
+                fichier.close()
+                raise
+        if request.POST.get("action") == "restaurer":
+            archive = request.FILES.get("archive")
+            if not archive:
+                messages.error(request, "Choisissez un fichier de sauvegarde.")
+            else:
+                try:
+                    etape = preparer_restauration(archive, paquet.parent)
+                    try:
+                        programmer_restauration(etape)
+                    except Exception:
+                        shutil.rmtree(etape)
+                        raise
+                except (ValueError, OSError, RuntimeError, KeyError, BadZipFile, sqlite3.DatabaseError) as erreur:
+                    messages.error(request, f"Sauvegarde refusée : {erreur}")
+                else:
+                    messages.success(
+                        request,
+                        "Sauvegarde vérifiée. Fermez la fenêtre pour appliquer "
+                        "la restauration, puis relancez Petits Pas.",
+                    )
+            return redirect("sauvegardes_locales")
+    return render(
+        request, "suivi/sauvegardes_locales.html",
+        {"restauration_attente": restauration_en_attente() is not None},
+    )
 
 
 def mot_de_passe_oublie(request):

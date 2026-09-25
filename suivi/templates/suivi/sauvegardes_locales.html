@@ -1,0 +1,26 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Sauvegardes locales{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'gestion' %}">Gérer l’école</a></p>
+<h1>Sauvegardes locales</h1>
+<p class="sous-titre">Une sauvegarde contient l’école, les comptes, les carnets, les photos et la clé du paquet. Conservez ce fichier dans un lieu sûr.</p>
+{% if restauration_attente %}
+<div class="encadre"><strong>Restauration prête.</strong> Fermez la fenêtre Petits Pas maintenant, puis relancez l’application. Les changements effectués après la demande de restauration ne seront pas conservés.</div>
+{% else %}
+<section class="encadre">
+  <h2>Exporter le paquet</h2>
+  <p>Enregistrer une copie complète au format ZIP sur votre ordinateur.</p>
+  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="sauvegarder"><button class="bouton" type="submit">Télécharger une sauvegarde</button></form>
+</section>
+<section class="encadre">
+  <h2>Restaurer une sauvegarde</h2>
+  <p>Le fichier est vérifié avant toute modification. La restauration sera effectuée seulement après la fermeture de la fenêtre ; le paquet actuel sera conservé à côté du nouveau.</p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}<input type="hidden" name="action" value="restaurer">
+    <label for="archive">Fichier ZIP Petits Pas</label>
+    <input type="file" id="archive" name="archive" accept=".zip,application/zip" required>
+    <div class="actions"><button class="bouton" type="submit">Vérifier et préparer la restauration</button></div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

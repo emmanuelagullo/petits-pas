@@ -123,6 +123,36 @@ class InstallationLocaleTests(TestCase):
         self.assertFalse(get_user_model().objects.exists())
 
 
+class SauvegardesLocalesAccesTests(TestCase):
+    def setUp(self):
+        self.ecole = Ecole.objects.create(nom="École locale")
+        self.utilisateur = get_user_model().objects.create_user(
+            username="direction-locale", password="UnMotDePasse!2026"
+        )
+        appartenance = AppartenanceEcole.objects.create(
+            utilisateur=self.utilisateur, ecole=self.ecole
+        )
+        ResponsabiliteEcole.objects.create(
+            appartenance=appartenance, type=ResponsabiliteEcole.DIRECTION
+        )
+        self.client.force_login(self.utilisateur)
+
+    @override_settings(MODE_LOCAL=True)
+    def test_page_disponible_pour_la_direction_locale(self):
+        self.assertContains(
+            self.client.get(reverse("sauvegardes_locales")),
+            "Télécharger une sauvegarde",
+        )
+
+    def test_page_absente_en_mode_serveur(self):
+        self.assertEqual(self.client.get(reverse("sauvegardes_locales")).status_code, 404)
+
+    @override_settings(MODE_LOCAL=True)
+    def test_page_refusee_sans_responsabilite_direction(self):
+        ResponsabiliteEcole.objects.all().delete()
+        self.assertEqual(self.client.get(reverse("sauvegardes_locales")).status_code, 403)
+
+
 class AnneeScolaireUtilitaires(TestCase):
     def test_le_1er_septembre_ouvre_la_nouvelle_annee_scolaire(self):
         self.assertEqual(
