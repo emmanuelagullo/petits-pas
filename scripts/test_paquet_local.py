@@ -4,6 +4,7 @@ import importlib.util
 import sqlite3
 import sys
 from types import SimpleNamespace
+from types import ModuleType
 import tempfile
 import unittest
 from io import BytesIO
@@ -31,6 +32,35 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_spec_trouve_le_lanceur_depuis_la_racine_ou_scripts(self):
+        racine = Path(__file__).resolve().parent.parent
+        hooks = ModuleType("PyInstaller.utils.hooks")
+        hooks.collect_data_files = lambda *args, **kwargs: []
+        hooks.collect_submodules = lambda *args, **kwargs: []
+        modules = {
+            nom: ModuleType(nom)
+            for nom in ("PyInstaller", "PyInstaller.utils")
+        }
+        modules[hooks.__name__] = hooks
+        for emplacement in (racine, racine / "scripts"):
+            with self.subTest(emplacement=emplacement), patch.dict(sys.modules, modules):
+                appels = []
+
+                def analyser(scripts, **kwargs):
+                    appels.extend(scripts)
+                    return SimpleNamespace(pure=[], scripts=[], binaries=[], datas=[])
+
+                espace = {
+                    "SPECPATH": str(emplacement),
+                    "Analysis": analyser,
+                    "PYZ": lambda *args: None,
+                    "EXE": lambda *args, **kwargs: None,
+                    "COLLECT": lambda *args, **kwargs: None,
+                }
+                code = (racine / "scripts" / "PetitsPas.spec").read_text()
+                exec(compile(code, "PetitsPas.spec", "exec"), espace)
+                self.assertEqual(appels, [str(racine / "scripts" / "lancer-local.py")])
+
     def test_emplacement_windows_utilise_localappdata(self):
         environnement = SimpleNamespace(
             name="nt", environ={"LOCALAPPDATA": "C:/Users/test/AppData/Local"}
