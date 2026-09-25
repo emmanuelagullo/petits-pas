@@ -159,7 +159,8 @@ class SauvegardesLocalesAccesTests(TestCase):
             finally:
                 # response.close() émet request_finished et peut fermer la
                 # connexion PostgreSQL pendant la transaction du TestCase.
-                reponse.file_to_stream.close()
+                if reponse.file_to_stream is not None:
+                    reponse.file_to_stream.close()
 
     def test_page_absente_en_mode_serveur(self):
         self.assertEqual(self.client.get(reverse("sauvegardes_locales")).status_code, 404)
