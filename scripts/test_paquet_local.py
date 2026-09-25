@@ -1,6 +1,7 @@
 """Contrôles des opérations sur les données autonomes, sans Django ni GTK."""
 
 import importlib.util
+import os
 import sqlite3
 import sys
 from types import SimpleNamespace
@@ -62,6 +63,32 @@ class PaquetLocalTests(unittest.TestCase):
                 code = (racine / "scripts" / "PetitsPas.spec").read_text()
                 exec(compile(code, "PetitsPas.spec", "exec"), espace)
                 self.assertEqual(appels, [str(racine / "scripts" / "lancer-local.py")])
+
+    @unittest.skipIf(os.name == "nt", "WebKitGTK concerne Linux")
+    def test_spec_embarque_typelib_webkit(self):
+        racine = Path(__file__).resolve().parent.parent
+        with tempfile.TemporaryDirectory() as temporaire:
+            typelib = Path(temporaire) / "WebKit2-4.1.typelib"
+            typelib.write_bytes(b"typelib")
+            hooks = ModuleType("PyInstaller.utils.hooks")
+            hooks.collect_data_files = lambda *args, **kwargs: []
+            hooks.collect_submodules = lambda *args, **kwargs: []
+            modules = {nom: ModuleType(nom) for nom in ("PyInstaller", "PyInstaller.utils")}
+            modules[hooks.__name__] = hooks
+
+            def analyser(scripts, **kwargs):
+                self.assertIn("gi.repository.WebKit2", kwargs["hiddenimports"])
+                self.assertIn((str(typelib), "gi_typelibs"), kwargs["datas"])
+                return SimpleNamespace(pure=[], scripts=[], binaries=[], datas=[])
+
+            espace = {
+                "SPECPATH": str(racine), "Analysis": analyser,
+                "PYZ": lambda *args: None, "EXE": lambda *args, **kwargs: None,
+                "COLLECT": lambda *args, **kwargs: None,
+            }
+            with patch.dict(sys.modules, modules), patch.dict(os.environ, {"GI_TYPELIB_PATH": temporaire}):
+                code = (racine / "scripts" / "PetitsPas.spec").read_text()
+                exec(compile(code, "PetitsPas.spec", "exec"), espace)
 
     def test_emplacement_windows_utilise_localappdata(self):
         environnement = SimpleNamespace(

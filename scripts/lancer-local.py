@@ -155,7 +155,13 @@ def verifier_distribution(projet):
         try:
             gi.require_version("WebKit2", "4.1")
         except ValueError:
-            gi.require_version("WebKit2", "4.0")
+            try:
+                gi.require_version("WebKit2", "4.0")
+            except ValueError as exc:
+                raise SystemExit(
+                    "WebKit2 (4.1 ou 4.0) est absent du paquet ou de la machine. "
+                    "Vérifiez GI_TYPELIB_PATH lors de la construction et installez WebKitGTK."
+                ) from exc
         from gi.repository import Gtk, WebKit2  # noqa: F401
 
     print(f"Django {django.get_version()} et PyWebView : distribution vérifiée.")
