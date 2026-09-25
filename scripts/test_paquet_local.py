@@ -28,14 +28,25 @@ class PaquetLocalTests(unittest.TestCase):
                 connexion.execute("CREATE TABLE test (valeur TEXT)")
                 connexion.execute("INSERT INTO test VALUES ('conserve')")
             destination = racine / "nouveau" / "paquet-autonome"
-            local.deplacer_paquet(source, destination)
+            local.copier_paquet(source, destination)
             self.assertEqual((destination / "media" / "photo.jpg").read_bytes(), b"photo-test")
             self.assertEqual((destination / "secret-key").read_text(), "secret-test")
             with sqlite3.connect(destination / "carnet.sqlite3") as connexion:
                 self.assertEqual(connexion.execute("SELECT valeur FROM test").fetchone(), ("conserve",))
             self.assertTrue((source / "carnet.sqlite3").exists())
             with self.assertRaises(SystemExit):
-                local.deplacer_paquet(source, destination)
+                local.copier_paquet(source, destination)
+
+    def test_configuration_utilise_la_cle_du_paquet(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            paquet = Path(temporaire)
+            with patch.dict("os.environ", {}, clear=True):
+                local.configurer_environnement(paquet, "cle-conservee")
+                self.assertEqual(local.os.environ["CARNET_SECRET_KEY"], "cle-conservee")
+                self.assertEqual(
+                    local.os.environ["CARNET_SQLITE_PATH"],
+                    str(paquet / "carnet.sqlite3"),
+                )
 
     def test_repertoire_xdg(self):
         with patch.dict("os.environ", {"XDG_DATA_HOME": "/tmp/donnees-test"}):

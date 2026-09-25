@@ -64,12 +64,13 @@ explicitement vers le nouvel emplacement par défaut :
 
 ```sh
 python scripts/lancer-local.py --paquet ./paquet-autonome \
-  --deplacer-paquet "${XDG_DATA_HOME:-$HOME/.local/share}/petits-pas/paquet-autonome"
+  --copier-paquet "${XDG_DATA_HOME:-$HOME/.local/share}/petits-pas/paquet-autonome"
 python scripts/lancer-local.py
 ```
 
-Le transfert vérifie la copie SQLite et conserve le paquet d'origine. Il ne
-remplace jamais une destination existante. Le lanceur refuse de créer un paquet
+La copie vérifie la base SQLite et conserve le paquet d'origine. L'ancienne
+option `--deplacer-paquet` reste acceptée pour les commandes déjà utilisées.
+La copie ne remplace jamais une destination existante. Le lanceur refuse de créer un paquet
 vide à l'emplacement par défaut s'il détecte encore l'ancien paquet dans le
 dépôt : il affiche la commande de transfert. Après vérification du nouveau
 paquet, l'ancien peut être archivé ou supprimé manuellement pour éviter de

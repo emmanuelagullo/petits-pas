@@ -41,7 +41,7 @@ def verrouiller(paquet):
             fcntl.flock(verrou, fcntl.LOCK_UN)
 
 
-def deplacer_paquet(source, destination):
+def copier_paquet(source, destination):
     if not (source / "carnet.sqlite3").is_file() or not (source / "secret-key").is_file():
         raise SystemExit(f"Paquet source incomplet : {source}")
     destination.parent.mkdir(parents=True, exist_ok=True)
@@ -66,6 +66,19 @@ def deplacer_paquet(source, destination):
                 shutil.rmtree(temporaire)
     print(f"Paquet copié : {destination}")
     print(f"L'original a été conservé : {source}")
+
+
+def configurer_environnement(paquet, cle):
+    os.environ["CARNET_DEBUG"] = "0"
+    os.environ["CARNET_HOSTS"] = "127.0.0.1,localhost"
+    os.environ["CARNET_EMAIL_DESACTIVE"] = "oui"
+    os.environ.pop("CARNET_EMAIL_BACKEND", None)
+    os.environ["CARNET_SECRET_KEY"] = cle
+    os.environ["CARNET_SQLITE_PATH"] = str(paquet / "carnet.sqlite3")
+    os.environ["CARNET_MEDIA_ROOT"] = str(paquet / "media")
+    os.environ["CARNET_STATIC_ROOT"] = str(paquet / "staticfiles")
+    os.environ["CARNET_STATIC_URL"] = "/static/"
+    os.environ["DJANGO_SETTINGS_MODULE"] = "carnet.settings"
 
 
 def proteger_avant_migration(paquet):
@@ -109,8 +122,12 @@ def main():
         help=f"répertoire des données autonomes (défaut : {defaut})",
     )
     analyseur.add_argument(
-        "--deplacer-paquet", type=Path, metavar="DESTINATION",
+        "--copier-paquet", type=Path, metavar="DESTINATION",
         help="copier le paquet choisi vers DESTINATION, puis quitter",
+    )
+    analyseur.add_argument(
+        "--deplacer-paquet", type=Path, metavar="DESTINATION",
+        help=argparse.SUPPRESS,
     )
     analyseur.add_argument(
         "--creer-ecole",
@@ -128,10 +145,13 @@ def main():
         analyseur.error("--commune nécessite --creer-ecole")
     if arguments.creer_ecole and arguments.charger_referentiel:
         analyseur.error("--creer-ecole charge déjà le référentiel")
-    if arguments.deplacer_paquet and (
+    destination_demande = arguments.copier_paquet or arguments.deplacer_paquet
+    if arguments.copier_paquet and arguments.deplacer_paquet:
+        analyseur.error("choisissez une seule option de copie")
+    if destination_demande and (
         arguments.creer_ecole or arguments.charger_referentiel or arguments.commune
     ):
-        analyseur.error("--deplacer-paquet ne se combine pas avec l'initialisation")
+        analyseur.error("--copier-paquet ne se combine pas avec l'initialisation")
     paquet = arguments.paquet.expanduser().resolve()
     if paquet == projet:
         raise SystemExit(
@@ -144,11 +164,11 @@ def main():
         raise SystemExit("Le mode local ne peut pas utiliser la démonstration jetable.")
 
     os.umask(0o077)
-    if arguments.deplacer_paquet:
-        destination = arguments.deplacer_paquet.expanduser().resolve()
+    if destination_demande:
+        destination = destination_demande.expanduser().resolve()
         if paquet == destination:
             analyseur.error("la source et la destination sont identiques")
-        deplacer_paquet(paquet, destination)
+        copier_paquet(paquet, destination)
         return
     if (
         paquet == defaut.resolve() and not (paquet / "carnet.sqlite3").exists()
@@ -157,7 +177,7 @@ def main():
         raise SystemExit(
             f"Un paquet existe déjà dans le dépôt : {ancien_paquet}\n"
             f"Copiez-le avec : python scripts/lancer-local.py --paquet "
-            f"{ancien_paquet} --deplacer-paquet {paquet}"
+            f"{ancien_paquet} --copier-paquet {paquet}"
         )
     if paquet.exists() and (paquet / "secret-key").exists() != (paquet / "carnet.sqlite3").exists():
         raise SystemExit(f"Paquet incomplet (base ou clé manquante) : {paquet}")
@@ -178,21 +198,11 @@ def main():
         raise SystemExit(f"Clé locale vide : {chemin_cle}")
 
     with verrouiller(paquet):
+        configurer_environnement(paquet, cle)
         executer(paquet, projet, arguments)
 
 
 def executer(paquet, projet, arguments):
-    os.environ["CARNET_DEBUG"] = "0"
-    os.environ["CARNET_HOSTS"] = "127.0.0.1,localhost"
-    os.environ["CARNET_EMAIL_DESACTIVE"] = "oui"
-    os.environ.pop("CARNET_EMAIL_BACKEND", None)
-    os.environ["CARNET_SECRET_KEY"] = cle
-    os.environ["CARNET_SQLITE_PATH"] = str(paquet / "carnet.sqlite3")
-    os.environ["CARNET_MEDIA_ROOT"] = str(paquet / "media")
-    os.environ["CARNET_STATIC_ROOT"] = str(paquet / "staticfiles")
-    os.environ["CARNET_STATIC_URL"] = "/static/"
-    os.environ["DJANGO_SETTINGS_MODULE"] = "carnet.settings"
-
     try:
         import django
         from django.core.management import call_command
