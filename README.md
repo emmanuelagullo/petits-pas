@@ -104,6 +104,58 @@ transfert ; `staticfiles/` peut être reconstruit au lancement depuis le code.
 Une copie faite pendant que l'application tourne peut être incohérente.
 La distribution sous forme d'installateur reste un jalon ultérieur.
 
+### Dossiers autonomes Linux et Windows (prototype)
+
+Les constructions PyInstaller sont propres à chaque système : construire
+**sous Linux** pour Linux, **sous Windows** pour Windows. Elles embarquent
+Django, les modèles, les gabarits, les statiques et la trame pédagogique ;
+les données de l'école restent **hors** de l'exécutable. Il ne s'agit pas
+encore d'un installateur ni d'une distribution universelle testée.
+
+Sous Linux, dans le shell Guix déjà utilisé pour ouvrir la fenêtre locale
+(avec PyGObject et WebKit2 disponibles) :
+
+```sh
+bash scripts/construire-paquet-linux.sh
+./dist/PetitsPas/PetitsPas
+```
+
+Le script crée `dist/PetitsPas-linux.tar.gz`. Sur la machine de destination,
+GTK, WebKit2 et les bibliothèques natives de WeasyPrint doivent rester
+disponibles ; le programme n'est pas un AppImage portable entre toutes les
+distributions. Si l'environnement Guix ne permet pas de construire ou d'ouvrir
+l'exécutable, le lancement Python local existant reste utilisable.
+
+Sous Windows, depuis **PowerShell dans le dépôt**, avec Python 3 (64 bits)
+installé sur la machine de construction :
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1
+.\dist\PetitsPas\PetitsPas.exe
+```
+
+Le script produit `dist/PetitsPas-windows.zip` : décompresser **tout** le
+dossier `PetitsPas` sur le poste de destination, puis ouvrir `PetitsPas.exe`.
+Si le miroir GitHub contient ce changement et que ses Actions sont activées,
+il est aussi possible de lancer manuellement l'action **Paquet autonome Windows
+(prototype)** sur le miroir : télécharger son artefact `PetitsPas-windows`,
+puis décompresser le ZIP obtenu, suivi de `PetitsPas-windows.zip`. Cette
+construction à distance permet de tester sur un poste sans Python.
+La console reste visible pour diagnostiquer ce premier prototype. Le poste
+doit disposer du moteur Microsoft WebView2 ; la génération PDF exige aussi
+Pango et ses dépendances (voir la documentation WeasyPrint pour Windows,
+installation MSYS2 UCRT64 ou variable `WEASYPRINT_DLL_DIRECTORIES`). Le
+programme lui-même n'a pas besoin d'une installation Python sur ce poste.
+
+Linux : données dans `${XDG_DATA_HOME:-~/.local/share}/petits-pas/paquet-autonome`.
+Windows : données dans `%LOCALAPPDATA%\petits-pas\paquet-autonome`.
+`--paquet CHEMIN` et `PETITS_PAS_PAQUET_AUTONOME` restent utilisables dans les
+deux constructions ; les ZIP de sauvegarde permettent de transférer une école
+entre les deux systèmes. Éviter d'ouvrir simultanément le même paquet sur un
+répertoire partagé. Pour diagnostiquer un dossier construit sans créer d'école :
+`PetitsPas.exe --verifier-distribution` (Windows) ou
+`./PetitsPas --verifier-distribution` (Linux).
+
 ### Sauvegarde et restauration du paquet local (#L4)
 
 Dans la fenêtre locale, la direction ouvre **Gérer l'école → Sauvegardes

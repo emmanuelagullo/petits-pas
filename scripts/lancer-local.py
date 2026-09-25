@@ -2,7 +2,6 @@
 """Ouvrir le Django existant dans une fenêtre locale PyWebView (#L1)."""
 
 import argparse
-import fcntl
 import os
 import secrets
 import shutil
@@ -17,6 +16,11 @@ from threading import Event, RLock, Thread
 from urllib.request import urlopen
 from wsgiref.simple_server import WSGIServer, make_server
 
+if os.name == "nt":
+    import msvcrt
+else:
+    import fcntl
+
 
 class ServeurLocal(ThreadingMixIn, WSGIServer):
     daemon_threads = True
@@ -24,7 +28,10 @@ class ServeurLocal(ThreadingMixIn, WSGIServer):
 
 
 def paquet_par_defaut():
-    racine = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
+    if os.name == "nt":
+        racine = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData/Local")
+    else:
+        racine = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
     return racine.expanduser() / "petits-pas" / "paquet-autonome"
 
 
@@ -33,13 +40,26 @@ def verrouiller(paquet):
     # Le verrou doit survivre au renommage du paquet lors d'une restauration.
     with (paquet.parent / f".{paquet.name}.verrou").open("a+b") as verrou:
         try:
-            fcntl.flock(verrou, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except BlockingIOError as exc:
+            if os.name == "nt":
+                verrou.seek(0)
+                if not verrou.read(1):
+                    verrou.seek(0)
+                    verrou.write(b"\0")
+                    verrou.flush()
+                verrou.seek(0)
+                msvcrt.locking(verrou.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                fcntl.flock(verrou, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (BlockingIOError, OSError) as exc:
             raise SystemExit(f"Ce paquet est déjà ouvert : {paquet}") from exc
         try:
             yield
         finally:
-            fcntl.flock(verrou, fcntl.LOCK_UN)
+            if os.name == "nt":
+                verrou.seek(0)
+                msvcrt.locking(verrou.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(verrou, fcntl.LOCK_UN)
 
 
 def copier_paquet(source, destination):
@@ -110,8 +130,26 @@ def proteger_avant_migration(paquet):
     print(f"Copie de la base avant migration : {chemin}")
 
 
+def verifier_distribution(projet):
+    """Contrôler les ressources nécessaires avant toute création de paquet."""
+    import django
+    import webview
+    from django.core.management import call_command
+    from django.contrib.staticfiles import finders
+    from django.template.loader import get_template
+
+    django.setup()
+    call_command("check")
+    get_template("suivi/connexion.html")
+    if not finders.find("suivi/carnet.css"):
+        raise SystemExit("La feuille de style est absente de la distribution.")
+    if not (projet / "referentiel" / "trame-cycle1.yaml").is_file():
+        raise SystemExit("La trame pédagogique est absente de la distribution.")
+    print(f"Django {django.get_version()} et PyWebView : distribution vérifiée.")
+
+
 def main():
-    projet = Path(__file__).resolve().parent.parent
+    projet = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
     ancien_paquet = projet / "paquet-autonome"
     defaut = paquet_par_defaut()
     analyseur = argparse.ArgumentParser(description=__doc__)
@@ -142,6 +180,10 @@ def main():
         action="store_true",
         help="charger la trame pédagogique provisoire dans l'école existante, puis quitter",
     )
+    analyseur.add_argument(
+        "--verifier-distribution", action="store_true",
+        help="contrôler les modules, modèles et ressources sans créer de paquet",
+    )
     arguments = analyseur.parse_args()
     if arguments.commune and not arguments.creer_ecole:
         analyseur.error("--commune nécessite --creer-ecole")
@@ -166,6 +208,12 @@ def main():
         raise SystemExit("Le mode local ne peut pas utiliser la démonstration jetable.")
 
     os.umask(0o077)
+    if arguments.verifier_distribution:
+        os.chdir(projet)
+        sys.path.insert(0, str(projet))
+        configurer_environnement(paquet, "verification-distribution")
+        verifier_distribution(projet)
+        return
     if destination_demande:
         destination = destination_demande.expanduser().resolve()
         if paquet == destination:
@@ -211,7 +259,10 @@ def main():
         configurer_environnement(paquet, cle)
         redemarrer = executer(paquet, projet, arguments)
     if redemarrer:
-        os.execv(sys.executable, [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]])
+        if getattr(sys, "frozen", False):
+            os.execv(sys.executable, [sys.executable, *sys.argv[1:]])
+        else:
+            os.execv(sys.executable, [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:]])
 
 
 def executer(paquet, projet, arguments):

@@ -3,6 +3,7 @@
 import importlib.util
 import sqlite3
 import sys
+from types import SimpleNamespace
 import tempfile
 import unittest
 from io import BytesIO
@@ -30,6 +31,16 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_emplacement_windows_utilise_localappdata(self):
+        environnement = SimpleNamespace(
+            name="nt", environ={"LOCALAPPDATA": "C:/Users/test/AppData/Local"}
+        )
+        with patch.object(local, "os", environnement):
+            self.assertEqual(
+                local.paquet_par_defaut(),
+                Path("C:/Users/test/AppData/Local/petits-pas/paquet-autonome"),
+            )
+
     def test_paquet_absent_apres_interruption_ne_devient_pas_un_paquet_vide(self):
         with tempfile.TemporaryDirectory() as temporaire:
             racine = Path(temporaire)
