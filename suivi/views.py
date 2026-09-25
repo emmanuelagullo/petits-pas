@@ -6,6 +6,7 @@ import mimetypes
 from pathlib import Path
 import re
 import shutil
+from datetime import datetime
 import sqlite3
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
@@ -88,9 +89,14 @@ from .models import (
     bornes_annee_scolaire,
 )
 from .paquet_local import (
+    RESULTAT,
+    annuler_preparation,
+    confirmer_restauration,
     creer_sauvegarde,
+    lire_resultat,
     preparer_restauration,
-    programmer_restauration,
+    preparation_en_attente,
+    retenir_preparation,
     restauration_en_attente,
 )
 from .services.eleves import (
@@ -198,6 +204,10 @@ def connexion(request):
             if ecole and autorise(
                 utilisateur, ACCEDER_APPLICATION, ecole=ecole
             ):
+                if (settings.MODE_LOCAL and est_direction(utilisateur, ecole)
+                        and lire_resultat(Path(settings.DATABASES["default"]["NAME"]).parent)):
+                    request.session.pop("suivant", None)
+                    return redirect("sauvegardes_locales")
                 return redirect(request.session.pop("suivant", None) or "accueil")
             logout(request)
         messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
@@ -252,7 +262,22 @@ def sauvegardes_locales(request):
         raise Http404
     paquet = Path(settings.DATABASES["default"]["NAME"]).parent
     if request.method == "POST" and restauration_en_attente() is None:
-        if request.POST.get("action") == "sauvegarder":
+        action = request.POST.get("action")
+        if action == "accuser" and lire_resultat(paquet):
+            (paquet / RESULTAT).unlink(missing_ok=True)
+            return redirect("gestion")
+        if action == "annuler":
+            annuler_preparation()
+            return redirect("sauvegardes_locales")
+        if action == "confirmer":
+            try:
+                confirmer_restauration()
+            except ValueError as erreur:
+                messages.error(request, str(erreur))
+            return redirect("sauvegardes_locales")
+        if preparation_en_attente() is not None:
+            return redirect("sauvegardes_locales")
+        if action == "sauvegarder":
             fichier = tempfile.TemporaryFile(dir=paquet.parent)
             try:
                 creer_sauvegarde(paquet, fichier)
@@ -271,24 +296,38 @@ def sauvegardes_locales(request):
                 messages.error(request, "Choisissez un fichier de sauvegarde.")
             else:
                 try:
-                    etape = preparer_restauration(archive, paquet.parent)
+                    etape = preparer_restauration(archive, paquet.parent, paquet.name)
                     try:
-                        programmer_restauration(etape)
+                        retenir_preparation(etape)
                     except Exception:
-                        shutil.rmtree(etape)
+                        shutil.rmtree(etape.etape)
                         raise
                 except (ValueError, OSError, RuntimeError, KeyError, BadZipFile, sqlite3.DatabaseError) as erreur:
                     messages.error(request, f"Sauvegarde refusée : {erreur}")
                 else:
-                    messages.success(
-                        request,
-                        "Sauvegarde vérifiée. Fermez la fenêtre pour appliquer "
-                        "la restauration, puis relancez Petits Pas.",
-                    )
+                    messages.success(request, "Sauvegarde vérifiée. Vérifiez les détails avant de confirmer.")
             return redirect("sauvegardes_locales")
+    preparation = restauration_en_attente() or preparation_en_attente()
+    resultat = lire_resultat(paquet)
+    def date_affichee(valeur):
+        if not valeur:
+            return "Date non indiquée (ancienne sauvegarde)"
+        instant = datetime.fromisoformat(valeur)
+        if timezone.is_aware(instant):
+            instant = timezone.localtime(instant)
+        return instant.strftime("%d/%m/%Y à %H:%M")
+
     return render(
         request, "suivi/sauvegardes_locales.html",
-        {"restauration_attente": restauration_en_attente() is not None},
+        {
+            "restauration_attente": restauration_en_attente() is not None,
+            "preparation": preparation,
+            "paquet": paquet,
+            "date_sauvegarde": date_affichee(preparation.date_sauvegarde) if preparation else None,
+            "resultat": resultat,
+            "date_resultat": date_affichee(resultat["date_sauvegarde"]) if resultat else None,
+            "date_application": date_affichee(resultat["applique_le"]) if resultat else None,
+        },
     )
 
 
@@ -440,6 +479,9 @@ def _grouper_classes_par_annee(classes, toutes):
 @acces_requis
 def accueil(request):
     ecole = ecole_courante(request)
+    if (settings.MODE_LOCAL and est_direction(request.user, ecole)
+            and lire_resultat(Path(settings.DATABASES["default"]["NAME"]).parent)):
+        return redirect("sauvegardes_locales")
     classes = classes_accessibles(request.user, VOIR_CLASSE, ecole).annotate(
         nb_eleves=Count(
             "scolarites__eleve",

@@ -7,6 +7,9 @@ import sqlite3
 import stat
 import tempfile
 import threading
+import uuid
+from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from zipfile import ZIP_DEFLATED, ZipFile
 
@@ -16,7 +19,18 @@ VERSION = 1
 TAILLE_MAX = 10 * 1024**3
 FICHIERS_MAX = 100_000
 _attente = None
+_preparation = None
 _verrou_attente = threading.Lock()
+RESULTAT = "resultat-restauration.json"
+
+
+@dataclass(frozen=True)
+class Preparation:
+    etape: Path
+    date_sauvegarde: str | None
+    ancien: Path
+    nom_archive: str
+    nombre_medias: int
 
 
 def _empreinte(fichier):
@@ -52,11 +66,15 @@ def creer_sauvegarde(paquet, destination):
                 archive.write(chemin, nom)
             archive.writestr(
                 "manifest.json",
-                json.dumps({"format": FORMAT, "version": VERSION, "files": empreintes}),
+                json.dumps({
+                    "format": FORMAT, "version": VERSION,
+                    "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    "files": empreintes,
+                }),
             )
 
 
-def preparer_restauration(source, parent):
+def preparer_restauration(source, parent, nom_paquet="paquet-autonome"):
     """Valider le ZIP avant de préparer un nouveau paquet sans toucher à l'ancien."""
     with ZipFile(source) as archive:
         entrees = archive.infolist()
@@ -71,6 +89,12 @@ def preparer_restauration(source, parent):
         if manifeste.get("format") != FORMAT or manifeste.get("version") != VERSION:
             raise ValueError("Format de sauvegarde inconnu.")
         attendus = manifeste.get("files")
+        date_sauvegarde = manifeste.get("created_at")
+        if date_sauvegarde is not None:
+            try:
+                date_sauvegarde = datetime.fromisoformat(date_sauvegarde).isoformat()
+            except (TypeError, ValueError) as exc:
+                raise ValueError("Date de sauvegarde invalide.") from exc
         if not isinstance(attendus, dict) or not {"carnet.sqlite3", "secret-key"} <= attendus.keys():
             raise ValueError("Base ou clé absente de la sauvegarde.")
         if set(noms) != set(attendus) | {"manifest.json"}:
@@ -112,18 +136,50 @@ def preparer_restauration(source, parent):
                     raise ValueError("La base ne contient pas les migrations Django.")
             (etape / "media").mkdir(exist_ok=True)
             (etape / "secret-key").chmod(0o600)
-            return etape
+            ancien = parent / (
+                f".{nom_paquet}-avant-restauration-"
+                f"{datetime.now():%Y%m%d-%H%M%S}-{uuid.uuid4().hex[:8]}"
+            )
+            return Preparation(
+                etape, date_sauvegarde, ancien,
+                Path(getattr(source, "name", "sauvegarde.zip")).name,
+                sum(nom.startswith("media/") for nom in attendus),
+            )
         except BaseException:
             shutil.rmtree(etape)
             raise
 
 
-def programmer_restauration(etape):
-    global _attente
+def retenir_preparation(preparation):
+    global _preparation
     with _verrou_attente:
-        if _attente is not None:
-            raise ValueError("Une restauration attend déjà la fermeture de l'application.")
-        _attente = etape
+        if _attente is not None or _preparation is not None:
+            raise ValueError("Une restauration est déjà en préparation.")
+        _preparation = preparation
+
+
+def preparation_en_attente():
+    with _verrou_attente:
+        return _preparation
+
+
+def annuler_preparation():
+    global _preparation
+    with _verrou_attente:
+        preparation = _preparation
+        _preparation = None
+    if preparation is not None:
+        shutil.rmtree(preparation.etape)
+
+
+def confirmer_restauration():
+    global _preparation, _attente
+    with _verrou_attente:
+        if _preparation is None or _attente is not None:
+            raise ValueError("Aucune restauration à confirmer.")
+        _attente = _preparation
+        _preparation = None
+        return _attente
 
 
 def restauration_en_attente():
@@ -131,12 +187,20 @@ def restauration_en_attente():
         return _attente
 
 
-def appliquer_restauration(paquet, etape):
+def appliquer_restauration(paquet, preparation):
     """Remplacer le paquet après l'arrêt du serveur, en gardant l'original."""
-    if etape.parent != paquet.parent or not etape.is_dir():
+    etape = preparation.etape
+    ancien = preparation.ancien
+    if (etape.parent != paquet.parent or not etape.is_dir()
+            or ancien.parent != paquet.parent or ancien.exists()):
         raise ValueError("Dossier de restauration invalide.")
-    ancien = Path(tempfile.mkdtemp(prefix=f".{paquet.name}-avant-restauration-", dir=paquet.parent))
-    ancien.rmdir()
+    (etape / RESULTAT).write_text(json.dumps({
+        "date_sauvegarde": preparation.date_sauvegarde,
+        "nom_archive": preparation.nom_archive,
+        "nombre_medias": preparation.nombre_medias,
+        "ancien": str(ancien),
+        "applique_le": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }), encoding="utf-8")
     paquet.rename(ancien)
     try:
         etape.rename(paquet)
@@ -144,3 +208,8 @@ def appliquer_restauration(paquet, etape):
         ancien.rename(paquet)
         raise
     return ancien
+
+
+def lire_resultat(paquet):
+    chemin = paquet / RESULTAT
+    return json.loads(chemin.read_text(encoding="utf-8")) if chemin.exists() else None

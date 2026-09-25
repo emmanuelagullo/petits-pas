@@ -113,9 +113,13 @@ selon le moteur Web installé. Le ZIP contient des données privées :
 à conserver comme le paquet lui-même.
 
 Pour restaurer, sélectionner ce ZIP dans la même page. Le contenu et la base
-SQLite sont vérifiés avant toute modification. Fermer ensuite la fenêtre pour
-appliquer la restauration, puis relancer Petits Pas. Le paquet remplacé est
-conservé dans un dossier voisin dont le chemin est affiché dans le terminal.
+SQLite sont vérifiés avant toute modification. La page indique la date de
+création de la sauvegarde, le paquet à remplacer et le chemin où sera conservé
+le paquet actuel. Confirmer explicitement, fermer la fenêtre pour appliquer
+la restauration, puis relancer Petits Pas. Un récapitulatif apparaît à la
+connexion de la direction. Les archives antérieures restent utilisables, mais
+leur date de création ne peut pas être affichée. Une préparation annulée ou
+abandonnée à la fermeture ne modifie pas le paquet.
 Une restauration en attente bloque les nouvelles écritures. Les éventuels
 fichiers `staticfiles/` sont reconstruits au démarrage ; les copies techniques
 `sauvegardes-migrations/` restent dans le paquet remplacé. Il n'est pas

@@ -241,7 +241,7 @@ def executer(paquet, projet, arguments):
         raise SystemExit(
             f"PyWebView est absent : {exc}. Installez requirements-local.txt."
         ) from exc
-    from suivi.paquet_local import appliquer_restauration, restauration_en_attente
+    from suivi.paquet_local import annuler_preparation, appliquer_restauration, restauration_en_attente
 
     requetes = RLock()
 
@@ -294,6 +294,8 @@ def executer(paquet, projet, arguments):
                 connections.close_all()
                 ancien = appliquer_restauration(paquet, etape)
                 print(f"Restauration appliquée. Paquet précédent conservé : {ancien}")
+        else:
+            annuler_preparation()
 
 
 if __name__ == "__main__":

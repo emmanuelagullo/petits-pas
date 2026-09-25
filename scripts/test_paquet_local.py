@@ -10,9 +10,14 @@ from unittest.mock import patch
 from zipfile import ZipFile
 
 from suivi.paquet_local import (
+    annuler_preparation,
     appliquer_restauration,
+    confirmer_restauration,
     creer_sauvegarde,
+    lire_resultat,
     preparer_restauration,
+    preparation_en_attente,
+    retenir_preparation,
 )
 
 
@@ -39,7 +44,12 @@ class PaquetLocalTests(unittest.TestCase):
             creer_sauvegarde(paquet, archive)
             (paquet / "media" / "photo.jpg").write_bytes(b"photo modifiee")
             etape = preparer_restauration(archive, racine)
+            self.assertIsNotNone(etape.date_sauvegarde)
+            self.assertEqual(etape.nombre_medias, 1)
             ancien = appliquer_restauration(paquet, etape)
+            self.assertEqual(ancien, etape.ancien)
+            self.assertEqual(lire_resultat(paquet)["ancien"], str(ancien))
+            self.assertEqual(lire_resultat(paquet)["date_sauvegarde"], etape.date_sauvegarde)
             self.assertEqual((paquet / "media" / "photo.jpg").read_bytes(), b"photo originale")
             self.assertEqual((ancien / "media" / "photo.jpg").read_bytes(), b"photo modifiee")
             self.assertEqual((paquet / "secret-key").read_text(), "cle originale")
@@ -48,6 +58,36 @@ class PaquetLocalTests(unittest.TestCase):
                     connexion.execute("SELECT app FROM django_migrations").fetchone(),
                     ("suivi",),
                 )
+
+    def test_confirmation_et_annulation_conservent_le_paquet(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            racine = Path(temporaire)
+            paquet = racine / "paquet"
+            paquet.mkdir()
+            (paquet / "secret-key").write_text("cle")
+            with sqlite3.connect(paquet / "carnet.sqlite3") as connexion:
+                connexion.execute("CREATE TABLE django_migrations (app TEXT)")
+            archive = racine / "copie.zip"
+            creer_sauvegarde(paquet, archive)
+            preparation = preparer_restauration(archive, racine, paquet.name)
+            retenir_preparation(preparation)
+            self.assertEqual(preparation_en_attente(), preparation)
+            self.assertTrue((paquet / "carnet.sqlite3").exists())
+            annuler_preparation()
+            self.assertIsNone(preparation_en_attente())
+            self.assertFalse(preparation.etape.exists())
+            preparation = preparer_restauration(archive, racine, paquet.name)
+            retenir_preparation(preparation)
+            import suivi.paquet_local as module
+            try:
+                self.assertEqual(confirmer_restauration(), preparation)
+                self.assertIsNone(preparation_en_attente())
+                self.assertTrue((paquet / "carnet.sqlite3").exists())
+            finally:
+                module._attente = None
+                if preparation.etape.exists():
+                    import shutil
+                    shutil.rmtree(preparation.etape)
 
     def test_archive_invalide_ne_modifie_pas_le_paquet(self):
         with tempfile.TemporaryDirectory() as temporaire:
