@@ -134,9 +134,11 @@ deploiement-ephemere:
   services:
     - name: postgres:15-alpine
       alias: postgresql
-    - name: quay.io/minio/minio:latest
+    # Image communautaire publiée sur Docker Hub : Quay renvoie 403 sur le runner Inria.
+    # Service réservé à ce test éphémère ; version figée pour éviter une dérive de la CI.
+    - name: alpine/minio:RELEASE.2025-10-15T17-29-55Z
       alias: minio
-      command: ["server", "/data"]
+      command: ["server", "/tmp/minio"]
   variables:
     POSTGRES_DB: petits_pas_ci
     POSTGRES_USER: petits_pas_ci
