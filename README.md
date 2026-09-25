@@ -26,13 +26,20 @@ python3 -m venv --system-site-packages .venv
 source .venv/bin/activate
 python -m pip install -r requirements-local.txt
 python -c "import gi; gi.require_version('WebKit2', '4.1'); from gi.repository import WebKit2"
-python scripts/lancer-local.py --creer-ecole "Mon école" --commune "Ma commune"
 python scripts/lancer-local.py
 # Ou, pour un autre emplacement :
 python scripts/lancer-local.py --paquet /chemin/vers/mon-paquet
 ```
 
-La commande `--creer-ecole` utilise la création d'école existante, charge
+Sur un paquet neuf, la fenêtre ouvre **Installer Petits Pas** : elle crée
+l'école, un premier compte personnel de direction et la trame pédagogique
+provisoire. La même fenêtre propose ensuite la connexion ordinaire. Sur un
+paquet déjà initialisé, elle ouvre directement la connexion et ne modifie ni
+les comptes ni le référentiel. Le formulaire est inaccessible dans les
+déploiements serveur ou dès qu'une école ou un compte existe dans la base.
+
+La commande facultative `--creer-ecole "Mon école" --commune "Ma commune"`
+utilise la création d'école existante, charge
 `referentiel/trame-cycle1.yaml` (une trame pédagogique provisoire) et affiche
 les identifiants initiaux dans le terminal. Elle refuse d'ajouter une seconde
 école dans ce paquet. Pour un autre chemin, lui passer aussi `--paquet`.

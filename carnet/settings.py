@@ -21,6 +21,7 @@ ENVIRONNEMENT_ATELIER = (
 ENVIRONNEMENT_EPHEMERE = (
     os.environ.get("CARNET_ENVIRONNEMENT_EPHEMERE", "") == "oui"
 )
+MODE_LOCAL = os.environ.get("CARNET_MODE_LOCAL", "") == "oui"
 VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip()
 
 INSTALLED_APPS = [

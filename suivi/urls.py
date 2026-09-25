@@ -7,6 +7,7 @@ urlpatterns = [
     path("health/", views.health, name="health"),
     path("", views.accueil, name="accueil"),
     path("connexion/", views.connexion, name="connexion"),
+    path("installation/", views.installation_locale, name="installation_locale"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path("mon-compte/", views.mon_compte, name="mon_compte"),
     path(
