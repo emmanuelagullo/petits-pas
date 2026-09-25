@@ -2,6 +2,7 @@
 
 import importlib.util
 import os
+import subprocess
 from contextlib import closing
 import sqlite3
 import sys
@@ -100,6 +101,48 @@ class PaquetLocalTests(unittest.TestCase):
                 local.paquet_par_defaut(),
                 Path("C:/Users/test/AppData/Local/petits-pas/paquet-autonome"),
             )
+
+    @unittest.skipIf(os.name == "nt", "Installateur Ubuntu")
+    def test_installation_linux_conserve_les_donnees_et_la_version_precedente(self):
+        racine = Path(__file__).resolve().parent.parent
+        with tempfile.TemporaryDirectory() as temporaire:
+            dossier = Path(temporaire)
+            sources = dossier / "extraction" / "PetitsPas"
+            sources.mkdir(parents=True)
+            (sources / "_internal").mkdir()
+            executable = sources / "PetitsPas"
+            executable.write_bytes(b"premiere version")
+            executable.chmod(0o755)
+            script = sources / "installer-paquet-linux.sh"
+            script.write_bytes((racine / "scripts" / script.name).read_bytes())
+            donnees = dossier / "donnees"
+            paquet = donnees / "petits-pas" / "paquet-autonome"
+            paquet.mkdir(parents=True)
+            (paquet / "carnet.sqlite3").write_bytes(b"base fictive")
+            environnement = {**os.environ, "XDG_DATA_HOME": str(donnees)}
+
+            def installer():
+                subprocess.run(["bash", str(script)], check=True, env=environnement,
+                               capture_output=True, text=True)
+
+            installer()
+            programmes = donnees / "petits-pas" / "programmes"
+            self.assertEqual(len(list(programmes.iterdir())), 1)
+            installer()
+            self.assertEqual(len(list(programmes.iterdir())), 1)
+            executable.write_bytes(b"seconde version")
+            installer()
+            versions = list(programmes.iterdir())
+            self.assertEqual(len(versions), 2)
+            self.assertEqual({(p / "PetitsPas").read_bytes() for p in versions},
+                             {b"premiere version", b"seconde version"})
+            (sources / "_internal" / "style.css").write_bytes(b"nouveau style")
+            installer()
+            self.assertEqual(len(list(programmes.iterdir())), 3)
+            self.assertEqual((paquet / "carnet.sqlite3").read_bytes(), b"base fictive")
+            lanceur = (donnees / "applications" / "petits-pas.desktop").read_text()
+            self.assertIn("PetitsPas", lanceur)
+            self.assertIn("Exec=", lanceur)
 
     def test_paquet_absent_apres_interruption_ne_devient_pas_un_paquet_vide(self):
         with tempfile.TemporaryDirectory() as temporaire:
