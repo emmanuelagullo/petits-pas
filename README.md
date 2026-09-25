@@ -122,6 +122,12 @@ bash scripts/construire-paquet-linux.sh
 
 La construction Linux utilise un venv temporaire, supprimé à la fin ; elle
 ne modifie pas `.venv` ou un ancien `.venv-paquet` du dépôt.
+Sur Guix, si le bootloader PyInstaller référence un chargeur ELF absent, le
+script le remplace par celui du Python de construction avant de vérifier le
+paquet. Pour corriger un binaire déjà construit sans relancer PyInstaller :
+`bash scripts/corriger-interpreteur-linux.sh dist/PetitsPas/PetitsPas`, puis
+`./dist/PetitsPas/PetitsPas --verifier-distribution`. Le script ne modifie le
+binaire que si son chargeur manque et nécessite `patchelf` ou `guix shell`.
 Le script crée `dist/PetitsPas-linux.tar.gz`. Sur la machine de destination,
 GTK, WebKit2 et les bibliothèques natives de WeasyPrint doivent rester
 disponibles ; le programme n'est pas un AppImage portable entre toutes les
