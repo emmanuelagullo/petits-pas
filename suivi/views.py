@@ -275,8 +275,6 @@ def sauvegardes_locales(request):
             except ValueError as erreur:
                 messages.error(request, str(erreur))
             return redirect("sauvegardes_locales")
-        if preparation_en_attente() is not None:
-            return redirect("sauvegardes_locales")
         if action == "sauvegarder":
             fichier = tempfile.TemporaryFile(dir=paquet.parent)
             try:
@@ -290,6 +288,8 @@ def sauvegardes_locales(request):
             except Exception:
                 fichier.close()
                 raise
+        if preparation_en_attente() is not None:
+            return redirect("sauvegardes_locales")
         if request.POST.get("action") == "restaurer":
             archive = request.FILES.get("archive")
             if not archive:

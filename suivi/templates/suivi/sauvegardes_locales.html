@@ -7,7 +7,7 @@
 <section class="encadre">
   <h2>Restauration terminée</h2>
   <p>La sauvegarde <strong>{{ resultat.nom_archive }}</strong> du <strong>{{ date_resultat }}</strong> a été restaurée dans <code>{{ paquet }}</code>.</p>
-  <p>La base, la clé et {{ resultat.nombre_medias }} fichier{{ resultat.nombre_medias|pluralize }} média ont été restaurés. L’ancien paquet, avec sa base et ses médias, est conservé dans <code>{{ resultat.ancien }}</code>.</p>
+  <p>La base, la clé et {{ resultat.nombre_medias }} fichier{{ resultat.nombre_medias|pluralize }} média ont été restaurés. L’ancien paquet, avec sa base et ses médias, est conservé dans le dossier <code>{{ resultat.ancien }}</code>. Ce dossier n’est pas une archive ZIP.</p>
   <p>Restauration appliquée le {{ date_application }}.</p>
   <form method="post">{% csrf_token %}<input type="hidden" name="action" value="accuser"><button class="bouton" type="submit">J’ai pris connaissance du résultat</button></form>
 </section>
@@ -15,7 +15,7 @@
 <section class="encadre">
   <h2>Restauration confirmée</h2>
   <p>La sauvegarde <strong>{{ preparation.nom_archive }}</strong> du <strong>{{ date_sauvegarde }}</strong> remplacera le paquet <code>{{ paquet }}</code> à la fermeture de cette fenêtre.</p>
-  <p>Le paquet actuel sera conservé dans <code>{{ preparation.ancien }}</code>. Appliquez la restauration pour fermer proprement l’application et la redémarrer sur le résultat.</p>
+  <p>Le paquet actuel sera conservé par renommage dans le dossier <code>{{ preparation.ancien }}</code>, sans création d’un ZIP. Appliquez la restauration pour fermer proprement l’application et la redémarrer sur le résultat.</p>
   <button class="bouton" type="button" id="redemarrer-local">Appliquer la restauration et redémarrer</button>
   <p id="etat-redemarrage" role="status" aria-live="polite">Si vous utilisez un navigateur externe, fermez la fenêtre, puis relancez Petits Pas manuellement.</p>
   <script>
@@ -42,7 +42,9 @@
 <section class="encadre">
   <h2>Confirmer la restauration</h2>
   <p>La sauvegarde <strong>{{ preparation.nom_archive }}</strong>, créée le <strong>{{ date_sauvegarde }}</strong>, a été vérifiée. Elle contient une base SQLite, une clé et {{ preparation.nombre_medias }} fichier{{ preparation.nombre_medias|pluralize }} média.</p>
-  <p>Si vous confirmez, Petits Pas restaurera cette sauvegarde dans <code>{{ paquet }}</code> après la fermeture de la fenêtre. Avant de remplacer le paquet, il conservera la base et les médias actuels dans <code>{{ preparation.ancien }}</code>.</p>
+  <p>Si vous confirmez, Petits Pas restaurera cette sauvegarde dans <code>{{ paquet }}</code> après la fermeture de la fenêtre. Le paquet actuel (base, médias et clé) sera conservé par renommage dans le dossier <code>{{ preparation.ancien }}</code>. Cette conservation automatique ne crée pas de ZIP.</p>
+  <p>Pour disposer aussi d’un ZIP de l’état actuel, téléchargez-le et conservez-le avant de confirmer. Cette sauvegarde supplémentaire est facultative.</p>
+  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="sauvegarder"><button type="submit">Télécharger un ZIP du paquet actuel</button></form>
   <p>Après confirmation, les nouvelles modifications seront bloquées jusqu’à la fermeture de la fenêtre.</p>
   <div class="actions">
     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="confirmer"><button class="bouton" type="submit">Confirmer la restauration</button></form>
@@ -58,7 +60,7 @@
 </section>
 <section class="encadre">
   <h2>Restaurer une sauvegarde</h2>
-  <p>Le fichier est vérifié avant toute modification. La restauration sera effectuée après confirmation et fermeture de la fenêtre.</p>
+  <p>Le fichier est vérifié avant toute modification. Avant confirmation, vous pourrez également télécharger un ZIP de l’état actuel. Après restauration, Petits Pas conservera automatiquement l’ancien paquet sous forme de dossier.</p>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}<input type="hidden" name="action" value="restaurer">
     <label for="archive">Fichier ZIP Petits Pas</label>

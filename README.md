@@ -119,8 +119,11 @@ le paquet actuel. Confirmer explicitement, puis utiliser « Appliquer la
 restauration et redémarrer » : le serveur s'arrête, le paquet est remplacé et
 la fenêtre se rouvre. En dehors de PyWebView, fermer la fenêtre et relancer
 manuellement. Un indicateur d'activité accompagne la vérification du ZIP.
-Un récapitulatif apparaît à la
-connexion de la direction. Les archives antérieures restent utilisables, mais
+Le paquet précédent est conservé par renommage dans un dossier voisin : cette
+protection automatique ne produit pas de ZIP. L'écran de confirmation propose
+de télécharger en plus un ZIP de l'état actuel avant de restaurer, sans
+l'imposer. Un récapitulatif apparaît à la connexion de la direction.
+Les archives antérieures restent utilisables, mais
 leur date de création ne peut pas être affichée. Une préparation annulée ou
 abandonnée à la fermeture ne modifie pas le paquet.
 Une restauration en attente bloque les nouvelles écritures. Les éventuels

@@ -144,6 +144,19 @@ class SauvegardesLocalesAccesTests(TestCase):
             "Télécharger une sauvegarde",
         )
 
+    @override_settings(MODE_LOCAL=True)
+    def test_export_reste_disponible_avant_confirmation(self):
+        with patch("suivi.views.preparation_en_attente", return_value=object()), patch(
+            "suivi.views.creer_sauvegarde",
+            side_effect=lambda paquet, fichier: fichier.write(b"ZIP"),
+        ):
+            reponse = self.client.post(
+                reverse("sauvegardes_locales"), {"action": "sauvegarder"}
+            )
+            self.assertEqual(reponse.status_code, 200)
+            self.assertEqual(b"".join(reponse.streaming_content), b"ZIP")
+            reponse.close()
+
     def test_page_absente_en_mode_serveur(self):
         self.assertEqual(self.client.get(reverse("sauvegardes_locales")).status_code, 404)
 
