@@ -63,6 +63,7 @@ from .autorisations import (
     VOIR_MEDIA,
     VOIR_AFFECTATIONS_CLASSE,
     affectation_active,
+    appartenances_actives,
     autorise,
     charger_classe_autorisee,
     charger_eleve_autorise,
@@ -209,8 +210,21 @@ def connexion(request):
                     request.session.pop("suivant", None)
                     return redirect("sauvegardes_locales")
                 return redirect(request.session.pop("suivant", None) or "accueil")
+            membre_sans_fonction = appartenances_actives(utilisateur).exists()
             logout(request)
-        messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+            if membre_sans_fonction:
+                messages.warning(
+                    request,
+                    "Votre compte existe, mais aucune fonction ne vous a "
+                    "encore été attribuée dans une classe. Contactez la "
+                    "direction de votre école.",
+                )
+            else:
+                messages.error(
+                    request, "Nom d'utilisateur ou mot de passe incorrect."
+                )
+        else:
+            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     return render(request, "suivi/connexion.html")
 
 

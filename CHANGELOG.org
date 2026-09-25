@@ -15,6 +15,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Message de connexion distinct pour un compte valide mais sans fonction
+  attribuée, plutôt que le message générique « mot de passe incorrect ».
+- Diagnostic enrichi de `verifier_envoi_email` : détection des domaines
+  d'expédition réservés (RFC 2606), avertissement explicite pour les
+  backends console/factice, messages d'erreur SMTP différenciés.
 - Alignement de la saisie des bilans sur l'historique des traces : date du
   jour proposée, édition en place et choix individuel de présence au carnet.
 - Rétablissement de l'accueil des classes pour les enseignants et de l'écran
