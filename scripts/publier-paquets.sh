@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# À lancer après validation des deux artefacts d'une même exécution GitHub Actions.
+# Publier sur les deux forges après création et poussée du même tag Git.
 set -euo pipefail
 
 if (( $# != 2 )) || [[ ! "$1" =~ ^[0-9]+$ ]] || [[ ! "$2" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
@@ -9,8 +9,9 @@ fi
 run_id=$1
 tag=$2
 depot=emmanuelagullo/petits-pas
+gitlab=https://gitlab.inria.fr/petits-pas/petits-pas
 
-for programme in gh python3; do
+for programme in gh glab git python3; do
     command -v "$programme" >/dev/null || { printf '%s est requis.\n' "$programme" >&2; exit 1; }
 done
 
@@ -23,11 +24,22 @@ if run["conclusion"] != "success" or run["workflowName"] != "Paquets autonomes L
 print(run["headSha"])
 ' <<< "$informations")
 
-# Une publication ne doit jamais rattacher les exécutables à un autre commit.
-if gh api --silent "repos/$depot/git/ref/tags/$tag" 2>/dev/null; then
-    printf 'Le tag existe déjà sur GitHub : %s\n' "$tag" >&2
+# Vérifier le tag local et ses deux copies avant de publier quoi que ce soit.
+local_sha=$(git rev-parse --verify "refs/tags/$tag^{}")
+if [[ "$local_sha" != "$sha" ]]; then
+    printf 'Le tag local pointe sur %s mais les archives viennent de %s.\n' "$local_sha" "$sha" >&2
     exit 1
 fi
+for depot_git in inria github; do
+    distance=$(git ls-remote --tags "$depot_git" "refs/tags/$tag^{}" | cut -f1)
+    if [[ -z "$distance" ]]; then
+        distance=$(git ls-remote --tags "$depot_git" "refs/tags/$tag" | cut -f1)
+    fi
+    if [[ "$distance" != "$sha" ]]; then
+        printf 'Tag %s absent ou différent sur %s (attendu : %s).\n' "$tag" "$depot_git" "$sha" >&2
+        exit 1
+    fi
+done
 
 temporaire=$(mktemp -d)
 trap 'rm -rf -- "$temporaire"' EXIT
@@ -64,9 +76,15 @@ Version de test de Petits Pas (application autonome, sans serveur externe).
 Source : commit $sha ; exécution GitHub Actions $run_id.
 EOF
 
-printf 'Dépôt : %s\nExécution : %s\nCommit : %s\nTag à créer : %s\n' "$depot" "$run_id" "$sha" "$tag"
-printf 'Archives vérifiées. Création de la release brouillon…\n'
+printf 'Exécution : %s\nCommit et tags vérifiés : %s\nTag : %s\n' "$run_id" "$sha" "$tag"
+printf 'Archives vérifiées. Création du brouillon GitHub…\n'
 gh release create "$tag" "$linux" "$windows" --repo "$depot" \
-    --target "$sha" --draft --prerelease --latest=false \
+    --verify-tag --draft --prerelease --latest=false \
     --title "Petits Pas $tag (test)" --notes-file "$temporaire/notes.md"
-printf 'Brouillon créé : vérifiez les archives et les notes avant de publier sur GitHub.\n'
+printf 'Publication de la release GitLab avec les mêmes archives…\n'
+glab release create "$tag" "$linux" "$windows" --repo "$gitlab" \
+    --no-update --use-package-registry \
+    --name "Petits Pas $tag (test)" --notes-file "$temporaire/notes.md"
+printf 'Publication du brouillon GitHub…\n'
+gh release edit "$tag" --repo "$depot" --draft=false
+printf 'Deux releases publiées pour le même tag %s et le même commit %s.\n' "$tag" "$sha"
