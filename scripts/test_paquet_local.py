@@ -2,6 +2,7 @@
 
 import importlib.util
 import os
+from contextlib import closing
 import sqlite3
 import sys
 from types import SimpleNamespace
@@ -120,7 +121,7 @@ class PaquetLocalTests(unittest.TestCase):
             (paquet / "media").mkdir()
             (paquet / "media" / "photo.jpg").write_bytes(b"photo originale")
             (paquet / "secret-key").write_text("cle originale", encoding="utf-8")
-            with sqlite3.connect(paquet / "carnet.sqlite3") as connexion:
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as connexion, connexion:
                 connexion.execute("CREATE TABLE django_migrations (app TEXT)")
                 connexion.execute("INSERT INTO django_migrations VALUES ('suivi')")
             archive = racine / "copie.zip"
@@ -136,7 +137,7 @@ class PaquetLocalTests(unittest.TestCase):
             self.assertEqual((paquet / "media" / "photo.jpg").read_bytes(), b"photo originale")
             self.assertEqual((ancien / "media" / "photo.jpg").read_bytes(), b"photo modifiee")
             self.assertEqual((paquet / "secret-key").read_text(), "cle originale")
-            with sqlite3.connect(paquet / "carnet.sqlite3") as connexion:
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as connexion:
                 self.assertEqual(
                     connexion.execute("SELECT app FROM django_migrations").fetchone(),
                     ("suivi",),
@@ -148,7 +149,7 @@ class PaquetLocalTests(unittest.TestCase):
             paquet = racine / "paquet"
             paquet.mkdir()
             (paquet / "secret-key").write_text("cle")
-            with sqlite3.connect(paquet / "carnet.sqlite3") as connexion:
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as connexion, connexion:
                 connexion.execute("CREATE TABLE django_migrations (app TEXT)")
             archive = racine / "copie.zip"
             creer_sauvegarde(paquet, archive)
@@ -191,7 +192,7 @@ class PaquetLocalTests(unittest.TestCase):
             (paquet / "media").mkdir()
             (paquet / "media" / "photo.jpg").write_bytes(b"photo")
             (paquet / "secret-key").write_text("cle", encoding="utf-8")
-            with sqlite3.connect(paquet / "carnet.sqlite3") as connexion:
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as connexion, connexion:
                 connexion.execute("CREATE TABLE django_migrations (app TEXT)")
             original = racine / "original.zip"
             creer_sauvegarde(paquet, original)
@@ -212,14 +213,14 @@ class PaquetLocalTests(unittest.TestCase):
             (source / "media").mkdir()
             (source / "media" / "photo.jpg").write_bytes(b"photo-test")
             (source / "secret-key").write_text("secret-test", encoding="utf-8")
-            with sqlite3.connect(source / "carnet.sqlite3") as connexion:
+            with closing(sqlite3.connect(source / "carnet.sqlite3")) as connexion, connexion:
                 connexion.execute("CREATE TABLE test (valeur TEXT)")
                 connexion.execute("INSERT INTO test VALUES ('conserve')")
             destination = racine / "nouveau" / "paquet-autonome"
             local.copier_paquet(source, destination)
             self.assertEqual((destination / "media" / "photo.jpg").read_bytes(), b"photo-test")
             self.assertEqual((destination / "secret-key").read_text(), "secret-test")
-            with sqlite3.connect(destination / "carnet.sqlite3") as connexion:
+            with closing(sqlite3.connect(destination / "carnet.sqlite3")) as connexion:
                 self.assertEqual(connexion.execute("SELECT valeur FROM test").fetchone(), ("conserve",))
             self.assertTrue((source / "carnet.sqlite3").exists())
             with self.assertRaises(SystemExit):

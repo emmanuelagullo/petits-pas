@@ -8,6 +8,7 @@ import stat
 import tempfile
 import threading
 import uuid
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
@@ -44,8 +45,8 @@ def creer_sauvegarde(paquet, destination):
     """Écrire un ZIP cohérent de la base, de la clé et des médias."""
     with tempfile.TemporaryDirectory(prefix=".copie-sqlite-", dir=paquet.parent) as dossier:
         base = Path(dossier) / "carnet.sqlite3"
-        with sqlite3.connect(paquet / "carnet.sqlite3") as origine:
-            with sqlite3.connect(base) as copie:
+        with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as origine:
+            with closing(sqlite3.connect(base)) as copie:
                 origine.backup(copie)
         fichiers = {
             "carnet.sqlite3": base,
@@ -127,7 +128,7 @@ def preparer_restauration(source, parent, nom_paquet="paquet-autonome"):
                     raise ValueError(f"Fichier altéré dans la sauvegarde : {nom}")
             if not (etape / "secret-key").read_text(encoding="utf-8").strip():
                 raise ValueError("Clé vide dans la sauvegarde.")
-            with sqlite3.connect(etape / "carnet.sqlite3") as connexion:
+            with closing(sqlite3.connect(etape / "carnet.sqlite3")) as connexion:
                 if connexion.execute("PRAGMA quick_check").fetchone()[0] != "ok":
                     raise ValueError("Base SQLite endommagée.")
                 if not connexion.execute(
