@@ -6,7 +6,15 @@ from pathlib import Path
 
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
-racine = Path(SPECPATH).resolve().parent.parent
+# SPECPATH peut désigner la racine du dépôt ou le dossier du .spec selon
+# la manière dont PyInstaller a été invoqué.
+racine = next(
+    (chemin for chemin in (Path(SPECPATH).resolve(), Path(SPECPATH).resolve().parent)
+     if (chemin / "scripts" / "lancer-local.py").is_file()),
+    None,
+)
+if racine is None:
+    raise FileNotFoundError(f"Lanceur introuvable depuis le dossier PyInstaller : {SPECPATH}")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "carnet.settings")
 
 donnees = [
