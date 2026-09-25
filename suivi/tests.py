@@ -61,6 +61,68 @@ from .services.equipe import (
 from .services.pedagogie import modifier_etat
 
 
+class InstallationLocaleTests(TestCase):
+    def donnees(self, mot_de_passe="UnMotDePasseLocal!2026"):
+        return {
+            "ecole_nom": "École des Lucioles",
+            "commune": "Bordeaux",
+            "username": "direction-locale",
+            "first_name": "Camille",
+            "last_name": "Martin",
+            "password1": mot_de_passe,
+            "password2": mot_de_passe,
+        }
+
+    def test_installation_inaccessible_hors_mode_local(self):
+        self.assertEqual(self.client.get(reverse("installation_locale")).status_code, 404)
+
+    @override_settings(MODE_LOCAL=True)
+    def test_premiere_ouverture_cree_une_ecole_un_compte_et_la_trame(self):
+        self.assertRedirects(
+            self.client.get(reverse("connexion")), reverse("installation_locale")
+        )
+        reponse = self.client.post(reverse("installation_locale"), self.donnees())
+        self.assertRedirects(reponse, reverse("gestion"))
+        ecole = Ecole.objects.get()
+        utilisateur = get_user_model().objects.get()
+        self.assertEqual(ecole.nom, "École des Lucioles")
+        self.assertTrue(
+            ResponsabiliteEcole.objects.filter(
+                appartenance__utilisateur=utilisateur,
+                appartenance__ecole=ecole,
+                type=ResponsabiliteEcole.DIRECTION,
+            ).exists()
+        )
+        self.assertTrue(ecole.domaines.exists())
+        self.assertEqual(self.client.session["_auth_user_id"], str(utilisateur.pk))
+        self.assertEqual(self.client.get(reverse("installation_locale")).url, reverse("accueil"))
+
+    @override_settings(MODE_LOCAL=True)
+    def test_mot_de_passe_invalide_et_base_deja_initialisee(self):
+        reponse = self.client.post(reverse("installation_locale"), self.donnees("abc"))
+        self.assertEqual(reponse.status_code, 200)
+        self.assertFalse(Ecole.objects.exists())
+        Ecole.objects.create(nom="Déjà créée")
+        self.assertRedirects(
+            self.client.post(reverse("installation_locale"), self.donnees()),
+            reverse("connexion"),
+        )
+        self.assertEqual(Ecole.objects.count(), 1)
+
+    @override_settings(MODE_LOCAL=True)
+    def test_un_compte_preexistant_interdit_l_initialisation_anonyme(self):
+        get_user_model().objects.create_user(username="preexistant", password="motsecret")
+        self.assertEqual(self.client.get(reverse("installation_locale")).status_code, 403)
+
+    @override_settings(MODE_LOCAL=True)
+    @patch("suivi.views.call_command", side_effect=RuntimeError("référentiel illisible"))
+    def test_erreur_de_referentiel_annule_ecole_et_compte(self, _commande):
+        with self.assertRaises(RuntimeError):
+            self.client.post(reverse("installation_locale"), self.donnees())
+        self.assertFalse(Ecole.objects.exists())
+        self.assertFalse(get_user_model().objects.exists())
+
+
 class AnneeScolaireUtilitaires(TestCase):
     def test_le_1er_septembre_ouvre_la_nouvelle_annee_scolaire(self):
         self.assertEqual(

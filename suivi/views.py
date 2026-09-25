@@ -1,4 +1,5 @@
 from functools import wraps
+from io import StringIO
 import logging
 import mimetypes
 from pathlib import Path
@@ -10,6 +11,7 @@ from urllib.parse import quote, unquote
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.core.management import call_command
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.contrib.staticfiles import finders
@@ -37,9 +39,10 @@ from comptes.models import (
     AffectationClasse,
     AppartenanceEcole,
     Invitation,
+    ResponsabiliteEcole,
     Utilisateur,
 )
-from comptes.forms import CreationCompteInvitationForm, ProfilForm
+from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
 
 from .autorisations import (
     ACCEDER_APPLICATION,
@@ -170,6 +173,8 @@ def direction_requise(vue):
 
 
 def connexion(request):
+    if settings.MODE_LOCAL and not Ecole.objects.exists() and not Utilisateur.objects.exists():
+        return redirect("installation_locale")
     if request.user.is_authenticated:
         return redirect("accueil")
     if request.method == "POST":
@@ -188,6 +193,47 @@ def connexion(request):
             logout(request)
         messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     return render(request, "suivi/connexion.html")
+
+
+@never_cache
+def installation_locale(request):
+    if not settings.MODE_LOCAL:
+        raise Http404
+    if Ecole.objects.exists():
+        return redirect("accueil" if request.user.is_authenticated else "connexion")
+    if Utilisateur.objects.exists():
+        return HttpResponseForbidden(
+            "La base contient déjà un compte. L’installation doit être vérifiée."
+        )
+
+    formulaire = InstallationLocaleForm(request.POST or None)
+    if request.method == "POST" and formulaire.is_valid():
+        with transaction.atomic():
+            if Ecole.objects.exists() or Utilisateur.objects.exists():
+                return HttpResponseForbidden("Ce paquet a déjà été initialisé.")
+            ecole = Ecole.objects.create(
+                nom=formulaire.cleaned_data["ecole_nom"],
+                commune=formulaire.cleaned_data["commune"].strip(),
+            )
+            utilisateur = formulaire.save()
+            appartenance = AppartenanceEcole.objects.create(
+                utilisateur=utilisateur, ecole=ecole
+            )
+            ResponsabiliteEcole.objects.create(
+                appartenance=appartenance, type=ResponsabiliteEcole.DIRECTION
+            )
+            call_command(
+                "charger_referentiel",
+                settings.BASE_DIR / "referentiel" / "trame-cycle1.yaml",
+                ecole=ecole.pk,
+                stdout=StringIO(),
+            )
+        login(request, utilisateur, backend="django.contrib.auth.backends.ModelBackend")
+        request.session["ecole_id"] = ecole.pk
+        request.session.pop("suivant", None)
+        messages.success(request, "École créée. Vous pouvez maintenant préparer une classe.")
+        return redirect("gestion")
+    return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
 
 
 def mot_de_passe_oublie(request):

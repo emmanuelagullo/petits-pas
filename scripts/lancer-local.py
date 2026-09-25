@@ -70,6 +70,7 @@ def copier_paquet(source, destination):
 
 def configurer_environnement(paquet, cle):
     os.environ["CARNET_DEBUG"] = "0"
+    os.environ["CARNET_MODE_LOCAL"] = "oui"
     os.environ["CARNET_HOSTS"] = "127.0.0.1,localhost"
     os.environ["CARNET_EMAIL_DESACTIVE"] = "oui"
     os.environ.pop("CARNET_EMAIL_BACKEND", None)
