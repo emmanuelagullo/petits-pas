@@ -20,8 +20,8 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           architecture: x64
@@ -32,7 +32,7 @@ jobs:
         run: |
           $python = (Get-Command python).Source
           pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1 -PythonExecutable $python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-windows
           path: dist/PetitsPas-windows.zip
@@ -42,7 +42,7 @@ jobs:
   linux:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Installer GTK, WebKit et Pango
         run: |
           sudo apt-get update
@@ -55,7 +55,7 @@ jobs:
           /usr/bin/python3 -c 'import gi; gi.require_version("WebKit2", "4.1")'
           /usr/bin/python3 -m unittest discover -s scripts -p test_paquet_local.py
           PATH="/usr/bin:$PATH" bash scripts/construire-paquet-linux.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-linux
           path: dist/PetitsPas-linux.tar.gz
