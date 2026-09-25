@@ -63,6 +63,7 @@ et aucun serveur distant n’est nécessaire. Les sauvegardes se gèrent alors
 depuis l’application locale.
 
 - installer ou mettre à jour le programme autonome sous Ubuntu ou Windows ;
+- trouver les téléchargements des versions publiques ;
 - retrouver une version précédente sans toucher aux données de l’école ;
 - télécharger une sauvegarde complète et restaurer un paquet local.
 

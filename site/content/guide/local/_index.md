@@ -11,6 +11,7 @@ connexion au serveur distant. L’interface s’ouvre dans une fenêtre dédiée
 Django fonctionne uniquement sur ce poste pendant l’utilisation ; les données
 de l’école résident dans un **paquet autonome** distinct du programme.
 
+- [Télécharger une version publique Linux ou Windows]({{< relref "/guide/local/telecharger-programme.md" >}}).
 - [Installer, mettre à jour ou revenir à une version]({{< relref "/guide/local/installer-programme.md" >}}).
 - [Télécharger une sauvegarde du paquet]({{< relref "/guide/local/sauvegarder-paquet.md" >}}).
 - [Vérifier et restaurer une sauvegarde]({{< relref "/guide/local/restaurer-paquet.md" >}}).

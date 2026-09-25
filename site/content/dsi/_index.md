@@ -82,7 +82,8 @@ une mise à jour du programme conserve le paquet de données.
 Les archives Ubuntu et Windows sont construites séparément. Sous Ubuntu, GTK,
 WebKit2 et les bibliothèques natives de génération PDF doivent être
 disponibles. Les archives Linux ne constituent pas des paquets Guix. Les
-[fiches pratiques du mode local]({{< relref "/guide/local/" >}}) décrivent
+[fiche de téléchargement]({{< relref "/guide/local/telecharger-programme.md" >}})
+centralise les archives publiques ; les [fiches pratiques du mode local]({{< relref "/guide/local/" >}}) décrivent
 l’installation et les sauvegardes ; le [README du dépôt](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/README.md)
 précise les commandes de construction, les dépendances et les limites.
 

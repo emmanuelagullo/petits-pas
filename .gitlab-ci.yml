@@ -209,6 +209,7 @@ captures-demonstration:
     - python3 -m pip check
   script:
     - test ! -e carnet.sqlite3
+    - python3 -m unittest discover -s scripts -p test_publier_paquets.py
     - sh scripts/preparer-site.sh
     - python3 scripts/verifier-guide-pratique.py
     - |
