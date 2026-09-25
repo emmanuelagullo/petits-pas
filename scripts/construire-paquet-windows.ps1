@@ -1,10 +1,13 @@
 # PowerShell depuis la racine du dépôt :
 # powershell -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1
+param([string]$PythonExecutable = '')
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
 if (!(Test-Path .venv-paquet\Scripts\python.exe)) {
-    if (Get-Command py -ErrorAction SilentlyContinue) {
+    if ($PythonExecutable) {
+        & $PythonExecutable -m venv .venv-paquet
+    } elseif (Get-Command py -ErrorAction SilentlyContinue) {
         & py -3 -m venv .venv-paquet
     } else {
         & python -m venv .venv-paquet
