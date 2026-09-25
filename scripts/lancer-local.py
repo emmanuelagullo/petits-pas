@@ -231,6 +231,7 @@ def main():
         os.chdir(projet)
         sys.path.insert(0, str(projet))
         configurer_environnement(paquet, "verification-distribution")
+        os.environ["CARNET_SQLITE_PATH"] = ":memory:"
         verifier_distribution(projet)
         return
     if destination_demande:
