@@ -12,6 +12,11 @@ La présentation [« Qui peut faire quoi ? »]({{< relref "/roles/" >}}) expliqu
 en quelques minutes les différences entre direction, responsables, enseignants
 associés et contributeurs.
 
+Une version autonome peut aussi être installée sur un ordinateur, sans serveur
+distant, pour un usage local non collaboratif. Les données restent sur ce poste :
+consultez le [guide du mode local]({{< relref "/guide/local/" >}}) pour l’installation
+et les sauvegardes. Le mode hébergé reste adapté au travail partagé entre postes.
+
 ## De l'observation au carnet
 
 1. Choisir un élève ou un groupe.

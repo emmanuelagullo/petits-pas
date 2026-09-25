@@ -4,7 +4,7 @@ description = "Architecture, maîtrise des données et possibilités d'auto-héb
 +++
 
 Petits Pas est une application Django dont l'interface web s'appuie sur HTMX.
-Elle est conçue autour de composants courants et remplaçables : un serveur
+Son profil hébergé utilise des composants courants et remplaçables : un serveur
 d'application Python, PostgreSQL pour les données structurées, un stockage
 objet privé compatible S3 pour les médias et une terminaison HTTPS fournie par
 la plateforme d'hébergement.
@@ -31,11 +31,12 @@ Cette page distingue donc l'architecture déjà exercée des garanties qui reste
 Cette séparation évite notamment de placer les médias dans l'image de
 l'application ou dans son système de fichiers éphémère.
 
-## Trois profils qui ne doivent pas être confondus
+## Quatre profils qui ne doivent pas être confondus
 
 | Profil | Persistance | Données admises | Finalité |
 | --- | --- | --- | --- |
 | [Démonstration publique]({{< relref "/demonstration/" >}}) | SQLite et médias locaux, effacés lors de l'arrêt du service | Fictives uniquement, visibles par les visiteurs | Découvrir librement l'interface |
+| [Programme autonome sur un ordinateur]({{< relref "/guide/local/" >}}) | SQLite, médias et clé dans un paquet local persistant | Le projet reste en développement ; qualification nécessaire avant des données réelles | Usage individuel sans serveur distant ni collaboration entre postes |
 | Atelier pédagogique | PostgreSQL et stockage S3 persistants | Fictives uniquement | Recueillir des retours dans la durée |
 | Pilote ou production | PostgreSQL et stockage S3 persistants | Réelles, seulement après validation des garanties nécessaires | Usage opérationnel d'une école ou d'une collectivité |
 
@@ -43,6 +44,33 @@ Le profil d'atelier refuse de démarrer sans marqueurs explicites et ne peut pas
 être simultanément déclaré éphémère. La démonstration refuse quant à elle une
 base PostgreSQL ou un bucket S3 afin de ne jamais être confondue avec un
 environnement persistant.
+
+### Profil autonome local
+
+Le programme autonome embarque Django et ouvre l’interface dans une fenêtre
+PyWebView. Django écoute sur `127.0.0.1` pendant l’utilisation ; il n’y a pas
+de service distant à administrer. Le courrier est désactivé. Sous Linux, le
+paquet de données se trouve par défaut dans
+`~/.local/share/petits-pas/paquet-autonome/` (ou dans `$XDG_DATA_HOME`) ; sous
+Windows, dans `%LOCALAPPDATA%\petits-pas\paquet-autonome`. Le chemin peut être
+choisi au lancement. Le programme et les données sont installés séparément :
+une mise à jour du programme conserve le paquet de données.
+
+Les archives Ubuntu et Windows sont construites séparément. Sous Ubuntu, GTK,
+WebKit2 et les bibliothèques natives de génération PDF doivent être
+disponibles. Les archives Linux ne constituent pas des paquets Guix. Les
+[fiches pratiques du mode local]({{< relref "/guide/local/" >}}) décrivent
+l’installation et les sauvegardes ; le [README du dépôt](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/README.md)
+précise les commandes de construction, les dépendances et les limites.
+
+Une personne disposant de la direction peut exporter dans l’interface un ZIP
+contenant la base SQLite, les médias et la clé, puis vérifier et restaurer ce
+ZIP. La restauration ferme la session et conserve le paquet précédent dans un
+dossier distinct ; elle n’en produit pas automatiquement un ZIP. Les sauvegardes
+doivent être conservées dans un emplacement protégé, distinct du poste et du
+paquet de travail. Le mode local ne dispense pas de qualifier la protection
+physique du poste, les sauvegardes et les règles d’accès avant tout pilote avec
+des données réelles.
 
 ## Déployer et garder la maîtrise
 

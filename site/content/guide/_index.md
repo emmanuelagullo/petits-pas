@@ -54,6 +54,12 @@ introuvable selon le contexte. Les fiches de diagnostic expliquent notamment
 pourquoi une personne ne voit pas une classe, peut prévisualiser mais pas
 générer un carnet, ou ne peut pas terminer la dernière affectation responsable.
 
+### [Utiliser Petits Pas sur un ordinateur](local/)
+
+- installer ou mettre à jour le programme autonome sous Ubuntu ou Windows ;
+- retrouver une version précédente sans toucher aux données de l’école ;
+- télécharger une sauvegarde complète et restaurer un paquet local.
+
 Les principes communs ne sont pas répétés dans chaque parcours : la
 [présentation des rôles]({{< relref "/roles/" >}}) donne la vue synthétique et
 les [situations illustrées]({{< relref "/roles/situations/" >}}) expliquent les
