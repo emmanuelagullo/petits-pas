@@ -225,6 +225,10 @@ fichiers `staticfiles/` sont reconstruits au démarrage ; les copies techniques
 `sauvegardes-migrations/` restent dans le paquet remplacé. Il n'est pas
 nécessaire de restaurer un compte ou un référentiel séparément.
 
+Le parcours de validation des exécutables Windows et Ubuntu (installation,
+persistance, sauvegarde, restauration et redémarrage) est décrit dans
+[`VALIDATION-PAQUET-AUTONOME.md`](VALIDATION-PAQUET-AUTONOME.md).
+
 ## Site public
 
 Le site de présentation est construit avec Hugo depuis le répertoire `site/` :
