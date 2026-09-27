@@ -134,14 +134,15 @@ Windows sous le nom `PetitsPas-Setup-<version>-x64.exe` (artefact
 `PetitsPas-Setup-windows`). Il installe le même dossier PyInstaller pour
 l'utilisateur courant, sans élévation, et ajoute une entrée de désinstallation
 Windows. La désinstallation laisse le paquet de données de l'école intact.
-Le démarrage utilise encore le lanceur `.cmd` et sa console : ce jalon ne
-résout ni les éventuelles erreurs de `pythonnet`/WebView2, ni la disponibilité
-de Pango pour les PDF sur un poste neuf. Ne pas substituer cet artefact à
+Le démarrage utilise encore le lanceur `.cmd` et sa console. Le paquet Windows
+embarque désormais les DLL Pango issues de MSYS2 UCRT64 et contrôle en CI la
+création d'un PDF minimal par l'exécutable construit. Ce contrôle ne remplace
+pas l'essai du carnet PDF sur le poste cible. Ne pas substituer cet artefact à
 l'archive publiée avant les essais réels décrits dans
 `VALIDATION-PAQUET-AUTONOME.md`.
 
-Pour le construire manuellement sur Windows après
-`scripts/construire-paquet-windows.ps1`, installer Inno Setup puis exécuter :
+Pour construire l'installateur après le paquet PyInstaller, installer Inno
+Setup, puis exécuter :
 
 ```powershell
 & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.6-dev" "/DOutputDir=$((Resolve-Path dist).Path)" scripts\PetitsPas-Windows.iss
@@ -209,9 +210,11 @@ distributions. Si l'environnement Guix ne permet pas de construire ou d'ouvrir
 l'exécutable, le lancement Python local existant reste utilisable.
 
 Sous Windows, depuis **PowerShell dans le dépôt**, avec Python 3 (64 bits)
-installé sur la machine de construction :
+et MSYS2 UCRT64 installés sur la machine de construction, installer Pango
+depuis le shell UCRT64 (`pacman -S mingw-w64-ucrt-x86_64-pango`), puis :
 
 ```powershell
+$env:PETITS_PAS_PANGO_BIN = 'C:\msys64\ucrt64\bin'
 powershell -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1
 .\dist\PetitsPas\PetitsPas.exe
 ```
@@ -278,10 +281,8 @@ Pour les utilisateurs, le point d’entrée du site public est la
 elle renvoie vers les versions GitHub publiées et distingue les archives Linux
 et Windows des artefacts temporaires d’Actions.
 La console reste visible pour diagnostiquer ce premier prototype. Le poste
-doit disposer du moteur Microsoft WebView2 ; la génération PDF exige aussi
-Pango et ses dépendances (voir la documentation WeasyPrint pour Windows,
-installation MSYS2 UCRT64 ou variable `WEASYPRINT_DLL_DIRECTORIES`). Le
-programme lui-même n'a pas besoin d'une installation Python sur ce poste.
+doit disposer du moteur Microsoft WebView2. Le programme lui-même n'a pas
+besoin d'une installation Python ou MSYS2 sur ce poste.
 
 Linux : données dans `${XDG_DATA_HOME:-~/.local/share}/petits-pas/paquet-autonome`.
 Windows : données dans `%LOCALAPPDATA%\petits-pas\paquet-autonome`.

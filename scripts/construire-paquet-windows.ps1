@@ -18,7 +18,16 @@ $python = (Resolve-Path .venv-paquet\Scripts\python.exe).Path
 & $python -m pip install -r requirements-paquet-local.txt
 if ($LASTEXITCODE -ne 0) { throw 'Installation des dépendances impossible.' }
 $env:DJANGO_SETTINGS_MODULE = 'carnet.settings'
-& $python -m PyInstaller --noconfirm --clean scripts/PetitsPas.spec
+$ancienPath = $env:PATH
+if (!$env:PETITS_PAS_PANGO_BIN -or !(Test-Path (Join-Path $env:PETITS_PAS_PANGO_BIN 'libgobject-2.0-0.dll'))) {
+    throw 'Installer Pango UCRT64 et définir PETITS_PAS_PANGO_BIN avant la construction.'
+}
+try {
+    $env:PATH = "$env:PETITS_PAS_PANGO_BIN;$ancienPath"
+    & $python -m PyInstaller --noconfirm --clean scripts/PetitsPas.spec
+} finally {
+    $env:PATH = $ancienPath
+}
 if ($LASTEXITCODE -ne 0) { throw 'La construction PyInstaller a échoué.' }
 & .\dist\PetitsPas\PetitsPas.exe --verifier-distribution
 if ($LASTEXITCODE -ne 0) { throw 'Le contrôle du paquet Windows a échoué.' }

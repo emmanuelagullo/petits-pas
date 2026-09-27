@@ -25,10 +25,18 @@ jobs:
         with:
           python-version: '3.12'
           architecture: x64
+      - uses: msys2/setup-msys2@v2
+        id: msys2
+        with:
+          msystem: UCRT64
+          update: true
+          install: mingw-w64-ucrt-x86_64-pango
       - name: Tester les données autonomes
         run: python -m unittest discover -s scripts -p test_paquet_local.py
       - name: Construire et contrôler
         shell: pwsh
+        env:
+          PETITS_PAS_PANGO_BIN: ${{ steps.msys2.outputs.msys2-location }}\ucrt64\bin
         run: |
           $python = (Get-Command python).Source
           pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1 -PythonExecutable $python
