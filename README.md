@@ -123,8 +123,19 @@ bash installer-paquet-linux.sh
 
 Sous Windows, ouvrir `PetitsPas/Installer-PetitsPas.cmd` dans l'Explorateur :
 un raccourci « Petits Pas » est créé dans le menu Démarrer. Le programme peut
-également être lancé directement depuis le dossier extrait. Pour mettre à
-jour, extraire la nouvelle archive et relancer son installateur : l'ancienne
+également être lancé directement depuis le dossier extrait. L’installateur
+affiche la progression de la vérification et de la copie
+des fichiers. Le raccourci démarre le programme avec un journal conservé sous
+`%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log` ; en cas d’erreur, la
+console reste ouverte et affiche le journal. Pour diagnostiquer une version
+antérieure à ce lanceur, ouvrir PowerShell et exécuter :
+
+```powershell
+$version = (Get-Content "$env:LOCALAPPDATA\Programs\PetitsPas\actuelle" -Raw).Trim()
+& "$env:LOCALAPPDATA\Programs\PetitsPas\$version\PetitsPas.exe"
+```
+
+Pour mettre à jour, extraire la nouvelle archive et relancer son installateur : l'ancienne
 version reste dans son dossier pour permettre un retour manuel. Les données
 restent dans `paquet-autonome`, à l'emplacement déjà configuré ; installer ou
 mettre à jour le programme ne copie ni ne restaure les données. Quitter
