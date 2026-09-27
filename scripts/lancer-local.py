@@ -8,11 +8,12 @@ import shutil
 import sqlite3
 import sys
 import tempfile
-from contextlib import closing, contextmanager
+from contextlib import closing, contextmanager, redirect_stderr, redirect_stdout
 from datetime import datetime
 from pathlib import Path
 from socketserver import ThreadingMixIn
 from threading import Event, RLock, Thread
+import traceback
 from urllib.request import urlopen
 from wsgiref.simple_server import WSGIServer, make_server
 
@@ -414,5 +415,51 @@ def executer(paquet, projet, arguments):
     return redemarrage_demande.is_set()
 
 
+def afficher_erreur_windows(message):
+    import ctypes
+
+    ctypes.windll.user32.MessageBoxW(None, message, "Petits Pas", 0x10)
+
+
+def demarrer_windows():
+    """Conserver le diagnostic sans console, y compris en cas d'échec initial."""
+    journal = paquet_par_defaut().parent / "logs" / "dernier-demarrage.log"
+    interactif = "--verifier-distribution" not in sys.argv
+    try:
+        journal.parent.mkdir(parents=True, exist_ok=True)
+        sortie = journal.open("w", encoding="utf-8", buffering=1)
+    except OSError as exc:
+        if interactif:
+            afficher_erreur_windows(
+                "Petits Pas n'a pas pu démarrer et n'a pas pu écrire son journal.\n\n"
+                f"Emplacement prévu : {journal}\nErreur : {exc}"
+            )
+        raise SystemExit(1) from exc
+    with sortie, redirect_stdout(sortie), redirect_stderr(sortie):
+        try:
+            main()
+        except SystemExit as exc:
+            if exc.code is None or exc.code == 0:
+                return
+            traceback.print_exc()
+            if interactif:
+                afficher_erreur_windows(
+                    "Petits Pas n'a pas pu démarrer.\n\n"
+                    f"Un diagnostic a été enregistré ici :\n{journal}"
+                )
+            raise
+        except Exception:
+            traceback.print_exc()
+            if interactif:
+                afficher_erreur_windows(
+                    "Petits Pas n'a pas pu démarrer.\n\n"
+                    f"Un diagnostic a été enregistré ici :\n{journal}"
+                )
+            raise SystemExit(1)
+
+
 if __name__ == "__main__":
-    main()
+    if os.name == "nt" and getattr(sys, "frozen", False):
+        demarrer_windows()
+    else:
+        main()

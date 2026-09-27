@@ -9,7 +9,7 @@ if not exist "%DOSSIER_LOG%" (
 )
 set "JOURNAL=%DOSSIER_LOG%\dernier-demarrage.log"
 echo Demarrage de Petits Pas...
-"%~dp0PetitsPas.exe" %* > "%JOURNAL%" 2>&1
+start "" /wait "%~dp0PetitsPas.exe" %*
 set "CODE=%ERRORLEVEL%"
 if not "%CODE%"=="0" (
   echo.

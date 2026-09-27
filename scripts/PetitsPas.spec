@@ -80,7 +80,7 @@ programme = EXE(
     [],
     exclude_binaries=True,
     name="PetitsPas",
-    console=True,  # Une console permet de diagnostiquer la première version Windows.
+    console=os.name != "nt",  # Sous Windows, le journal et une boîte de dialogue signalent les erreurs.
 )
 collation = COLLECT(
     programme,

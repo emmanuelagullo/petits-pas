@@ -73,12 +73,20 @@ jobs:
           if (!$dossier) { throw 'Dossier installe absent de la fiche Windows.' }
           $exe = Join-Path $dossier 'PetitsPas.exe'
           if (!(Test-Path $exe)) { throw "Exécutable installé introuvable : $exe" }
-          & $exe --verifier-distribution
-          if ($LASTEXITCODE -ne 0) { throw 'Le paquet installé par le setup est invalide.' }
+          $raccourci = Join-Path ([Environment]::GetFolderPath('Programs')) 'Petits Pas.lnk'
+          if (!(Test-Path $raccourci)) { throw 'Raccourci du menu Démarrer introuvable.' }
+          $cible = (New-Object -ComObject WScript.Shell).CreateShortcut($raccourci).TargetPath
+          if ($cible -ne $exe) { throw "Le raccourci ouvre $cible au lieu de $exe." }
+          $verification = Start-Process -FilePath $exe -ArgumentList '--verifier-distribution' -Wait -PassThru
+          if ($verification.ExitCode -ne 0) { throw 'Le paquet installé par le setup est invalide.' }
+          $journal = Join-Path $env:LOCALAPPDATA 'petits-pas\logs\dernier-demarrage.log'
+          if (!(Test-Path $journal) -or !(Select-String -LiteralPath $journal -Pattern 'Django .*PyWebView' -Quiet)) {
+            throw 'Le contrôle du paquet Windows n’a pas été journalisé.'
+          }
           $miseAJour = Start-Process -FilePath (Resolve-Path $setup).Path -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
           if ($miseAJour.ExitCode -ne 0) { throw "Réinstallation du setup Windows impossible (code $($miseAJour.ExitCode))." }
-          & $exe --verifier-distribution
-          if ($LASTEXITCODE -ne 0) { throw 'Le paquet réinstallé par le setup est invalide.' }
+          $verification = Start-Process -FilePath $exe -ArgumentList '--verifier-distribution' -Wait -PassThru
+          if ($verification.ExitCode -ne 0) { throw 'Le paquet réinstallé par le setup est invalide.' }
           $uninstall = Join-Path $dossier 'unins000.exe'
           $desinstallation = Start-Process -FilePath $uninstall -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
           if ($desinstallation.ExitCode -ne 0) { throw "Désinstallation du setup Windows impossible (code $($desinstallation.ExitCode))." }

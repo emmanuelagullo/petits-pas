@@ -127,9 +127,10 @@ techniques et au lancement sans assistant graphique. Sous Windows, ouvrir
 un raccourci « Petits Pas » est créé dans le menu Démarrer. Le programme peut
 également être lancé directement depuis le dossier extrait. L’installateur
 affiche la progression de la vérification et de la copie
-des fichiers. Le raccourci démarre le programme avec un journal conservé sous
-`%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log` ; en cas d’erreur, la
-console reste ouverte et affiche le journal.
+des fichiers. Le raccourci démarre directement le programme graphique ; le
+journal est conservé sous `%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log`.
+En cas d'échec au démarrage, une boîte de dialogue indique le chemin du journal.
+Le lanceur `.cmd` reste disponible pour les essais techniques de l'archive.
 
 L'artefact CI `PetitsPas-Setup-windows` contient l'**installateur graphique
 recommandé pour les essais sur Windows** : extraire le ZIP enveloppe de GitHub
@@ -138,7 +139,7 @@ l'utilisateur courant, sans élévation, et ajoute une entrée de désinstallati
 Windows. S'il détecte une installation précédente réalisée avec le même setup,
 il annonce la version installée et demande confirmation avant de la remplacer.
 La désinstallation laisse le paquet de données de l'école intact.
-Le démarrage utilise encore le lanceur `.cmd` et sa console. Le paquet Windows
+Le menu Démarrer ouvre directement l'exécutable sans console. Le paquet Windows
 embarque désormais les DLL Pango issues de MSYS2 UCRT64 et contrôle en CI la
 création d'un PDF minimal par l'exécutable construit. Ce contrôle ne remplace
 pas l'essai du carnet PDF sur le poste cible. Ne pas substituer cet artefact à
@@ -291,7 +292,7 @@ Pour les utilisateurs, le point d’entrée du site public est la
 elle renvoie vers les versions GitHub publiées et distingue l'installateur
 graphique Windows des archives et des artefacts temporaires d’Actions.
 La release 0.6 antérieure à ce changement ne contient que l'archive Windows.
-La console reste visible pour diagnostiquer ce premier prototype. Le poste
+Les erreurs de démarrage sont consignées dans le journal local. Le poste
 doit disposer du moteur Microsoft WebView2. Le programme lui-même n'a pas
 besoin d'une installation Python ou MSYS2 sur ce poste.
 

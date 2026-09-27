@@ -124,7 +124,7 @@ if (!(Test-Path $installe) -or !(Test-Path (Join-Path $destination 'Demarrer-Pet
 }
 $shell = New-Object -ComObject WScript.Shell
 $lien = $shell.CreateShortcut($raccourci)
-$lien.TargetPath = Join-Path $destination 'Demarrer-PetitsPas.cmd'
+$lien.TargetPath = $installe
 $lien.WorkingDirectory = $destination
 $lien.IconLocation = "$installe,0"
 $lien.Save()

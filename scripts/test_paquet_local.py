@@ -35,6 +35,45 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_demarrage_graphique_ecrit_le_journal_sans_alerte(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            with patch.object(local, "paquet_par_defaut", return_value=Path(temporaire) / "paquet-autonome"), patch.object(
+                local, "main", side_effect=lambda: print("démarrage fictif")
+            ), patch.object(local, "afficher_erreur_windows") as alerte, patch.object(
+                sys, "argv", ["PetitsPas.exe"]
+            ):
+                local.demarrer_windows()
+            journal = Path(temporaire) / "logs" / "dernier-demarrage.log"
+            self.assertIn("démarrage fictif", journal.read_text(encoding="utf-8"))
+            alerte.assert_not_called()
+
+    def test_demarrage_graphique_journalise_les_erreurs_sans_console(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            paquet = Path(temporaire) / "paquet-autonome"
+            with patch.object(local, "paquet_par_defaut", return_value=paquet), patch.object(
+                local, "main", side_effect=RuntimeError("échec fictif")
+            ), patch.object(local, "afficher_erreur_windows") as alerte, patch.object(
+                sys, "argv", ["PetitsPas.exe"]
+            ):
+                with self.assertRaises(SystemExit) as sortie:
+                    local.demarrer_windows()
+            self.assertEqual(sortie.exception.code, 1)
+            journal = Path(temporaire) / "logs" / "dernier-demarrage.log"
+            self.assertIn("échec fictif", journal.read_text(encoding="utf-8"))
+            alerte.assert_called_once()
+            self.assertIn(str(journal), alerte.call_args.args[0])
+
+    def test_verification_distribution_ne_bloque_pas_sur_une_alerte(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            with patch.object(local, "paquet_par_defaut", return_value=Path(temporaire) / "paquet-autonome"), patch.object(
+                local, "main", side_effect=RuntimeError("échec de vérification")
+            ), patch.object(local, "afficher_erreur_windows") as alerte, patch.object(
+                sys, "argv", ["PetitsPas.exe", "--verifier-distribution"]
+            ):
+                with self.assertRaises(SystemExit):
+                    local.demarrer_windows()
+            alerte.assert_not_called()
+
     def test_spec_trouve_le_lanceur_depuis_la_racine_ou_scripts(self):
         racine = Path(__file__).resolve().parent.parent
         hooks = ModuleType("PyInstaller.utils.hooks")
@@ -60,6 +99,7 @@ class PaquetLocalTests(unittest.TestCase):
                     os.environ, {"PETITS_PAS_PANGO_BIN": temporaire}
                 ):
                     appels = []
+                    consoles = []
 
                     def analyser(scripts, **kwargs):
                         appels.extend(scripts)
@@ -76,12 +116,13 @@ class PaquetLocalTests(unittest.TestCase):
                         "SPECPATH": str(emplacement),
                         "Analysis": analyser,
                         "PYZ": lambda *args: None,
-                        "EXE": lambda *args, **kwargs: None,
+                        "EXE": lambda *args, **kwargs: consoles.append(kwargs["console"]),
                         "COLLECT": lambda *args, **kwargs: None,
                     }
                     code = (racine / "scripts" / "PetitsPas.spec").read_text()
                     exec(compile(code, "PetitsPas.spec", "exec"), espace)
                     self.assertEqual(appels, [str(racine / "scripts" / "lancer-local.py")])
+                    self.assertEqual(consoles, [os.name != "nt"])
 
     @unittest.skipIf(os.name == "nt", "WebKitGTK concerne Linux")
     def test_spec_embarque_typelib_webkit(self):
