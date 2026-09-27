@@ -367,6 +367,8 @@ h2 {
   border-radius: 999px;
   padding: 0.1rem 0.5rem;
 }
+.pastille-attente { color: var(--en-cours); border-color: var(--en-cours); background: var(--en-cours-fond); }
+.ligne-equipe.en-attente { opacity: 0.9; }
 
 /* ---------- Année scolaire : classes courantes / futures / passées ---------- */
 

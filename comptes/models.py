@@ -180,6 +180,19 @@ class AffectationClasse(RelationTemporelle):
         AppartenanceEcole,
         on_delete=models.PROTECT,
         related_name="affectations_classes",
+        blank=True,
+        null=True,
+    )
+    invitation = models.ForeignKey(
+        "Invitation",
+        on_delete=models.PROTECT,
+        related_name="affectations_classes",
+        blank=True,
+        null=True,
+        help_text=(
+            "Pré-attribution le temps que la personne invitée crée son "
+            "compte ; appartenance est renseignée dès l'acceptation."
+        ),
     )
     classe = models.ForeignKey(
         "suivi.Classe",
@@ -197,6 +210,18 @@ class AffectationClasse(RelationTemporelle):
 
     class Meta:
         ordering = ["classe", "appartenance", "-date_debut"]
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(appartenance__isnull=False) | Q(invitation__isnull=False),
+                name="affectationclasse_appartenance_ou_invitation",
+            )
+        ]
+
+    @property
+    def en_attente(self):
+        """True tant que la personne n'a pas créé son compte : la ligne
+        est rattachée à une invitation, pas encore à une appartenance."""
+        return self.appartenance_id is None
 
     def clean(self):
         super().clean()
@@ -208,14 +233,32 @@ class AffectationClasse(RelationTemporelle):
             raise ValidationError(
                 {"classe": "L'appartenance et la classe doivent relever de la même école."}
             )
-        if not self.appartenance_id or not self.classe_id or self.etat != self.ACTIVE:
+        if (
+            self.invitation_id
+            and self.classe_id
+            and self.invitation.ecole_id != self.classe.ecole_id
+        ):
+            raise ValidationError(
+                {"classe": "L'invitation et la classe doivent relever de la même école."}
+            )
+        if not self.classe_id or self.etat != self.ACTIVE:
             return
-        chevauchements = AffectationClasse.objects.filter(
-            appartenance__utilisateur=self.appartenance.utilisateur,
-            classe=self.classe,
-            etat=self.ACTIVE,
-            date_debut__lte=self.date_fin or date.max,
-        ).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=self.date_debut))
+        if self.appartenance_id:
+            chevauchements = AffectationClasse.objects.filter(
+                appartenance__utilisateur=self.appartenance.utilisateur,
+                classe=self.classe,
+                etat=self.ACTIVE,
+                date_debut__lte=self.date_fin or date.max,
+            ).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=self.date_debut))
+        elif self.invitation_id:
+            chevauchements = AffectationClasse.objects.filter(
+                invitation=self.invitation,
+                classe=self.classe,
+                etat=self.ACTIVE,
+                date_debut__lte=self.date_fin or date.max,
+            ).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=self.date_debut))
+        else:
+            return
         if self.pk:
             chevauchements = chevauchements.exclude(pk=self.pk)
         if chevauchements.exists():
@@ -225,6 +268,8 @@ class AffectationClasse(RelationTemporelle):
             )
 
     def est_active(self, date=None):
+        if self.appartenance_id is None:
+            return False
         return (
             super().est_active(date)
             and self.appartenance.est_active(date)

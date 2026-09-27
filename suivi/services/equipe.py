@@ -63,6 +63,20 @@ def _accepter_invitation_verrouillee(*, utilisateur, invitation):
         invitation,
         nouvelles={"appartenance_id": appartenance.pk},
     )
+    preattributions = list(
+        AffectationClasse.objects.select_for_update().filter(
+            invitation=invitation, appartenance__isnull=True
+        )
+    )
+    for affectation in preattributions:
+        affectation.appartenance = appartenance
+        affectation.save(update_fields=["appartenance"])
+        journaliser(
+            utilisateur,
+            "affectation.promue",
+            affectation,
+            nouvelles={"appartenance_id": appartenance.pk},
+        )
     return appartenance
 
 
@@ -201,18 +215,39 @@ def revoquer_invitation(*, utilisateur, invitation):
 
 @transaction.atomic
 def attribuer_affectation(
-    *, utilisateur, appartenance, classe, type, date_debut=None, date_fin=None, motif=""
+    *,
+    utilisateur,
+    classe,
+    type,
+    appartenance=None,
+    invitation=None,
+    date_debut=None,
+    date_fin=None,
+    motif="",
 ):
-    appartenance = AppartenanceEcole.objects.select_for_update().get(
-        pk=appartenance.pk
-    )
+    if bool(appartenance) == bool(invitation):
+        raise ValueError(
+            "attribuer_affectation attend soit appartenance, soit invitation."
+        )
     classe = Classe.objects.select_for_update().get(pk=classe.pk)
     if not autorise(utilisateur, GERER_AFFECTATIONS, classe, ecole=classe.ecole):
         raise PermissionDenied
-    if not appartenance.est_active() or appartenance.ecole_id != classe.ecole_id:
-        raise PermissionDenied
+    if appartenance is not None:
+        appartenance = AppartenanceEcole.objects.select_for_update().get(
+            pk=appartenance.pk
+        )
+        if not appartenance.est_active() or appartenance.ecole_id != classe.ecole_id:
+            raise PermissionDenied
+    else:
+        invitation = Invitation.objects.select_for_update().get(pk=invitation.pk)
+        if (
+            invitation.etat != Invitation.EN_ATTENTE
+            or invitation.ecole_id != classe.ecole_id
+        ):
+            raise PermissionDenied
     affectation = AffectationClasse.objects.create(
         appartenance=appartenance,
+        invitation=invitation,
         classe=classe,
         type=type,
         acces_historique=classe.statut_annee in {"passee", "ancienne"},
@@ -223,14 +258,15 @@ def attribuer_affectation(
     )
     journaliser(
         utilisateur,
-        "affectation.attribuee",
+        "affectation.preattribuee" if invitation else "affectation.attribuee",
         affectation,
         nouvelles={
             "type": type,
             "acces_historique": affectation.acces_historique,
             "date_debut": affectation.date_debut.isoformat(),
             "date_fin": affectation.date_fin.isoformat() if affectation.date_fin else None,
-            "utilisateur_id": appartenance.utilisateur_id,
+            "utilisateur_id": appartenance.utilisateur_id if appartenance else None,
+            "invitation_id": invitation.pk if invitation else None,
         },
     )
     if type == AffectationClasse.RESPONSABLE and affectation.est_active():

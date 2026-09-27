@@ -6,7 +6,11 @@
 <ul class="liste">
 {% for affectation in affectations %}
   <li class="entree">
-    <span class="principal">{{ affectation.appartenance.utilisateur.get_full_name|default:affectation.appartenance.utilisateur.username }}</span>
+    <span class="principal">
+      {% if affectation.en_attente %}<span class="pastille pastille-attente">Invitation en cours</span> {{ affectation.invitation.email }}
+      {% else %}{{ affectation.appartenance.utilisateur.get_full_name|default:affectation.appartenance.utilisateur.username }}
+      {% endif %}
+    </span>
     <span class="secondaire">{{ affectation.get_type_display }} · du {{ affectation.date_debut }}{% if affectation.date_fin %} au {{ affectation.date_fin }}{% else %}, sans date de fin{% endif %} · {{ affectation.get_etat_display }}</span>
   </li>
 {% empty %}<li>Aucun collaborateur enregistré.</li>{% endfor %}

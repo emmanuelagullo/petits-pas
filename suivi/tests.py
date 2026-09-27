@@ -55,11 +55,14 @@ from .models import (
 from .views import _recuperateur_pdf
 from .services.equipe import (
     accepter_invitation,
+    attribuer_affectation,
+    creer_compte_et_accepter_invitation,
     envoyer_email_invitation,
     inviter,
     terminer_affectation,
 )
 from .services.pedagogie import modifier_etat
+from .autorisations import peut_terminer_affectation
 
 
 class InstallationLocaleTests(TestCase):
@@ -3801,6 +3804,250 @@ class EquipeEtGouvernance(Base):
         affectation.refresh_from_db()
         self.assertEqual(affectation.etat, AffectationClasse.SUSPENDUE)
         self.assertContains(reponse, "Affectation suspendue en urgence")
+
+
+class PreattributionInvitation(Base):
+    def creer_invitation(self, email="future@example.test"):
+        invitation, jeton = inviter(
+            utilisateur=self.direction, ecole=self.ecole, email=email
+        )
+        return invitation, jeton
+
+    # --- Modèle ---
+
+    def test_une_affectation_liee_a_une_invitation_n_est_jamais_active(self):
+        invitation, _ = self.creer_invitation()
+        affectation = AffectationClasse.objects.create(
+            invitation=invitation,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+        )
+
+        self.assertTrue(affectation.en_attente)
+        self.assertFalse(affectation.est_active())
+
+    def test_une_affectation_sans_appartenance_ni_invitation_est_rejetee(self):
+        with self.assertRaises(ValidationError):
+            AffectationClasse.objects.create(
+                classe=self.classe, type=AffectationClasse.CONTRIBUTEUR
+            )
+
+    # --- Service ---
+
+    def test_attribuer_affectation_exige_l_un_ou_l_autre(self):
+        with self.assertRaises(ValueError):
+            attribuer_affectation(
+                utilisateur=self.direction,
+                classe=self.classe,
+                type=AffectationClasse.CONTRIBUTEUR,
+            )
+        with self.assertRaises(ValueError):
+            attribuer_affectation(
+                utilisateur=self.direction,
+                classe=self.classe,
+                type=AffectationClasse.CONTRIBUTEUR,
+                appartenance=self.appartenance_enseignant,
+                invitation=self.creer_invitation()[0],
+            )
+
+    def test_attribuer_affectation_avec_invitation_cree_une_pre_attribution(self):
+        invitation, _ = self.creer_invitation()
+
+        affectation = attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.RESPONSABLE,
+            invitation=invitation,
+        )
+
+        self.assertIsNone(affectation.appartenance_id)
+        self.assertEqual(affectation.invitation_id, invitation.pk)
+        self.assertTrue(affectation.en_attente)
+        # Une pré-attribution « responsable » ne compte pas comme un
+        # responsable actif : elle n'accorde aucun accès réel tant que le
+        # compte n'existe pas (voir Classe.responsables_actifs).
+        self.assertNotIn(
+            affectation, self.classe.responsables_actifs()
+        )
+
+    def test_acceptation_promeut_les_pre_attributions(self):
+        invitation, jeton = self.creer_invitation()
+        preattribution = attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+            invitation=invitation,
+        )
+
+        utilisateur = creer_compte_et_accepter_invitation(
+            invitation=invitation,
+            jeton=jeton,
+            username="future-membre",
+            first_name="Future",
+            last_name="Membre",
+            password="École ! Rivière 2026 solide",
+        )
+
+        preattribution.refresh_from_db()
+        self.assertFalse(preattribution.en_attente)
+        self.assertEqual(
+            preattribution.appartenance.utilisateur_id, utilisateur.pk
+        )
+        self.assertTrue(preattribution.est_active())
+        self.assertTrue(
+            EvenementAudit.objects.filter(
+                action="affectation.promue", objet_id=str(preattribution.pk)
+            ).exists()
+        )
+
+    def test_une_pre_attribution_promue_permet_de_se_connecter_directement(self):
+        invitation, jeton = self.creer_invitation("directe@example.test")
+        attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+            invitation=invitation,
+        )
+        creer_compte_et_accepter_invitation(
+            invitation=invitation,
+            jeton=jeton,
+            username="acces-direct",
+            first_name="Accès",
+            last_name="Direct",
+            password="École ! Rivière 2026 solide",
+        )
+
+        reponse = self.entrer("École ! Rivière 2026 solide", "acces-direct")
+
+        self.assertEqual(
+            self.client.session["_auth_user_id"],
+            str(get_user_model().objects.get(username="acces-direct").pk),
+        )
+
+    # --- Autorisation ---
+
+    def test_une_pre_attribution_responsable_s_annule_sans_remplacement(self):
+        invitation, _ = self.creer_invitation()
+        preattribution = attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.RESPONSABLE,
+            invitation=invitation,
+        )
+
+        self.assertTrue(
+            peut_terminer_affectation(self.direction, preattribution)
+        )
+        terminer_affectation(utilisateur=self.direction, affectation=preattribution)
+        preattribution.refresh_from_db()
+        self.assertEqual(preattribution.etat, AffectationClasse.TERMINEE)
+
+    # --- Vue équipe ---
+
+    def test_invitation_avec_preattribution_depuis_le_formulaire(self):
+        self.entrer("dir-mdp")
+
+        reponse = self.client.post(
+            reverse("equipe_ecole"),
+            {
+                "action": "inviter",
+                "email": "preattribue@example.test",
+                "classe_preattribuee": self.classe.pk,
+                "type_preattribuee": AffectationClasse.CONTRIBUTEUR,
+            },
+            follow=True,
+        )
+
+        self.assertContains(reponse, "pré-attribuée")
+        invitation = Invitation.objects.get(email="preattribue@example.test")
+        self.assertTrue(
+            AffectationClasse.objects.filter(
+                invitation=invitation,
+                classe=self.classe,
+                appartenance__isnull=True,
+            ).exists()
+        )
+
+    def test_la_pre_attribution_est_affichee_dans_la_vue_classes(self):
+        invitation, _ = self.creer_invitation("badge@example.test")
+        attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+            invitation=invitation,
+        )
+        self.entrer("dir-mdp")
+
+        reponse = self.client.get(reverse("equipe_ecole"))
+
+        self.assertContains(reponse, "badge@example.test")
+        self.assertContains(reponse, "Invitation en cours")
+        self.assertContains(reponse, "Annuler la pré-attribution")
+
+    def test_la_pre_attribution_est_affichee_chez_les_collaborateurs(self):
+        invitation, _ = self.creer_invitation("collab@example.test")
+        attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+            invitation=invitation,
+        )
+        self.entrer("dir-mdp")
+
+        reponse = self.client.get(
+            reverse("collaborateurs_classe", args=[self.classe.pk])
+        )
+
+        self.assertContains(reponse, "collab@example.test")
+        self.assertContains(reponse, "Invitation en cours")
+
+    def test_la_direction_peut_annuler_une_pre_attribution(self):
+        invitation, _ = self.creer_invitation("annulee@example.test")
+        preattribution = attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.CONTRIBUTEUR,
+            invitation=invitation,
+        )
+        self.entrer("dir-mdp")
+
+        reponse = self.client.post(
+            reverse("equipe_ecole"),
+            {
+                "action": "terminer_affectation",
+                "affectation": preattribution.pk,
+                "vue": "classes",
+            },
+            follow=True,
+        )
+
+        preattribution.refresh_from_db()
+        self.assertEqual(preattribution.etat, AffectationClasse.TERMINEE)
+        self.assertEqual(reponse.status_code, 200)
+
+    def test_la_confirmation_d_acceptation_mentionne_la_fonction_preattribuee(self):
+        invitation, jeton = self.creer_invitation("confirmation@example.test")
+        attribuer_affectation(
+            utilisateur=self.direction,
+            classe=self.classe,
+            type=AffectationClasse.RESPONSABLE,
+            invitation=invitation,
+        )
+
+        reponse = self.client.post(
+            reverse("accepter_invitation", args=[invitation.selecteur, jeton]),
+            {
+                "username": "confirmation-membre",
+                "first_name": "Confirmation",
+                "last_name": "Membre",
+                "password1": "École ! Rivière 2026 solide",
+                "password2": "École ! Rivière 2026 solide",
+            },
+        )
+
+        self.assertContains(reponse, "vous a déjà attribué")
+        self.assertContains(reponse, "Responsable de classe")
+        self.assertContains(reponse, "vous connecter dès maintenant")
 
 
 class VerificationEnvoiEmail(TestCase):
