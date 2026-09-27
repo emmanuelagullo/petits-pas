@@ -81,7 +81,7 @@ jobs:
           if ($verification.ExitCode -ne 0) { throw 'Le paquet installé par le setup est invalide.' }
           $journal = Join-Path $env:LOCALAPPDATA 'petits-pas\logs\dernier-demarrage.log'
           if (!(Test-Path $journal) -or !(Select-String -LiteralPath $journal -Pattern 'Django .*PyWebView' -Quiet)) {
-            throw 'Le contrôle du paquet Windows n’a pas été journalisé.'
+            throw "Le controle du paquet Windows n'a pas ete journalise."
           }
           $miseAJour = Start-Process -FilePath (Resolve-Path $setup).Path -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
           if ($miseAJour.ExitCode -ne 0) { throw "Réinstallation du setup Windows impossible (code $($miseAJour.ExitCode))." }
