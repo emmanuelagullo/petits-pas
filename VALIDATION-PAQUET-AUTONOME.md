@@ -35,7 +35,11 @@ identifiants affichés, se connecter comme direction et constater que
 Créer une classe fictive, l'activer et l'attribuer à un enseignant fictif.
 Ajouter un élève fictif, puis une observation avec une image de test. Vérifier
 que l'image s'affiche, que la compétence et l'observation sont visibles et
-qu'un carnet PDF peut être généré et ouvert. Fermer **la fenêtre entière**, puis
+qu'un carnet PDF peut être généré et ouvert.
+Si le téléchargement du PDF affiche une erreur 500, relever l'exception dans
+`%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log` sous Windows ; ne pas
+joindre de données d'élève au diagnostic.
+Fermer **la fenêtre entière**, puis
 relancer exactement la même commande avec le même `--paquet` : école, classe,
 élève, observation et image doivent être présents. Une seconde installation ne
 doit pas être proposée.
