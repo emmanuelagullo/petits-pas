@@ -90,6 +90,10 @@ demande de droits administrateur, la progression, le menu Démarrer et l'entrée
 « Applications installées ». Après l'installation, ouvrir Petits Pas et refaire
 les contrôles de la première ouverture, de l'image, du PDF et du ZIP ci-dessus.
 Le lancement ouvre encore une console dans ce prototype.
+Sur le poste Windows, agrandir puis restaurer la fenêtre avant de saisir les
+identifiants : la page doit rester réactive et le journal du dernier démarrage
+ne doit pas contenir d'erreurs répétées `fenetre.native` ou
+`maximum recursion depth exceeded`.
 
 Recommencer avec un profil ayant déjà installé une archive par
 `Installer-PetitsPas.cmd` : le nouveau raccourci doit ouvrir le programme
