@@ -62,7 +62,7 @@ jobs:
           $cle = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\PetitsPas.Local.EmmanuelAgullo_is1'
           if (!(Test-Path $cle)) { throw "Installation terminée mais entrée Windows absente : $cle" }
           $dossier = (Get-ItemProperty -Path $cle).InstallLocation
-          if (!$dossier) { throw 'Le dossier installé est absent de l’entrée Windows.' }
+          if (!$dossier) { throw 'Dossier installe absent de la fiche Windows.' }
           $exe = Join-Path $dossier 'PetitsPas.exe'
           if (!(Test-Path $exe)) { throw "Exécutable installé introuvable : $exe" }
           & $exe --verifier-distribution
