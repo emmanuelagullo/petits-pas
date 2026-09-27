@@ -45,26 +45,43 @@ class PaquetLocalTests(unittest.TestCase):
             for nom in ("PyInstaller", "PyInstaller.utils")
         }
         modules[hooks.__name__] = hooks
-        for emplacement in (racine, racine / "scripts"):
-            with self.subTest(emplacement=emplacement), patch.dict(sys.modules, modules):
-                appels = []
+        with tempfile.TemporaryDirectory() as temporaire:
+            # Le .spec vérifie la présence des DLL avant d'appeler Analysis.
+            # Le test fournit des fichiers fictifs pour rester indépendant de MSYS2.
+            dlls = (
+                "libgobject-2.0-0.dll", "libpango-1.0-0.dll",
+                "libpangoft2-1.0-0.dll", "libharfbuzz-0.dll",
+                "libharfbuzz-subset-0.dll", "libfontconfig-1.dll",
+            )
+            for nom in dlls:
+                (Path(temporaire) / nom).touch()
+            for emplacement in (racine, racine / "scripts"):
+                with self.subTest(emplacement=emplacement), patch.dict(sys.modules, modules), patch.dict(
+                    os.environ, {"PETITS_PAS_PANGO_BIN": temporaire}
+                ):
+                    appels = []
 
-                def analyser(scripts, **kwargs):
-                    appels.extend(scripts)
-                    self.assertIn("whitenoise.storage", kwargs["hiddenimports"])
-                    self.assertIn("whitenoise.middleware", kwargs["hiddenimports"])
-                    return SimpleNamespace(pure=[], scripts=[], binaries=[], datas=[])
+                    def analyser(scripts, **kwargs):
+                        appels.extend(scripts)
+                        self.assertIn("whitenoise.storage", kwargs["hiddenimports"])
+                        self.assertIn("whitenoise.middleware", kwargs["hiddenimports"])
+                        if os.name == "nt":
+                            self.assertIn(
+                                (str(Path(temporaire) / "libgobject-2.0-0.dll"), "."),
+                                kwargs["binaries"],
+                            )
+                        return SimpleNamespace(pure=[], scripts=[], binaries=[], datas=[])
 
-                espace = {
-                    "SPECPATH": str(emplacement),
-                    "Analysis": analyser,
-                    "PYZ": lambda *args: None,
-                    "EXE": lambda *args, **kwargs: None,
-                    "COLLECT": lambda *args, **kwargs: None,
-                }
-                code = (racine / "scripts" / "PetitsPas.spec").read_text()
-                exec(compile(code, "PetitsPas.spec", "exec"), espace)
-                self.assertEqual(appels, [str(racine / "scripts" / "lancer-local.py")])
+                    espace = {
+                        "SPECPATH": str(emplacement),
+                        "Analysis": analyser,
+                        "PYZ": lambda *args: None,
+                        "EXE": lambda *args, **kwargs: None,
+                        "COLLECT": lambda *args, **kwargs: None,
+                    }
+                    code = (racine / "scripts" / "PetitsPas.spec").read_text()
+                    exec(compile(code, "PetitsPas.spec", "exec"), espace)
+                    self.assertEqual(appels, [str(racine / "scripts" / "lancer-local.py")])
 
     @unittest.skipIf(os.name == "nt", "WebKitGTK concerne Linux")
     def test_spec_embarque_typelib_webkit(self):
