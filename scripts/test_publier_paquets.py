@@ -32,6 +32,8 @@ class PublicationTests(unittest.TestCase):
         self.windows = self.base / "PetitsPas-windows.zip"
         with zipfile.ZipFile(self.windows, "w") as archive:
             archive.writestr("PetitsPas/PetitsPas.exe", b"programme fictif")
+        self.setup = self.base / "PetitsPas-Setup-1.0-x64.exe"
+        self.setup.write_bytes(b"MZsetup fictif")
         self.journal = self.base / "appels"
         self.creer_commande("git", '''#!/bin/sh
 if [ "$1" = rev-parse ]; then echo "$FAKE_SHA"; else printf '%s\\t%s\\n' "$FAKE_SHA" "$4"; fi
@@ -56,11 +58,11 @@ elif [ "$1" = run ] && [ "$2" = download ]; then
     esac
   done
   /bin/mkdir -p "$dossier"
-  if [ "$nom" = PetitsPas-linux ]; then
-    cp "$FAKE_LINUX" "$dossier/"
-  else
-    cp "$FAKE_WINDOWS" "$dossier/"
-  fi
+  case "$nom" in
+    PetitsPas-linux) cp "$FAKE_LINUX" "$dossier/" ;;
+    PetitsPas-windows) cp "$FAKE_WINDOWS" "$dossier/" ;;
+    PetitsPas-Setup-windows) cp "$FAKE_SETUP" "$dossier/" ;;
+  esac
 fi
 ''')
 
@@ -72,7 +74,7 @@ printf 'glab %s\\n' "$*" >> "$FAKE_LOG"
     def lancer(self, *arguments):
         env = dict(os.environ, PATH=str(self.bin), FAKE_SHA=SHA,
                    FAKE_LOG=str(self.journal), FAKE_LINUX=str(self.linux),
-                   FAKE_WINDOWS=str(self.windows))
+                   FAKE_WINDOWS=str(self.windows), FAKE_SETUP=str(self.setup))
         return subprocess.run(["/bin/bash", str(SCRIPT), "123", "v1.0-test", *arguments],
                               env=env, text=True, capture_output=True)
 
@@ -85,12 +87,15 @@ printf 'glab %s\\n' "$*" >> "$FAKE_LOG"
         self.assertIn("gh release edit", appels)
         self.assertIn("/-/releases/new", resultat.stdout)
         self.assertIn("PetitsPas-windows.zip", resultat.stdout)
+        self.assertIn("PetitsPas-Setup-", resultat.stdout)
+        self.assertIn("PetitsPas-Setup-", appels)
 
     def test_glab_seul_publie_avec_archives_et_sha_fournis(self):
         self.activer_glab()
-        resultat = self.lancer(str(self.linux), str(self.windows), SHA)
+        resultat = self.lancer(str(self.linux), str(self.setup), str(self.windows), SHA)
         self.assertEqual(resultat.returncode, 0, resultat.stderr)
         self.assertIn("glab release create", self.journal.read_text())
+        self.assertIn("PetitsPas-Setup-", self.journal.read_text())
         self.assertIn("/releases/new", resultat.stdout)
 
     def test_deux_cli_publient_les_memes_archives_sur_les_deux_forges(self):
@@ -107,10 +112,18 @@ printf 'glab %s\\n' "$*" >> "$FAKE_LOG"
 
     def test_sha_manuel_incorrect_refuse_la_publication(self):
         self.activer_glab()
-        resultat = self.lancer(str(self.linux), str(self.windows), "b" * 40)
+        resultat = self.lancer(str(self.linux), str(self.setup), str(self.windows), "b" * 40)
         self.assertNotEqual(resultat.returncode, 0)
         self.assertIn("le tag local pointe", resultat.stderr.lower())
         self.assertFalse(self.journal.exists())
+
+    def test_setup_invalide_refuse_la_publication(self):
+        self.activer_gh()
+        self.setup.write_bytes(b"pas un executable")
+        resultat = self.lancer()
+        self.assertNotEqual(resultat.returncode, 0)
+        self.assertIn("Setup Windows incomplet", resultat.stderr)
+        self.assertNotIn("release create", self.journal.read_text())
 
     def test_sans_cli_ne_publie_pas(self):
         resultat = self.lancer()

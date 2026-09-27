@@ -250,7 +250,8 @@ git push inria v0.3.0-local.1
 git push github v0.3.0-local.1
 ```
 
-Après avoir poussé le tag, publier les archives de l’exécution validée :
+Après avoir poussé le tag, publier le setup Windows et les archives de
+l’exécution validée :
 
 ```sh
 bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
@@ -258,18 +259,20 @@ bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
 
 Le script détecte `gh` et `glab`. Avec `gh` seul, il récupère les archives
 GitHub Actions, vérifie le commit de l’exécution et les tags sur les deux
-forges, puis publie une préversion GitHub contenant les binaires. Il indique
-ensuite comment créer la release GitLab depuis son interface, avec deux liens
-vers les mêmes archives GitHub. Avec les deux CLI, il publie aussi les archives
+forges, puis publie une préversion GitHub contenant le setup Windows recommandé,
+l'archive Linux et l'archive technique Windows. Il indique
+ensuite comment créer la release GitLab depuis son interface, avec trois liens
+vers les mêmes fichiers GitHub. Avec les deux CLI, il publie aussi les fichiers
 dans le registre de paquets GitLab et crée les deux releases.
 
-Sans `gh`, mais avec `glab`, télécharger manuellement les deux archives de la
+Sans `gh`, mais avec `glab`, télécharger manuellement les trois fichiers de la
 même exécution GitHub Actions (après extraction de leurs ZIP enveloppes),
 vérifier son SHA dans GitHub Actions puis lancer :
 
 ```sh
 bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG \
-  /chemin/PetitsPas-linux.tar.gz /chemin/PetitsPas-windows.zip SHA_DU_COMMIT
+  /chemin/PetitsPas-linux.tar.gz /chemin/PetitsPas-Setup-VERSION-x64.exe \
+  /chemin/PetitsPas-windows.zip SHA_DU_COMMIT
 ```
 
 Le script vérifie que le SHA fourni correspond aux tags, mais ne peut pas
@@ -285,10 +288,9 @@ artefacts Actions permettent de tester sans tag.
 
 Pour les utilisateurs, le point d’entrée du site public est la
 [fiche de téléchargement](https://petits-pas.gitlabpages.inria.fr/petits-pas/guide/local/telecharger-programme/) :
-elle renvoie vers les versions GitHub publiées et distingue les archives Linux
-et Windows des artefacts temporaires d’Actions. Le script de publication joint
-encore l'archive Windows, pas le setup graphique ; les releases existantes ne
-contiennent donc pas nécessairement ce dernier.
+elle renvoie vers les versions GitHub publiées et distingue l'installateur
+graphique Windows des archives et des artefacts temporaires d’Actions.
+La release 0.6 antérieure à ce changement ne contient que l'archive Windows.
 La console reste visible pour diagnostiquer ce premier prototype. Le poste
 doit disposer du moteur Microsoft WebView2. Le programme lui-même n'a pas
 besoin d'une installation Python ou MSYS2 sur ce poste.

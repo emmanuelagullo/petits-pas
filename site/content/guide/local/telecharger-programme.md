@@ -1,48 +1,39 @@
 +++
 title = "Télécharger le programme autonome"
-description = "Trouver les versions publiques Linux et Windows et choisir l’archive adaptée."
+description = "Trouver la version de test adaptée à son ordinateur."
 fiche = true
 categorie = "local"
 publics = ["direction"]
-intentions = ["télécharger", "version", "release", "Linux", "Windows", "archive", "logiciel autonome"]
-prerequis = "Disposer d’un ordinateur sous Ubuntu ou Windows ; aucune donnée réelle pour les essais du prototype."
-depart = "Versions publiques de Petits Pas sur GitHub"
+intentions = ["télécharger", "version", "Linux", "Windows", "logiciel autonome"]
+prerequis = "Disposer d’un ordinateur sous Ubuntu ou Windows ; utiliser des données fictives pour les essais."
+depart = "Versions publiées de Petits Pas sur GitHub"
 statut = "partiel"
 +++
 
-## Trouver une version publiée
+## Choisir un téléchargement
 
-Les téléchargements publics du programme autonome sont regroupés sur la page
-[Versions publiées de Petits Pas sur GitHub](https://github.com/emmanuelagullo/petits-pas/releases).
-Ouvrez une version explicitement marquée comme **préversion de test**, puis,
-dans **Assets**, choisissez l’archive correspondant à votre système :
+Ouvrez les [versions de Petits Pas](https://github.com/emmanuelagullo/petits-pas/releases)
+avec la personne qui organise votre essai. Dans une **préversion de test**,
+repérez les fichiers à télécharger :
 
-| Système | Archive à télécharger | Après téléchargement |
+| Votre ordinateur | Fichier à choisir | Que faire ensuite ? |
 | --- | --- | --- |
-| Ubuntu (Linux x86-64) | `PetitsPas-linux.tar.gz` | Extraire le dossier `PetitsPas` ; GTK, WebKit2 et Pango sont nécessaires. |
-| Windows (64 bits) | `PetitsPas-windows.zip` | Décompresser intégralement le dossier `PetitsPas`. |
+| Windows (64 bits) | `PetitsPas-Setup-…-x64.exe`, s’il est proposé | Ouvrir ce fichier et suivre l’assistant d’installation. |
+| Ubuntu (Linux 64 bits) | `PetitsPas-linux.tar.gz` | Extraire le dossier ; suivre la fiche d’installation Ubuntu. |
 
-Les fichiers intitulés **Source code** sont les sources du programme, pas
-les archives prêtes à lancer. Les artefacts temporaires GitHub Actions servent
-aux essais avant publication ; la page **Versions publiées** fournit les
-archives retenues pour la diffusion. Si aucune version avec ces deux fichiers
-n’apparaît encore, le programme autonome n’est pas encore publié pour ces
-deux systèmes.
+Si la version ne propose que `PetitsPas-windows.zip` pour Windows, il s’agit
+d’une ancienne méthode d’installation qui demande des manipulations
+techniques. Ne l’utilisez pas pour une première installation accompagnée :
+demandez le nouvel installateur à la personne qui organise votre essai.
+L’archive Windows reste disponible pour les vérifications de l’équipe
+technique. La version 0.6 publiée appartient encore à cette ancienne méthode.
 
-Pendant les essais Windows, une exécution GitHub Actions réussie fournit aussi
-`PetitsPas-Setup-windows` : c'est l'installateur graphique recommandé pour
-tester l'installation et la mise à jour. Après téléchargement, extraire le ZIP
-fourni par GitHub, puis ouvrir `PetitsPas-Setup-<version>-x64.exe`.
-L'autre artefact Windows, `PetitsPas-windows`, contient un dossier à extraire
-et à lancer directement, utile pour les essais techniques. La version 0.6
-publiée et la procédure de publication actuelle utilisent cette archive :
-la présence du setup dans Actions ne signifie pas qu'il figure déjà dans les
-versions publiées.
+Les fichiers **Source code** sont le code du projet, pas le programme prêt
+à installer. Un fichier transmis pour un essai avant publication peut être
+contenu dans une archive supplémentaire : décompressez celle-ci pour trouver
+l’installateur Windows. Les versions publiées présentent directement les
+fichiers à télécharger.
 
-Un même tag Git est poussé sur GitHub et sur le [dépôt de référence GitLab
-Inria](https://gitlab.inria.fr/petits-pas/petits-pas/-/releases). Une release
-GitLab peut également présenter des liens vers les mêmes archives GitHub.
-
-Après extraction, suivez la [fiche d’installation et de mise à jour]({{< relref "/guide/local/installer-programme.md" >}}).
-Les archives ne contiennent pas les données de votre école : une mise à jour
-du programme ne remplace pas le paquet autonome et ses sauvegardes.
+Poursuivez avec la [fiche d’installation et de mise à jour]({{< relref "/guide/local/installer-programme.md" >}}).
+Le programme et les données de l’école sont conservés séparément : installer
+une nouvelle version du programme ne supprime pas l’école ni ses sauvegardes.

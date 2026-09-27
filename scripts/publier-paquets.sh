@@ -2,8 +2,8 @@
 # Publier les archives validées après création et poussée du même tag Git.
 set -euo pipefail
 
-if { (( $# != 2 && $# != 5 )) || [[ ! "$1" =~ ^[0-9]+$ ]] || [[ ! "$2" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }; then
-    printf 'Usage : %s RUN_ID TAG [ARCHIVE_LINUX ARCHIVE_WINDOWS SHA_DU_RUN]\n' "$0" >&2
+if { (( $# != 2 && $# != 6 )) || [[ ! "$1" =~ ^[0-9]+$ ]] || [[ ! "$2" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; }; then
+    printf 'Usage : %s RUN_ID TAG [ARCHIVE_LINUX SETUP_WINDOWS ARCHIVE_WINDOWS SHA_DU_RUN]\n' "$0" >&2
     exit 2
 fi
 run_id=$1
@@ -22,13 +22,14 @@ if command -v glab >/dev/null; then avec_glab=true; fi
 
 instructions_github() {
     printf '\nGitHub (interface web) : %s/releases/new\n' "$github"
-    printf 'Choisir le tag existant %s, joindre PetitsPas-linux.tar.gz et PetitsPas-windows.zip (les archives intérieures de l’exécution %s), cocher « pre-release », puis publier.\n' "$tag" "$run_id"
+    printf 'Choisir le tag existant %s, joindre PetitsPas-linux.tar.gz, PetitsPas-Setup-*-x64.exe et PetitsPas-windows.zip (les fichiers intérieurs de l’exécution %s), cocher « pre-release », puis publier.\n' "$tag" "$run_id"
 }
 instructions_gitlab() {
     printf '\nGitLab (interface web) : %s/-/releases/new\n' "$gitlab"
-    printf 'Choisir le tag existant %s, donner le même titre et les mêmes notes, puis ajouter deux liens de ressources (« Asset links ») :\n' "$tag"
+    printf 'Choisir le tag existant %s, donner le même titre et les mêmes notes, puis ajouter trois liens de ressources (« Asset links ») :\n' "$tag"
     printf '  Linux   : %s/releases/download/%s/PetitsPas-linux.tar.gz\n' "$github" "$tag"
-    printf '  Windows : %s/releases/download/%s/PetitsPas-windows.zip\n' "$github" "$tag"
+    printf '  Windows : copier le lien du setup PetitsPas-Setup-*-x64.exe depuis la release GitHub.\n'
+    printf '  Archive technique Windows : %s/releases/download/%s/PetitsPas-windows.zip\n' "$github" "$tag"
     printf 'Ces liens pointent vers les archives hébergées sur GitHub ; les héberger aussi sur GitLab nécessite un chargement distinct dans son registre de paquets.\n'
 }
 
@@ -41,8 +42,8 @@ if ! $avec_gh && ! $avec_glab; then
 fi
 if ! $avec_gh; then
     printf 'Avertissement : gh absent ; seule la release GitLab peut être automatisée avec des archives déjà téléchargées.\n' >&2
-    if (( $# != 5 )) || [[ ! "$5" =~ ^[0-9a-fA-F]{40}$ ]]; then
-        printf 'Télécharger les deux archives depuis %s/actions/runs/%s, noter le SHA du commit indiqué par GitHub Actions, puis relancer :\n  bash %s %s %s CHEMIN/PetitsPas-linux.tar.gz CHEMIN/PetitsPas-windows.zip SHA_DU_RUN\n' "$github" "$run_id" "$0" "$run_id" "$tag" >&2
+    if (( $# != 6 )) || [[ ! "$6" =~ ^[0-9a-fA-F]{40}$ ]]; then
+        printf 'Télécharger les trois fichiers depuis %s/actions/runs/%s, noter le SHA du commit indiqué par GitHub Actions, puis relancer :\n  bash %s %s %s CHEMIN/PetitsPas-linux.tar.gz CHEMIN/PetitsPas-Setup-VERSION-x64.exe CHEMIN/PetitsPas-windows.zip SHA_DU_RUN\n' "$github" "$run_id" "$0" "$run_id" "$tag" >&2
         instructions_github
         exit 2
     fi
@@ -61,7 +62,7 @@ if run["conclusion"] != "success" or run["workflowName"] != "Paquets autonomes L
 print(run["headSha"])
 ' <<< "$informations")
 else
-    sha=${5,,}
+    sha=${6,,}
     printf 'Vérifiez dans GitHub Actions que l’exécution %s est réussie et indique le commit %s.\n' "$run_id" "$sha"
 fi
 
@@ -84,31 +85,43 @@ done
 
 temporaire=$(mktemp -d)
 trap 'rm -rf -- "$temporaire"' EXIT
-if (( $# == 5 )); then
+if (( $# == 6 )); then
     linux=$(realpath -- "$3")
-    windows=$(realpath -- "$4")
-    if [[ "$linux" != */PetitsPas-linux.tar.gz || "$windows" != */PetitsPas-windows.zip ]]; then
-        printf 'Noms attendus : PetitsPas-linux.tar.gz et PetitsPas-windows.zip.\n' >&2
+    setup=$(realpath -- "$4")
+    windows=$(realpath -- "$5")
+    if [[ "$linux" != */PetitsPas-linux.tar.gz || "$setup" != */PetitsPas-Setup-*-x64.exe || "$windows" != */PetitsPas-windows.zip ]]; then
+        printf 'Noms attendus : PetitsPas-linux.tar.gz, PetitsPas-Setup-*-x64.exe et PetitsPas-windows.zip.\n' >&2
         exit 1
     fi
-    if $avec_gh && [[ "${5,,}" != "$sha" ]]; then
+    if $avec_gh && [[ "${6,,}" != "$sha" ]]; then
         printf 'Le SHA du run fourni ne correspond pas au SHA vérifié par gh.\n' >&2
         exit 1
     fi
 else
     gh run download "$run_id" --repo "$depot" --name PetitsPas-linux --dir "$temporaire/linux"
     gh run download "$run_id" --repo "$depot" --name PetitsPas-windows --dir "$temporaire/windows"
+    gh run download "$run_id" --repo "$depot" --name PetitsPas-Setup-windows --dir "$temporaire/setup"
     linux="$temporaire/linux/PetitsPas-linux.tar.gz"
     windows="$temporaire/windows/PetitsPas-windows.zip"
+    setups=("$temporaire"/setup/PetitsPas-Setup-*-x64.exe)
+    if (( ${#setups[@]} != 1 )) || [[ ! -f "${setups[0]}" ]]; then
+        printf 'Un seul setup Windows est attendu dans l’artefact.\n' >&2
+        exit 1
+    fi
+    setup=${setups[0]}
 fi
 
-python3 - "$linux" "$windows" <<'PY'
+python3 - "$linux" "$setup" "$windows" <<'PY'
 import sys
 import tarfile
 import zipfile
 from pathlib import Path
 
-linux, windows = map(Path, sys.argv[1:])
+linux, setup, windows = map(Path, sys.argv[1:])
+with setup.open("rb") as fichier:
+    signature = fichier.read(2)
+if signature != b"MZ":
+    raise SystemExit("Setup Windows incomplet ou endommagé.")
 with tarfile.open(linux, "r:gz") as archive:
     if not any(entree.name == "PetitsPas/PetitsPas" for entree in archive):
         raise SystemExit("Exécutable Linux absent de l'archive.")
@@ -123,7 +136,8 @@ PY
 cat > "$temporaire/notes.md" <<EOF
 Version de test de Petits Pas (application autonome, sans serveur externe).
 
-- Windows : décompresser intégralement PetitsPas-windows.zip et lancer PetitsPas.exe.
+- Windows : ouvrir PetitsPas-Setup-*-x64.exe, suivre l’assistant, puis lancer Petits Pas depuis le menu Démarrer.
+- PetitsPas-windows.zip : archive technique pour les essais sans installateur graphique.
 - Linux : extraire PetitsPas-linux.tar.gz et lancer PetitsPas/PetitsPas sur Ubuntu 24.04 avec GTK, WebKit2 et Pango installés. Compatibilité Guix non validée.
 - Les données (base SQLite et médias) sont conservées séparément des exécutables.
 
@@ -135,13 +149,13 @@ EOF
 printf 'Exécution : %s\nCommit et tags vérifiés : %s\nTag : %s\n' "$run_id" "$sha" "$tag"
 if $avec_gh; then
     printf 'Archives vérifiées. Création du brouillon GitHub…\n'
-    gh release create "$tag" "$linux" "$windows" --repo "$depot" \
+    gh release create "$tag" "$linux" "$setup" "$windows" --repo "$depot" \
         --verify-tag --draft --prerelease --latest=false \
         --title "Petits Pas $tag (test)" --notes-file "$temporaire/notes.md"
 fi
 if $avec_glab; then
     printf 'Publication de la release GitLab avec les mêmes archives…\n'
-    glab release create "$tag" "$linux" "$windows" --repo "$gitlab" \
+    glab release create "$tag" "$linux" "$setup" "$windows" --repo "$gitlab" \
         --no-update --use-package-registry \
         --name "Petits Pas $tag (test)" --notes-file "$temporaire/notes.md"
 fi
