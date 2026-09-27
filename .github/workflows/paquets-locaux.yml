@@ -32,6 +32,16 @@ jobs:
         run: |
           $python = (Get-Command python).Source
           pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1 -PythonExecutable $python
+      - name: Vérifier l'installation et le lanceur Windows
+        shell: pwsh
+        run: |
+          pwsh -NoProfile -ExecutionPolicy Bypass -File dist/PetitsPas/Installer-PetitsPas.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Installation Windows impossible.' }
+          $racine = Join-Path $env:LOCALAPPDATA 'Programs\PetitsPas'
+          $version = (Get-Content -LiteralPath (Join-Path $racine 'actuelle') -Raw).Trim()
+          $demarrage = Join-Path $racine "$version\Demarrer-PetitsPas.cmd"
+          & $demarrage --verifier-distribution
+          if ($LASTEXITCODE -ne 0) { throw 'Le lanceur Windows installé a échoué.' }
       - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-windows

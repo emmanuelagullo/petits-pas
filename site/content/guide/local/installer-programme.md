@@ -23,7 +23,10 @@ publiées dans une release.
   le menu des applications. GTK, WebKit2 et les bibliothèques de génération PDF
   doivent être disponibles sur l’ordinateur.
 - **Windows** : ouvrez `Installer-PetitsPas.cmd` depuis le dossier `PetitsPas`
-  extrait, puis lancez **Petits Pas** depuis le menu Démarrer.
+  extrait. La vérification puis la copie des fichiers affichent une progression.
+  Lancez ensuite **Petits Pas** depuis le menu Démarrer. Si le démarrage échoue,
+  la console reste ouverte et affiche l’erreur ; le journal du dernier essai se
+  trouve dans `%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log`.
 
 À la première ouverture d’un paquet vide, l’écran **Installer Petits Pas**
 permet de créer l’école et son premier compte de direction. Conservez les

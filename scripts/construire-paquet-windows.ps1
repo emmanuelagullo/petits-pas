@@ -24,6 +24,7 @@ if ($LASTEXITCODE -ne 0) { throw 'La construction PyInstaller a échoué.' }
 if ($LASTEXITCODE -ne 0) { throw 'Le contrôle du paquet Windows a échoué.' }
 Copy-Item scripts\Installer-PetitsPas.ps1 dist\PetitsPas\Installer-PetitsPas.ps1
 Copy-Item scripts\Installer-PetitsPas.cmd dist\PetitsPas\Installer-PetitsPas.cmd
+Copy-Item scripts\Demarrer-PetitsPas.cmd dist\PetitsPas\Demarrer-PetitsPas.cmd
 $zip = Join-Path (Resolve-Path dist).Path 'PetitsPas-windows.zip'
 if (Test-Path $zip) { Remove-Item $zip }
 Compress-Archive -Path dist\PetitsPas -DestinationPath $zip
