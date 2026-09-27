@@ -127,7 +127,27 @@ un raccourci « Petits Pas » est créé dans le menu Démarrer. Le programme pe
 affiche la progression de la vérification et de la copie
 des fichiers. Le raccourci démarre le programme avec un journal conservé sous
 `%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log` ; en cas d’erreur, la
-console reste ouverte et affiche le journal. Pour diagnostiquer une version
+console reste ouverte et affiche le journal.
+
+Un **installateur graphique expérimental** est aussi construit par la CI
+Windows sous le nom `PetitsPas-Setup-<version>-x64.exe` (artefact
+`PetitsPas-Setup-windows`). Il installe le même dossier PyInstaller pour
+l'utilisateur courant, sans élévation, et ajoute une entrée de désinstallation
+Windows. La désinstallation laisse le paquet de données de l'école intact.
+Le démarrage utilise encore le lanceur `.cmd` et sa console : ce jalon ne
+résout ni les éventuelles erreurs de `pythonnet`/WebView2, ni la disponibilité
+de Pango pour les PDF sur un poste neuf. Ne pas substituer cet artefact à
+l'archive publiée avant les essais réels décrits dans
+`VALIDATION-PAQUET-AUTONOME.md`.
+
+Pour le construire manuellement sur Windows après
+`scripts/construire-paquet-windows.ps1`, installer Inno Setup puis exécuter :
+
+```powershell
+& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.6-dev" "/DOutputDir=$((Resolve-Path dist).Path)" scripts\PetitsPas-Windows.iss
+```
+
+Pour diagnostiquer une version
 antérieure à ce lanceur, ouvrir PowerShell et exécuter :
 
 ```powershell

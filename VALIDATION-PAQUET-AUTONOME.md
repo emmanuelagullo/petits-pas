@@ -81,6 +81,26 @@ Pour tester une mise à jour, installer une seconde archive, contrôler que le
 raccourci pointe sur la nouvelle version et que le dossier de l'ancienne est
 toujours présent.
 
+### Installateur graphique Windows expérimental
+
+Télécharger l'artefact `PetitsPas-Setup-windows` de la même exécution Actions
+et extraire son ZIP enveloppe. Sur un poste Windows de test, ouvrir le fichier
+`PetitsPas-Setup-*-x64.exe` : vérifier l'assistant en français, l'absence de
+demande de droits administrateur, la progression, le menu Démarrer et l'entrée
+« Applications installées ». Après l'installation, ouvrir Petits Pas et refaire
+les contrôles de la première ouverture, de l'image, du PDF et du ZIP ci-dessus.
+Le lancement ouvre encore une console dans ce prototype.
+
+Recommencer avec un profil ayant déjà installé une archive par
+`Installer-PetitsPas.cmd` : le nouveau raccourci doit ouvrir le programme
+installé par le setup, sans modifier les données. Fermer l'application, puis
+désinstaller depuis Windows ; vérifier que la base, les médias, la clé et les
+sauvegardes sont encore présents, et qu'une réinstallation retrouve l'école.
+Ne pas utiliser d'école réelle pour ce test. La CI contrôle seulement la
+construction, l'installation silencieuse, `--verifier-distribution` et la
+désinstallation ; elle ne prouve pas l'ouverture de PyWebView ni la création
+d'un PDF sur le poste de destination.
+
 | Contrôle | Résultat / remarque |
 | --- | --- |
 | OS, version, exécution Actions | |

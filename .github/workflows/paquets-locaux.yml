@@ -42,10 +42,37 @@ jobs:
           $demarrage = Join-Path $racine "$version\Demarrer-PetitsPas.cmd"
           & $demarrage --verifier-distribution
           if ($LASTEXITCODE -ne 0) { throw 'Le lanceur Windows installé a échoué.' }
+      - name: Construire et vérifier l'installateur graphique Windows
+        shell: pwsh
+        run: |
+          choco install innosetup --yes --no-progress
+          if ($LASTEXITCODE -ne 0) { throw 'Installation du compilateur Inno Setup impossible.' }
+          $iscc = (Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+          if (!$iscc) { throw 'Compilateur ISCC.exe introuvable.' }
+          $version = "0.6-dev.$($env:GITHUB_SHA.Substring(0, 8))"
+          $output = Join-Path (Get-Location) 'dist'
+          & $iscc "/DAppVersion=$version" "/DOutputDir=$output" scripts/PetitsPas-Windows.iss
+          if ($LASTEXITCODE -ne 0) { throw 'Construction du setup Windows impossible.' }
+          $setup = "dist/PetitsPas-Setup-$version-x64.exe"
+          if (!(Test-Path $setup)) { throw 'Setup Windows absent.' }
+          & $setup /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+          if ($LASTEXITCODE -ne 0) { throw 'Installation du setup Windows impossible.' }
+          $exe = Join-Path $env:LOCALAPPDATA 'Programs\PetitsPas\app\PetitsPas.exe'
+          & $exe --verifier-distribution
+          if ($LASTEXITCODE -ne 0) { throw 'Le paquet installé par le setup est invalide.' }
+          $uninstall = Join-Path $env:LOCALAPPDATA 'Programs\PetitsPas\app\unins000.exe'
+          & $uninstall /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+          if ($LASTEXITCODE -ne 0) { throw 'Désinstallation du setup Windows impossible.' }
       - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-windows
           path: dist/PetitsPas-windows.zip
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v6
+        with:
+          name: PetitsPas-Setup-windows
+          path: dist/PetitsPas-Setup-*-x64.exe
           if-no-files-found: error
           retention-days: 7
 
