@@ -2,7 +2,6 @@
 """Ouvrir le Django existant dans une fenêtre locale PyWebView (#L1)."""
 
 import argparse
-import logging
 import os
 import secrets
 import shutil
@@ -304,13 +303,6 @@ def executer(paquet, projet, arguments):
     # de la construction de l'application WSGI. Collecter d'abord et isoler
     # cette sortie du staticfiles des autres profils du projet.
     django.setup()
-    # En mode local DEBUG=0, Django ne journalise pas forcément les erreurs
-    # HTTP 500 sur stderr ; le lanceur redirige pourtant stderr vers le log.
-    journal_requetes = logging.getLogger("django.request")
-    if not any(getattr(handler, "_petits_pas_local", False) for handler in journal_requetes.handlers):
-        handler = logging.StreamHandler(sys.stderr)
-        handler._petits_pas_local = True
-        journal_requetes.addHandler(handler)
     call_command("collectstatic", interactive=False, verbosity=0)
     application = get_wsgi_application()
     proteger_avant_migration(paquet)

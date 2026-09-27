@@ -6,6 +6,8 @@ import mimetypes
 from pathlib import Path
 import re
 import shutil
+import sys
+import traceback
 from datetime import datetime
 import sqlite3
 from io import BytesIO
@@ -1424,17 +1426,26 @@ def carnet(request, pk):
 @acces_requis
 @require_safe
 def carnet_pdf(request, pk):
-    contenu, nom = _contenu_pdf_carnet(request, pk, operation=GENERER_CARNET)
-    eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
-    journaliser(
-        request.user,
-        "pdf.carnet_telecharge",
-        eleve,
-        nouvelles={"nom_fichier": nom, "taille": len(contenu)},
-    )
-    reponse = HttpResponse(contenu, content_type="application/pdf")
-    reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
-    return reponse
+    try:
+        contenu, nom = _contenu_pdf_carnet(request, pk, operation=GENERER_CARNET)
+        eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole_courante(request))
+        journaliser(
+            request.user,
+            "pdf.carnet_telecharge",
+            eleve,
+            nouvelles={"nom_fichier": nom, "taille": len(contenu)},
+        )
+        reponse = HttpResponse(contenu, content_type="application/pdf")
+        reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
+        return reponse
+    except Exception:
+        if settings.MODE_LOCAL:
+            # DEBUG est désactivé dans l'application autonome. Le lanceur
+            # conserve stderr dans dernier-demarrage.log ; écrire la trace
+            # ici évite de perdre la cause d'une réponse 500 lors du PDF.
+            traceback.print_exc(file=sys.stderr)
+            sys.stderr.flush()
+        raise
 
 
 def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
