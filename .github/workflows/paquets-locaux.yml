@@ -55,14 +55,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Construction du setup Windows impossible.' }
           $setup = "dist/PetitsPas-Setup-$version-x64.exe"
           if (!(Test-Path $setup)) { throw 'Setup Windows absent.' }
-          & $setup /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
-          if ($LASTEXITCODE -ne 0) { throw 'Installation du setup Windows impossible.' }
-          $exe = Join-Path $env:LOCALAPPDATA 'Programs\PetitsPas\app\PetitsPas.exe'
+          # Le setup est une application graphique : l'appel direct depuis
+          # PowerShell peut rendre la main avant la fin de l'installation.
+          $installation = Start-Process -FilePath (Resolve-Path $setup).Path -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+          if ($installation.ExitCode -ne 0) { throw "Installation du setup Windows impossible (code $($installation.ExitCode))." }
+          $cle = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\PetitsPas.Local.EmmanuelAgullo_is1'
+          if (!(Test-Path $cle)) { throw "Installation terminée mais entrée Windows absente : $cle" }
+          $dossier = (Get-ItemProperty -Path $cle).InstallLocation
+          if (!$dossier) { throw 'Le dossier installé est absent de l’entrée Windows.' }
+          $exe = Join-Path $dossier 'PetitsPas.exe'
+          if (!(Test-Path $exe)) { throw "Exécutable installé introuvable : $exe" }
           & $exe --verifier-distribution
           if ($LASTEXITCODE -ne 0) { throw 'Le paquet installé par le setup est invalide.' }
-          $uninstall = Join-Path $env:LOCALAPPDATA 'Programs\PetitsPas\app\unins000.exe'
-          & $uninstall /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
-          if ($LASTEXITCODE -ne 0) { throw 'Désinstallation du setup Windows impossible.' }
+          $uninstall = Join-Path $dossier 'unins000.exe'
+          $desinstallation = Start-Process -FilePath $uninstall -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+          if ($desinstallation.ExitCode -ne 0) { throw "Désinstallation du setup Windows impossible (code $($desinstallation.ExitCode))." }
+          if (Test-Path $exe) { throw 'Le programme est encore présent après désinstallation.' }
       - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-windows
