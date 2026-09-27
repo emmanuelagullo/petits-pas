@@ -27,11 +27,10 @@ statut = "partiel"
    l’écran **Installer Petits Pas** permet de créer l’école et son premier
    compte. Conservez les identifiants choisis.
 
-Une fenêtre noire peut aussi s’ouvrir au démarrage dans cette version de
-test : elle affiche des informations techniques et accompagne le programme.
-Laissez-la ouverte pendant que vous utilisez Petits Pas.
-Si Petits Pas ne s’ouvre pas ou reste bloqué, notez ce qui apparaît dans
-cette fenêtre et transmettez-le à la personne qui accompagne votre essai.
+Si Petits Pas ne s’ouvre pas, un message indique où trouver le diagnostic.
+Notez ce message et transmettez-le à la personne qui accompagne votre essai.
+Si la fenêtre reste bloquée sans message, indiquez ce que vous faisiez au
+moment du blocage.
 
 ## Sur Windows : mettre à jour ou retirer le programme
 

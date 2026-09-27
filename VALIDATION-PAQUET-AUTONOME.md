@@ -103,7 +103,9 @@ reste accessible, puis accepter et vérifier que les données sont retrouvées.
 Une installation antérieure effectuée seulement avec `Installer-PetitsPas.cmd`
 ne possède pas l'entrée de désinstallation du setup et ne déclenche donc pas
 ce message : vérifier la transition avec le raccourci du menu Démarrer.
-Le lancement ouvre encore une console dans ce prototype.
+Le menu Démarrer doit ouvrir Petits Pas sans fenêtre noire supplémentaire.
+Une erreur au démarrage doit ouvrir une boîte de dialogue indiquant le journal
+`%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log`.
 Sur le poste Windows, agrandir puis restaurer la fenêtre avant de saisir les
 identifiants : la page doit rester réactive et le journal du dernier démarrage
 ne doit pas contenir d'erreurs répétées `fenetre.native` ou

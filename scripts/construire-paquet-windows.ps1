@@ -29,8 +29,8 @@ try {
     $env:PATH = $ancienPath
 }
 if ($LASTEXITCODE -ne 0) { throw 'La construction PyInstaller a échoué.' }
-& .\dist\PetitsPas\PetitsPas.exe --verifier-distribution
-if ($LASTEXITCODE -ne 0) { throw 'Le contrôle du paquet Windows a échoué.' }
+$verification = Start-Process -FilePath (Resolve-Path .\dist\PetitsPas\PetitsPas.exe).Path -ArgumentList '--verifier-distribution' -Wait -PassThru
+if ($verification.ExitCode -ne 0) { throw 'Le contrôle du paquet Windows a échoué.' }
 Copy-Item scripts\Installer-PetitsPas.ps1 dist\PetitsPas\Installer-PetitsPas.ps1
 Copy-Item scripts\Installer-PetitsPas.cmd dist\PetitsPas\Installer-PetitsPas.cmd
 Copy-Item scripts\Demarrer-PetitsPas.cmd dist\PetitsPas\Demarrer-PetitsPas.cmd

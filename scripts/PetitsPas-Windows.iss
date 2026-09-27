@@ -36,11 +36,11 @@ Source: "..\dist\PetitsPas\*"; DestDir: "{app}"; Flags: recursesubdirs createall
 
 [Icons]
 ; Le même nom que le raccourci #L7 remplace son point d'entrée.
-Name: "{userprograms}\Petits Pas"; Filename: "{app}\Demarrer-PetitsPas.cmd"; WorkingDir: "{app}"
+Name: "{userprograms}\Petits Pas"; Filename: "{app}\PetitsPas.exe"; WorkingDir: "{app}"
 Name: "{group}\Désinstaller Petits Pas"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\Demarrer-PetitsPas.cmd"; Description: "Ouvrir Petits Pas"; Flags: postinstall nowait skipifsilent
+Filename: "{app}\PetitsPas.exe"; Description: "Ouvrir Petits Pas"; Flags: postinstall nowait skipifsilent
 
 [Code]
 function InitializeSetup: Boolean;
