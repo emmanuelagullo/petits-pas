@@ -22,13 +22,13 @@ if command -v glab >/dev/null; then avec_glab=true; fi
 
 instructions_github() {
     printf '\nGitHub (interface web) : %s/releases/new\n' "$github"
-    printf 'Choisir le tag existant %s, joindre PetitsPas-linux.tar.gz, PetitsPas-Setup-*-x64.exe et PetitsPas-windows.zip (les fichiers intérieurs de l’exécution %s), cocher « pre-release », puis publier.\n' "$tag" "$run_id"
+    printf 'Choisir le tag existant %s, joindre PetitsPas-linux.tar.gz, PetitsPas-Setup-%s-x64.exe et PetitsPas-windows.zip (les fichiers intérieurs de l’exécution %s), cocher « pre-release », puis publier.\n' "$tag" "$tag" "$run_id"
 }
 instructions_gitlab() {
     printf '\nGitLab (interface web) : %s/-/releases/new\n' "$gitlab"
     printf 'Choisir le tag existant %s, donner le même titre et les mêmes notes, puis ajouter trois liens de ressources (« Asset links ») :\n' "$tag"
     printf '  Linux   : %s/releases/download/%s/PetitsPas-linux.tar.gz\n' "$github" "$tag"
-    printf '  Windows : copier le lien du setup PetitsPas-Setup-*-x64.exe depuis la release GitHub.\n'
+    printf '  Windows : %s/releases/download/%s/PetitsPas-Setup-%s-x64.exe\n' "$github" "$tag" "$tag"
     printf '  Archive technique Windows : %s/releases/download/%s/PetitsPas-windows.zip\n' "$github" "$tag"
     printf 'Ces liens pointent vers les archives hébergées sur GitHub ; les héberger aussi sur GitLab nécessite un chargement distinct dans son registre de paquets.\n'
 }
@@ -43,7 +43,7 @@ fi
 if ! $avec_gh; then
     printf 'Avertissement : gh absent ; seule la release GitLab peut être automatisée avec des archives déjà téléchargées.\n' >&2
     if (( $# != 6 )) || [[ ! "$6" =~ ^[0-9a-fA-F]{40}$ ]]; then
-        printf 'Télécharger les trois fichiers depuis %s/actions/runs/%s, noter le SHA du commit indiqué par GitHub Actions, puis relancer :\n  bash %s %s %s CHEMIN/PetitsPas-linux.tar.gz CHEMIN/PetitsPas-Setup-VERSION-x64.exe CHEMIN/PetitsPas-windows.zip SHA_DU_RUN\n' "$github" "$run_id" "$0" "$run_id" "$tag" >&2
+        printf 'Télécharger les trois fichiers depuis %s/actions/runs/%s (exécution du tag %s), noter le SHA du commit indiqué par GitHub Actions, puis relancer :\n  bash %s %s %s CHEMIN/PetitsPas-linux.tar.gz CHEMIN/PetitsPas-Setup-%s-x64.exe CHEMIN/PetitsPas-windows.zip SHA_DU_RUN\n' "$github" "$run_id" "$tag" "$0" "$run_id" "$tag" "$tag" >&2
         instructions_github
         exit 2
     fi
@@ -89,8 +89,8 @@ if (( $# == 6 )); then
     linux=$(realpath -- "$3")
     setup=$(realpath -- "$4")
     windows=$(realpath -- "$5")
-    if [[ "$linux" != */PetitsPas-linux.tar.gz || "$setup" != */PetitsPas-Setup-*-x64.exe || "$windows" != */PetitsPas-windows.zip ]]; then
-        printf 'Noms attendus : PetitsPas-linux.tar.gz, PetitsPas-Setup-*-x64.exe et PetitsPas-windows.zip.\n' >&2
+    if [[ "$linux" != */PetitsPas-linux.tar.gz || "$setup" != */"PetitsPas-Setup-$tag-x64.exe" || "$windows" != */PetitsPas-windows.zip ]]; then
+        printf 'Noms attendus : PetitsPas-linux.tar.gz, PetitsPas-Setup-%s-x64.exe et PetitsPas-windows.zip.\n' "$tag" >&2
         exit 1
     fi
     if $avec_gh && [[ "${6,,}" != "$sha" ]]; then
@@ -103,12 +103,11 @@ else
     gh run download "$run_id" --repo "$depot" --name PetitsPas-Setup-windows --dir "$temporaire/setup"
     linux="$temporaire/linux/PetitsPas-linux.tar.gz"
     windows="$temporaire/windows/PetitsPas-windows.zip"
-    setups=("$temporaire"/setup/PetitsPas-Setup-*-x64.exe)
-    if (( ${#setups[@]} != 1 )) || [[ ! -f "${setups[0]}" ]]; then
-        printf 'Un seul setup Windows est attendu dans l’artefact.\n' >&2
+    setup="$temporaire/setup/PetitsPas-Setup-$tag-x64.exe"
+    if [[ ! -f "$setup" ]]; then
+        printf 'Setup Windows %s absent : choisir l’exécution du tag %s.\n' "$tag" "$tag" >&2
         exit 1
     fi
-    setup=${setups[0]}
 fi
 
 python3 - "$linux" "$setup" "$windows" <<'PY'
@@ -136,7 +135,7 @@ PY
 cat > "$temporaire/notes.md" <<EOF
 Version de test de Petits Pas (application autonome, sans serveur externe).
 
-- Windows : ouvrir PetitsPas-Setup-*-x64.exe, suivre l’assistant, puis lancer Petits Pas depuis le menu Démarrer.
+- Windows : ouvrir PetitsPas-Setup-$tag-x64.exe, suivre l’assistant, puis lancer Petits Pas depuis le menu Démarrer.
 - PetitsPas-windows.zip : archive technique pour les essais sans installateur graphique.
 - Linux : extraire PetitsPas-linux.tar.gz et lancer PetitsPas/PetitsPas sur Ubuntu 24.04 avec GTK, WebKit2 et Pango installés. Compatibilité Guix non validée.
 - Les données (base SQLite et médias) sont conservées séparément des exécutables.

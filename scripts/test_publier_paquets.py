@@ -32,7 +32,7 @@ class PublicationTests(unittest.TestCase):
         self.windows = self.base / "PetitsPas-windows.zip"
         with zipfile.ZipFile(self.windows, "w") as archive:
             archive.writestr("PetitsPas/PetitsPas.exe", b"programme fictif")
-        self.setup = self.base / "PetitsPas-Setup-1.0-x64.exe"
+        self.setup = self.base / "PetitsPas-Setup-0.7-x64.exe"
         self.setup.write_bytes(b"MZsetup fictif")
         self.journal = self.base / "appels"
         self.creer_commande("git", '''#!/bin/sh
@@ -75,7 +75,7 @@ printf 'glab %s\\n' "$*" >> "$FAKE_LOG"
         env = dict(os.environ, PATH=str(self.bin), FAKE_SHA=SHA,
                    FAKE_LOG=str(self.journal), FAKE_LINUX=str(self.linux),
                    FAKE_WINDOWS=str(self.windows), FAKE_SETUP=str(self.setup))
-        return subprocess.run(["/bin/bash", str(SCRIPT), "123", "v1.0-test", *arguments],
+        return subprocess.run(["/bin/bash", str(SCRIPT), "123", "0.7", *arguments],
                               env=env, text=True, capture_output=True)
 
     def test_gh_seul_publie_les_archives_et_explique_gitlab(self):
@@ -123,6 +123,15 @@ printf 'glab %s\\n' "$*" >> "$FAKE_LOG"
         resultat = self.lancer()
         self.assertNotEqual(resultat.returncode, 0)
         self.assertIn("Setup Windows incomplet", resultat.stderr)
+        self.assertNotIn("release create", self.journal.read_text())
+
+    def test_setup_d_une_autre_version_refuse_la_publication(self):
+        self.activer_gh()
+        autre = self.setup.with_name("PetitsPas-Setup-0.6-dev-aabbccdd-x64.exe")
+        self.setup.rename(autre)
+        resultat = self.lancer(str(self.linux), str(autre), str(self.windows), SHA)
+        self.assertNotEqual(resultat.returncode, 0)
+        self.assertIn("Noms attendus", resultat.stderr)
         self.assertNotIn("release create", self.journal.read_text())
 
     def test_sans_cli_ne_publie_pas(self):
