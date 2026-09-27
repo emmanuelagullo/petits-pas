@@ -149,7 +149,11 @@ def verifier_distribution(projet):
         raise SystemExit("La feuille de style est absente de la distribution.")
     if not (projet / "referentiel" / "trame-cycle1.yaml").is_file():
         raise SystemExit("La trame pédagogique est absente de la distribution.")
-    if os.name != "nt":
+    if os.name == "nt":
+        # L'import de webview seul ne charge pas pythonnet. Vérifier ici la
+        # passerelle .NET réellement utilisée au démarrage sous Windows.
+        import clr  # noqa: F401
+    else:
         import gi
 
         try:
