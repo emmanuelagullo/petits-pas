@@ -28,6 +28,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Pré-attribution d'une fonction dès l'invitation : la direction choisit
+  une classe et une fonction, appliquées automatiquement à l'acceptation.
+  Visible dans les listes d'équipe et de collaborateurs avec un badge
+  « Invitation en cours », annulable comme une affectation ordinaire.
 - Bouton « afficher »/« masquer » sur les champs de mot de passe
   (connexion, création de compte, réinitialisation).
 - Réinitialisation de mot de passe en libre-service, par lien envoyé par

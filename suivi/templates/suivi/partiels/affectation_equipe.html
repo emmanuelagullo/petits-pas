@@ -1,15 +1,34 @@
-<div class="ligne-equipe{% if historique %} historique{% endif %}">
+<div class="ligne-equipe{% if historique %} historique{% endif %}{% if affectation.en_attente %} en-attente{% endif %}">
   <div class="identite-affectation">
-    {% if vue == "classes" %}<strong>{{ affectation.appartenance.utilisateur.get_full_name|default:affectation.appartenance.utilisateur.username }}</strong>{% else %}<strong>{{ affectation.classe.libelle_avec_annee }}</strong>{% if affectation.classe_historique %} <span class="pastille pastille-annee annee-{{ affectation.classe.statut_annee }}">{{ affectation.classe.libelle_statut_annee }}</span>{% endif %}{% endif %}
-    <span>{% if vue == "classes" %}{{ affectation.appartenance.utilisateur.email }} · {% endif %}{{ affectation.get_type_display }} · {% if affectation.classe_historique and affectation.est_active_aujourdhui %}accès historique en cours depuis le {{ affectation.date_debut }}{% elif affectation.est_future %}à partir du {{ affectation.date_debut }}{% elif affectation.est_active_aujourdhui %}en cours depuis le {{ affectation.date_debut }}{% elif affectation.date_fin %}terminée le {{ affectation.date_fin }}{% else %}{{ affectation.get_etat_display }}{% endif %}</span>
+    {% if vue == "classes" %}
+      <strong>{% if affectation.en_attente %}{{ affectation.invitation.email }}{% else %}{{ affectation.appartenance.utilisateur.get_full_name|default:affectation.appartenance.utilisateur.username }}{% endif %}</strong>
+    {% else %}
+      <strong>{{ affectation.classe.libelle_avec_annee }}</strong>{% if affectation.classe_historique %} <span class="pastille pastille-annee annee-{{ affectation.classe.statut_annee }}">{{ affectation.classe.libelle_statut_annee }}</span>{% endif %}
+    {% endif %}
+    <span>
+      {% if affectation.en_attente %}<span class="pastille pastille-attente">Invitation en cours</span> · {% endif %}
+      {% if vue == "classes" and not affectation.en_attente %}{{ affectation.appartenance.utilisateur.email }} · {% endif %}
+      {{ affectation.get_type_display }} ·
+      {% if affectation.en_attente %}en attente de la création du compte
+      {% elif affectation.classe_historique and affectation.est_active_aujourdhui %}accès historique en cours depuis le {{ affectation.date_debut }}
+      {% elif affectation.est_future %}à partir du {{ affectation.date_debut }}
+      {% elif affectation.est_active_aujourdhui %}en cours depuis le {{ affectation.date_debut }}
+      {% elif affectation.date_fin %}terminée le {{ affectation.date_fin }}
+      {% else %}{{ affectation.get_etat_display }}
+      {% endif %}
+    </span>
   </div>
-  {% if affectation.est_active_aujourdhui %}
+  {% if affectation.gerable_aujourdhui %}
   <details class="gerer-affectation">
     <summary class="bouton discret">Gérer</summary>
     <div class="panneau-action">
+      {% if affectation.en_attente %}
+      <form method="post" onsubmit="return confirm('Annuler cette pré-attribution ?');">{% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}"><input type="hidden" name="vue" value="{{ vue }}"><button class="bouton discret" name="action" value="terminer_affectation">Annuler la pré-attribution</button></form>
+      {% else %}
       {% if affectation.peut_terminer_directement %}<form method="post" onsubmit="return confirm('Terminer cette affectation ?');">{% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}"><input type="hidden" name="vue" value="{{ vue }}"><button class="bouton discret" name="action" value="terminer_affectation">Terminer l’affectation</button></form>{% elif affectation.type == "responsable" %}<p class="aide">Ce responsable doit être remplacé avant la fin de son affectation.</p>{% endif %}
       {% if affectation.type == "responsable" and affectation.remplacants %}<form method="post" onsubmit="return confirm('Remplacer ce responsable ?');">{% csrf_token %}<input type="hidden" name="action" value="remplacer_responsable"><input type="hidden" name="affectation" value="{{ affectation.pk }}"><input type="hidden" name="vue" value="{{ vue }}"><label>Remplacer par <select name="remplacement" required>{% for candidat in affectation.remplacants %}<option value="{{ candidat.pk }}">{{ candidat.utilisateur.get_full_name|default:candidat.utilisateur.username }}</option>{% endfor %}</select></label><label>Motif <input name="motif"></label><button class="bouton" type="submit">Remplacer le responsable</button></form>{% endif %}
       <form method="post" onsubmit="return confirm('Suspendre cette affectation en urgence ?');">{% csrf_token %}<input type="hidden" name="affectation" value="{{ affectation.pk }}"><input type="hidden" name="vue" value="{{ vue }}"><label>Motif de la suspension d’urgence <input name="motif" required></label><button class="bouton danger-discret" name="action" value="suspendre_affectation">Suspendre en urgence</button></form>
+      {% endif %}
     </div>
   </details>
   {% endif %}

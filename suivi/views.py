@@ -426,7 +426,15 @@ def accepter_invitation_vue(request, selecteur, jeton):
                     return render(
                         request,
                         "suivi/accepter_invitation.html",
-                        {"invitation": invitation, "acceptee": True},
+                        {
+                            "invitation": invitation,
+                            "acceptee": True,
+                            "fonctions_preattribuees": list(
+                                invitation.affectations_classes.select_related(
+                                    "classe"
+                                )
+                            ),
+                        },
                     )
         elif formulaire.is_valid():
             try:
@@ -450,7 +458,13 @@ def accepter_invitation_vue(request, selecteur, jeton):
                 return render(
                     request,
                     "suivi/accepter_invitation.html",
-                    {"invitation": invitation, "acceptee": True},
+                    {
+                        "invitation": invitation,
+                        "acceptee": True,
+                        "fonctions_preattribuees": list(
+                            invitation.affectations_classes.select_related("classe")
+                        ),
+                    },
                 )
     return render(
         request,
@@ -682,8 +696,8 @@ def collaborateurs_classe(request, pk):
         request.user, pk, VOIR_AFFECTATIONS_CLASSE, ecole=ecole
     )
     affectations = classe.affectations.select_related(
-        "appartenance__utilisateur"
-    ).order_by("appartenance__utilisateur__last_name", "date_debut")
+        "appartenance__utilisateur", "invitation"
+    ).order_by("appartenance__utilisateur__last_name", "invitation__email", "date_debut")
     return render(
         request,
         "suivi/collaborateurs_classe.html",
@@ -1707,6 +1721,19 @@ def equipe_ecole(request):
                     ecole=ecole,
                     email=request.POST.get("email", ""),
                 )
+                classe_preattribuee_id = request.POST.get("classe_preattribuee")
+                type_preattribuee = request.POST.get("type_preattribuee")
+                preattribution = None
+                if classe_preattribuee_id and type_preattribuee:
+                    classe_preattribuee = get_object_or_404(
+                        Classe, pk=classe_preattribuee_id, ecole=ecole
+                    )
+                    preattribution = attribuer_affectation(
+                        utilisateur=request.user,
+                        classe=classe_preattribuee,
+                        type=type_preattribuee,
+                        invitation=invitation,
+                    )
                 lien = request.build_absolute_uri(
                     reverse(
                         "accepter_invitation",
@@ -1714,28 +1741,35 @@ def equipe_ecole(request):
                     )
                 )
                 request.session["lien_invitation_creee"] = lien
+                suffixe_preattribution = (
+                    f" et pré-attribuée comme {preattribution.get_type_display().lower()} "
+                    f"de {preattribution.classe.libelle_avec_annee}"
+                    if preattribution
+                    else ""
+                )
                 if not settings.EMAIL_DISPONIBLE:
                     messages.warning(
                         request,
-                        "Invitation créée. L’envoi de courriel est désactivé : "
-                        "copiez le lien affiché ci-dessous et transmettez-le "
-                        "vous-même.",
+                        f"Invitation créée{suffixe_preattribution}. L’envoi de "
+                        "courriel est désactivé : copiez le lien affiché "
+                        "ci-dessous et transmettez-le vous-même.",
                     )
                 elif envoyer_email_invitation(
                     utilisateur=request.user, invitation=invitation, lien=lien
                 ):
                     messages.success(
                         request,
-                        f"Invitation envoyée par e-mail à {invitation.email}. "
-                        "Le lien reste aussi affiché ci-dessous en secours, "
-                        "au cas où l’e-mail n’arriverait pas.",
+                        f"Invitation envoyée par e-mail à {invitation.email}"
+                        f"{suffixe_preattribution}. Le lien reste aussi "
+                        "affiché ci-dessous en secours, au cas où l’e-mail "
+                        "n’arriverait pas.",
                     )
                 else:
                     messages.warning(
                         request,
-                        "Invitation créée, mais l’envoi de l’e-mail a "
-                        "échoué. Copiez le lien affiché ci-dessous et "
-                        "transmettez-le vous-même.",
+                        f"Invitation créée{suffixe_preattribution}, mais "
+                        "l’envoi de l’e-mail a échoué. Copiez le lien "
+                        "affiché ci-dessous et transmettez-le vous-même.",
                     )
             elif action == "revoquer_invitation":
                 revoquer_invitation(
@@ -1840,6 +1874,7 @@ def equipe_ecole(request):
     for appartenance in appartenances:
         for affectation in appartenance.affectations_classes.all():
             affectation.est_active_aujourdhui = affectation.est_active(aujourd_hui)
+            affectation.gerable_aujourdhui = affectation.est_active_aujourdhui
             if not affectation.est_active_aujourdhui:
                 continue
             affectation.peut_terminer_directement = peut_terminer_affectation(
@@ -1858,6 +1893,22 @@ def equipe_ecole(request):
                     .filter(Q(date_fin__isnull=True) | Q(date_fin__gte=aujourd_hui))
                     .exists()
                 ]
+    preattributions = list(
+        AffectationClasse.objects.filter(
+            invitation__ecole=ecole, appartenance__isnull=True
+        ).select_related("invitation", "classe")
+    )
+    for affectation in preattributions:
+        # Une pré-attribution n'accorde jamais d'accès réel (voir
+        # AffectationClasse.est_active) : seule sa présence dans le
+        # référentiel est « gérable », pour permettre à la direction de
+        # l'annuler avant même que le compte n'existe.
+        affectation.est_active_aujourdhui = False
+        affectation.gerable_aujourdhui = affectation.etat == AffectationClasse.ACTIVE
+        if affectation.gerable_aujourdhui:
+            affectation.peut_terminer_directement = peut_terminer_affectation(
+                request.user, affectation, date=aujourd_hui
+            )
     vue_equipe = request.GET.get("vue", "classes")
     if vue_equipe not in {"classes", "personnes"}:
         vue_equipe = "classes"
@@ -1911,6 +1962,11 @@ def equipe_ecole(request):
             affectations_par_classe.setdefault(affectation.classe_id, []).append(
                 affectation
             )
+    for affectation in preattributions:
+        preparer_affectation(affectation)
+        affectations_par_classe.setdefault(affectation.classe_id, []).append(
+            affectation
+        )
 
     anomalies = list(
         ecole.anomalies_gouvernance.filter(resolue_le__isnull=True).select_related(

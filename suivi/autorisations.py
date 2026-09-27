@@ -371,6 +371,11 @@ def peut_terminer_affectation(utilisateur, affectation, remplacement=None, date=
     date = date or timezone.localdate()
     if not est_direction(utilisateur, affectation.classe.ecole, date):
         return False
+    if affectation.appartenance_id is None:
+        # Pré-attribution à une invitation : aucun accès réel n'est encore
+        # accordé (voir AffectationClasse.est_active), donc rien n'oblige
+        # à désigner un remplaçant avant de l'annuler.
+        return True
     if affectation.type != AffectationClasse.RESPONSABLE or affectation.classe.etat != Classe.ACTIVE:
         return True
     if affectation.classe.responsables_actifs(date).exclude(pk=affectation.pk).exists():

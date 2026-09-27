@@ -12,6 +12,11 @@
       {% if email_disponible %}<p class="aide">L’invitation sera envoyée par e-mail et restera valable sept jours.</p>{% else %}<p class="aide">L’envoi de courriel est désactivé : le lien devra être copié et transmis par la direction.</p>{% endif %}
       <form method="post">{% csrf_token %}<input type="hidden" name="action" value="inviter"><input type="hidden" name="vue" value="{{ vue_equipe }}">
         <label>Adresse électronique <input type="email" name="email" required></label>
+        {% if classes_affectables %}
+        <p class="aide">Optionnel : pré-attribuer déjà une fonction, appliquée dès que le compte sera créé.</p>
+        <label>Classe <select name="classe_preattribuee"><option value="">— Aucune —</option>{% for classe in classes_affectables %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}</select></label>
+        <label>Fonction <select name="type_preattribuee">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
+        {% endif %}
         <button class="bouton" type="submit">Créer l'invitation</button>
       </form>
     </div>
@@ -109,7 +114,7 @@
 {% if invitations %}
 <details class="invitations-equipe" id="invitations">
   <summary>Invitations en attente ou récentes ({{ invitations|length }})</summary>
-  <ul class="liste">{% for invitation in invitations %}<li class="entree"><span class="principal">{{ invitation.email }}</span><span class="secondaire">{% if invitation.est_expiree %}Expirée{% else %}{{ invitation.get_etat_display }}{% endif %} · expire le {{ invitation.expire_le }}</span>{% if invitation.etat == "en_attente" and not invitation.est_expiree %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoquer_invitation"><input type="hidden" name="invitation" value="{{ invitation.pk }}"><input type="hidden" name="vue" value="{{ vue_equipe }}"><button class="bouton discret">Révoquer</button></form>{% endif %}</li>{% endfor %}</ul>
+  <ul class="liste">{% for invitation in invitations %}<li class="entree"><span class="principal">{{ invitation.email }}</span><span class="secondaire">{% if invitation.est_expiree %}Expirée{% else %}{{ invitation.get_etat_display }}{% endif %} · expire le {{ invitation.expire_le }}{% for affectation in invitation.affectations_classes.all %} · {% if affectation.appartenance_id %}pré-attribution acceptée : {% else %}pré-attribution : {% endif %}{{ affectation.get_type_display }} de {{ affectation.classe.libelle_avec_annee }}{% endfor %}</span>{% if invitation.etat == "en_attente" and not invitation.est_expiree %}<form method="post">{% csrf_token %}<input type="hidden" name="action" value="revoquer_invitation"><input type="hidden" name="invitation" value="{{ invitation.pk }}"><input type="hidden" name="vue" value="{{ vue_equipe }}"><button class="bouton discret">Révoquer</button></form>{% endif %}</li>{% endfor %}</ul>
 </details>
 {% endif %}
 {% endblock %}
