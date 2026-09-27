@@ -1,62 +1,76 @@
 +++
 title = "Installer ou mettre à jour le programme autonome"
-description = "Ouvrir Petits Pas sans serveur distant et gérer les versions installées."
+description = "Installer Petits Pas sur un ordinateur et retrouver l’école après une mise à jour."
 fiche = true
 categorie = "local"
 publics = ["direction"]
-intentions = ["installer", "mettre à jour", "Ubuntu", "Windows", "revenir à une version", "nettoyer"]
-prerequis = "Avoir téléchargé l’archive adaptée à Ubuntu ou Windows et disposer d’un ordinateur compatible."
-depart = "Archive PetitsPas extraite sur l’ordinateur"
+intentions = ["installer", "mettre à jour", "Ubuntu", "Windows", "revenir à une version"]
+prerequis = "Disposer d’un ordinateur compatible et d’une version de test adaptée à son système."
+depart = "Fichier d’installation téléchargé sur l’ordinateur"
 statut = "partiel"
 +++
 
-## Installer et ouvrir
+## Sur Windows : installer et ouvrir
 
-[Téléchargez la version publiée]({{< relref "/guide/local/telecharger-programme.md" >}})
-correspondant à votre système, puis extrayez-la entièrement. Pour essayer une
-construction avant publication, les artefacts GitHub Actions comportent un
-ZIP enveloppe supplémentaire à extraire ; ce n’est pas le cas des archives
-publiées dans une release.
+1. Depuis la [page de téléchargement]({{< relref "/guide/local/telecharger-programme.md" >}}),
+   choisissez **PetitsPas-Setup-…-x64.exe** dans une préversion de test qui le
+   propose. Si le fichier provient d’un essai transmis par l’équipe du projet,
+   décompressez d’abord le téléchargement : vous trouverez le même fichier à
+   ouvrir à l’intérieur. Les versions qui ne proposent qu’une archive ZIP
+   correspondent à une ancienne méthode d’installation ; demandez le nouvel
+   installateur à la personne qui organise votre essai.
+2. Fermez Petits Pas s’il est déjà ouvert. Ouvrez le fichier téléchargé et
+   suivez les écrans de l’assistant. Aucun mot de passe administrateur n’est
+   nécessaire. Le programme apparaît ensuite dans le menu **Démarrer** sous
+   le nom **Petits Pas**.
+3. Ouvrez **Petits Pas** depuis le menu Démarrer. Lors du premier démarrage,
+   l’écran **Installer Petits Pas** permet de créer l’école et son premier
+   compte. Conservez les identifiants choisis.
 
-- **Ubuntu** : dans un terminal ouvert dans le dossier `PetitsPas` extrait,
-  exécutez `bash installer-paquet-linux.sh`. Lancez ensuite **Petits Pas** depuis
-  le menu des applications. GTK, WebKit2 et les bibliothèques de génération PDF
-  doivent être disponibles sur l’ordinateur.
-- **Windows** : ouvrez `Installer-PetitsPas.cmd` depuis le dossier `PetitsPas`
-  extrait. La vérification puis la copie des fichiers affichent une progression.
-  Lancez ensuite **Petits Pas** depuis le menu Démarrer. Si le démarrage échoue,
-  la console reste ouverte et affiche l’erreur ; le journal du dernier essai se
-  trouve dans `%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log`.
+Une fenêtre noire peut aussi s’ouvrir au démarrage dans cette version de
+test : elle affiche des informations techniques et accompagne le programme.
+Laissez-la ouverte pendant que vous utilisez Petits Pas.
+Si Petits Pas ne s’ouvre pas ou reste bloqué, notez ce qui apparaît dans
+cette fenêtre et transmettez-le à la personne qui accompagne votre essai.
 
-À la première ouverture d’un paquet vide, l’écran **Installer Petits Pas**
-permet de créer l’école et son premier compte de direction. Conservez les
-identifiants choisis. Le paquet de données est créé séparément du programme,
-par défaut sous `~/.local/share/petits-pas/paquet-autonome/` sur Linux ou
-`%LOCALAPPDATA%\petits-pas\paquet-autonome` sous Windows. Sous Linux,
-`$XDG_DATA_HOME` peut modifier ce chemin. Le programme doit être fermé avant
-de changer de version.
+## Sur Windows : mettre à jour ou retirer le programme
 
-## Mettre à jour ou revenir en arrière
+[Téléchargez une sauvegarde de l’école]({{< relref "/guide/local/sauvegarder-paquet.md" >}})
+avant la mise à jour. Fermez Petits Pas, puis ouvrez le nouvel installateur
+**PetitsPas-Setup-…-x64.exe**. S’il détecte une installation précédente faite
+avec cet assistant, il indique la version déjà présente et demande si vous
+souhaitez la remplacer. Une installation plus ancienne, réalisée avec un
+autre programme d’installation, peut ne pas être détectée : le raccourci
+**Petits Pas** du menu Démarrer ouvrira ensuite la nouvelle version.
 
-Pour mettre à jour, extrayez une nouvelle archive et relancez son installateur.
-Les données de l’école restent dans le même paquet. Depuis le dossier extrait,
-vous pouvez consulter les versions et revenir à la précédente :
+Retrouvez votre école et vos comptes en ouvrant Petits Pas. Installer ou
+désinstaller le **programme** ne supprime pas les données de l’école ni les
+sauvegardes. Pour retirer le programme, utilisez **Paramètres → Applications →
+Applications installées → Petits Pas → Désinstaller**. Ne supprimez pas le
+dossier des données de l’école.
 
-| Action | Ubuntu, terminal | Windows, terminal PowerShell |
-| --- | --- | --- |
-| Lister les versions | `bash gerer-versions-linux.sh --lister` | `.\Installer-PetitsPas.cmd -Action Lister` |
-| Revenir à la précédente | `bash gerer-versions-linux.sh --revenir` | `.\Installer-PetitsPas.cmd -Action Revenir` |
-| Retirer les versions plus anciennes | `bash gerer-versions-linux.sh --nettoyer` | `.\Installer-PetitsPas.cmd -Action Nettoyer` |
+Si la nouvelle version pose problème, fermez-la et contactez la personne qui
+accompagne votre essai avant de réinstaller une version plus ancienne :
+une modification du format des données peut empêcher celle-ci de rouvrir
+l’école. Il n’existe pas encore de bouton de retour à la version précédente
+dans l’installateur graphique.
 
-Le nettoyage conserve la version active et la précédente ainsi que les données
-de l’école. Revenez à une ancienne version seulement si elle sait lire le format
-actuel de la base : une mise à jour avec migration peut rendre ce retour
-impossible. [Sauvegardez le paquet]({{< relref "/guide/local/sauvegarder-paquet.md" >}}) avant une mise à jour.
+## Sur Ubuntu
 
-## Limites
+Après avoir [téléchargé l’archive Linux]({{< relref "/guide/local/telecharger-programme.md" >}}),
+extrayez-la entièrement. Dans un terminal ouvert dans le dossier `PetitsPas`
+extrait, exécutez `bash installer-paquet-linux.sh`, puis ouvrez **Petits Pas**
+depuis le menu des applications. GTK, WebKit2 et les bibliothèques nécessaires
+aux PDF doivent être disponibles sur l’ordinateur.
 
-Ces archives sont des prototypes propres à leur système, pas un installateur
-universel. Leur validation sur chaque machine reste nécessaire. Les
-[instructions détaillées du dépôt](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/README.md)
-expliquent également le lancement depuis les sources et le choix d’un autre
-emplacement de données.
+Pour mettre à jour, [sauvegardez l’école]({{< relref "/guide/local/sauvegarder-paquet.md" >}}),
+fermez l’application, extrayez la nouvelle archive et relancez son
+installateur. Les outils Linux de gestion des versions sont décrits dans la
+[documentation technique du dépôt](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/README.md).
+
+## Avant tout usage réel
+
+Ces versions sont encore des prototypes de test. Faites vos essais avec des
+données fictives ; l’usage de données réelles demande une qualification
+préalable. Le programme autonome ne synchronise pas l’école entre plusieurs
+ordinateurs.

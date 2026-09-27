@@ -108,9 +108,9 @@ Les statuts employés sont :
 
 | Je voudrais… | État | Point important |
 | --- | --- | --- |
-| Télécharger les archives publiques Linux et Windows | Selon publication | La fiche de téléchargement centralise les liens vers les versions publiées. |
-| Installer ou mettre à jour le programme | Prototype | Archives distinctes pour Ubuntu et Windows ; les données restent dans un dossier séparé. |
-| Revenir à la version précédente du programme | Disponible après installation | Fermer l’application ; une migration de la base peut empêcher une ancienne version de la relire. |
+| Télécharger le programme Linux ou l'installateur Windows | Selon publication | La version 0.6 publiée propose encore une archive Windows technique ; les futures préversions peuvent joindre le setup graphique. |
+| Installer ou mettre à jour le programme | Prototype | Le setup Windows guide l'installation et la mise à jour ; les données restent séparées du programme. |
+| Revenir à la version précédente du programme | Technique uniquement sous Windows | Pas de bouton dans le setup ; une migration de la base peut empêcher une ancienne version de relire l'école. |
 | Télécharger un ZIP du paquet local | Disponible en mode local | Direction ; conserve la base, les médias et la clé du paquet. |
 | Restaurer un ZIP du paquet local | Disponible en mode local | Direction ; après vérification et confirmation, l’application redémarre et l’ancien paquet reste dans un dossier séparé. |
 
