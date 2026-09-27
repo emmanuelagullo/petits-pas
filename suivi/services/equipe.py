@@ -66,7 +66,7 @@ def _accepter_invitation_verrouillee(*, utilisateur, invitation):
     preattributions = list(
         AffectationClasse.objects.select_for_update().filter(
             invitation=invitation, appartenance__isnull=True
-        )
+        ).order_by("pk")
     )
     for affectation in preattributions:
         affectation.appartenance = appartenance
@@ -313,7 +313,7 @@ def terminer_affectation(*, utilisateur, affectation, remplacement=None):
             classe=affectation.classe,
             type=AffectationClasse.RESPONSABLE,
             etat=AffectationClasse.ACTIVE,
-        )
+        ).order_by("pk")
     )
     if not peut_terminer_affectation(utilisateur, affectation, remplacement):
         raise ValidationError("Le dernier responsable doit d'abord être remplacé.")
