@@ -75,6 +75,10 @@ jobs:
           if (!(Test-Path $exe)) { throw "Exécutable installé introuvable : $exe" }
           & $exe --verifier-distribution
           if ($LASTEXITCODE -ne 0) { throw 'Le paquet installé par le setup est invalide.' }
+          $miseAJour = Start-Process -FilePath (Resolve-Path $setup).Path -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
+          if ($miseAJour.ExitCode -ne 0) { throw "Réinstallation du setup Windows impossible (code $($miseAJour.ExitCode))." }
+          & $exe --verifier-distribution
+          if ($LASTEXITCODE -ne 0) { throw 'Le paquet réinstallé par le setup est invalide.' }
           $uninstall = Join-Path $dossier 'unins000.exe'
           $desinstallation = Start-Process -FilePath $uninstall -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
           if ($desinstallation.ExitCode -ne 0) { throw "Désinstallation du setup Windows impossible (code $($desinstallation.ExitCode))." }

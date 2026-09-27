@@ -121,7 +121,9 @@ lanceur. Elle ne nécessite pas de droits administrateur :
 bash installer-paquet-linux.sh
 ```
 
-Sous Windows, ouvrir `PetitsPas/Installer-PetitsPas.cmd` dans l'Explorateur :
+L'artefact CI `PetitsPas-windows` contient une archive ZIP destinée aux essais
+techniques et au lancement sans assistant graphique. Sous Windows, ouvrir
+`PetitsPas/Installer-PetitsPas.cmd` dans l'Explorateur :
 un raccourci « Petits Pas » est créé dans le menu Démarrer. Le programme peut
 également être lancé directement depuis le dossier extrait. L’installateur
 affiche la progression de la vérification et de la copie
@@ -129,11 +131,13 @@ des fichiers. Le raccourci démarre le programme avec un journal conservé sous
 `%LOCALAPPDATA%\petits-pas\logs\dernier-demarrage.log` ; en cas d’erreur, la
 console reste ouverte et affiche le journal.
 
-Un **installateur graphique expérimental** est aussi construit par la CI
-Windows sous le nom `PetitsPas-Setup-<version>-x64.exe` (artefact
-`PetitsPas-Setup-windows`). Il installe le même dossier PyInstaller pour
+L'artefact CI `PetitsPas-Setup-windows` contient l'**installateur graphique
+recommandé pour les essais sur Windows** : extraire le ZIP enveloppe de GitHub
+Actions, puis ouvrir `PetitsPas-Setup-<version>-x64.exe`. Il installe le même dossier PyInstaller pour
 l'utilisateur courant, sans élévation, et ajoute une entrée de désinstallation
-Windows. La désinstallation laisse le paquet de données de l'école intact.
+Windows. S'il détecte une installation précédente réalisée avec le même setup,
+il annonce la version installée et demande confirmation avant de la remplacer.
+La désinstallation laisse le paquet de données de l'école intact.
 Le démarrage utilise encore le lanceur `.cmd` et sa console. Le paquet Windows
 embarque désormais les DLL Pango issues de MSYS2 UCRT64 et contrôle en CI la
 création d'un PDF minimal par l'exécutable construit. Ce contrôle ne remplace
@@ -225,9 +229,12 @@ Si le miroir GitHub contient ce changement et que ses Actions sont activées,
 l'action **Paquets autonomes Linux et Windows (prototype)** construit les deux
 dossiers à chaque modification du code sur `main`. Elle peut aussi être
 lancée depuis l'onglet **Actions → Run workflow**. Chaque exécution fournit
-les artefacts `PetitsPas-windows` et `PetitsPas-linux`. Télécharger l'artefact
-Windows et décompresser ses deux niveaux de ZIP (l'archive fournie par GitHub
-puis `PetitsPas-windows.zip`). Télécharger l'artefact Linux puis extraire
+les artefacts `PetitsPas-Setup-windows`, `PetitsPas-windows` et
+`PetitsPas-linux`. Pour essayer l'installation graphique Windows, télécharger
+`PetitsPas-Setup-windows` et extraire son ZIP enveloppe. L'artefact
+`PetitsPas-windows` fournit le dossier portable et l'ancien installateur
+en ligne de commande, après extraction de ses deux niveaux de ZIP.
+Télécharger l'artefact Linux puis extraire
 `PetitsPas-linux.tar.gz` ; ce binaire est construit sur Ubuntu 24.04 et
 nécessite les bibliothèques GTK/WebKit/Pango de la machine cible. Les Actions
 doivent être activées sur le miroir et le workflow présent sur sa branche
@@ -279,7 +286,9 @@ artefacts Actions permettent de tester sans tag.
 Pour les utilisateurs, le point d’entrée du site public est la
 [fiche de téléchargement](https://petits-pas.gitlabpages.inria.fr/petits-pas/guide/local/telecharger-programme/) :
 elle renvoie vers les versions GitHub publiées et distingue les archives Linux
-et Windows des artefacts temporaires d’Actions.
+et Windows des artefacts temporaires d’Actions. Le script de publication joint
+encore l'archive Windows, pas le setup graphique ; les releases existantes ne
+contiennent donc pas nécessairement ce dernier.
 La console reste visible pour diagnostiquer ce premier prototype. Le poste
 doit disposer du moteur Microsoft WebView2. Le programme lui-même n'a pas
 besoin d'une installation Python ou MSYS2 sur ce poste.

@@ -41,3 +41,22 @@ Name: "{group}\Désinstaller Petits Pas"; Filename: "{uninstallexe}"
 
 [Run]
 Filename: "{app}\Demarrer-PetitsPas.cmd"; Description: "Ouvrir Petits Pas"; Flags: postinstall nowait skipifsilent
+
+[Code]
+function InitializeSetup: Boolean;
+var
+  VersionInstallee: String;
+begin
+  Result := True;
+  if WizardSilent then
+    Exit;
+  if RegQueryStringValue(HKCU,
+    'Software\Microsoft\Windows\CurrentVersion\Uninstall\PetitsPas.Local.EmmanuelAgullo_is1',
+    'DisplayVersion', VersionInstallee) then
+    Result := MsgBox(
+      'Petits Pas ' + VersionInstallee + ' est déjà installé pour ce compte.' + #13#10 + #13#10 +
+      'Installer la version {#AppVersion} à sa place ?' + #13#10 +
+      'Les données de votre école et vos sauvegardes seront conservées.' + #13#10 +
+      'Fermez Petits Pas avant de continuer.',
+      mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES;
+end;

@@ -93,6 +93,16 @@ et extraire son ZIP enveloppe. Sur un poste Windows de test, ouvrir le fichier
 demande de droits administrateur, la progression, le menu Démarrer et l'entrée
 « Applications installées ». Après l'installation, ouvrir Petits Pas et refaire
 les contrôles de la première ouverture, de l'image, du PDF et du ZIP ci-dessus.
+L'artefact `PetitsPas-windows` de la même exécution est l'archive portable
+destinée aux essais techniques ; il reste utilisé par la procédure actuelle
+de publication des releases.
+Fermer Petits Pas, puis relancer le setup sur le même compte : il doit annoncer
+la version déjà installée, demander confirmation avant de la remplacer et
+conserver l'école. Refuser une fois pour vérifier que l'installation en place
+reste accessible, puis accepter et vérifier que les données sont retrouvées.
+Une installation antérieure effectuée seulement avec `Installer-PetitsPas.cmd`
+ne possède pas l'entrée de désinstallation du setup et ne déclenche donc pas
+ce message : vérifier la transition avec le raccourci du menu Démarrer.
 Le lancement ouvre encore une console dans ce prototype.
 Sur le poste Windows, agrandir puis restaurer la fenêtre avant de saisir les
 identifiants : la page doit rester réactive et le journal du dernier démarrage
@@ -105,7 +115,7 @@ installé par le setup, sans modifier les données. Fermer l'application, puis
 désinstaller depuis Windows ; vérifier que la base, les médias, la clé et les
 sauvegardes sont encore présents, et qu'une réinstallation retrouve l'école.
 Ne pas utiliser d'école réelle pour ce test. La CI contrôle seulement la
-construction, l'installation silencieuse, `--verifier-distribution` et la
+construction, l'installation et la réinstallation silencieuses, `--verifier-distribution` et la
 désinstallation ; elle ne prouve pas l'ouverture de PyWebView ni la création
 d'un PDF sur le poste de destination.
 
