@@ -101,6 +101,11 @@ def configurer_environnement(paquet, cle):
     os.environ["CARNET_STATIC_ROOT"] = str(paquet / "staticfiles")
     os.environ["CARNET_STATIC_URL"] = "/static/"
     os.environ["DJANGO_SETTINGS_MODULE"] = "carnet.settings"
+    if os.name == "nt" and getattr(sys, "frozen", False):
+        # _MEIPASS est le dossier _internal du paquet PyInstaller.
+        bibliotheques = Path(sys._MEIPASS)
+        if (bibliotheques / "libgobject-2.0-0.dll").is_file():
+            os.environ["WEASYPRINT_DLL_DIRECTORIES"] = str(bibliotheques)
 
 
 def proteger_avant_migration(paquet):
@@ -153,6 +158,15 @@ def verifier_distribution(projet):
         # L'import de webview seul ne charge pas pythonnet. Vérifier ici la
         # passerelle .NET réellement utilisée au démarrage sous Windows.
         import clr  # noqa: F401
+        if getattr(sys, "frozen", False):
+            for nom in ("libgobject-2.0-0.dll", "libglib-2.0-0.dll", "libpango-1.0-0.dll"):
+                if not (Path(sys._MEIPASS) / nom).is_file():
+                    raise RuntimeError(f"Bibliothèque PDF absente du paquet Windows : {nom}")
+        from weasyprint import HTML
+
+        pdf = HTML(string="<p>Vérification PDF Petits Pas</p>").write_pdf()
+        if not pdf.startswith(b"%PDF-"):
+            raise RuntimeError("Le paquet Windows ne produit pas de PDF.")
     else:
         import gi
 

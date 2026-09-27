@@ -34,7 +34,23 @@ imports += collect_submodules("suivi", filter=lambda nom: not nom.endswith(".tes
 if os.name == "nt":
     imports += ["webview.platforms.winforms", "webview.platforms.edgechromium"]
     donnees += collect_data_files("webview", includes=["lib/**"])
+    pango_bin = os.environ.get("PETITS_PAS_PANGO_BIN")
+    if not pango_bin:
+        raise RuntimeError("Définir PETITS_PAS_PANGO_BIN vers le dossier UCRT64/bin de MSYS2.")
+    dossier_pango = Path(pango_bin)
+    bibliotheques_pango = [
+        "libgobject-2.0-0.dll", "libpango-1.0-0.dll",
+        "libpangoft2-1.0-0.dll", "libharfbuzz-0.dll",
+        "libharfbuzz-subset-0.dll", "libfontconfig-1.dll",
+    ]
+    manquantes = [nom for nom in bibliotheques_pango if not (dossier_pango / nom).is_file()]
+    if manquantes:
+        raise FileNotFoundError(f"DLL Windows manquantes dans {dossier_pango} : {manquantes}")
+    # PyInstaller analyse les dépendances transitives de ces DLL et les place
+    # dans _internal ; WeasyPrint les cherchera dans ce dossier au lancement.
+    binaires = [(str(dossier_pango / nom), ".") for nom in bibliotheques_pango]
 else:
+    binaires = []
     imports += ["webview.platforms.gtk", "gi.repository.Gtk", "gi.repository.WebKit2"]
     # PyInstaller ne voit pas les imports dynamiques de PyWebView. Sur Guix,
     # les typelibs WebKit sont fournis par GI_TYPELIB_PATH et non par Python.
@@ -48,7 +64,7 @@ else:
 analyse = Analysis(
     [str(racine / "scripts" / "lancer-local.py")],
     pathex=[str(racine)],
-    binaries=[],
+    binaries=binaires,
     datas=donnees,
     hiddenimports=imports,
     hookspath=[],
