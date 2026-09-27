@@ -29,6 +29,16 @@ archives retenues pour la diffusion. Si aucune version avec ces deux fichiers
 n’apparaît encore, le programme autonome n’est pas encore publié pour ces
 deux systèmes.
 
+Pendant les essais Windows, une exécution GitHub Actions réussie fournit aussi
+`PetitsPas-Setup-windows` : c'est l'installateur graphique recommandé pour
+tester l'installation et la mise à jour. Après téléchargement, extraire le ZIP
+fourni par GitHub, puis ouvrir `PetitsPas-Setup-<version>-x64.exe`.
+L'autre artefact Windows, `PetitsPas-windows`, contient un dossier à extraire
+et à lancer directement, utile pour les essais techniques. La version 0.6
+publiée et la procédure de publication actuelle utilisent cette archive :
+la présence du setup dans Actions ne signifie pas qu'il figure déjà dans les
+versions publiées.
+
 Un même tag Git est poussé sur GitHub et sur le [dépôt de référence GitLab
 Inria](https://gitlab.inria.fr/petits-pas/petits-pas/-/releases). Une release
 GitLab peut également présenter des liens vers les mêmes archives GitHub.
