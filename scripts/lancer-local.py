@@ -330,17 +330,15 @@ def executer(paquet, projet, arguments):
 
     requetes = RLock()
     redemarrage_demande = Event()
+    fenetre = None
 
     class CommandesFenetre:
-        def __init__(self):
-            self.fenetre = None
-
         def appliquer_et_redemarrer(self):
             # L'API JS n'a accès à cette commande qu'après confirmation Django.
-            if restauration_en_attente() is None or self.fenetre is None:
+            if restauration_en_attente() is None or fenetre is None:
                 return False
             redemarrage_demande.set()
-            self.fenetre.destroy()
+            fenetre.destroy()
             return True
 
     commandes = CommandesFenetre()
@@ -378,7 +376,9 @@ def executer(paquet, projet, arguments):
                     raise RuntimeError("Le CSS local n'est pas servi correctement.")
         except Exception as exc:
             raise SystemExit(f"Échec du chargement du CSS local : {exc}") from exc
-        commandes.fenetre = webview.create_window(
+        # Ne pas placer l'objet fenêtre sur js_api : PyWebView parcourt les
+        # attributs publics de cet objet et récursait dans fenetre.native.
+        fenetre = webview.create_window(
             "Petits Pas", f"http://127.0.0.1:{serveur.server_port}/",
             js_api=commandes,
         )
