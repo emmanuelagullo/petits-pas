@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags: ['[0-9]*']
     paths:
       - .github/workflows/paquets-locaux.yml
       - requirements-paquet-local.txt
@@ -57,7 +58,14 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installation du compilateur Inno Setup impossible.' }
           $iscc = (Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
           if (!$iscc) { throw 'Compilateur ISCC.exe introuvable.' }
-          $version = "0.6-dev.$($env:GITHUB_SHA.Substring(0, 8))"
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $version = $env:GITHUB_REF_NAME
+            if ($version -notmatch '^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$') {
+              throw "Tag de version invalide : $version"
+            }
+          } else {
+            $version = "0.7-dev.$($env:GITHUB_SHA.Substring(0, 8))"
+          }
           $output = Join-Path (Get-Location) 'dist'
           & $iscc "/DAppVersion=$version" "/DOutputDir=$output" scripts/PetitsPas-Windows.iss
           if ($LASTEXITCODE -ne 0) { throw 'Construction du setup Windows impossible.' }

@@ -150,7 +150,7 @@ Pour construire l'installateur après le paquet PyInstaller, installer Inno
 Setup, puis exécuter :
 
 ```powershell
-& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.6-dev" "/DOutputDir=$((Resolve-Path dist).Path)" scripts\PetitsPas-Windows.iss
+& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.7-dev" "/DOutputDir=$((Resolve-Path dist).Path)" scripts\PetitsPas-Windows.iss
 ```
 
 Pour diagnostiquer une version
@@ -242,17 +242,19 @@ doivent être activées sur le miroir et le workflow présent sur sa branche
 par défaut pour que le lancement manuel soit disponible.
 Pour partager une construction avant validation, transmettre les artefacts
 Actions de la même exécution : aucun tag n'est créé. Après les essais Linux
-et Windows, créer **un seul tag Git local** sur le commit de l'exécution
-validée, puis le pousser vers les deux dépôts (remplacer le tag d'exemple) :
+et Windows et une CI verte sur le commit à publier, créer **un seul tag Git local**
+sur ce commit, puis le pousser vers les deux dépôts (remplacer le SHA d'exemple) :
 
 ```sh
-git tag -a v0.3.0-local.1 SHA_DU_COMMIT_VALIDE -m 'Petits Pas v0.3.0-local.1'
-git push inria v0.3.0-local.1
-git push github v0.3.0-local.1
+git tag -a 0.7 SHA_DU_COMMIT_VALIDE -m 'Petits Pas 0.7'
+git push inria 0.7
+git push github 0.7
 ```
 
-Après avoir poussé le tag, publier le setup Windows et les archives de
-l’exécution validée :
+Le push du tag GitHub lance une nouvelle exécution du workflow des paquets :
+attendre qu'elle soit verte et utiliser **son numéro** pour publier le setup
+Windows `PetitsPas-Setup-0.7-x64.exe` et les archives. Le script refuse un
+setup `0.7-dev.*` provenant du push sur `main` :
 
 ```sh
 bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
@@ -272,7 +274,7 @@ vérifier son SHA dans GitHub Actions puis lancer :
 
 ```sh
 bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG \
-  /chemin/PetitsPas-linux.tar.gz /chemin/PetitsPas-Setup-VERSION-x64.exe \
+  /chemin/PetitsPas-linux.tar.gz /chemin/PetitsPas-Setup-0.7-x64.exe \
   /chemin/PetitsPas-windows.zip SHA_DU_COMMIT
 ```
 
