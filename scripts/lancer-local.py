@@ -113,22 +113,26 @@ def configurer_environnement(paquet, cle):
             os.environ["WEASYPRINT_DLL_DIRECTORIES"] = str(bibliotheques)
 
 
-def proteger_avant_migration(paquet):
-    """Conserver la base précédente seulement si le schéma doit changer."""
+def migration_necessaire(paquet):
+    """Repérer un schéma existant à faire évoluer avant d'ouvrir la progression."""
     base = paquet / "carnet.sqlite3"
     if not base.is_file():
-        return
+        return False
     with closing(sqlite3.connect(base)) as connexion:
         if not connexion.execute(
             "SELECT 1 FROM sqlite_master WHERE name = 'django_migrations'"
         ).fetchone():
-            return
+            return False
     from django.db import connection
     from django.db.migrations.executor import MigrationExecutor
 
     executeur = MigrationExecutor(connection)
-    if not executeur.migration_plan(executeur.loader.graph.leaf_nodes()):
-        return False
+    return bool(executeur.migration_plan(executeur.loader.graph.leaf_nodes()))
+
+
+def proteger_avant_migration(paquet):
+    """Copier la base avant de modifier son schéma."""
+    base = paquet / "carnet.sqlite3"
     sauvegardes = paquet / "sauvegardes-migrations"
     sauvegardes.mkdir(exist_ok=True)
     chemin = sauvegardes / f"avant-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
@@ -138,7 +142,6 @@ def proteger_avant_migration(paquet):
             chemin.unlink()
             raise RuntimeError("La sauvegarde avant migration est invalide.")
     print(f"Copie de la base avant migration : {chemin}")
-    return True
 
 
 @contextmanager
@@ -149,23 +152,38 @@ def progression_migration():
         return
     titre = "Petits Pas — mise à jour de l'école"
     fenetre = ctypes.windll.user32
+    # Les handles Windows sont des pointeurs 64 bits sur les postes x64.
+    fenetre.FindWindowW.restype = ctypes.c_void_p
+    fenetre.GetDlgItem.argtypes = (ctypes.c_void_p, ctypes.c_int)
+    fenetre.EnableWindow.argtypes = (ctypes.c_void_p, ctypes.c_bool)
+    fenetre.GetSystemMenu.argtypes = (ctypes.c_void_p, ctypes.c_bool)
+    fenetre.GetSystemMenu.restype = ctypes.c_void_p
+    fenetre.EnableMenuItem.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_uint)
+    fenetre.DrawMenuBar.argtypes = (ctypes.c_void_p,)
+    fenetre.PostMessageW.argtypes = (ctypes.c_void_p, ctypes.c_uint, ctypes.c_size_t, ctypes.c_ssize_t)
     fil = Thread(
         target=fenetre.MessageBoxW,
         args=(None, "Mise à jour de l'école en cours. Merci de patienter.", titre, 0),
         daemon=True,
     )
     fil.start()
+    handle = None
+    for _ in range(30):
+        handle = fenetre.FindWindowW(None, titre)
+        if handle:
+            # MessageBox affiche normalement « OK ». Neutraliser ce bouton
+            # et la fermeture système pour toute la durée de l'opération.
+            fenetre.EnableWindow(fenetre.GetDlgItem(handle, 1), False)
+            menu = fenetre.GetSystemMenu(handle, False)
+            fenetre.EnableMenuItem(menu, 0xF060, 0x0001)  # SC_CLOSE, MF_GRAYED
+            fenetre.DrawMenuBar(handle)
+            break
+        time.sleep(0.1)
     try:
         yield
     finally:
-        # La boîte de progression reste visible jusqu'à la fin des migrations,
-        # y compris quand celles-ci échouent. L'erreur est ensuite journalisée.
-        for _ in range(30):
-            handle = fenetre.FindWindowW(None, titre)
-            if handle:
-                fenetre.PostMessageW(handle, 0x10, 0, 0)  # WM_CLOSE
-                break
-            time.sleep(0.1)
+        if handle:
+            fenetre.PostMessageW(handle, 0x10, 0, 0)  # WM_CLOSE
         fil.join(timeout=1)
 
 
@@ -353,9 +371,10 @@ def executer(paquet, projet, arguments):
     django.setup()
     call_command("collectstatic", interactive=False, verbosity=0)
     application = get_wsgi_application()
-    migration = proteger_avant_migration(paquet)
+    migration = migration_necessaire(paquet)
     if migration:
         with progression_migration():
+            proteger_avant_migration(paquet)
             call_command("migrate", interactive=False, verbosity=0)
         print("Mise à jour de l'école terminée.")
         if os.name == "nt" and getattr(sys, "frozen", False):
