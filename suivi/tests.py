@@ -4206,6 +4206,35 @@ class PreattributionInvitation(Base):
         self.assertContains(reponse, "vous connecter dès maintenant")
 
 
+class MarquageInvitationsExpirees(Base):
+    def test_seules_les_invitations_en_attente_et_expirees_sont_marquees(self):
+        expiree, _ = inviter(
+            utilisateur=self.direction, ecole=self.ecole, email="expiree@example.test"
+        )
+        expiree.expire_le = timezone.now() - timedelta(minutes=1)
+        expiree.save(update_fields=["expire_le"])
+        valide, _ = inviter(
+            utilisateur=self.direction, ecole=self.ecole, email="valide@example.test"
+        )
+        revoquee, _ = inviter(
+            utilisateur=self.direction, ecole=self.ecole, email="revoquee@example.test"
+        )
+        revoquee.expire_le = timezone.now() - timedelta(minutes=1)
+        revoquee.etat = Invitation.REVOQUEE
+        revoquee.save(update_fields=["expire_le", "etat"])
+        sortie = StringIO()
+
+        call_command("marquer_invitations_expirees", stdout=sortie)
+
+        expiree.refresh_from_db()
+        valide.refresh_from_db()
+        revoquee.refresh_from_db()
+        self.assertEqual(expiree.etat, Invitation.EXPIREE)
+        self.assertEqual(valide.etat, Invitation.EN_ATTENTE)
+        self.assertEqual(revoquee.etat, Invitation.REVOQUEE)
+        self.assertIn("1 invitation(s) marquée(s)", sortie.getvalue())
+
+
 class VerificationEnvoiEmail(TestCase):
     def test_envoie_un_message_de_verification(self):
         sortie = StringIO()
