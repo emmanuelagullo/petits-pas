@@ -13,8 +13,9 @@ statut = "partiel"
 ## Choisir un téléchargement
 
 Ouvrez les [versions de Petits Pas](https://github.com/emmanuelagullo/petits-pas/releases)
-avec la personne qui organise votre essai. Dans une **préversion de test**,
-repérez les fichiers à télécharger :
+avec la personne qui organise votre essai. La version **0.7** et les versions
+suivantes proposent un installateur Windows. Repérez le fichier adapté à votre
+ordinateur :
 
 | Votre ordinateur | Fichier à choisir | Que faire ensuite ? |
 | --- | --- | --- |
@@ -26,7 +27,7 @@ d’une ancienne méthode d’installation qui demande des manipulations
 techniques. Ne l’utilisez pas pour une première installation accompagnée :
 demandez le nouvel installateur à la personne qui organise votre essai.
 L’archive Windows reste disponible pour les vérifications de l’équipe
-technique. La version 0.6 publiée appartient encore à cette ancienne méthode.
+technique. La version 0.6 utilise encore cette ancienne méthode.
 
 Les fichiers **Source code** sont le code du projet, pas le programme prêt
 à installer. Un fichier transmis pour un essai avant publication peut être
@@ -37,3 +38,7 @@ fichiers à télécharger.
 Poursuivez avec la [fiche d’installation et de mise à jour]({{< relref "/guide/local/installer-programme.md" >}}).
 Le programme et les données de l’école sont conservés séparément : installer
 une nouvelle version du programme ne supprime pas l’école ni ses sauvegardes.
+Le numéro de la version installée est visible dans Petits Pas. Un fichier
+transmis pour un essai avant publication peut porter une mention « dev » :
+elle aide la personne qui organise l’essai à reconnaître exactement ce
+programme.
