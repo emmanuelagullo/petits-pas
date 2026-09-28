@@ -13,8 +13,8 @@ statut = "partiel"
 ## Sur Windows : installer et ouvrir
 
 1. Depuis la [page de téléchargement]({{< relref "/guide/local/telecharger-programme.md" >}}),
-   choisissez **PetitsPas-Setup-…-x64.exe** dans une préversion de test qui le
-   propose. Si le fichier provient d’un essai transmis par l’équipe du projet,
+   choisissez **PetitsPas-Setup-…-x64.exe** dans la version choisie. Si le fichier
+   provient d’un essai transmis par l’équipe du projet,
    décompressez d’abord le téléchargement : vous trouverez le même fichier à
    ouvrir à l’intérieur. Les versions qui ne proposent qu’une archive ZIP
    correspondent à une ancienne méthode d’installation ; demandez le nouvel
