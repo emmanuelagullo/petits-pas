@@ -15,6 +15,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Commande =marquer_invitations_expirees=, à planifier périodiquement, pour
+  refléter en base l'expiration des invitations plutôt que de la recalculer
+  uniquement à l'affichage.
 - Identifiant conservé après un échec de connexion (jamais le mot de
   passe), focus reporté sur le mot de passe : plus besoin de tout retaper.
 - Message de connexion distinct pour un compte valide mais sans fonction

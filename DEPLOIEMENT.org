@@ -163,6 +163,23 @@ et =AXES_IPWARE_META_PRECEDENCE_ORDER=, à valider sur l'hébergeur concerné.
 
 * Sondes
 
+** Invitations expirées
+
+Les invitations dont la date limite est dépassée restent inutilisables
+immédiatement (=invitation_est_utilisable= vérifie aussi la date), mais leur
+état en base ne bascule à =EXPIREE= qu'à l'exécution de :
+
+#+begin_src sh
+python manage.py marquer_invitations_expirees
+#+end_src
+
+À planifier périodiquement (quotidien suffit) sur les déploiements
+persistants — via un job planifié de l'hébergeur (Render : *Cron Job*) ou une
+tâche =cron= classique. Sans planification, la conséquence se limite à un
+état affiché « En attente » un peu après l'expiration réelle dans la liste
+équipe (qui recalcule =est_expiree= dynamiquement à l'affichage) : rien de
+fonctionnellement cassé, juste moins net.
+
 La sonde non authentifiée =GET /health/= renvoie :
 
 - =200 {"status": "ok"}= lorsque Django peut interroger PostgreSQL ;
