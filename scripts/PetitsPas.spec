@@ -18,6 +18,7 @@ if racine is None:
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "carnet.settings")
 
 donnees = [
+    (str(racine / "version-application.txt"), "."),
     (str(racine / "suivi" / "templates"), "suivi/templates"),
     (str(racine / "suivi" / "static"), "suivi/static"),
     (str(racine / "referentiel"), "referentiel"),

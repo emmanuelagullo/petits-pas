@@ -4,6 +4,11 @@ param([string]$PythonExecutable = '')
 $ErrorActionPreference = 'Stop'
 Set-Location (Split-Path -Parent $PSScriptRoot)
 
+$pythonSource = if ($PythonExecutable) { $PythonExecutable } else { 'python' }
+$version = (& $pythonSource -m carnet.version).Trim()
+if ($LASTEXITCODE -ne 0 -or !$version) { throw 'Version de Petits Pas indisponible.' }
+Set-Content -LiteralPath version-application.txt -Value $version -Encoding utf8
+
 if (!(Test-Path .venv-paquet\Scripts\python.exe)) {
     if ($PythonExecutable) {
         & $PythonExecutable -m venv .venv-paquet

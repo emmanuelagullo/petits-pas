@@ -2,12 +2,14 @@
 """Ouvrir le Django existant dans une fenêtre locale PyWebView (#L1)."""
 
 import argparse
+import ctypes
 import os
 import secrets
 import shutil
 import sqlite3
 import sys
 import tempfile
+import time
 from contextlib import closing, contextmanager, redirect_stderr, redirect_stdout
 from datetime import datetime
 from pathlib import Path
@@ -91,6 +93,8 @@ def copier_paquet(source, destination):
 
 
 def configurer_environnement(paquet, cle):
+    # Une ancienne configuration serveur ne doit pas masquer la version du programme installé.
+    os.environ.pop("CARNET_VERSION", None)
     os.environ["CARNET_DEBUG"] = "0"
     os.environ["CARNET_MODE_LOCAL"] = "oui"
     os.environ["CARNET_HOSTS"] = "127.0.0.1,localhost"
@@ -124,7 +128,7 @@ def proteger_avant_migration(paquet):
 
     executeur = MigrationExecutor(connection)
     if not executeur.migration_plan(executeur.loader.graph.leaf_nodes()):
-        return
+        return False
     sauvegardes = paquet / "sauvegardes-migrations"
     sauvegardes.mkdir(exist_ok=True)
     chemin = sauvegardes / f"avant-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
@@ -134,6 +138,35 @@ def proteger_avant_migration(paquet):
             chemin.unlink()
             raise RuntimeError("La sauvegarde avant migration est invalide.")
     print(f"Copie de la base avant migration : {chemin}")
+    return True
+
+
+@contextmanager
+def progression_migration():
+    """Informer pendant une migration Windows sans exposer une console."""
+    if os.name != "nt" or not getattr(sys, "frozen", False):
+        yield
+        return
+    titre = "Petits Pas — mise à jour de l'école"
+    fenetre = ctypes.windll.user32
+    fil = Thread(
+        target=fenetre.MessageBoxW,
+        args=(None, "Mise à jour de l'école en cours. Merci de patienter.", titre, 0),
+        daemon=True,
+    )
+    fil.start()
+    try:
+        yield
+    finally:
+        # La boîte de progression reste visible jusqu'à la fin des migrations,
+        # y compris quand celles-ci échouent. L'erreur est ensuite journalisée.
+        for _ in range(30):
+            handle = fenetre.FindWindowW(None, titre)
+            if handle:
+                fenetre.PostMessageW(handle, 0x10, 0, 0)  # WM_CLOSE
+                break
+            time.sleep(0.1)
+        fil.join(timeout=1)
 
 
 def verifier_distribution(projet):
@@ -320,8 +353,18 @@ def executer(paquet, projet, arguments):
     django.setup()
     call_command("collectstatic", interactive=False, verbosity=0)
     application = get_wsgi_application()
-    proteger_avant_migration(paquet)
-    call_command("migrate", interactive=False, verbosity=0)
+    migration = proteger_avant_migration(paquet)
+    if migration:
+        with progression_migration():
+            call_command("migrate", interactive=False, verbosity=0)
+        print("Mise à jour de l'école terminée.")
+        if os.name == "nt" and getattr(sys, "frozen", False):
+            ctypes.windll.user32.MessageBoxW(
+                None, "La mise à jour de l'école est terminée. Petits Pas va s'ouvrir.",
+                "Petits Pas", 0x40,
+            )
+    else:
+        call_command("migrate", interactive=False, verbosity=0)
     referentiel = projet / "referentiel" / "trame-cycle1.yaml"
     if arguments.creer_ecole:
         from suivi.models import Ecole
