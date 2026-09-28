@@ -140,6 +140,15 @@ class Command(BaseCommand):
         else:
             etat_email = "non configuré"
         self.stdout.write(f"- Courriel : {etat_email}")
+        if settings.ANTIBRUTEFORCE_ACTIF:
+            minutes = int(settings.AXES_COOLOFF_TIME.total_seconds() // 60)
+            etat_antibruteforce = (
+                f"actif ({settings.AXES_FAILURE_LIMIT} échecs, "
+                f"blocage de {minutes} min)"
+            )
+        else:
+            etat_antibruteforce = "inactif"
+        self.stdout.write(f"- Anti-bruteforce à la connexion : {etat_antibruteforce}")
 
         erreurs = []
 

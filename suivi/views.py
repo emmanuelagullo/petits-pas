@@ -190,15 +190,29 @@ def direction_requise(vue):
     return _vue
 
 
+def _tracer_echec_connexion(request, nom_utilisateur):
+    """Trace minimale d'un échec d'authentification (jamais le mot de passe).
+
+    django-axes conserve le détail des tentatives quand il est actif ; cette
+    ligne garantit une trace dans les journaux du serveur dans tous les cas.
+    %r neutralise les retours à la ligne éventuels de l'identifiant saisi."""
+    logger.warning(
+        "Échec de connexion pour %r depuis %s",
+        nom_utilisateur,
+        request.META.get("REMOTE_ADDR", "?"),
+    )
+
+
 def connexion(request):
     if settings.MODE_LOCAL and not Ecole.objects.exists() and not Utilisateur.objects.exists():
         return redirect("installation_locale")
     if request.user.is_authenticated:
         return redirect("accueil")
     if request.method == "POST":
+        nom_utilisateur = request.POST.get("nom_utilisateur", "").strip()
         utilisateur = authenticate(
             request,
-            username=request.POST.get("nom_utilisateur", "").strip(),
+            username=nom_utilisateur,
             password=request.POST.get("mot_de_passe", ""),
         )
         if utilisateur:
@@ -226,6 +240,7 @@ def connexion(request):
                     request, "Nom d'utilisateur ou mot de passe incorrect."
                 )
         else:
+            _tracer_echec_connexion(request, nom_utilisateur)
             messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
     return render(request, "suivi/connexion.html")
 
@@ -402,12 +417,14 @@ def accepter_invitation_vue(request, selecteur, jeton):
         )
     if request.method == "POST":
         if compte_existant:
+            nom_utilisateur = request.POST.get("nom_utilisateur", "").strip()
             utilisateur = authenticate(
                 request,
-                username=request.POST.get("nom_utilisateur", "").strip(),
+                username=nom_utilisateur,
                 password=request.POST.get("mot_de_passe", ""),
             )
             if not utilisateur:
+                _tracer_echec_connexion(request, nom_utilisateur)
                 messages.error(
                     request, "Nom d'utilisateur ou mot de passe incorrect."
                 )

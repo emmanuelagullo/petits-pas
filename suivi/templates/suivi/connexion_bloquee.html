@@ -1,0 +1,10 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Trop de tentatives{% endblock %}
+{% block contenu %}
+<h1>Trop de tentatives de connexion</h1>
+<div class="encadre">
+  <p>Par mesure de sécurité, les nouvelles tentatives de connexion avec cet identifiant sont bloquées quelques instants depuis cette adresse.</p>
+  <p class="aide">Réessayez un peu plus tard.</p>
+</div>
+{% if email_disponible %}<p><a href="{% url 'mot_de_passe_oublie' %}">Mot de passe oublié ?</a></p>{% else %}<p class="aide">Mot de passe oublié ? Contactez la direction de l’école.</p>{% endif %}
+{% endblock %}
