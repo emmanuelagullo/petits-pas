@@ -2601,6 +2601,51 @@ class DiagnosticDeploiement(TestCase):
 
         self.assertIn("Profil persistant valide", sortie.getvalue())
 
+    def test_profil_local_exige_un_repertoire_prive_et_verifie_son_contenu(self):
+        with TemporaryDirectory() as dossier:
+            configuration = {
+                "DEBUG": False,
+                "SECRET_KEY": "une-cle-distincte-et-secrete",
+                "ALLOWED_HOSTS": ["exemple.invalid"],
+                "CSRF_TRUSTED_ORIGINS": ["https://exemple.invalid"],
+                "SECURE_PROXY_SSL_HEADER": ("HTTP_X_FORWARDED_PROTO", "https"),
+                "SECURE_SSL_REDIRECT": True,
+                "SESSION_COOKIE_SECURE": True,
+                "CSRF_COOKIE_SECURE": True,
+                "EMAIL_CONFIGURATION_EXPLICITE": True,
+                "ENVIRONNEMENT_ATELIER": False,
+                "MEDIA_ROOT": dossier,
+                "STORAGES": {
+                    "default": {
+                        "BACKEND": "django.core.files.storage.FileSystemStorage"
+                    },
+                },
+            }
+            with (
+                override_settings(**configuration),
+                patch.object(settings, "DATABASES", {
+                    "default": {"ENGINE": "django.db.backends.postgresql"}
+                }),
+                patch.dict(os.environ, {"CARNET_MEDIA_ROOT": dossier}),
+            ):
+                sortie = StringIO()
+                call_command(
+                    "diagnostiquer_deploiement",
+                    "--exiger-persistant-local",
+                    stdout=sortie,
+                )
+                self.assertIn("Profil persistant local valide", sortie.getvalue())
+                call_command("verifier_stockage_local", stdout=StringIO())
+                self.assertEqual(list(Path(dossier).rglob("*.txt")), [])
+
+                with override_settings(MEDIA_ROOT=settings.BASE_DIR / "media"):
+                    with self.assertRaisesMessage(CommandError, "répertoire du code"):
+                        call_command(
+                            "diagnostiquer_deploiement",
+                            "--exiger-persistant-local",
+                            stdout=StringIO(),
+                        )
+
     @override_settings(
         DEBUG=False,
         SECRET_KEY="une-cle-distincte-et-secrete",

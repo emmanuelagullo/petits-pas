@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -28,6 +31,11 @@ class Command(BaseCommand):
                 "Exige le profil persistant et la confirmation explicite "
                 "d'un atelier à données exclusivement factices."
             ),
+        )
+        parser.add_argument(
+            "--exiger-persistant-local",
+            action="store_true",
+            help="Exige PostgreSQL et des médias privés sur un disque persistant.",
         )
 
     def handle(self, *args, **options):
@@ -154,8 +162,6 @@ class Command(BaseCommand):
 
         if not postgresql:
             erreurs.append("la base n'est pas PostgreSQL")
-        if not s3:
-            erreurs.append("les médias ne sont pas stockés sur S3")
         if settings.DEBUG:
             erreurs.append("DEBUG est activé")
         if not cle_secrete_configuree:
@@ -183,7 +189,32 @@ class Command(BaseCommand):
                 "le courriel n'est ni configuré ni désactivé explicitement"
             )
 
-        erreurs_atelier = list(erreurs)
+        erreurs_s3 = list(erreurs)
+        if not s3:
+            erreurs_s3.append("les médias ne sont pas stockés sur S3")
+
+        erreurs_local = list(erreurs)
+        if atelier or ephemere:
+            erreurs_local.append("l'environnement n'est pas persistant ordinaire")
+        if stockage != "django.core.files.storage.FileSystemStorage":
+            erreurs_local.append("le stockage des médias n'est pas local")
+        if not os.environ.get("CARNET_MEDIA_ROOT"):
+            erreurs_local.append("CARNET_MEDIA_ROOT n'est pas défini explicitement")
+        racine = Path(settings.MEDIA_ROOT)
+        if not racine.is_absolute():
+            erreurs_local.append("CARNET_MEDIA_ROOT n'est pas absolu")
+        else:
+            racine = racine.resolve()
+            code = Path(settings.BASE_DIR).resolve()
+            statiques = Path(settings.STATIC_ROOT).resolve()
+            if racine == code or code in racine.parents:
+                erreurs_local.append("les médias sont dans le répertoire du code")
+            if racine == statiques or statiques in racine.parents:
+                erreurs_local.append("les médias sont dans les fichiers statiques")
+            if not racine.is_dir():
+                erreurs_local.append("le répertoire des médias n'existe pas")
+
+        erreurs_atelier = list(erreurs_s3)
         if not atelier:
             erreurs_atelier.append(
                 "CARNET_ENVIRONNEMENT_ATELIER ne vaut pas oui"
@@ -200,12 +231,21 @@ class Command(BaseCommand):
                 "Profil atelier invalide : " + "; ".join(erreurs_atelier)
             )
 
-        if options["exiger_persistant"] and erreurs:
+        if options["exiger_persistant"] and erreurs_s3:
             raise CommandError(
-                "Profil persistant invalide : " + "; ".join(erreurs)
+                "Profil persistant invalide : " + "; ".join(erreurs_s3)
             )
 
-        if erreurs:
+        if options["exiger_persistant_local"]:
+            if erreurs_local:
+                raise CommandError(
+                    "Profil persistant local invalide : "
+                    + "; ".join(erreurs_local)
+                )
+            self.stdout.write(self.style.SUCCESS("Profil persistant local valide."))
+            return
+
+        if erreurs_s3:
             self.stdout.write(
                 self.style.WARNING(
                     "Profil de développement ou de démonstration : "
