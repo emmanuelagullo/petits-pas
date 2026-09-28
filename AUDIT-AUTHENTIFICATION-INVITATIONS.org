@@ -218,16 +218,25 @@ détachable et peut être traité en parallèle des autres.
 - Logiquement après le Jalon 3 (sinon un compte bloqué sans reset
   disponible laisse l'utilisateur sans issue).
 
-** Jalon 6 — #C7 Bascule vers les vues de connexion standard Django
+** Jalon 6 — #C7 Bascule vers les vues de connexion standard Django — abandonné
 
-- Remplacer =connexion()= par
-  =django.contrib.auth.views.LoginView= avec un
-  =AuthenticationForm= personnalisé si besoin (conserve la
-  vérification d'école après connexion via =get_success_url= ou le
-  formulaire).
-- Bénéfice : moins de code maison à maintenir, meilleure
-  compatibilité avec =django-axes=, qui s'accroche à
-  =AuthenticationForm=.
+Envisagé initialement pour deux raisons : moins de code maison, et une
+meilleure compatibilité avec =django-axes=. La seconde raison a disparu
+avec le Jalon 5 (#C6) : =connexion()= appelle déjà =authenticate(request,
+...)=, ce qui suffit à =axes= — vérifié par les tests d'anti-bruteforce.
+
+Reste le bénéfice de code, mais =connexion()= a grossi au fil des
+jalons précédents (redirection du mode local, distinction membre sans
+fonction, retour sur la page demandée) : =LoginView.form_valid()=
+appelle lui-même =login()=, donc le reprendre demanderait de le
+surcharger presque entièrement, pour un gain surtout esthétique et un
+risque de régression réel — notamment en mode local, non testable
+ici. Décision : conserver =connexion()= telle quelle.
+
+À la place, correctif d'ergonomie ciblé : l'identifiant saisi est
+conservé après un échec de connexion (jamais le mot de passe), avec le
+focus reporté sur le champ mot de passe — pour ne pas avoir à tout
+retaper, ce qui compte double une fois l'anti-bruteforce en place.
 
 ** Jalon 7 — #C8 2FA pour la direction et le personnel
 
