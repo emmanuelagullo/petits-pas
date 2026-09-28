@@ -38,6 +38,19 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
 - Limiter chaque modification au besoin demandé ; éviter les refontes
   incidentes. Suivre les conventions des fichiers voisins.
 
+## Commits et livraisons
+
+- Rédiger le sujet des commits en français et reprendre le repère du chantier
+  lorsqu'il existe. Pour la phase 5 :
+  `Phase 5: #C6a clarifier le message de connexion et le diagnostic d'envoi`.
+  Pour le mode autonome : `#L5 : publier les mêmes archives depuis un tag commun aux deux forges`.
+  Conserver les suffixes des sous-étapes (`#C6b`, `#L6b`, etc.) plutôt que
+  d'inventer un nouveau jalon à chaque correction. Sans repère de chantier,
+  choisir un sujet français descriptif.
+- Pour les contributions préparées par un agent, livrer un patch applicable
+  avec `git am`, sur le `main` récent. Aucun `Signed-off-by` n'est
+  nécessaire. Vérifier que le patch s'applique avant de le remettre.
+
 ## Vérifications
 
 Exécuter les vérifications pertinentes pour les fichiers modifiés. Les commandes
