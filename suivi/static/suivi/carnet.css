@@ -38,6 +38,7 @@ a { color: var(--lien); }
 
 /* ---------- Ossature ---------- */
 
+.version-application { margin: 2rem 1rem 1rem; color: #555; font-size: .85rem; text-align: right; }
 .bandeau-environnement {
   display: flex;
   justify-content: center;

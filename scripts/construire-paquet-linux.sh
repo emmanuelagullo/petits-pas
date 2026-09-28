@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
+python3 -m carnet.version > version-application.txt
 
 # Guix peut fournir PyGObject et WebKit dans le shell actif.
 venv_construction=$(mktemp -d "${TMPDIR:-/tmp}/petits-pas-construction-XXXXXXXX")

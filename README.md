@@ -1,5 +1,23 @@
 # Petits Pas
 
+## Versions
+
+Un tag numérique (par exemple `0.8`) identifie la même version du code sur
+serveur et dans les paquets autonomes. Entre deux tags, l'application affiche
+`dev.<commit>` ; ce suffixe identifie le code, sans présumer du numéro de la
+prochaine release. La version est intégrée aux archives au moment de leur
+construction. Pousser un tag après un commit nécessite donc une nouvelle
+construction des paquets de release.
+
+Sur Render, `RENDER_GIT_COMMIT` identifie le code effectivement déployé. Au
+démarrage, l'application recherche dans la forge un tag numérique qui pointe exactement sur
+ce commit dans le dépôt public (`PETITS_PAS_DEPOT_VERSIONS` permet de choisir
+le miroir GitLab). Sans tag accessible, elle affiche `dev.<commit>`. Après la
+création d'un tag sur un commit déjà déployé, un redémarrage du service suffit
+à actualiser la version affichée ; le contenu du code ne change pas. Un
+hébergement sans Render peut définir `CARNET_VERSION` lorsqu'il
+contrôle explicitement la version promue.
+
 Petits Pas est une application libre de suivi des apprentissages en école
 maternelle. Elle vise à offrir aux équipes pédagogiques un outil simple pour
 documenter les observations, préparer les bilans et produire les carnets

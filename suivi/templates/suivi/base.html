@@ -72,5 +72,8 @@
   {% endif %}
   {% block contenu %}{% endblock %}
 </main>
+{% if version_application and not generation_pdf %}
+<footer class="version-application">Petits Pas — version {{ version_application }}</footer>
+{% endif %}
 </body>
 </html>

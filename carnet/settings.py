@@ -5,6 +5,7 @@ from pathlib import Path
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+from .version import version_application
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,7 +24,7 @@ ENVIRONNEMENT_EPHEMERE = (
     os.environ.get("CARNET_ENVIRONNEMENT_EPHEMERE", "") == "oui"
 )
 MODE_LOCAL = os.environ.get("CARNET_MODE_LOCAL", "") == "oui"
-VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip()
+VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip() or version_application()
 # Anti-bruteforce sur la connexion (django-axes). Actif par défaut, sauf pour
 # l'installation autonome mono-poste (non exposée au réseau, et dont le paquet
 # PyInstaller n'embarque pas axes). CARNET_ANTIBRUTEFORCE=oui|non surcharge.
