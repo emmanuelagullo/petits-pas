@@ -8,9 +8,9 @@
   <label for="nom_utilisateur">Nom d'utilisateur
     <span class="aide">Celui associé à votre compte Petits Pas.</span>
   </label>
-  <input type="text" id="nom_utilisateur" name="nom_utilisateur" autocomplete="username" autofocus required>
+  <input type="text" id="nom_utilisateur" name="nom_utilisateur" autocomplete="username" value="{{ nom_utilisateur|default:'' }}" {% if not nom_utilisateur %}autofocus{% endif %} required>
   <label for="mdp">Mot de passe</label>
-  <input type="password" id="mdp" name="mot_de_passe" autocomplete="current-password" required>
+  <input type="password" id="mdp" name="mot_de_passe" autocomplete="current-password" {% if nom_utilisateur %}autofocus{% endif %} required>
   {% if email_disponible %}<p class="aide"><a href="{% url 'mot_de_passe_oublie' %}">Mot de passe oublié ?</a></p>{% else %}<p class="aide">Mot de passe oublié ? Contactez la direction de l’école.</p>{% endif %}
   <div class="actions"><button class="bouton" type="submit">Entrer</button></div>
 </form>

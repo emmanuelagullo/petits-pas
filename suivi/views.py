@@ -242,6 +242,9 @@ def connexion(request):
         else:
             _tracer_echec_connexion(request, nom_utilisateur)
             messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+        return render(
+            request, "suivi/connexion.html", {"nom_utilisateur": nom_utilisateur}
+        )
     return render(request, "suivi/connexion.html")
 
 

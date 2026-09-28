@@ -334,6 +334,20 @@ class Acces(Base):
         self.entrer("nimporte")
         self.assertNotIn("_auth_user_id", self.client.session)
 
+    def test_l_identifiant_est_conserve_apres_un_echec(self):
+        reponse = self.client.post(
+            reverse("connexion"),
+            {
+                "nom_utilisateur": self.enseignant.username,
+                "mot_de_passe": "nimporte",
+            },
+        )
+
+        self.assertContains(
+            reponse, f'value="{self.enseignant.username}"'
+        )
+        self.assertContains(reponse, 'id="mdp" name="mot_de_passe" autocomplete="current-password" autofocus')
+
     def test_compte_desactive_refuse(self):
         self.enseignant.is_active = False
         self.enseignant.save(update_fields=["is_active"])

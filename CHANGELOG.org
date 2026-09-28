@@ -15,6 +15,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Identifiant conservé après un échec de connexion (jamais le mot de
+  passe), focus reporté sur le mot de passe : plus besoin de tout retaper.
 - Message de connexion distinct pour un compte valide mais sans fonction
   attribuée, plutôt que le message générique « mot de passe incorrect ».
 - Diagnostic enrichi de `verifier_envoi_email` : détection des domaines
