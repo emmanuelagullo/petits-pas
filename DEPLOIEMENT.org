@@ -3,7 +3,7 @@
 * Objet
 
 Ce document décrit les ressources et réglages attendus par le profil
-persistant de Petits Pas. Il sert d’interface entre l’application et
+persistant de Petits Pas, avec stockage objet ou médias locaux. Il sert d’interface entre l’application et
 l’hébergeur ; il ne prescrit ni fournisseur, ni orchestrateur particulier.
 
 Le fichier =.env.example= récapitule les variables sous une forme directement
@@ -13,11 +13,12 @@ secrets doivent être injectés par la plate-forme de déploiement.
 * Ressources nécessaires
 
 - une base PostgreSQL joignable par l’application ;
-- un bucket privé compatible avec l’API S3 ;
+- un bucket privé compatible avec l’API S3 ou un répertoire persistant privé
+  sur disque, hors du dépôt et des fichiers statiques ;
 - un proxy HTTPS transmettant =X-Forwarded-Proto: https= ;
 - un mécanisme externe de sauvegarde et de rétention.
 
-Le bucket doit exister avant le démarrage. Les identifiants de l’application
+Pour la variante S3, le bucket doit exister avant le démarrage. Les identifiants de l’application
 doivent permettre au minimum la création, la lecture et la suppression
 d’objets dans ce bucket. Aucun média ne doit être rendu public : Django génère
 des URL temporaires signées.
@@ -27,7 +28,8 @@ des URL temporaires signées.
 ** Obligatoires
 
 - =DATABASE_URL= : URL de connexion PostgreSQL ;
-- =CARNET_S3_BUCKET= : nom du bucket réservé aux médias ;
+- =CARNET_S3_BUCKET= pour la variante S3, ou =CARNET_MEDIA_ROOT= pour la
+  variante locale (chemin absolu vers un répertoire préexistant) ;
 - =CARNET_SECRET_KEY= : valeur longue, aléatoire et stable ;
 - =CARNET_DEBUG=0= : désactive les pages d’erreur détaillées ;
 - =CARNET_HOSTS= : noms DNS acceptés, séparés par des virgules ;
@@ -48,6 +50,17 @@ peut rendre un retour en arrière difficile.
 
 Les identifiants statiques peuvent être omis lorsque la plate-forme fournit un
 autre mécanisme d’authentification compris par Boto3.
+
+** Médias locaux persistants
+
+Laisser =CARNET_S3_BUCKET= absent et définir =CARNET_MEDIA_ROOT= vers un
+répertoire privé, existant et accessible en écriture par l'application, hors
+du dépôt et des fichiers statiques. Ne pas publier ce répertoire directement
+par le serveur Web : les téléchargements de médias passent par les vues Django
+qui vérifient les autorisations. Le répertoire doit survivre aux déploiements
+et figurer, avec PostgreSQL, dans les sauvegardes. Vérifier régulièrement une
+restauration des deux ressources cohérentes ; la vérification du stockage au
+démarrage ne constitue pas un contrôle des sauvegardes.
 
 ** Facultatives
 
@@ -77,12 +90,25 @@ La commande de démarrage du profil persistant est :
 ./start-persistent.sh
 #+end_src
 
+Pour le profil PostgreSQL avec médias locaux, utiliser
+=./start-persistent-local.sh= si l'application lance Gunicorn. Si
+l'hébergement fournit un serveur WSGI, exécuter
+=./scripts/preparer-deploiement-persistant-local.sh= avant de démarrer ce
+serveur, puis configurer son entrée =carnet.wsgi:application=. Activer au
+préalable l'environnement Python qui contient les dépendances de
+=requirements.lock= ; le script de préparation emploie =python= de cet
+environnement. Une nouvelle publication exécute à nouveau ce script, sans
+réinitialiser les données métier.
+
 Avant de lancer Gunicorn, ce script :
 
 - refuse une configuration qui ne satisfait pas les garde-fous du profil ;
 - applique les migrations Django ;
 - rassemble les fichiers statiques pour WhiteNoise ;
 - écrit, relit puis supprime un objet de contrôle dans le bucket.
+
+La variante locale contrôle de même l'écriture, la lecture et la suppression
+d'un média de contrôle dans =CARNET_MEDIA_ROOT=, sans créer d'URL publique.
 
 Une erreur à l’une de ces étapes doit faire échouer le déploiement. Le script
 ne crée aucune école et ne charge aucune donnée métier.
@@ -329,8 +355,8 @@ explicitement identifiées par l'hébergeur.
   services éphémères isolés ;
 - atelier pédagogique persistant : =start-atelier.sh=, PostgreSQL et bucket S3
   privés, URL stable et données exclusivement factices ;
-- futur pilote ou production : =start-persistent.sh=, PostgreSQL et bucket S3
-  privés, seulement après validation des exigences de sécurité et de
-  conformité applicables aux données réelles.
+- déploiement persistant : =start-persistent.sh= avec PostgreSQL et bucket S3
+  privé, ou =start-persistent-local.sh= avec PostgreSQL et médias locaux privés,
+  après validation des exigences de sécurité et de conformité applicables.
 
 Seul le dernier profil représente le contrat destiné à l’hébergeur.

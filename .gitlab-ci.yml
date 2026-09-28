@@ -167,6 +167,43 @@ deploiement-ephemere:
   script:
     - scripts/exercer-deploiement-ephemere.sh
 
+deploiement-persistant-local:
+  stage: integration
+  image: python:3.13-slim-bookworm
+  services:
+    - name: postgres:16-alpine
+      alias: postgresql
+  variables:
+    CARNET_DEBUG: "0"
+    CARNET_FORCER_HTTPS: "oui"
+    CARNET_CSRF_ORIGINS: "https://localhost:8000"
+    CARNET_EMAIL_DESACTIVE: "oui"
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0
+    - python -m pip install --requirement requirements.lock
+    - python -m pip check
+  script:
+    - |
+      export CARNET_MEDIA_ROOT="$(mktemp -d)"
+      trap 'rm -rf "$CARNET_MEDIA_ROOT"' EXIT
+      python - <<'PY'
+      import os
+      import time
+      import psycopg
+
+      for tentative in range(30):
+          try:
+              with psycopg.connect(os.environ["DATABASE_URL"]):
+                  break
+          except psycopg.OperationalError:
+              if tentative == 29:
+                  raise
+              time.sleep(1)
+      PY
+      bash scripts/preparer-deploiement-persistant-local.sh
+      python manage.py makemigrations --check --dry-run
+
 .site-public-rules:
   rules:
     - changes:
