@@ -6,13 +6,14 @@ import subprocess
 from contextlib import closing
 import sqlite3
 import sys
+from threading import Event
 from types import SimpleNamespace
 from types import ModuleType
 import tempfile
 import unittest
 from io import BytesIO
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from zipfile import ZipFile
 
 from suivi.paquet_local import (
@@ -35,6 +36,29 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_progression_windows_reste_visible_pendant_la_copie_et_la_migration(self):
+        fermeture = Event()
+        fenetre = MagicMock()
+        fenetre.FindWindowW.return_value = 1234
+        fenetre.GetDlgItem.return_value = 5678
+        fenetre.MessageBoxW.side_effect = lambda *args: fermeture.wait(2)
+        fenetre.PostMessageW.side_effect = lambda *args: fermeture.set()
+        windows = SimpleNamespace(windll=SimpleNamespace(user32=fenetre),
+                                  c_void_p=local.ctypes.c_void_p,
+                                  c_int=local.ctypes.c_int,
+                                  c_bool=local.ctypes.c_bool,
+                                  c_uint=local.ctypes.c_uint,
+                                  c_size_t=local.ctypes.c_size_t,
+                                  c_ssize_t=local.ctypes.c_ssize_t)
+        with patch.object(local.os, "name", "nt"), patch.object(local.sys, "frozen", True, create=True), patch.object(
+            local, "ctypes", windows
+        ):
+            with local.progression_migration():
+                fenetre.EnableWindow.assert_called_once_with(5678, False)
+                self.assertFalse(fermeture.is_set())
+            fenetre.PostMessageW.assert_called_once_with(1234, 0x10, 0, 0)
+            self.assertTrue(fermeture.is_set())
+
     def test_demarrage_graphique_ecrit_le_journal_sans_alerte(self):
         with tempfile.TemporaryDirectory() as temporaire:
             with patch.object(local, "paquet_par_defaut", return_value=Path(temporaire) / "paquet-autonome"), patch.object(
