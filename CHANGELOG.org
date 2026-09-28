@@ -28,6 +28,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Anti-bruteforce à la connexion (=django-axes=) : blocage temporaire après
+  plusieurs échecs, seuils différenciés selon le déploiement et surchargeables,
+  page de blocage dédiée, trace de chaque échec dans les journaux.
 - Pré-attribution d'une fonction dès l'invitation : la direction choisit
   une classe et une fonction, appliquées automatiquement à l'acceptation.
   Visible dans les listes d'équipe et de collaborateurs avec un badge

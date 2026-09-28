@@ -471,6 +471,82 @@ class Acces(Base):
         self.assertRedirects(r, cible)
 
 
+class AntiBruteforce(Base):
+    @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
+    def test_le_compte_est_bloque_apres_plusieurs_echecs(self):
+        for _ in range(3):
+            self.entrer("mauvais-mot-de-passe")
+
+        reponse = self.entrer("ens-mdp")  # bon mot de passe, mais compte bloqué
+
+        self.assertEqual(reponse.status_code, 429)
+        self.assertContains(
+            reponse, "Trop de tentatives de connexion", status_code=429
+        )
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
+    def test_un_autre_compte_depuis_la_meme_adresse_n_est_pas_bloque(self):
+        for _ in range(3):
+            self.entrer("mauvais-mot-de-passe")
+
+        reponse = self.entrer("dir-mdp")
+
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(
+            self.client.session["_auth_user_id"], str(self.direction.pk)
+        )
+
+    @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
+    def test_axes_reset_debloque_le_compte(self):
+        for _ in range(3):
+            self.entrer("mauvais-mot-de-passe")
+        call_command("axes_reset", stdout=StringIO())
+
+        self.entrer("ens-mdp")
+
+        self.assertEqual(
+            self.client.session["_auth_user_id"], str(self.enseignant.pk)
+        )
+
+    @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
+    def test_le_lien_d_invitation_n_est_pas_un_oracle_de_mot_de_passe(self):
+        # Compte existant, mais pas encore membre de cette école.
+        get_user_model().objects.create_user(
+            username="autre-ecole",
+            email="autre-ecole@example.test",
+            password="bon-mot-de-passe",
+        )
+        invitation, jeton = inviter(
+            utilisateur=self.direction,
+            ecole=self.ecole,
+            email="autre-ecole@example.test",
+        )
+        url = reverse("accepter_invitation", args=[invitation.selecteur, jeton])
+        donnees = {
+            "nom_utilisateur": "autre-ecole",
+            "mot_de_passe": "mauvais-mot-de-passe",
+        }
+
+        for _ in range(3):
+            self.client.post(url, donnees)
+        reponse = self.client.post(
+            url,
+            {**donnees, "mot_de_passe": "bon-mot-de-passe"},
+        )
+
+        self.assertEqual(reponse.status_code, 429)
+
+    def test_un_echec_de_connexion_est_trace_dans_les_journaux(self):
+        with self.assertLogs("suivi.views", level="WARNING") as journal:
+            self.entrer("mauvais-mot-de-passe")
+
+        sortie = "\n".join(journal.output)
+        self.assertIn("Échec de connexion", sortie)
+        self.assertIn(self.enseignant.username, sortie)
+        self.assertNotIn("mauvais-mot-de-passe", sortie)
+
+
 class ReinitialisationMotDePasse(Base):
     def setUp(self):
         super().setUp()
@@ -541,16 +617,17 @@ class ReinitialisationMotDePasse(Base):
         )
         self.assertContains(reponse, "Mot de passe mis à jour")
 
-        self.assertFalse(
-            self.client.login(
-                username=self.enseignant.username, password="ens-mdp"
-            )
+        # Passage par l'écran de connexion réel : client.login() n'envoie pas
+        # de requête, or le backend anti-bruteforce en exige une.
+        self.entrer(mdp="ens-mdp", nom_utilisateur=self.enseignant.username)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+        self.entrer(
+            mdp="un-nouveau-mot-de-passe-solide",
+            nom_utilisateur=self.enseignant.username,
         )
-        self.assertTrue(
-            self.client.login(
-                username=self.enseignant.username,
-                password="un-nouveau-mot-de-passe-solide",
-            )
+        self.assertEqual(
+            self.client.session["_auth_user_id"], str(self.enseignant.pk)
         )
 
     def test_un_lien_invalide_est_signale_sans_formulaire(self):
@@ -2429,6 +2506,26 @@ class DiagnosticDeploiement(TestCase):
         self.assertIn("Accès partagés persistants : absents", texte)
         self.assertIn("Administration Django sur le Web : fermée", texte)
         self.assertEqual(self.client.get("/admin/").status_code, 404)
+
+    @override_settings(ANTIBRUTEFORCE_ACTIF=True, AXES_FAILURE_LIMIT=5,
+                       AXES_COOLOFF_TIME=timedelta(minutes=15))
+    def test_indique_les_seuils_anti_bruteforce(self):
+        sortie = StringIO()
+
+        call_command("diagnostiquer_deploiement", stdout=sortie)
+
+        self.assertIn(
+            "Anti-bruteforce à la connexion : actif (5 échecs, blocage de 15 min)",
+            sortie.getvalue(),
+        )
+
+    @override_settings(ANTIBRUTEFORCE_ACTIF=False)
+    def test_signale_l_anti_bruteforce_inactif(self):
+        sortie = StringIO()
+
+        call_command("diagnostiquer_deploiement", stdout=sortie)
+
+        self.assertIn("Anti-bruteforce à la connexion : inactif", sortie.getvalue())
 
     @override_settings(
         DEBUG=True,

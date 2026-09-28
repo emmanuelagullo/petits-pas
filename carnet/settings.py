@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from importlib.util import find_spec
 from pathlib import Path
 
@@ -23,6 +24,13 @@ ENVIRONNEMENT_EPHEMERE = (
 )
 MODE_LOCAL = os.environ.get("CARNET_MODE_LOCAL", "") == "oui"
 VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip()
+# Anti-bruteforce sur la connexion (django-axes). Actif par défaut, sauf pour
+# l'installation autonome mono-poste (non exposée au réseau, et dont le paquet
+# PyInstaller n'embarque pas axes). CARNET_ANTIBRUTEFORCE=oui|non surcharge.
+ANTIBRUTEFORCE_ACTIF = (
+    os.environ.get("CARNET_ANTIBRUTEFORCE", "non" if MODE_LOCAL else "oui")
+    == "oui"
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -34,6 +42,9 @@ INSTALLED_APPS = [
     "comptes",
     "suivi",
 ]
+
+if ANTIBRUTEFORCE_ACTIF:
+    INSTALLED_APPS.append("axes")
 
 AUTH_USER_MODEL = "comptes.Utilisateur"
 
@@ -47,6 +58,15 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+if ANTIBRUTEFORCE_ACTIF:
+    # Recommandation django-axes : dernier middleware de la liste.
+    MIDDLEWARE.append("axes.middleware.AxesMiddleware")
+    # Le backend axes s'intercale devant le backend standard : il refuse
+    # l'authentification tant que le couple adresse/identifiant est bloqué.
+    AUTHENTICATION_BACKENDS = [
+        "axes.backends.AxesStandaloneBackend",
+        "django.contrib.auth.backends.ModelBackend",
+    ]
 
 ROOT_URLCONF = "carnet.urls"
 
@@ -222,3 +242,31 @@ ANYMAIL = {
     "POSTMARK_SERVER_TOKEN": os.environ.get("CARNET_ANYMAIL_POSTMARK_JETON", ""),
     "BREVO_API_KEY": os.environ.get("CARNET_ANYMAIL_BREVO_CLE", ""),
 }
+
+# --------------------------------------------------------------------------
+# Anti-bruteforce sur la connexion
+# --------------------------------------------------------------------------
+#
+# Seuils différenciés par déploiement (voir
+# AUDIT-AUTHENTIFICATION-INVITATIONS.org, §3.5) : plus souples sur la
+# démonstration publique éphémère (visiteurs multiples, données fictives),
+# plus stricts dès que des données réelles d'école sont en jeu.
+# CARNET_CONNEXION_* surcharge explicitement ces valeurs par déploiement.
+AXES_FAILURE_LIMIT = int(
+    os.environ.get(
+        "CARNET_CONNEXION_TENTATIVES_MAX", "10" if ENVIRONNEMENT_EPHEMERE else "5"
+    )
+)
+AXES_COOLOFF_TIME = timedelta(
+    minutes=int(
+        os.environ.get(
+            "CARNET_CONNEXION_BLOCAGE_MINUTES", "5" if ENVIRONNEMENT_EPHEMERE else "15"
+        )
+    )
+)
+# Le blocage porte sur le couple adresse + identifiant : un incident sur un
+# poste partagé (salle des maîtres) ne bloque pas les autres comptes qui s'y
+# connectent, et un identifiant ciblé reste freiné depuis chaque adresse.
+AXES_LOCKOUT_PARAMETERS = [["ip_address", "username"]]
+AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = False
+AXES_LOCKOUT_TEMPLATE = "suivi/connexion_bloquee.html"

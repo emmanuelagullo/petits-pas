@@ -102,6 +102,39 @@ Un déploiement persistant doit choisir explicitement son fonctionnement :
 Le diagnostic de déploiement refuse un profil persistant où aucun de ces deux
 choix n'est explicite.
 
+* Anti-bruteforce à la connexion
+
+=django-axes= bloque temporairement un couple adresse + identifiant après
+plusieurs échecs de connexion, aussi bien sur l'écran de connexion que sur le
+lien d'invitation d'un compte existant. Il est actif par défaut, sauf pour
+l'installation autonome mono-poste (=CARNET_MODE_LOCAL=oui=).
+
+Les seuils par défaut dépendent du profil de déploiement :
+
+| Profil                            | Échecs tolérés | Durée de blocage |
+|-----------------------------------+----------------+------------------|
+| Démonstration éphémère (Render)   |             10 | 5 minutes        |
+| Déploiement persistant            |              5 | 15 minutes       |
+
+Ils se surchargent avec =CARNET_CONNEXION_TENTATIVES_MAX= et
+=CARNET_CONNEXION_BLOCAGE_MINUTES=. =CARNET_ANTIBRUTEFORCE=non= désactive
+explicitement la protection. Le diagnostic de déploiement affiche l'état et les
+seuils effectifs.
+
+Un compte bloqué se libère seul à l'issue de la durée de blocage, ou
+immédiatement avec =python manage.py axes_reset=. Les tentatives sont visibles
+avec =python manage.py axes_list_attempts=, et chaque échec écrit une ligne
+dans les journaux du serveur (jamais le mot de passe).
+
+*Limite connue derrière un reverse-proxy.* Par prudence, axes ne lit que
+=REMOTE_ADDR= : un client ne peut pas usurper son adresse avec un en-tête
+=X-Forwarded-For=. Derrière un proxy, =REMOTE_ADDR= est celle du proxy : le
+blocage porte alors en pratique sur l'identifiant seul, ce qui reste efficace
+contre la devinette de mots de passe mais permet à un tiers de bloquer
+temporairement un compte ciblé. Un hébergeur qui fournit une chaîne
+=X-Forwarded-For= fiable peut être pris en compte via =AXES_IPWARE_PROXY_COUNT=
+et =AXES_IPWARE_META_PRECEDENCE_ORDER=, à valider sur l'hébergeur concerné.
+
 * Sondes
 
 La sonde non authentifiée =GET /health/= renvoie :
