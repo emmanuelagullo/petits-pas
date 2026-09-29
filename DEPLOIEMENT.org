@@ -145,7 +145,19 @@ Les seuils par défaut dépendent du profil de déploiement :
 Ils se surchargent avec =CARNET_CONNEXION_TENTATIVES_MAX= et
 =CARNET_CONNEXION_BLOCAGE_MINUTES=. =CARNET_ANTIBRUTEFORCE=non= désactive
 explicitement la protection. Le diagnostic de déploiement affiche l'état et les
-seuils effectifs.
+seuils effectifs et refuse les profils persistants lorsqu'elle est désactivée.
+
+Pour exécuter les tests en développement local sous Guix lorsque =django-axes=
+n'est pas disponible, désactiver explicitement cette dépendance pour *cette
+commande seulement* :
+
+#+begin_src sh
+CARNET_ANTIBRUTEFORCE=non python3 manage.py test --parallel 4 --keepdb
+#+end_src
+
+Les tests qui exercent =django-axes= sont alors ignorés si le module est
+absent ; la CI, qui installe les dépendances du projet, les exécute. Ne pas
+exporter cette variable pour le site déployé.
 
 Un compte bloqué se libère seul à l'issue de la durée de blocage, ou
 immédiatement avec =python manage.py axes_reset=. Les tentatives sont visibles
