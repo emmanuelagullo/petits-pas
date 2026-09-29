@@ -18,6 +18,11 @@ lorsque leurs auteurs auront explicitement accepté cette diffusion. Les
 polices, icônes et autres ressources tierces conservent leur licence propre,
 qui doit être enregistrée avec la ressource.
 
+Les trois icônes SVG originales de `referentiel/static/referentiel/icones/`
+(`parler`, `livre`, `collection`) sont fournies sous licence `CC-BY-SA-4.0`.
+Elles ne contiennent aucune ressource tierce. Leur catalogue est décrit dans
+`referentiel/README.md`.
+
 ## Données et photographies
 
 Les données des écoles, comptes, classes, élèves et familles, les observations,

@@ -45,6 +45,7 @@
       <p>{{ scolarite.get_niveau_display }} · Année scolaire {{ scolarite.annee_scolaire }}</p>
       {% if eleve.annee_naissance %}<p>Né(e) en {{ eleve.annee_naissance }}</p>{% endif %}
       {% if parametres_carnet.texte_couverture %}<p>{{ parametres_carnet.texte_couverture }}</p>{% endif %}
+      {% if illustration_couverture.photo %}<img class="photo-couverture" src="{% if generation_pdf %}{{ url_photo_couverture_pdf }}{% else %}{{ url_photo_couverture }}{% endif %}" alt="Photo de couverture">{% endif %}
     </div>
     <p class="date-edition">Édité le {{ edite_le|date:"j F Y" }}</p>
   </header>
@@ -72,6 +73,7 @@
         <li class="{% if obs %}{{ obs.statut }}{% else %}absent{% endif %}">
           <span class="puce" aria-hidden="true">{% if obs.statut == 'reussi' %}★{% elif obs.statut == 'en_cours' %}☆{% else %}·{% endif %}</span>
           <span class="contenu-competence">
+            {% if competence.url_icone %}<img class="icone-competence" src="{% if generation_pdf %}{{ competence.url_icone_pdf }}{% else %}{{ competence.url_icone }}{% endif %}" alt="">{% endif %}
             <span class="libelle-competence">{{ competence.libelle }}</span>
             {% if afficher_sous_domaines and competence.sous_domaine %}<span class="sous-domaine-competence">{{ competence.sous_domaine.nom }}</span>{% endif %}
             {% if obs.statut == 'en_cours' %}<span class="etat-competence">En cours d'apprentissage</span>{% endif %}

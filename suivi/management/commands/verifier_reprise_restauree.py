@@ -1,7 +1,7 @@
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 
-from suivi.models import Trace, TraceCommune
+from suivi.models import Trace, TraceCommune, ReglagePresentation
 
 
 class Command(BaseCommand):
@@ -15,6 +15,10 @@ class Command(BaseCommand):
         )
         references.update(
             TraceCommune.objects.exclude(photo="").exclude(photo__isnull=True)
+            .values_list("photo", flat=True)
+        )
+        references.update(
+            ReglagePresentation.objects.exclude(photo="").exclude(photo__isnull=True)
             .values_list("photo", flat=True)
         )
         manquants = []

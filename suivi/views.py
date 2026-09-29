@@ -34,6 +34,7 @@ from django.http import (
 )
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -86,6 +87,7 @@ from .models import (
     Eleve,
     Observation,
     ParametresCarnet,
+    ReglagePresentation,
     Scolarite,
     Trace,
     TraceCommune,
@@ -123,6 +125,7 @@ from .services.pedagogie import (
     supprimer_trace_logiquement,
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
+from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
 from .services.equipe import (
     accepter_invitation,
     activer_classe,
@@ -1092,7 +1095,7 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
         "versions": versions, "versions_ids": {t.observation.eleve_id for t in versions},
         "commentaire": commentaire, "date_observation": date_observation,
         "trace_media": trace_media, "erreur": erreur,
-        "formulations": list(competence.formulations.filter(active=True).values_list("texte", flat=True)),
+        "formulations": formulations_effectives(competence, classe),
         "retour_eleve": retour_eleve, "retour_url": retour_url,
         "apercu_eleves": [{"id": e.pk, "prenom": e.prenom, "nom": e.nom_court} for e in eleves],
     })
@@ -1190,7 +1193,8 @@ def _supprimer_media_apres_validation(nom):
         return
 
     def supprimer():
-        if Trace.objects.filter(photo=nom).exists() or TraceCommune.objects.filter(photo=nom).exists():
+        if (Trace.objects.filter(photo=nom).exists() or TraceCommune.objects.filter(photo=nom).exists()
+                or ReglagePresentation.objects.filter(photo=nom).exists()):
             return
         try:
             default_storage.delete(nom)
@@ -1388,8 +1392,8 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
                 request.user, VOIR_SUIVI, eleve, ecole=ecole
             ),
             "formulations": [
-                personnaliser_texte(formulation.texte, eleve.prenom)
-                for formulation in competence.formulations.filter(active=True)
+                personnaliser_texte(texte, eleve.prenom)
+                for texte in formulations_effectives(competence, scolarite_courante.classe if scolarite_courante else None)
             ],
             "date_defaut": timezone.localdate(),
         },
@@ -1470,6 +1474,16 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
             )
 
     scolarite = eleve.scolarite_courante()
+    classe_presentation = scolarite.classe if scolarite else None
+    reglages = reglages_du_perimetre(ecole, classe_presentation)
+    couverture = illustration_effective(ecole, classe=classe_presentation, reglages=reglages)
+    for _domaine, groupes in domaines:
+        for _titre, lignes in groupes:
+            for competence, _observation in lignes:
+                competence.illustration = illustration_effective(ecole, competence, classe_presentation, reglages)
+                image = competence.illustration
+                competence.url_icone = (reverse("media_presentation", args=[image.reglage_id]) if image.photo
+                                        else static(image.statique) if image.statique else "")
     bilans = (
         Bilan.objects.filter(
             scolarite__eleve=eleve,
@@ -1490,6 +1504,8 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         "scolarite": scolarite,
         "bilans": bilans,
         "parametres_carnet": parametres,
+        "illustration_couverture": couverture,
+        "url_photo_couverture": reverse("media_presentation", args=[couverture.reglage_id]) if couverture.photo else "",
         "afficher_attendus": afficher_attendus,
         "afficher_sous_domaines": afficher_sous_domaines,
         "inclure_bilans": inclure_bilans,
@@ -1625,9 +1641,22 @@ def carnet_pdf(request, pk):
 def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
     contexte = _contexte_carnet(request, pk, options, operation)
     noms_media = []
+    couverture = contexte["illustration_couverture"]
+    if couverture.photo:
+        contexte["url_photo_couverture_pdf"] = _url_media_pdf(couverture.photo)
+        noms_media.append(couverture.photo)
     for _domaine, groupes in contexte["domaines"]:
         for _titre, lignes in groupes:
             for _competence, observation in lignes:
+                image = _competence.illustration
+                if image.photo:
+                    _competence.url_icone_pdf = _url_media_pdf(image.photo)
+                    noms_media.append(image.photo)
+                elif image.statique:
+                    fichier = finders.find(image.statique)
+                    if not fichier:
+                        raise RuntimeError("Une icône fournie est introuvable.")
+                    _competence.url_icone_pdf = Path(fichier).resolve().as_uri()
                 if observation:
                     for trace_obj in observation.traces_carnet:
                         if trace_obj.photo:

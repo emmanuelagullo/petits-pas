@@ -600,6 +600,8 @@ textarea { min-height: 7rem; resize: vertical; }
 .selection-personnelle { margin-top: 1rem; }
 .selection-personnelle label { display: inline; margin: 0; }
 .selection-personnelle em { display: inline-block; margin-left: .35rem; }
+.icone-competence { width: 2.5rem; height: 2.5rem; object-fit: contain; float: left; margin: 0 .55rem .25rem 0; }
+.photo-couverture { display: block; max-width: 100%; max-height: 75mm; object-fit: contain; margin: 1rem auto; }
 .propositions-commentaire {
   display: flex;
   flex-direction: column;
