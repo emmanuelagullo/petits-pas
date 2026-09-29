@@ -3,12 +3,25 @@
   const commentaire = document.getElementById('commentaire');
   if (!commentaire) return;
   const formulaire = commentaire.closest('form');
-  formulaire.querySelectorAll('.proposition-commentaire').forEach((bouton) => {
+  const propositions = formulaire.querySelector('#proposition-commentaire');
+  const bouton = formulaire.querySelector('[data-inserer-proposition]');
+  if (propositions && bouton) {
+    const actualiserBouton = () => { bouton.disabled = !propositions.value; };
+    propositions.addEventListener('change', actualiserBouton);
     bouton.addEventListener('click', () => {
-      commentaire.value = bouton.dataset.texte;
+      if (!propositions.value) return;
+      const debut = commentaire.selectionStart;
+      const fin = commentaire.selectionEnd;
+      const avant = commentaire.value.slice(0, debut);
+      const apres = commentaire.value.slice(fin);
+      const prefixe = avant && !/\s$/.test(avant) ? '\n' : '';
+      const suffixe = apres && !/^\s/.test(apres) ? '\n' : '';
+      commentaire.setRangeText(prefixe + propositions.value + suffixe, debut, fin, 'end');
+      commentaire.focus();
       commentaire.dispatchEvent(new Event('input'));
     });
-  });
+    actualiserBouton();
+  }
   const donnees = document.getElementById('apercu-eleves');
   if (!donnees) return;
   const eleves = JSON.parse(donnees.textContent);

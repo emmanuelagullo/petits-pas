@@ -12,8 +12,8 @@
   <ul class="liste" style="border:0; border-radius:0">
     {% for c in competences %}
     <li><a class="entree" href="{% url 'saisie_competence' classe.pk c.pk %}">
-      {% icone_liste c classe %}
       <span class="pastille">{{ c.niveau }}</span>
+      <span class="emplacement-icone" aria-hidden="true">{% icone_liste c classe %}</span>
       <span class="principal" style="font-weight:400">{{ c.libelle }}</span>
     </a></li>
     {% endfor %}

@@ -13,7 +13,7 @@
     {% for competence in competences %}
     <li><a class="entree" href="{% url 'trace' eleve.pk competence.pk %}">
       <span class="pastille">{{ competence.niveau }}</span>
-      {% icone_liste competence eleve.classe %}
+      <span class="emplacement-icone" aria-hidden="true">{% icone_liste competence eleve.classe %}</span>
       <span class="principal" style="font-weight:400">{{ competence.libelle }}</span>
     </a></li>
     {% endfor %}
