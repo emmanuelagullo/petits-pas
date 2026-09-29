@@ -1,30 +1,7 @@
 <form method="post" enctype="multipart/form-data" class="formulaire-trace" id="formulaire-trace">
   {% csrf_token %}
   <h2>{% if trace_obj %}Modifier la trace{% else %}Ajouter une trace{% endif %}</h2>
-  <label for="commentaire">Le mot qui accompagne la réussite
-    <span class="aide">Ce que l'enfant a dit, ce que vous avez vu. C'est ce texte qui apparaîtra dans le carnet.</span>
-  </label>
-  {% if formulations %}
-  <div class="propositions-commentaire">
-    <span class="aide">Propositions à insérer puis modifier librement :</span>
-    {% for formulation in formulations %}<button type="button" class="bouton discret proposition-commentaire" data-texte="{{ formulation }}">{{ formulation }}</button>{% endfor %}
-  </div>
-  {% endif %}
-  <textarea id="commentaire" name="commentaire">{{ trace_obj.commentaire }}</textarea>
-
-  <label for="date_observation">Date</label>
-  <input type="date" id="date_observation" name="date_observation" value="{% if trace_obj %}{{ trace_obj.date_observation|date:'Y-m-d' }}{% else %}{{ date_defaut|date:'Y-m-d' }}{% endif %}">
-
-  {% if trace_obj.photo %}
-  <label>Photo actuelle</label>
-  <img class="miniature" src="{% url 'afficher_media_trace' trace_obj.pk %}" alt="">
-  <p><label class="choix-simple"><input type="checkbox" name="retirer_photo"> Retirer cette photo</label></p>
-  {% endif %}
-
-  <label for="photo">{% if trace_obj.photo %}Remplacer par une autre photo{% else %}Ajouter une photo{% endif %}
-    <span class="aide">Une photo du travail, pas du visage de l'enfant, si vous voulez rester tranquille côté RGPD.</span>
-  </label>
-  <input type="file" id="photo" name="photo" accept="image/*">
+  {% include "suivi/partiels/champs_trace.html" with commentaire=trace_obj.commentaire date_observation=trace_obj.date_observation|default:date_defaut photo_actuelle=trace_obj.photo trace_media=trace_obj %}
 
   {% if responsable %}<p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if not trace_obj or trace_obj.visible_carnet %}checked{% endif %}> Afficher cette trace dans le carnet</label></p>{% endif %}
 
@@ -33,12 +10,4 @@
     <a class="bouton discret" href="{% if trace_obj %}{% url 'trace' eleve.pk competence.pk %}{% elif suivi_complet %}{% url 'saisie_eleve' eleve.pk %}{% else %}{% url 'contribuer_eleve' eleve.pk %}{% endif %}">Annuler</a>
   </div>
 </form>
-{% if formulations %}
-<script>
-document.querySelectorAll(".proposition-commentaire").forEach((bouton) => {
-  bouton.addEventListener("click", () => {
-    document.getElementById("commentaire").value = bouton.dataset.texte;
-  });
-});
-</script>
-{% endif %}
+{% include "suivi/partiels/script_trace.html" %}

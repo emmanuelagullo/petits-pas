@@ -122,7 +122,7 @@ from .services.pedagogie import (
     supprimer_bilan_logiquement,
     supprimer_trace_logiquement,
 )
-from .services.traces_communes import enregistrer_commune, personnaliser, supprimer_commune
+from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .services.equipe import (
     accepter_invitation,
     activer_classe,
@@ -1025,6 +1025,20 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
     classe, competence = _contexte_traces_communes(request, pk, competence_pk)
     if not autorise(request.user, MODIFIER_ETAT, classe):
         raise Http404
+    retour_eleve = None
+    retour_url = None
+    retour_id = request.POST.get("retour_eleve") or request.GET.get("retour_eleve")
+    if retour_id:
+        try:
+            retour_id = int(retour_id)
+        except ValueError:
+            raise Http404
+        retour_eleve = get_object_or_404(
+            Eleve, pk=retour_id, ecole=classe.ecole, scolarites__classe=classe,
+        )
+        if not autorise(request.user, VOIR_SUIVI, retour_eleve, ecole=classe.ecole):
+            raise Http404
+        retour_url = reverse("trace", args=[retour_eleve.pk, competence.pk])
     commune = None
     if commune_pk is not None:
         commune = get_object_or_404(TraceCommune, pk=commune_pk, classe=classe,
@@ -1045,7 +1059,7 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
     date_observation = commune.date_observation if commune else timezone.localdate()
     if request.method == "POST":
         commentaire = request.POST.get("commentaire", "").strip()
-        date_observation = request.POST.get("date_observation")
+        date_observation = request.POST.get("date_observation") or ""
         try:
             date_observation = datetime.strptime(date_observation, "%Y-%m-%d").date()
             ids = {int(pk) for pk in request.POST.getlist("eleves")}
@@ -1065,6 +1079,8 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
                 if ancien_nom and ancien_nom != nouveau_nom:
                     _supprimer_media_apres_validation(ancien_nom)
             messages.success(request, "Trace commune enregistrée.")
+            if retour_url:
+                return redirect(retour_url)
             return redirect("traces_communes", pk=pk, competence_pk=competence_pk)
         except (ValueError, ValidationError) as exc:
             erreur = " ".join(exc.messages) if isinstance(exc, ValidationError) else str(exc)
@@ -1076,7 +1092,9 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
         "versions": versions, "versions_ids": {t.observation.eleve_id for t in versions},
         "commentaire": commentaire, "date_observation": date_observation,
         "trace_media": trace_media, "erreur": erreur,
-        "formulations": competence.formulations.filter(active=True),
+        "formulations": list(competence.formulations.filter(active=True).values_list("texte", flat=True)),
+        "retour_eleve": retour_eleve, "retour_url": retour_url,
+        "apercu_eleves": [{"id": e.pk, "prenom": e.prenom, "nom": e.nom_court} for e in eleves],
     })
 
 
@@ -1370,9 +1388,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
                 request.user, VOIR_SUIVI, eleve, ecole=ecole
             ),
             "formulations": [
-                formulation.texte.replace("{prenom}", eleve.prenom).replace(
-                    "<prenom>", eleve.prenom
-                )
+                personnaliser_texte(formulation.texte, eleve.prenom)
                 for formulation in competence.formulations.filter(active=True)
             ],
             "date_defaut": timezone.localdate(),

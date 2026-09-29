@@ -17,10 +17,10 @@
     {% if trace.photo %}<img class="miniature" src="{% url 'afficher_media_trace' trace.pk %}" alt="">{% if trace.peut_telecharger_original %}<p><a href="{% url 'telecharger_media_trace' trace.pk %}">Télécharger la photo originale</a></p>{% endif %}{% endif %}
     {% if trace.commune_id %}
     {% if trace.peut_modifier %}<form method="post" action="{% url 'personnaliser_trace_commune' eleve.pk competence.pk trace.pk %}" onsubmit="return confirm('Créer une version personnelle ? Elle ne suivra plus les modifications de la trace commune. La photo sera conservée sans duplication du fichier.');">{% csrf_token %}<button class="bouton discret" type="submit">Personnaliser pour cet élève</button></form>{% endif %}
-    {% if responsable %}<a href="{% url 'modifier_trace_commune' trace.commune.classe_id competence.pk trace.commune_id %}">Modifier pour les enfants associés</a>{% endif %}
+    {% if responsable %}<a href="{% url 'modifier_trace_commune' trace.commune.classe_id competence.pk trace.commune_id %}?retour_eleve={{ eleve.pk }}">Modifier pour les enfants associés</a>{% endif %}
     {% else %}
     {% if trace.peut_modifier %}<p><a href="{% url 'modifier_trace' eleve.pk competence.pk trace.pk %}">Modifier cette trace</a></p>{% endif %}
-    {% if trace.origine_commune_id and responsable and not trace.origine_commune.supprime_le %}<p><a href="{% url 'modifier_trace_commune' trace.origine_commune.classe_id competence.pk trace.origine_commune_id %}">Voir la trace commune d'origine</a></p>{% endif %}
+    {% if trace.origine_commune_id and responsable and not trace.origine_commune.supprime_le %}<p><a href="{% url 'modifier_trace_commune' trace.origine_commune.classe_id competence.pk trace.origine_commune_id %}?retour_eleve={{ eleve.pk }}">Voir la trace commune d'origine</a></p>{% endif %}
     {% endif %}
     {% if responsable %}
     <form method="post" action="{% url 'basculer_visibilite_trace' eleve.pk competence.pk trace.pk %}" class="visibilite-trace">
@@ -51,7 +51,7 @@
   {% for trace in traces_supprimees %}
   <article class="trace-conservee">
     <p><strong>{{ trace.date_observation|date:"j F Y" }}</strong> · supprimée logiquement</p>
-    {% if trace.origine_commune_id and not trace.origine_commune.supprime_le %}<p>Version personnelle retirée. <a href="{% url 'modifier_trace_commune' trace.origine_commune.classe_id competence.pk trace.origine_commune_id %}">Revenir à la trace commune pour réassocier cet élève</a>.</p>{% endif %}
+    {% if trace.origine_commune_id and not trace.origine_commune.supprime_le %}<p>Version personnelle retirée. <a href="{% url 'modifier_trace_commune' trace.origine_commune.classe_id competence.pk trace.origine_commune_id %}?retour_eleve={{ eleve.pk }}">Revenir à la trace commune pour réassocier cet élève</a>.</p>{% endif %}
     {% if trace.peut_restaurer %}<form method="post" action="{% url 'restaurer_trace' eleve.pk competence.pk trace.pk %}">
       {% csrf_token %}<button class="bouton discret" type="submit">Restaurer cette trace</button>
     </form>{% endif %}

@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * Unreleased
 
+** Added
+
+- Traces communes d'une classe avec sélection explicite des élèves,
+  personnalisation individuelle sans duplication initiale de la photo,
+  aperçu des commentaires et retour vers la fiche d'origine.
+
 ** Changed
 
 - Envoi de courriel désormais facultatif : SMTP fonctionne sans
