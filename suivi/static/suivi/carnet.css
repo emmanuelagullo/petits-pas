@@ -596,6 +596,7 @@ textarea { min-height: 7rem; resize: vertical; }
 .visibilite-trace .masquee-carnet { color: var(--ardoise-clair); }
 .choix-simple { font-weight: 400; }
 .choix-simple input { width: auto; min-height: 0; }
+.selection-personnelle input[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
 .propositions-commentaire {
   display: flex;
   flex-direction: column;

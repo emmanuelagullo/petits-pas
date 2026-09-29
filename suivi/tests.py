@@ -395,6 +395,49 @@ class TracesCommunes(Base):
                             valeurs={}, commune=commune)
         self.assertTrue(commune.attributions.filter(supprime_le__isnull=True).exists())
 
+    def test_selection_signale_la_version_personnelle_et_lie_sa_trace(self):
+        from .services.traces_communes import enregistrer_commune, personnaliser
+
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk, self.autre.pk], valeurs={"commentaire": "Atelier"},
+        )
+        trace = personnaliser(utilisateur=self.enseignant, trace=commune.attributions.get(
+            observation__eleve=self.eleve
+        ))
+        self.client.force_login(self.enseignant)
+        url = reverse("modifier_trace_commune", args=[self.classe.pk, self.competence.pk, commune.pk])
+        page = self.client.get(url)
+        self.assertContains(page, 'aria-disabled="true" data-version-personnelle')
+        lien = reverse("trace", args=[self.eleve.pk, self.competence.pk]) + f"#trace-{trace.pk}"
+        self.assertContains(page, f'<em><a href="{lien}">version personnelle</a></em>', html=True)
+        page = self.client.post(url, {
+            "eleves": [self.eleve.pk, self.autre.pk],
+            "date_observation": "2026-09-29", "commentaire": "Modification refusée",
+        })
+        self.assertContains(page, f"Une version personnelle existe pour {self.eleve.nom_court}")
+        commune.refresh_from_db()
+        self.assertEqual(commune.commentaire, "Atelier")
+
+    def test_message_reattribution_nomine_plusieurs_eleves(self):
+        from .services.traces_communes import enregistrer_commune, personnaliser
+
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk, self.autre.pk], valeurs={"commentaire": "Atelier"},
+        )
+        for trace in list(commune.attributions.all()):
+            personnaliser(utilisateur=self.enseignant, trace=trace)
+        with self.assertRaises(ValidationError) as erreur:
+            enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                                competence=self.competence, ids=[self.eleve.pk, self.autre.pk],
+                                valeurs={}, commune=commune)
+        message = erreur.exception.messages[0]
+        self.assertIn("Des versions personnelles existent", message)
+        self.assertIn(self.eleve.nom_court, message)
+        self.assertIn(self.autre.nom_court, message)
+        self.assertIn("réassocier ces élèves", message)
+
     def test_retrait_collectif_conserve_la_version_personnelle(self):
         from .services.traces_communes import enregistrer_commune, personnaliser, supprimer_commune
 

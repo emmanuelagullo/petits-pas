@@ -1037,6 +1037,9 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
     )) if commune else set()
     versions = list(Trace.objects.filter(origine_commune=commune, supprime_le__isnull=True)
                     .select_related("observation__eleve")) if commune else []
+    versions_par_eleve = {trace.observation.eleve_id: trace for trace in versions}
+    for eleve in eleves:
+        eleve.version_personnelle = versions_par_eleve.get(eleve.pk)
     erreur = None
     commentaire = commune.commentaire if commune else ""
     date_observation = commune.date_observation if commune else timezone.localdate()
@@ -1064,7 +1067,7 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
             messages.success(request, "Trace commune enregistrée.")
             return redirect("traces_communes", pk=pk, competence_pk=competence_pk)
         except (ValueError, ValidationError) as exc:
-            erreur = str(exc)
+            erreur = " ".join(exc.messages) if isinstance(exc, ValidationError) else str(exc)
             selection_ids = ids if "ids" in locals() else set()
     trace_media = commune.attributions.filter(supprime_le__isnull=True).first() if commune else None
     return render(request, "suivi/formulaire_trace_commune.html", {

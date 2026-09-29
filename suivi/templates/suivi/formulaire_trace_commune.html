@@ -18,7 +18,7 @@
   <label for="photo">{% if commune.photo %}Remplacer la photo{% else %}Ajouter une photo{% endif %}</label>
   <input type="file" id="photo" name="photo" accept="image/*">
   {% include "suivi/partiels/selection_eleves.html" %}
-  {% if versions %}<p>Pour réassocier un enfant qui a une version personnelle, retirez d'abord cette version depuis sa fiche :</p><ul>{% for trace in versions %}<li><a href="{% url 'trace' trace.observation.eleve.pk competence.pk %}">{{ trace.observation.eleve.nom_court }}</a></li>{% endfor %}</ul>{% endif %}
+  {% if versions %}<p>Pour réassocier un enfant qui a une version personnelle, ouvrez le lien « version personnelle » et retirez cette version depuis sa fiche.</p>{% endif %}
   <p>Modifier cette trace changera son contenu pour tous les enfants encore associés. Décocher un enfant retirera son attribution, sans toucher aux autres.</p>
   <button class="bouton" type="submit">Enregistrer la trace commune</button>
 </form>

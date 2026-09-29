@@ -23,4 +23,6 @@ Une photo de groupe peut montrer d'autres enfants que ceux sélectionnés. Véri
 
 Depuis ses traces, choisir **Personnaliser pour cet élève** et confirmer. La version personnelle garde initialement la même photo, sans nouveau fichier, puis peut être modifiée indépendamment. Les changements futurs de la trace commune ne l'affectent plus. Pour revenir à la version commune, retirer la version personnelle depuis sa fiche, puis réassocier l'enfant sur la page de classe. La version retirée reste dans l'historique accessible au responsable.
 
+Dans la sélection de classe, un enfant ayant une version personnelle a une case grisée qui reste décochée. Une tentative de sélection affiche immédiatement une explication avec son nom. Le lien en italique **version personnelle** ouvre directement la trace concernée. **Sélectionner toute la classe** laisse ces enfants décochés.
+
 **Masquer dans le carnet** conserve la trace dans le parcours ; **Retirer cette trace** retire son attribution active. Retirer une trace commune entière conserve les versions personnelles déjà créées.
