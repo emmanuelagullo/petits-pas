@@ -13,7 +13,8 @@ from django.views.decorators.http import require_safe
 from .autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee, classes_accessibles
 from .contexte_ecole import ecole_courante
 from .forms_presentation import IllustrationForm
-from .models import Competence, ReglagePresentation
+from .models import Competence, ParametresCarnet, ReglagePresentation
+from .referentiels import arbre_competences
 from .presentation import catalogue_icones, illustration_effective, propositions
 from .services.presentation import enregistrer_formulation, enregistrer_reglage, verifier_droit
 from .views import acces_requis, _supprimer_media_apres_validation
@@ -81,16 +82,22 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         index_url = reverse("presentation_classe", args=[classe.pk])
     else:
         index_url = reverse("presentation_ecole")
-    competences = []
+    domaines = []
     if not competence:
-        for c in Competence.objects.filter(domaine__ecole=ecole, active=True).select_related("domaine"):
-            url = reverse("presentation_competence_classe", args=[classe.pk, c.pk]) if classe else reverse("presentation_competence_ecole", args=[c.pk])
-            competences.append({"competence": c, "url": url})
+        for domaine in arbre_competences(ecole):
+            lignes = []
+            for c in domaine.visibles:
+                url = reverse("presentation_competence_classe", args=[classe.pk, c.pk]) if classe else reverse("presentation_competence_ecole", args=[c.pk])
+                lignes.append({"competence": c, "url": url})
+            if lignes:
+                domaines.append((domaine, lignes))
+    parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
     return render(request, "suivi/presentation.html", {
         "ecole": ecole, "classe": classe, "competence": competence,
         "form": form, "erreur": erreur, "illustration": illustration,
         "illustration_url": url_illustration(illustration), "index_url": index_url,
-        "competences": competences,
+        "domaines": domaines,
+        "afficher_sous_domaines": parametres.afficher_sous_domaines,
         "icones_apercu": {cle: static(valeur["fichier"]) for cle, valeur in catalogue_icones().items()},
         "propositions": propositions(competence, classe, inclure_masquees=True) if competence else [],
     })

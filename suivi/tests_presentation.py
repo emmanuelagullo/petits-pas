@@ -11,7 +11,7 @@ from django.test import override_settings
 from django.urls import reverse
 from PIL import Image
 
-from .models import Classe, Competence, Domaine, Ecole, FormulationProposee, FormulationLocale, ReglagePresentation
+from .models import Classe, Competence, Domaine, Ecole, FormulationProposee, FormulationLocale, ParametresCarnet, ReglagePresentation
 from .presentation import catalogue_icones, formulations_effectives, illustration_effective, propositions
 from .services.presentation import enregistrer_formulation, enregistrer_reglage
 from .tests import Base
@@ -123,6 +123,25 @@ class HeritagePresentation(Base):
 
 
 class ParcoursPresentation(Base):
+    def test_reglages_et_carnet_partagent_ordre_et_domaines(self):
+        self.competence.ordre = 20
+        self.competence.save()
+        premier = Competence.objects.create(domaine=self.competence.domaine, code="PREMIER", libelle="Premier", ordre=10)
+        domaine = Domaine.objects.create(ecole=self.ecole, code="AUTRE", nom="Autre domaine", ordre=10)
+        dernier = Competence.objects.create(domaine=domaine, code="DERNIER", libelle="Dernier", ordre=0)
+        Competence.objects.create(domaine=domaine, code="INACTIF", libelle="Inactif", active=False)
+        self.client.force_login(self.enseignant)
+        page = self.client.get(reverse("presentation_classe", args=[self.classe.pk]))
+        reglages = [(d.pk, [ligne["competence"].pk for ligne in lignes]) for d, lignes in page.context["domaines"]]
+        carnet = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"contenu": "tout", "regroupement": "aucun"})
+        affichage = [(d.pk, [c.pk for _titre, lignes in groupes for c, _obs in lignes]) for d, groupes in carnet.context["domaines"]]
+        self.assertEqual(reglages, affichage)
+        self.assertEqual(reglages, [(self.competence.domaine_id, [premier.pk, self.competence.pk]), (domaine.pk, [dernier.pk])])
+        parametres = ParametresCarnet.objects.get(ecole=self.ecole)
+        parametres.afficher_sous_domaines = False
+        parametres.save()
+        self.assertFalse(self.client.get(reverse("presentation_classe", args=[self.classe.pk])).context["afficher_sous_domaines"])
+
     def test_icone_effective_dans_listes_et_ligne_htmx(self):
         self.competence.icone = "livre"
         self.competence.save()
