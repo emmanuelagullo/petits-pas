@@ -438,6 +438,81 @@ class TracesCommunes(Base):
         self.assertIn(self.autre.nom_court, message)
         self.assertIn("réassocier ces élèves", message)
 
+    def test_apercu_et_retour_vers_eleve_apres_edition_collective(self):
+        from .services.traces_communes import enregistrer_commune
+
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk, self.autre.pk], valeurs={"commentaire": "<prenom> observe"},
+        )
+        self.client.force_login(self.enseignant)
+        url = reverse("modifier_trace_commune", args=[self.classe.pk, self.competence.pk, commune.pk])
+        page = self.client.get(url, {"retour_eleve": self.eleve.pk})
+        self.assertContains(page, 'data-trace-compteur')
+        self.assertContains(page, 'data-trace-apercu')
+        self.assertContains(page, 'id="apercu-eleves"')
+        self.assertEqual(page.context["apercu_eleves"][0]["prenom"], "Lou")
+        retour = reverse("trace", args=[self.eleve.pk, self.competence.pk])
+        self.assertContains(page, f'href="{retour}"')
+        page = self.client.post(url, {
+            "retour_eleve": self.eleve.pk, "eleves": [self.eleve.pk, self.autre.pk],
+            "date_observation": "2026-09-29", "commentaire": "<prénom> raconte",
+        })
+        self.assertRedirects(page, retour)
+        self.assertEqual(commune.attributions.get(observation__eleve=self.eleve).commentaire, "Lou raconte")
+        self.assertEqual(self.client.get(url, {"retour_eleve": "https://example.test"}).status_code, 404)
+
+    def test_cycle_photo_personnelle_pdf_et_reprise(self):
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .services.traces_communes import enregistrer_commune, personnaliser
+        from .services.pedagogie import supprimer_trace_logiquement
+        from .sauvegardes_medias import sauvegarder, restaurer
+
+        def photo(nom, couleur):
+            contenu = BytesIO()
+            Image.new("RGB", (32, 32), couleur).save(contenu, format="PNG")
+            return SimpleUploadedFile(nom, contenu.getvalue(), content_type="image/png")
+
+        with TemporaryDirectory() as racine, override_settings(MEDIA_ROOT=racine):
+            commune = enregistrer_commune(
+                utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+                ids=[self.eleve.pk, self.autre.pk],
+                valeurs={"commentaire": "<prenom> observe", "photo": photo("collective.png", "blue")},
+            )
+            nom_commun = commune.photo.name
+            self.assertEqual(len(list(Path(racine).rglob("*.png"))), 1)
+            trace = personnaliser(utilisateur=self.enseignant, trace=commune.attributions.get(
+                observation__eleve=self.eleve
+            ))
+            self.client.force_login(self.enseignant)
+            with self.captureOnCommitCallbacks(execute=True):
+                page = self.client.post(reverse("modifier_trace", args=[
+                    self.eleve.pk, self.competence.pk, trace.pk,
+                ]), {"commentaire": "Lou raconte", "photo": photo("personnelle.png", "red"),
+                     "date_observation": "2026-09-29", "visible_carnet": "on"})
+            self.assertEqual(page.status_code, 302)
+            trace.refresh_from_db()
+            self.assertNotEqual(trace.photo.name, nom_commun)
+            self.assertTrue(default_storage.exists(nom_commun))
+            self.assertEqual(commune.attributions.get().photo.name, nom_commun)
+            supprimer_trace_logiquement(utilisateur=self.enseignant, trace=trace)
+            enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                                competence=self.competence, ids=[self.eleve.pk, self.autre.pk],
+                                valeurs={}, commune=commune)
+            page = self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]), {"contenu": "tout"})
+            self.assertEqual(page.status_code, 200)
+            self.assertTrue(page.content.startswith(b"%PDF"))
+            with TemporaryDirectory() as copies:
+                destination = Path(copies) / "sauvegarde"
+                manifeste = sauvegarder(default_storage, destination)
+                self.assertEqual(len(manifeste["objects"]), 2)
+                with TemporaryDirectory() as cible, override_settings(MEDIA_ROOT=cible):
+                    restaurer(default_storage, destination)
+                    self.assertTrue(default_storage.exists(nom_commun))
+                    self.assertTrue(default_storage.exists(trace.photo.name))
+                    call_command("verifier_reprise_restauree", stdout=StringIO())
+
     def test_retrait_collectif_conserve_la_version_personnelle(self):
         from .services.traces_communes import enregistrer_commune, personnaliser, supprimer_commune
 

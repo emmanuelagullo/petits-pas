@@ -19,6 +19,10 @@ statut = "disponible"
 
 Une photo de groupe peut montrer d'autres enfants que ceux sélectionnés. Vérifier avant diffusion que sa présence dans les carnets destinés aux familles convient à toutes les personnes visibles. L'ajout d'une trace ne change pas l'état d'acquisition.
 
+Avant l'enregistrement, un compteur indique combien d'élèves seront associés. Un aperçu du commentaire pour les trois premiers élèves sélectionnés se met à jour pendant la saisie et lors d'un changement de sélection. Les formulations proposées peuvent être insérées et adaptées.
+
+Si l'édition collective est ouverte depuis la fiche d'un élève, le lien **Revenir aux traces de…** reste disponible. L'enregistrement ramène également à cette fiche.
+
 ## Personnaliser pour un enfant
 
 Depuis ses traces, choisir **Personnaliser pour cet élève** et confirmer. La version personnelle garde initialement la même photo, sans nouveau fichier, puis peut être modifiée indépendamment. Les changements futurs de la trace commune ne l'affectent plus. Pour revenir à la version commune, retirer la version personnelle depuis sa fiche, puis réassocier l'enfant sur la page de classe. La version retirée reste dans l'historique accessible au responsable.

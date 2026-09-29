@@ -1,0 +1,24 @@
+  <label for="commentaire">Le mot qui accompagne la réussite
+    <span class="aide">Ce que l'enfant a dit, ce que vous avez vu. C'est ce texte qui apparaîtra dans le carnet.</span>
+  </label>
+  {% if formulations %}
+  <div class="propositions-commentaire">
+    <span class="aide">Propositions à insérer puis modifier librement :</span>
+    {% for formulation in formulations %}<button type="button" class="bouton discret proposition-commentaire" data-texte="{{ formulation }}">{{ formulation }}</button>{% endfor %}
+  </div>
+  {% endif %}
+  <textarea id="commentaire" name="commentaire">{{ commentaire }}</textarea>
+
+  <label for="date_observation">Date</label>
+  <input type="date" id="date_observation" name="date_observation" value="{{ date_observation|date:'Y-m-d' }}" {% if date_requise %}required{% endif %}>
+
+  {% if photo_actuelle %}
+  <label>Photo actuelle</label>
+  {% if trace_media %}<img class="miniature" src="{% url 'afficher_media_trace' trace_media.pk %}" alt="">{% endif %}
+  <p><label class="choix-simple"><input type="checkbox" name="retirer_photo"> Retirer cette photo</label></p>
+  {% endif %}
+
+  <label for="photo">{% if photo_actuelle %}Remplacer par une autre photo{% else %}Ajouter une photo{% endif %}
+    <span class="aide">Une photo du travail, pas du visage de l'enfant, si vous voulez rester tranquille côté RGPD.</span>
+  </label>
+  <input type="file" id="photo" name="photo" accept="image/*">

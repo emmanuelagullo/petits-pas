@@ -1,0 +1,33 @@
+<script>
+(() => {
+  const commentaire = document.getElementById('commentaire');
+  if (!commentaire) return;
+  const formulaire = commentaire.closest('form');
+  formulaire.querySelectorAll('.proposition-commentaire').forEach((bouton) => {
+    bouton.addEventListener('click', () => {
+      commentaire.value = bouton.dataset.texte;
+      commentaire.dispatchEvent(new Event('input'));
+    });
+  });
+  const donnees = document.getElementById('apercu-eleves');
+  if (!donnees) return;
+  const eleves = JSON.parse(donnees.textContent);
+  const compteur = formulaire.querySelector('[data-trace-compteur]');
+  const apercu = formulaire.querySelector('[data-trace-apercu]');
+  const actualiser = () => {
+    const ids = new Set(Array.from(formulaire.querySelectorAll('input[name="eleves"]:checked')).map((caseEleve) => Number(caseEleve.value)));
+    const selection = eleves.filter((eleve) => ids.has(eleve.id));
+    compteur.textContent = `Cette trace commune sera associée à ${selection.length} élève${selection.length > 1 ? 's' : ''}.`;
+    apercu.replaceChildren();
+    selection.slice(0, 3).forEach((eleve) => {
+      const ligne = document.createElement('li');
+      const texte = commentaire.value.replace(/<prénom>|<prenom>|\{prenom\}/g, () => eleve.prenom);
+      ligne.textContent = `${eleve.nom} : ${texte || '(sans commentaire)'}`;
+      apercu.appendChild(ligne);
+    });
+  };
+  commentaire.addEventListener('input', actualiser);
+  formulaire.addEventListener('change', actualiser);
+  actualiser();
+})();
+</script>
