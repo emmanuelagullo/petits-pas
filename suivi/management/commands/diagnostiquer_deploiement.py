@@ -184,6 +184,8 @@ class Command(BaseCommand):
             erreurs.append("les accès partagés historiques sont encore présents")
         if not administration_web_fermee:
             erreurs.append("l'administration Django est exposée sur le Web")
+        if not settings.ANTIBRUTEFORCE_ACTIF:
+            erreurs.append("l'anti-bruteforce à la connexion est inactif")
         if not settings.EMAIL_CONFIGURATION_EXPLICITE:
             erreurs.append(
                 "le courriel n'est ni configuré ni désactivé explicitement"

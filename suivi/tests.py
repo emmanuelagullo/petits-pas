@@ -2,7 +2,9 @@ import hashlib
 import os
 import re
 import smtplib
+from importlib.util import find_spec
 from datetime import date, timedelta
+from unittest import skipUnless
 from zipfile import ZipFile
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -539,6 +541,7 @@ class Acces(Base):
 
 
 class AntiBruteforce(Base):
+    @skipUnless(find_spec("axes") is not None, "django-axes absent")
     @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
     def test_le_compte_est_bloque_apres_plusieurs_echecs(self):
         for _ in range(3):
@@ -552,6 +555,7 @@ class AntiBruteforce(Base):
         )
         self.assertNotIn("_auth_user_id", self.client.session)
 
+    @skipUnless(find_spec("axes") is not None, "django-axes absent")
     @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
     def test_un_autre_compte_depuis_la_meme_adresse_n_est_pas_bloque(self):
         for _ in range(3):
@@ -564,6 +568,7 @@ class AntiBruteforce(Base):
             self.client.session["_auth_user_id"], str(self.direction.pk)
         )
 
+    @skipUnless(find_spec("axes") is not None, "django-axes absent")
     @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
     def test_axes_reset_debloque_le_compte(self):
         for _ in range(3):
@@ -576,6 +581,7 @@ class AntiBruteforce(Base):
             self.client.session["_auth_user_id"], str(self.enseignant.pk)
         )
 
+    @skipUnless(find_spec("axes") is not None, "django-axes absent")
     @override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15))
     def test_le_lien_d_invitation_n_est_pas_un_oracle_de_mot_de_passe(self):
         # Compte existant, mais pas encore membre de cette école.
@@ -2594,6 +2600,12 @@ class DiagnosticDeploiement(TestCase):
 
         self.assertIn("Anti-bruteforce à la connexion : inactif", sortie.getvalue())
 
+    @override_settings(ANTIBRUTEFORCE_ACTIF=False)
+    def test_refuse_un_profil_persistant_sans_anti_bruteforce(self):
+        with self.assertRaisesMessage(CommandError, "l'anti-bruteforce à la connexion est inactif"):
+            call_command("diagnostiquer_deploiement", exiger_persistant_local=True,
+                         stdout=StringIO())
+
     @override_settings(
         DEBUG=True,
         SECRET_KEY="dev-seulement-a-changer-avant-toute-mise-en-ligne",
@@ -2636,6 +2648,7 @@ class DiagnosticDeploiement(TestCase):
         CSRF_COOKIE_SECURE=True,
         EMAIL_CONFIGURATION_EXPLICITE=True,
         EMAIL_DISPONIBLE=False,
+        ANTIBRUTEFORCE_ACTIF=True,
         STORAGES={
             "default": {
                 "BACKEND": "storages.backends.s3.S3Storage",
@@ -2680,6 +2693,7 @@ class DiagnosticDeploiement(TestCase):
                 "SESSION_COOKIE_SECURE": True,
                 "CSRF_COOKIE_SECURE": True,
                 "EMAIL_CONFIGURATION_EXPLICITE": True,
+                "ANTIBRUTEFORCE_ACTIF": True,
                 "ENVIRONNEMENT_ATELIER": False,
                 "MEDIA_ROOT": dossier,
                 "STORAGES": {
@@ -2727,6 +2741,7 @@ class DiagnosticDeploiement(TestCase):
         VERSION_APPLICATION="0.3",
         EMAIL_CONFIGURATION_EXPLICITE=True,
         EMAIL_DISPONIBLE=False,
+        ANTIBRUTEFORCE_ACTIF=True,
         STORAGES={
             "default": {"BACKEND": "storages.backends.s3.S3Storage"},
             "staticfiles": {
