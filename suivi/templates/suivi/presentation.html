@@ -67,7 +67,16 @@
 </form>
 {% else %}
 <h2>Icônes et formulations par compétence</h2>
-<ul class="liste">{% for ligne in competences %}<li><a class="entree" href="{{ ligne.url }}">{% icone_liste ligne.competence classe %}{{ ligne.competence.domaine.nom }} · {{ ligne.competence.libelle }}</a></li>{% empty %}<li>Aucune compétence active dans le référentiel.</li>{% endfor %}</ul>
+{% for domaine, lignes in domaines %}
+<section class="domaine">
+  <h3>{{ domaine.nom }}</h3>
+  <ul class="liste">{% for ligne in lignes %}<li><a class="entree" href="{{ ligne.url }}">
+    <span class="pastille">{{ ligne.competence.niveau }}</span>
+    <span class="emplacement-icone" aria-hidden="true">{% icone_liste ligne.competence classe %}</span>
+    <span>{{ ligne.competence.libelle }}{% if afficher_sous_domaines and ligne.competence.sous_domaine %}<small class="secondaire">{{ ligne.competence.sous_domaine.nom }}</small>{% endif %}</span>
+  </a></li>{% endfor %}</ul>
+</section>
+{% empty %}<p>Aucune compétence active dans le référentiel.</p>{% endfor %}
 {% endif %}
 {{ icones_apercu|json_script:"icones-apercu" }}
 <script src="{% static 'suivi/presentation.js' %}" defer></script>

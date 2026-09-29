@@ -14,6 +14,8 @@ statut = "disponible"
 
 Depuis **Présentation du carnet**, choisir la photo de couverture ou ouvrir une compétence pour son icône. Le réglage effectif et sa provenance sont indiqués.
 
+La liste des compétences suit les domaines et l'ordre du référentiel utilisés dans le carnet. Les sous-domaines apparaissent selon les paramètres habituels des carnets de l'école. Les regroupements par année, mois ou bilan concernent les observations d'un élève et ne s'appliquent pas à cette liste de réglages.
+
 Les explications se déplient en ouvrant les questions « Comment choisir l'image ? » et « Comment utiliser les phrases proposées ? ». Avec **Hériter** ou **Désactiver**, les champs d'image sont grisés ; avec **Remplacer**, ils deviennent modifiables et l'icône choisie apparaît à côté du sélecteur. De même, une phrase peut être éditée avec **Remplacer** (ou **Conserver / modifier** pour une phrase ajoutée ici).
 
 Les icônes choisies apparaissent aussi à gauche des listes de compétences, dans la saisie par élève et le choix d'une compétence pour la classe. Les grilles n'ajoutent pas une image dans chaque case d'élève.

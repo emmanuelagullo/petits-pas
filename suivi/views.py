@@ -126,6 +126,7 @@ from .services.pedagogie import (
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
+from .referentiels import arbre_competences as _arbre
 from .services.equipe import (
     accepter_invitation,
     activer_classe,
@@ -733,16 +734,6 @@ def collaborateurs_classe(request, pk):
 # --------------------------------------------------------------------------
 # Saisie
 # --------------------------------------------------------------------------
-
-
-def _arbre(ecole, niveaux=None):
-    competences = Competence.objects.filter(active=True).select_related("sous_domaine")
-    if niveaux:
-        competences = competences.filter(niveau__in=niveaux)
-    return Domaine.objects.filter(ecole=ecole).prefetch_related(
-        Prefetch("competences", queryset=competences, to_attr="visibles"),
-        "attendus",
-    )
 
 
 def _scolarites_visibles(utilisateur, eleve):
