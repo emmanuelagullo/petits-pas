@@ -24,13 +24,18 @@ domaines:
   - code: LANG
     nom: Mobiliser le langage dans toutes ses dimensions
     competences:
-      - { code: LANG-01, niveau: PS, libelle: "J'ose parler devant les autres" }
+      - code: LANG-01
+        niveau: PS
+        libelle: "J'ose parler devant les autres"
+        icone: parler
+        formulations:
+          - { code: LANG-01-F01, texte: "<prenom> prend la parole pendant un échange." }
       - { code: LANG-02, niveau: PS, libelle: "Je dis mon prénom et celui de mes camarades" }
       - { code: LANG-03, niveau: PS, libelle: "Je réponds aux questions qu'on me pose" }
       - { code: LANG-04, niveau: PS, libelle: "Je dis une comptine que j'ai apprise" }
       - { code: LANG-05, niveau: PS, libelle: "Je reconnais mon prénom écrit" }
       - { code: LANG-06, niveau: PS, libelle: "Je tiens bien mon crayon" }
-      - { code: LANG-07, niveau: MS, libelle: "Je raconte une histoire que j'ai entendue" }
+      - { code: LANG-07, niveau: MS, libelle: "Je raconte une histoire que j'ai entendue", icone: livre }
       - { code: LANG-08, niveau: MS, libelle: "Je fais des phrases que tout le monde comprend" }
       - { code: LANG-09, niveau: MS, libelle: "Je repère des mots qui riment" }
       - { code: LANG-10, niveau: MS, libelle: "J'écris mon prénom en majuscules" }
@@ -70,7 +75,7 @@ domaines:
   - code: MATH
     nom: Acquérir les premiers outils mathématiques
     competences:
-      - { code: MATH-01, niveau: PS, libelle: "Je reconnais un, deux et trois objets d'un coup d'œil" }
+      - { code: MATH-01, niveau: PS, libelle: "Je reconnais un, deux et trois objets d'un coup d'œil", icone: collection }
       - { code: MATH-02, niveau: PS, libelle: "Je range les objets par couleur ou par forme" }
       - { code: MATH-03, niveau: PS, libelle: "Je fais une tour, un puzzle, un encastrement" }
       - { code: MATH-04, niveau: MS, libelle: "Je compte jusqu'à dix" }

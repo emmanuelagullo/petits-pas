@@ -476,6 +476,7 @@ class Competence(models.Model):
         null=True,
     )
     code = models.CharField(max_length=30)
+    icone = models.CharField(max_length=80, blank=True)
     libelle = models.CharField(max_length=300)
     niveau = models.CharField(max_length=2, choices=NIVEAUX, default="PS")
     ordre = models.PositiveSmallIntegerField(default=0)
@@ -516,6 +517,79 @@ class FormulationProposee(models.Model):
 
     def __str__(self):
         return self.texte
+
+
+class ReglagePresentation(models.Model):
+    HERITER = "heriter"
+    REMPLACER = "remplacer"
+    DESACTIVER = "desactiver"
+    MODES = [(HERITER, "Hériter"), (REMPLACER, "Remplacer"), (DESACTIVER, "Désactiver")]
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE)
+    classe = models.ForeignKey(Classe, on_delete=models.CASCADE, blank=True, null=True)
+    # Sans compétence, le réglage porte sur la photo de couverture.
+    competence = models.ForeignKey(Competence, on_delete=models.PROTECT, blank=True, null=True)
+    mode = models.CharField(max_length=12, choices=MODES, default=HERITER)
+    icone = models.CharField(max_length=80, blank=True)
+    photo = models.ImageField(upload_to="presentation/%Y/%m/", blank=True, null=True)
+    dernier_editeur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, blank=True, null=True)
+    modifie_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["ecole", "competence"], condition=models.Q(classe__isnull=True, competence__isnull=False), name="presentation_ecole_competence_unique"),
+            models.UniqueConstraint(fields=["classe", "competence"], condition=models.Q(classe__isnull=False, competence__isnull=False), name="presentation_classe_competence_unique"),
+            models.UniqueConstraint(fields=["ecole"], condition=models.Q(classe__isnull=True, competence__isnull=True), name="couverture_ecole_unique"),
+            models.UniqueConstraint(fields=["classe"], condition=models.Q(classe__isnull=False, competence__isnull=True), name="couverture_classe_unique"),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from .presentation import catalogue_icones
+
+        if self.classe_id and self.classe.ecole_id != self.ecole_id:
+            raise ValidationError("La classe doit appartenir à l'école.")
+        if self.competence_id and self.competence.domaine.ecole_id != self.ecole_id:
+            raise ValidationError("La compétence doit appartenir à l'école.")
+        if self.icone and (not self.competence_id or self.icone not in catalogue_icones()):
+            raise ValidationError("Icône inconnue ou inapplicable à la couverture.")
+        if self.mode == self.REMPLACER and bool(self.icone) == bool(self.photo):
+            raise ValidationError("Choisissez une seule illustration : icône fournie ou image importée.")
+
+
+class FormulationLocale(models.Model):
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE)
+    classe = models.ForeignKey(Classe, on_delete=models.CASCADE, blank=True, null=True)
+    competence = models.ForeignKey(Competence, on_delete=models.PROTECT)
+    origine = models.ForeignKey(FormulationProposee, on_delete=models.PROTECT, blank=True, null=True)
+    origine_locale = models.ForeignKey("self", on_delete=models.PROTECT, related_name="adaptations", blank=True, null=True)
+    mode = models.CharField(max_length=12, choices=ReglagePresentation.MODES, default=ReglagePresentation.REMPLACER)
+    texte = models.TextField(blank=True)
+    dernier_editeur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, blank=True, null=True)
+    modifie_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(fields=["ecole", "origine"], condition=models.Q(classe__isnull=True, origine__isnull=False), name="formulation_ecole_origine_unique"),
+            models.UniqueConstraint(fields=["classe", "origine"], condition=models.Q(classe__isnull=False, origine__isnull=False), name="formulation_classe_origine_unique"),
+            models.UniqueConstraint(fields=["classe", "origine_locale"], condition=models.Q(origine_locale__isnull=False), name="formulation_classe_locale_unique"),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.competence.domaine.ecole_id != self.ecole_id or (self.classe_id and self.classe.ecole_id != self.ecole_id):
+            raise ValidationError("La formulation doit rester dans son école et sa compétence.")
+        if self.origine_id and (self.origine.competence_id != self.competence_id or self.origine_locale_id):
+            raise ValidationError("Origine de formulation incohérente.")
+        if self.origine_locale_id:
+            source = self.origine_locale
+            if not self.classe_id or source.classe_id or source.ecole_id != self.ecole_id or source.competence_id != self.competence_id or source.origine_id or source.origine_locale_id:
+                raise ValidationError("L'origine locale doit être une proposition ajoutée par cette école.")
+        if self.mode == ReglagePresentation.REMPLACER and not self.texte.strip():
+            raise ValidationError("Saisissez une formulation.")
+        if self.mode == ReglagePresentation.HERITER and not (self.origine_id or self.origine_locale_id):
+            raise ValidationError("Une proposition ajoutée localement ne peut pas hériter.")
 
 
 class Observation(models.Model):

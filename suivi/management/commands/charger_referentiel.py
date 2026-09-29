@@ -1,6 +1,7 @@
 import yaml
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from suivi.presentation import catalogue_icones
 
 from suivi.models import (
     Attendu,
@@ -75,6 +76,9 @@ class Command(BaseCommand):
 
             def charger_competence(c, sous_domaine=None):
                 nonlocal crees, maj, ordre_competence
+                icone = c.get("icone") or ""
+                if not isinstance(icone, str) or (icone and icone not in catalogue_icones()):
+                    raise CommandError(f"Icône inconnue pour {c['code']} : {icone!r}.")
                 competence, cree = Competence.objects.update_or_create(
                     domaine=domaine,
                     code=c["code"],
@@ -84,6 +88,7 @@ class Command(BaseCommand):
                         "ordre": ordre_competence,
                         "sous_domaine": sous_domaine,
                         "active": True,
+                        "icone": icone,
                     },
                 )
                 ordre_competence += 1
