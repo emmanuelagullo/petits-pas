@@ -604,6 +604,25 @@ class Observation(models.Model):
         ).exclude(photo__isnull=True).exists()
 
 
+class TraceCommune(models.Model):
+    classe = models.ForeignKey(Classe, on_delete=models.PROTECT, related_name="traces_communes")
+    competence = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="traces_communes")
+    date_observation = models.DateField(default=timezone.localdate)
+    commentaire = models.TextField(blank=True)
+    photo = models.ImageField(upload_to="traces/%Y/%m/", blank=True, null=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    dernier_editeur = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+        related_name="traces_communes_modifiees", blank=True, null=True,
+    )
+    supprime_le = models.DateTimeField(blank=True, null=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    modifie_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["date_observation", "pk"]
+
+
 class Trace(models.Model):
     observation = models.ForeignKey(
         Observation, on_delete=models.CASCADE, related_name="traces"
@@ -614,6 +633,14 @@ class Trace(models.Model):
     date_observation = models.DateField(default=timezone.localdate)
     commentaire = models.TextField(blank=True)
     photo = models.ImageField(upload_to="traces/%Y/%m/", blank=True, null=True)
+    commune = models.ForeignKey(
+        TraceCommune, on_delete=models.PROTECT, related_name="attributions",
+        blank=True, null=True,
+    )
+    origine_commune = models.ForeignKey(
+        TraceCommune, on_delete=models.PROTECT, related_name="versions_personnelles",
+        blank=True, null=True,
+    )
     visible_carnet = models.BooleanField(default=True)
     auteur = models.ForeignKey(
         settings.AUTH_USER_MODEL,
