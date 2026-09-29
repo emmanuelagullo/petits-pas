@@ -127,6 +127,59 @@ class InstallationLocaleTests(TestCase):
         self.assertFalse(get_user_model().objects.exists())
 
 
+@override_settings(MODE_LOCAL=False, ENVIRONNEMENT_EPHEMERE=False,
+                   ENVIRONNEMENT_ATELIER=False)
+class InitialisationEcoleServeurTests(TestCase):
+    def initialiser(self):
+        sortie = StringIO()
+        call_command(
+            "initialiser_ecole_serveur",
+            ecole="École fictive",
+            commune="Commune fictive",
+            prenom="Camille",
+            nom="Martin",
+            utilisateur="camille-martin",
+            stdout=sortie,
+        )
+        return sortie.getvalue()
+
+    @patch("suivi.management.commands.initialiser_ecole_serveur.getpass",
+           side_effect=["MotDePasseFictif!2026", "MotDePasseFictif!2026"])
+    def test_cree_une_direction_personnelle_et_la_trame(self, _getpass):
+        sortie = self.initialiser()
+        ecole = Ecole.objects.get()
+        utilisateur = get_user_model().objects.get()
+        self.assertTrue(utilisateur.check_password("MotDePasseFictif!2026"))
+        self.assertFalse(utilisateur.is_staff)
+        self.assertTrue(ecole.domaines.exists())
+        self.assertTrue(ResponsabiliteEcole.objects.filter(
+            appartenance__utilisateur=utilisateur,
+            appartenance__ecole=ecole,
+            type=ResponsabiliteEcole.DIRECTION,
+        ).exists())
+        self.assertNotIn("MotDePasseFictif!2026", sortie)
+        with self.assertRaisesMessage(CommandError, "déjà présent"):
+            self.initialiser()
+
+    @patch("suivi.management.commands.initialiser_ecole_serveur.getpass",
+           side_effect=["abc", "abc"])
+    def test_mot_de_passe_invalide_ne_cree_rien(self, _getpass):
+        with self.assertRaisesMessage(CommandError, "Initialisation refusée"):
+            self.initialiser()
+        self.assertFalse(Ecole.objects.exists())
+        self.assertFalse(get_user_model().objects.exists())
+
+    @patch("suivi.management.commands.initialiser_ecole_serveur.call_command",
+           side_effect=RuntimeError("référentiel illisible"))
+    @patch("suivi.management.commands.initialiser_ecole_serveur.getpass",
+           side_effect=["MotDePasseFictif!2026", "MotDePasseFictif!2026"])
+    def test_echec_referentiel_annule_toute_initialisation(self, _getpass, _appel):
+        with self.assertRaisesMessage(RuntimeError, "référentiel illisible"):
+            self.initialiser()
+        self.assertFalse(Ecole.objects.exists())
+        self.assertFalse(get_user_model().objects.exists())
+
+
 class SauvegardesLocalesAccesTests(TestCase):
     def setUp(self):
         self.ecole = Ecole.objects.create(nom="École locale")

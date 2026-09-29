@@ -190,13 +190,34 @@ La connexion S3 est contrôlée au démarrage par =verifier_stockage_objet=.
 
 * Initialisation fonctionnelle
 
-La création d’une école et le chargement de son référentiel restent des
-opérations explicites :
+Sur un serveur persistant ordinaire dont la base ne contient encore ni école
+ni compte, créer la première école et *une identité personnelle de direction*
+depuis une session SSH dont les variables pointent vers la base voulue :
 
 #+begin_src sh
-python manage.py creer_ecole "Nom de l’école" --commune "Commune"
-python manage.py charger_referentiel referentiel/trame-cycle1.yaml
+python manage.py initialiser_ecole_serveur \
+  --ecole "École fictive" --commune "Commune fictive" \
+  --prenom Camille --nom Martin --utilisateur camille-martin
 #+end_src
+
+La commande demande deux fois le mot de passe sans l'afficher, applique les
+validateurs Django, crée l'école et sa trame pédagogique dans une transaction,
+et refuse de modifier une base déjà initialisée. L'exemple emploie des noms
+fictifs : saisir les valeurs adaptées à l'environnement. Avant de lancer la
+commande, vérifier explicitement le nom de la base depuis Django et conserver
+une sauvegarde restaurable. Ne jamais placer le mot de passe dans la ligne de
+commande ou dans un fichier versionné. Les invitations suivantes passent par
+la direction, dans l'application.
+
+Pour mettre à jour explicitement le référentiel après l'initialisation :
+
+#+begin_src sh
+python manage.py charger_referentiel referentiel/trame-cycle1.yaml --ecole ID
+#+end_src
+
+=creer_ecole= est une ancienne commande qui crée deux comptes techniques
+initiaux : ne pas l'utiliser pour initialiser un pilote à identités
+individuelles.
 
 =jeu_demo= ne doit être utilisé qu’avec des données factices.
 
