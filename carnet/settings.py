@@ -136,6 +136,7 @@ USE_TZ = True
 
 STATIC_URL = os.environ.get("CARNET_STATIC_URL", "static/")
 STATIC_ROOT = Path(os.environ.get("CARNET_STATIC_ROOT", BASE_DIR / "staticfiles"))
+STATICFILES_DIRS = [BASE_DIR / "referentiel" / "static"]
 
 S3_BUCKET = os.environ.get("CARNET_S3_BUCKET")
 

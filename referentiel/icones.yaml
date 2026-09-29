@@ -1,0 +1,11 @@
+# Petit catalogue facultatif. Les associations sont dans le référentiel YAML.
+icones:
+  parler:
+    nom: Parler et échanger
+    fichier: referentiel/icones/parler.svg
+  livre:
+    nom: Lire et raconter
+    fichier: referentiel/icones/livre.svg
+  collection:
+    nom: Observer une collection
+    fichier: referentiel/icones/collection.svg
