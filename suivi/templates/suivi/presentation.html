@@ -1,0 +1,48 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Présentation du carnet{% endblock %}
+{% block contenu %}
+<p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'gestion' %}">{{ ecole.nom }}</a>{% endif %}{% if competence %} · <a href="{{ index_url }}">Présentation du carnet</a>{% endif %}</p>
+<h1>{% if competence %}{{ competence.libelle }}{% else %}Présentation du carnet{% endif %}</h1>
+<p>Ces réglages s'appliquent aux prochaines prévisualisations et générations PDF. Les traces déjà enregistrées gardent leur texte.</p>
+{% if erreur %}<p class="erreur" role="alert">{{ erreur }}</p>{% endif %}
+<section class="encadre">
+  <h2>{% if competence %}Icône de la compétence{% else %}Photo de couverture{% endif %}</h2>
+  <p>Réglage effectif : {{ illustration.provenance }}.{% if not illustration_url %} Aucune illustration.{% endif %}</p>
+  {% if illustration_url %}<img class="miniature" src="{{ illustration_url }}" alt="Illustration effective">{% endif %}
+  <p>Hériter suit les réglages du niveau supérieur. Remplacer conserve votre choix local. Désactiver masque l'image à ce niveau ; une classe peut choisir sa propre image. Pour revenir à l'héritage, sélectionnez Hériter.</p>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}<input type="hidden" name="action" value="illustration">
+    {{ form.as_p }}
+    <p>Pour remplacer, choisissez soit une icône fournie, soit une image importée. Pour passer d'une image importée à une icône, cochez aussi « Effacer ».</p>
+    <button class="bouton" type="submit">Enregistrer l'illustration</button>
+  </form>
+</section>
+{% if competence %}
+<h2>Formulations proposées</h2>
+<p>Chaque proposition peut être héritée, adaptée ou masquée indépendamment. Pour l'adapter, choisissez Remplacer puis modifiez le texte prérempli. Utilisez &lt;prenom&gt; pour le prénom de l'enfant.</p>
+{% for proposition in propositions %}
+<article class="encadre">
+  <p>{{ proposition.provenance }}{% if proposition.masquee %} · masquée{% endif %}</p>
+  <p>{{ proposition.texte }}</p>
+  <form method="post">
+    {% csrf_token %}<input type="hidden" name="action" value="formulation"><input type="hidden" name="cle" value="{{ proposition.cle }}">
+    <label>Choix local <select name="mode">
+      {% if not proposition.ajoutee_ici %}<option value="heriter" {% if proposition.mode == 'heriter' %}selected{% endif %}>Hériter</option>{% endif %}
+      <option value="remplacer" {% if proposition.mode == 'remplacer' %}selected{% endif %}>{% if proposition.ajoutee_ici %}Conserver / modifier{% else %}Remplacer{% endif %}</option>
+      <option value="desactiver" {% if proposition.mode == 'desactiver' %}selected{% endif %}>Masquer</option>
+    </select></label>
+    <label>Texte <textarea name="texte">{{ proposition.texte_local|default:proposition.texte }}</textarea></label>
+    <button class="bouton discret" type="submit">Enregistrer cette proposition</button>
+  </form>
+</article>
+{% empty %}<p>Aucune formulation fournie pour cette compétence. Vous pouvez en ajouter une.</p>{% endfor %}
+<form method="post" class="encadre">
+  {% csrf_token %}<input type="hidden" name="action" value="ajouter_formulation">
+  <label>Ajouter une proposition locale <textarea name="texte" required></textarea></label>
+  <button class="bouton" type="submit">Ajouter la proposition</button>
+</form>
+{% else %}
+<h2>Icônes et formulations par compétence</h2>
+<ul class="liste">{% for ligne in competences %}<li><a class="entree" href="{{ ligne.url }}">{{ ligne.competence.domaine.nom }} · {{ ligne.competence.libelle }}</a></li>{% empty %}<li>Aucune compétence active dans le référentiel.</li>{% endfor %}</ul>
+{% endif %}
+{% endblock %}

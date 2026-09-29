@@ -1,9 +1,14 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from . import views
+from . import views, views_presentation
 
 urlpatterns = [
+    path("gestion/presentation/", views_presentation.regler_presentation, name="presentation_ecole"),
+    path("gestion/presentation/competence/<int:competence_pk>/", views_presentation.regler_presentation, name="presentation_competence_ecole"),
+    path("classe/<int:classe_pk>/presentation/", views_presentation.regler_presentation, name="presentation_classe"),
+    path("classe/<int:classe_pk>/presentation/competence/<int:competence_pk>/", views_presentation.regler_presentation, name="presentation_competence_classe"),
+    path("media/presentation/<int:pk>/", views_presentation.media_presentation, name="media_presentation"),
     path("health/", views.health, name="health"),
     path("", views.accueil, name="accueil"),
     path("connexion/", views.connexion, name="connexion"),

@@ -21,6 +21,7 @@
   <a class="bouton" href="{% url 'choisir_competence' classe.pk %}">Saisir pour toute la classe</a>
   {% endif %}
   {% if peut_generer %}
+  <a class="bouton discret" href="{% url 'presentation_classe' classe.pk %}">Présentation du carnet</a>
   <a class="bouton discret" href="{% url 'preparer_edition' classe.pk %}">Préparer les carnets PDF</a>
   {% endif %}
   {% if peut_gerer_eleves %}<a class="bouton discret" href="{% url 'importer_eleves' classe.pk %}">Gérer les enfants</a>{% endif %}
