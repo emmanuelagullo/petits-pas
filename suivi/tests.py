@@ -345,6 +345,153 @@ class Base(TestCase):
         return Trace.objects.create(observation=observation, **champs)
 
 
+class TracesCommunes(Base):
+    def setUp(self):
+        super().setUp()
+        self.autre = Eleve.objects.create(ecole=self.ecole, prenom="Milo")
+        Scolarite.objects.create(eleve=self.autre, classe=self.classe,
+                                 annee_scolaire=self.classe.annee_scolaire, niveau="PS")
+
+    def test_attribution_mise_a_jour_et_personnalisation(self):
+        from .services.traces_communes import enregistrer_commune, personnaliser
+
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk, self.autre.pk],
+            valeurs={"commentaire": "<prenom> observe", "photo": "traces/atelier.jpg"},
+        )
+        traces = list(commune.attributions.order_by("observation__eleve__prenom"))
+        self.assertEqual({t.commentaire for t in traces}, {"Lou observe", "Milo observe"})
+        self.assertEqual({t.photo.name for t in traces}, {"traces/atelier.jpg"})
+        lou = commune.attributions.get(observation__eleve=self.eleve)
+        personnaliser(utilisateur=self.enseignant, trace=lou)
+        enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.autre.pk],
+            valeurs={"commentaire": "<prénom> participe"}, commune=commune,
+        )
+        lou.refresh_from_db()
+        self.assertIsNone(lou.commune_id)
+        self.assertEqual(lou.commentaire, "Lou observe")
+        self.assertEqual(lou.photo.name, "traces/atelier.jpg")
+        self.assertEqual(commune.attributions.get().commentaire, "Milo participe")
+
+    def test_une_version_personnelle_bloque_la_reattribution(self):
+        from .services.traces_communes import enregistrer_commune, personnaliser
+
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk], valeurs={"commentaire": "Atelier"},
+        )
+        trace = personnaliser(utilisateur=self.enseignant, trace=commune.attributions.get())
+        with self.assertRaises(ValidationError):
+            enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                                competence=self.competence, ids=[self.eleve.pk],
+                                valeurs={}, commune=commune)
+        trace.supprime_le = timezone.now()
+        trace.save(update_fields=["supprime_le"])
+        enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                            competence=self.competence, ids=[self.eleve.pk],
+                            valeurs={}, commune=commune)
+        self.assertTrue(commune.attributions.filter(supprime_le__isnull=True).exists())
+
+    def test_retrait_collectif_conserve_la_version_personnelle(self):
+        from .services.traces_communes import enregistrer_commune, personnaliser, supprimer_commune
+
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk, self.autre.pk],
+            valeurs={"commentaire": "<prenom> regarde", "photo": "traces/atelier.jpg"},
+        )
+        trace = personnaliser(utilisateur=self.enseignant, trace=commune.attributions.get(
+            observation__eleve=self.eleve
+        ))
+        supprimer_commune(utilisateur=self.enseignant, commune=commune)
+        trace.refresh_from_db()
+        self.assertIsNone(trace.supprime_le)
+        self.assertEqual(trace.photo.name, "traces/atelier.jpg")
+        self.assertFalse(commune.attributions.filter(supprime_le__isnull=True).exists())
+
+    def test_restaurer_la_version_personnelle_refuse_si_commune_reattribuee(self):
+        from .services.pedagogie import restaurer_trace
+        from .services.traces_communes import enregistrer_commune, personnaliser
+
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk], valeurs={"commentaire": "Atelier"},
+        )
+        trace = personnaliser(utilisateur=self.enseignant, trace=commune.attributions.get())
+        trace.supprime_le = timezone.now()
+        trace.save(update_fields=["supprime_le"])
+        enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                            competence=self.competence, ids=[self.eleve.pk],
+                            valeurs={}, commune=commune)
+        with self.assertRaises(PermissionDenied):
+            restaurer_trace(utilisateur=self.enseignant, trace=trace)
+
+    def test_refus_d_un_eleve_d_une_autre_classe(self):
+        from .services.traces_communes import enregistrer_commune
+
+        autre_classe = Classe.objects.create(ecole=self.ecole, nom="Autre")
+        autre_eleve = Eleve.objects.create(ecole=self.ecole, prenom="Nina")
+        Scolarite.objects.create(eleve=autre_eleve, classe=autre_classe,
+                                 annee_scolaire=autre_classe.annee_scolaire, niveau="PS")
+        with self.assertRaises(ValidationError):
+            enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                                competence=self.competence,
+                                ids=[self.eleve.pk, autre_eleve.pk], valeurs={})
+        self.assertFalse(Trace.objects.exists())
+
+    def test_parcours_classe_et_personnalisation_depuis_eleve(self):
+        self.client.force_login(self.enseignant)
+        page = reverse("ajouter_trace_commune", args=[self.classe.pk, self.competence.pk])
+        reponse = self.client.post(page, {
+            "eleves": [self.eleve.pk, self.autre.pk],
+            "commentaire": "<prenom> raconte", "date_observation": "2026-09-29",
+        })
+        self.assertEqual(reponse.status_code, 302)
+        trace = Trace.objects.get(observation__eleve=self.eleve)
+        self.assertEqual(trace.commentaire, "Lou raconte")
+        self.assertIsNotNone(trace.commune_id)
+        reponse = self.client.post(reverse("personnaliser_trace_commune", args=[
+            self.eleve.pk, self.competence.pk, trace.pk,
+        ]))
+        self.assertEqual(reponse.status_code, 302)
+        trace.refresh_from_db()
+        self.assertIsNone(trace.commune_id)
+        self.assertIsNotNone(trace.origine_commune_id)
+        autre_trace = Trace.objects.get(observation__eleve=self.autre)
+        self.assertIsNotNone(autre_trace.commune_id)
+
+    def test_acces_direct_refuse_a_une_autre_ecole(self):
+        self.client.force_login(self.enseignant)
+        autre_ecole = Ecole.objects.create(nom="Ailleurs")
+        autre_classe = Classe.objects.create(ecole=autre_ecole, nom="Autre")
+        autre_domaine = Domaine.objects.create(ecole=autre_ecole, code="LANG", nom="Langage")
+        autre_competence = Competence.objects.create(
+            domaine=autre_domaine, code="A", libelle="Autre compétence"
+        )
+        reponse = self.client.get(reverse("ajouter_trace_commune", args=[
+            autre_classe.pk, autre_competence.pk,
+        ]))
+        self.assertIn(reponse.status_code, (403, 404))
+
+    def test_carnet_ne_montre_que_les_attributions_visibles(self):
+        from .services.traces_communes import enregistrer_commune
+
+        self.client.force_login(self.enseignant)
+        commune = enregistrer_commune(
+            utilisateur=self.enseignant, classe=self.classe, competence=self.competence,
+            ids=[self.eleve.pk], valeurs={"commentaire": "<prenom> participe"},
+        )
+        url = reverse("carnet", args=[self.eleve.pk])
+        self.assertContains(self.client.get(url, {"contenu": "tout"}), "Lou participe")
+        trace = commune.attributions.get()
+        trace.visible_carnet = False
+        trace.save(update_fields=["visible_carnet"])
+        self.assertNotContains(self.client.get(url, {"contenu": "tout"}), "Lou participe")
+
+
 class Acces(Base):
     @override_settings(
         ENVIRONNEMENT_ATELIER=True,

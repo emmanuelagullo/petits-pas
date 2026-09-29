@@ -7,15 +7,7 @@
 
 <form method="post" class="formulaire" id="preparer-carnets">
   {% csrf_token %}
-  <fieldset>
-    <legend>Enfants</legend>
-    <label class="choix"><input type="checkbox" id="tous-les-eleves"> Sélectionner toute la classe</label>
-    <div class="liste-selection">
-      {% for eleve in eleves %}
-      <label class="choix"><input type="checkbox" name="eleves" value="{{ eleve.pk }}"> {{ eleve.nom_court }} — {{ eleve.get_niveau_display }}</label>
-      {% empty %}<p>Cette classe n'a pas encore d'enfants.</p>{% endfor %}
-    </div>
-  </fieldset>
+  {% include "suivi/partiels/selection_eleves.html" %}
 
   <fieldset>
     <legend>Contenu</legend>
@@ -48,11 +40,4 @@
   <div class="actions"><button class="bouton" type="submit">Télécharger l'archive ZIP</button></div>
 </form>
 
-<script>
-document.getElementById("tous-les-eleves").addEventListener("change", (evenement) => {
-  document.querySelectorAll('input[name="eleves"]').forEach((caseEleve) => {
-    caseEleve.checked = evenement.target.checked;
-  });
-});
-</script>
 {% endblock %}

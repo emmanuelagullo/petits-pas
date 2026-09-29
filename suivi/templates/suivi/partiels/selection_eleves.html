@@ -1,0 +1,18 @@
+<fieldset>
+  <legend>Enfants</legend>
+  <label class="choix"><input type="checkbox" data-selection-tous> Sélectionner toute la classe</label>
+  <div class="liste-selection">
+    {% for eleve in eleves %}
+    <label class="choix"><input type="checkbox" name="eleves" value="{{ eleve.pk }}" {% if eleve.pk in selection_ids %}checked{% endif %}> {{ eleve.nom_court }} — {{ eleve.get_niveau_display }}{% if eleve.pk in versions_ids %} · version personnelle{% endif %}</label>
+    {% empty %}<p>Cette classe n'a pas encore d'enfants.</p>{% endfor %}
+  </div>
+</fieldset>
+<script>
+document.querySelectorAll('[data-selection-tous]').forEach((commande) => {
+  commande.addEventListener('change', () => {
+    commande.closest('fieldset').querySelectorAll('input[name="eleves"]').forEach((caseEleve) => {
+      caseEleve.checked = commande.checked;
+    });
+  });
+});
+</script>

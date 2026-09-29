@@ -1,0 +1,16 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Traces communes — {{ competence.libelle }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'saisie_competence' classe.pk competence.pk %}">{{ classe.libelle_avec_annee }} · {{ competence.libelle }}</a></p>
+<h1>Traces communes</h1>
+<p>Une trace commune s'affiche uniquement pour les enfants sélectionnés. Leur état d'acquisition ne change pas.</p>
+{% for item in communes %}
+<article class="encadre">
+  <p><strong>{{ item.date_observation|date:'j F Y' }}</strong> · {{ item.attributions_actives|length }} enfant(s)</p>
+  <p>{{ item.commentaire }}</p>
+  <a href="{% url 'modifier_trace_commune' classe.pk competence.pk item.pk %}">Modifier pour les enfants associés</a>
+  {% if responsable %}<form method="post" action="{% url 'supprimer_trace_commune' classe.pk competence.pk item.pk %}" onsubmit="return confirm('Retirer cette trace commune des carnets associés ? Les versions personnelles seront conservées.');">{% csrf_token %}<button class="bouton discret" type="submit">Retirer cette trace commune</button></form>{% endif %}
+</article>
+{% endfor %}
+<p><a class="bouton" href="{% url 'ajouter_trace_commune' classe.pk competence.pk %}">Ajouter une trace commune</a></p>
+{% endblock %}
