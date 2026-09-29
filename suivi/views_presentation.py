@@ -14,7 +14,7 @@ from .autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autoris
 from .contexte_ecole import ecole_courante
 from .forms_presentation import IllustrationForm
 from .models import Competence, ReglagePresentation
-from .presentation import illustration_effective, propositions
+from .presentation import catalogue_icones, illustration_effective, propositions
 from .services.presentation import enregistrer_formulation, enregistrer_reglage, verifier_droit
 from .views import acces_requis, _supprimer_media_apres_validation
 
@@ -79,6 +79,7 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         "form": form, "erreur": erreur, "illustration": illustration,
         "illustration_url": url_illustration(illustration), "index_url": index_url,
         "competences": competences,
+        "icones_apercu": {cle: static(valeur["fichier"]) for cle, valeur in catalogue_icones().items()},
         "propositions": propositions(competence, classe, inclure_masquees=True) if competence else [],
     })
 

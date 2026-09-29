@@ -14,7 +14,7 @@ class IllustrationForm(forms.ModelForm):
         model = ReglagePresentation
         fields = ["mode", "icone", "photo"]
         widgets = {"photo": ImagePriveeInput}
-        labels = {"mode": "Choix local", "photo": "Image importée"}
+        labels = {"mode": "Quelle image utiliser ?", "photo": "Image importée"}
         help_texts = {"photo": "JPEG, PNG ou WebP, 5 Mo maximum. Les images importées restent privées."}
 
     def __init__(self, *args, **kwargs):
@@ -23,6 +23,13 @@ class IllustrationForm(forms.ModelForm):
         self.fields["icone"].choices += [(cle, valeur["nom"]) for cle, valeur in catalogue_icones().items()]
         if self.instance.competence_id is None:
             self.fields.pop("icone")
+        self.fields["mode"].widget.attrs["title"] = "Utiliser l'image proposée, choisir votre image ou ne pas afficher d'image."
+        # Les contrôles sont pilotés en JavaScript ; côté serveur, ignorer
+        # également les modifications d'image hors du mode Remplacer.
+        if self.is_bound and self.data.get("mode") != ReglagePresentation.REMPLACER:
+            for nom in ("icone", "photo"):
+                if nom in self.fields:
+                    self.fields[nom].disabled = True
 
     def clean_photo(self):
         photo = self.cleaned_data.get("photo")

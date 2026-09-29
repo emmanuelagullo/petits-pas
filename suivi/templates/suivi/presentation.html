@@ -1,32 +1,50 @@
 {% extends "suivi/base.html" %}
+{% load static illustrations %}
 {% block titre %}Présentation du carnet{% endblock %}
 {% block contenu %}
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'gestion' %}">{{ ecole.nom }}</a>{% endif %}{% if competence %} · <a href="{{ index_url }}">Présentation du carnet</a>{% endif %}</p>
 <h1>{% if competence %}{{ competence.libelle }}{% else %}Présentation du carnet{% endif %}</h1>
-<p>Ces réglages s'appliquent aux prochaines prévisualisations et générations PDF. Les traces déjà enregistrées gardent leur texte.</p>
+<details class="aide-presentation">
+  <summary>Que changent ces choix dans les carnets ?</summary>
+  <p>Les images choisies ici apparaîtront quand vous ouvrirez un carnet ou créerez un nouveau PDF. Les PDF déjà téléchargés ne changeront pas.</p>
+  <p>Les phrases proposées servent à vous aider à écrire de nouvelles traces. Modifier une phrase ici ne modifie pas les commentaires déjà enregistrés pour les élèves.</p>
+</details>
 {% if erreur %}<p class="erreur" role="alert">{{ erreur }}</p>{% endif %}
 <section class="encadre">
   <h2>{% if competence %}Icône de la compétence{% else %}Photo de couverture{% endif %}</h2>
-  <p>Réglage effectif : {{ illustration.provenance }}.{% if not illustration_url %} Aucune illustration.{% endif %}</p>
+  <p>Image utilisée : {{ illustration.provenance }}.{% if not illustration_url %} Aucune image affichée.{% endif %}</p>
   {% if illustration_url %}<img class="miniature" src="{{ illustration_url }}" alt="Illustration effective">{% endif %}
-  <p>Hériter suit les réglages du niveau supérieur. Remplacer conserve votre choix local. Désactiver masque l'image à ce niveau ; une classe peut choisir sa propre image. Pour revenir à l'héritage, sélectionnez Hériter.</p>
-  <form method="post" enctype="multipart/form-data">
+  <details class="aide-presentation">
+    <summary>Comment choisir l'image ?</summary>
+    <p><strong>Hériter :</strong> utiliser l'image {% if classe %}choisie par l'école, ou celle du référentiel si l'école n'en a pas choisi{% else %}fournie dans le référentiel{% endif %}. Si cette image change plus tard, vous utiliserez la nouvelle.</p>
+    <p><strong>Remplacer :</strong> choisir votre propre image. Vous garderez ce choix même si l'image proposée change.</p>
+    <p><strong>Désactiver :</strong> ne pas afficher d'image {% if classe %}pour cette classe{% else %}par défaut pour l'école. Chaque classe pourra encore choisir une image{% endif %}.{% if not competence %} La page de couverture reste présente.{% endif %}</p>
+    <p>Vous pouvez changer d'avis à tout moment. Choisir <strong>Hériter</strong> permet de reprendre l'image proposée.</p>
+    <p>Pour remplacer, choisissez soit une icône fournie, soit une image importée. Pour passer d'une image importée à une icône, cochez aussi « Effacer ».</p>
+  </details>
+  <form method="post" enctype="multipart/form-data" data-presentation="illustration">
     {% csrf_token %}<input type="hidden" name="action" value="illustration">
     {{ form.as_p }}
-    <p>Pour remplacer, choisissez soit une icône fournie, soit une image importée. Pour passer d'une image importée à une icône, cochez aussi « Effacer ».</p>
+    {% if competence %}<p data-apercu-icone hidden>Icône choisie : <img class="icone-apercu" alt=""></p>{% endif %}
+    <p data-aide-champs>Les champs d'image sont modifiables avec « Remplacer ».</p>
     <button class="bouton" type="submit">Enregistrer l'illustration</button>
   </form>
 </section>
 {% if competence %}
 <h2>Formulations proposées</h2>
-<p>Chaque proposition peut être héritée, adaptée ou masquée indépendamment. Pour l'adapter, choisissez Remplacer puis modifiez le texte prérempli. Utilisez &lt;prenom&gt; pour le prénom de l'enfant.</p>
+<details class="aide-presentation">
+  <summary>Comment utiliser les phrases proposées ?</summary>
+  <p><strong>Hériter :</strong> garder la phrase proposée {% if classe %}par l'école ou le référentiel{% else %}dans le référentiel{% endif %}, et suivre ses changements.</p>
+  <p><strong>Remplacer :</strong> écrire votre propre version. <strong>Masquer :</strong> ne plus proposer cette phrase, sans la supprimer.</p>
+  <p>Chaque phrase se choisit séparément. Vous pouvez aussi en ajouter une. Écrivez &lt;prenom&gt; ou &lt;prénom&gt; à l'endroit où le prénom de l'enfant doit apparaître.</p>
+</details>
 {% for proposition in propositions %}
 <article class="encadre">
   <p>{{ proposition.provenance }}{% if proposition.masquee %} · masquée{% endif %}</p>
   <p>{{ proposition.texte }}</p>
-  <form method="post">
+  <form method="post" data-presentation="formulation">
     {% csrf_token %}<input type="hidden" name="action" value="formulation"><input type="hidden" name="cle" value="{{ proposition.cle }}">
-    <label>Choix local <select name="mode">
+    <label title="Garder la phrase proposée, écrire votre version ou masquer cette proposition.">Quelle phrase proposer ? <select name="mode">
       {% if not proposition.ajoutee_ici %}<option value="heriter" {% if proposition.mode == 'heriter' %}selected{% endif %}>Hériter</option>{% endif %}
       <option value="remplacer" {% if proposition.mode == 'remplacer' %}selected{% endif %}>{% if proposition.ajoutee_ici %}Conserver / modifier{% else %}Remplacer{% endif %}</option>
       <option value="desactiver" {% if proposition.mode == 'desactiver' %}selected{% endif %}>Masquer</option>
@@ -43,6 +61,8 @@
 </form>
 {% else %}
 <h2>Icônes et formulations par compétence</h2>
-<ul class="liste">{% for ligne in competences %}<li><a class="entree" href="{{ ligne.url }}">{{ ligne.competence.domaine.nom }} · {{ ligne.competence.libelle }}</a></li>{% empty %}<li>Aucune compétence active dans le référentiel.</li>{% endfor %}</ul>
+<ul class="liste">{% for ligne in competences %}<li><a class="entree" href="{{ ligne.url }}">{% icone_liste ligne.competence classe %}{{ ligne.competence.domaine.nom }} · {{ ligne.competence.libelle }}</a></li>{% empty %}<li>Aucune compétence active dans le référentiel.</li>{% endfor %}</ul>
 {% endif %}
+{{ icones_apercu|json_script:"icones-apercu" }}
+<script src="{% static 'suivi/presentation.js' %}" defer></script>
 {% endblock %}

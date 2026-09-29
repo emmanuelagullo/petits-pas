@@ -123,6 +123,35 @@ class HeritagePresentation(Base):
 
 
 class ParcoursPresentation(Base):
+    def test_icone_effective_dans_listes_et_ligne_htmx(self):
+        self.competence.icone = "livre"
+        self.competence.save()
+        self.client.force_login(self.enseignant)
+        urls = [reverse("saisie_eleve", args=[self.eleve.pk]),
+                reverse("choisir_competence", args=[self.classe.pk])]
+        for url in urls:
+            self.assertContains(self.client.get(url), 'class="icone-liste"')
+        ligne = self.client.post(reverse("basculer", args=[self.eleve.pk, self.competence.pk]),
+                                 HTTP_HX_REQUEST="true")
+        self.assertContains(ligne, 'class="icone-liste"')
+        enregistrer_reglage(self.enseignant, ReglagePresentation(
+            ecole=self.ecole, classe=self.classe, competence=self.competence, mode="desactiver"))
+        for url in urls:
+            self.assertNotContains(self.client.get(url), 'class="icone-liste"')
+
+    def test_heritage_ignore_modifications_image_et_aides_repliees(self):
+        reglage = enregistrer_reglage(self.direction, ReglagePresentation(
+            ecole=self.ecole, competence=self.competence, mode="remplacer", icone="livre"))
+        self.client.force_login(self.direction)
+        url = reverse("presentation_competence_ecole", args=[self.competence.pk])
+        self.assertEqual(self.client.post(url, {"mode": "heriter", "icone": "parler"}).status_code, 302)
+        reglage.refresh_from_db()
+        self.assertEqual(reglage.icone, "livre")
+        page = self.client.get(url)
+        self.assertContains(page, '<details class="aide-presentation">', count=3)
+        self.assertContains(page, 'id="icones-apercu"')
+        self.assertNotContains(page, 'details open')
+
     def test_adaptation_et_retour_a_heritage_depuis_interface(self):
         source = FormulationProposee.objects.create(competence=self.competence, code="F", texte="Source")
         self.client.force_login(self.enseignant)

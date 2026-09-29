@@ -1,4 +1,5 @@
 {% extends "suivi/base.html" %}
+{% load illustrations %}
 {% block titre %}Saisir pour toute la classe{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
@@ -11,6 +12,7 @@
   <ul class="liste" style="border:0; border-radius:0">
     {% for c in competences %}
     <li><a class="entree" href="{% url 'saisie_competence' classe.pk c.pk %}">
+      {% icone_liste c classe %}
       <span class="pastille">{{ c.niveau }}</span>
       <span class="principal" style="font-weight:400">{{ c.libelle }}</span>
     </a></li>
