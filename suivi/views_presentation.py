@@ -34,6 +34,18 @@ def _perimetre(request, classe_pk):
 
 @acces_requis
 def regler_presentation(request, classe_pk=None, competence_pk=None):
+    ecole = ecole_courante(request)
+    if classe_pk is None and not autorise(request.user, ADMINISTRER_ECOLE, ecole):
+        # Ne pas deviner une classe : l'utilisateur choisit explicitement
+        # le périmètre de ses réglages, sans ouvrir les réglages de l'école.
+        competence = Competence.objects.filter(pk=competence_pk, domaine__ecole=ecole).first() if competence_pk else None
+        destinations = []
+        for classe in classes_accessibles(request.user, MODIFIER_ETAT, ecole=ecole):
+            url = (reverse("presentation_competence_classe", args=[classe.pk, competence.pk])
+                   if competence else reverse("presentation_classe", args=[classe.pk]))
+            destinations.append({"classe": classe, "url": url})
+        return render(request, "suivi/presentation_acces_refuse.html",
+                      {"destinations": destinations}, status=403)
     ecole, classe = _perimetre(request, classe_pk)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole) if competence_pk else None
     filtres = {"ecole": ecole, "classe": classe, "competence": competence}

@@ -148,7 +148,7 @@ class ParcoursPresentation(Base):
         reglage.refresh_from_db()
         self.assertEqual(reglage.icone, "livre")
         page = self.client.get(url)
-        self.assertContains(page, '<details class="aide-presentation">', count=3)
+        self.assertContains(page, '<details class="aide-presentation">', count=4)
         self.assertContains(page, 'id="icones-apercu"')
         self.assertNotContains(page, 'details open')
 
@@ -185,6 +185,18 @@ class ParcoursPresentation(Base):
         self.client.force_login(self.enseignant)
         self.assertEqual(self.client.get(reverse("presentation_classe", args=[self.classe.pk])).status_code, 200)
         self.assertEqual(self.client.get(reverse("presentation_ecole")).status_code, 403)
+
+    def test_refus_ecole_propose_la_meme_competence_dans_classe_autorisee(self):
+        self.client.force_login(self.enseignant)
+        url = reverse("presentation_competence_ecole", args=[self.competence.pk])
+        cible = reverse("presentation_competence_classe", args=[self.classe.pk, self.competence.pk])
+        page = self.client.get(url)
+        self.assertContains(page, "Ces réglages concernent toute l'école", status_code=403)
+        self.assertContains(page, cible, status_code=403)
+        self.assertEqual(self.client.get(cible).status_code, 200)
+        page = self.client.post(url, {"mode": "remplacer", "icone": "livre"})
+        self.assertEqual(page.status_code, 403)
+        self.assertFalse(ReglagePresentation.objects.exists())
 
     def test_proposition_classe_dans_formulaires_individuel_et_collectif(self):
         enregistrer_formulation(utilisateur=self.enseignant, competence=self.competence,

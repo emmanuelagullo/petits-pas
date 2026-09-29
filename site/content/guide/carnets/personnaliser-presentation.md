@@ -28,8 +28,12 @@ Les images importées restent privées et sont soumises aux mêmes précautions 
 
 ## Adapter les formulations proposées
 
+L'aide « À quoi servent les phrases proposées ? » explique leur rôle et donne un exemple. Ces phrases sont des points de départ pour rédiger des commentaires dans les traces ; elles ne sont pas ajoutées automatiquement aux carnets.
+
 Dans la page d’une compétence, adapter ou masquer chaque proposition indépendamment, ou ajouter une formulation locale. Une classe peut adapter les propositions ajoutées par l’école. **Hériter** abandonne l’adaptation effective et suit à nouveau le niveau supérieur. **Masquer** conserve la proposition et sa provenance ; elle peut être réaffichée.
 
 Utiliser `&lt;prenom&gt;` ou `&lt;prénom&gt;` pour le prénom. Les propositions sont disponibles dans la saisie individuelle et collective des traces. Une fois inséré et enregistré dans une trace, le texte évolue indépendamment de la proposition.
 
 Ces réglages s’appliquent aux prochaines prévisualisations et générations PDF ; les PDF déjà téléchargés restent identiques. Ils ne permettent pas encore de renommer, masquer ou ajouter des compétences au référentiel.
+
+Une adresse commençant par `/gestion/presentation/` concerne l'école et exige un rôle de direction. Si vous êtes responsable de classe, la page de refus propose vos classes autorisées : choisissez celle pour laquelle vous souhaitez adapter la présentation.
