@@ -14,9 +14,13 @@
   const eleves = JSON.parse(donnees.textContent);
   const compteur = formulaire.querySelector('[data-trace-compteur]');
   const apercu = formulaire.querySelector('[data-trace-apercu]');
+  const titreApercu = formulaire.querySelector('[data-trace-apercu-titre]');
   const actualiser = () => {
     const ids = new Set(Array.from(formulaire.querySelectorAll('input[name="eleves"]:checked')).map((caseEleve) => Number(caseEleve.value)));
     const selection = eleves.filter((eleve) => ids.has(eleve.id));
+    titreApercu.textContent = selection.length > 3
+      ? 'Aperçu pour quelques élèves sélectionnés'
+      : 'Aperçu pour les élèves sélectionnés';
     compteur.textContent = `Cette trace commune sera associée à ${selection.length} élève${selection.length > 1 ? 's' : ''}.`;
     apercu.replaceChildren();
     selection.slice(0, 3).forEach((eleve) => {

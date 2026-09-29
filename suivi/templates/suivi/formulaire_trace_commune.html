@@ -13,7 +13,7 @@
   {% include "suivi/partiels/selection_eleves.html" %}
   {% if versions %}<p>Pour réassocier un enfant qui a une version personnelle, ouvrez le lien « version personnelle » et retirez cette version depuis sa fiche.</p>{% endif %}
   <p>Modifier cette trace commune changera son contenu pour tous les enfants encore associés. Décocher un enfant retirera son attribution à la trace commune, sans toucher aux autres.</p>
-  <section class="encadre" aria-label="Aperçu personnalisé"><h2>Aperçu pour les élèves sélectionnés</h2><p data-trace-compteur role="status" aria-live="polite"></p><ul data-trace-apercu></ul></section>
+  <section class="encadre" aria-label="Aperçu personnalisé"><h2 data-trace-apercu-titre>Aperçu pour les élèves sélectionnés</h2><p data-trace-compteur role="status" aria-live="polite"></p><ul data-trace-apercu></ul></section>
   <button class="bouton" type="submit">Enregistrer la trace commune</button>
 </form>
 {{ apercu_eleves|json_script:"apercu-eleves" }}
