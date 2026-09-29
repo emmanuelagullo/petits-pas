@@ -14,6 +14,10 @@ statut = "disponible"
 
 Depuis **Présentation du carnet**, choisir la photo de couverture ou ouvrir une compétence pour son icône. Le réglage effectif et sa provenance sont indiqués.
 
+Les explications se déplient en ouvrant les questions « Comment choisir l'image ? » et « Comment utiliser les phrases proposées ? ». Avec **Hériter** ou **Désactiver**, les champs d'image sont grisés ; avec **Remplacer**, ils deviennent modifiables et l'icône choisie apparaît à côté du sélecteur. De même, une phrase peut être éditée avec **Remplacer** (ou **Conserver / modifier** pour une phrase ajoutée ici).
+
+Les icônes choisies apparaissent aussi à gauche des listes de compétences, dans la saisie par élève et le choix d'une compétence pour la classe. Les grilles n'ajoutent pas une image dans chaque case d'élève.
+
 - **Hériter** suit le référentiel importé, puis les réglages de l’école pour une classe.
 - **Remplacer** choisit une icône fournie ou une image importée (JPEG, PNG ou WebP, 5 Mo maximum). Pour remplacer une image importée par une icône, cocher aussi **Effacer**.
 - **Désactiver** masque l’image à ce niveau. Une classe peut néanmoins choisir sa propre image. Désactiver la photo de couverture conserve la page de couverture.
