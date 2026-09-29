@@ -1,0 +1,32 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Trace commune — {{ competence.libelle }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'traces_communes' classe.pk competence.pk %}">Traces communes · {{ competence.libelle }}</a></p>
+<h1>{% if commune %}Modifier la trace commune{% else %}Ajouter une trace commune{% endif %}</h1>
+<p>Le commentaire et la photo seront partagés avec les enfants associés. &lt;prenom&gt; sera remplacé par le prénom de chacun dans son carnet.</p>
+{% if erreur %}<p class="erreur">{{ erreur }}</p>{% endif %}
+<form method="post" enctype="multipart/form-data" class="formulaire">
+  {% csrf_token %}
+  <label for="commentaire">Commentaire</label>
+  {% if formulations %}<p>Formulations proposées à adapter :</p>
+  {% for formulation in formulations %}<button type="button" class="bouton discret proposition-commentaire" data-texte="{{ formulation.texte }}">{{ formulation.texte }}</button>{% endfor %}
+  {% endif %}
+  <textarea id="commentaire" name="commentaire">{{ commentaire }}</textarea>
+  <label for="date_observation">Date</label>
+  <input type="date" id="date_observation" name="date_observation" value="{{ date_observation|date:'Y-m-d' }}" required>
+  {% if commune.photo %}<p>Photo actuelle{% if trace_media %} : <img class="miniature" src="{% url 'afficher_media_trace' trace_media.pk %}" alt="">{% endif %}</p><label class="choix"><input type="checkbox" name="retirer_photo"> Retirer la photo</label>{% endif %}
+  <label for="photo">{% if commune.photo %}Remplacer la photo{% else %}Ajouter une photo{% endif %}</label>
+  <input type="file" id="photo" name="photo" accept="image/*">
+  {% include "suivi/partiels/selection_eleves.html" %}
+  {% if versions %}<p>Pour réassocier un enfant qui a une version personnelle, retirez d'abord cette version depuis sa fiche :</p><ul>{% for trace in versions %}<li><a href="{% url 'trace' trace.observation.eleve.pk competence.pk %}">{{ trace.observation.eleve.nom_court }}</a></li>{% endfor %}</ul>{% endif %}
+  <p>Modifier cette trace changera son contenu pour tous les enfants encore associés. Décocher un enfant retirera son attribution, sans toucher aux autres.</p>
+  <button class="bouton" type="submit">Enregistrer la trace commune</button>
+</form>
+<script>
+document.querySelectorAll('.proposition-commentaire').forEach((bouton) => {
+  bouton.addEventListener('click', () => {
+    document.getElementById('commentaire').value = bouton.dataset.texte;
+  });
+});
+</script>
+{% endblock %}

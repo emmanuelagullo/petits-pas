@@ -45,6 +45,8 @@ Les statuts employés sont :
 | Je voudrais… | État | Limite importante |
 | --- | --- | --- |
 | Ajouter un commentaire ou une photographie | Disponible | Une affectation active autorisant la contribution est nécessaire. |
+| Ajouter une trace commune pour plusieurs élèves | Responsable seulement | Même classe et même année ; sélection explicite des élèves. |
+| Personnaliser une trace commune pour un élève | Disponible selon le rôle | La version personnelle évolue indépendamment ; la photo est initialement réutilisée. |
 | Utiliser une formulation proposée | Disponible | Le texte reste modifiable avant enregistrement. |
 | Modifier ma propre trace | Disponible | Seulement pendant une affectation active dans la classe. |
 | Modifier une trace d’une autre personne | Responsable seulement | L’auteur et le dernier éditeur restent distingués. |

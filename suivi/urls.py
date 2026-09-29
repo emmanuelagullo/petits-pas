@@ -63,6 +63,14 @@ urlpatterns = [
         views.saisie_competence,
         name="saisie_competence",
     ),
+    path("classe/<int:pk>/competence/<int:competence_pk>/traces/",
+         views.traces_communes, name="traces_communes"),
+    path("classe/<int:pk>/competence/<int:competence_pk>/traces/ajouter/",
+         views.editer_trace_commune, name="ajouter_trace_commune"),
+    path("classe/<int:pk>/competence/<int:competence_pk>/traces/<int:commune_pk>/",
+         views.editer_trace_commune, name="modifier_trace_commune"),
+    path("classe/<int:pk>/competence/<int:competence_pk>/traces/<int:commune_pk>/retirer/",
+         views.retirer_trace_commune, name="supprimer_trace_commune"),
     path(
         "classe/<int:pk>/competence/<int:competence_pk>/grille/",
         views.grille_competence,
@@ -111,6 +119,8 @@ urlpatterns = [
         views.trace,
         name="trace",
     ),
+    path("eleve/<int:eleve_pk>/competence/<int:competence_pk>/trace/<int:trace_pk>/personnaliser/",
+         views.personnaliser_trace_commune, name="personnaliser_trace_commune"),
     path(
         "media/trace/<int:trace_pk>/",
         views.afficher_media_trace,

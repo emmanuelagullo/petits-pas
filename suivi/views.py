@@ -88,6 +88,7 @@ from .models import (
     ParametresCarnet,
     Scolarite,
     Trace,
+    TraceCommune,
     annee_scolaire_pour,
     bornes_annee_scolaire,
 )
@@ -121,6 +122,7 @@ from .services.pedagogie import (
     supprimer_bilan_logiquement,
     supprimer_trace_logiquement,
 )
+from .services.traces_communes import enregistrer_commune, personnaliser, supprimer_commune
 from .services.equipe import (
     accepter_invitation,
     activer_classe,
@@ -997,6 +999,111 @@ def modifier_trace(request, eleve_pk, competence_pk, trace_pk):
     return _editer_trace(request, eleve_pk, competence_pk, trace_pk)
 
 
+def _contexte_traces_communes(request, pk, competence_pk):
+    ecole = ecole_courante(request)
+    classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
+    competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
+    return classe, competence
+
+
+@acces_requis
+def traces_communes(request, pk, competence_pk):
+    classe, competence = _contexte_traces_communes(request, pk, competence_pk)
+    communes = TraceCommune.objects.filter(
+        classe=classe, competence=competence, supprime_le__isnull=True
+    ).prefetch_related(Prefetch("attributions", queryset=Trace.objects.filter(
+        supprime_le__isnull=True
+    ), to_attr="attributions_actives"))
+    return render(request, "suivi/traces_communes.html", {
+        "classe": classe, "competence": competence, "communes": communes,
+        "responsable": autorise(request.user, MODIFIER_ETAT, classe),
+    })
+
+
+@acces_requis
+def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
+    classe, competence = _contexte_traces_communes(request, pk, competence_pk)
+    if not autorise(request.user, MODIFIER_ETAT, classe):
+        raise Http404
+    commune = None
+    if commune_pk is not None:
+        commune = get_object_or_404(TraceCommune, pk=commune_pk, classe=classe,
+                                    competence=competence, supprime_le__isnull=True)
+        if not (autorise(request.user, MODIFIER_ETAT, classe) or commune.auteur_id == request.user.pk):
+            raise Http404
+    eleves = list(classe.eleves)
+    selection_ids = set(commune.attributions.filter(supprime_le__isnull=True).values_list(
+        "observation__eleve_id", flat=True
+    )) if commune else set()
+    versions = list(Trace.objects.filter(origine_commune=commune, supprime_le__isnull=True)
+                    .select_related("observation__eleve")) if commune else []
+    erreur = None
+    commentaire = commune.commentaire if commune else ""
+    date_observation = commune.date_observation if commune else timezone.localdate()
+    if request.method == "POST":
+        commentaire = request.POST.get("commentaire", "").strip()
+        date_observation = request.POST.get("date_observation")
+        try:
+            date_observation = datetime.strptime(date_observation, "%Y-%m-%d").date()
+            ids = {int(pk) for pk in request.POST.getlist("eleves")}
+            photo = commune.photo if commune else None
+            if request.POST.get("retirer_photo"):
+                photo = None
+            if request.FILES.get("photo"):
+                photo = request.FILES["photo"]
+            ancien_nom = commune.photo.name if commune and commune.photo else ""
+            with transaction.atomic():
+                commune_enregistree = enregistrer_commune(utilisateur=request.user, classe=classe,
+                                   competence=competence, ids=ids,
+                                   valeurs={"commentaire": commentaire,
+                                            "date_observation": date_observation,
+                                            "photo": photo}, commune=commune)
+                nouveau_nom = commune_enregistree.photo.name if commune_enregistree.photo else ""
+                if ancien_nom and ancien_nom != nouveau_nom:
+                    _supprimer_media_apres_validation(ancien_nom)
+            messages.success(request, "Trace commune enregistrée.")
+            return redirect("traces_communes", pk=pk, competence_pk=competence_pk)
+        except (ValueError, ValidationError) as exc:
+            erreur = str(exc)
+            selection_ids = ids if "ids" in locals() else set()
+    trace_media = commune.attributions.filter(supprime_le__isnull=True).first() if commune else None
+    return render(request, "suivi/formulaire_trace_commune.html", {
+        "classe": classe, "competence": competence, "commune": commune,
+        "eleves": eleves, "selection_ids": selection_ids,
+        "versions": versions, "versions_ids": {t.observation.eleve_id for t in versions},
+        "commentaire": commentaire, "date_observation": date_observation,
+        "trace_media": trace_media, "erreur": erreur,
+        "formulations": competence.formulations.filter(active=True),
+    })
+
+
+@acces_requis
+def personnaliser_trace_commune(request, eleve_pk, competence_pk, trace_pk):
+    if request.method != "POST":
+        raise Http404
+    ecole = ecole_courante(request)
+    trace_obj = get_object_or_404(Trace, pk=trace_pk, observation__eleve_id=eleve_pk,
+                                  observation__competence_id=competence_pk,
+                                  observation__eleve__ecole=ecole, commune__isnull=False,
+                                  supprime_le__isnull=True)
+    personnaliser(utilisateur=request.user, trace=trace_obj)
+    messages.success(request, "Version personnelle créée. Vous pouvez maintenant la modifier.")
+    return redirect("modifier_trace", eleve_pk=eleve_pk, competence_pk=competence_pk,
+                    trace_pk=trace_pk)
+
+
+@acces_requis
+def retirer_trace_commune(request, pk, competence_pk, commune_pk):
+    if request.method != "POST":
+        raise Http404
+    classe, competence = _contexte_traces_communes(request, pk, competence_pk)
+    commune = get_object_or_404(TraceCommune, pk=commune_pk, classe=classe,
+                                competence=competence, supprime_le__isnull=True)
+    supprimer_commune(utilisateur=request.user, commune=commune)
+    messages.success(request, "Trace commune retirée. Les versions personnelles sont conservées.")
+    return redirect("traces_communes", pk=pk, competence_pk=competence_pk)
+
+
 def _charger_trace_media(request, trace_pk, operation):
     ecole = ecole_courante(request)
     trace_obj = get_object_or_404(
@@ -1062,6 +1169,8 @@ def _supprimer_media_apres_validation(nom):
         return
 
     def supprimer():
+        if Trace.objects.filter(photo=nom).exists() or TraceCommune.objects.filter(photo=nom).exists():
+            return
         try:
             default_storage.delete(nom)
         except Exception:
@@ -1161,6 +1270,8 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             scolarite=scolarite_courante,
             supprime_le__isnull=True,
         )
+        if trace_obj.commune_id:
+            raise Http404
         if not (
             autorise(request.user, MODIFIER_ETAT, eleve, ecole=ecole)
             or trace_obj.auteur_id == request.user.pk
@@ -1231,6 +1342,16 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             scolarite=scolarite_courante,
             supprime_le__isnull=False,
         )
+        for retiree in traces_supprimees:
+            autre_version = obs.traces.filter(supprime_le__isnull=True).filter(
+                Q(commune_id=retiree.origine_commune_id)
+                if retiree.origine_commune_id else
+                Q(origine_commune_id=retiree.commune_id)
+                if retiree.commune_id else Q(pk=-1)
+            ).exists()
+            retiree.peut_restaurer = not autre_version and not (
+                retiree.commune_id and retiree.commune.supprime_le
+            )
     return render(
         request,
         "suivi/trace.html",
