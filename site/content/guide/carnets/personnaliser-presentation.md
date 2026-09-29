@@ -34,6 +34,8 @@ Dans la page d’une compétence, adapter ou masquer chaque proposition indépen
 
 Utiliser `&lt;prenom&gt;` ou `&lt;prénom&gt;` pour le prénom. Les propositions sont disponibles dans la saisie individuelle et collective des traces. Une fois inséré et enregistré dans une trace, le texte évolue indépendamment de la proposition.
 
+Dans la saisie d'une trace, choisir la phrase dans le menu déroulant puis cliquer sur **Insérer la proposition**. Elle est insérée à l'endroit du curseur, ou remplace le texte sélectionné ; le reste du commentaire est conservé. L'explication **Propositions à insérer puis modifier librement** se déplie à la demande.
+
 Ces réglages s’appliquent aux prochaines prévisualisations et générations PDF ; les PDF déjà téléchargés restent identiques. Ils ne permettent pas encore de renommer, masquer ou ajouter des compétences au référentiel.
 
 Une adresse commençant par `/gestion/presentation/` concerne l'école et exige un rôle de direction. Si vous êtes responsable de classe, la page de refus propose vos classes autorisées : choisissez celle pour laquelle vous souhaitez adapter la présentation.
