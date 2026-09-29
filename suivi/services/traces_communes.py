@@ -50,9 +50,19 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         "observation__eleve_id", flat=True
     )) if commune.pk else []
     communes_ids = {sc.eleve_id for sc in selection}
-    if commune.pk and Trace.objects.filter(origine_commune=commune, supprime_le__isnull=True,
-                                           observation__eleve_id__in=communes_ids).exists():
-        raise ValidationError("Une version personnelle existe : retirez-la avant de réassocier cet élève.")
+    versions = list(Trace.objects.filter(
+        origine_commune=commune, supprime_le__isnull=True,
+        observation__eleve_id__in=communes_ids,
+    ).select_related("observation__eleve")) if commune.pk else []
+    if versions:
+        noms = ", ".join(sorted({trace.observation.eleve.nom_court for trace in versions}))
+        if len(versions) == 1:
+            raise ValidationError(
+                f"Une version personnelle existe pour {noms} : retirez-la avant de réassocier cet élève."
+            )
+        raise ValidationError(
+            f"Des versions personnelles existent pour {noms} : retirez-les avant de réassocier ces élèves."
+        )
     for champ in ("date_observation", "commentaire", "photo"):
         if champ in valeurs:
             setattr(commune, champ, valeurs[champ])
@@ -89,9 +99,9 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
 def personnaliser(*, utilisateur, trace):
     if trace.commune_id:
         TraceCommune.objects.select_for_update().get(pk=trace.commune_id)
-    trace = Trace.objects.select_for_update().select_related(
-        "commune", "scolarite__classe"
-    ).get(pk=trace.pk)
+    # Verrouiller uniquement la trace : une jointure externe vers « commune »
+    # (nullable) rendrait FOR UPDATE invalide sous PostgreSQL.
+    trace = Trace.objects.select_for_update().get(pk=trace.pk)
     if not trace.commune_id or trace.supprime_le or not (
         autorise(utilisateur, MODIFIER_ETAT, trace.scolarite.classe)
         or (trace.auteur_id == utilisateur.pk and autorise(utilisateur, CONTRIBUER, trace.scolarite.classe))

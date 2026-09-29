@@ -8,7 +8,7 @@
 <section class="encadre historique-traces">
   {% if traces %}<h2>Traces déjà conservées</h2>{% endif %}
   {% for trace in traces %}
-  <article class="trace-conservee{% if trace_obj.pk == trace.pk %} en-edition{% endif %}">
+  <article id="trace-{{ trace.pk }}" class="trace-conservee{% if trace_obj.pk == trace.pk %} en-edition{% endif %}">
     {% if trace_obj.pk == trace.pk %}
     {% include "suivi/partiels/formulaire_trace.html" %}
     {% else %}
