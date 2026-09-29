@@ -75,6 +75,8 @@ def enregistrer_trace(
     creation = trace is None
     if trace is not None and not _peut_corriger_trace(utilisateur, trace):
         raise PermissionDenied
+    if trace is not None and trace.commune_id is not None:
+        raise PermissionDenied
     observation, _ = Observation.objects.get_or_create(
         eleve=eleve,
         competence=competence,
@@ -149,6 +151,18 @@ def definir_visibilite_trace(*, utilisateur, trace, visible):
 @transaction.atomic
 def restaurer_trace(*, utilisateur, trace):
     if not _est_responsable(utilisateur, trace.scolarite.classe):
+        raise PermissionDenied
+    if trace.commune_id and trace.commune.supprime_le is not None:
+        raise PermissionDenied
+    if trace.origine_commune_id and Trace.objects.filter(
+        commune_id=trace.origine_commune_id, observation=trace.observation,
+        supprime_le__isnull=True,
+    ).exists():
+        raise PermissionDenied
+    if trace.commune_id and Trace.objects.filter(
+        origine_commune_id=trace.commune_id, observation=trace.observation,
+        supprime_le__isnull=True,
+    ).exists():
         raise PermissionDenied
     anciennes = instantane(trace, CHAMPS_TRACE)
     trace.supprime_le = None
