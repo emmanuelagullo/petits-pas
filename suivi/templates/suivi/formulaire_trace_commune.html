@@ -19,7 +19,7 @@
   <input type="file" id="photo" name="photo" accept="image/*">
   {% include "suivi/partiels/selection_eleves.html" %}
   {% if versions %}<p>Pour réassocier un enfant qui a une version personnelle, ouvrez le lien « version personnelle » et retirez cette version depuis sa fiche.</p>{% endif %}
-  <p>Modifier cette trace changera son contenu pour tous les enfants encore associés. Décocher un enfant retirera son attribution, sans toucher aux autres.</p>
+  <p>Modifier cette trace commune changera son contenu pour tous les enfants encore associés. Décocher un enfant retirera son attribution à la trace commune, sans toucher aux autres.</p>
   <button class="bouton" type="submit">Enregistrer la trace commune</button>
 </form>
 <script>
