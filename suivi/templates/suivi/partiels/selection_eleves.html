@@ -5,7 +5,7 @@
     {% for eleve in eleves %}
     <div class="choix{% if eleve.version_personnelle %} selection-personnelle{% endif %}">
       <label><input type="checkbox" name="eleves" value="{{ eleve.pk }}" {% if eleve.version_personnelle %}aria-disabled="true" data-version-personnelle data-message="Une version personnelle existe pour {{ eleve.nom_court }} : retirez-la avant de réassocier cet élève."{% elif eleve.pk in selection_ids %}checked{% endif %}> {{ eleve.nom_court }} — {{ eleve.get_niveau_display }}</label>
-      {% if eleve.version_personnelle %} · <em><a href="{% url 'trace' eleve.pk competence.pk %}#trace-{{ eleve.version_personnelle.pk }}">version personnelle</a></em>{% endif %}
+      {% if eleve.version_personnelle %}<em><a href="{% url 'trace' eleve.pk competence.pk %}#trace-{{ eleve.version_personnelle.pk }}">version personnelle</a></em>{% endif %}
     </div>
     {% empty %}<p>Cette classe n'a pas encore d'enfants.</p>{% endfor %}
   </div>

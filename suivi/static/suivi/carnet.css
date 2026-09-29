@@ -597,6 +597,9 @@ textarea { min-height: 7rem; resize: vertical; }
 .choix-simple { font-weight: 400; }
 .choix-simple input { width: auto; min-height: 0; }
 .selection-personnelle input[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.selection-personnelle { margin-top: 1rem; }
+.selection-personnelle label { display: inline; margin: 0; }
+.selection-personnelle em { display: inline-block; margin-left: .35rem; }
 .propositions-commentaire {
   display: flex;
   flex-direction: column;
