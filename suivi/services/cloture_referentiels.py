@@ -8,7 +8,7 @@ from django.db import transaction
 
 from suivi.autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, autorise
 from suivi.audit import journaliser
-from suivi.models import (AdoptionReferentiel, Classe, Competence, Ecole, EtatAnnuelObservation, Observation,
+from suivi.models import (AdoptionReferentiel, Classe, Ecole, EtatAnnuelObservation, Observation,
                           RessourceReferentiel, UsageCompetence)
 from suivi.presentation import illustration_effective, propositions
 from suivi.referentiels import arbre_competences, contenu_adoption
@@ -73,9 +73,6 @@ def clore(*, utilisateur, classe):
                 presentes.add(ligne["id"])
     usages = {u.competence_id: u for u in UsageCompetence.objects.filter(
         adoption__classe=classe).order_by("adoption_id", "pk")}
-    actifs = Competence.objects.in_bulk(competences)
-    for definition in final["contenu"].get("competences", []):
-        definition["active"] = definition["active"] and actifs[definition["id"]].active
     for competence in competences.values():
         usage = usages.get(competence.pk)
         final["illustrations"][str(competence.pk)] = conserver(illustration_effective(classe.ecole, competence, classe))

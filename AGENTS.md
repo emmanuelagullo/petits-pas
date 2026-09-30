@@ -34,7 +34,10 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   les jalons ; `MODELE-REFERENTIELS.org` les règles retenues,
   `DIAGNOSTIC-REFERENTIELS.org` la reprise et la lecture annuelle,
   `IMPORT-SOURCES-REFERENTIELS.org` l'import versionné et
-  `CHOIX-BASES-REFERENTIELS.org` les autorisations et défauts annuels.
+  `CHOIX-BASES-REFERENTIELS.org` les autorisations et défauts annuels,
+  `ADAPTATIONS-REFERENTIELS.org` les libellés et masquages annuels. Leur lecture
+  commune est dans `suivi/adaptations_referentiels.py` ; les écritures contrôlées
+  sont dans `suivi/services/adaptations_referentiels.py`.
   Distinguer les services préparés des fonctions accessibles ; importer,
   autoriser, proposer par défaut et adopter sont des actions distinctes.
 - Sources du référentiel et des icônes : `referentiel/README.md`, les fichiers
