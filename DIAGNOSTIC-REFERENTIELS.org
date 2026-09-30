@@ -155,3 +155,39 @@ contexte annuel. Initialisation et reprise automatique des nouveaux ateliers
 restent à consolider avant la fin de #R3. Ce sous-jalon ne fournit pas encore
 les écrans de choix de base ou de clôture. Il ne modifie pas les autorisations
 pédagogiques existantes et n'attribue aucune réussite par correspondance.
+
+* Lecteur par classe et conservation des ressources — #R3c2b
+
+Les listes de compétences d'une classe reprise utilisent sa version adoptée,
+avec ses identifiants existants, son ordre et sa structure. Une modification
+directe d'un libellé du catalogue ne réécrit donc pas sa définition annuelle.
+Le chargement YAML direct est refusé après reprise : l'adoption d'une nouvelle
+version devra passer par #R4/#R8. Les écoles non reprises gardent le lecteur
+précédent. Une compétence masquée ayant des observations visibles peut rester
+au carnet ; le masquage ne détruit ni les traces ni le suivi.
+
+Le service interne clore(utilisateur=..., classe=...) conserve la présentation
+finale de la classe : structure, masquages, illustrations et phrases proposées.
+Il requiert les droits actuels du responsable ou de la direction. La clôture
+est répétable sans effet et bloque les nouvelles saisies d'états et réglages
+collectifs ; les corrections de traces restent soumises aux droits existants.
+Ce service n'est pas encore un bouton proposé aux enseignants.
+
+Pour l'année courante, la clôture conserve le suivi effectivement connu à cet
+instant. Pour une ancienne année reprise, elle n'emprunte pas une réussite
+courante pour combler un état inconnu. Les états annuels déjà connus restent.
+Les nouvelles années ne modifient pas les anciennes versions closes.
+
+La migration 0017 conserve des références aux photos présentes dans les états
+initiaux déjà repris ; la commande de reprise le fait aussi pour les reprises
+suivantes. Les photos encore référencées échappent au nettoyage des médias
+remplacés. À la clôture, les photos sont référencées sans duplication ; les
+petits SVG fournis sont copiés dans les ressources privées pour ne pas dépendre
+d'un remplacement futur du fichier distribué. Leur consultation exige un élève
+et une classe du parcours autorisé ; aucun lien direct au stockage n'est publié.
+
+La base et les médias restent à sauvegarder ensemble. Le service de clôture
+peut laisser une copie de SVG non référencée si un stockage échoue après une
+copie réussie : la transaction protège les relations en base, pas les écritures
+sur un stockage externe. Le fichier orphelin est préférable à la perte d'une
+image utilisée. L'édition exacte d'un PDF reste hors de ce périmètre.

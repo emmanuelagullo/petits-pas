@@ -10,6 +10,7 @@ from suivi.models import (
     Ecole,
     FormulationProposee,
     SousDomaine,
+    ReferentielAnnuel,
 )
 
 
@@ -47,6 +48,12 @@ class Command(BaseCommand):
             )
         if ecole is None:
             raise CommandError("École introuvable.")
+
+        if ReferentielAnnuel.objects.filter(ecole=ecole).exists():
+            raise CommandError(
+                "Cette école utilise des référentiels annuels. Le chargement direct risquerait "
+                "de modifier le suivi ; utiliser le futur parcours d'adoption d'une version."
+            )
 
         with open(options["fichier"], encoding="utf-8") as f:
             data = yaml.safe_load(f)

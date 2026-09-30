@@ -81,6 +81,7 @@ from .models import (
     Bilan,
     Classe,
     Competence,
+    RessourceReferentiel,
     DemandeRapprochementEleve,
     Domaine,
     Ecole,
@@ -126,7 +127,7 @@ from .services.pedagogie import (
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
-from .referentiels import arbre_competences as _arbre
+from .referentiels import arbre_competences as _arbre, adoption_courante
 from .statistiques import repartition_competences
 from .services.equipe import (
     accepter_invitation,
@@ -783,7 +784,8 @@ def saisie_eleve(request, pk):
 
     etats = {o.competence_id: o for o in _observations_visibles(request.user, eleve)}
     domaines = []
-    for d in _arbre(ecole, niveaux):
+    courante = eleve.scolarite_courante()
+    for d in _arbre(ecole, niveaux, classe=courante.classe if courante else None):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if lignes:
             domaines.append((d, lignes))
@@ -805,7 +807,8 @@ def contribuer_eleve(request, pk):
         ecole=ecole,
         actifs_seulement=True,
     )
-    domaines = [(d, d.visibles) for d in _arbre(ecole) if d.visibles]
+    courante = eleve.scolarite_courante()
+    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=courante.classe if courante else None) if d.visibles]
     return render(
         request,
         "suivi/contribuer_eleve.html",
@@ -817,7 +820,7 @@ def contribuer_eleve(request, pk):
 def choisir_competence(request, pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
-    domaines = [(d, d.visibles) for d in _arbre(ecole) if d.visibles]
+    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=classe) if d.visibles]
     effectif = repartition_competences(classe, [c for _d, competences in domaines for c in competences])
     return render(
         request,
@@ -1182,13 +1185,30 @@ def telecharger_media_trace(request, trace_pk):
     )
 
 
+@never_cache
+@acces_requis
+@require_safe
+def media_referentiel(request, eleve_pk, pk):
+    ecole = ecole_courante(request)
+    eleve = charger_eleve_autorise(request.user, eleve_pk, VOIR_SUIVI, ecole=ecole)
+    ressource = get_object_or_404(RessourceReferentiel, pk=pk, annuel__ecole=ecole)
+    scolarites, _ = _scolarites_visibles(request.user, eleve)
+    from .models import AdoptionReferentiel
+    adoptions = AdoptionReferentiel.objects.filter(classe_id__in=scolarites.values("classe_id"), clos=True)
+    if not any(ressource.pk in a.etat_final.get("ressources", []) for a in adoptions):
+        raise Http404
+    return FileResponse(default_storage.open(ressource.fichier.name, "rb"),
+                        content_type=mimetypes.guess_type(ressource.fichier.name)[0] or "application/octet-stream")
+
+
 def _supprimer_media_apres_validation(nom):
     if not nom:
         return
 
     def supprimer():
         if (Trace.objects.filter(photo=nom).exists() or TraceCommune.objects.filter(photo=nom).exists()
-                or ReglagePresentation.objects.filter(photo=nom).exists()):
+                or ReglagePresentation.objects.filter(photo=nom).exists()
+                or RessourceReferentiel.objects.filter(fichier=nom).exists()):
             return
         try:
             default_storage.delete(nom)
@@ -1445,7 +1465,9 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
             if trace.visible_carnet and trace.supprime_le is None
         ]
     domaines = []
-    for d in _arbre(ecole):
+    scolarite = eleve.scolarite_courante()
+    classe_presentation = scolarite.classe if scolarite else None
+    for d in _arbre(ecole, classe=classe_presentation, inclure_ids=etats):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if mode == "reussites":
             lignes = [
@@ -1476,7 +1498,7 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
             for competence, _observation in lignes:
                 competence.illustration = illustration_effective(ecole, competence, classe_presentation, reglages)
                 image = competence.illustration
-                competence.url_icone = (reverse("media_presentation", args=[image.reglage_id]) if image.photo
+                competence.url_icone = ((reverse("media_referentiel", args=[eleve.pk, image.ressource_id]) if image.ressource_id else reverse("media_presentation", args=[image.reglage_id])) if image.photo
                                         else static(image.statique) if image.statique else "")
     bilans = (
         Bilan.objects.filter(
@@ -1499,7 +1521,7 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         "bilans": bilans,
         "parametres_carnet": parametres,
         "illustration_couverture": couverture,
-        "url_photo_couverture": reverse("media_presentation", args=[couverture.reglage_id]) if couverture.photo else "",
+        "url_photo_couverture": (reverse("media_referentiel", args=[eleve.pk, couverture.ressource_id]) if couverture.ressource_id else reverse("media_presentation", args=[couverture.reglage_id])) if couverture.photo else "",
         "afficher_attendus": afficher_attendus,
         "afficher_sous_domaines": afficher_sous_domaines,
         "inclure_bilans": inclure_bilans,

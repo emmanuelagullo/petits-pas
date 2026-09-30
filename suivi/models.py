@@ -818,6 +818,8 @@ class ReferentielAnnuel(models.Model):
 
 
 class AdoptionReferentiel(models.Model):
+    clos = models.BooleanField(default=False)
+    etat_final = models.JSONField(default=dict, blank=True)
     classe = models.ForeignKey(Classe, on_delete=models.PROTECT, related_name="adoptions_referentiel")
     annuel = models.ForeignKey(ReferentielAnnuel, on_delete=models.PROTECT)
     version = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT)
@@ -881,3 +883,12 @@ class EtatAnnuelObservation(models.Model):
             or self.usage.adoption.classe.annee_scolaire != self.annee_scolaire
         ):
             raise ValidationError("Le contexte doit correspondre à la compétence, à l'école et à l'année.")
+
+
+class RessourceReferentiel(models.Model):
+    """Référence privée à un fichier encore nécessaire à une présentation annuelle."""
+    annuel = models.ForeignKey(ReferentielAnnuel, on_delete=models.PROTECT, related_name="ressources")
+    fichier = models.FileField(upload_to="referentiels/%Y/%m/")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["annuel", "fichier"], name="ressource_annuelle_fichier_unique")]

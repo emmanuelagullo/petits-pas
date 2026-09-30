@@ -11,7 +11,7 @@ from suivi.models import (
     AdoptionReferentiel, Attendu, Classe, Competence, Domaine, Ecole,
     EtatAnnuelObservation, FormulationLocale, FormulationProposee,
     ReferentielAnnuel, ReglagePresentation, Scolarite, SousDomaine,
-    SourceReferentiel, Trace, TraceCommune, UsageCompetence, VersionReferentiel,
+    SourceReferentiel, Trace, TraceCommune, UsageCompetence, VersionReferentiel, RessourceReferentiel,
 )
 
 
@@ -59,6 +59,9 @@ def reprendre(ecole_id):
                 origine_reprise=True, historique_reconstitue=False,
                 etat_initial={"reglages": reglages, "formulations_locales": formulations,
                               "avertissement": "Réglages présents à la reprise, pas une présentation historique reconstituée."})
+        for reglage in reglages:
+            if reglage["photo"]:
+                RessourceReferentiel.objects.get_or_create(annuel=annuels[classe.annee_scolaire], fichier=reglage["photo"])
         adoption = AdoptionReferentiel.objects.create(classe=classe, annuel=annuels[classe.annee_scolaire],
                                                       version=version, reprise=True)
         for competence in competences:

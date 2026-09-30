@@ -24,6 +24,7 @@ class Illustration:
     icone: str = ""
     photo: str = ""
     reglage_id: int | None = None
+    ressource_id: int | None = None
 
     @property
     def statique(self):
@@ -39,6 +40,15 @@ def reglages_du_perimetre(ecole, classe=None):
 
 
 def illustration_effective(ecole, competence=None, classe=None, reglages=None):
+    if classe is not None:
+        if classe.ecole_id != ecole.pk:
+            raise ValueError("Classe d'une autre école.")
+        from .referentiels import adoption_courante
+        adoption = adoption_courante(classe)
+        if adoption and adoption.clos:
+            donnees = (adoption.etat_final.get("illustrations", {}).get(str(competence.pk), {})
+                       if competence else adoption.etat_final.get("couverture", {}))
+            return Illustration(**donnees)
     reglages = reglages if reglages is not None else reglages_du_perimetre(ecole, classe)
     resultat = Illustration(icone=competence.icone if competence else "")
     identifiant = competence.pk if competence else None
@@ -62,6 +72,12 @@ def propositions(competence, classe=None, inclure_masquees=False):
     ecole = competence.domaine.ecole
     if classe is not None and classe.ecole_id != ecole.pk:
         raise ValueError("Classe d'une autre école.")
+    if classe is not None:
+        from .referentiels import adoption_courante
+        adoption = adoption_courante(classe)
+        if adoption and adoption.clos:
+            entrees = adoption.etat_final.get("propositions", {}).get(str(competence.pk), [])
+            return [dict(e) for e in entrees if inclure_masquees or not e["masquee"]]
     filtre = Q(classe__isnull=True)
     if classe is not None:
         filtre |= Q(classe=classe)

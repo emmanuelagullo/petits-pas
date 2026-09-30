@@ -9,6 +9,11 @@ from suivi.models import FormulationLocale, FormulationProposee, ReglagePresenta
 def verifier_droit(utilisateur, ecole, classe=None):
     if classe is not None and classe.ecole_id != ecole.pk:
         raise PermissionDenied
+    if classe:
+        from suivi.referentiels import adoption_courante
+        adoption = adoption_courante(classe)
+        if adoption and adoption.clos:
+            raise PermissionDenied("Les choix de cette classe sont clos.")
     if not autorise(utilisateur, MODIFIER_ETAT if classe else ADMINISTRER_ECOLE,
                     classe or ecole, ecole=ecole):
         raise PermissionDenied

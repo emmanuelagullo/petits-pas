@@ -28,6 +28,8 @@ def usage_pour_saisie(classe, competence):
         adoption = AdoptionReferentiel(classe=classe, annuel=annuel, version=annuel.version_proposee)
         adoption.full_clean()
         adoption.save()
+    if adoption.clos:
+        raise PermissionDenied("Les choix de cette classe sont clos.")
     definitions = {f"locale-{c['id']}": c for c in adoption.version.contenu.get("competences", [])}
     cle = f"locale-{competence.pk}"
     definition = definitions.get(cle)
