@@ -44,8 +44,8 @@ compétence masquée par l’école : le masquage n’est pas une interdiction i
 
 ## Limites et refus
 
-- Un autre apprentissage doit recevoir une compétence distincte. L’ajout de
-  compétences reste une étape suivante ; ne détournez pas le libellé d’une
+- Un autre apprentissage doit recevoir une compétence distincte. [Ajouter une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
+  permet de le décrire ; ne détournez pas le libellé d’une
   compétence déjà observée pour changer son sens.
 - Ces choix concernent l’année indiquée. Ils ne sont pas recopiés automatiquement
   à la nouvelle année. À la clôture, le carnet conserve le dernier état de

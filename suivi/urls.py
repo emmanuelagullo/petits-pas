@@ -1,9 +1,13 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from . import views, views_presentation, views_referentiels
+from . import views, views_presentation, views_referentiels, views_ajouts_referentiels
 
 urlpatterns = [
+    path("gestion/referentiels/ajouts/", views_ajouts_referentiels.ajouts, name="ajouts_ecole"),
+    path("gestion/referentiels/ajout/<int:locale_pk>/", views_ajouts_referentiels.ajouts, name="ajout_ecole"),
+    path("classe/<int:classe_pk>/referentiel/ajouts/", views_ajouts_referentiels.ajouts, name="ajouts_classe"),
+    path("classe/<int:classe_pk>/referentiel/ajout/<int:locale_pk>/", views_ajouts_referentiels.ajouts, name="ajout_classe"),
     path("gestion/referentiels/competences/", views_referentiels.adapter_competences, name="adaptations_ecole"),
     path("gestion/referentiels/competence/<int:competence_pk>/", views_referentiels.adapter_competences, name="adaptation_competence_ecole"),
     path("classe/<int:classe_pk>/referentiel/competences/", views_referentiels.adapter_competences, name="adaptations_classe"),
