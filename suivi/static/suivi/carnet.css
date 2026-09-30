@@ -871,3 +871,9 @@ textarea { min-height: 7rem; resize: vertical; }
   .ligne-affectation { grid-template-columns: 1fr; }
   .ligne-composition { flex-direction: column; align-items: stretch; }
 }
+
+/* Confirmation et texte restent un seul choix, même sur écran étroit. */
+.choix-confirmation { display: flex; align-items: flex-start; gap: .6rem; font-weight: 400; }
+.choix-confirmation input { flex: none; width: auto; min-height: 0; margin-top: .25rem; }
+[data-libelle-personnel]:disabled { color: var(--ardoise-clair); background: var(--papier); }
+[data-libelle-personnel] textarea:disabled { background: var(--papier); opacity: .65; cursor: not-allowed; }

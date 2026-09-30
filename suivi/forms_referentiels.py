@@ -37,6 +37,10 @@ class AdaptationCompetenceForm(forms.Form):
         ("garder", "Garder la visibilité proposée"), ("montrer", "Montrer cette compétence"),
         ("masquer", "Masquer cette compétence")], widget=forms.RadioSelect)
 
+    def __init__(self, *args, choix_garder="Garder le libellé proposé", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["mode_libelle"].choices = [("garder", choix_garder), ("personnel", "Utiliser mon libellé")]
+
     def clean(self):
         donnees = super().clean()
         if donnees.get("mode_libelle") == "personnel":
@@ -63,11 +67,11 @@ class AjoutCompetenceForm(forms.Form):
 
 
 class CorrespondanceCompetenceForm(forms.Form):
-    depart = forms.ChoiceField(label="Première compétence")
-    type_lien = forms.ChoiceField(label="La première compétence…", choices=[
-        ("lien", "est en lien avec la seconde"), ("precise", "précise la seconde"),
-        ("remplace", "remplace la seconde")])
-    arrivee = forms.ChoiceField(label="Seconde compétence")
+    depart = forms.ChoiceField(label="L’apprentissage que je veux situer")
+    type_lien = forms.ChoiceField(label="Comment se situe-t-il par rapport à l’autre ?", choices=[
+        ("lien", "Les deux apprentissages se rapprochent"), ("precise", "Il décrit une partie plus ciblée de l’autre"),
+        ("remplace", "Je prévois de l’utiliser à la place de l’autre")])
+    arrivee = forms.ChoiceField(label="L’autre apprentissage")
     justification = forms.CharField(label="Pourquoi relier ces apprentissages ?", max_length=1000,
                                    widget=forms.Textarea(attrs={"rows": 3}))
     consequences = forms.BooleanField(label="Ce lien ne copie aucune réussite et ne change pas les compétences proposées à la saisie.")

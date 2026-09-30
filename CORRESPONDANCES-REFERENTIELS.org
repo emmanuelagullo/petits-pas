@@ -62,3 +62,12 @@ le contrôle des migrations, les espaces du diff et le Guide (42 fiches,
 13 références de captures) passent également. La construction Hugo, PostgreSQL
 et la validation visuelle et d'usage restent à vérifier en CI ou localement :
 Hugo n'est pas installé dans cet environnement.
+
+* #R7c — Expliquer l'utilité avant le formulaire
+
+La page présente les correspondances comme des repères facultatifs pour l'équipe,
+avec un exemple concret de deux apprentissages de portée différente. Le formulaire
+est dépliable, fermé par défaut, ouvert lors d'une erreur ou d'une présélection.
+Les deux apprentissages sont choisis avant leur rapport ; le cas « Remplace »
+exprime un projet d'utilisation, jamais une bascule déjà réalisée. Les origines,
+les règles d'accès et l'absence d'effets sur les observations restent inchangées.

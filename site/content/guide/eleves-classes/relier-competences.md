@@ -10,13 +10,23 @@ depart = "Référentiel de la classe → Correspondances entre compétences, ou 
 statut = "disponible"
 +++
 
+Cette page sert à laisser un repère à l’équipe, par exemple pour comprendre
+comment une compétence ajoutée se situe par rapport à un apprentissage plus
+général. « Je reconnais mon prénom » est plus ciblé que « Je reconnais des
+mots écrits » ; noter ce rapport aide à lire les deux compétences, sans
+conclure qu’une réussite vaut pour les deux. Vous pouvez utiliser les
+référentiels sans renseigner cette page.
+
 ## Étapes
 
 1. Ouvrir **Correspondances entre compétences**. À l’école, vérifier l’année.
-2. Choisir la **Première compétence**, puis la **Seconde compétence**, en
+   Lire l’exemple, puis ouvrir **Ajouter un repère entre deux apprentissages**
+   si une explication est utile à l’équipe.
+2. Choisir **L’apprentissage que je veux situer**, puis **L’autre apprentissage**, en
    vérifiant les bases, versions ou ajouts indiqués dans leurs origines.
-3. Choisir le sens : la première **est en lien avec**, **précise** ou
-   **remplace** la seconde.
+3. Choisir le rapport : **Les deux apprentissages se rapprochent**,
+   **Il décrit une partie plus ciblée de l’autre** ou
+   **Je prévois de l’utiliser à la place de l’autre**.
 4. Expliquer pourquoi vous les reliez. Confirmer que ce lien ne copie aucune
    réussite et ne change pas les compétences proposées à la saisie.
 5. Cliquer sur **Valider ce lien**.

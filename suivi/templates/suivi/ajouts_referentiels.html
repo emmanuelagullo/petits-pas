@@ -11,11 +11,11 @@
 <p><a href="{{ index_url }}">Revenir aux compétences ajoutées</a></p>
 <h2>{{ courante.libelle }}</h2>
 <p>Visibilité : {% if courante.active %}montrée{% else %}masquée{% endif %}.</p>
-{% if ouvert and adaptable %}<p>Libellé proposé {% if classe %}par l’école{% else %}à l’origine{% endif %} : {{ proposee.libelle }}. Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
+{% if ouvert and adaptable %}<p>{% if libelle_ecole %}Libellé proposé par l’école{% else %}Libellé à la création{% endif %} : {{ proposee.libelle }}. Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
+{% if ouvert and adaptable and not libelle_ecole %}<p>« Garder le libellé d’origine » conserve le texte saisi lors de la création de cet ajout. « Utiliser mon libellé » permet de le reformuler, tout en gardant le même apprentissage et ses observations.</p>{% endif %}
 <details><summary>Origine de cet ajout</summary><p>Créé {% if locale.classe_origine %}pour {{ locale.classe_origine.libelle_avec_annee }}{% else %}pour l'école{% endif %}. Reprendre ou proposer cet ajout conserve la même compétence.</p><p>Libellé d'origine : {{ origine.libelle }}.</p></details>
 {% if ouvert and adaptable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="adapter">
-<fieldset><legend>{{ form.mode_libelle.label }}</legend>{{ form.mode_libelle }}{{ form.mode_libelle.errors }}</fieldset>
-<p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p><p>{{ form.meme_sens }} {{ form.meme_sens.label_tag }} {{ form.meme_sens.errors }}</p>
+{% include "suivi/partiels/choix_libelle.html" %}
 <fieldset><legend>{{ form.visibilite.label }}</legend>{{ form.visibilite }}{{ form.visibilite.errors }}</fieldset>
 <p>Masquer retire l'ajout des prochaines saisies, tout en conservant ses observations dans le parcours. Vous pouvez le montrer à nouveau.</p>
 <button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer les choix</button></form>{% endif %}

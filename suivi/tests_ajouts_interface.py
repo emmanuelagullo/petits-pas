@@ -109,3 +109,19 @@ class InterfaceAjouts(Base):
         self.assertNotContains(page, "Je range mes objets fictifs")
         self.assertNotContains(page, "Créer la compétence")
         self.assertNotContains(self.client.get(self.page(locale=locale)), "Enregistrer les choix")
+
+    def test_libelle_origine_et_proposition_ecole_sont_distingues(self):
+        from .services.adaptations_referentiels import enregistrer_adaptation
+        locale = self.creer()
+        url = self.page(locale=locale)
+        page = self.client.get(url)
+        self.assertContains(page, "Garder le libellé d’origine")
+        self.assertNotContains(page, "Libellé proposé par l’école")
+        self.assertEqual(page.context["form"]["libelle"].value(), locale.competence.libelle)
+        enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole,
+            annee=self.classe.annee_scolaire, competence=locale.competence,
+            libelle="Je classe des objets fictifs", visible=None, meme_sens=True, revision_attendue=0)
+        page = self.client.get(url)
+        self.assertContains(page, "Suivre le libellé de l’école")
+        self.assertContains(page, "Libellé proposé par l’école")
+        self.assertEqual(page.context["form"]["libelle"].value(), "Je classe des objets fictifs")

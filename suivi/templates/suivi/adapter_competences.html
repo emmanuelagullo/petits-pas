@@ -19,10 +19,7 @@
 <p>Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
 {% if not clos %}
 <form method="post">{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}"><input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="jeton" value="{{ jeton }}">
-<fieldset><legend>{{ form.mode_libelle.label }}</legend>{{ form.mode_libelle.errors }}{{ form.mode_libelle }}</fieldset>
-<p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p>
-<p class="aide">Ce texte sert uniquement si vous choisissez « Utiliser mon libellé ».</p>
-<p>{{ form.meme_sens }} {{ form.meme_sens.label_tag }} {{ form.meme_sens.errors }}</p>
+{% include "suivi/partiels/choix_libelle.html" %}
 <fieldset><legend>{{ form.visibilite.label }}</legend>{{ form.visibilite.errors }}{{ form.visibilite }}</fieldset>
 <p>Masquer retire cette compétence des prochaines saisies. Ses observations, commentaires et photos restent dans le parcours. Vous pouvez la montrer de nouveau, saisir, puis la masquer à nouveau.</p>
 <button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer les choix</button>
