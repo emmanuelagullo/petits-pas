@@ -13,9 +13,17 @@ def adoption_courante(classe):
     return classe._adoption_referentiel_lecture
 
 
+def contenu_origine(adoption):
+    return adoption.contenu or adoption.version.contenu
+
+
 def contenu_adoption(adoption):
-    contenu = adoption.contenu or adoption.version.contenu
-    return adoption.etat_final.get("contenu", contenu) if adoption.clos else contenu
+    contenu = contenu_origine(adoption)
+    if adoption.clos:
+        return adoption.etat_final.get("contenu", contenu)
+    from .adaptations_referentiels import contenu_adapte
+    return contenu_adapte(adoption.classe.ecole, adoption.classe.annee_scolaire,
+                          contenu, adoption.classe)
 
 
 def definition_classe(classe, competence):
@@ -79,7 +87,7 @@ def arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=()):
     adoption = adoption_courante(classe)
     if adoption:
         contenu = contenu_adoption(adoption)
-        arbre = arbre_version(ecole, contenu, niveaux=niveaux, inclure_ids=inclure_ids, masque_actuel=not adoption.clos)
+        arbre = arbre_version(ecole, contenu, niveaux=niveaux, inclure_ids=inclure_ids, masque_actuel=False)
         manquants = set(inclure_ids) - {c.pk for d in arbre for c in d.visibles}
         # Le parcours complet peut comporter des acquisitions d'une autre base
         # ou classe. Lire uniquement des définitions déjà adoptées dans l'école.
@@ -105,7 +113,9 @@ def arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=()):
             choix = choix_bases(ecole, classe.annee_scolaire)
             # Une lecture ne matérialise pas une source et ne crée pas une adoption.
             if choix.proposee and choix.proposee.source_id == initiale.pk:
-                return arbre_version(ecole, choix.proposee.contenu, niveaux=niveaux, inclure_ids=inclure_ids)
+                from .adaptations_referentiels import contenu_adapte
+                contenu = contenu_adapte(ecole, classe.annee_scolaire, choix.proposee.contenu, classe)
+                return arbre_version(ecole, contenu, niveaux=niveaux, inclure_ids=inclure_ids, masque_actuel=False)
             return []
 
     competences = ((Competence.objects.filter(active=True) | Competence.objects.filter(pk__in=inclure_ids))

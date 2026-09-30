@@ -3,7 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import transaction
 
 from suivi.models import (
-    AdoptionReferentiel, Classe, EtatAnnuelObservation, ReferentielAnnuel,
+    AdoptionReferentiel, Classe, Ecole, EtatAnnuelObservation, ReferentielAnnuel,
     SourceReferentiel, UsageCompetence,
 )
 
@@ -15,6 +15,7 @@ def usage_pour_saisie(classe, competence):
     # Écoles non reprises : compatibilité avec l'installation et les ateliers.
     # La bascule automatique de ces parcours relève du jalon d'initialisation.
     source = SourceReferentiel.objects.filter(identifiant=f"reprise-ecole-{classe.ecole_id}", ecole_id=classe.ecole_id).first()
+    Ecole.objects.select_for_update().get(pk=classe.ecole_id)
     Classe.objects.select_for_update().get(pk=classe.pk)
     adoption = AdoptionReferentiel.objects.filter(classe=classe, courante=True).first()
     if adoption is None:
@@ -38,7 +39,7 @@ def usage_pour_saisie(classe, competence):
     definitions = {c["id"]: c for c in contenu_adoption(adoption).get("competences", [])}
     definition = definitions.get(competence.pk)
     cle = definition.get("cle_definition", f"locale-{competence.pk}") if definition else ""
-    if not definition or not definition["active"] or not competence.active:
+    if not definition or not definition["active"]:
         # Un ajout ou une mise à jour de source devra passer par le parcours
         # d'adoption, pas une modification directe du catalogue en base.
         raise PermissionDenied("Cette compétence n'est pas disponible dans le référentiel de la classe.")

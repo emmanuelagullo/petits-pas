@@ -345,3 +345,12 @@ sont expliqués dans des aides dépliables et le Guide pratique. Ce sous-jalon
 complète les parcours de choix de #R4, sous réserve des validations CI et
 d'usage. Les adaptations de libellés et de visibilité restent #R5 ; les sources
 réelles font toujours l'objet d'un échange distinct avant leur recherche.
+
+
+* Adaptations annuelles préparées — #R5a
+
+Libellés et visibilité héritent indépendamment, application/source → école →
+classe. Les choix sont annuels et restent distincts des identités de suivi.
+Le masquage retire des saisies futures ; le parcours antérieur reste accessible.
+La clôture conserve le dernier résultat effectif. Voir ADAPTATIONS-REFERENTIELS.org
+pour les droits, contraintes et migration 0022. Les écrans restent #R5b.

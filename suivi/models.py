@@ -968,3 +968,35 @@ class RessourceReferentiel(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["annuel", "fichier"], name="ressource_annuelle_fichier_unique")]
+
+
+class AdaptationCompetence(models.Model):
+    """Libellé et visibilité annuels, indépendants de l'identité de suivi."""
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, related_name="adaptations_referentiel")
+    annee_scolaire = models.CharField(max_length=9)
+    classe = models.ForeignKey(Classe, on_delete=models.PROTECT, null=True, blank=True,
+                              related_name="adaptations_referentiel")
+    competence = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="adaptations_annuelles")
+    # Chaque propriété laissée à None suit séparément le niveau supérieur.
+    libelle = models.CharField(max_length=300, null=True, blank=True)
+    visible = models.BooleanField(null=True, blank=True)
+    revision = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["ecole", "annee_scolaire", "competence"],
+                condition=models.Q(classe__isnull=True), name="adaptation_competence_ecole_annee_unique"),
+            models.UniqueConstraint(fields=["classe", "competence"],
+                condition=models.Q(classe__isnull=False), name="adaptation_competence_classe_unique"),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from .services.choix_bases_referentiels import verifier_annee
+        verifier_annee(self.annee_scolaire)
+        if self.competence_id and self.competence.domaine.ecole_id != self.ecole_id:
+            raise ValidationError("La compétence doit appartenir à l'école.")
+        if self.classe_id and (self.classe.ecole_id != self.ecole_id or self.classe.annee_scolaire != self.annee_scolaire):
+            raise ValidationError("L'adaptation doit appartenir à l'école et à l'année de la classe.")
+        if self.libelle is not None and not self.libelle.strip():
+            raise ValidationError("Le libellé adapté ne peut pas être vide.")

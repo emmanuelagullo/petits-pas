@@ -1,0 +1,37 @@
+#+TITLE: Libellés et visibilité annuels — #R5
+
+* Fondations — #R5a
+
+Les adaptations sont liées à l'identité de suivi de la compétence, à l'école
+et à l'année ; une adaptation de classe appartient à cette classe annuelle.
+Libellé et visibilité héritent indépendamment : null suit le niveau supérieur,
+un libellé conserve une reformulation fidèle, true montre et false masque.
+L'école propose ; la classe peut démasquer une compétence masquée par l'école.
+Ce masquage n'est pas une restriction imposée comme la liste des bases autorisées.
+
+Le catalogue et les versions importées ne sont jamais réécrits. Une adaptation
+fidèle conserve identité et observations ; le service exige une confirmation
+du même apprentissage pour un libellé personnel. Un changement de sens relève
+d'une compétence distincte, pas de cette fonction.
+
+Le lecteur commun résout les choix annuels avant de construire saisies et
+carnets. Les prochaines saisies refusent une compétence masquée ; les anciens
+parcours l'incluent avec son dernier libellé annuel. La clôture conserve le
+résultat effectif et cesse de suivre les adaptations vivantes. La nouvelle année
+ne recopie pas ces choix. Une compétence sortie de la base ne revient pas dans
+les saisies simplement parce qu'elle est démasquée.
+
+Les écritures vérifient les droits de gestion du référentiel de l'école ou de
+la classe, l'appartenance, l'année, la base, la clôture et la révision attendue.
+Les libellés et la visibilité sont journalisés. Un verrou d'école puis de classe
+coordonne masquage, saisie, changement de base et clôture. Une ancienne identité
+ou origine ne se déduit jamais de son code ou de son libellé.
+
+Migration 0022 : table supplémentaire seulement, sans modification des
+observations, traces, états annuels ni versions existantes. Aucun écran nouveau
+n'est annoncé par #R5a ; les parcours et le Guide pratique relèvent de #R5b.
+
+Vérifications #R5a : 26 tests des adoptions, contextes et clôtures, puis 17 tests
+des adaptations, clôtures et migrations historiques réussis. Absence d'écart de
+migration et contrôle d'espacement vérifiés. La suite complète est prévue avec
+les parcours #R5b ; aucun Guide pratique nouveau n'est annoncé à cette étape.
