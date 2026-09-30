@@ -9,6 +9,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Répartition des observations par compétence dans la saisie pour toute
+  la classe, avec comptage groupé des réussites et apprentissages en cours.
 - Illustrations facultatives des compétences et photo de couverture avec
   héritage référentiel, école et classe ; formulations proposées adaptées
   ou masquées par élément, avec conservation de leur provenance.

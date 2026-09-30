@@ -5,6 +5,7 @@
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Quelle compétence venez-vous d'observer&nbsp;?</h1>
 <p class="sous-titre">Vous cocherez ensuite tous les enfants concernés sur un seul écran.</p>
+{% if effectif %}<p class="aide">Répartition des observations pour cette classe ({{ effectif }} élève{{ effectif|pluralize }}) : vert, réussite ; orange, en cours ; gris, pas encore observée. Une compétence non observée n'est pas nécessairement une compétence non maîtrisée.</p>{% else %}<p class="aide">Aucun élève dans cette classe : la répartition des observations sera affichée après leur inscription.</p>{% endif %}
 
 {% for domaine, competences in domaines %}
 <div class="domaine">
@@ -14,7 +15,16 @@
     <li><a class="entree" href="{% url 'saisie_competence' classe.pk c.pk %}">
       <span class="pastille">{{ c.niveau }}</span>
       <span class="emplacement-icone" aria-hidden="true">{% icone_liste c classe %}</span>
-      <span class="principal" style="font-weight:400">{{ c.libelle }}</span>
+      <span class="principal competence-repartition" style="font-weight:400">
+        <span>{{ c.libelle }}</span>
+        {% if c.repartition.total %}
+        <span class="repartition-observations" role="img" aria-label="{{ c.repartition.reussites }} réussite{{ c.repartition.reussites|pluralize }}, {{ c.repartition.en_cours }} en cours, {{ c.repartition.non_observes }} non observée{{ c.repartition.non_observes|pluralize }}, sur {{ c.repartition.total }} élève{{ c.repartition.total|pluralize }}" title="{{ c.repartition.reussites }} réussite{{ c.repartition.reussites|pluralize }} · {{ c.repartition.en_cours }} en cours · {{ c.repartition.non_observes }} non observée{{ c.repartition.non_observes|pluralize }}">
+          <span class="segment-reussites" style="flex-grow: {{ c.repartition.reussites }}" aria-hidden="true"></span><span class="segment-en-cours" style="flex-grow: {{ c.repartition.en_cours }}" aria-hidden="true"></span><span style="flex-grow: {{ c.repartition.non_observes }}" aria-hidden="true"></span>
+        </span>
+        <small class="resume-repartition">{{ c.repartition.reussites }}/{{ c.repartition.total }} réussite{{ c.repartition.reussites|pluralize }}</small>
+        <small class="detail-repartition">{{ c.repartition.en_cours }} en cours · {{ c.repartition.non_observes }} non observée{{ c.repartition.non_observes|pluralize }}</small>
+        {% endif %}
+      </span>
     </a></li>
     {% endfor %}
   </ul>

@@ -604,6 +604,14 @@ textarea { min-height: 7rem; resize: vertical; }
 .icone-apercu { width: 3rem; height: 3rem; vertical-align: middle; object-fit: contain; }
 .icone-liste { width: 2rem; height: 2rem; object-fit: contain; flex: 0 0 2rem; }
 .emplacement-icone { display: flex; align-items: center; justify-content: center; width: 2rem; flex: 0 0 2rem; }
+.competence-repartition { flex: 1; min-width: 0; }
+.repartition-observations { display: flex; width: 10rem; max-width: 100%; height: .4rem; margin-top: .4rem; border-radius: 1rem; overflow: hidden; background: var(--trait); }
+.repartition-observations > span { flex-basis: 0; }
+.segment-reussites { background: var(--reussi); }
+.segment-en-cours { background: var(--en-cours); }
+.resume-repartition, .detail-repartition { font-size: .75rem; color: var(--ardoise-clair); }
+.detail-repartition { display: none; }
+.entree:hover .detail-repartition, .entree:focus .detail-repartition { display: inline; }
 .aide-presentation { margin: 1rem 0; }
 .aide-presentation summary { cursor: pointer; }
 [data-presentation] textarea[readonly], [data-presentation] :disabled { background: #eee; color: #666; }
