@@ -45,3 +45,7 @@ recevoir automatiquement l’accès au suivi pédagogique.
   supprimer une classe.
 
 Voir les [règles détaillées des rôles et affectations]({{< relref "/roles/" >}}).
+
+Avant les premières observations, vous pouvez
+[choisir le référentiel de la classe]({{< relref "/guide/eleves-classes/choisir-referentiel" >}})
+parmi les bases autorisées pour son année.

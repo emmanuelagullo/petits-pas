@@ -118,3 +118,34 @@ d'une version précédente. Les origines de phrases gardent leurs identifiants
 quand leur code source est conservé. Une définition préparée est immuable.
 Ce service interne sera appelé dans la transaction d'adoption, jamais pendant
 un simple aperçu. Aucun choix de classe n'est introduit par ce sous-jalon.
+
+* Premier choix de classe accessible — #R4b2b
+
+Classe → Référentiel de la classe permet au responsable ou à la direction
+de voir les bases autorisées, leurs conséquences, puis de confirmer. Le jeton
+d'aperçu est signé, limité à la classe, au compte et à trente minutes. Les
+autorisations, révisions application/école, adoption courante et présence
+d'observations sont revérifiées dans la transaction. Une classe close est refusée.
+Un premier choix ne crée ni réussite, ni observation, ni transfert de média.
+
+Le changement de base d'une classe déjà renseignée est explicitement bloqué
+dans cette livraison ; la conservation de toutes les adoptions dans le lecteur
+et la clôture doit être achevée avant d'ouvrir cette transition. Les traces
+contextualisées et traces communes sont aussi prises en compte, même après le
+déplacement d'un élève. Conserver la même adoption ne la recrée pas.
+
+La nouvelle adoption garde sa définition propre à l'école et sa source. Les
+saisies valident désormais ses compétences et identifiants sources. Les choix
+annuels sont utilisés pour la compatibilité des nouvelles classes : une lecture
+ne crée pas d'adoption, et une source fournie exige le choix explicite avant
+saisie. Une classe sans adoption n'affiche pas toutes les compétences matérielles
+du catalogue. Les adoptions existantes restent utilisables si une autorisation
+est retirée, tant qu'elles ne sont pas closes.
+
+Les images et phrases fournies proviennent de la version adoptée, séparément
+des adaptations existantes. La clôture utilise également cette définition.
+Le parcours complet peut afficher une acquisition hors de la base actuelle
+avec une définition déjà adoptée dans l'école, pour une année au plus égale
+à celle consultée ; aucune compétence future ni réussite d'une autre identité
+n'est ajoutée. La transition en cours d'année reste le sous-jalon suivant.
+Le Guide pratique documente le parcours réellement accessible et ses limites.

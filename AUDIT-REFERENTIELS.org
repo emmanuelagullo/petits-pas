@@ -315,3 +315,11 @@ Le raccordement aux adoptions et les écrans restent la suite de #R4.
 
 Accord de travail : échanger avec Emmanuel avant de rechercher ou d'intégrer
 des bases de référence réelles. En attendant, utiliser des sources fictives.
+
+* Choix de classe avant premières observations — #R4b2b
+
+Le parcours de choix de base, avec aperçu et confirmation, est ouvert au
+responsable et à la direction pour une classe non renseignée. La transition
+d'une classe déjà renseignée reste bloquée explicitement : #R4 n'est pas clos.
+Les origines de suivi par école sont préparées en #R4b2a ; le Guide pratique
+documente le parcours de cette livraison. Aucune base réelle n'est intégrée.

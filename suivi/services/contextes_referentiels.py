@@ -15,24 +15,29 @@ def usage_pour_saisie(classe, competence):
     # Écoles non reprises : compatibilité avec l'installation et les ateliers.
     # La bascule automatique de ces parcours relève du jalon d'initialisation.
     source = SourceReferentiel.objects.filter(identifiant=f"reprise-ecole-{classe.ecole_id}", ecole_id=classe.ecole_id).first()
-    if source is None:
-        return None
     Classe.objects.select_for_update().get(pk=classe.pk)
     adoption = AdoptionReferentiel.objects.filter(classe=classe, courante=True).first()
     if adoption is None:
-        version = source.versions.get(numero="initial")
+        if source is None:
+            return None
+        from .choix_bases_referentiels import choix_bases
+        choix = choix_bases(classe.ecole, classe.annee_scolaire)
+        version = choix.proposee
+        if not version or version.source_id != source.pk:
+            raise PermissionDenied("Choisissez le référentiel de la classe avant de saisir.")
         annuel, _ = ReferentielAnnuel.objects.get_or_create(
             ecole_id=classe.ecole_id, annee_scolaire=classe.annee_scolaire,
             defaults={"version_proposee": version, "origine_reprise": True},
         )
-        adoption = AdoptionReferentiel(classe=classe, annuel=annuel, version=annuel.version_proposee)
+        adoption = AdoptionReferentiel(classe=classe, annuel=annuel, version=version)
         adoption.full_clean()
         adoption.save()
     if adoption.clos:
         raise PermissionDenied("Les choix de cette classe sont clos.")
-    definitions = {f"locale-{c['id']}": c for c in adoption.version.contenu.get("competences", [])}
-    cle = f"locale-{competence.pk}"
-    definition = definitions.get(cle)
+    from suivi.referentiels import contenu_adoption
+    definitions = {c["id"]: c for c in contenu_adoption(adoption).get("competences", [])}
+    definition = definitions.get(competence.pk)
+    cle = definition.get("cle_definition", f"locale-{competence.pk}") if definition else ""
     if not definition or not definition["active"] or not competence.active:
         # Un ajout ou une mise à jour de source devra passer par le parcours
         # d'adoption, pas une modification directe du catalogue en base.

@@ -1,0 +1,39 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Référentiel de {{ classe.libelle_avec_annee }}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
+<h1>Choisir le référentiel de la classe</h1>
+<p>Une base à la fois sert aux prochaines saisies. Choisir une autre base ne crée aucune réussite et ne relie pas automatiquement ses compétences aux anciennes.</p>
+{% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% endif %}
+{% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if actuelle.clos %}
+<p>Les choix de cette classe sont clos. Ils restent consultables.</p>
+{% elif choix.versions %}
+<form method="post">{% csrf_token %}
+<label for="version">Base autorisée pour cette classe</label>
+<select id="version" name="version" required>
+<option value="" {% if not selection_id %}selected{% endif %} disabled>Choisir une base</option>
+{% for version in choix.versions %}
+<option value="{{ version.pk }}" {% if selection_id == version.pk %}selected{% endif %}>{{ version.source.titre }} — version {{ version.numero }}{% if choix.proposee.pk == version.pk %} · choix proposé{% endif %}{% if version.source.provisoire %} · trame provisoire{% endif %}</option>
+{% endfor %}
+</select>
+<button class="bouton" name="action" value="apercu">Voir les conséquences</button>
+</form>
+{% else %}<p>Aucune base n'est autorisée pour un nouveau choix. Les classes déjà renseignées gardent leur suivi ; contactez la direction.</p>{% endif %}
+{% if apercu %}
+<h2>Avant de confirmer</h2>
+<p><strong>{{ apercu.version.source.titre }}</strong> — version {{ apercu.version.numero }}.</p>
+<ul><li>{{ apercu.communes }} compétence{{ apercu.communes|pluralize }} avec la même identité.</li>
+<li>{{ apercu.nouvelles }} nouvelle{{ apercu.nouvelles|pluralize }} compétence{{ apercu.nouvelles|pluralize }}.</li>
+<li>{{ apercu.hors_base }} compétence{{ apercu.hors_base|pluralize }} de la base actuelle hors de cette base.</li></ul>
+<details><summary>Que signifient ces nombres ?</summary>
+<p>Une identité conservée retrouve le même suivi. Un code ou une phrase identique ne suffit pas à reconnaître la même compétence. Les nouvelles compétences commencent avec leur propre suivi, sans réussite copiée.</p>
+<p>Les anciennes bases et leurs origines restent enregistrées. Aucun commentaire ni aucune photo n'est effacé par ce choix.</p></details>
+{% if apercu.bloquee %}<p class="message">Cette classe comporte déjà des observations. Le changement de base après saisie sera proposé dans une étape suivante. Son suivi reste conservé.</p>
+{% else %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}">
+<button class="bouton" name="action" value="confirmer">{% if apercu.meme %}Conserver cette base{% else %}Choisir cette base pour la classe{% endif %}</button></form>{% endif %}
+{% endif %}
+<details><summary>Choix proposé et autres possibilités</summary><p>Le choix proposé est le point de départ prévu pour cette année. Les autres bases de la liste sont également autorisées. Pour une première utilisation, gardez le choix proposé sauf besoin pédagogique précis discuté avec l'équipe.</p>
+<p>Une source corrigée ou une base nouvellement importée ne remplace jamais votre choix de classe toute seule. Les restrictions concernent les nouveaux choix, pas l'effacement des anciens parcours.</p></details>
+{% endblock %}

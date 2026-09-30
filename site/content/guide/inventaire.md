@@ -5,7 +5,7 @@ description = "Fonctions accessibles, publics concernés et limites actuelles de
 
 Cet inventaire est établi à partir des vues, formulaires, autorisations, tests
 et scénarios de démonstration. La première série comptait 31 fiches ; le guide
-couvre maintenant 35 fiches dans six rubriques. Il prend comme référence l’interface et
+couvre maintenant 38 fiches dans six rubriques. Il prend comme référence l’interface et
 les tests après la consolidation initiale de l’authentification (#C2 à #C4),
 ainsi que les scénarios documentaires jusqu’à #G8.
 
@@ -183,3 +183,13 @@ compétences.
 La reprise #G6b est volontairement différée : elle réexaminera les fiches
 d’invitation, de compte et d’affectation après les évolutions ultérieures de la
 phase d’authentification, sans bloquer le présent guide.
+
+## Référentiel de classe
+
+| Je voudrais… | Pour qui ? | État | Limite |
+| --- | --- | --- | --- |
+| Choisir une base autorisée | Responsable ou direction | Disponible avant premières observations | Aperçu puis confirmation ; aucun transfert de réussite. |
+| Changer de base après des saisies | Responsable ou direction | En préparation | Le changement est bloqué ; le suivi existant reste conservé. |
+| Publier le catalogue et les autorisations annuelles | Administration | Interne | Commandes techniques et services ; aucun écran enseignant annoncé. |
+
+Voir [choisir le référentiel d'une classe]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).

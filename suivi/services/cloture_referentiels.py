@@ -11,6 +11,7 @@ from suivi.audit import journaliser
 from suivi.models import (AdoptionReferentiel, EtatAnnuelObservation, Observation,
                           RessourceReferentiel, UsageCompetence)
 from suivi.presentation import illustration_effective, propositions
+from suivi.referentiels import contenu_adoption
 
 
 @transaction.atomic
@@ -18,6 +19,7 @@ def clore(*, utilisateur, classe):
     if not (autorise(utilisateur, MODIFIER_ETAT, classe) or autorise(utilisateur, ADMINISTRER_ECOLE, classe.ecole)):
         raise PermissionDenied
     adoption = AdoptionReferentiel.objects.select_for_update().get(classe=classe, courante=True)
+    classe._adoption_referentiel_lecture = adoption
     if adoption.clos:
         return adoption
     ressources = []
@@ -39,7 +41,7 @@ def clore(*, utilisateur, classe):
         resultat.update(photo=ressource.fichier.name, ressource_id=ressource.pk)
         return resultat
 
-    final = {"contenu": deepcopy(adoption.version.contenu), "illustrations": {}, "propositions": {},
+    final = {"contenu": deepcopy(contenu_adoption(adoption)), "illustrations": {}, "propositions": {},
              "couverture": conserver(illustration_effective(classe.ecole, classe=classe)), "etats": []}
     usages = list(UsageCompetence.objects.filter(adoption=adoption).select_related("competence"))
     actifs = {u.competence_id: u.competence.active for u in usages}
