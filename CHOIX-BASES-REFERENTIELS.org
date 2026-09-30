@@ -106,3 +106,15 @@ révisions périmées et consultation technique sans écriture. Les tests de
 migration restaurent le schéma 0019 après leurs essais historiques.
 Le verrouillage concurrent est à confirmer sur PostgreSQL par la CI ; les
 services et contraintes n'introduisent aucune dépendance à SQLite.
+
+* Définitions de suivi propres aux écoles — #R4b2a
+
+Une source fournie reçoit des identités de suivi distinctes par école. Seule
+une identité source explicitement déclarée retrouve une compétence déjà liée,
+y compris dans une nouvelle version ; code et libellé ne rapprochent rien.
+La préparation ne crée aucun état d'élève ni aucune réussite. Chaque version
+conserve ses propres groupes, textes, icônes et phrases, sans réécrire ceux
+d'une version précédente. Les origines de phrases gardent leurs identifiants
+quand leur code source est conservé. Une définition préparée est immuable.
+Ce service interne sera appelé dans la transaction d'adoption, jamais pendant
+un simple aperçu. Aucun choix de classe n'est introduit par ce sous-jalon.
