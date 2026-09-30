@@ -214,3 +214,20 @@ pour le total que pour le nombre de réussites : une compétence masquée ne peu
 plus faire dépasser le nombre de compétences proposées. La grille reprend le
 libellé de la base de classe. Le Guide pratique documente la consultation
 annuelle, sans annoncer le choix de base ou la clôture comme parcours accessibles.
+
+* Préparation des nouvelles installations — #R3d1
+
+Les nouveaux parcours d'installation graphique locale, d'initialisation serveur,
+d'atelier pédagogique et --creer-ecole du lanceur préparent la trame annuelle
+après son chargement. La première saisie dans une nouvelle classe dispose donc
+d'un contexte, sans commande de reprise supplémentaire. La trame reste marquée
+comme trame de travail provisoire, pas comme référentiel national officiel.
+L'atelier fictif conserve ses traces et ses états courants ; aucun ancien état
+annuel n'est inventé pour ses exemples.
+
+Une installation déjà présente n'est pas reprise silencieusement au démarrage.
+Les autres commandes techniques historiques (creer_ecole puis charger_referentiel
+exécutés séparément) requièrent encore la reprise explicite. Le chargement YAML
+direct est également refusé dès la préparation initiale, avant même la première
+classe, afin de ne pas désynchroniser la version utilisée lors des saisies.
+La future mise à jour d'une source reste le parcours d'adoption de #R4/#R8.

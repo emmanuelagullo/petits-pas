@@ -11,6 +11,7 @@ from suivi.models import (
     FormulationProposee,
     SousDomaine,
     ReferentielAnnuel,
+    SourceReferentiel,
 )
 
 
@@ -49,7 +50,8 @@ class Command(BaseCommand):
         if ecole is None:
             raise CommandError("École introuvable.")
 
-        if ReferentielAnnuel.objects.filter(ecole=ecole).exists():
+        if (ReferentielAnnuel.objects.filter(ecole=ecole).exists()
+                or SourceReferentiel.objects.filter(identifiant=f"reprise-ecole-{ecole.pk}", ecole=ecole).exists()):
             raise CommandError(
                 "Cette école utilise des référentiels annuels. Le chargement direct risquerait "
                 "de modifier le suivi ; utiliser le futur parcours d'adoption d'une version."

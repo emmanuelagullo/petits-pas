@@ -90,6 +90,8 @@ class Command(BaseCommand):
             stdout=self.stdout,
         )
         call_command("jeu_demo", stdout=self.stdout)
+        from suivi.services.reprise_referentiels import preparer_nouvelle_ecole
+        preparer_nouvelle_ecole(ecole)
 
         self.stdout.write(
             self.style.SUCCESS(

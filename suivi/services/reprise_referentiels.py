@@ -82,3 +82,13 @@ def reprendre(ecole_id):
                 annee_scolaire=scolarite.annee_scolaire,
                 usage=usages[(scolarite.classe_id, observation.competence_id)], connu=False)
     return True
+
+
+@transaction.atomic
+def preparer_nouvelle_ecole(ecole):
+    """Appelé immédiatement après le chargement de la trame de démarrage."""
+    if reprendre(ecole.pk):
+        source = SourceReferentiel.objects.get(identifiant=f"reprise-ecole-{ecole.pk}")
+        source.titre = "Trame de travail fournie par Petits Pas"
+        source.provenance = "Trame provisoire chargée à l'installation depuis referentiel/trame-cycle1.yaml"
+        source.save(update_fields=["titre", "provenance"])
