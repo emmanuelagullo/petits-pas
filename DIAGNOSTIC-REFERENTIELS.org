@@ -84,3 +84,52 @@ aucun changement détecté. Syntaxe Python et espacement vérifiés. Application
 git am contrôlée avant livraison. PostgreSQL et la suite complète non exécutés ;
 les deux profils de CI devront compléter cette validation. Hugo et paquets
 non reconstruits : aucun écran, page publique ou emballage n'est modifié.
+
+* Première reprise expérimentale — #R3c1
+
+Après la migration 0016 de #R3b, uniquement sur une copie restaurée et conservée
+pour les essais :
+
+#+begin_src sh
+python manage.py migrate
+python manage.py diagnostiquer_referentiels --exiger-coherent
+python manage.py reprendre_referentiels --ecole 1 --appliquer-sur-copie
+#+end_src
+
+La commande refuse les incohérences bloquantes du diagnostic, puis reprend
+atomiquement l'école demandée. Un nouvel appel ne réimporte pas l'état courant
+et ne réécrit pas la version initiale. Les clés existantes et le suivi courant
+sont conservés. Le contenu fourni (domaines, sous-domaines, attendus, compétences,
+formulations) est photographié comme état initial local, sans filiation supposée
+avec la trame YAML. Les réglages école/classe présents sont conservés avec une
+mention explicite : ils ne reconstituent pas les anciennes présentations.
+
+Les classes reçoivent une adoption initiale sans date historique inventée.
+Les traces et traces communes reçoivent un contexte d'après leurs relations
+actuelles. Les années de scolarité reçoivent des états explicitement inconnus,
+sans recopier la réussite courante dans le passé. Une trace existante ne suffit
+pas à déduire l'état final de l'année ; commentaires et photos ne sont pas touchés.
+Le cas local de 602 observations ambiguës ne demande aucune qualification
+manuelle : la reprise les conserve et n'invente pas d'états annuels.
+
+Ce sous-jalon n'est pas la bascule des lecteurs et des nouvelles écritures.
+Les écrans continuent d'utiliser les modèles actuels ; une nouvelle trace peut
+encore ne pas avoir de contexte. Les références de photos photographiées ne
+protègent pas encore leurs fichiers contre un nettoyage ultérieur. Ne pas
+considérer cette copie comme une école déjà migrée pour l'usage quotidien.
+#R3c2 devra fournir le lecteur et les écritures cohérentes, ainsi que la protection
+des ressources, avant ouverture des fonctions #R4. La commande de reprise ne
+se lance pas automatiquement au démarrage ou à la restauration d'un paquet.
+
+Exécuter sans écritures concurrentes ; le verrou d'école coordonne les reprises
+entre elles sur PostgreSQL, pas les services pédagogiques existants. Le drapeau
+--appliquer-sur-copie est une déclaration de l'opérateur, pas une détection
+technique du caractère fictif ou sauvegardé de la base.
+
+Vérifications #R3b/#R3c1 : 34 tests SQLite réussis (fondations, reprise,
+diagnostic et présentation #T), contrôle des migrations sans changement et
+contrôle d'espacement. Les tests couvrent protection des observations,
+immuabilité via save, adoption courante unique, état inconnu, contexte protégé,
+reprise répétée sans effet, refus atomique des doublons et confirmation de copie.
+La migration 0016 est appliquée par la création de la base de test. La migration
+d'une sauvegarde de l'utilisateur et PostgreSQL restent à vérifier en #R3d/CI.

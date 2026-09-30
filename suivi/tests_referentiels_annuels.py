@@ -55,3 +55,38 @@ class FondationsReferentiels(Base):
             self.competence.delete()
         with self.assertRaises(ProtectedError):
             self.version.delete()
+
+
+class RepriseReferentiels(Base):
+    def test_reprise_idempotente_sans_reussites_antidatees(self):
+        from .services.reprise_referentiels import reprendre
+        trace = self.creer_trace(commentaire="Trace fictive")
+        statut = trace.observation.statut
+        self.assertTrue(reprendre(self.ecole.pk))
+        trace.refresh_from_db()
+        self.assertIsNotNone(trace.usage_referentiel_id)
+        self.assertEqual(trace.commentaire, "Trace fictive")
+        trace.observation.refresh_from_db()
+        self.assertEqual(trace.observation.statut, statut)
+        self.assertFalse(EtatAnnuelObservation.objects.get(observation=trace.observation).connu)
+        self.assertIsNone(EtatAnnuelObservation.objects.get(observation=trace.observation).statut)
+        nombres = (UsageCompetence.objects.count(), VersionReferentiel.objects.count())
+        self.assertFalse(reprendre(self.ecole.pk))
+        self.assertEqual(nombres, (UsageCompetence.objects.count(), VersionReferentiel.objects.count()))
+
+    def test_blocage_atomique_sur_doublon(self):
+        from django.core.management.base import CommandError
+        from .models import Competence
+        from .services.reprise_referentiels import reprendre
+        Competence.objects.create(domaine=self.competence.domaine, code=self.competence.code, libelle="Doublon")
+        with self.assertRaises(CommandError):
+            reprendre(self.ecole.pk)
+        self.assertEqual(SourceReferentiel.objects.count(), 0)
+
+    def test_confirmation_copie_et_ecole_absente(self):
+        from django.core.management import call_command
+        from django.core.management.base import CommandError
+        with self.assertRaises(CommandError):
+            call_command("reprendre_referentiels", ecole=self.ecole.pk)
+        with self.assertRaises(CommandError):
+            call_command("reprendre_referentiels", ecole=999999, appliquer_sur_copie=True)
