@@ -13,6 +13,20 @@ def adoption_courante(classe):
     return classe._adoption_referentiel_lecture
 
 
+def contenu_adoption(adoption):
+    contenu = adoption.contenu or adoption.version.contenu
+    return adoption.etat_final.get("contenu", contenu) if adoption.clos else contenu
+
+
+def definition_classe(classe, competence):
+    adoption = adoption_courante(classe)
+    if adoption:
+        contenu = contenu_adoption(adoption)
+        if any(c["id"] == competence.pk for c in contenu.get("competences", [])):
+            return contenu
+    return None
+
+
 def arbre_version(ecole, contenu, *, niveaux=None, inclure_ids=(), masquer=True, masque_actuel=True):
     """Objets de lecture : aucune réécriture du catalogue ou de ses relations."""
     domaines = {}
@@ -36,7 +50,8 @@ def arbre_version(ecole, contenu, *, niveaux=None, inclure_ids=(), masquer=True,
             continue
         if masquer and (not ligne["active"] or (masque_actuel and not actuelle.active)) and ligne["id"] not in inclure_ids:
             continue
-        competence = Competence(**ligne)
+        competence = Competence(**{k: v for k, v in ligne.items() if k != "cle_definition"})
+        competence._contenu_referentiel = contenu
         competence.domaine = domaines[ligne["domaine_id"]]
         competence.sous_domaine = sous_domaines.get(ligne["sous_domaine_id"])
         domaines[ligne["domaine_id"]].visibles.append(competence)
@@ -50,8 +65,36 @@ def arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=()):
         raise ValueError("Classe d'une autre école.")
     adoption = adoption_courante(classe)
     if adoption:
-        contenu = adoption.etat_final.get("contenu", adoption.version.contenu) if adoption.clos else adoption.version.contenu
-        return arbre_version(ecole, contenu, niveaux=niveaux, inclure_ids=inclure_ids, masque_actuel=not adoption.clos)
+        contenu = contenu_adoption(adoption)
+        arbre = arbre_version(ecole, contenu, niveaux=niveaux, inclure_ids=inclure_ids, masque_actuel=not adoption.clos)
+        manquants = set(inclure_ids) - {c.pk for d in arbre for c in d.visibles}
+        # Le parcours complet peut comporter des acquisitions d'une autre base
+        # ou classe. Lire uniquement des définitions déjà adoptées dans l'école.
+        if manquants:
+            anciennes = AdoptionReferentiel.objects.filter(classe__ecole=ecole,
+                classe__annee_scolaire__lte=classe.annee_scolaire).exclude(pk=adoption.pk).select_related("version").order_by("-pk")
+            for ancienne in anciennes:
+                groupes = arbre_version(ecole, contenu_adoption(ancienne), niveaux=niveaux,
+                    inclure_ids=manquants, masquer=False, masque_actuel=False)
+                for domaine in groupes:
+                    domaine.visibles = [c for c in domaine.visibles if c.pk in manquants]
+                    if domaine.visibles:
+                        arbre.append(domaine)
+                        manquants -= {c.pk for c in domaine.visibles}
+                if not manquants:
+                    break
+        return arbre
+
+    if classe is not None:
+        from .models import SourceReferentiel
+        initiale = SourceReferentiel.objects.filter(identifiant=f"reprise-ecole-{ecole.pk}", ecole=ecole).first()
+        if initiale:
+            from .services.choix_bases_referentiels import choix_bases
+            choix = choix_bases(ecole, classe.annee_scolaire)
+            # Une lecture ne matérialise pas une source et ne crée pas une adoption.
+            if choix.proposee and choix.proposee.source_id == initiale.pk:
+                return arbre_version(ecole, choix.proposee.contenu, niveaux=niveaux, inclure_ids=inclure_ids)
+            return []
 
     competences = ((Competence.objects.filter(active=True) | Competence.objects.filter(pk__in=inclure_ids))
                    .select_related("sous_domaine", "domaine__ecole")

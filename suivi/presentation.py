@@ -68,6 +68,13 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
                         resultat = Illustration(provenance=provenance, icone=reglage["icone"],
                             photo=reglage["photo"], ressource_id=ressource.pk if ressource else None)
             return resultat
+    if competence and classe:
+        from .referentiels import definition_classe
+        contenu = getattr(competence, "_contenu_referentiel", None) or definition_classe(classe, competence)
+        if contenu and contenu.get("origine") == "source_declaree":
+            from copy import copy
+            competence = copy(competence)
+            competence.icone = next(c["icone"] for c in contenu["competences"] if c["id"] == competence.pk)
     reglages = reglages if reglages is not None else reglages_du_perimetre(ecole, classe)
     resultat = Illustration(icone=competence.icone if competence else "")
     identifiant = competence.pk if competence else None
@@ -102,7 +109,15 @@ def propositions(competence, classe=None, inclure_masquees=False):
         filtre |= Q(classe=classe)
     locales = list(FormulationLocale.objects.filter(filtre, competence=competence, ecole=ecole))
     entrees = {}
-    for base in competence.formulations.all():
+    bases = competence.formulations.all()
+    if classe:
+        from .referentiels import definition_classe
+        contenu = getattr(competence, "_contenu_referentiel", None) or definition_classe(classe, competence)
+        if contenu and contenu.get("origine") == "source_declaree":
+            from types import SimpleNamespace
+            bases = [SimpleNamespace(pk=f["id"], texte=f["texte"], active=f["active"])
+                     for f in contenu["formulations"] if f["competence_id"] == competence.pk]
+    for base in bases:
         entrees[f"base-{base.pk}"] = {
             "cle": f"base-{base.pk}", "texte": base.texte,
             "provenance": "Référentiel importé", "masquee": not base.active,

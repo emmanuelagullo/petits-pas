@@ -16,3 +16,8 @@ n'y saisissez jamais d'information réelle. La [présentation synthétique des
 fonctions]({{< relref "/roles/" >}}) permet de revenir aux principes communs ;
 les [situations illustrées]({{< relref "/roles/situations/" >}}) montrent
 comment ils s'appliquent dans les parcours.
+
+Le responsable de classe et la direction peuvent
+[choisir une base autorisée avant les premières observations]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
+Ce choix ne donne pas à la direction un droit de correction des acquisitions.
+Le changement de base après saisie reste en préparation.

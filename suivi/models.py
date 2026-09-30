@@ -893,6 +893,7 @@ class ReferentielAnnuel(models.Model):
 
 
 class AdoptionReferentiel(models.Model):
+    contenu = models.JSONField(default=dict, blank=True)
     clos = models.BooleanField(default=False)
     etat_final = models.JSONField(default=dict, blank=True)
     classe = models.ForeignKey(Classe, on_delete=models.PROTECT, related_name="adoptions_referentiel")
