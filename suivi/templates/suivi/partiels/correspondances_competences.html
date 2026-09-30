@@ -1,4 +1,4 @@
 {% if correspondances %}<details><summary>Correspondances entre apprentissages</summary>
 <p>Ces liens expliquent un rapprochement. Ils ne signifient pas que les réussites sont équivalentes et ne copient aucun suivi.</p>
-<ul>{% for lien in correspondances %}<li><strong>{{ lien.origine_depart.libelle }}</strong> — {{ lien.type_libelle|lower }} : <strong>{{ lien.origine_arrivee.libelle }}</strong>.
+<ul>{% for lien in correspondances %}<li><strong>{{ lien.origine_depart.libelle }}</strong> — {% if lien.type_lien == "lien" %}est en lien avec{% elif lien.type_lien == "precise" %}décrit un apprentissage plus ciblé que{% else %}est prévu pour remplacer{% endif %} <strong>{{ lien.origine_arrivee.libelle }}</strong>.
 <p>{{ lien.justification }}</p><p class="aide">Origines : {{ lien.origine_depart.origine }} ; {{ lien.origine_arrivee.origine }}. Lien {% if lien.classe_id %}de classe{% else %}d'école{% endif %}.</p></li>{% endfor %}</ul></details>{% endif %}

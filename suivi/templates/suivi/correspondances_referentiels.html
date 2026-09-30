@@ -3,21 +3,30 @@
 {% block contenu %}
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% if modifier %} · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% endif %}{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Correspondances entre compétences</h1>
-<p>{% if classe %}Liens d'école et de {{ classe.libelle_avec_annee }}.{% else %}Liens proposés par l'école pour {{ annee }}.{% endif %} Aucun lien ne copie une réussite, une image ou une phrase, ni ne change les compétences proposées à la saisie.</p>
+<p>Cette page sert à expliquer à l’équipe comment deux apprentissages se rapprochent, par exemple lorsqu’on ajoute une compétence ou qu’on prépare un changement de référentiel.</p>
+<p><strong>Exemple fictif :</strong> « Je reconnais mon prénom » décrit un apprentissage plus ciblé que « Je reconnais des mots écrits ». On peut noter ce rapport pour aider l’équipe à comprendre les deux compétences. Elles gardent chacune leurs observations et leurs réussites.</p>
+<p>Vous pouvez utiliser les référentiels et ajouter des compétences sans renseigner cette page. Un lien est seulement un repère pour l’équipe : il ne coche aucune réussite et ne modifie aucune liste de saisie.</p>
+<p>{% if classe %}Repères de l’école et de {{ classe.libelle_avec_annee }}.{% else %}Repères proposés par l’école pour {{ annee }}.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if clos %}<p>Les choix de cette classe sont clos. Les liens conservés à la clôture restent consultables.</p>{% elif modifier and not ouvert %}<p>Choisissez d'abord une base pour la classe.</p>{% endif %}
 {% if not classe %}<form method="get"><label for="annee">Année scolaire</label><input id="annee" name="annee" value="{{ annee }}" required pattern="[0-9]{4}-[0-9]{4}"><button class="bouton discret" type="submit">Consulter l'année</button></form>{% endif %}
-{% if ouvert %}<h2>Relier deux compétences</h2>
-<p>Choisissez d'abord la première, puis l'apprentissage auquel la relier. Les textes affichés sont ceux des origines indiquées, même si un libellé a été adapté pour la classe.</p>
-<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="relier">{{ form.as_p }}<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Valider ce lien</button></form>{% endif %}
-<h2>Liens conservés{% if not clos %} pour cette année{% endif %}</h2>
-<ul class="liste">{% for lien in liens %}<li class="entree"><div class="principal"><strong>{{ lien.origine_depart.libelle }}</strong> — {{ lien.type_libelle|lower }} : <strong>{{ lien.origine_arrivee.libelle }}</strong>.
+{% if ouvert %}<details{% if erreur or form.depart.value %} open{% endif %}><summary>Ajouter un repère entre deux apprentissages</summary>
+<p>Situez un apprentissage par rapport à un autre, puis expliquez ce que l’équipe doit en retenir. Les choix indiquent les textes d’origine ; les reformulations de la classe restent consultables dans ses réglages.</p>
+<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="relier">
+<p>{{ form.depart.label_tag }} {{ form.depart }} {{ form.depart.errors }}</p>
+<p>{{ form.arrivee.label_tag }} {{ form.arrivee }} {{ form.arrivee.errors }}</p>
+<p>{{ form.type_lien.label_tag }} {{ form.type_lien }} {{ form.type_lien.errors }}</p>
+<p>{{ form.justification.label_tag }} {{ form.justification }} {{ form.justification.errors }}</p>
+<label class="choix-confirmation" for="{{ form.consequences.id_for_label }}">{{ form.consequences }} <span>{{ form.consequences.label }}</span></label>{{ form.consequences.errors }}
+<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Valider ce lien</button></form></details>{% endif %}
+<h2>Repères conservés{% if not clos %} pour cette année{% endif %}</h2>
+<ul class="liste">{% for lien in liens %}<li class="entree"><div class="principal"><strong>{{ lien.origine_depart.libelle }}</strong> — {% if lien.type_lien == "lien" %}est en lien avec{% elif lien.type_lien == "precise" %}décrit un apprentissage plus ciblé que{% else %}est prévu pour remplacer{% endif %} <strong>{{ lien.origine_arrivee.libelle }}</strong>.
 <p>{{ lien.justification }}</p><p>Lien {% if lien.classe_id %}de classe{% else %}d'école{% endif %}.</p>
-<details><summary>Origines et sens du lien</summary><p>Première compétence : {{ lien.origine_depart.origine }} · {{ lien.origine_depart.niveau }} · texte d'origine : {{ lien.origine_depart.libelle }}.</p><p>Seconde compétence : {{ lien.origine_arrivee.origine }} · {{ lien.origine_arrivee.niveau }} · texte d'origine : {{ lien.origine_arrivee.libelle }}.</p><p>La première précise ou remplace la seconde. « En lien avec » conserve aussi ce sens : aucun lien inverse n'est déduit.</p></details>
+<details><summary>Origines et sens du lien</summary><p>Apprentissage situé : {{ lien.origine_depart.origine }} · {{ lien.origine_depart.niveau }} · texte d'origine : {{ lien.origine_depart.libelle }}.</p><p>Apprentissage de référence : {{ lien.origine_arrivee.origine }} · {{ lien.origine_arrivee.niveau }} · texte d'origine : {{ lien.origine_arrivee.libelle }}.</p><p>Le sens du repère est celui que son auteur a choisi. Il ne conclut pas qu’une réussite vaut pour les deux apprentissages.</p></details>
 {% if lien.retirable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="retirer"><input type="hidden" name="lien" value="{{ lien.id }}"><input type="hidden" name="revision" value="{{ lien.revision }}"><p>Retirer cesse de proposer ce lien. Ses origines restent conservées ; aucun suivi n'est modifié.</p><button class="bouton discret" type="submit"{% if not jeton %} disabled{% endif %}>Retirer ce lien</button></form>{% endif %}
-</div></li>{% empty %}<li>Aucun lien pour cette année. Relier des compétences reste facultatif.</li>{% endfor %}</ul>
+</div></li>{% empty %}<li>Aucun repère ajouté pour cette année. Vous n’avez rien à renseigner si vous n’en avez pas besoin.</li>{% endfor %}</ul>
 {% if ouvert and not jeton %}<p><a href="{% if classe %}{% url 'correspondances_classe' classe.pk %}{% else %}{% url 'correspondances_ecole' %}?annee={{ annee }}{% endif %}">Reconsulter les correspondances avant d'enregistrer</a></p>{% endif %}
-<details><summary>Quand relier deux compétences ?</summary>
+<details><summary>Autres cas : préciser un apprentissage ou prévoir son remplacement</summary>
 <p>Pour le même apprentissage, adaptez son libellé. Pour un autre apprentissage, créez une compétence distincte ; le lien reste facultatif.</p>
 <p>« En lien avec » rapproche deux apprentissages sans affirmer leur équivalence. « Précise » indique que le premier est plus ciblé que le second.</p>
 <p>« Remplace » explique l'intention d'utiliser le premier à la place du second. Il faut encore choisir la base ou reprendre l'ajout concerné et, si souhaité, masquer l'ancien. Ce lien ne fait aucune de ces actions.</p>

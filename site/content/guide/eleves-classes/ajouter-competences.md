@@ -37,6 +37,12 @@ Les nouvelles observations sont saisies pour les élèves concernés, comme pour
 les compétences de la base. Les ajouts sont rangés dans **Ajouts — nom du domaine**,
 un groupe qui conserve le domaine choisi même si la base change.
 
+Pour un ajout local, **Garder le libellé d’origine** conserve le texte saisi
+lors de sa création. **Utiliser mon libellé** active le champ pour le reformuler
+fidèlement. Si l’école a proposé un autre texte pour cette année, le choix
+s’appelle **Suivre le libellé de l’école**. Le texte à la création reste conservé
+dans l’origine de l’ajout.
+
 ## Changement de base et rentrée
 
 Un ajout retenu reste présent lors d’un changement de base dans l’année.

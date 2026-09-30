@@ -46,14 +46,19 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         raise PermissionDenied
     regle = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
         classe=classe, competence=locale.competence).first() if locale else None
+    proposee = contenu_adapte(ecole, annee, locale.definition)["competences"][0] if locale and classe else (locale.definition["competences"][0] if locale else None)
+    regle_ecole = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
+        classe__isnull=True, competence=locale.competence).first() if locale and classe else None
+    libelle_ecole = bool(regle_ecole and regle_ecole.libelle is not None)
+    choix_garder = "Suivre le libellé de l’école" if libelle_ecole else "Garder le libellé d’origine"
     initial = {"mode_libelle": "personnel" if regle and regle.libelle is not None else "garder",
-        "libelle": regle.libelle if regle else "", "meme_sens": False,
+        "libelle": regle.libelle if regle and regle.libelle is not None else (proposee["libelle"] if proposee else ""), "meme_sens": False,
         "visibilite": "garder" if not regle or regle.visible is None else ("montrer" if regle.visible else "masquer")}
     contexte = {"auteur": request.user.pk, "ecole": ecole.pk, "annee": annee,
         "classe": classe.pk if classe else None, "adoption": adoption.pk if adoption else None,
         "locale": locale.pk if locale else None, "revision": regle.revision if regle else 0}
     erreur = None
-    form = AdaptationCompetenceForm(initial=initial) if locale else AjoutCompetenceForm(domaines=domaines.values())
+    form = AdaptationCompetenceForm(initial=initial, choix_garder=choix_garder) if locale else AjoutCompetenceForm(domaines=domaines.values())
     perime = False
     if request.method == "POST":
         try:
@@ -89,7 +94,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                 else:
                     raise PermissionDenied
             elif action == "adapter" and locale:
-                form = AdaptationCompetenceForm(request.POST)
+                form = AdaptationCompetenceForm(request.POST, choix_garder=choix_garder)
                 if form.is_valid():
                     enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
                         competence=locale.competence, adoption_attendue=contexte["adoption"],
@@ -117,9 +122,8 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     adaptable = bool(locale and locale.disponibilites.filter(annee_scolaire=annee,
         **({"classe": classe} if classe else {})).exists())
     courante = next((l["definition"] for l in lignes if locale and l["locale"].pk == locale.pk), None)
-    proposee = contenu_adapte(ecole, annee, locale.definition)["competences"][0] if locale and classe else (locale.definition["competences"][0] if locale else None)
     origine = locale.definition["competences"][0] if locale else None
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "direction": direction, "ouvert": ouvert, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "courante": courante, "proposee": proposee, "adaptable": adaptable, "index_url": index_url, "erreur": erreur,
+        "origine": origine, "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole, "adaptable": adaptable, "index_url": index_url, "erreur": erreur,
         "jeton": None if perime else signing.dumps(contexte, salt="ajouts-referentiels")}, status=400 if erreur else 200)

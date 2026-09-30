@@ -77,3 +77,14 @@ Après application de #R5a puis #R5b, exécuter python3 manage.py migrate. Cette
 migration n'exige pas de relancer la reprise des référentiels déjà effectuée.
 La recherche et l'intégration de sources réelles restent une tâche distincte,
 à discuter avec Emmanuel avant de démarrer ; tous les scénarios sont fictifs.
+
+* #R7c — Lisibilité de la reformulation
+
+La case confirmant le même apprentissage est incluse dans son libellé cliquable.
+La zone de reformulation et cette confirmation sont désactivées et grisées tant
+que « Utiliser mon libellé » n'est pas choisi ; le serveur vérifie toujours
+la confirmation. Le changement de choix ne vide pas le texte en cours.
+Sans JavaScript, une première soumission active les champs et demande le texte
+avant toute écriture. Pour un ajout local sans adaptation de libellé de l'école,
+« Garder le libellé d'origine » désigne le texte de création ; une adaptation
+d'école est explicitement présentée par « Suivre le libellé de l'école ».

@@ -1,0 +1,27 @@
+<fieldset><legend>{{ form.mode_libelle.label }}</legend>{{ form.mode_libelle.errors }}{{ form.mode_libelle }}</fieldset>
+<fieldset data-libelle-personnel{% if form.mode_libelle.value != "personnel" %} disabled{% endif %}>
+<legend>Reformuler le même apprentissage</legend>
+<p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p>
+<label class="choix-confirmation" for="{{ form.meme_sens.id_for_label }}">{{ form.meme_sens }} <span>{{ form.meme_sens.label }}</span></label>
+{{ form.meme_sens.errors }}
+</fieldset>
+<noscript><p>Pour reformuler sans JavaScript, choisissez « Utiliser mon libellé » puis cliquez sur « Enregistrer les choix » : le champ sera activé pour compléter votre texte avant de l’enregistrer.</p></noscript>
+<script>
+(function () {
+  function actualiser(formulaire) {
+    var champs = formulaire.querySelector("[data-libelle-personnel]");
+    var choix = formulaire.querySelector('input[name="mode_libelle"]:checked');
+    if (champs) champs.disabled = !choix || choix.value !== "personnel";
+  }
+  function initialiser() {
+    document.querySelectorAll("form").forEach(actualiser);
+  }
+  document.addEventListener("change", function (evenement) {
+    if (evenement.target.matches('input[name="mode_libelle"]') && evenement.target.form) {
+      actualiser(evenement.target.form);
+    }
+  });
+  document.addEventListener("htmx:afterSwap", initialiser);
+  initialiser();
+})();
+</script>
