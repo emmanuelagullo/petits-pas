@@ -5,6 +5,7 @@
 <h1>Choisir le référentiel de la classe</h1>
 <p><a class="bouton discret" href="{% url 'adaptations_classe' classe.pk %}">Libellés et compétences masquées</a></p>
 <p><a class="bouton discret" href="{% url 'ajouts_classe' classe.pk %}">Compétences ajoutées</a></p>
+<p><a class="bouton discret" href="{% url 'correspondances_classe' classe.pk %}">Correspondances entre compétences</a></p>
 <p>Une base à la fois sert aux prochaines saisies. Choisir une autre base ne crée aucune réussite et ne relie pas automatiquement ses compétences aux anciennes.</p>
 {% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% endif %}
 {% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}
@@ -35,6 +36,7 @@
 <p>Les ajouts locaux retenus restent présents lors du changement de base, avec leur identité et leurs observations. Ils sont comptés séparément des compétences de la base.</p>
 <p>Les compétences hors de la base choisie quittent les prochaines saisies, mais restent dans les parcours déjà renseignés. Pour reprendre leur saisie, il faut choisir une base autorisée qui les contient.</p>
 <p>Les anciennes bases et leurs origines restent enregistrées. Aucun commentaire ni aucune photo n'est effacé par ce choix.</p></details>
+{% include "suivi/partiels/correspondances_competences.html" with correspondances=apercu.correspondances %}
 <form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}">
 <button class="bouton" name="action" value="confirmer">{% if apercu.meme %}Conserver cette base{% else %}Choisir cette base pour la classe{% endif %}</button></form>
 {% endif %}

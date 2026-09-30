@@ -33,3 +33,7 @@ et les anciens parcours restent conservés.
 Le responsable ou la direction peut aussi [ajouter ou reprendre une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
 La direction propose les ajouts à l'école ; chaque classe choisit ceux qu'elle
 reprend, sans copie de réussite.
+
+La direction et les responsables peuvent [relier deux compétences]({{< relref "/guide/eleves-classes/relier-competences" >}})
+pour expliquer un rapprochement. La consultation suit les droits de classe ;
+aucun lien ne transfère une réussite ni ne donne accès à une photo.

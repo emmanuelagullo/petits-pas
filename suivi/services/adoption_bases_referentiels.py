@@ -38,11 +38,15 @@ def apercu_adoption(*, utilisateur, classe, version_id):
         nombre = version.definitions.count()
     anciens_ids = {c["id"] for c in contenu_adoption(actuelle).get("competences", [])} if actuelle else set()
     anciens_ids -= locaux
+    from suivi.correspondances_referentiels import correspondances_classe
+    liens = [l for l in correspondances_classe(classe) if
+        (l["depart_id"] in nouveaux_ids | locaux and l["arrivee_id"] in anciens_ids | locaux) or
+        (l["arrivee_id"] in nouveaux_ids | locaux and l["depart_id"] in anciens_ids | locaux)]
     meme = bool(actuelle and actuelle.version_id == version_id)
     return {"version": version, "adoption_id": actuelle.pk if actuelle else None,
             "revisions": choix.revisions, "communes": len(anciens_ids & nouveaux_ids),
             "nouvelles": nombre - len(anciens_ids & nouveaux_ids),
-            "ajouts": len(locaux), "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme}
+            "correspondances": liens, "ajouts": len(locaux), "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme}
 
 
 @transaction.atomic

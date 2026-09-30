@@ -128,6 +128,7 @@ from .services.pedagogie import (
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
+from .correspondances_referentiels import correspondances_classe
 from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe, observations_classe, projeter_etat_classe, classe_historique, competence_saisissable
 from .statistiques import repartition_competences
 from .services.equipe import (
@@ -854,6 +855,7 @@ def saisie_competence(request, pk, competence_pk):
         {"classe": classe, "competence": competence, "lignes": lignes,
          "historique": classe_historique(classe),
          "nouvelle_saisie_possible": saisissable,
+         "correspondances": correspondances_classe(classe, competence.pk),
          "responsable": autorise(request.user, MODIFIER_ETAT, classe) and saisissable},
     )
 
