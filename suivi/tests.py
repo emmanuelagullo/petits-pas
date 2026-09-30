@@ -346,6 +346,29 @@ class Base(TestCase):
 
 
 class TracesCommunes(Base):
+    def test_associe_consulte_sans_boutons_de_modification_collective(self):
+        from .services.traces_communes import enregistrer_commune
+
+        commune = enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                                     competence=self.competence, ids=[self.eleve.pk],
+                                     valeurs={"commentaire": "Activité commune"})
+        associe = get_user_model().objects.create_user(username="associe-lecture")
+        appartenance = AppartenanceEcole.objects.create(utilisateur=associe, ecole=self.ecole)
+        AffectationClasse.objects.create(appartenance=appartenance, classe=self.classe,
+                                        type=AffectationClasse.ENSEIGNANT_ASSOCIE)
+        self.client.force_login(associe)
+        page = self.client.get(reverse("saisie_competence", args=[self.classe.pk, self.competence.pk]))
+        self.assertContains(page, "Consulter les traces communes")
+        self.assertNotContains(page, "Ajouter ou modifier une trace commune")
+        page = self.client.get(reverse("traces_communes", args=[self.classe.pk, self.competence.pk]))
+        ajouter = reverse("ajouter_trace_commune", args=[self.classe.pk, self.competence.pk])
+        modifier = reverse("modifier_trace_commune", args=[self.classe.pk, self.competence.pk, commune.pk])
+        self.assertContains(page, "Activité commune")
+        self.assertNotContains(page, ajouter)
+        self.assertNotContains(page, modifier)
+        self.assertEqual(self.client.get(modifier).status_code, 404)
+        self.assertEqual(self.client.post(ajouter, {"commentaire": "Refus"}).status_code, 404)
+
     def setUp(self):
         super().setUp()
         self.autre = Eleve.objects.create(ecole=self.ecole, prenom="Milo")

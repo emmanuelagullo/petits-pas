@@ -842,7 +842,8 @@ def saisie_competence(request, pk, competence_pk):
     return render(
         request,
         "suivi/saisie_competence.html",
-        {"classe": classe, "competence": competence, "lignes": lignes},
+        {"classe": classe, "competence": competence, "lignes": lignes,
+         "responsable": autorise(request.user, MODIFIER_ETAT, classe)},
     )
 
 

@@ -6,7 +6,7 @@
 <p class="sous-titre">{{ competence.domaine.nom }} · repère {{ competence.get_niveau_display|lower }}</p>
 
 <div class="actions">
-  <a class="bouton" href="{% url 'traces_communes' classe.pk competence.pk %}">+ Ajouter ou modifier une trace commune</a>
+  <a class="bouton" href="{% url 'traces_communes' classe.pk competence.pk %}">{% if responsable %}+ Ajouter ou modifier une trace commune{% else %}Consulter les traces communes{% endif %}</a>
   <a class="bouton discret" href="{% url 'grille_competence' classe.pk competence.pk %}">Voir la grille de suivi</a>
 </div>
 

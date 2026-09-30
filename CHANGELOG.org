@@ -26,6 +26,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Actions de création et modification des traces communes masquées pour
+  les enseignants associés, qui conservent leur accès en consultation.
 - Commande =marquer_invitations_expirees=, à planifier périodiquement, pour
   refléter en base l'expiration des invitations plutôt que de la recalculer
   uniquement à l'affichage.
