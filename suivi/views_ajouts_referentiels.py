@@ -50,6 +50,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     regle_ecole = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
         classe__isnull=True, competence=locale.competence).first() if locale and classe else None
     libelle_ecole = bool(regle_ecole and regle_ecole.libelle is not None)
+    libelle_direct = bool(locale and classe and locale.classe_origine_id == classe.pk and not libelle_ecole)
     choix_garder = "Suivre le libellé de l’école" if libelle_ecole else "Garder le libellé d’origine"
     initial = {"mode_libelle": "personnel" if regle and regle.libelle is not None else "garder",
         "libelle": regle.libelle if regle and regle.libelle is not None else (proposee["libelle"] if proposee else ""), "meme_sens": False,
@@ -58,7 +59,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         "classe": classe.pk if classe else None, "adoption": adoption.pk if adoption else None,
         "locale": locale.pk if locale else None, "revision": regle.revision if regle else 0}
     erreur = None
-    form = AdaptationCompetenceForm(initial=initial, choix_garder=choix_garder) if locale else AjoutCompetenceForm(domaines=domaines.values())
+    form = AdaptationCompetenceForm(initial=initial, choix_garder=choix_garder, libelle_direct=libelle_direct) if locale else AjoutCompetenceForm(domaines=domaines.values())
     perime = False
     if request.method == "POST":
         try:
@@ -94,7 +95,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                 else:
                     raise PermissionDenied
             elif action == "adapter" and locale:
-                form = AdaptationCompetenceForm(request.POST, choix_garder=choix_garder)
+                form = AdaptationCompetenceForm(request.POST, choix_garder=choix_garder, libelle_direct=libelle_direct)
                 if form.is_valid():
                     enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
                         competence=locale.competence, adoption_attendue=contexte["adoption"],

@@ -12,10 +12,13 @@
 <h2>{{ courante.libelle }}</h2>
 <p>Visibilité : {% if courante.active %}montrée{% else %}masquée{% endif %}.</p>
 {% if ouvert and adaptable %}<p>{% if libelle_ecole %}Libellé proposé par l’école{% else %}Libellé à la création{% endif %} : {{ proposee.libelle }}. Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
-{% if ouvert and adaptable and not libelle_ecole %}<p>« Garder le libellé d’origine » conserve le texte saisi lors de la création de cet ajout. « Utiliser mon libellé » permet de le reformuler, tout en gardant le même apprentissage et ses observations.</p>{% endif %}
+{% if ouvert and adaptable %}{% if form.libelle_direct %}<p>Vous avez créé cette compétence dans la classe : vous pouvez modifier son libellé ci-dessous. Il doit décrire le même apprentissage ; ses observations sont conservées.</p>{% elif not libelle_ecole %}<p>« Garder le libellé d’origine » conserve le texte saisi lors de la création de cet ajout. « Utiliser mon libellé » permet de le reformuler, tout en gardant le même apprentissage et ses observations.</p>{% endif %}{% endif %}
 <details><summary>Origine de cet ajout</summary><p>Créé {% if locale.classe_origine %}pour {{ locale.classe_origine.libelle_avec_annee }}{% else %}pour l'école{% endif %}. Reprendre ou proposer cet ajout conserve la même compétence.</p><p>Libellé d'origine : {{ origine.libelle }}.</p></details>
 {% if ouvert and adaptable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="adapter">
-{% include "suivi/partiels/choix_libelle.html" %}
+{% if form.libelle_direct %}
+<p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p>
+<label class="choix-confirmation" for="{{ form.meme_sens.id_for_label }}">{{ form.meme_sens }} <span>{{ form.meme_sens.label }}</span></label>{{ form.meme_sens.errors }}
+{% else %}{% include "suivi/partiels/choix_libelle.html" %}{% endif %}
 <fieldset><legend>{{ form.visibilite.label }}</legend>{{ form.visibilite }}{{ form.visibilite.errors }}</fieldset>
 <p>Masquer retire l'ajout des prochaines saisies, tout en conservant ses observations dans le parcours. Vous pouvez le montrer à nouveau.</p>
 <button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer les choix</button></form>{% endif %}

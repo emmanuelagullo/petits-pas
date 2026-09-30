@@ -52,3 +52,13 @@ changement de base passent également. Le contrôle des migrations, Django check
 les espaces du diff et le Guide (41 fiches, 13 références de captures) passent.
 La construction Hugo, PostgreSQL et les essais visuels et d'usage restent à
 valider en CI ou localement : Hugo n'est pas installé dans cet environnement.
+
+* #R7d — Modifier un ajout créé dans la classe
+
+Sans proposition de libellé de l'école, une compétence créée dans la classe
+présente directement « Libellé de la compétence », prérempli avec son dernier
+texte annuel. Aucun choix artificiel de conserver un libellé proposé n'est
+affiché. La confirmation du même apprentissage reste obligatoire côté serveur.
+L'écriture utilise les adaptations annuelles existantes : identité, définition
+à la création et observations restent conservées. Les ajouts repris et les
+propositions de libellé de l'école conservent le choix explicite d'héritage.
