@@ -65,7 +65,7 @@ class InterfaceAjouts(Base):
         self.assertEqual(self.client.post(url, donnees).status_code, 400)
         page = self.client.get(url)
         self.assertEqual(self.client.post(url, {"jeton": page.context["jeton"], "action": "adapter",
-            "mode_libelle": "garder", "visibilite": "montrer"}).status_code, 302)
+            "libelle": "Je classe des objets fictifs", "meme_sens": "on", "visibilite": "montrer"}).status_code, 302)
 
     def test_compte_annee_et_base_lies_au_formulaire(self):
         self.adopter()
@@ -115,7 +115,9 @@ class InterfaceAjouts(Base):
         locale = self.creer()
         url = self.page(locale=locale)
         page = self.client.get(url)
-        self.assertContains(page, "Garder le libellé d’origine")
+        self.assertContains(page, "Libellé de la compétence")
+        self.assertNotContains(page, 'name="mode_libelle"')
+        self.assertNotContains(page, "data-libelle-personnel")
         self.assertNotContains(page, "Libellé proposé par l’école")
         self.assertEqual(page.context["form"]["libelle"].value(), locale.competence.libelle)
         enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole,
@@ -125,3 +127,29 @@ class InterfaceAjouts(Base):
         self.assertContains(page, "Suivre le libellé de l’école")
         self.assertContains(page, "Libellé proposé par l’école")
         self.assertEqual(page.context["form"]["libelle"].value(), "Je classe des objets fictifs")
+
+    def test_libelle_direct_exige_confirmation_et_conserve_origine(self):
+        locale = self.creer()
+        definition = locale.definition
+        competence_id = locale.competence_id
+        url = self.page(locale=locale)
+        page = self.client.get(url)
+        donnees = {"jeton": page.context["jeton"], "action": "adapter", "mode_libelle": "garder",
+            "libelle": "Je trie des objets fictifs", "visibilite": "montrer"}
+        self.assertEqual(self.client.post(url, donnees).status_code, 400)
+        donnees["meme_sens"] = "on"
+        self.assertEqual(self.client.post(url, donnees).status_code, 302)
+        locale.refresh_from_db()
+        self.assertEqual(locale.definition, definition)
+        self.assertEqual(locale.competence_id, competence_id)
+        self.assertContains(self.client.get(self.page()), "Je trie des objets fictifs")
+        self.assertEqual(self.client.get(url).context["form"]["libelle"].value(), "Je trie des objets fictifs")
+
+    def test_ajout_ecole_repris_garde_choix_de_libelle(self):
+        locale = self.creer(classe=False)
+        page = self.client.get(self.page())
+        self.assertEqual(self.client.post(self.page(), {"jeton": page.context["jeton"],
+            "action": "reprendre", "locale": locale.pk}).status_code, 302)
+        page = self.client.get(self.page(locale=locale))
+        self.assertContains(page, "Garder le libellé d’origine")
+        self.assertContains(page, 'name="mode_libelle"')

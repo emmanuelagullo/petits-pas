@@ -37,13 +37,19 @@ class AdaptationCompetenceForm(forms.Form):
         ("garder", "Garder la visibilité proposée"), ("montrer", "Montrer cette compétence"),
         ("masquer", "Masquer cette compétence")], widget=forms.RadioSelect)
 
-    def __init__(self, *args, choix_garder="Garder le libellé proposé", **kwargs):
+    def __init__(self, *args, choix_garder="Garder le libellé proposé", libelle_direct=False, **kwargs):
         super().__init__(*args, **kwargs)
+        self.libelle_direct = libelle_direct
         self.fields["mode_libelle"].choices = [("garder", choix_garder), ("personnel", "Utiliser mon libellé")]
+        if libelle_direct:
+            del self.fields["mode_libelle"]
+            self.fields["libelle"].label = "Libellé de la compétence"
+            self.fields["libelle"].required = True
+            self.fields["meme_sens"].label = "Ce libellé décrit toujours le même apprentissage."
 
     def clean(self):
         donnees = super().clean()
-        if donnees.get("mode_libelle") == "personnel":
+        if self.libelle_direct or donnees.get("mode_libelle") == "personnel":
             if not donnees.get("libelle"):
                 self.add_error("libelle", "Précisez votre libellé.")
             if not donnees.get("meme_sens"):

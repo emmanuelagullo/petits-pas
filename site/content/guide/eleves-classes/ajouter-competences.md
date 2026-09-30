@@ -37,11 +37,14 @@ Les nouvelles observations sont saisies pour les élèves concernés, comme pour
 les compétences de la base. Les ajouts sont rangés dans **Ajouts — nom du domaine**,
 un groupe qui conserve le domaine choisi même si la base change.
 
-Pour un ajout local, **Garder le libellé d’origine** conserve le texte saisi
-lors de sa création. **Utiliser mon libellé** active le champ pour le reformuler
-fidèlement. Si l’école a proposé un autre texte pour cette année, le choix
-s’appelle **Suivre le libellé de l’école**. Le texte à la création reste conservé
-dans l’origine de l’ajout.
+Pour une compétence créée dans la classe, modifier directement **Libellé de
+la compétence**, puis confirmer que le texte décrit toujours le même apprentissage.
+Le texte à la création reste conservé dans l’origine de l’ajout.
+
+Pour un ajout repris, **Garder le libellé d’origine** conserve le texte de sa
+création ; **Utiliser mon libellé** permet une reformulation propre à la classe.
+Si l’école a proposé un autre texte pour cette année, le choix s’appelle
+**Suivre le libellé de l’école**, y compris pour un ajout créé dans la classe.
 
 ## Changement de base et rentrée
 
