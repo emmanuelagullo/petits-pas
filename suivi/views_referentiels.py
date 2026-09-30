@@ -223,7 +223,7 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
                 raise ValidationError("Vérifiez votre libellé et les choix de visibilité.")
             enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee,
                 competence=competence, classe=classe, libelle=form.cleaned_data["libelle"],
-                visible=form.cleaned_data["visible"], meme_sens=form.cleaned_data.get("meme_sens", False),
+                visible=form.cleaned_data["visible"],
                 revision_attendue=signe["revision"], adoption_attendue=signe["adoption"])
             messages.success(request, "Les choix de cette compétence sont enregistrés pour l'année. Son identité et ses observations sont conservées.")
             return redirect(request.path + suffixe)

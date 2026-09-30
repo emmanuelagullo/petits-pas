@@ -66,7 +66,7 @@ class AjoutsLocaux(Base):
             r = AdaptationCompetence.objects.filter(classe=self.classe, competence=locale.competence).first()
             return enregistrer_adaptation(utilisateur=self.enseignant, ecole=self.ecole,
                 annee=self.classe.annee_scolaire, classe=self.classe, competence=locale.competence,
-                libelle=libelle, visible=visible, meme_sens=True, revision_attendue=r.revision if r else 0,
+                libelle=libelle, visible=visible, revision_attendue=r.revision if r else 0,
                 adoption_attendue=adoption.pk)
         regler("Je classe des objets fictifs", False)
         with self.assertRaises(PermissionDenied): usage_pour_saisie(self.classe, locale.competence)

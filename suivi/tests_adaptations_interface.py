@@ -45,8 +45,9 @@ class AdaptationsInterface(Base):
         self.assertContains(self.client.get(reverse("referentiel_classe", args=[self.classe.pk])), "Libellés et compétences masquées")
 
     def test_libelle_fidele_affiche_partout_sans_recrire_observations(self):
+        self.assertNotContains(self.page(), 'name="meme_sens"')
         avant = list(Observation.objects.values()), list(Trace.objects.values())
-        page = self.enregistrer(mode_libelle="personnel", libelle="Je me présente", meme_sens="on")
+        page = self.enregistrer(mode_libelle="personnel", libelle="Je me présente")
         self.assertEqual(page.status_code, 302)
         self.assertEqual((list(Observation.objects.values()), list(Trace.objects.values())), avant)
         urls = (reverse("choisir_competence", args=[self.classe.pk]),
@@ -78,9 +79,8 @@ class AdaptationsInterface(Base):
         modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=self.competence, statut="reussi")
         self.assertEqual(Observation.objects.get().statut, "reussi")
 
-    def test_libelle_vide_changement_sens_et_confirmation_perimee(self):
-        for options in ({"mode_libelle": "personnel", "libelle": "Un autre texte"},
-                        {"mode_libelle": "personnel", "libelle": " ", "meme_sens": "on"},
+    def test_libelle_vide_et_formulaire_perime(self):
+        for options in ({"mode_libelle": "personnel", "libelle": " "},
                         {"visibilite": "autre"}):
             with self.subTest(options=options): self.assertEqual(self.enregistrer(**options).status_code, 400)
         self.assertFalse(AdaptationCompetence.objects.exists())
@@ -97,7 +97,7 @@ class AdaptationsInterface(Base):
         self.client.force_login(self.direction)
         page = self.client.get(url, self.parametres)
         self.assertEqual(self.client.post(url, {**self.parametres, "jeton": page.context["jeton"],
-            "mode_libelle": "personnel", "libelle": "Je me présente", "meme_sens": "on", "visibilite": "masquer"}).status_code, 302)
+            "mode_libelle": "personnel", "libelle": "Je me présente", "visibilite": "masquer"}).status_code, 302)
         self.client.force_login(self.enseignant)
         self.assertContains(self.page(), "Je me présente")
         self.enregistrer(visibilite="montrer")
@@ -115,7 +115,7 @@ class AdaptationsInterface(Base):
         self.assertFalse(AdaptationCompetence.objects.exists())
 
     def test_classe_close_consultable_et_pdf_garde_dernier_libelle(self):
-        self.enregistrer(mode_libelle="personnel", libelle="Je me présente", meme_sens="on", visibilite="montrer")
+        self.enregistrer(mode_libelle="personnel", libelle="Je me présente", visibilite="montrer")
         with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
             clore(utilisateur=self.enseignant, classe=self.classe)
             page = self.page()

@@ -38,7 +38,7 @@ les compétences de la base. Les ajouts sont rangés dans **Ajouts — nom du do
 un groupe qui conserve le domaine choisi même si la base change.
 
 Pour une compétence créée dans la classe, modifier directement **Libellé de
-la compétence**, puis confirmer que le texte décrit toujours le même apprentissage.
+la compétence**. Pour décrire un autre apprentissage, créer une nouvelle compétence.
 Le texte à la création reste conservé dans l’origine de l’ajout.
 
 Pour un ajout repris, **Garder le libellé d’origine** conserve le texte de sa

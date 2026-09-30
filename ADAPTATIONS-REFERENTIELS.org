@@ -10,8 +10,8 @@ L'école propose ; la classe peut démasquer une compétence masquée par l'éco
 Ce masquage n'est pas une restriction imposée comme la liste des bases autorisées.
 
 Le catalogue et les versions importées ne sont jamais réécrits. Une adaptation
-fidèle conserve identité et observations ; le service exige une confirmation
-du même apprentissage pour un libellé personnel. Un changement de sens relève
+fidèle conserve identité et observations. Depuis #R7e, modifier le libellé
+exprime cette intention sans case de confirmation supplémentaire. Un changement de sens relève
 d'une compétence distincte, pas de cette fonction.
 
 Le lecteur commun résout les choix annuels avant de construire saisies et
@@ -88,3 +88,27 @@ Sans JavaScript, une première soumission active les champs et demande le texte
 avant toute écriture. Pour un ajout local sans adaptation de libellé de l'école,
 « Garder le libellé d'origine » désigne le texte de création ; une adaptation
 d'école est explicitement présentée par « Suivre le libellé de l'école ».
+
+* #R7e — Auto-audit et simplification du parcours
+
+La case « même apprentissage » répétait l'intention de la page sans pouvoir
+vérifier le sens pédagogique d'un texte. Le booléen côté service contrôlait
+seulement cette déclaration ; il ne constituait pas une protection des données.
+Il est supprimé du formulaire et de l'API interne, sans confirmation cachée
+ni remplacement par une nouvelle étape. Une aide courte distingue reformuler
+le texte d'une compétence et créer une compétence pour un autre apprentissage.
+Cette règle concerne aussi les ajouts récents, même sans observation.
+
+Les choix d'héritage restent nécessaires lorsqu'un texte vient d'un autre
+niveau : suivre une proposition et la remplacer sont deux intentions distinctes.
+Le champ direct des ajouts créés dans la classe évite ce choix artificiel.
+Les identités conservées, les réglages annuels et la clôture répondent aux
+besoins des parcours anciens ; leurs détails n'ont pas à encombrer la saisie.
+Les contrôles de droits, périmètre, validité du libellé et modifications
+concurrentes sont conservés. Les observations ne sont pas réécrites.
+
+Les correspondances actuelles restent des repères consultables, sans action
+sur les acquis ou les choix de base. Leur utilité dans un changement de base
+doit être discutée avant d'ajouter un nouveau parcours ou des automatismes.
+Les mentions des confirmations dans #R5, #R7c et #R7d décrivent leurs étapes
+historiques ; #R7e les remplace pour les libellés.

@@ -53,7 +53,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     libelle_direct = bool(locale and classe and locale.classe_origine_id == classe.pk and not libelle_ecole)
     choix_garder = "Suivre le libellé de l’école" if libelle_ecole else "Garder le libellé d’origine"
     initial = {"mode_libelle": "personnel" if regle and regle.libelle is not None else "garder",
-        "libelle": regle.libelle if regle and regle.libelle is not None else (proposee["libelle"] if proposee else ""), "meme_sens": False,
+        "libelle": regle.libelle if regle and regle.libelle is not None else (proposee["libelle"] if proposee else ""),
         "visibilite": "garder" if not regle or regle.visible is None else ("montrer" if regle.visible else "masquer")}
     contexte = {"auteur": request.user.pk, "ecole": ecole.pk, "annee": annee,
         "classe": classe.pk if classe else None, "adoption": adoption.pk if adoption else None,
@@ -99,7 +99,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                 if form.is_valid():
                     enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
                         competence=locale.competence, adoption_attendue=contexte["adoption"],
-                        revision_attendue=contexte["revision"], **{k: form.cleaned_data[k] for k in ("libelle", "visible", "meme_sens")})
+                        revision_attendue=contexte["revision"], **{k: form.cleaned_data[k] for k in ("libelle", "visible")})
                 else:
                     raise ValidationError("Vérifiez vos choix de libellé et de visibilité.")
             else:

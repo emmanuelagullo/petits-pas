@@ -31,7 +31,7 @@ class AdaptationsSources(Base):
     def regler(self, *, libelle=None, visible=None, revision=0):
         return enregistrer_adaptation(utilisateur=self.enseignant, ecole=self.ecole,
             annee=self.classe.annee_scolaire, classe=self.classe, competence=self.competence,
-            libelle=libelle, visible=visible, meme_sens=True, revision_attendue=revision,
+            libelle=libelle, visible=visible, revision_attendue=revision,
             adoption_attendue=self.adoption.pk)
 
     def test_nouvelle_version_garde_adaptation_et_origine_distincte(self):
