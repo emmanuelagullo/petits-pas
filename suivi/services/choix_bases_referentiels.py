@@ -62,7 +62,7 @@ def choix_bases(ecole, annee):
             proposee_id = local.version_proposee_id
     proposee = next((v for v in versions if v.pk == proposee_id), None)
     if proposee_id is not None and proposee is None:
-        avertissements.append("La base proposée n'est plus autorisée. Choisissez un autre défaut ; aucun remplacement automatique n'est effectué.")
+        avertissements.append("La base proposée n'est plus autorisée. Choisissez une autre base proposée ; aucun remplacement automatique n'est effectué.")
     autorisees = {v.pk for v in versions}
     if AdoptionReferentiel.objects.filter(classe__ecole=ecole, classe__annee_scolaire=annee,
                                          courante=True).exclude(version_id__in=autorisees).exists():
@@ -141,14 +141,7 @@ def enregistrer_choix_ecole(*, utilisateur, ecole, annee, restreindre,
     local = ChoixEcoleAnnuel.objects.select_for_update().get(pk=local.pk)
     if (application.revision, local.revision) != tuple(revisions_attendues):
         raise ValidationError("Les choix ont changé depuis leur consultation. Relisez-les avant de confirmer.")
-    versions, superieur_id = _superieur(ecole, annee, application)
-    superieurs = {v.pk for v in versions}
-    if restreindre and ids - superieurs:
-        raise ValidationError("L'école ne peut pas autoriser une base non autorisée par l'application.")
-    effectives = ids if restreindre else superieurs
-    _defaut(effectives, proposee_id)
-    if effectives and proposee_id is None and superieur_id not in effectives:
-        raise ValidationError("La base proposée par l'application n'est pas dans votre liste. Choisissez un défaut autorisé.")
+    _verifier_choix_ecole(ecole, annee, application, restreindre, ids, proposee_id)
     anciennes = {"restreindre": local.restreindre, "versions": list(local.versions_autorisees.values_list("pk", flat=True)),
                  "proposee": local.version_proposee_id, "revision": local.revision}
     local.restreindre = restreindre
@@ -159,3 +152,45 @@ def enregistrer_choix_ecole(*, utilisateur, ecole, annee, restreindre,
     journaliser(utilisateur, "referentiel.choix_ecole", local, anciennes=anciennes,
         nouvelles={"restreindre": restreindre, "versions": sorted(ids), "proposee": proposee_id, "revision": local.revision})
     return local
+
+
+def _verifier_choix_ecole(ecole, annee, application, restreindre, ids, proposee_id):
+    versions, superieur_id = _superieur(ecole, annee, application)
+    superieurs = {v.pk for v in versions}
+    if restreindre and ids - superieurs:
+        raise ValidationError("L'école ne peut pas autoriser une base non autorisée par l'application.")
+    effectives = ids if restreindre else superieurs
+    _defaut(effectives, proposee_id)
+    if effectives and proposee_id is None and superieur_id not in effectives:
+        raise ValidationError("La base proposée par l'application n'est pas dans votre liste. Choisissez un défaut autorisé.")
+    proposee_effective = proposee_id if proposee_id is not None else superieur_id
+    return tuple(v for v in versions if v.pk in effectives), next(
+        (v for v in versions if v.pk in effectives and v.pk == proposee_effective), None)
+
+
+def choix_superieurs(ecole, annee):
+    """Bases proposées à l'école ; lecture seule, y compris sans configuration."""
+    verifier_annee(annee)
+    application = ChoixApplicationAnnuel.objects.filter(annee_scolaire=annee).first()
+    versions, proposee_id = _superieur(ecole, annee, application)
+    return tuple(versions), next((v for v in versions if v.pk == proposee_id), None)
+
+
+def apercu_choix_ecole(*, utilisateur, ecole, annee, restreindre, versions_ids, proposee_id):
+    verifier_annee(annee)
+    if not autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole):
+        raise PermissionDenied
+    if type(restreindre) is not bool:
+        raise ValidationError("Préciser si l'école conserve une liste de bases autorisées.")
+    ids = _ids(versions_ids)
+    if not restreindre and ids:
+        raise ValidationError("Pour garder les autorisations proposées, ne transmettez pas de liste locale.")
+    application = ChoixApplicationAnnuel.objects.filter(annee_scolaire=annee).first()
+    local = ChoixEcoleAnnuel.objects.filter(ecole=ecole, annee_scolaire=annee).first()
+    versions, proposee = _verifier_choix_ecole(ecole, annee, application, restreindre, ids, proposee_id)
+    conservees = AdoptionReferentiel.objects.filter(classe__ecole=ecole,
+        classe__annee_scolaire=annee, courante=True).exclude(
+        version_id__in=[v.pk for v in versions]).select_related("classe", "version__source").order_by("classe__nom", "pk")
+    return {"versions": versions, "proposee": proposee, "revisions": (application.revision if application else 0, local.revision if local else 0),
+            "restreindre": restreindre, "versions_ids": sorted(ids), "proposee_id": proposee_id,
+            "classes_conservees": list(conservees)}

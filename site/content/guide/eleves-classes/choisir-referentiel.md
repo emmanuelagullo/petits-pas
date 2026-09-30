@@ -49,8 +49,9 @@ propres choix.
 - Les choix d’une classe close restent consultables.
 - Si les choix ont changé depuis l’aperçu, préparer un nouvel aperçu.
 - Si aucune base n’est autorisée, contacter la direction. La préparation du
-  catalogue et des autorisations reste une opération d’administration ; elle
-  n’a pas encore d’écran dans le Guide pratique.
+  catalogue et des autorisations de l’application reste une opération
+  d’administration. La direction peut
+  [proposer ou limiter les bases de l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}).
 - La direction peut choisir une base sans obtenir le droit de modifier les
   acquisitions individuelles. Associés et contributeurs ne gèrent pas ce choix.
 

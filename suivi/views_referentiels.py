@@ -48,3 +48,71 @@ def choisir_base_classe(request, classe_pk):
     selection_id = actuelle.version_id if actuelle and actuelle.version_id in disponibles else (choix.proposee.pk if choix.proposee else None)
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
         "actuelle": actuelle, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
+
+
+@acces_requis
+@require_http_methods(["GET", "POST"])
+def choisir_bases_ecole(request):
+    from django.core.exceptions import PermissionDenied
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
+    from .forms_referentiels import ChoixEcoleForm
+    from .models import ChoixApplicationAnnuel, ChoixEcoleAnnuel, annee_scolaire_pour
+    from .services.choix_bases_referentiels import (apercu_choix_ecole, choix_superieurs,
+                                                  enregistrer_choix_ecole, verifier_annee)
+
+    ecole = ecole_courante(request)
+    if not autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
+        raise PermissionDenied
+    courante = annee_scolaire_pour(timezone.localdate())
+    annee = (request.POST if request.method == "POST" else request.GET).get("annee", courante)
+    debut = int(courante[:4])
+    annees = sorted({courante, f"{debut + 1}-{debut + 2}"}
+        | set(ecole.classes.values_list("annee_scolaire", flat=True))
+        | set(ChoixEcoleAnnuel.objects.filter(ecole=ecole).values_list("annee_scolaire", flat=True))
+        | set(ChoixApplicationAnnuel.objects.values_list("annee_scolaire", flat=True)), reverse=True)
+    contexte = {"annee": annee, "annees": annees}
+    try:
+        verifier_annee(annee)
+    except ValidationError as cause:
+        contexte["erreur"] = " ".join(cause.messages)
+        return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400)
+    superieures, proposee_superieure = choix_superieurs(ecole, annee)
+    choix = choix_bases(ecole, annee)
+    local = ChoixEcoleAnnuel.objects.filter(ecole=ecole, annee_scolaire=annee).first()
+    initial = {"autorisations": "restreindre" if local and local.restreindre else "garder",
+        "versions": list(local.versions_autorisees.values_list("pk", flat=True)) if local else [],
+        "proposee": local.version_proposee_id if local else None}
+    form = ChoixEcoleForm(versions=superieures, initial=initial)
+    apercu, jeton, erreur = None, None, None
+    if request.method == "POST":
+        try:
+            if request.POST.get("action") == "confirmer":
+                try:
+                    donnees = signing.loads(request.POST.get("jeton", ""), salt="bases-ecole", max_age=1800)
+                except signing.BadSignature as cause:
+                    raise ValidationError("L'aperçu a expiré ou n'est plus valable. Préparez un nouvel aperçu.") from cause
+                if donnees["ecole"] != ecole.pk or donnees["auteur"] != request.user.pk or donnees["annee"] != annee:
+                    raise ValidationError("Cet aperçu ne correspond pas à votre école ou à l'année choisie.")
+                enregistrer_choix_ecole(utilisateur=request.user, ecole=ecole, annee=annee,
+                    restreindre=donnees["restreindre"], versions_ids=donnees["versions_ids"],
+                    proposee_id=donnees["proposee_id"], revisions_attendues=donnees["revisions"])
+                messages.success(request, "Les choix de l'école sont enregistrés pour cette année. Les bases des classes et leurs observations sont conservées.")
+                return redirect(f"{reverse('referentiels_ecole')}?annee={annee}")
+            if request.POST.get("action") != "apercu":
+                raise ValidationError("Consultez les conséquences avant de confirmer.")
+            form = ChoixEcoleForm(request.POST, versions=superieures)
+            if not form.is_valid():
+                raise ValidationError("Vérifiez les bases choisies.")
+            apercu = apercu_choix_ecole(utilisateur=request.user, ecole=ecole, annee=annee,
+                restreindre=form.cleaned_data["restreindre"], versions_ids=form.cleaned_data["versions"],
+                proposee_id=form.cleaned_data["proposee"])
+            jeton = signing.dumps({"ecole": ecole.pk, "auteur": request.user.pk, "annee": annee,
+                **{cle: apercu[cle] for cle in ("restreindre", "versions_ids", "proposee_id", "revisions")}}, salt="bases-ecole")
+        except ValidationError as cause:
+            erreur = " ".join(cause.messages)
+    contexte.update(form=form, choix=choix, proposee_superieure=proposee_superieure,
+        apercu=apercu, jeton=jeton, erreur=erreur)
+    return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400 if erreur else 200)

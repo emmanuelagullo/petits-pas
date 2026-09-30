@@ -1,14 +1,17 @@
-#+TITLE: Choix annuels des bases — #R4b1
+#+TITLE: Choix annuels des bases — #R4
 
-* État du jalon
+* État du chantier
 
-Ce sous-jalon conserve et résout les autorisations et défauts annuels de
-l'application et de l'école. Le choix de classe, sa prévisualisation et son
-adoption restent #R4b2 et suivants. Aucun nouvel écran enseignant n'est annoncé.
-La création automatique du contexte initial des saisies existantes n'est pas
-encore raccordée à ces politiques : le raccordement appartient à l'adoption.
-Ne pas utiliser cette préparation comme une restriction déjà active dans tous
-les parcours. Importer ou publier des choix ne bascule aucune classe.
+Les autorisations et défauts annuels sont conservés pour l'application et
+l'école. L'administration publie les choix applicatifs par commande ; la
+direction prépare les choix de l'école dans Gérer l'école → Référentiels de
+l'école. Le responsable ou la direction choisit ensuite la base d'une classe,
+avec aperçu et confirmation, y compris après des observations.
+
+Importer, autoriser, proposer par défaut et choisir pour une classe restent
+des actions distinctes. Une nouvelle restriction ne bascule aucune classe.
+Les étapes de livraison et leurs limites initiales sont conservées plus bas ;
+#R4b3 et #R4b4 décrivent les parcours ouverts actuellement.
 
 Les sources réelles restent une tâche distincte : échange préalable avec
 Emmanuel avant leur recherche ou leur intégration. Les scénarios utilisent
@@ -44,7 +47,7 @@ Si un défaut local ou hérité n'est plus autorisé, le lecteur signale la situ
 et retourne aucun défaut disponible ; il ne le remplace pas. Les versions locales
 sorties des autorisations supérieures restent enregistrées, mais ne sont pas
 retournées comme candidates. Des messages signalent les classes concernées.
-Ces messages seront repris dans les écrans suivants.
+Ces messages figurent dans les écrans de choix de classe et d’école.
 
 * Administration technique de l'application
 
@@ -71,9 +74,8 @@ python3 manage.py proposer_bases_referentiels --annee 2026-2027 --autoriser --re
 
 Cette commande est réservée à l'administration du déploiement, au même titre
 que l'import de sources. Sans --autoriser, elle consulte sans créer de choix.
-La politique d'école dispose d'un service interne avec contrôle des droits et
-journalisation, mais n'a pas encore de parcours graphique ni de commande
-contournant ces droits.
+La politique d'école dispose d'un service avec contrôle des droits et
+journalisation, ouvert à la direction par le parcours #R4b4.
 
 * Droits, cohérence et confirmations
 
@@ -187,3 +189,37 @@ classe et PDF après clôture). Aucun écart de migration ; contrôle Django et
 guide (38 fiches, 13 captures référencées) réussis. Construction Hugo, contrôle
 visuel et PostgreSQL non exécutés dans cet environnement. L'application git am
 sur main est vérifiée avant remise du patch.
+
+
+* Choix d'école accessibles — #R4b4
+
+Gérer l'école → Référentiels de l'école ouvre à la direction active les choix
+annuels préparés en #R4b1. La consultation et l'aperçu restent en lecture seule.
+Par défaut, garder les autorisations et le choix proposé suit les propositions
+supérieures pendant l'année. Une base proposée explicitement par l'école est
+indépendante d'une restriction : elle n'interdit pas les autres bases.
+
+L'école peut conserver une liste plus courte, y compris vide. Une liste vide
+empêche de nouveaux choix de base, sans supprimer les bases déjà adoptées.
+L'aperçu nomme les classes qui gardent une base hors des nouveaux choix, sans
+exposer de données d'élèves. Chaque année reste indépendante ; les classes
+closes conservent leur présentation finale.
+
+Le formulaire ne présente que les bases autorisées par l'application pour
+l'école et l'année. L'aperçu et l'enregistrement réutilisent la même validation.
+La confirmation signée lie école, compte, année, contenu des choix et révisions
+application/école, pendant trente minutes. Une confirmation périmée est refusée ;
+une nouvelle proposition n'écrase aucune adoption de classe.
+
+L'import et les choix de l'application restent des commandes d'exploitation.
+La recherche et l'intégration de bases réelles restent à discuter au préalable.
+Aucune migration supplémentaire. Le Guide pratique décrit les boutons ouverts,
+les choix usuels, la liste vide et le retour aux propositions supérieures.
+
+Vérifications #R4b4 : 468 tests Django réussis en suite complète, puis 9 tests
+d'interface après le dernier scénario d'expiration et les ajustements de texte.
+Les choix de compte, d'école et d'année, les révisions, le retour à l'héritage,
+la liste vide et l'absence de bascule des classes sont vérifiés. Contrôle Django,
+absence d'écart de migration et guide (39 fiches, 13 captures référencées) réussis.
+Construction Hugo, captures visuelles et PostgreSQL non exécutés localement.
+Le patch est vérifié avec git am sur main avant remise.
