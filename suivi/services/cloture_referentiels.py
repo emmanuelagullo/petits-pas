@@ -43,8 +43,9 @@ def clore(*, utilisateur, classe):
         resultat.update(photo=ressource.fichier.name, ressource_id=ressource.pk)
         return resultat
 
+    from suivi.correspondances_referentiels import correspondances_classe
     final = {"contenu": deepcopy(contenu_adoption(adoption)), "illustrations": {}, "propositions": {},
-             "couverture": conserver(illustration_effective(classe.ecole, classe=classe)), "etats": []}
+             "couverture": conserver(illustration_effective(classe.ecole, classe=classe)), "etats": [], "correspondances": correspondances_classe(classe)}
     observations = Observation.objects.filter(eleve__scolarites__classe=classe).distinct()
     suivies = set(observations.values_list("competence_id", flat=True))
     actuelles = {c["id"] for c in final["contenu"].get("competences", [])}
