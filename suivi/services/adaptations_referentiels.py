@@ -46,7 +46,12 @@ def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, vi
             classe=classe).exclude(pk=adoption.pk).select_related("version")]
     else:
         contenus = [contenu for _, contenu in contenus_ecole(ecole, annee)]
-    if not any(c["id"] == competence.pk for contenu in contenus for c in contenu.get("competences", [])):
+    from suivi.models import DisponibiliteCompetenceLocale
+    locaux = DisponibiliteCompetenceLocale.objects.filter(locale__ecole=ecole,
+        locale__competence=competence, annee_scolaire=annee)
+    if classe:
+        locaux = locaux.filter(classe=classe)
+    if not locaux.exists() and not any(c["id"] == competence.pk for contenu in contenus for c in contenu.get("competences", [])):
         raise ValidationError("Cette compétence ne figure pas dans les bases de ce périmètre.")
     regle, _ = AdaptationCompetence.objects.get_or_create(ecole=ecole, annee_scolaire=annee,
                                                         classe=classe, competence=competence)

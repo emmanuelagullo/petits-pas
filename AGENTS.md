@@ -35,7 +35,8 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   `DIAGNOSTIC-REFERENTIELS.org` la reprise et la lecture annuelle,
   `IMPORT-SOURCES-REFERENTIELS.org` l'import versionné et
   `CHOIX-BASES-REFERENTIELS.org` les autorisations et défauts annuels,
-  `ADAPTATIONS-REFERENTIELS.org` les libellés et masquages annuels. Leur lecture
+  `ADAPTATIONS-REFERENTIELS.org` les libellés et masquages annuels,
+  `AJOUTS-REFERENTIELS.org` les identités et reprises des ajouts locaux. Leur lecture
   commune est dans `suivi/adaptations_referentiels.py` ; les écritures contrôlées
   sont dans `suivi/services/adaptations_referentiels.py`.
   Distinguer les services préparés des fonctions accessibles ; importer,

@@ -1000,3 +1000,58 @@ class AdaptationCompetence(models.Model):
             raise ValidationError("L'adaptation doit appartenir à l'école et à l'année de la classe.")
         if self.libelle is not None and not self.libelle.strip():
             raise ValidationError("Le libellé adapté ne peut pas être vide.")
+
+
+class CompetenceLocale(models.Model):
+    """Identité locale et définition d'origine, indépendantes des bases fournies."""
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT)
+    competence = models.OneToOneField(Competence, on_delete=models.PROTECT, related_name="origine_locale")
+    classe_origine = models.ForeignKey(Classe, on_delete=models.PROTECT, null=True, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(default=timezone.now)
+    definition = models.JSONField()
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.competence_id and self.competence.domaine.ecole_id != self.ecole_id:
+            raise ValidationError("L'ajout doit appartenir à l'école.")
+        if self.classe_origine_id and self.classe_origine.ecole_id != self.ecole_id:
+            raise ValidationError("La classe d'origine doit appartenir à l'école.")
+
+    def save(self, *args, **kwargs):
+        from django.core.exceptions import ValidationError
+        if self.pk:
+            ancienne = type(self).objects.get(pk=self.pk)
+            champs = ("ecole_id", "competence_id", "classe_origine_id", "auteur_id", "cree_le", "definition")
+            if any(getattr(self, c) != getattr(ancienne, c) for c in champs):
+                raise ValidationError("L'origine d'un ajout est conservée. Utilisez les adaptations annuelles.")
+        return super().save(*args, **kwargs)
+
+
+class DisponibiliteCompetenceLocale(models.Model):
+    """Proposition annuelle à l'école ou reprise explicite par une classe."""
+    locale = models.ForeignKey(CompetenceLocale, on_delete=models.PROTECT, related_name="disponibilites")
+    annee_scolaire = models.CharField(max_length=9)
+    classe = models.ForeignKey(Classe, on_delete=models.PROTECT, null=True, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    cree_le = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["locale", "annee_scolaire"], condition=models.Q(classe__isnull=True),
+                                    name="ajout_propose_ecole_annee_unique"),
+            models.UniqueConstraint(fields=["locale", "classe"], condition=models.Q(classe__isnull=False),
+                                    name="ajout_repris_classe_unique"),
+        ]
+
+    @property
+    def ecole(self):
+        return self.locale.ecole
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from .services.choix_bases_referentiels import verifier_annee
+        verifier_annee(self.annee_scolaire)
+        if self.classe_id and (self.classe.ecole_id != self.locale.ecole_id or
+                              self.classe.annee_scolaire != self.annee_scolaire):
+            raise ValidationError("La reprise doit appartenir à l'école et à l'année de la classe.")

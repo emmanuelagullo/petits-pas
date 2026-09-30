@@ -22,7 +22,7 @@ class MigrationReferentiels(TransactionTestCase):
         return executant.loader.project_state([cible]).apps
 
     def tearDown(self):
-        self.migrer(("suivi", "0022_adaptations_competences_annuelles"))
+        self.migrer(("suivi", "0023_ajouts_locaux_referentiels"))
         super().tearDown()
 
     def test_ancienne_base_garde_identites_et_traces_masquees(self):

@@ -1,0 +1,40 @@
+#+TITLE: Ajouts locaux aux référentiels
+
+* #R6a — Identités, disponibilité annuelle et lecture
+
+Une compétence locale a une identité distincte, une école propriétaire et une
+classe d'origine facultative. Sa définition d'origine est conservée ; un libellé
+fidèlement adapté et un masquage passent par les réglages annuels de #R5.
+Aucune image, phrase ni correspondance n'est obligatoire.
+
+Les services créer_ajout, proposer_ajout et reprendre_ajout (noms Python sans
+accents) vérifient les droits de direction ou de responsable de classe, l'école,
+l'année et, pour une classe, l'adoption courante ouverte attendue. Les écritures
+verrouillent l'école puis la classe et sont journalisées.
+
+Créer pour l'école propose l'ajout dans le catalogue de cette année ; aucune
+classe ne le reçoit automatiquement. Créer pour une classe le retient uniquement
+pour cette classe annuelle. La direction peut proposer un ajout de classe à
+l'école, sans changer son identité ni sa classe d'origine. Une classe reprend
+explicitement une proposition de l'année ou un ajout déjà utilisé dans une
+classe dont son responsable gère le référentiel. Reprendre est idempotent et ne
+crée ni observation ni état annuel.
+
+Le choix de domaine est limité aux domaines des bases consultables (base
+courante pour une classe). Un groupe « Ajouts — nom du domaine » conserve le
+classement choisi indépendamment des futures bases. Pas de création libre de
+domaine, sous-domaine ou attendu dans ce premier périmètre.
+
+Les ajouts retenus composent le référentiel lu, sans modifier le contenu fourni.
+Ils continuent lors d'un changement de base dans l'année ; l'aperçu les compte
+séparément. La clôture conserve leur dernier libellé et leur visibilité. La
+nouvelle classe annuelle ne les reprend pas automatiquement. Les observations
+restent attachées à la même identité ; leur reprise ne copie aucune réussite.
+Pour retirer un ajout de la saisie, le masquer ; sa disponibilité n'est pas
+supprimée, afin de préserver ses usages et les parcours.
+
+* Disponibilité
+
+#R6a prépare les services et le lecteur commun. L'interface d'ajout et de reprise
+sera livrée dans #R6b ; le Guide ne présente pas encore ce parcours comme accessible.
+Les correspondances pédagogiques restent #R7 et n'assimilent pas les acquis.
