@@ -69,9 +69,12 @@ explicitement, sans recréer l'école :
 python scripts/lancer-local.py --charger-referentiel
 ```
 
-Cette commande met à jour les compétences de la trame par code ; elle ne
-s'exécute pas automatiquement lors des lancements suivants, afin de ne pas
-réinitialiser les choix pédagogiques de l'école.
+Cette commande concerne les anciens paquets qui n'utilisent pas encore les
+référentiels annuels. Les nouvelles installations préparent automatiquement
+leur trame de travail annuelle ; les paquets repris avec #R3 refusent le
+rechargement direct, afin de conserver le sens des observations. Le choix et
+la mise à jour des bases seront proposés dans le chantier des référentiels.
+La reprise des bases existantes est décrite dans `DIAGNOSTIC-REFERENTIELS.org`.
 
 Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
 port libre. Fermer la fenêtre arrête le serveur. Par défaut, les nouveaux

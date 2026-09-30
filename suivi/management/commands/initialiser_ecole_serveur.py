@@ -71,6 +71,8 @@ class Command(BaseCommand):
                 ecole=ecole.pk,
                 stdout=StringIO(),
             )
+            from suivi.services.reprise_referentiels import preparer_nouvelle_ecole
+            preparer_nouvelle_ecole(ecole)
         self.stdout.write(self.style.SUCCESS(
             f"École créée (id {ecole.pk}) ; compte personnel : {utilisateur.username}."
         ))

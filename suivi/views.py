@@ -289,6 +289,8 @@ def installation_locale(request):
                 ecole=ecole.pk,
                 stdout=StringIO(),
             )
+            from .services.reprise_referentiels import preparer_nouvelle_ecole
+            preparer_nouvelle_ecole(ecole)
         login(request, utilisateur, backend="django.contrib.auth.backends.ModelBackend")
         request.session["ecole_id"] = ecole.pk
         request.session.pop("suivant", None)

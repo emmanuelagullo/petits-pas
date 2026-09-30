@@ -392,6 +392,8 @@ def executer(paquet, projet, arguments):
             raise SystemExit("Ce paquet contient déjà une école.")
         call_command("creer_ecole", arguments.creer_ecole, commune=arguments.commune)
         call_command("charger_referentiel", str(referentiel))
+        from suivi.services.reprise_referentiels import preparer_nouvelle_ecole
+        preparer_nouvelle_ecole(Ecole.objects.get())
         return
     if arguments.charger_referentiel:
         call_command("charger_referentiel", str(referentiel))

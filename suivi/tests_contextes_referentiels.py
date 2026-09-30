@@ -70,3 +70,22 @@ class EcrituresAnnuelles(Base):
         usage = usage_pour_saisie(autre, self.competence)
         self.assertEqual(usage.adoption.annuel.annee_scolaire, "2027-2028")
         self.assertEqual(AdoptionReferentiel.objects.filter(classe=self.classe).count(), 1)
+
+
+class NouvelleEcoleAnnuelle(Base):
+    def test_preparation_avant_premiere_classe(self):
+        from .models import Ecole, Domaine, SourceReferentiel
+        from .services.reprise_referentiels import preparer_nouvelle_ecole
+        ecole = Ecole.objects.create(nom="École neuve fictive")
+        domaine = Domaine.objects.create(ecole=ecole, code="LANG", nom="Langage")
+        competence = Competence.objects.create(domaine=domaine, code="LANG-01", libelle="Je parle")
+        preparer_nouvelle_ecole(ecole)
+        source = SourceReferentiel.objects.get(ecole=ecole)
+        self.assertTrue(source.provisoire)
+        self.assertIn("Trame de travail", source.titre)
+        classe = Classe.objects.create(ecole=ecole, nom="Lucioles", annee_scolaire="2026-2027")
+        usage = usage_pour_saisie(classe, competence)
+        self.assertEqual(usage.adoption.annuel.ecole_id, ecole.pk)
+        self.assertFalse(usage.adoption.reprise)
+        preparer_nouvelle_ecole(ecole)
+        self.assertEqual(SourceReferentiel.objects.filter(ecole=ecole).count(), 1)
