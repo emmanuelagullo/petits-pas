@@ -20,6 +20,12 @@ statut = "disponible"
 
 ## Choisir sa présence dans le carnet
 
+Une trace portant la mention **Partagée avec la classe** se traite autrement :
+**Modifier pour les enfants associés** ouvre les choix de la classe et change
+le contenu pour tous les enfants encore associés. **Personnaliser pour cet
+élève** demande confirmation, puis crée une version qui peut évoluer seule.
+Voir [Gérer une trace commune et une version personnelle]({{< relref "/guide/observer/traces-communes/" >}}).
+
 Le responsable utilise **Affichée dans le carnet** ou **Masquée du carnet**.
 Cette action conserve la trace dans le suivi interne ; elle change seulement son
 inclusion dans les carnets.

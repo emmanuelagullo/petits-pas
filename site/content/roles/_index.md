@@ -30,6 +30,9 @@ classe concernée.
 | Consulter le suivi pédagogique de la classe | Non | Oui | Oui | Non |
 | Modifier les états d'acquisition | Non | Oui | Non | Non |
 | Ajouter une trace ou une observation | Non | Oui | Oui | Limitée |
+| Créer ou modifier une trace commune | Non | Oui | Non | Non |
+| Choisir les images et phrases proposées pour l’école | Oui | Non | Non | Non |
+| Choisir les images et phrases proposées pour la classe | Non | Oui | Non | Non |
 | Relire une contribution de l'équipe | Non | Oui | Oui, sans la modifier | Non |
 | Prévisualiser un carnet | Non | Oui | Oui | Non |
 | Générer ou télécharger un PDF | Non | Oui | Non | Non |
@@ -37,6 +40,13 @@ classe concernée.
 « Direction seule » désigne ici une personne qui n'a pas également reçu une
 affectation pédagogique. Une même personne peut cumuler plusieurs fonctions,
 mais chacune continue de s'appliquer dans son propre périmètre.
+
+Les [traces communes]({{< relref "/guide/observer/traces-communes/" >}})
+permettent au responsable de décrire une activité pour les enfants choisis.
+Les enseignants associés peuvent les consulter. Les
+[images et phrases proposées]({{< relref "/guide/carnets/personnaliser-presentation/" >}})
+se préparent pour l'école ou la classe ; les phrases restent facultatives lors
+de la saisie d'un commentaire.
 
 ## Quelques situations importantes
 

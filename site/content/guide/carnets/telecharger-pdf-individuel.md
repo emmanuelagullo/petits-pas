@@ -24,7 +24,8 @@ serveur.
 ## Résultat attendu
 
 Le téléchargement porte un nom de la forme `carnet-prenom-nom.pdf`. La
-génération reprend la couverture de l’école, les options visibles et les traces
+génération reprend les images et la couverture choisies pour la classe (ou
+celles de l’école si la classe les conserve), les options visibles et les traces
 autorisées. L’application journalise la génération et le téléchargement.
 
 ## Limites et précautions

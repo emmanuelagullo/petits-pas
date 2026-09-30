@@ -1,0 +1,80 @@
+#+title: Bilan du chantier des traces partagées — #T
+
+* Périmètre examiné
+
+Ce bilan porte sur les traces communes, les versions personnelles, les phrases
+proposées, les images des compétences et de couverture, ainsi que leur présence
+dans les carnets. Il confronte les écrans, les droits vérifiés par le serveur,
+les tests et les fiches du site. Il ne remplace pas la qualification du serveur
+ou du poste utilisé par une école.
+
+* Fonctionnement confirmé
+
+- Une trace commune concerne une compétence et des enfants explicitement
+  sélectionnés dans une même classe et une même année scolaire.
+- Modifier la trace commune change son contenu pour les enfants encore associés.
+  Retirer un enfant de la sélection ne touche pas les autres.
+- La version personnelle conserve initialement le commentaire, la date et la
+  photo. Elle ne suit ensuite plus les changements de la trace commune.
+- Le même fichier photo peut être utilisé par plusieurs traces. Remplacer une
+  photo ne retire pas un fichier encore utilisé ailleurs.
+- Réassocier un enfant ayant une version personnelle demande de retirer cette
+  version d'abord. Les règles sont vérifiées lors de l'enregistrement et de la
+  restauration, en complément des indications dans l'écran.
+- Les indications de prénom sont remplacées lors de la présentation des traces
+  aux élèves concernés. Les propositions de phrases restent facultatives et
+  les commentaires enregistrés ne changent pas quand une proposition change.
+- Les images et les phrases peuvent être choisies pour l'école, puis adaptées
+  pour la classe. Une phrase se masque sans supprimer son origine.
+- Une image de compétence suit les options de contenu du carnet. Elle ne
+  constitue ni une réussite ni une trace attribuée à un enfant.
+- Les photos importées restent servies avec un contrôle d'accès ; les trois
+  petits dessins fournis sont des ressources publiques. Les PDF utilisent les
+  images choisies actuellement, sans modifier les fichiers déjà téléchargés.
+- La répartition par compétence utilise les états actuels des élèves non
+  archivés de la classe. Son comptage demande au plus deux requêtes, sans
+  charger les traces ou les photos.
+
+* Corrections issues de l'audit
+
+Les écrans de saisie et de liste des traces communes proposaient des actions
+de création ou de modification à un enseignant associé. Le serveur refusait
+ces actions : il n'y avait pas d'ouverture de droits, mais un parcours trompeur.
+La correction #T5a réserve ces boutons au responsable et conserve la consultation.
+
+La fiche de saisie collective indiquait encore que les commentaires et photos
+étaient uniquement individuels. La documentation #T5b corrige cette indication,
+explique les trois usages distincts (trace, image de compétence, phrase proposée),
+les versions personnelles, les choix école/classe et les vérifications du carnet.
+Les fiches liées, les rôles, l'inventaire et les pages pédagogiques et DSI sont
+mis à jour ensemble.
+
+* Vérifications et limites
+
+La suite locale à #T4i comptait 376 tests réussis. La correction #T5a ajoute
+un test de consultation par un enseignant associé ; les 13 tests des traces
+communes passent. Le contrôle du guide vérifie 37 fiches et leurs liens internes.
+L'application des patchs avec git am et l'absence d'erreurs d'espacement sont
+contrôlées avant livraison.
+
+La construction Hugo et la vérification visuelle dans un navigateur ne sont
+pas exécutées dans cet environnement, où ces outils ne sont pas disponibles.
+Les nouvelles pages n'ont pas encore de captures dédiées. Les résultats de CI
+sur les deux forges et les essais du mode autonome restent à recueillir.
+
+Pour une validation avec une équipe, utiliser uniquement des données fictives :
+créer une trace pour deux enfants, retirer puis remettre une association,
+personnaliser l'une des versions et remplacer sa photo, puis relire les deux
+carnets. Vérifier aussi une image choisie par l'école puis remplacée ou désactivée
+par une classe, et une phrase insérée puis librement modifiée. Faire ces essais
+avec un responsable et vérifier la consultation sans modification collective
+avec un enseignant associé.
+
+* Chantier suivant
+
+L'édition complète des référentiels reste distincte : choix d'une liste de base,
+renommage et masquage des compétences, ajout de compétences et correspondances
+entre listes. Préserver l'identité des apprentissages et les observations
+existantes est un point de départ. Les choix école/classe déjà livrés pour les
+images et les phrases serviront de référence, sans présumer que toutes les
+règles d'évolution d'un référentiel sont déjà définies.

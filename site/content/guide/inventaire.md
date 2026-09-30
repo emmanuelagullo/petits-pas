@@ -47,11 +47,11 @@ Les statuts employés sont :
 | Ajouter un commentaire ou une photographie | Disponible | Une affectation active autorisant la contribution est nécessaire. |
 | Ajouter une trace commune pour plusieurs élèves | Responsable seulement | Même classe et même année ; sélection explicite des élèves. |
 | Personnaliser une trace commune pour un élève | Disponible selon le rôle | La version personnelle évolue indépendamment ; la photo est initialement réutilisée. |
-| Utiliser une formulation proposée | Disponible | Le texte reste modifiable avant enregistrement. |
+| Utiliser une formulation proposée | Disponible | Choix dans un menu, insertion au curseur ; le commentaire reste libre. |
 | Modifier ma propre trace | Disponible | Seulement pendant une affectation active dans la classe. |
 | Modifier une trace d’une autre personne | Responsable seulement | L’auteur et le dernier éditeur restent distingués. |
 | Masquer ou réafficher une trace dans le carnet | Disponible selon le rôle | Le contenu reste conservé. |
-| Retirer une trace | Disponible | Il s’agit d’une suppression logique. |
+| Retirer une trace | Disponible | La trace quitte le suivi courant, mais reste conservée dans l’historique. |
 | Restaurer une trace retirée | Responsable seulement | Seulement dans la scolarité courante. |
 | Voir une photographie | Disponible selon le périmètre | Les médias restent privés et contrôlés par le serveur. |
 | Télécharger l’original d’une photographie | Responsable ou auteur autorisé | Le téléchargement significatif est audité. |
@@ -70,7 +70,7 @@ Les statuts employés sont :
 | Télécharger le PDF individuel | Disponible | Responsable seulement. |
 | Générer les carnets d’une classe dans une archive ZIP | Disponible | Responsable ; au moins un élève doit être sélectionné. |
 | Définir les paramètres habituels des carnets | Disponible | Direction. |
-| Choisir les icônes et la photo de couverture | Disponible | Direction pour l’école, responsable pour la classe ; héritage, remplacement ou désactivation. |
+| Choisir les icônes et la photo de couverture | Disponible | Direction pour l’école, responsable pour la classe ; garder l’image proposée, choisir la sienne ou ne pas afficher d’image. |
 | Adapter les formulations proposées | Disponible | Par proposition, à l’école ou dans la classe ; les traces enregistrées gardent leur texte. |
 
 ## Classes et élèves
@@ -173,6 +173,12 @@ classe, ou attribution d’une responsabilité de direction. La création d’un
 trace vide reste techniquement acceptée et est signalée dans la fiche
 concernée. Les opérations d’exploitation restent séparées des gestes
 quotidiens.
+
+Les images et phrases proposées peuvent être adaptées, mais l'édition complète
+de la liste des compétences n'est pas proposée ici : renommer, masquer ou
+ajouter une compétence et relier plusieurs référentiels restent un chantier
+distinct. Les images fournies sont facultatives et ne couvrent que quelques
+compétences.
 
 La reprise #G6b est volontairement différée : elle réexaminera les fiches
 d’invitation, de compte et d’affectation après les évolutions ultérieures de la
