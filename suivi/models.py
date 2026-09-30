@@ -804,6 +804,28 @@ class VersionReferentiel(models.Model):
         return super().save(*args, **kwargs)
 
 
+class IdentiteSourceCompetence(models.Model):
+    """Identité déclarée par une source, indépendante des textes et codes."""
+    source = models.ForeignKey(SourceReferentiel, on_delete=models.PROTECT, related_name="identites")
+    identifiant = models.CharField(max_length=120)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["source", "identifiant"], name="identite_source_unique")]
+
+
+class DefinitionSourceCompetence(models.Model):
+    identite = models.ForeignKey(IdentiteSourceCompetence, on_delete=models.PROTECT, related_name="definitions")
+    version = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT, related_name="definitions")
+    # Structure, libellé et ressources restent dans le contenu immuable de la version.
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["version", "identite"], name="definition_identite_version_unique")]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.identite_id and self.version_id and self.identite.source_id != self.version.source_id:
+            raise ValidationError("La définition et l'identité doivent appartenir à la même source.")
+
+
 class ReferentielAnnuel(models.Model):
     """Choix d'une école pour une année ; état initial distinct d'une histoire reconstruite."""
     ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, related_name="referentiels_annuels")

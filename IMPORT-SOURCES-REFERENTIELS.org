@@ -1,0 +1,101 @@
+#+TITLE: Import de sources de référentiels — #R4a
+
+* Portée
+
+Ce jalon prépare le catalogue de sources fournies à l'application. Il propose
+une commande technique pour l'administrateur du déploiement, pas un écran pour
+les enseignants. Le choix des bases autorisées et proposées, puis leur adoption
+par une classe, restent à réaliser en #R4b et suivants. Le Guide pratique sera
+complété lorsque ces parcours seront accessibles.
+
+Importer ne rend pas une base autorisée et ne la choisit pour aucune classe.
+Aucune compétence d'école, observation, trace, adaptation ou réussite n'est
+créée, remplacée, rapprochée ou supprimée par cette commande. Les adoptions
+actuelles continuent d'utiliser leurs versions. Les origines des bases reprises
+ne sont pas déduites des textes de la trame.
+
+* Commandes
+
+Vérifier le fichier et les conflits avec le catalogue, sans écriture :
+
+#+begin_src sh
+python3 manage.py importer_source_referentiel referentiel/exemples/source-fictive.yaml --verifier
+#+end_src
+
+Importer après vérification :
+
+#+begin_src sh
+python3 manage.py importer_source_referentiel referentiel/exemples/source-fictive.yaml
+#+end_src
+
+La migration 0018 crée seulement les tables d'identités et de présence dans
+les versions. Elle ne peuple pas le catalogue et ne modifie pas les anciennes
+origines. La trame de démarrage et charger_referentiel restent le parcours
+historique des installations ; le chargement direct reste refusé pour une
+école déjà préparée aux référentiels annuels.
+
+* Format YAML 1
+
+Le fichier d'exemple est entièrement fictif. Il documente les champs acceptés.
+Le document porte format, source, version et domaines. La source déclare un
+identifiant stable, un titre, une provenance, une licence et provisoire (booléen
+true ou false). Ces déclarations ne prouvent ni une autorisation juridique
+ni un statut officiel. L'administrateur vérifie la provenance et les droits de
+diffusion avant l'import. Le préfixe reprise-ecole- est réservé aux reprises.
+
+Une version est un texte (écrire '1', pas le nombre 1). Les identifiants et
+codes utilisent lettres sans accents, chiffres, points, tirets ou soulignements.
+Une identité n'est unique qu'au sein de sa source ; elle ne rapproche pas deux
+sources différentes. Un code identique ou un texte identique ne crée aucun lien.
+
+Chaque domaine a un code et un nom ; il peut contenir des compétences, des
+attendus (code, texte) et des sous-domaines (code, nom, compétences). L'ordre
+des listes est conservé. Chaque compétence déclare identite, code et libelle ;
+niveau est PS par défaut, ou MS/GS. L'identité doit être conservée pour une
+reformulation fidèle, même si le code change. Si le sens change, déclarer une
+nouvelle identité. L'import ne peut pas vérifier cette décision pédagogique.
+
+L'icône est facultative et doit appartenir au catalogue livré dans referentiel/.
+Les phrases proposées sont facultatives ; chacune déclare code et texte. Les
+marqueurs <prenom> et <prénom> sont conservés tels quels. Ce format n'importe
+pas de photos ni de nouveaux fichiers SVG ; il ne copie aucun média privé.
+
+Les champs inconnus, clés YAML répétées, doublons de codes ou d'identités,
+niveaux invalides, icônes inconnues et textes trop longs sont refusés avant
+écriture. Les compétences doivent avoir un libellé d'au plus 300 caractères.
+Les valeurs implicites sont normalisées ; les commentaires et l'ordre des
+clés YAML ne changent pas l'empreinte, contrairement à l'ordre des listes.
+
+* Versions et identités
+
+Un nouvel import avec la même source, le même numéro et le même contenu est
+sans effet. Un numéro déjà présent avec un contenu différent est refusé :
+publier un nouveau numéro. Titre, provenance, licence et caractère provisoire
+d'une source existante ne sont pas réécrits par l'import. Les déclarations sont
+aussi conservées dans chaque version, avec son empreinte.
+
+La suppression d'une compétence dans une nouvelle version n'efface pas son
+identité ni sa présence dans une ancienne version. La remettre avec la même
+identité retrouve cette origine ; changer de sens requiert une autre identité.
+Les présences sont liées aux versions ; les définitions complètes, y compris
+leur structure, restent dans le contenu immuable de chaque version.
+
+Une erreur d'écriture annule l'ensemble de l'import. Des imports simultanés
+d'une source existante sont coordonnés par verrouillage sur PostgreSQL ; pour
+une source nouvelle, les contraintes empêchent les doublons. En cas de conflit
+simultané, la commande invite à relancer pour constater l'état effectivement
+publié. Aucun contournement des contraintes ou remplacement n'est réalisé.
+
+* Vérification et limites
+
+Tests : coexistence, identité explicite malgré changement de code, nouveau sens,
+retrait et retour, réimport, conflit, vérification sans écriture, rollback,
+YAML invalide, champs facultatifs, relations entre sources et maintien des
+adoptions/observations/traces existantes. Les tests historiques de migration
+rétablissent maintenant le schéma 0018 après leur essai d'ancien schéma.
+
+Une publication nécessite encore une validation humaine du sens des identités,
+de la provenance et de la licence. Les correspondances entre sources restent
+le jalon #R7 ; aucune équivalence ni réussite transférée n'est introduite ici.
+L'usage d'une nouvelle version par une école ou classe nécessite encore les
+parcours d'autorisation et d'adoption prévus ; l'import seul ne les anticipe pas.

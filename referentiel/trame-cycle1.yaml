@@ -5,13 +5,12 @@
 # maternelle et propose une formulation des compétences à la première personne,
 # telle qu'on la trouve dans la plupart des carnets de réussite.
 #
-# L'école qui teste l'outil est censée remplacer ce fichier par ses propres
-# progressions. C'est le fichier à modifier, pas la base de données :
-#
+# Pour une installation historique non reprise :
 #     python manage.py charger_referentiel referentiel/le-votre.yaml
-#
-# La commande met à jour les libellés sans perdre les observations déjà
-# saisies, tant que le `code` d'une compétence ne change pas.
+# Cette commande est refusée pour une école utilisant les référentiels annuels.
+# Pour préparer des sources versionnées au catalogue (sans adoption automatique),
+# voir IMPORT-SOURCES-REFERENTIELS.org et referentiel/exemples/source-fictive.yaml.
+# Ne pas déduire l'identité ou l'origine d'une ancienne compétence de son code.
 #
 # Champs d'une compétence :
 #   code    : identifiant stable, propre à l'école (ne le changez plus ensuite)
