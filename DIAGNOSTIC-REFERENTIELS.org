@@ -246,3 +246,14 @@ Les comptages restent réalisés en base sans charger les traces ni les médias.
 Le contrôle de coût autorise au plus trois requêtes, indépendamment du nombre
 de compétences : la résolution annuelle peut ajouter une requête aux deux
 requêtes de comptage précédentes.
+
+* Vérifications de migration et sauvegarde — #R3d2
+
+Les tests migrent une base fictive depuis le schéma antérieur aux fondations
+annuelles : identités, compétence masquée, état courant et trace sont conservés ;
+aucune année ou origine n'est inventée. Un second scénario vérifie la migration
+des références de photos déjà reprises, sans lire le stockage. Le scénario
+SQLite sauvegarde puis restaure versions, choix annuels et références de
+ressources ; il vérifie l'intégrité et les relations. Il ne remplace pas un
+essai de restauration du paquet complet avec ses médias. Les migrations doivent
+également être validées par la CI PostgreSQL.
