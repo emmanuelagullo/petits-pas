@@ -27,6 +27,13 @@ travail partagé entre postes.
 4. Relire les acquisitions sur une période ou depuis le dernier bilan.
 5. Générer un carnet individuel destiné à la famille.
 
+Pour une activité commune, le responsable peut préparer
+[une trace pour plusieurs enfants]({{< relref "/guide/observer/traces-communes/" >}}),
+puis en faire une version personnelle lorsque l'observation d'un enfant le
+nécessite. Les [images et phrases proposées]({{< relref "/guide/carnets/personnaliser-presentation/" >}})
+aident à préparer les carnets et les commentaires, sans imposer de texte ni
+changer les acquisitions.
+
 ## Essayer le parcours
 
 La [démonstration publique]({{< relref "/demonstration/" >}}) permet déjà de

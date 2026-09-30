@@ -13,8 +13,9 @@ statut = "disponible"
 ## Étapes
 
 1. Ouvrir l’élève, puis sélectionner le bouton **+** à droite de la compétence.
-2. Saisir le mot qui accompagne la réussite, ou partir d’une proposition et
-   l’adapter librement.
+2. Écrire librement le commentaire. Si des phrases sont proposées, en choisir
+   une dans le menu puis **Insérer la proposition**. Elle est ajoutée au curseur
+   ou remplace le texte sélectionné ; elle reste entièrement modifiable.
 3. Vérifier la date de l’observation.
 4. Ajouter, si utile, une photo du travail.
 5. Si vous êtes responsable, laisser cochée ou décocher l’option **Afficher
@@ -31,6 +32,11 @@ une trace ne change jamais l’état **réussi**, **en cours** ou **pas encore
 observé**.
 
 ## Limites et précautions
+
+Pour la même activité vécue par plusieurs enfants, le responsable peut utiliser
+une [trace commune]({{< relref "/guide/observer/traces-communes/" >}}).
+Pour illustrer la compétence sans raconter une activité datée, consulter
+[Choisir les images et les phrases proposées]({{< relref "/guide/carnets/personnaliser-presentation/" >}}).
 
 - Le formulaire accepte une trace composée d’un texte, d’une photo, ou des
   deux. L’interface ne bloque pas actuellement une trace vide : mieux vaut

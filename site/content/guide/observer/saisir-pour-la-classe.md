@@ -42,8 +42,10 @@ individuelle de l’élève.
   le changement d’état est réservé au responsable.
 - La page signale explicitement une classe sans élève ; elle ne permet pas d’en
   inscrire un.
-- Les commentaires et photographies se saisissent depuis la fiche individuelle
-  ou la page de contribution, pas depuis cette vue collective.
+- Le responsable peut choisir **Ajouter ou modifier une trace commune** pour
+  partager un commentaire et une photo avec les enfants sélectionnés. Un
+  enseignant associé peut consulter les traces communes, mais ne les modifie
+  pas pour toute la classe. Voir [Ajouter une trace commune]({{< relref "/guide/observer/traces-communes/" >}}).
 
 La [matrice des autorisations]({{< relref "/conception/documents/matrice-autorisations.org" >}}) distingue la
 consultation du suivi de la modification des états.

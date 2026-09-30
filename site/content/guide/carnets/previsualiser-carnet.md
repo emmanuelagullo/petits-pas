@@ -26,6 +26,14 @@ L’aperçu reflète les paramètres habituels de l’école et les options choi
 pour cette consultation. Ces essais ne modifient ni les observations, ni les
 paramètres enregistrés, ni le carnet d’un autre élève.
 
+Les images des compétences et la photo de couverture reprennent les choix
+de l’école, puis ceux de la classe lorsqu’elle a fait ses propres choix.
+Les traces communes apparaissent avec le prénom de l’enfant lorsque le
+commentaire utilise `<prenom>` ou `<prénom>`. Seule une compétence retenue
+par les options de contenu peut montrer son image.
+
+Voir [Choisir les images et les phrases proposées]({{< relref "/guide/carnets/personnaliser-presentation/" >}}).
+
 ## Limites et refus
 
 - Responsable et enseignant associé peuvent prévisualiser le carnet.
@@ -33,6 +41,7 @@ paramètres enregistrés, ni le carnet d’un autre élève.
   depuis le navigateur**.
 - Un contributeur n’accède pas au carnet complet.
 - Seules les traces et les bilans marqués comme visibles dans le carnet sont
-  repris. Les éléments retirés logiquement en sont exclus.
+  repris. Les éléments retirés en sont exclus, même s’ils restent conservés
+  dans l’historique.
 
 Voir les [règles détaillées des rôles]({{< relref "/roles/" >}}).

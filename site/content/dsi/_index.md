@@ -136,6 +136,16 @@ reçoivent des capacités différentes, limitées aux classes auxquelles ils son
 affectés. Les sorties sensibles, comme les PDF et les téléchargements de médias
 originaux, font l'objet de contrôles et d'événements d'audit spécifiques.
 
+Les photos des traces communes peuvent être utilisées dans plusieurs carnets
+sans être rendues publiques. Les images ajoutées par une école ou une classe
+pour illustrer les compétences ou la couverture restent également privées.
+Les petits dessins fournis avec l'application sont des ressources publiques,
+distinctes de ces photos. Les sauvegardes doivent conserver la base et les
+fichiers d'images pour retrouver les traces et la présentation des carnets.
+
+Les parcours d'utilisation sont décrits dans le
+[Guide pratique]({{< relref "/guide/carnets/personnaliser-presentation/" >}}).
+
 ### Garanties restant à consolider
 
 Avant tout usage avec des données réelles, il reste notamment à consolider :
