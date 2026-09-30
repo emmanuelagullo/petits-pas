@@ -18,7 +18,7 @@ statut = "disponible"
    autorisées.
 3. Cliquer sur **Voir les conséquences**.
 4. Lire les nombres de compétences avec la même identité, nouvelles ou hors
-   de la base choisie. Ouvrir l’explication dépliable si nécessaire.
+   de la base choisie, et les ajouts locaux conservés. Ouvrir l’explication dépliable si nécessaire.
 5. Confirmer avec **Choisir cette base pour la classe**, ou revenir à la classe
    pour garder son choix actuel.
 
@@ -39,6 +39,10 @@ prochaines saisies, mais leurs observations, commentaires et photos restent
 dans les carnets. Pour les renseigner à nouveau, choisissez une base autorisée
 qui les contient. Revenir à une ancienne base retrouve le suivi de ses
 compétences ; cela ne copie aucune réussite vers d’autres compétences.
+
+Les [ajouts retenus par la classe]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
+restent présents lors du changement de base ; ils sont comptés séparément dans
+l’aperçu. À la rentrée, leur reprise est explicite.
 
 À la clôture annuelle, le dernier choix et les compétences des parcours déjà
 renseignés sont conservés avec leur présentation. Une nouvelle année a ses

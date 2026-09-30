@@ -1,0 +1,41 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Compétences ajoutées — {{ annee }}{% endblock %}
+{% block contenu %}
+<p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
+<h1>Compétences ajoutées</h1>
+<p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Propositions de l'école pour {{ annee }}. Chaque classe choisit les ajouts qu'elle reprend.{% endif %}</p>
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if not ouvert %}<p>Choisissez une base pour une classe ouverte avant d'ajouter ou de reprendre une compétence. Les choix d'une classe close restent consultables.</p>{% endif %}
+{% if not classe %}<form method="get"><label for="annee">Année scolaire</label><input id="annee" name="annee" value="{{ annee }}" required pattern="[0-9]{4}-[0-9]{4}"><button type="submit" class="bouton discret">Consulter l'année</button></form>{% endif %}
+{% if locale %}
+<p><a href="{{ index_url }}">Revenir aux compétences ajoutées</a></p>
+<h2>{{ courante.libelle }}</h2>
+<p>Visibilité : {% if courante.active %}montrée{% else %}masquée{% endif %}.</p>
+{% if ouvert and adaptable %}<p>Libellé proposé {% if classe %}par l’école{% else %}à l’origine{% endif %} : {{ proposee.libelle }}. Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
+<details><summary>Origine de cet ajout</summary><p>Créé {% if locale.classe_origine %}pour {{ locale.classe_origine.libelle_avec_annee }}{% else %}pour l'école{% endif %}. Reprendre ou proposer cet ajout conserve la même compétence.</p><p>Libellé d'origine : {{ origine.libelle }}.</p></details>
+{% if ouvert and adaptable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="adapter">
+<fieldset><legend>{{ form.mode_libelle.label }}</legend>{{ form.mode_libelle }}{{ form.mode_libelle.errors }}</fieldset>
+<p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p><p>{{ form.meme_sens }} {{ form.meme_sens.label_tag }} {{ form.meme_sens.errors }}</p>
+<fieldset><legend>{{ form.visibilite.label }}</legend>{{ form.visibilite }}{{ form.visibilite.errors }}</fieldset>
+<p>Masquer retire l'ajout des prochaines saisies, tout en conservant ses observations dans le parcours. Vous pouvez le montrer à nouveau.</p>
+<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer les choix</button></form>{% endif %}
+{% else %}
+<h2>Créer un ajout</h2>
+<p>{% if classe %}Cet ajout sera retenu uniquement dans cette classe pour cette année.{% else %}Cet ajout sera proposé à l'école pour cette année. Aucune classe ne le recevra automatiquement.{% endif %} Aucune image ni phrase n'est obligatoire.</p>
+{% if ouvert %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Créer la compétence</button></form>{% endif %}
+<h2>{% if classe %}Ajouts retenus ou disponibles{% else %}Ajouts de l'école et des classes{% endif %}</h2>
+<ul class="liste">{% for ligne in lignes %}<li class="entree"><div class="principal"><strong>{{ ligne.definition.libelle }}</strong> · {{ ligne.locale.competence.get_niveau_display }}{% if not ligne.definition.active %} · masquée{% endif %}
+<p>Origine : {% if ligne.locale.classe_origine %}{{ ligne.locale.classe_origine.libelle_avec_annee }}{% else %}école{% endif %}.</p>
+{% if ligne.retenu %}<p>Retenue dans cette classe.</p>{% endif %}{% if ligne.propose %}<p>Proposée à l'école pour {{ annee }}.</p>{% endif %}
+{% if ligne.adaptable %}<a href="{{ ligne.url }}">Libellé et visibilité</a>{% endif %}
+{% if ouvert %}{% if classe and not ligne.retenu %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="reprendre"><input type="hidden" name="locale" value="{{ ligne.locale.pk }}"><button class="bouton discret" type="submit"{% if not jeton %} disabled{% endif %}>Reprendre dans cette classe</button></form>{% endif %}
+{% if direction and not ligne.propose %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="proposer"><input type="hidden" name="locale" value="{{ ligne.locale.pk }}"><button class="bouton discret" type="submit"{% if not jeton %} disabled{% endif %}>Proposer à l'école pour cette année</button></form>{% endif %}{% endif %}
+</div></li>{% empty %}<li>Aucun ajout disponible pour le moment.</li>{% endfor %}</ul>
+{% endif %}
+{% if not jeton %}<p><a href="{{ index_url }}">Reconsulter les ajouts avant d'enregistrer</a></p>{% endif %}
+<details><summary>Créer, reprendre ou simplement reformuler ?</summary>
+<p>Pour le même apprentissage, adaptez le libellé de la compétence existante. Créer un ajout décrit un autre apprentissage : il commence avec son propre suivi, même si son texte ressemble à une autre compétence.</p>
+<p>Reprendre conserve l'identité et l'origine d'un ajout. Cette action ne copie aucune réussite dans la nouvelle classe ou année. Une proposition de l'école reste un choix pour chaque classe.</p>
+<p>Les ajouts retenus restent présents lors d'un changement de base en cours d'année, dans un groupe « Ajouts » qui conserve le domaine choisi. À la rentrée, reprenez seulement ceux dont la nouvelle classe a besoin. Les libellés et masquages de l'année précédente ne sont pas recopiés.</p>
+<p>À la clôture, le carnet garde le dernier état de la classe. Les changements ultérieurs des propositions de l'école ne le modifient plus. Les correspondances entre apprentissages seront étudiées dans une étape suivante.</p></details>
+{% endblock %}

@@ -35,6 +35,20 @@ supprimée, afin de préserver ses usages et les parcours.
 
 * Disponibilité
 
-#R6a prépare les services et le lecteur commun. L'interface d'ajout et de reprise
-sera livrée dans #R6b ; le Guide ne présente pas encore ce parcours comme accessible.
+#R6a prépare les services et le lecteur commun. #R6b rend la création, la
+proposition et la reprise accessibles depuis les référentiels de classe et
+d'école, sous « Compétences ajoutées ». Les adaptations des ajouts possèdent
+leur propre écran utilisant les règles de #R5. Les formulaires signés pendant
+trente minutes sont liés au compte, école, année, classe, adoption et révision.
+Une page périmée demande une nouvelle consultation. Les consultations ne
+créent aucune disponibilité. Le Guide décrit ces parcours accessibles.
 Les correspondances pédagogiques restent #R7 et n'assimilent pas les acquis.
+
+* Vérifications de #R6
+
+Les 497 tests Django de la suite complète passent. Après les derniers textes et
+le scénario supplémentaire de clôture, les 18 tests d'interface d'ajouts et de
+changement de base passent également. Le contrôle des migrations, Django check,
+les espaces du diff et le Guide (41 fiches, 13 références de captures) passent.
+La construction Hugo, PostgreSQL et les essais visuels et d'usage restent à
+valider en CI ou localement : Hugo n'est pas installé dans cet environnement.

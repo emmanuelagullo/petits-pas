@@ -48,3 +48,15 @@ class AdaptationCompetenceForm(forms.Form):
             donnees["libelle"] = None
         donnees["visible"] = {"garder": None, "montrer": True, "masquer": False}.get(donnees.get("visibilite"))
         return donnees
+
+
+class AjoutCompetenceForm(forms.Form):
+    libelle = forms.CharField(label="Apprentissage", max_length=300,
+                             widget=forms.Textarea(attrs={"rows": 2}))
+    niveau = forms.ChoiceField(label="Section", choices=[("PS", "Petite section"),
+                              ("MS", "Moyenne section"), ("GS", "Grande section")])
+    domaine = forms.TypedChoiceField(label="Domaine", coerce=int)
+
+    def __init__(self, *args, domaines, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["domaine"].choices = [(d["id"], d["nom"]) for d in domaines]
