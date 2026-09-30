@@ -20,6 +20,20 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   `PLAN-IMPLEMENTATION-AUTORISATIONS.org`.
   `site/content/conception/_index.md` présente leur portée et leur chronologie :
   le code et les tests décrivent l'état effectivement implémenté.
+- Images, phrases proposées et choix école/classe : partir de
+  `site/content/guide/carnets/personnaliser-presentation.md` pour les usages,
+  puis de `AUDIT-TRACES-PARTAGEES.org` pour le bilan et les limites du chantier.
+  Les règles d'héritage effectivement appliquées sont dans
+  `suivi/presentation.py` ; les droits et l'enregistrement des choix sont dans
+  `suivi/services/presentation.py`, les contraintes dans `suivi/models.py`,
+  et les scénarios vérifiés dans `suivi/tests_presentation.py`.
+  Ces règles concernent les images et les phrases proposées : ne pas les
+  étendre automatiquement aux restrictions de stockage ou à l'évolution des
+  référentiels. Distinguer un choix proposé par défaut d'une interdiction.
+- Sources du référentiel et des icônes : `referentiel/README.md`, les fichiers
+  YAML et `referentiel/static/`. `suivi/referentiels.py` partage la lecture et
+  l'ordre des compétences entre saisies, réglages et carnets ; réutiliser cette
+  logique plutôt que créer des tris concurrents.
 
 ## Travail dans le dépôt
 
@@ -28,9 +42,20 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
 - N'utiliser que des données fictives dans les tests, captures, exemples et
   environnements de démonstration. Ne jamais ajouter de données personnelles,
   photographies d'enfants ou secrets au dépôt.
-- Garder les textes destinés aux équipes pédagogiques compréhensibles et en
-  français. Si un parcours change, mettre à jour la fiche du guide et, si
-  nécessaire, l'inventaire, la présentation des rôles ou la page DSI.
+- Privilégier des parcours simples pour les enseignants : partir de la tâche
+  à accomplir, limiter les étapes et rendre explicites les conséquences d'une
+  action, notamment lorsqu'elle concerne plusieurs enfants.
+- Garder les textes en français, avec des mots courants et des exemples
+  concrets ; éviter le jargon technique dans les écrans et le Guide pratique.
+  Les libellés du guide doivent correspondre aux boutons réellement proposés.
+  Placer les explications longues dans une aide dépliable, fermée par défaut,
+  lorsque cela facilite la saisie. Ne pas réserver une information nécessaire
+  au seul survol de la souris : elle doit rester accessible au clavier et sur
+  un écran tactile.
+- Mettre à jour le Guide pratique lorsqu'une fonction devient effectivement
+  accessible, et lorsqu'un parcours, un droit ou une limite change. Vérifier
+  aussi l'inventaire, les fiches liées, les rôles et, si nécessaire, la page DSI.
+  Ne pas présenter une fonction seulement envisagée comme déjà disponible.
 - Pour modifier le site, lire `site/README.md` : les quatre documents de
   conception publiés sont copiés depuis la racine par `scripts/preparer-site.sh` ;
   ne pas éditer leurs copies générées. Les captures de démonstration sont
