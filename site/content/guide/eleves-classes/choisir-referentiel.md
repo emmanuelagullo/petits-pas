@@ -1,5 +1,5 @@
 +++
-title = "Choisir le référentiel d’une classe avant les premières observations"
+title = "Choisir ou changer le référentiel d’une classe"
 description = "Choisir une base autorisée, vérifier les conséquences et confirmer sans créer de réussites."
 fiche = true
 categorie = "eleves-classes"
@@ -33,11 +33,19 @@ Une base importée, un nouveau choix proposé ou une restriction ne remplace pas
 silencieusement la base d’une classe déjà renseignée. Les anciennes origines
 restent conservées.
 
+Vous pouvez changer de base pendant l’année, même après des saisies. Ce choix
+concerne toute la classe. Les compétences sorties de la base quittent les
+prochaines saisies, mais leurs observations, commentaires et photos restent
+dans les carnets. Pour les renseigner à nouveau, choisissez une base autorisée
+qui les contient. Revenir à une ancienne base retrouve le suivi de ses
+compétences ; cela ne copie aucune réussite vers d’autres compétences.
+
+À la clôture annuelle, le dernier choix et les compétences des parcours déjà
+renseignés sont conservés avec leur présentation. Une nouvelle année a ses
+propres choix.
+
 ## Limites et refus
 
-- Cette première étape permet de choisir **avant les premières observations**.
-  Si la classe ou ses élèves possèdent déjà des observations, le changement
-  est bloqué avec une explication. La transition après saisie reste à venir.
 - Les choix d’une classe close restent consultables.
 - Si les choix ont changé depuis l’aperçu, préparer un nouvel aperçu.
 - Si aucune base n’est autorisée, contacter la direction. La préparation du

@@ -5,9 +5,9 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import override_settings
 from django.urls import reverse
 
-from .models import AdoptionReferentiel, Classe, Competence, EtatAnnuelObservation, Observation, Trace, VersionSourceEcole
+from .models import AdoptionReferentiel, Classe, Competence, EtatAnnuelObservation, Observation, Trace, TraceCommune, VersionSourceEcole
 from .presentation import illustration_effective, propositions
-from .referentiels import arbre_competences
+from .referentiels import arbre_competences, observations_annee
 from .services.adoption_bases_referentiels import apercu_adoption, adopter_base
 from .services.choix_bases_referentiels import publier_choix_application
 from .services.cloture_referentiels import clore
@@ -61,14 +61,65 @@ class AdoptionBases(Base):
         self.assertEqual(AdoptionReferentiel.objects.filter(classe=self.classe, courante=True).count(), 1)
         self.assertEqual(Observation.objects.count(), 0)
 
-    def test_classe_renseignee_refusee_sans_perte(self):
+    def test_changement_renseigne_conserve_trace_et_refuse_ancienne_saisie(self):
         self.creer_trace(commentaire="Trace conservée")
         avant = list(Trace.objects.values())
-        apercu = apercu_adoption(utilisateur=self.enseignant, classe=self.classe, version_id=self.a.pk)
-        self.assertTrue(apercu["bloquee"])
-        with self.assertRaises(ValidationError): self.adopter()
-        self.assertFalse(VersionSourceEcole.objects.exists())
+        observations = list(Observation.objects.values())
+        annuels = list(EtatAnnuelObservation.objects.values())
+        self.adopter()
         self.assertEqual(list(Trace.objects.values()), avant)
+        self.assertEqual(list(Observation.objects.values()), observations)
+        self.assertEqual(list(EtatAnnuelObservation.objects.values()), annuels)
+        with self.assertRaises(PermissionDenied): usage_pour_saisie(self.classe, self.competence)
+        page = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"contenu": "tout"})
+        self.assertContains(page, "Trace conservée")
+        self.assertContains(page, self.competence.libelle)
+
+    def test_changement_cloture_et_retour_conservent_acquis_et_presentation(self):
+        premiere = self.adopter()
+        competence = premiere.usages.get().competence
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=competence, statut="reussi")
+        etat = EtatAnnuelObservation.objects.get()
+        self.adopter(self.b)
+        self.assertEqual(illustration_effective(self.ecole, competence, self.classe).icone, "parler")
+        self.assertEqual(propositions(competence, self.classe)[0]["texte"], "<prénom> prend la parole.")
+        self.assertFalse(Observation.objects.filter(competence=self.classe._adoption_referentiel_lecture.usages.get().competence).exists())
+        retour = self.adopter()
+        self.assertEqual(retour.usages.get().competence_id, competence.pk)
+        etat.refresh_from_db()
+        self.assertEqual(etat.usage.adoption_id, premiere.pk)
+        self.adopter(self.b)
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            finale = clore(utilisateur=self.enseignant, classe=self.classe)
+            ancien = next(c for c in finale.etat_final["contenu"]["competences"] if c["id"] == competence.pk)
+            self.assertFalse(ancien["active"])
+            self.assertEqual(finale.etat_final["etats"][0]["statut"], "reussi")
+            self.assertTrue(illustration_effective(self.ecole, competence, self.classe).photo.endswith(".svg"))
+            self.assertEqual(propositions(competence, self.classe)[0]["texte"], "<prénom> prend la parole.")
+            self.assertIn(competence.pk, [c.pk for d in arbre_competences(self.ecole, classe=self.classe, inclure_ids=[competence.pk]) for c in d.visibles])
+            EtatAnnuelObservation.objects.filter(pk=etat.pk).update(statut="en_cours")
+            etats, _ = observations_annee(self.eleve, self.eleve.scolarites.get(classe=self.classe))
+            self.assertEqual(etats[competence.pk].statut, "reussi")
+            page = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"contenu": "tout"})
+            self.assertContains(page, "Je parle")
+            pdf = self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]), {"contenu": "tout"})
+            self.assertEqual(pdf.status_code, 200)
+            self.assertTrue(pdf.content.startswith(b"%PDF"))
+
+    def test_changement_conserve_trace_commune_et_attributions(self):
+        from .services.traces_communes import enregistrer_commune
+        premiere = self.adopter()
+        competence = premiere.usages.get().competence
+        enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+            competence=competence, ids=[self.eleve.pk], valeurs={"commentaire": "Activité fictive partagée"})
+        communes = list(TraceCommune.objects.values())
+        personnelles = list(Trace.objects.values())
+        self.adopter(self.b)
+        self.assertEqual(list(TraceCommune.objects.values()), communes)
+        self.assertEqual(list(Trace.objects.values()), personnelles)
+        self.assertEqual(TraceCommune.objects.get().usage_referentiel.adoption_id, premiere.pk)
+        page = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"contenu": "tout"})
+        self.assertContains(page, "Activité fictive partagée")
 
     def test_permission_revision_et_adoption_perimees(self):
         apercu = apercu_adoption(utilisateur=self.enseignant, classe=self.classe, version_id=self.a.pk)
@@ -129,7 +180,7 @@ class AdoptionBases(Base):
         doc = document(version="2")
         doc["domaines"][0]["competences"][0].update(icone="livre", formulations=[{"code": "p1", "texte": "Autre proposition fidèle."}])
         deux = importer(doc)[0]
-        publier_choix_application(annee=self.classe.annee_scolaire, versions_ids=[self.a.pk, deux.pk],
+        publier_choix_application(annee=self.classe.annee_scolaire, versions_ids=[self.a.pk, self.b.pk, deux.pk],
                                  proposee_id=self.a.pk, revision_attendue=1)
         autre = Classe.objects.create(ecole=self.ecole, nom="Hirondelles", annee_scolaire=self.classe.annee_scolaire)
         apercu = apercu_adoption(utilisateur=self.direction, classe=autre, version_id=deux.pk)
@@ -141,3 +192,12 @@ class AdoptionBases(Base):
         self.assertEqual(illustration_effective(self.ecole, competence, autre).icone, "livre")
         self.assertEqual(propositions(competence, self.classe)[0]["texte"], "<prénom> prend la parole.")
         self.assertEqual(propositions(competence, autre)[0]["texte"], "Autre proposition fidèle.")
+
+        # Une autre classe a adopté une définition plus récente ; elle ne doit
+        # pas remplacer celle de notre parcours après un changement de base.
+        self.adopter(self.b)
+        self.assertEqual(illustration_effective(self.ecole, competence, self.classe).icone, "parler")
+        self.assertEqual(propositions(competence, self.classe)[0]["texte"], "<prénom> prend la parole.")
+        arbre = arbre_competences(self.ecole, classe=self.classe, inclure_ids=[competence.pk])
+        ancienne = next(c for d in arbre for c in d.visibles if c.pk == competence.pk)
+        self.assertEqual(ancienne.icone, "parler")

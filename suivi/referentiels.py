@@ -1,5 +1,5 @@
 """Lecture du référentiel commune aux saisies, réglages et carnets."""
-from django.db.models import Prefetch
+from django.db.models import Case, IntegerField, Prefetch, Value, When
 
 from .models import AdoptionReferentiel, Attendu, Competence, Domaine, SousDomaine
 
@@ -24,7 +24,20 @@ def definition_classe(classe, competence):
         contenu = contenu_adoption(adoption)
         if any(c["id"] == competence.pk for c in contenu.get("competences", [])):
             return contenu
+        if not adoption.clos:
+            for ancienne in adoptions_anterieures(classe, adoption):
+                contenu = contenu_adoption(ancienne)
+                if any(c["id"] == competence.pk for c in contenu.get("competences", [])):
+                    return contenu
     return None
+
+
+def adoptions_anterieures(classe, adoption):
+    """D'abord les choix de cette classe, puis les parcours de l'école."""
+    return AdoptionReferentiel.objects.filter(classe__ecole_id=classe.ecole_id,
+        classe__annee_scolaire__lte=classe.annee_scolaire).exclude(pk=adoption.pk).select_related(
+        "version").annotate(priorite=Case(When(classe=classe, then=Value(0)),
+            default=Value(1), output_field=IntegerField())).order_by("priorite", "-classe__annee_scolaire", "-pk")
 
 
 def arbre_version(ecole, contenu, *, niveaux=None, inclure_ids=(), masquer=True, masque_actuel=True):
@@ -70,9 +83,8 @@ def arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=()):
         manquants = set(inclure_ids) - {c.pk for d in arbre for c in d.visibles}
         # Le parcours complet peut comporter des acquisitions d'une autre base
         # ou classe. Lire uniquement des définitions déjà adoptées dans l'école.
-        if manquants:
-            anciennes = AdoptionReferentiel.objects.filter(classe__ecole=ecole,
-                classe__annee_scolaire__lte=classe.annee_scolaire).exclude(pk=adoption.pk).select_related("version").order_by("-pk")
+        if manquants and not adoption.clos:
+            anciennes = adoptions_anterieures(classe, adoption)
             for ancienne in anciennes:
                 groupes = arbre_version(ecole, contenu_adoption(ancienne), niveaux=niveaux,
                     inclure_ids=manquants, masquer=False, masque_actuel=False)

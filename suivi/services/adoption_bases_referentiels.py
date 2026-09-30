@@ -1,12 +1,12 @@
-"""Premier choix de base avec confirmation ; transition après saisies à venir."""
+"""Choix daté de base avec aperçu et confirmation, sans transfert des acquis."""
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
 
 from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, autorise
-from suivi.models import (AdoptionReferentiel, Classe, CompetenceSourceEcole, Ecole, Observation,
-                         ReferentielAnnuel, UsageCompetence, Trace, TraceCommune)
+from suivi.models import (AdoptionReferentiel, Classe, CompetenceSourceEcole, Ecole,
+                         ReferentielAnnuel, UsageCompetence)
 from suivi.referentiels import contenu_adoption
 from .choix_bases_referentiels import _application_verrouillee, choix_bases
 from .versions_sources_ecoles import definir_version_ecole
@@ -34,16 +34,10 @@ def apercu_adoption(*, utilisateur, classe, version_id):
         nombre = version.definitions.count()
     anciens_ids = {c["id"] for c in contenu_adoption(actuelle).get("competences", [])} if actuelle else set()
     meme = bool(actuelle and actuelle.version_id == version_id)
-    # Les transitions renseignées nécessitent le lecteur de toutes les adoptions
-    # et une conservation finale complète. Ne pas les ouvrir partiellement.
-    renseignee = (Observation.objects.filter(eleve__scolarites__classe=classe).exists()
-                  or Trace.objects.filter(usage_referentiel__adoption__classe=classe).exists()
-                  or TraceCommune.objects.filter(classe=classe).exists())
     return {"version": version, "adoption_id": actuelle.pk if actuelle else None,
             "revisions": choix.revisions, "communes": len(anciens_ids & nouveaux_ids),
             "nouvelles": nombre - len(anciens_ids & nouveaux_ids),
-            "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme,
-            "bloquee": renseignee and not meme}
+            "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme}
 
 
 @transaction.atomic
@@ -56,8 +50,6 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     apercu = apercu_adoption(utilisateur=utilisateur, classe=classe, version_id=version_id)
     if apercu["revisions"] != tuple(revisions_attendues) or apercu["adoption_id"] != adoption_attendue:
         raise ValidationError("Les choix ont changé. Consultez à nouveau l'aperçu avant de confirmer.")
-    if apercu["bloquee"]:
-        raise ValidationError("Cette classe comporte déjà des observations. Le changement de base après saisie n'est pas encore disponible ; son suivi reste conservé.")
     if apercu["meme"]:
         return AdoptionReferentiel.objects.get(pk=apercu["adoption_id"])
     version = apercu["version"]

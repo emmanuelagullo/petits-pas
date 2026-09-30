@@ -8,16 +8,18 @@ from django.db import transaction
 
 from suivi.autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, autorise
 from suivi.audit import journaliser
-from suivi.models import (AdoptionReferentiel, EtatAnnuelObservation, Observation,
+from suivi.models import (AdoptionReferentiel, Classe, Competence, Ecole, EtatAnnuelObservation, Observation,
                           RessourceReferentiel, UsageCompetence)
 from suivi.presentation import illustration_effective, propositions
-from suivi.referentiels import contenu_adoption
+from suivi.referentiels import arbre_competences, contenu_adoption
 
 
 @transaction.atomic
 def clore(*, utilisateur, classe):
     if not (autorise(utilisateur, MODIFIER_ETAT, classe) or autorise(utilisateur, ADMINISTRER_ECOLE, classe.ecole)):
         raise PermissionDenied
+    Ecole.objects.select_for_update().get(pk=classe.ecole_id)
+    Classe.objects.select_for_update().get(pk=classe.pk)
     adoption = AdoptionReferentiel.objects.select_for_update().get(classe=classe, courante=True)
     classe._adoption_referentiel_lecture = adoption
     if adoption.clos:
@@ -43,12 +45,39 @@ def clore(*, utilisateur, classe):
 
     final = {"contenu": deepcopy(contenu_adoption(adoption)), "illustrations": {}, "propositions": {},
              "couverture": conserver(illustration_effective(classe.ecole, classe=classe)), "etats": []}
-    usages = list(UsageCompetence.objects.filter(adoption=adoption).select_related("competence"))
-    actifs = {u.competence_id: u.competence.active for u in usages}
+    observations = Observation.objects.filter(eleve__scolarites__classe=classe).distinct()
+    suivies = set(observations.values_list("competence_id", flat=True))
+    actuelles = {c["id"] for c in final["contenu"].get("competences", [])}
+    arbre = arbre_competences(classe.ecole, classe=classe, inclure_ids=suivies | actuelles)
+    competences = {c.pk: c for d in arbre for c in d.visibles}
+    # Les anciennes définitions restent lisibles, sans revenir dans la saisie.
+    for competence_id in sorted(suivies - actuelles):
+        competence = competences.get(competence_id)
+        if competence is None:
+            raise ValidationError("Une compétence du parcours ne peut pas être retrouvée ; clôture annulée.")
+        contenu = competence._contenu_referentiel
+        for rubrique in ("domaines", "sous_domaines", "attendus", "formulations", "competences"):
+            presentes = {ligne["id"] for ligne in final["contenu"].get(rubrique, [])}
+            for ligne in contenu.get(rubrique, []):
+                utile = (rubrique == "domaines" and ligne["id"] == competence.domaine_id
+                    or rubrique == "sous_domaines" and ligne["id"] == competence.sous_domaine_id
+                    or rubrique == "attendus" and ligne["domaine_id"] == competence.domaine_id
+                    or rubrique == "formulations" and ligne["competence_id"] == competence_id
+                    or rubrique == "competences" and ligne["id"] == competence_id)
+                if not utile or ligne["id"] in presentes:
+                    continue
+                copie = deepcopy(ligne)
+                if rubrique == "competences":
+                    copie["active"] = False
+                final["contenu"].setdefault(rubrique, []).append(copie)
+                presentes.add(ligne["id"])
+    usages = {u.competence_id: u for u in UsageCompetence.objects.filter(
+        adoption__classe=classe).order_by("adoption_id", "pk")}
+    actifs = Competence.objects.in_bulk(competences)
     for definition in final["contenu"].get("competences", []):
-        definition["active"] = definition["active"] and actifs.get(definition["id"], False)
-    for usage in usages:
-        competence = usage.competence
+        definition["active"] = definition["active"] and actifs[definition["id"]].active
+    for competence in competences.values():
+        usage = usages.get(competence.pk)
         final["illustrations"][str(competence.pk)] = conserver(illustration_effective(classe.ecole, competence, classe))
         final["propositions"][str(competence.pk)] = propositions(competence, classe, inclure_masquees=True)
         for observation in Observation.objects.filter(competence=competence, eleve__scolarites__classe=classe).distinct():
