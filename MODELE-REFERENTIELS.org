@@ -306,3 +306,21 @@ le diagnostic #R3a ; ils doivent être résolus avant les interfaces concernées
 Livraison documentaire seule : contrôle d'espacement et application git am.
 Tests Django, migrations, Hugo et paquets non exécutés, aucun de ces éléments
 n'étant modifié. Pas de données réelles utilisées.
+
+* Fondations livrées en #R3b
+
+La migration additive 0016 introduit SourceReferentiel, VersionReferentiel,
+ReferentielAnnuel, AdoptionReferentiel, UsageCompetence et EtatAnnuelObservation,
+ainsi que des liens de contexte facultatifs sur Trace et TraceCommune. Les clés
+et contenus existants ne sont pas recopiés ni modifiés. Le lien Observation vers
+Competence est protégé contre la suppression. Ces entités ne sont pas exposées
+à l'administration ou aux interfaces pédagogiques.
+
+Les sources et leur structure sont conservées dans un contenu JSON versionné
+pour cette première fondation ; les choix fins et correspondances restent aux
+jalons suivants. save() refuse de modifier une version publiée ; les écritures
+par QuerySet.update ou SQL ne sont pas une API d'édition autorisée. Les services
+futurs devront contrôler les périmètres et appeler full_clean avant écriture.
+Les contextes restent facultatifs tant que #R3c et le lecteur commun ne sont pas
+livrés. Ce jalon seul ne garantit donc pas encore la conservation annuelle des
+nouvelles saisies ; il n'ouvre aucune nouvelle fonction.

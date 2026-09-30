@@ -610,7 +610,7 @@ class Observation(models.Model):
         Eleve, on_delete=models.CASCADE, related_name="observations"
     )
     competence = models.ForeignKey(
-        Competence, on_delete=models.CASCADE, related_name="observations"
+        Competence, on_delete=models.PROTECT, related_name="observations"
     )
     statut = models.CharField(
         max_length=10, choices=STATUTS, default=REUSSI, blank=True, null=True
@@ -679,6 +679,7 @@ class Observation(models.Model):
 
 
 class TraceCommune(models.Model):
+    usage_referentiel = models.ForeignKey("UsageCompetence", on_delete=models.PROTECT, null=True, blank=True)
     classe = models.ForeignKey(Classe, on_delete=models.PROTECT, related_name="traces_communes")
     competence = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="traces_communes")
     date_observation = models.DateField(default=timezone.localdate)
@@ -698,6 +699,7 @@ class TraceCommune(models.Model):
 
 
 class Trace(models.Model):
+    usage_referentiel = models.ForeignKey("UsageCompetence", on_delete=models.PROTECT, null=True, blank=True)
     observation = models.ForeignKey(
         Observation, on_delete=models.CASCADE, related_name="traces"
     )
@@ -768,3 +770,114 @@ class EvenementAudit(models.Model):
 
     def __str__(self):
         return f"{self.action} {self.modele}#{self.objet_id}"
+
+
+class SourceReferentiel(models.Model):
+    """Une provenance déclarée, jamais déduite du texte d'une compétence."""
+    identifiant = models.CharField(max_length=120, unique=True)
+    titre = models.CharField(max_length=200)
+    provenance = models.TextField(blank=True)
+    licence = models.CharField(max_length=120, blank=True)
+    provisoire = models.BooleanField(default=True)
+    # Une source reprise appartient à son école ; les sources fournies sont publiques.
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, null=True, blank=True)
+
+
+class VersionReferentiel(models.Model):
+    source = models.ForeignKey(SourceReferentiel, on_delete=models.PROTECT, related_name="versions")
+    numero = models.CharField(max_length=80)
+    empreinte = models.CharField(max_length=64)
+    contenu = models.JSONField()
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["source", "numero"], name="version_source_unique")]
+
+    def save(self, *args, **kwargs):
+        from django.core.exceptions import ValidationError
+
+        if self.pk:
+            ancienne = type(self).objects.get(pk=self.pk)
+            if any(getattr(ancienne, champ) != getattr(self, champ)
+                   for champ in ("source_id", "numero", "empreinte", "contenu")):
+                raise ValidationError("Une version publiée ne peut pas être modifiée.")
+        return super().save(*args, **kwargs)
+
+
+class ReferentielAnnuel(models.Model):
+    """Choix d'une école pour une année ; état initial distinct d'une histoire reconstruite."""
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, related_name="referentiels_annuels")
+    annee_scolaire = models.CharField(max_length=9)
+    version_proposee = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT)
+    etat_initial = models.JSONField(default=dict)
+    origine_reprise = models.BooleanField(default=False)
+    historique_reconstitue = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["ecole", "annee_scolaire"], name="referentiel_ecole_annee_unique")]
+
+
+class AdoptionReferentiel(models.Model):
+    classe = models.ForeignKey(Classe, on_delete=models.PROTECT, related_name="adoptions_referentiel")
+    annuel = models.ForeignKey(ReferentielAnnuel, on_delete=models.PROTECT)
+    version = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT)
+    courante = models.BooleanField(default=True)
+    # Pas de date d'adoption inventée lors de la reprise.
+    adopte_le = models.DateTimeField(null=True, blank=True)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
+    reprise = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["classe"], condition=models.Q(courante=True), name="adoption_courante_classe_unique")]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.classe_id and self.annuel_id and (
+            self.classe.ecole_id != self.annuel.ecole_id
+            or self.classe.annee_scolaire != self.annuel.annee_scolaire
+        ):
+            raise ValidationError("La classe et les choix annuels doivent appartenir à la même école et année.")
+        if self.version_id and self.classe_id and self.version.source.ecole_id not in (None, self.classe.ecole_id):
+            raise ValidationError("Cette version appartient à une autre école.")
+
+
+class UsageCompetence(models.Model):
+    adoption = models.ForeignKey(AdoptionReferentiel, on_delete=models.PROTECT, related_name="usages")
+    competence = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="usages_referentiel")
+    # Identifiant repris de la clé locale ; ne prétend pas être un code source officiel.
+    cle_definition = models.CharField(max_length=120)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["adoption", "competence"], name="usage_adoption_competence_unique")]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.adoption_id and self.competence_id and self.adoption.classe.ecole_id != self.competence.domaine.ecole_id:
+            raise ValidationError("La compétence doit appartenir à l'école de la classe.")
+
+
+class EtatAnnuelObservation(models.Model):
+    observation = models.ForeignKey(Observation, on_delete=models.PROTECT, related_name="etats_annuels")
+    annee_scolaire = models.CharField(max_length=9)
+    usage = models.ForeignKey(UsageCompetence, on_delete=models.PROTECT, null=True, blank=True)
+    statut = models.CharField(max_length=10, choices=Observation.STATUTS, null=True, blank=True)
+    date_observation = models.DateField(null=True, blank=True)
+    # Inconnu permet de conserver un contexte annuel sans fabriquer un état passé.
+    connu = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["observation", "annee_scolaire"], name="etat_observation_annee_unique")]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if not self.connu and (self.statut is not None or self.date_observation is not None):
+            raise ValidationError("Un état historique inconnu ne peut pas porter une réussite ou une date.")
+        if self.usage_id and self.observation_id and (
+            self.usage.competence_id != self.observation.competence_id
+            or self.usage.adoption.classe.ecole_id != self.observation.eleve.ecole_id
+            or self.usage.adoption.classe.annee_scolaire != self.annee_scolaire
+        ):
+            raise ValidationError("Le contexte doit correspondre à la compétence, à l'école et à l'année.")
