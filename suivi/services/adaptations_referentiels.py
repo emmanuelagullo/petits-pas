@@ -12,7 +12,7 @@ from .choix_bases_referentiels import verifier_annee
 
 @transaction.atomic
 def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, visible,
-                           revision_attendue, meme_sens=False, classe=None, adoption_attendue=None):
+                           revision_attendue, classe=None, adoption_attendue=None):
     verifier_annee(annee)
     if competence.domaine.ecole_id != ecole.pk:
         raise PermissionDenied
@@ -26,8 +26,6 @@ def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, vi
     if libelle is not None:
         if not isinstance(libelle, str) or not libelle.strip() or len(libelle.strip()) > 300:
             raise ValidationError("Précisez un libellé de 1 à 300 caractères.")
-        if meme_sens is not True:
-            raise ValidationError("Confirmez que votre libellé garde le même apprentissage.")
         libelle = libelle.strip()
     Ecole.objects.select_for_update().get(pk=ecole.pk)
     if classe:

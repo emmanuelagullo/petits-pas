@@ -28,7 +28,7 @@ class AdaptationsAnnuelles(Base):
                                                     classe=classe, competence=self.competence).first()
         return enregistrer_adaptation(utilisateur=utilisateur or (self.enseignant if classe else self.direction),
             ecole=self.ecole, annee=self.annee, competence=self.competence, classe=classe,
-            libelle=libelle, visible=visible, meme_sens=True,
+            libelle=libelle, visible=visible,
             revision_attendue=revision if revision is not None else (regle.revision if regle else 0),
             adoption_attendue=self.adoption.pk if classe else None, **options)
 
@@ -98,9 +98,8 @@ class AdaptationsAnnuelles(Base):
         with self.assertRaises(ValidationError): self.regler(classe=self.classe, revision=0)
         for options in ({"libelle": " "}, {"libelle": "x" * 301}, {"visible": "oui"}):
             with self.subTest(options=options), self.assertRaises(ValidationError): self.regler(**options)
-        with self.assertRaises(ValidationError):
-            enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole, annee=self.annee,
-                competence=self.competence, libelle="Un autre apprentissage", visible=None, revision_attendue=0)
+        enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole, annee=self.annee,
+            competence=self.competence, libelle="Je me présente au groupe", visible=None, revision_attendue=0)
 
     def test_contraintes_ecole_et_annee(self):
         autre = Ecole.objects.create(nom="École fictive des Lilas")

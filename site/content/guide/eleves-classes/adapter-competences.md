@@ -18,8 +18,7 @@ statut = "disponible"
 2. Choisir la base à consulter, puis cliquer sur une compétence. La liste
    inclut aussi les compétences masquées.
 3. Pour reformuler, choisir **Utiliser mon libellé** : la zone de texte
-   et sa case de confirmation deviennent actives. Saisir le texte et
-   confirmer qu’il décrit **le même apprentissage**. **Origine et libellé fourni**
+   devient active. Corriger ou préciser le texte de cette compétence. **Origine et libellé fourni**
    permet de retrouver le texte de la source.
 4. Pour la visibilité, garder le choix proposé, **Montrer cette compétence**
    ou **Masquer cette compétence**. Ce choix est séparé du libellé.

@@ -58,7 +58,8 @@ valider en CI ou localement : Hugo n'est pas installé dans cet environnement.
 Sans proposition de libellé de l'école, une compétence créée dans la classe
 présente directement « Libellé de la compétence », prérempli avec son dernier
 texte annuel. Aucun choix artificiel de conserver un libellé proposé n'est
-affiché. La confirmation du même apprentissage reste obligatoire côté serveur.
+affiché. Depuis #R7e, une explication courte remplace la confirmation du même
+apprentissage : modifier le libellé exprime déjà cette intention.
 L'écriture utilise les adaptations annuelles existantes : identité, définition
 à la création et observations restent conservées. Les ajouts repris et les
 propositions de libellé de l'école conservent le choix explicite d'héritage.

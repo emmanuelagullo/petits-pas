@@ -2,8 +2,7 @@
 <fieldset data-libelle-personnel{% if form.mode_libelle.value != "personnel" %} disabled{% endif %}>
 <legend>Reformuler le même apprentissage</legend>
 <p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p>
-<label class="choix-confirmation" for="{{ form.meme_sens.id_for_label }}">{{ form.meme_sens }} <span>{{ form.meme_sens.label }}</span></label>
-{{ form.meme_sens.errors }}
+<p class="aide">Vous modifiez le texte de cette compétence. Pour décrire un autre apprentissage, créez une nouvelle compétence.</p>
 </fieldset>
 <noscript><p>Pour reformuler sans JavaScript, choisissez « Utiliser mon libellé » puis cliquez sur « Enregistrer les choix » : le champ sera activé pour compléter votre texte avant de l’enregistrer.</p></noscript>
 <script>

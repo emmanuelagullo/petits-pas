@@ -59,13 +59,13 @@ class InterfaceAjouts(Base):
         page = self.client.get(url)
         self.assertContains(page, "Origine de cet ajout")
         donnees = {"jeton": page.context["jeton"], "action": "adapter", "mode_libelle": "personnel",
-            "libelle": "Je classe des objets fictifs", "meme_sens": "on", "visibilite": "masquer"}
+            "libelle": "Je classe des objets fictifs", "visibilite": "masquer"}
         self.assertEqual(self.client.post(url, donnees).status_code, 302)
         self.assertContains(self.client.get(self.page()), "Je classe des objets fictifs")
         self.assertEqual(self.client.post(url, donnees).status_code, 400)
         page = self.client.get(url)
         self.assertEqual(self.client.post(url, {"jeton": page.context["jeton"], "action": "adapter",
-            "libelle": "Je classe des objets fictifs", "meme_sens": "on", "visibilite": "montrer"}).status_code, 302)
+            "libelle": "Je classe des objets fictifs", "visibilite": "montrer"}).status_code, 302)
 
     def test_compte_annee_et_base_lies_au_formulaire(self):
         self.adopter()
@@ -97,13 +97,13 @@ class InterfaceAjouts(Base):
         self.client.post(self.page(), {"jeton": page.context["jeton"], "action": "reprendre", "locale": locale.pk})
         enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole,
             annee=self.classe.annee_scolaire, competence=locale.competence, libelle="Je classe seul des objets fictifs",
-            visible=True, meme_sens=True, revision_attendue=0)
+            visible=True, revision_attendue=0)
         self.assertContains(self.client.get(self.page()), "Je classe seul des objets fictifs")
         with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
             clore(utilisateur=self.enseignant, classe=self.classe)
         enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole,
             annee=self.classe.annee_scolaire, competence=locale.competence, libelle="Je range mes objets fictifs",
-            visible=False, meme_sens=True, revision_attendue=1)
+            visible=False, revision_attendue=1)
         page = self.client.get(self.page())
         self.assertContains(page, "Je classe seul des objets fictifs")
         self.assertNotContains(page, "Je range mes objets fictifs")
@@ -122,13 +122,13 @@ class InterfaceAjouts(Base):
         self.assertEqual(page.context["form"]["libelle"].value(), locale.competence.libelle)
         enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole,
             annee=self.classe.annee_scolaire, competence=locale.competence,
-            libelle="Je classe des objets fictifs", visible=None, meme_sens=True, revision_attendue=0)
+            libelle="Je classe des objets fictifs", visible=None, revision_attendue=0)
         page = self.client.get(url)
         self.assertContains(page, "Suivre le libellé de l’école")
         self.assertContains(page, "Libellé proposé par l’école")
         self.assertEqual(page.context["form"]["libelle"].value(), "Je classe des objets fictifs")
 
-    def test_libelle_direct_exige_confirmation_et_conserve_origine(self):
+    def test_libelle_direct_sans_confirmation_conserve_origine(self):
         locale = self.creer()
         definition = locale.definition
         competence_id = locale.competence_id
@@ -136,8 +136,7 @@ class InterfaceAjouts(Base):
         page = self.client.get(url)
         donnees = {"jeton": page.context["jeton"], "action": "adapter", "mode_libelle": "garder",
             "libelle": "Je trie des objets fictifs", "visibilite": "montrer"}
-        self.assertEqual(self.client.post(url, donnees).status_code, 400)
-        donnees["meme_sens"] = "on"
+        self.assertNotContains(page, 'name="meme_sens"')
         self.assertEqual(self.client.post(url, donnees).status_code, 302)
         locale.refresh_from_db()
         self.assertEqual(locale.definition, definition)
