@@ -133,3 +133,25 @@ immuabilité via save, adoption courante unique, état inconnu, contexte protég
 reprise répétée sans effet, refus atomique des doublons et confirmation de copie.
 La migration 0016 est appliquée par la création de la base de test. La migration
 d'une sauvegarde de l'utilisateur et PostgreSQL restent à vérifier en #R3d/CI.
+
+* Écritures contextualisées — #R3c2a
+
+Après reprise de l'école, les nouvelles traces individuelles et communes
+reçoivent l'usage de la base courante de leur classe. Une correction conserve
+l'usage d'origine ; la personnalisation d'une trace commune conserve aussi ce
+contexte. Modifier un état renseigne l'état connu de l'année de la scolarité
+courante, sans réécrire les anciennes années. Ajouter une trace seule ne
+transforme pas un état historique inconnu en réussite.
+
+Une nouvelle classe d'une école reprise reçoit ses choix annuels lors de sa
+première saisie, à partir de la version proposée de son année ou, à défaut,
+de la version initiale reprise. L'ancienne classe n'est pas modifiée. Une
+compétence masquée ou ajoutée directement en base sans adoption n'est pas
+utilisable pour une nouvelle saisie contextualisée. Les anciens contextes
+restent consultables et les corrections de traces gardent leurs droits habituels.
+
+Une école non reprise conserve provisoirement les parcours précédents sans
+contexte annuel. Initialisation et reprise automatique des nouveaux ateliers
+restent à consolider avant la fin de #R3. Ce sous-jalon ne fournit pas encore
+les écrans de choix de base ou de clôture. Il ne modifie pas les autorisations
+pédagogiques existantes et n'attribue aucune réussite par correspondance.
