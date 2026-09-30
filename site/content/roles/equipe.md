@@ -22,3 +22,6 @@ Le responsable de classe et la direction peuvent
 Ce choix ne donne pas à la direction un droit de correction des acquisitions.
 Les anciennes observations restent dans les parcours, même si leur compétence
 quitte les prochaines saisies.
+
+La direction peut aussi [proposer ou limiter les bases pour l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}),
+année par année, sans changer automatiquement la base des classes.

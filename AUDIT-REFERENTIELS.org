@@ -333,3 +333,15 @@ traces gardent leur contexte d'origine. Le lecteur et la clôture conservent
 également les compétences sorties de la base. Voir CHOIX-BASES-REFERENTIELS.org
 et le Guide pratique pour les conséquences et limites. Le parcours graphique
 des choix d'école reste à réaliser ; aucune base réelle n'est intégrée.
+
+
+* Choix d'école accessibles — #R4b4
+
+La direction peut maintenant proposer une base par défaut, ou limiter les bases
+que les classes pourront choisir pour une année. Aperçu et confirmation rendent
+explicites les conséquences, sans bascule des classes ni transfert de réussite.
+Le parcours usuel conserve les propositions supérieures ; les cas particuliers
+sont expliqués dans des aides dépliables et le Guide pratique. Ce sous-jalon
+complète les parcours de choix de #R4, sous réserve des validations CI et
+d'usage. Les adaptations de libellés et de visibilité restent #R5 ; les sources
+réelles font toujours l'objet d'un échange distinct avant leur recherche.

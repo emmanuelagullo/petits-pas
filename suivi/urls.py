@@ -4,6 +4,7 @@ from django.urls import path, reverse_lazy
 from . import views, views_presentation, views_referentiels
 
 urlpatterns = [
+    path("gestion/referentiels/", views_referentiels.choisir_bases_ecole, name="referentiels_ecole"),
     path("classe/<int:classe_pk>/referentiel/", views_referentiels.choisir_base_classe, name="referentiel_classe"),
     path("eleve/<int:eleve_pk>/media-referentiel/<int:pk>/", views.media_referentiel, name="media_referentiel"),
     path("gestion/presentation/", views_presentation.regler_presentation, name="presentation_ecole"),

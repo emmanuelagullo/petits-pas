@@ -190,6 +190,8 @@ phase d’authentification, sans bloquer le présent guide.
 | --- | --- | --- | --- |
 | Choisir une base autorisée | Responsable ou direction | Disponible | Aperçu puis confirmation ; aucun transfert de réussite. |
 | Changer de base après des saisies | Responsable ou direction | Disponible | Aperçu puis confirmation ; les anciens parcours restent conservés. |
-| Publier le catalogue et les autorisations annuelles | Administration | Interne | Commandes techniques et services ; aucun écran enseignant annoncé. |
+| Proposer ou limiter les bases pour l’école | Direction | Disponible | Choix annuels, aperçu puis confirmation ; aucune bascule des classes. |
+| Publier le catalogue et les autorisations de l’application | Administration | Interne | Commandes techniques ; aucun écran enseignant annoncé. |
 
-Voir [choisir le référentiel d'une classe]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
+Voir [les choix de l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}) et
+[choisir le référentiel d'une classe]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).

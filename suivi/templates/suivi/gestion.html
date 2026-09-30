@@ -8,6 +8,7 @@
   <a class="bouton" href="{% url 'creer_classe' %}">Créer une classe</a>
   <a class="bouton discret" href="{% url 'annuaire_eleves' %}">Annuaire des élèves</a>
   <a class="bouton discret" href="{% url 'parametres_carnet' %}">Paramétrer le carnet</a>
+  <a class="bouton discret" href="{% url 'referentiels_ecole' %}">Référentiels de l’école</a>
   <a class="bouton discret" href="{% url 'presentation_ecole' %}">Icônes, couverture et formulations</a>
   <a class="bouton discret" href="{% url 'equipe_ecole' %}">Équipe pédagogique</a>
   {% if mode_local %}<a class="bouton discret" href="{% url 'sauvegardes_locales' %}">Sauvegardes locales</a>{% endif %}
@@ -31,8 +32,7 @@
 </ul>
 {% endif %}
 
-<h2>Le référentiel de compétences</h2>
-<p>Il se modifie dans le fichier <code>referentiel/*.yaml</code>, puis se recharge en une commande&nbsp;:</p>
-<pre class="encadre" style="overflow:auto">python manage.py charger_referentiel referentiel/le-votre.yaml</pre>
-<p class="aide">Les réussites déjà saisies sont conservées tant que les codes des compétences ne changent pas.</p>
+<h2>Les référentiels de compétences</h2>
+<p>L'école choisit les bases autorisées et celle proposée pour chaque année. Chaque classe choisit ensuite sa base avec un aperçu des conséquences. Les observations déjà enregistrées sont conservées.</p>
+<p class="aide">La préparation de nouvelles sources relève de l'administration de l'application. Un code ou un libellé identique ne suffit pas à reconnaître la même compétence.</p>
 {% endblock %}
