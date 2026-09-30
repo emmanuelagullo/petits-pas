@@ -9,6 +9,9 @@ from suivi.autorisations import CONTRIBUER, MODIFIER_ETAT, autorise
 from suivi.models import Observation, Scolarite, Trace, TraceCommune, bornes_annee_scolaire
 
 
+from .contextes_referentiels import usage_pour_saisie
+
+
 def personnaliser_texte(texte, prenom):
     return texte.replace("<prénom>", prenom).replace("<prenom>", prenom).replace("{prenom}", prenom)
 
@@ -45,7 +48,8 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         if not (autorise(utilisateur, MODIFIER_ETAT, classe) or commune.auteur_id == utilisateur.pk):
             raise PermissionDenied
     else:
-        commune = TraceCommune(classe=classe, competence=competence, auteur=utilisateur)
+        commune = TraceCommune(classe=classe, competence=competence, auteur=utilisateur,
+                               usage_referentiel=usage_pour_saisie(classe, competence))
     anciens_ids = list(commune.attributions.filter(supprime_le__isnull=True).values_list(
         "observation__eleve_id", flat=True
     )) if commune.pk else []
@@ -81,7 +85,7 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         trace = commune.attributions.filter(observation=observation, scolarite=sc).first()
         if trace is None:
             trace = Trace(observation=observation, scolarite=sc, commune=commune,
-                          auteur=utilisateur)
+                          auteur=utilisateur, usage_referentiel=commune.usage_referentiel)
         trace.date_observation = commune.date_observation
         trace.commentaire = personnaliser_texte(commune.commentaire, sc.eleve.prenom)
         trace.photo = commune.photo.name if commune.photo else None

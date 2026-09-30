@@ -5,6 +5,7 @@ from django.utils import timezone
 from suivi.audit import instantane, journaliser
 from suivi.autorisations import CONTRIBUER, MODIFIER_ETAT, autorise
 from suivi.models import Bilan, Observation, Trace
+from .contextes_referentiels import usage_pour_saisie, enregistrer_etat_annuel
 
 
 CHAMPS_TRACE = (
@@ -33,6 +34,10 @@ def _peut_corriger_trace(utilisateur, trace):
 def modifier_etat(*, utilisateur, eleve, competence, statut):
     if not autorise(utilisateur, MODIFIER_ETAT, eleve):
         raise PermissionDenied
+    scolarite = eleve.scolarite_courante()
+    if scolarite is None or competence.domaine.ecole_id != eleve.ecole_id:
+        raise PermissionDenied
+    usage = usage_pour_saisie(scolarite.classe, competence)
     observation = Observation.objects.select_for_update().filter(
         eleve=eleve, competence=competence
     ).first()
@@ -42,6 +47,7 @@ def modifier_etat(*, utilisateur, eleve, competence, statut):
     observation.statut = statut
     observation.date_observation = timezone.localdate()
     observation.save()
+    enregistrer_etat_annuel(observation, usage)
     journaliser(
         utilisateur,
         "observation.etat_modifie",
@@ -77,6 +83,9 @@ def enregistrer_trace(
         raise PermissionDenied
     if trace is not None and trace.commune_id is not None:
         raise PermissionDenied
+    # Une correction conserve le contexte de recueil. Une création doit être
+    # autorisée par la base courante ; elle n'attribue pas de réussite.
+    usage = trace.usage_referentiel if trace is not None else usage_pour_saisie(scolarite.classe, competence)
     observation, _ = Observation.objects.get_or_create(
         eleve=eleve,
         competence=competence,
@@ -86,6 +95,7 @@ def enregistrer_trace(
         observation=observation,
         scolarite=scolarite,
         auteur=utilisateur,
+        usage_referentiel=usage,
     )
     if not _est_responsable(utilisateur, scolarite.classe):
         valeurs["visible_carnet"] = trace.visible_carnet if trace.pk else True
