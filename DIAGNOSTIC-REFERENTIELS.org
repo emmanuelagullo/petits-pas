@@ -191,3 +191,26 @@ peut laisser une copie de SVG non référencée si un stockage échoue après un
 copie réussie : la transaction protège les relations en base, pas les écritures
 sur un stockage externe. Le fichier orphelin est préférable à la perte d'une
 image utilisée. L'édition exacte d'un PDF reste hors de ce périmètre.
+
+* Consultation annuelle accessible — #R3c2c
+
+Le carnet propose les années du parcours déjà autorisé, sans ouvrir un accès
+à une autre scolarité. Le paramètre annee est conservé dans les choix et le
+PDF ; une année absente ou interdite est refusée. Sans année choisie, le parcours
+complet existant reste disponible. Pour une année antérieure choisie, le lecteur
+utilise les états annuels et les traces de cette scolarité. Un ancien état
+inconnu ne reçoit pas la réussite courante ; sa trace peut être affichée avec
+la mention « État de cette année non retrouvé ». Les bilans sont limités à
+l'année choisie. Aucun état historique n'est enregistré pendant cette lecture.
+
+Les choix initiaux conservés lors de la reprise servent la présentation d'une
+ancienne année non close, avec un avertissement sur leur portée. Les choix
+clos utilisent les ressources et les états photographiés à la clôture, sans
+réinterprétation depuis le suivi courant. Les accès aux photos annuelles
+restent limités aux classes et années visibles dans le parcours autorisé.
+
+La progression de la classe utilise les compétences de sa base visible, tant
+pour le total que pour le nombre de réussites : une compétence masquée ne peut
+plus faire dépasser le nombre de compétences proposées. La grille reprend le
+libellé de la base de classe. Le Guide pratique documente la consultation
+annuelle, sans annoncer le choix de base ou la clôture comme parcours accessibles.

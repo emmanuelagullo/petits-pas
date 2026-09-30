@@ -40,7 +40,7 @@ def clore(*, utilisateur, classe):
         return resultat
 
     final = {"contenu": deepcopy(adoption.version.contenu), "illustrations": {}, "propositions": {},
-             "couverture": conserver(illustration_effective(classe.ecole, classe=classe))}
+             "couverture": conserver(illustration_effective(classe.ecole, classe=classe)), "etats": []}
     usages = list(UsageCompetence.objects.filter(adoption=adoption).select_related("competence"))
     actifs = {u.competence_id: u.competence.active for u in usages}
     for definition in final["contenu"].get("competences", []):
@@ -64,6 +64,9 @@ def clore(*, utilisateur, classe):
                     etat.date_observation = observation.date_observation
                 etat.full_clean()
                 etat.save()
+            final["etats"].append({"observation_id": etat.observation_id, "statut": etat.statut,
+                "date_observation": etat.date_observation.isoformat() if etat.date_observation else None,
+                "connu": etat.connu})
     final["ressources"] = ressources
     adoption.etat_final = final
     adoption.clos = True

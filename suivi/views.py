@@ -127,7 +127,7 @@ from .services.pedagogie import (
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
-from .referentiels import arbre_competences as _arbre, adoption_courante
+from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe
 from .statistiques import repartition_competences
 from .services.equipe import (
     accepter_invitation,
@@ -564,7 +564,7 @@ def accueil(request):
 FILTRES_NIVEAU_CLASSE = {"classe", "tous", "PS", "MS", "GS"}
 
 
-def _progression(eleves, ecole, filtre="classe"):
+def _progression(eleves, ecole, filtre="classe", classe=None):
     """Nombre de compétences réussies par élève, en un seul aller-retour.
 
     ``filtre`` vaut :
@@ -577,26 +577,19 @@ def _progression(eleves, ecole, filtre="classe"):
     Renvoie le nombre total de compétences actives du cycle (utile pour
     l'affichage global), indépendamment du filtre appliqué par élève.
     """
-    totaux_par_niveau = dict(
-        Competence.objects.filter(domaine__ecole=ecole, active=True)
-        .values("niveau")
-        .annotate(n=Count("pk"))
-        .values_list("niveau", "n")
-    )
-    total_cycle = sum(totaux_par_niveau.values())
-
+    competences = [c for d in _arbre(ecole, classe=classe) for c in d.visibles]
+    niveaux_competences = {c.pk: c.niveau for c in competences}
+    totaux_par_niveau = {}
+    for competence in competences:
+        totaux_par_niveau[competence.niveau] = totaux_par_niveau.get(competence.niveau, 0) + 1
+    total_cycle = len(competences)
     reussies_par_eleve_et_niveau = {}
-    lignes = (
-        Observation.objects.filter(
-            eleve__pk__in=[e.pk for e in eleves], statut="reussi"
-        )
-        .values("eleve_id", "competence__niveau")
-        .annotate(n=Count("pk"))
-    )
+    lignes = Observation.objects.filter(eleve__pk__in=[e.pk for e in eleves], statut="reussi",
+        competence_id__in=niveaux_competences).values("eleve_id", "competence_id")
     for ligne in lignes:
-        reussies_par_eleve_et_niveau.setdefault(ligne["eleve_id"], {})[
-            ligne["competence__niveau"]
-        ] = ligne["n"]
+        niveau = niveaux_competences[ligne["competence_id"]]
+        par_niveau = reussies_par_eleve_et_niveau.setdefault(ligne["eleve_id"], {})
+        par_niveau[niveau] = par_niveau.get(niveau, 0) + 1
 
     for e in eleves:
         par_niveau = reussies_par_eleve_et_niveau.get(e.pk, {})
@@ -699,7 +692,7 @@ def classe_detail(request, pk):
         filtre = "classe"
     total = 0
     if suivi_complet:
-        total = _progression(eleves, ecole, filtre)
+        total = _progression(eleves, ecole, filtre, classe=classe)
         _bilans_par_eleve(eleves, classe, filtre)
     return render(
         request,
@@ -835,6 +828,9 @@ def saisie_competence(request, pk, competence_pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
+    competence = competence_classe(classe, competence)
+    if competence is None:
+        raise Http404
     etats = {
         o.eleve_id: o
         for o in Observation.objects.filter(
@@ -858,6 +854,9 @@ def _contexte_grille_competence(
     competence = get_object_or_404(
         Competence, pk=competence_pk, domaine__ecole=ecole
     )
+    competence = competence_classe(classe, competence)
+    if competence is None:
+        raise Http404
     etats = {
         observation.eleve_id: observation
         for observation in Observation.objects.filter(
@@ -1191,11 +1190,18 @@ def telecharger_media_trace(request, trace_pk):
 def media_referentiel(request, eleve_pk, pk):
     ecole = ecole_courante(request)
     eleve = charger_eleve_autorise(request.user, eleve_pk, VOIR_SUIVI, ecole=ecole)
-    ressource = get_object_or_404(RessourceReferentiel, pk=pk, annuel__ecole=ecole)
+    ressource = get_object_or_404(RessourceReferentiel.objects.select_related("annuel"), pk=pk, annuel__ecole=ecole)
     scolarites, _ = _scolarites_visibles(request.user, eleve)
     from .models import AdoptionReferentiel
     adoptions = AdoptionReferentiel.objects.filter(classe_id__in=scolarites.values("classe_id"), clos=True)
-    if not any(ressource.pk in a.etat_final.get("ressources", []) for a in adoptions):
+    finale_autorisee = any(ressource.pk in a.etat_final.get("ressources", []) for a in adoptions)
+    initiale_autorisee = any(
+        sc.annee_scolaire == ressource.annuel.annee_scolaire
+        and any(r.get("photo") == ressource.fichier.name and r.get("mode") == "remplacer"
+                and r.get("classe_id") in (None, sc.classe_id)
+                for r in ressource.annuel.etat_initial.get("reglages", []))
+        for sc in scolarites)
+    if not (finale_autorisee or initiale_autorisee):
         raise Http404
     return FileResponse(default_storage.open(ressource.fichier.name, "rb"),
                         content_type=mimetypes.guess_type(ressource.fichier.name)[0] or "application/octet-stream")
@@ -1451,22 +1457,32 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     if regroupement not in {"aucun", "annuel", "mensuel", "bilan"}:
         regroupement = "aucun"
 
-    scolarites_visibles, _ = _scolarites_visibles(request.user, eleve)
-    etats = {
-        o.competence_id: o
-        for o in _observations_visibles(request.user, eleve).select_related(
-            "competence"
-        )
-    }
-    for observation in etats.values():
-        observation.traces_carnet = [
-            trace
-            for trace in observation.traces.all()
-            if trace.visible_carnet and trace.supprime_le is None
-        ]
-    domaines = []
-    scolarite = eleve.scolarite_courante()
+    scolarites_visibles, courante = _scolarites_visibles(request.user, eleve)
+    annee_selectionnee = options.get("annee", "")
+    scolarite = courante
+    if annee_selectionnee:
+        scolarite = scolarites_visibles.filter(annee_scolaire=annee_selectionnee).select_related("classe").first()
+        if scolarite is None:
+            raise Http404
     classe_presentation = scolarite.classe if scolarite else None
+    adoption = adoption_courante(classe_presentation)
+    historique = bool(annee_selectionnee and (scolarite.pk != courante.pk or (adoption and adoption.clos)))
+    etats_inconnus = False
+    if historique:
+        etats, etats_inconnus = observations_annee(eleve, scolarite)
+    else:
+        etats = {o.competence_id: o for o in _observations_visibles(request.user, eleve).select_related("competence")}
+        for observation in etats.values():
+            observation.traces_carnet = [
+                trace for trace in observation.traces.all()
+                if trace.visible_carnet and trace.supprime_le is None
+                and (not annee_selectionnee or trace.scolarite_id == scolarite.pk)
+            ]
+    if annee_selectionnee:
+        scolarites_bilans = scolarites_visibles.filter(pk=scolarite.pk)
+    else:
+        scolarites_bilans = scolarites_visibles
+    domaines = []
     for d in _arbre(ecole, classe=classe_presentation, inclure_ids=etats):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if mode == "reussites":
@@ -1477,33 +1493,31 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
             lignes = [
                 (c, o)
                 for c, o in lignes
-                if o and o.statut in (Observation.REUSSI, Observation.EN_COURS)
+                if o and (o.statut in (Observation.REUSSI, Observation.EN_COURS) or (historique and o.traces_carnet))
             ]
         if lignes:
             domaines.append(
                 (
                     d,
                     _regrouper_lignes(
-                        eleve, lignes, regroupement, scolarites_visibles
+                        eleve, lignes, regroupement, scolarites_bilans
                     ),
                 )
             )
 
-    scolarite = eleve.scolarite_courante()
-    classe_presentation = scolarite.classe if scolarite else None
     reglages = reglages_du_perimetre(ecole, classe_presentation)
-    couverture = illustration_effective(ecole, classe=classe_presentation, reglages=reglages)
+    couverture = illustration_effective(ecole, classe=classe_presentation, reglages=reglages, historique=historique)
     for _domaine, groupes in domaines:
         for _titre, lignes in groupes:
             for competence, _observation in lignes:
-                competence.illustration = illustration_effective(ecole, competence, classe_presentation, reglages)
+                competence.illustration = illustration_effective(ecole, competence, classe_presentation, reglages, historique=historique)
                 image = competence.illustration
                 competence.url_icone = ((reverse("media_referentiel", args=[eleve.pk, image.ressource_id]) if image.ressource_id else reverse("media_presentation", args=[image.reglage_id])) if image.photo
                                         else static(image.statique) if image.statique else "")
     bilans = (
         Bilan.objects.filter(
             scolarite__eleve=eleve,
-            scolarite__in=scolarites_visibles,
+            scolarite__in=scolarites_bilans,
             visible_carnet=True,
             supprime_le__isnull=True,
         ).select_related("scolarite")
@@ -1512,6 +1526,10 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     )
 
     return {
+        "annee_selectionnee": annee_selectionnee,
+        "scolarites_proposees": scolarites_visibles.select_related("classe"),
+        "etats_historiques_inconnus": etats_inconnus,
+        "presentation_initiale_reprise": bool(annee_selectionnee and adoption and adoption.reprise and not adoption.clos),
         "eleve": eleve,
         "domaines": domaines,
         "mode": mode,
@@ -1550,6 +1568,8 @@ def _regrouper_lignes(eleve, lignes, regroupement, scolarites=None):
     for competence, observation in lignes:
         if observation is None:
             titre = "À découvrir"
+        elif getattr(observation, "historique_inconnu", False) and observation.date_observation is None:
+            titre = "Année scolaire " + observation.annee_historique + " — état non retrouvé"
         elif regroupement == "mensuel":
             titre = date_format(observation.date_observation, "F Y").capitalize()
         elif regroupement == "annuel":
