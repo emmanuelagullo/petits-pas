@@ -305,3 +305,13 @@ identités explicites, sans changer les choix de classe ou les données élèves
 Voir IMPORT-SOURCES-REFERENTIELS.org pour la commande, le format, les garanties
 et les limites. Les bases autorisées, le défaut annuel et l'adoption par classe
 restent la suite de #R4 ; ce sous-jalon ne clôt pas #R4.
+
+* Choix annuels préparés — #R4b1
+
+CHOIX-BASES-REFERENTIELS.org documente les autorisations applicatives annuelles,
+leur restriction par l'école et les défauts distincts. Les confirmations
+refusent une révision périmée ; une restriction ne bascule pas une classe.
+Le raccordement aux adoptions et les écrans restent la suite de #R4.
+
+Accord de travail : échanger avec Emmanuel avant de rechercher ou d'intégrer
+des bases de référence réelles. En attendant, utiliser des sources fictives.

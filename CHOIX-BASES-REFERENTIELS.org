@@ -1,0 +1,108 @@
+#+TITLE: Choix annuels des bases — #R4b1
+
+* État du jalon
+
+Ce sous-jalon conserve et résout les autorisations et défauts annuels de
+l'application et de l'école. Le choix de classe, sa prévisualisation et son
+adoption restent #R4b2 et suivants. Aucun nouvel écran enseignant n'est annoncé.
+La création automatique du contexte initial des saisies existantes n'est pas
+encore raccordée à ces politiques : le raccordement appartient à l'adoption.
+Ne pas utiliser cette préparation comme une restriction déjà active dans tous
+les parcours. Importer ou publier des choix ne bascule aucune classe.
+
+Les sources réelles restent une tâche distincte : échange préalable avec
+Emmanuel avant leur recherche ou leur intégration. Les scénarios utilisent
+exclusivement des sources et des élèves fictifs.
+
+* Choix conservés
+
+| Niveau | Autorisations | Défaut |
+|--------+---------------+--------|
+| Application, par année | Liste explicite des versions fournies importées | Une version de cette liste ; aucun défaut si liste vide |
+| École, par année | Garder les autorisations proposées, ou conserver une liste plus courte | Garder le choix proposé, ou choisir une version autorisée |
+
+Une liste vide conservée explicitement par l'école est différente de « garder
+les autorisations proposées ». Une liste explicite ne s'étend pas lorsqu'une
+nouvelle base devient autorisée par l'application. Un défaut local ne transforme
+pas à lui seul une version en base autorisée. Le défaut n'est jamais obtenu en
+prenant arbitrairement la première version disponible.
+
+Sans politique publiée pour une année, la base initiale de l'école reprise
+reste la seule proposée par le résolveur de compatibilité ; les autres sources
+importées ne deviennent pas autorisées. Sans état initial local, aucune base
+n'est proposée. La base reprise d'une autre école n'est jamais exposée.
+Publier une liste applicative n'assimile pas une base reprise à une source
+fournie, et ne révèle aucune donnée d'élève à une autre école.
+
+Les années sont indépendantes. Pendant une année, les propriétés laissées au
+choix proposé suivent les évolutions supérieures. Les listes et défauts locaux
+explicites restent enregistrés. Une nouvelle restriction conserve les versions
+utilisées par les classes et leur état : l'ancien choix peut devenir indisponible
+pour une nouvelle adoption, sans suppression ni changement de base automatique.
+
+Si un défaut local ou hérité n'est plus autorisé, le lecteur signale la situation
+et retourne aucun défaut disponible ; il ne le remplace pas. Les versions locales
+sorties des autorisations supérieures restent enregistrées, mais ne sont pas
+retournées comme candidates. Des messages signalent les classes concernées.
+Ces messages seront repris dans les écrans suivants.
+
+* Administration technique de l'application
+
+Après migration et import de versions fictives, consulter les choix d'une année :
+
+#+begin_src sh
+python3 manage.py proposer_bases_referentiels --annee 2026-2027
+#+end_src
+
+L'import affiche l'identifiant de la version, y compris lors d'un réimport
+identique sans effet. Les identifiants ci-dessous sont des exemples à remplacer
+par ceux de la base fictive de test. La révision attendue est celle affichée lors de la consultation,
+0 pour des choix jamais publiés :
+
+#+begin_src sh
+python3 manage.py proposer_bases_referentiels --annee 2026-2027 --autoriser 12 13 --defaut 12 --revision-attendue 0
+#+end_src
+
+Publier une liste vide ne supprime aucune ancienne adoption :
+
+#+begin_src sh
+python3 manage.py proposer_bases_referentiels --annee 2026-2027 --autoriser --revision-attendue 1
+#+end_src
+
+Cette commande est réservée à l'administration du déploiement, au même titre
+que l'import de sources. Sans --autoriser, elle consulte sans créer de choix.
+La politique d'école dispose d'un service interne avec contrôle des droits et
+journalisation, mais n'a pas encore de parcours graphique ni de commande
+contournant ces droits.
+
+* Droits, cohérence et confirmations
+
+GERER_REFERENTIEL_ECOLE est réservé à la direction active de l'école.
+GERER_REFERENTIEL_CLASSE est disponible pour la direction de l'école et le
+responsable actif de la classe ; il ne confère aucun droit de lecture ou de
+correction pédagogique supplémentaire. Les associés et contributeurs ne gagnent
+pas de droit de gestion du référentiel. Une affectation terminée ne suffit pas.
+Ces droits sont définis séparément de MODIFIER_ETAT.
+
+Les services vérifient l'année, les versions fournies, l'appartenance de la
+ressource, le défaut parmi les bases autorisées et l'interdiction d'élargir
+les autorisations supérieures. Les confirmations portent une révision attendue
+(application seule, ou application et école) ; une modification depuis la lecture
+fait refuser la confirmation. Les écritures sont transactionnelles ; leur ordre
+de verrouillage est application annuelle puis école. Un conflit de création
+simultanée est refusé par les contraintes ; la commande invite à reconsulter.
+
+La politique applicative non publiée peut être créée lors d'une écriture d'école
+pour coordonner les verrous ; elle garde configure=false et revision=0, sans
+rendre disponibles des sources importées. Une lecture seule ne crée aucune ligne.
+
+* Vérifications
+
+Tests : catalogue non autorisé implicitement, défaut indépendant de la liste,
+retour au proposé, héritage actif et liste locale fixe, années indépendantes,
+restrictions conservant les adoptions, défaut retiré sans remplacement,
+cloisonnement des écoles, droits spécifiques, refus des données incohérentes,
+révisions périmées et consultation technique sans écriture. Les tests de
+migration restaurent le schéma 0019 après leurs essais historiques.
+Le verrouillage concurrent est à confirmer sur PostgreSQL par la CI ; les
+services et contraintes n'introduisent aucune dépendance à SQLite.

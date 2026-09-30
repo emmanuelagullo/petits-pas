@@ -16,6 +16,8 @@ from .models import Classe, Ecole
 
 ACCEDER_APPLICATION = "acceder_application"
 ADMINISTRER_ECOLE = "administrer_ecole"
+GERER_REFERENTIEL_ECOLE = "gerer_referentiel_ecole"
+GERER_REFERENTIEL_CLASSE = "gerer_referentiel_classe"
 VOIR_CLASSES = "voir_classes"
 VOIR_CLASSE = "voir_classe"
 VOIR_LISTE_ELEVES = "voir_liste_eleves"
@@ -225,6 +227,7 @@ def autorise(utilisateur, operation, ressource=None, *, ecole=None, date=None):
         ).exists()
     if operation in {
         ADMINISTRER_ECOLE,
+        GERER_REFERENTIEL_ECOLE,
         GERER_CLASSE,
         VOIR_AFFECTATIONS_ECOLE,
         GERER_AFFECTATIONS,
@@ -242,6 +245,9 @@ def autorise(utilisateur, operation, ressource=None, *, ecole=None, date=None):
         return peut_voir_suivi(utilisateur, classe, date)
     if operation in {MODIFIER_ETAT, GENERER_CARNET}:
         return peut_modifier_etat(utilisateur, classe, date)
+    if operation == GERER_REFERENTIEL_CLASSE:
+        return direction or affectations_actives(utilisateur, classe=classe,
+            types=[AffectationClasse.RESPONSABLE], date=date).exists()
     if operation == GERER_ELEVES_CLASSE:
         return direction or peut_modifier_etat(utilisateur, classe, date)
     if operation == CONTRIBUER:
@@ -281,6 +287,7 @@ def classes_accessibles(utilisateur, operation=VOIR_CLASSE, ecole=None, date=Non
         GENERER_CARNET: [AffectationClasse.RESPONSABLE],
         CONTRIBUER: list(dict(AffectationClasse.TYPES)),
         GERER_ELEVES_CLASSE: [AffectationClasse.RESPONSABLE],
+        GERER_REFERENTIEL_CLASSE: [AffectationClasse.RESPONSABLE],
     }.get(operation)
     affectations = affectations_actives(
         utilisateur,
@@ -299,6 +306,7 @@ def classes_accessibles(utilisateur, operation=VOIR_CLASSE, ecole=None, date=Non
         VOIR_LISTE_ELEVES,
         VOIR_AFFECTATIONS_CLASSE,
         GERER_ELEVES_CLASSE,
+        GERER_REFERENTIEL_CLASSE,
     }:
         directions = responsabilites_direction_actives(utilisateur, date=date)
         condition |= Q(ecole_id__in=directions.values("appartenance__ecole_id"))

@@ -30,6 +30,13 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   Ces règles concernent les images et les phrases proposées : ne pas les
   étendre automatiquement aux restrictions de stockage ou à l'évolution des
   référentiels. Distinguer un choix proposé par défaut d'une interdiction.
+- Évolution des référentiels : `AUDIT-REFERENTIELS.org` fixe le périmètre et
+  les jalons ; `MODELE-REFERENTIELS.org` les règles retenues,
+  `DIAGNOSTIC-REFERENTIELS.org` la reprise et la lecture annuelle,
+  `IMPORT-SOURCES-REFERENTIELS.org` l'import versionné et
+  `CHOIX-BASES-REFERENTIELS.org` les autorisations et défauts annuels.
+  Distinguer les services préparés des fonctions accessibles ; importer,
+  autoriser, proposer par défaut et adopter sont des actions distinctes.
 - Sources du référentiel et des icônes : `referentiel/README.md`, les fichiers
   YAML et `referentiel/static/`. `suivi/referentiels.py` partage la lecture et
   l'ordre des compétences entre saisies, réglages et carnets ; réutiliser cette
