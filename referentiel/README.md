@@ -1,8 +1,11 @@
 # Contenus du référentiel
 
 `trame-cycle1.yaml` est une trame de travail, sans statut de référentiel officiel.
-Les codes des compétences et des formulations servent à conserver leur identité
-lors d'un nouvel import. Une compétence peut n'avoir ni icône ni formulation.
+Pour le chargement historique dans une école non reprise, les codes des
+compétences et formulations servent à retrouver les éléments lors d'un import.
+Pour l'import versionné au catalogue, l'identité d'une compétence est déclarée
+explicitement, indépendamment de son code : voir
+[IMPORT-SOURCES-REFERENTIELS.org](../IMPORT-SOURCES-REFERENTIELS.org). Une compétence peut n'avoir ni icône ni formulation.
 
 ```yaml
 - code: LANG-01
@@ -22,8 +25,9 @@ autonome. L'association de quelques compétences sert d'exemple ; le catalogue
 n'a pas vocation à illustrer intégralement la trame.
 
 La migration ne réimporte pas automatiquement le référentiel d'une école
-existante. Les équipes peuvent choisir les icônes depuis l'interface, ou
-mettre à jour leur YAML puis l'importer avec :
+existante. Les équipes peuvent choisir les icônes depuis l'interface. La commande ci-dessous
+est réservée aux écoles qui n'ont pas encore été préparées aux référentiels
+annuels ; elle est refusée pour une école déjà reprise :
 
 ```sh
 python3 manage.py charger_referentiel chemin/vers/referentiel.yaml --ecole ID

@@ -826,6 +826,28 @@ class DefinitionSourceCompetence(models.Model):
             raise ValidationError("La définition et l'identité doivent appartenir à la même source.")
 
 
+class ChoixApplicationAnnuel(models.Model):
+    annee_scolaire = models.CharField(max_length=9, unique=True)
+    configure = models.BooleanField(default=False)
+    versions_autorisees = models.ManyToManyField(VersionReferentiel, blank=True, related_name="choix_application")
+    version_proposee = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT, null=True, blank=True, related_name="defauts_application")
+    revision = models.PositiveIntegerField(default=0)
+
+
+class ChoixEcoleAnnuel(models.Model):
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, related_name="choix_bases_annuels")
+    annee_scolaire = models.CharField(max_length=9)
+    # False suit les autorisations supérieures ; True conserve une liste explicite.
+    restreindre = models.BooleanField(default=False)
+    versions_autorisees = models.ManyToManyField(VersionReferentiel, blank=True, related_name="choix_ecoles")
+    # Null suit le défaut supérieur, sans choisir la première base disponible.
+    version_proposee = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT, null=True, blank=True, related_name="defauts_ecoles")
+    revision = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["ecole", "annee_scolaire"], name="choix_bases_ecole_annee_unique")]
+
+
 class ReferentielAnnuel(models.Model):
     """Choix d'une école pour une année ; état initial distinct d'une histoire reconstruite."""
     ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, related_name="referentiels_annuels")

@@ -29,4 +29,5 @@ class Command(BaseCommand):
         else:
             etat = "importée" if cree else "déjà présente"
             self.stdout.write(f"{version.source.titre} — version {version.numero} {etat} : {nombre} compétence(s).")
+            self.stdout.write(f"Identifiant de version pour les choix annuels : {version.pk}.")
             self.stdout.write("Aucun choix d'école ou de classe, aucune observation modifiés.")
