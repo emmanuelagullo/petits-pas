@@ -45,3 +45,24 @@ Voir [Choisir les images et les phrases proposées]({{< relref "/guide/carnets/p
   dans l’historique.
 
 Voir les [règles détaillées des rôles]({{< relref "/roles/" >}}).
+
+## Consulter une année du parcours
+
+Dans **Année à consulter**, choisir une année proposée, ou **Parcours complet**.
+Seules les années que vous êtes autorisé à consulter apparaissent. Le choix
+reste conservé lorsque vous changez la mise en page ou téléchargez le PDF.
+
+Une année précédente utilise les états d'apprentissage conservés pour cette
+année. Une réussite enregistrée plus tard n'y est pas ajoutée. Si l'ancien état
+n'a pas pu être retrouvé lors de la reprise des données, un message l'indique :
+les traces conservées restent consultables, mais aucune réussite n'est inventée.
+Pour voir ces traces, utiliser **Réussites et apprentissages en cours** ou
+**Référentiel complet**.
+
+La présentation d'une classe close garde ses derniers choix. Pour des données
+plus anciennes, l'aperçu peut signaler qu'il reprend les choix disponibles lors
+de la reprise, sans pouvoir retrouver les choix précédemment remplacés.
+La clôture des choix n'a pas encore de bouton dans l'interface.
+
+Ce parcours ne garantit pas une copie exacte d'un carnet déjà remis : les
+commentaires, photographies et options d'édition peuvent avoir été corrigés.

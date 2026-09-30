@@ -39,7 +39,7 @@ def reglages_du_perimetre(ecole, classe=None):
             for r in ReglagePresentation.objects.filter(filtre, ecole=ecole)}
 
 
-def illustration_effective(ecole, competence=None, classe=None, reglages=None):
+def illustration_effective(ecole, competence=None, classe=None, reglages=None, historique=False):
     if classe is not None:
         if classe.ecole_id != ecole.pk:
             raise ValueError("Classe d'une autre école.")
@@ -49,6 +49,25 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None):
             donnees = (adoption.etat_final.get("illustrations", {}).get(str(competence.pk), {})
                        if competence else adoption.etat_final.get("couverture", {}))
             return Illustration(**donnees)
+        if adoption and historique:
+            # La reprise conserve les réglages disponibles, sans prétendre
+            # reconstituer ceux qui avaient déjà été remplacés.
+            identifiant = competence.pk if competence else None
+            resultat = Illustration(icone=competence.icone if competence else "")
+            for classe_id, provenance in [(None, "École"), (classe.pk, "Classe")]:
+                for reglage in adoption.annuel.etat_initial.get("reglages", []):
+                    if reglage["classe_id"] != classe_id or reglage["competence_id"] != identifiant:
+                        continue
+                    if reglage["mode"] == ReglagePresentation.HERITER:
+                        continue
+                    resultat = Illustration(provenance=provenance)
+                    if reglage["mode"] == ReglagePresentation.REMPLACER:
+                        from .models import RessourceReferentiel
+                        ressource = (RessourceReferentiel.objects.filter(annuel=adoption.annuel,
+                                     fichier=reglage["photo"]).first() if reglage["photo"] else None)
+                        resultat = Illustration(provenance=provenance, icone=reglage["icone"],
+                            photo=reglage["photo"], ressource_id=ressource.pk if ressource else None)
+            return resultat
     reglages = reglages if reglages is not None else reglages_du_perimetre(ecole, classe)
     resultat = Illustration(icone=competence.icone if competence else "")
     identifiant = competence.pk if competence else None

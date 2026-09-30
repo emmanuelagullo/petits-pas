@@ -40,3 +40,8 @@ autorisées. L’application journalise la génération et le téléchargement.
 - La date d’édition correspond au jour de la génération.
 
 Voir la [matrice des autorisations]({{< relref "/conception/documents/matrice-autorisations.org" >}}).
+
+L'année choisie dans l'aperçu est conservée lors du téléchargement. Pour une
+ancienne année, une réussite plus récente n'est pas ajoutée au carnet ; un état
+ancien qui n'a pas pu être retrouvé reste indiqué comme tel. Le fichier généré
+n'est pas une archive exacte d'un exemplaire remis auparavant.

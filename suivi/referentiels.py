@@ -62,3 +62,49 @@ def arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=()):
         Prefetch("competences", queryset=competences, to_attr="visibles"),
         "attendus",
     )
+
+
+def observations_annee(eleve, scolarite):
+    """Projection de lecture, sans emprunter un état courant à une autre année."""
+    from copy import copy
+    from django.db.models import Q
+    from .models import EtatAnnuelObservation, Trace
+
+    annuels = {e.observation_id: e for e in EtatAnnuelObservation.objects.filter(
+        observation__eleve=eleve, annee_scolaire=scolarite.annee_scolaire)}
+    adoption = adoption_courante(scolarite.classe)
+    if adoption and adoption.clos and "etats" in adoption.etat_final:
+        from datetime import date
+        from types import SimpleNamespace
+        annuels = {e["observation_id"]: SimpleNamespace(
+            statut=e["statut"], connu=e["connu"],
+            date_observation=date.fromisoformat(e["date_observation"]) if e["date_observation"] else None)
+            for e in adoption.etat_final["etats"]}
+    traces = list(Trace.objects.filter(scolarite=scolarite, observation__eleve=eleve,
+                                      visible_carnet=True, supprime_le__isnull=True))
+    par_observation = {}
+    for trace in traces:
+        par_observation.setdefault(trace.observation_id, []).append(trace)
+    observations = eleve.observations.filter(Q(pk__in=annuels) | Q(pk__in=par_observation)).select_related("competence")
+    etats = {}
+    inconnus = False
+    for observation in observations:
+        copie = copy(observation)
+        annuel = annuels.get(observation.pk)
+        copie.traces_carnet = par_observation.get(observation.pk, [])
+        copie.historique_inconnu = annuel is None or not annuel.connu
+        inconnus = inconnus or copie.historique_inconnu
+        copie.statut = annuel.statut if annuel and annuel.connu else None
+        copie.date_observation = (annuel.date_observation if annuel and annuel.connu else
+                                  max((t.date_observation for t in copie.traces_carnet), default=None))
+        copie.annee_historique = scolarite.annee_scolaire
+        etats[copie.competence_id] = copie
+    return etats, inconnus
+
+
+def competence_classe(classe, competence):
+    for domaine in arbre_competences(classe.ecole, classe=classe, inclure_ids=[competence.pk]):
+        for candidate in domaine.visibles:
+            if candidate.pk == competence.pk:
+                return candidate
+    return None
