@@ -149,3 +149,41 @@ avec une définition déjà adoptée dans l'école, pour une année au plus éga
 à celle consultée ; aucune compétence future ni réussite d'une autre identité
 n'est ajoutée. La transition en cours d'année reste le sous-jalon suivant.
 Le Guide pratique documente le parcours réellement accessible et ses limites.
+
+
+* Changement en cours d'année accessible — #R4b3
+
+La limite du sous-jalon #R4b2b est levée : le même parcours avec aperçu puis
+confirmation permet de changer de base après des observations. Chaque choix
+est daté et attribué à son auteur. La transaction ne modifie ni observations,
+ni états annuels, ni traces personnelles ou communes, ni leurs usages d'origine.
+Une compétence d'une autre identité ne reçoit aucune réussite. Revenir à une
+base autorisée retrouve les mêmes identités de suivi, sans duplication.
+Les droits et le refus d'une confirmation périmée restent identiques.
+
+Les compétences sorties de la base sont refusées en saisie future, mais restent
+lisibles dans le parcours. Le lecteur privilégie la dernière définition adoptée
+par cette classe, puis les définitions des années compatibles dans l'école.
+Il n'emprunte pas une définition d'une année ultérieure. Les illustrations et
+phrases suivent cette définition avec les adaptations locales existantes.
+
+La clôture conserve également les compétences des observations des élèves de
+la classe, leurs états, illustrations et phrases. Ces compétences hors base
+restent masquées pour les nouvelles saisies. Une définition introuvable fait
+annuler la clôture plutôt que perdre silencieusement un parcours. Après clôture,
+le lecteur utilise le contenu final ; il ne complète plus celui-ci par les
+choix vivants d'autres classes. Clôture et changement de base coordonnent leurs
+écritures avec un verrou d'école puis de classe.
+
+Aucune nouvelle migration. Les imports de sources réelles et la recherche de
+bases demeurent soumis à l'échange préalable convenu ; seuls les exemples
+fictifs sont utilisés. Les adaptations de libellés, ajouts et correspondances
+restent les jalons suivants. La clôture conserve encore un service interne,
+sans nouveau bouton enseignant annoncé.
+
+Vérifications #R4b3 : suite complète de 459 tests Django réussie, puis 19 tests
+ciblés après les derniers scénarios (trace commune, définition propre à la
+classe et PDF après clôture). Aucun écart de migration ; contrôle Django et
+guide (38 fiches, 13 captures référencées) réussis. Construction Hugo, contrôle
+visuel et PostgreSQL non exécutés dans cet environnement. L'application git am
+sur main est vérifiée avant remise du patch.

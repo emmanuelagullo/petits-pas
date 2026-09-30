@@ -23,16 +23,17 @@
 {% else %}<p>Aucune base n'est autorisée pour un nouveau choix. Les classes déjà renseignées gardent leur suivi ; contactez la direction.</p>{% endif %}
 {% if apercu %}
 <h2>Avant de confirmer</h2>
+<p>Ce choix concerne toute la classe pour les prochaines saisies. Les observations, commentaires et photos déjà enregistrés sont conservés.</p>
 <p><strong>{{ apercu.version.source.titre }}</strong> — version {{ apercu.version.numero }}.</p>
 <ul><li>{{ apercu.communes }} compétence{{ apercu.communes|pluralize }} avec la même identité.</li>
 <li>{{ apercu.nouvelles }} nouvelle{{ apercu.nouvelles|pluralize }} compétence{{ apercu.nouvelles|pluralize }}.</li>
 <li>{{ apercu.hors_base }} compétence{{ apercu.hors_base|pluralize }} de la base actuelle hors de cette base.</li></ul>
 <details><summary>Que signifient ces nombres ?</summary>
 <p>Une identité conservée retrouve le même suivi. Un code ou une phrase identique ne suffit pas à reconnaître la même compétence. Les nouvelles compétences commencent avec leur propre suivi, sans réussite copiée.</p>
+<p>Les compétences hors de la base choisie quittent les prochaines saisies, mais restent dans les parcours déjà renseignés. Pour reprendre leur saisie, il faut choisir une base autorisée qui les contient.</p>
 <p>Les anciennes bases et leurs origines restent enregistrées. Aucun commentaire ni aucune photo n'est effacé par ce choix.</p></details>
-{% if apercu.bloquee %}<p class="message">Cette classe comporte déjà des observations. Le changement de base après saisie sera proposé dans une étape suivante. Son suivi reste conservé.</p>
-{% else %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}">
-<button class="bouton" name="action" value="confirmer">{% if apercu.meme %}Conserver cette base{% else %}Choisir cette base pour la classe{% endif %}</button></form>{% endif %}
+<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}">
+<button class="bouton" name="action" value="confirmer">{% if apercu.meme %}Conserver cette base{% else %}Choisir cette base pour la classe{% endif %}</button></form>
 {% endif %}
 <details><summary>Choix proposé et autres possibilités</summary><p>Le choix proposé est le point de départ prévu pour cette année. Les autres bases de la liste sont également autorisées. Pour une première utilisation, gardez le choix proposé sauf besoin pédagogique précis discuté avec l'équipe.</p>
 <p>Une source corrigée ou une base nouvellement importée ne remplace jamais votre choix de classe toute seule. Les restrictions concernent les nouveaux choix, pas l'effacement des anciens parcours.</p></details>

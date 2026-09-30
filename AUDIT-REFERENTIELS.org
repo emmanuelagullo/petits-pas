@@ -323,3 +323,13 @@ responsable et à la direction pour une classe non renseignée. La transition
 d'une classe déjà renseignée reste bloquée explicitement : #R4 n'est pas clos.
 Les origines de suivi par école sont préparées en #R4b2a ; le Guide pratique
 documente le parcours de cette livraison. Aucune base réelle n'est intégrée.
+
+
+* Changement de base après saisies — #R4b3
+
+Le parcours de classe permet désormais la transition en cours d'année après
+aperçu et confirmation. Les acquis ne sont ni copiés ni réinterprétés ; les
+traces gardent leur contexte d'origine. Le lecteur et la clôture conservent
+également les compétences sorties de la base. Voir CHOIX-BASES-REFERENTIELS.org
+et le Guide pratique pour les conséquences et limites. Le parcours graphique
+des choix d'école reste à réaliser ; aucune base réelle n'est intégrée.

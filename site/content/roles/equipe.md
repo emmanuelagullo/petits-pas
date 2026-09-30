@@ -18,6 +18,7 @@ les [situations illustrées]({{< relref "/roles/situations/" >}}) montrent
 comment ils s'appliquent dans les parcours.
 
 Le responsable de classe et la direction peuvent
-[choisir une base autorisée avant les premières observations]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
+[choisir ou changer une base autorisée]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
 Ce choix ne donne pas à la direction un droit de correction des acquisitions.
-Le changement de base après saisie reste en préparation.
+Les anciennes observations restent dans les parcours, même si leur compétence
+quitte les prochaines saisies.
