@@ -20,12 +20,13 @@
     <span><strong>{{ compteurs.reussi }}</strong> réussite{{ compteurs.reussi|pluralize }}</span>
   </div>
 
+  {% if compteurs.non_retrouve %}<p>{{ compteurs.non_retrouve }} état{{ compteurs.non_retrouve|pluralize }} de cette année non retrouvé{{ compteurs.non_retrouve|pluralize }}. Aucune réussite plus récente n’est ajoutée.</p>{% endif %}
   <table>
     <thead><tr><th>Élève</th><th>À observer</th><th>En cours</th><th>Réussi</th><th>Notes de séance</th></tr></thead>
     <tbody>
       {% for eleve, observation, etat in lignes %}
       <tr>
-        <th>{{ eleve.prenom }} {{ eleve.nom }}</th>
+        <th>{{ eleve.prenom }} {{ eleve.nom }}{% if etat == 'non_retrouve' %} — état non retrouvé{% endif %}</th>
         <td class="marque-etat">{% if etat == 'a_observer' %}●{% else %}○{% endif %}</td>
         <td class="marque-etat">{% if etat == 'en_cours' %}●{% else %}○{% endif %}</td>
         <td class="marque-etat">{% if etat == 'reussi' %}●{% else %}○{% endif %}</td>

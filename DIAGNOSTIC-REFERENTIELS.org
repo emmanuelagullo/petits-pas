@@ -231,3 +231,18 @@ exécutés séparément) requièrent encore la reprise explicite. Le chargement 
 direct est également refusé dès la préparation initiale, avant même la première
 classe, afin de ne pas désynchroniser la version utilisée lors des saisies.
 La future mise à jour d'une source reste le parcours d'adoption de #R4/#R8.
+
+* Grilles et comptages annuels — #R3c2d
+
+Les grilles et compteurs de classe consultent les états annuels lorsque l'élève
+a rejoint une année ultérieure. Un état ancien inconnu est indiqué séparément,
+sans être compté comme « à observer » ou comme réussite. Les classes closes
+consultent les états conservés à leur clôture. La date civile ne ferme aucune
+classe : une équipe peut terminer une année avant de passer à la suivante.
+Les cellules d'une ancienne scolarité deviennent consultables sans bouton de
+saisie ; elles ne permettent pas de modifier le suivi de la nouvelle année.
+
+Les comptages restent réalisés en base sans charger les traces ni les médias.
+Le contrôle de coût autorise au plus trois requêtes, indépendamment du nombre
+de compétences : la résolution annuelle peut ajouter une requête aux deux
+requêtes de comptage précédentes.

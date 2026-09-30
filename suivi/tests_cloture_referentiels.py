@@ -94,3 +94,16 @@ class RessourcesInitiales(Base):
                 _supprimer_media_apres_validation(nom)
             self.assertTrue(stockage.exists(nom))
             self.assertTrue(RessourceReferentiel.objects.filter(fichier=nom).exists())
+
+    def test_cloture_ne_prend_pas_etat_d_une_annee_ulterieure(self):
+        from .models import Classe, Scolarite, Observation
+        self.creer_trace(commentaire="Trace fictive avant changement")
+        reprendre(self.ecole.pk)
+        annee = f"{int(self.classe.annee_scolaire[:4]) + 1}-{int(self.classe.annee_scolaire[:4]) + 2}"
+        suivante = Classe.objects.create(ecole=self.ecole, nom="Hirondelles", annee_scolaire=annee)
+        Scolarite.objects.create(eleve=self.eleve, classe=suivante, annee_scolaire=annee, niveau="MS")
+        Observation.objects.filter(eleve=self.eleve, competence=self.competence).update(statut="reussi")
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            adoption = clore(utilisateur=self.enseignant, classe=self.classe)
+        self.assertFalse(adoption.etat_final["etats"][0]["connu"])
+        self.assertIsNone(adoption.etat_final["etats"][0]["statut"])

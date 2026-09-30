@@ -65,3 +65,17 @@ class CarnetsAnnuels(Base):
         self.assertEqual(page.status_code, 200)
         self.assertEqual(page["Content-Type"], "application/pdf")
         self.assertTrue(page.content.startswith(b"%PDF"))
+
+    def test_grille_et_repartition_anciennes_ne_reprennent_pas_reussite_recente(self):
+        from .referentiels import arbre_competences, observations_classe
+        from .statistiques import repartition_competences
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=self.competence, statut="reussi")
+        ancienne_classe = self.ancienne.classe
+        observation = observations_classe(ancienne_classe).get()
+        self.assertIsNone(observation.statut_lecture)
+        self.assertFalse(observation.connu_lecture)
+        competences = [c for domaine in arbre_competences(self.ecole, classe=ancienne_classe) for c in domaine.visibles]
+        repartition_competences(ancienne_classe, competences)
+        self.assertEqual(competences[0].repartition["reussites"], 0)
+        self.assertEqual(competences[0].repartition["etats_inconnus"], 1)
+        self.assertEqual(competences[0].repartition["non_observes"], 0)

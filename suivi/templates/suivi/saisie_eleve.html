@@ -3,7 +3,7 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'accueil' %}">Les classes</a> · <a href="{% url 'classe_detail' eleve.classe.pk %}">{{ eleve.classe.libelle_avec_annee }}</a></p>
 <h1>{{ eleve.prenom }} {{ eleve.nom }}</h1>
-<p class="sous-titre">Touchez une ligne pour la marquer réussie. Une deuxième fois pour « en cours », une troisième pour l'effacer.</p>
+{% if responsable %}<p class="sous-titre">Touchez une ligne pour la marquer réussie. Une deuxième fois pour « en cours », une troisième pour l'effacer.</p>{% else %}<p class="sous-titre">Consultez les observations et les traces conservées.</p>{% endif %}
 
 <div class="filtres">
   <a href="?niveaux=tous" aria-current="{% if filtre == 'tous' %}true{% endif %}">Tout le cycle</a>
