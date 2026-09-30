@@ -40,8 +40,25 @@ liens de l'année précédente.
 
 * Disponibilité
 
-#R7a prépare le modèle, les services et la conservation finale. Les écrans et
-le Guide seront livrés dans #R7b. Les correspondances déclarées par une source
+#R7a prépare le modèle, les services et la conservation finale. #R7b rend accessibles la validation,
+la consultation et le retrait via « Correspondances entre compétences ». Les
+personnes autorisées à voir la classe consultent ses liens, sans droit de
+validation supplémentaire. Les formulaires signés pendant trente minutes
+sont liés au compte, à l'école, l'année, la classe, la base courante et l'état
+des liens du périmètre ; une page périmée demande une nouvelle consultation.
+Le Guide décrit ces parcours. La saisie par compétence et l'aperçu de changement
+de base montrent les liens séparément, sans modifier les identités communes. Les correspondances déclarées par une source
 YAML ne sont pas importées dans ce jalon : il n'est pas nécessaire d'inventer
 une provenance fournie pour un lien validé localement. Une éventuelle reprise
 d'illustration ou phrase restera une action distincte avec sa propre origine.
+
+* Vérifications de #R7
+
+Les 511 tests Django de la suite complète passent, dont 13 scénarios de liens
+et d'interface : droits, origines, identité commune entre versions, absence de
+transfert, retrait conservé, cycles courts et longs, périmètres de classes
+séparés, héritage école/classe, clôture et formulaires périmés. Django check,
+le contrôle des migrations, les espaces du diff et le Guide (42 fiches,
+13 références de captures) passent également. La construction Hugo, PostgreSQL
+et la validation visuelle et d'usage restent à vérifier en CI ou localement :
+Hugo n'est pas installé dans cet environnement.

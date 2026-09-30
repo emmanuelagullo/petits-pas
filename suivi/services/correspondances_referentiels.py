@@ -7,7 +7,6 @@ from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise
 from suivi.models import (AdoptionReferentiel, Classe, CompetenceLocale, CorrespondanceCompetence, Ecole)
 from suivi.adaptations_referentiels import contenus_ecole
-from suivi.correspondances_referentiels import liens_actifs
 from suivi.referentiels import contenu_origine
 from .ajouts_referentiels import catalogue_reprises
 from .choix_bases_referentiels import verifier_annee
@@ -32,7 +31,7 @@ def catalogue_liens(*, utilisateur, ecole, annee, classe=None):
             reference = f"base:{version.pk}:{c['id']}"
             resultat[reference] = {"reference": reference, "competence_id": c["id"], "version_id": version.pk,
                 "libelle": c["libelle"], "code": c["code"], "niveau": c["niveau"],
-                "origine": f"{version.source.titre} — version {version.numero}", "locale_id": None}
+                "origine": f"{version.source.titre} ({version.source.identifiant}) — version {version.numero}", "locale_id": None}
     locales = catalogue_reprises(utilisateur=utilisateur, ecole=ecole, annee=annee, classe=classe) if classe else (
         CompetenceLocale.objects.filter(ecole=ecole, disponibilites__annee_scolaire__lte=annee).distinct())
     for locale in locales.select_related("classe_origine"):

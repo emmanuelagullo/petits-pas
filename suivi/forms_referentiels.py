@@ -60,3 +60,21 @@ class AjoutCompetenceForm(forms.Form):
     def __init__(self, *args, domaines, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["domaine"].choices = [(d["id"], d["nom"]) for d in domaines]
+
+
+class CorrespondanceCompetenceForm(forms.Form):
+    depart = forms.ChoiceField(label="Première compétence")
+    type_lien = forms.ChoiceField(label="La première compétence…", choices=[
+        ("lien", "est en lien avec la seconde"), ("precise", "précise la seconde"),
+        ("remplace", "remplace la seconde")])
+    arrivee = forms.ChoiceField(label="Seconde compétence")
+    justification = forms.CharField(label="Pourquoi relier ces apprentissages ?", max_length=1000,
+                                   widget=forms.Textarea(attrs={"rows": 3}))
+    consequences = forms.BooleanField(label="Ce lien ne copie aucune réussite et ne change pas les compétences proposées à la saisie.")
+
+    def __init__(self, *args, catalogue, **kwargs):
+        super().__init__(*args, **kwargs)
+        choix = [("", "Choisir une compétence")] + [(r, f"{c['libelle']} · {c['niveau']} · {c['origine']}")
+                    for r, c in catalogue.items()]
+        self.fields["depart"].choices = choix
+        self.fields["arrivee"].choices = choix

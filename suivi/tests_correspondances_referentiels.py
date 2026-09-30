@@ -132,3 +132,22 @@ class Correspondances(Base):
         self.assertEqual(lien.classe_id, autre.pk)
         # Les chemins privés de deux classes ne sont pas combinés pour inventer un cycle.
         self.assertEqual(CorrespondanceCompetence.objects.filter(active=True).count(), 3)
+
+    def test_meme_identite_entre_versions_pas_un_lien_et_origines_non_reinterpretees(self):
+        from .tests_import_sources_referentiels import document, importer
+        from .services.choix_bases_referentiels import publier_choix_application
+        doc = document(version="2")
+        doc["domaines"][0]["competences"][0]["libelle"] = "Je prends la parole"
+        v2 = importer(doc)[0]
+        publier_choix_application(annee=self.annee, versions_ids=[self.a.pk, self.b.pk, v2.pk],
+            proposee_id=v2.pk, revision_attendue=1)
+        lien = self.relier()
+        origine = lien.origine_arrivee.copy()
+        self.adoption = self.adopter(v2)
+        catalogue = catalogue_liens(utilisateur=self.enseignant, ecole=self.ecole, annee=self.annee, classe=self.classe)
+        r2 = next(r for r, c in catalogue.items() if c["version_id"] == v2.pk)
+        self.assertEqual(catalogue[r2]["competence_id"], catalogue[self.ra]["competence_id"])
+        with self.assertRaises(ValidationError): self.relier(depart=r2, arrivee=self.ra)
+        lien.refresh_from_db()
+        self.assertEqual(lien.origine_arrivee, origine)
+        self.assertEqual(lien.origine_arrivee["libelle"], "Je parle")

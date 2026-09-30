@@ -64,3 +64,8 @@ sources sont fictifs ; cette fonction ne garantit pas un référentiel officiel.
 
 Les [libellés et compétences masquées]({{< relref "/guide/eleves-classes/adapter-competences" >}})
 se règlent séparément, sans changer de base ni de compétence.
+
+Les [correspondances]({{< relref "/guide/eleves-classes/relier-competences" >}})
+entre apprentissages apparaissent séparément dans l’aperçu lorsqu’elles
+rapprochent les compétences des deux bases. Elles ne rendent pas leurs
+réussites équivalentes et ne modifient pas les nombres d’identités communes.

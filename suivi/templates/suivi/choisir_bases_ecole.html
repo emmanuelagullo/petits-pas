@@ -15,6 +15,7 @@
 {% if form %}
 <p><a class="bouton discret" href="{% url 'adaptations_ecole' %}?annee={{ annee }}">Libellés et compétences masquées</a></p>
 <p><a class="bouton discret" href="{% url 'ajouts_ecole' %}?annee={{ annee }}">Compétences ajoutées</a></p>
+<p><a class="bouton discret" href="{% url 'correspondances_ecole' %}?annee={{ annee }}">Correspondances entre compétences</a></p>
 <h2>Choix actuels — {{ annee }}</h2>
 <ul>{% for version in choix.versions %}<li>{{ version.source.titre }} — version {{ version.numero }}{% if choix.proposee.pk == version.pk %} · choix proposé{% endif %}</li>{% empty %}<li>Aucune base autorisée pour un nouveau choix de classe.</li>{% endfor %}</ul>
 {% if not choix.proposee %}<p>Aucune base n'est proposée par défaut.</p>{% endif %}

@@ -54,8 +54,8 @@ de l’école ne modifient plus ce carnet.
 - Le domaine est choisi parmi les domaines de la base actuelle de la classe,
   ou des bases consultables par la direction. La création libre de domaines,
   sous-domaines et attendus n’est pas proposée.
-- Un texte identique n’assimile jamais deux compétences. Les correspondances
-  pédagogiques seront étudiées dans une prochaine étape.
+- Un texte identique n’assimile jamais deux compétences. [Relier deux compétences]({{< relref "/guide/eleves-classes/relier-competences" >}})
+  permet d’expliquer un rapprochement sans copier de réussite.
 - Une classe close reste consultable. Une classe sans base doit d’abord en
   choisir une. Si la base ou les choix ont changé, reconsulter la page avant
   d’enregistrer.
