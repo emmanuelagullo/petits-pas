@@ -14,7 +14,7 @@ from .autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autoris
 from .contexte_ecole import ecole_courante
 from .forms_presentation import IllustrationForm
 from .models import Competence, ParametresCarnet, ReglagePresentation
-from .referentiels import arbre_competences
+from .referentiels import arbre_competences, competence_classe
 from .presentation import catalogue_icones, illustration_effective, propositions
 from .services.presentation import enregistrer_formulation, enregistrer_reglage, verifier_droit
 from .views import acces_requis, _supprimer_media_apres_validation
@@ -49,6 +49,8 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
                       {"destinations": destinations}, status=403)
     ecole, classe = _perimetre(request, classe_pk)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole) if competence_pk else None
+    if classe and competence:
+        competence = competence_classe(classe, competence) or competence
     filtres = {"ecole": ecole, "classe": classe, "competence": competence}
     reglage = ReglagePresentation.objects.filter(**filtres).first() or ReglagePresentation(**filtres)
     ancien_nom = reglage.photo.name if reglage.photo else ""

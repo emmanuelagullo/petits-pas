@@ -116,3 +116,119 @@ def choisir_bases_ecole(request):
     contexte.update(form=form, choix=choix, proposee_superieure=proposee_superieure,
         apercu=apercu, jeton=jeton, erreur=erreur)
     return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400 if erreur else 200)
+
+
+@acces_requis
+@require_http_methods(["GET", "POST"])
+def adapter_competences(request, classe_pk=None, competence_pk=None):
+    from copy import deepcopy
+    from django.core.exceptions import PermissionDenied
+    from django.http import Http404
+    from django.shortcuts import get_object_or_404
+    from django.urls import reverse
+    from django.utils import timezone
+
+    from .adaptations_referentiels import contenu_adapte, contenus_ecole
+    from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
+    from .forms_referentiels import AdaptationCompetenceForm
+    from .models import AdaptationCompetence, AdoptionReferentiel, Competence, annee_scolaire_pour
+    from .referentiels import arbre_version, contenu_adoption, contenu_origine
+    from .services.adaptations_referentiels import enregistrer_adaptation
+    from .services.choix_bases_referentiels import verifier_annee
+
+    ecole = ecole_courante(request)
+    classe = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole) if classe_pk else None
+    if not classe and not autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
+        raise PermissionDenied
+    actuelle = adoption_courante(classe)
+    valeurs = request.POST if request.method == "POST" else request.GET
+    annee = classe.annee_scolaire if classe else valeurs.get("annee", annee_scolaire_pour(timezone.localdate()))
+    try:
+        verifier_annee(annee)
+    except ValidationError as cause:
+        return render(request, "suivi/adapter_competences.html", {"classe": classe, "annee": annee,
+            "erreur": " ".join(cause.messages)}, status=400)
+    if classe:
+        bases = []
+        deja = set()
+        for adoption in AdoptionReferentiel.objects.filter(classe=classe).select_related("version__source").order_by("-courante", "-pk"):
+            if adoption.version_id not in deja:
+                bases.append((adoption.version, contenu_origine(adoption)))
+                deja.add(adoption.version_id)
+    else:
+        bases = contenus_ecole(ecole, annee)
+    try:
+        version_id = int(valeurs.get("version", bases[0][0].pk if bases else 0))
+    except (TypeError, ValueError):
+        raise Http404
+    selection = next((paire for paire in bases if paire[0].pk == version_id), None)
+    if selection is None and (version_id or competence_pk):
+        raise Http404
+    version, origine = selection if selection else (None, {})
+    clos = bool(actuelle and actuelle.clos)
+    hors_base = bool(classe and actuelle and version_id != actuelle.version_id)
+    if clos:
+        effectif = deepcopy(origine)
+        finales = {c["id"]: c for c in contenu_adoption(actuelle).get("competences", [])}
+        for definition in effectif.get("competences", []):
+            definition.update(finales.get(definition["id"], {}))
+    else:
+        effectif = contenu_adapte(ecole, annee, origine, classe)
+    index_url = reverse("adaptations_classe", args=[classe.pk]) if classe else reverse("adaptations_ecole")
+    suffixe = f"?annee={annee}&version={version_id}"
+    contexte = {"classe": classe, "annee": annee, "bases": [v for v, _ in bases], "version": version,
+                "clos": clos, "hors_base": hors_base, "index_url": index_url + suffixe}
+    if not competence_pk:
+        if request.method == "POST":
+            raise Http404
+        ids = [c["id"] for c in effectif.get("competences", [])]
+        domaines = arbre_version(ecole, effectif, inclure_ids=ids, masquer=False, masque_actuel=False)
+        for domaine in domaines:
+            for competence in domaine.visibles:
+                competence.url_adaptation = (reverse("adaptation_competence_classe", args=[classe.pk, competence.pk])
+                    if classe else reverse("adaptation_competence_ecole", args=[competence.pk])) + suffixe
+        contexte["domaines"] = domaines
+        return render(request, "suivi/adapter_competences.html", contexte)
+    competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
+    definition = next((c for c in origine.get("competences", []) if c["id"] == competence.pk), None)
+    if definition is None:
+        raise Http404
+    courante = next(c for c in effectif["competences"] if c["id"] == competence.pk)
+    proposee = next(c for c in contenu_adapte(ecole, annee, origine)["competences"] if c["id"] == competence.pk) if classe else definition
+    if not classe:
+        proposee = {**definition, "active": definition["active"] and competence.active}
+    regle = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
+                                               classe=classe, competence=competence).first()
+    initial = {"mode_libelle": "personnel" if regle and regle.libelle is not None else "garder",
+        "libelle": regle.libelle if regle and regle.libelle is not None else proposee["libelle"],
+        "visibilite": "garder" if not regle or regle.visible is None else ("montrer" if regle.visible else "masquer")}
+    form = AdaptationCompetenceForm(initial=initial)
+    attente = {"ecole": ecole.pk, "auteur": request.user.pk, "annee": annee,
+        "classe": classe.pk if classe else None, "competence": competence.pk, "version": version_id,
+        "revision": regle.revision if regle else 0, "adoption": actuelle.pk if actuelle else None}
+    erreur = None
+    jeton = signing.dumps(attente, salt="adaptation-competence")
+    if request.method == "POST":
+        jeton = None
+        form = AdaptationCompetenceForm(request.POST)
+        try:
+            try:
+                signe = signing.loads(request.POST.get("jeton", ""), salt="adaptation-competence", max_age=1800)
+            except signing.BadSignature as cause:
+                raise ValidationError("Les choix ont expiré ou ne sont plus valables. Consultez à nouveau la compétence.") from cause
+            if signe != attente:
+                raise ValidationError("Les choix ou la base ont changé. Consultez à nouveau la compétence.")
+            jeton = signing.dumps(attente, salt="adaptation-competence")
+            if not form.is_valid():
+                raise ValidationError("Vérifiez votre libellé et les choix de visibilité.")
+            enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee,
+                competence=competence, classe=classe, libelle=form.cleaned_data["libelle"],
+                visible=form.cleaned_data["visible"], meme_sens=form.cleaned_data.get("meme_sens", False),
+                revision_attendue=signe["revision"], adoption_attendue=signe["adoption"])
+            messages.success(request, "Les choix de cette compétence sont enregistrés pour l'année. Son identité et ses observations sont conservées.")
+            return redirect(request.path + suffixe)
+        except ValidationError as cause:
+            erreur = " ".join(cause.messages)
+    contexte.update(competence=competence, origine=definition, courante=courante, proposee=proposee,
+                    form=form, erreur=erreur, jeton=jeton, consultation_url=request.path + suffixe)
+    return render(request, "suivi/adapter_competences.html", contexte, status=400 if erreur else 200)

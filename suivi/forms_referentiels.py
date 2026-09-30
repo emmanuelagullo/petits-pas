@@ -25,3 +25,26 @@ class ChoixEcoleForm(forms.Form):
         if not donnees["restreindre"]:
             donnees["versions"] = []
         return donnees
+
+
+class AdaptationCompetenceForm(forms.Form):
+    mode_libelle = forms.ChoiceField(label="Libellé", choices=[
+        ("garder", "Garder le libellé proposé"), ("personnel", "Utiliser mon libellé")], widget=forms.RadioSelect)
+    libelle = forms.CharField(label="Mon libellé", max_length=300, required=False,
+                             widget=forms.Textarea(attrs={"rows": 2}))
+    meme_sens = forms.BooleanField(label="Mon libellé décrit le même apprentissage.", required=False)
+    visibilite = forms.ChoiceField(label="Dans les prochaines saisies", choices=[
+        ("garder", "Garder la visibilité proposée"), ("montrer", "Montrer cette compétence"),
+        ("masquer", "Masquer cette compétence")], widget=forms.RadioSelect)
+
+    def clean(self):
+        donnees = super().clean()
+        if donnees.get("mode_libelle") == "personnel":
+            if not donnees.get("libelle"):
+                self.add_error("libelle", "Précisez votre libellé.")
+            if not donnees.get("meme_sens"):
+                self.add_error("meme_sens", "Confirmez que le même apprentissage est conservé.")
+        else:
+            donnees["libelle"] = None
+        donnees["visible"] = {"garder": None, "montrer": True, "masquer": False}.get(donnees.get("visibilite"))
+        return donnees

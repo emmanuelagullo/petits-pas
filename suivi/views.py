@@ -128,7 +128,7 @@ from .services.pedagogie import (
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
-from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe, observations_classe, projeter_etat_classe, classe_historique
+from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe, observations_classe, projeter_etat_classe, classe_historique, competence_saisissable
 from .statistiques import repartition_competences
 from .services.equipe import (
     accepter_invitation,
@@ -841,6 +841,7 @@ def saisie_competence(request, pk, competence_pk):
     competence = competence_classe(classe, competence)
     if competence is None:
         raise Http404
+    saisissable = competence_saisissable(classe, competence)
     etats = {o.eleve_id: projeter_etat_classe(o)
              for o in observations_classe(classe).filter(competence=competence).prefetch_related("traces")}
     eleves = list(classe.eleves.annotate(derniere_annee=Max("scolarites__annee_scolaire")))
@@ -852,7 +853,8 @@ def saisie_competence(request, pk, competence_pk):
         "suivi/saisie_competence.html",
         {"classe": classe, "competence": competence, "lignes": lignes,
          "historique": classe_historique(classe),
-         "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
+         "nouvelle_saisie_possible": saisissable,
+         "responsable": autorise(request.user, MODIFIER_ETAT, classe) and saisissable},
     )
 
 
@@ -982,6 +984,9 @@ def basculer(request, eleve_pk, competence_pk):
         statut=suivant,
     )
 
+    scolarite = eleve.scolarite_courante()
+    if scolarite:
+        competence = competence_classe(scolarite.classe, competence) or competence
     eleve.peut_saisir_dans_classe = True
     gabarit = (
         "suivi/partiels/case_eleve.html"
@@ -1009,6 +1014,7 @@ def _contexte_traces_communes(request, pk, competence_pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
+    competence = competence_classe(classe, competence) or competence
     return classe, competence
 
 
@@ -1023,6 +1029,7 @@ def traces_communes(request, pk, competence_pk):
     return render(request, "suivi/traces_communes.html", {
         "classe": classe, "competence": competence, "communes": communes,
         "responsable": autorise(request.user, MODIFIER_ETAT, classe),
+        "peut_ajouter": competence_saisissable(classe, competence),
     })
 
 
@@ -1312,6 +1319,8 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
     obs = Observation.objects.filter(eleve=eleve, competence=competence).first()
     scolarite_courante = eleve.scolarite_courante()
+    if scolarite_courante:
+        competence = competence_classe(scolarite_courante.classe, competence) or competence
     trace_obj = None
     if trace_pk is not None:
         trace_obj = get_object_or_404(
@@ -1412,6 +1421,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             "competence": competence,
             "obs": obs,
             "trace_obj": trace_obj,
+            "peut_ajouter": bool(scolarite_courante and competence_saisissable(scolarite_courante.classe, competence)),
             "traces": traces,
             "traces_supprimees": traces_supprimees,
             "responsable": responsable,

@@ -174,11 +174,10 @@ trace vide reste techniquement acceptée et est signalée dans la fiche
 concernée. Les opérations d’exploitation restent séparées des gestes
 quotidiens.
 
-Les images et phrases proposées peuvent être adaptées, mais l'édition complète
-de la liste des compétences n'est pas proposée ici : renommer, masquer ou
-ajouter une compétence et relier plusieurs référentiels restent un chantier
-distinct. Les images fournies sont facultatives et ne couvrent que quelques
-compétences.
+Les images et phrases proposées peuvent être adaptées. Les libellés et le
+masquage des compétences disposent maintenant de leur propre parcours annuel ;
+l'ajout de compétences et les correspondances restent à réaliser. Les images
+fournies sont facultatives et ne couvrent que quelques compétences.
 
 La reprise #G6b est volontairement différée : elle réexaminera les fiches
 d’invitation, de compte et d’affectation après les évolutions ultérieures de la
@@ -188,6 +187,7 @@ phase d’authentification, sans bloquer le présent guide.
 
 | Je voudrais… | Pour qui ? | État | Limite |
 | --- | --- | --- | --- |
+| Adapter les libellés et masquer des compétences | Responsable ou direction | Disponible | Choix annuels séparés ; même apprentissage et ancien parcours conservés. |
 | Choisir une base autorisée | Responsable ou direction | Disponible | Aperçu puis confirmation ; aucun transfert de réussite. |
 | Changer de base après des saisies | Responsable ou direction | Disponible | Aperçu puis confirmation ; les anciens parcours restent conservés. |
 | Proposer ou limiter les bases pour l’école | Direction | Disponible | Choix annuels, aperçu puis confirmation ; aucune bascule des classes. |
@@ -195,3 +195,5 @@ phase d’authentification, sans bloquer le présent guide.
 
 Voir [les choix de l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}) et
 [choisir le référentiel d'une classe]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
+
+Voir [adapter les libellés et masquer des compétences]({{< relref "/guide/eleves-classes/adapter-competences" >}}).

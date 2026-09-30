@@ -3,6 +3,7 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Choisir le référentiel de la classe</h1>
+<p><a class="bouton discret" href="{% url 'adaptations_classe' classe.pk %}">Libellés et compétences masquées</a></p>
 <p>Une base à la fois sert aux prochaines saisies. Choisir une autre base ne crée aucune réussite et ne relie pas automatiquement ses compétences aux anciennes.</p>
 {% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% endif %}
 {% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}

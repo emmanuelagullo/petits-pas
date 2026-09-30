@@ -57,3 +57,6 @@ propres choix.
 
 La trame Petits Pas est une trame de travail provisoire. Les exemples de nouvelles
 sources sont fictifs ; cette fonction ne garantit pas un référentiel officiel.
+
+Les [libellés et compétences masquées]({{< relref "/guide/eleves-classes/adapter-competences" >}})
+se règlent séparément, sans changer de base ni de compétence.

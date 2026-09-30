@@ -25,3 +25,7 @@ quitte les prochaines saisies.
 
 La direction peut aussi [proposer ou limiter les bases pour l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}),
 année par année, sans changer automatiquement la base des classes.
+
+Le responsable ou la direction peut [adapter les libellés et masquer des compétences]({{< relref "/guide/eleves-classes/adapter-competences" >}})
+pour la classe. La direction prépare les propositions de l'école. Les identités
+et les anciens parcours restent conservés.

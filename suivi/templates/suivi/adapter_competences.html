@@ -1,0 +1,46 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Libellés et compétences masquées — {{ annee }}{% endblock %}
+{% block contenu %}
+<p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% else %}<a href="{% url 'gestion' %}">Gérer l'école</a> · <a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
+<h1>Libellés et compétences masquées</h1>
+<p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Choix proposés par l'école pour {{ annee }}. Les classes qui les gardent suivent leurs évolutions ; leurs propres choix restent prioritaires.{% endif %}</p>
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if clos %}<p>Les choix de cette classe sont clos. Le dernier état conservé reste consultable.</p>{% endif %}
+{% if hors_base %}<p class="message">Cette ancienne base reste dans les parcours. Montrer l'une de ses compétences ne l'ajoute pas aux prochaines saisies : il faut choisir une base autorisée qui la contient.</p>{% endif %}
+{% if competence %}
+<p><a href="{{ index_url }}">Revenir à la liste des compétences</a></p>
+<h2>{{ courante.libelle }}</h2>
+<p>{% if clos %}Visibilité conservée :{% else %}Dans les prochaines saisies :{% endif %} {% if hors_base %}hors de la base actuelle{% elif courante.active %}montrée{% else %}masquée{% endif %}.</p>
+<details><summary>Origine et libellé fourni</summary>
+<p>{{ version.source.titre }} — version {{ version.numero }}{% if version.source.provisoire %} · trame provisoire{% endif %}.</p>
+<p>Libellé fourni : <strong>{{ origine.libelle }}</strong>. Code dans cette base : {{ origine.code }}.</p>
+<p>Adapter le libellé conserve la même compétence et ses observations. Pour décrire un autre apprentissage, il faut une compétence distincte.</p></details>
+{% if not clos %}<p>Libellé proposé {% if classe %}par l'école{% else %}par la base{% endif %} : <strong>{{ proposee.libelle }}</strong>.</p>
+<p>Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
+{% if not clos %}
+<form method="post">{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}"><input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="jeton" value="{{ jeton }}">
+<fieldset><legend>{{ form.mode_libelle.label }}</legend>{{ form.mode_libelle.errors }}{{ form.mode_libelle }}</fieldset>
+<p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p>
+<p class="aide">Ce texte sert uniquement si vous choisissez « Utiliser mon libellé ».</p>
+<p>{{ form.meme_sens }} {{ form.meme_sens.label_tag }} {{ form.meme_sens.errors }}</p>
+<fieldset><legend>{{ form.visibilite.label }}</legend>{{ form.visibilite.errors }}{{ form.visibilite }}</fieldset>
+<p>Masquer retire cette compétence des prochaines saisies. Ses observations, commentaires et photos restent dans le parcours. Vous pouvez la montrer de nouveau, saisir, puis la masquer à nouveau.</p>
+<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer les choix</button>
+{% if not jeton %}<p><a href="{{ consultation_url }}">Reconsulter la compétence avant d'enregistrer</a></p>{% endif %}
+</form>
+{% endif %}
+{% else %}
+<form method="get">
+{% if not classe %}<label for="annee">Année scolaire</label><input id="annee" name="annee" value="{{ annee }}" required pattern="[0-9]{4}-[0-9]{4}">{% endif %}
+{% if bases %}<label for="version">Base à consulter</label><select id="version" name="version">{% for base in bases %}<option value="{{ base.pk }}"{% if version.pk == base.pk %} selected{% endif %}>{{ base.source.titre }} — version {{ base.numero }}</option>{% endfor %}</select>{% endif %}
+<button class="bouton discret" type="submit">Consulter les compétences</button>
+</form>
+{% for domaine in domaines %}{% if domaine.visibles %}<h2>{{ domaine.nom }}</h2>
+<ul class="liste">{% for competence in domaine.visibles %}<li class="entree"><a class="principal" href="{{ competence.url_adaptation }}">{{ competence.libelle }}</a> <span>{% if not competence.active %}masquée · {% endif %}{{ competence.get_niveau_display }}</span></li>{% endfor %}</ul>{% endif %}
+{% empty %}<p>Aucune compétence n'est encore disponible ici. {% if classe %}Choisissez d'abord une base pour la classe.{% else %}Les bases utilisées par les classes et celles déjà préparées peuvent être adaptées. Pour une nouvelle source, choisissez d'abord la base d'une classe.{% endif %}</p>{% endfor %}
+{% endif %}
+<details><summary>Garder les choix proposés ou personnaliser ?</summary>
+<p>Pour commencer, gardez le libellé et la visibilité proposés. Les deux choix sont séparés : vous pouvez garder le libellé de l'école tout en montrant une compétence masquée par l'école.</p>
+<p>Un libellé personnel doit décrire le même apprentissage. Il s'applique aux présentations et aux anciens parcours de cette année. Revenir au libellé proposé retrouve les évolutions du niveau supérieur.</p>
+<p>Ces choix concernent {% if classe %}cette classe{% else %}l'école{% endif %} pour {{ annee }}. À la clôture, le carnet garde le dernier état de la classe. La nouvelle année possède ses propres choix.</p></details>
+{% endblock %}

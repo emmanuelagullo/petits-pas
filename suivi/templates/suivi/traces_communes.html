@@ -3,6 +3,7 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'saisie_competence' classe.pk competence.pk %}">{{ classe.libelle_avec_annee }} · {{ competence.libelle }}</a></p>
 <h1>Traces communes</h1>
+{% if not peut_ajouter %}<p class="message">Cette compétence n’est pas disponible pour une nouvelle trace commune. Les traces déjà conservées restent consultables.</p>{% endif %}
 <p>Une trace commune s'affiche uniquement pour les enfants sélectionnés. Leur état d'acquisition ne change pas.</p>
 {% for item in communes %}
 <article class="encadre">
@@ -12,5 +13,5 @@
   {% if responsable %}<form method="post" action="{% url 'supprimer_trace_commune' classe.pk competence.pk item.pk %}" onsubmit="return confirm('Retirer cette trace commune des carnets associés ? Les versions personnelles seront conservées.');">{% csrf_token %}<button class="bouton discret" type="submit">Retirer cette trace commune</button></form>{% endif %}
 </article>
 {% endfor %}
-{% if responsable %}<p><a class="bouton" href="{% url 'ajouter_trace_commune' classe.pk competence.pk %}">Ajouter une trace commune</a></p>{% endif %}
+{% if responsable and peut_ajouter %}<p><a class="bouton" href="{% url 'ajouter_trace_commune' classe.pk competence.pk %}">Ajouter une trace commune</a></p>{% endif %}
 {% endblock %}

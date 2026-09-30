@@ -35,3 +35,45 @@ Vérifications #R5a : 26 tests des adoptions, contextes et clôtures, puis 17 te
 des adaptations, clôtures et migrations historiques réussis. Absence d'écart de
 migration et contrôle d'espacement vérifiés. La suite complète est prévue avec
 les parcours #R5b ; aucun Guide pratique nouveau n'est annoncé à cette étape.
+
+
+* Parcours accessibles — #R5b
+
+Les boutons Libellés et compétences masquées sont ouverts depuis les
+référentiels de classe et d'école. Le lecteur de liste inclut les masquées ;
+le formulaire conserve séparément l'héritage du libellé et celui de la visibilité.
+L'origine montre source, version, code et libellé fourni, jamais déduits d'une
+ressemblance avec une autre compétence. Un libellé personnel exige l'affirmation
+du même apprentissage. Les sources et codes ne sont jamais réécrits.
+
+L'école peut adapter ses bases utilisées dans l'année et celles déjà préparées,
+sans matérialiser une nouvelle source sur GET. Pour une source nouvelle, choisir
+la base d'une classe précède son adaptation. Les bases précédentes d'une classe
+restent consultables et adaptables pour le parcours, sans réintégrer les
+compétences hors base aux saisies futures.
+
+Le formulaire signé lie compte, école, année, classe, compétence, version,
+révision et adoption courante, pendant trente minutes. Un formulaire périmé
+requiert une nouvelle consultation ; il ne fournit pas de nouveau jeton sur les
+anciennes valeurs à confirmer. Les données envoyées ne remplacent pas ces
+vérifications. Les choix d'une classe close restent consultables ; leurs libellés
+ne suivent plus l'école vivante.
+
+Les titres des traces personnelles et communes ainsi que les réponses HTMX
+emploient aussi le lecteur partagé. Les carnets HTML et PDF ont le même dernier
+libellé annuel. La visibilité des traces et les ressources restent indépendantes.
+Le Guide pratique documente ces parcours et limites ; ni ajout ni correspondance
+ni correction exceptionnelle après clôture ne sont annoncés comme disponibles.
+
+Vérifications finales #R5 : 487 tests Django réussis, y compris les migrations
+historiques, les droits, la clôture, le PDF, l'héritage séparé, les origines de
+versions et le refus de réintégrer une compétence hors base par démasquage.
+Le guide compte 40 fiches et 13 captures référencées ; liens et métadonnées
+valides. Contrôle Django, absence d'écart de migration et git diff --check réussis.
+Construction Hugo, captures visuelles et PostgreSQL non exécutés localement.
+Les deux patchs sont vérifiés successivement avec git am sur main.
+
+Après application de #R5a puis #R5b, exécuter python3 manage.py migrate. Cette
+migration n'exige pas de relancer la reprise des référentiels déjà effectuée.
+La recherche et l'intégration de sources réelles restent une tâche distincte,
+à discuter avec Emmanuel avant de démarrer ; tous les scénarios sont fictifs.

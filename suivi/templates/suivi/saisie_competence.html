@@ -6,6 +6,7 @@
 <p class="sous-titre">{{ competence.domaine.nom }} · repère {{ competence.get_niveau_display|lower }}</p>
 
 {% if historique %}<p>Consultation des états conservés pour cette année. Un état non retrouvé n’est pas remplacé par une réussite plus récente.</p>{% endif %}
+{% if not nouvelle_saisie_possible and not historique %}<p class="message">Cette compétence est masquée ou hors de la base actuelle. Les observations restent consultables. Pour saisir à nouveau, montrez-la ou choisissez une base autorisée qui la contient.</p>{% endif %}
 <div class="actions">
   <a class="bouton" href="{% url 'traces_communes' classe.pk competence.pk %}">{% if responsable %}+ Ajouter ou modifier une trace commune{% else %}Consulter les traces communes{% endif %}</a>
   <a class="bouton discret" href="{% url 'grille_competence' classe.pk competence.pk %}">Voir la grille de suivi</a>

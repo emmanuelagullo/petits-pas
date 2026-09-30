@@ -217,3 +217,13 @@ def projeter_etat_classe(observation):
     observation.date_observation = observation.date_lecture
     observation.historique_inconnu = not observation.connu_lecture
     return observation
+
+
+def competence_saisissable(classe, competence):
+    """Lecture seule pour expliquer les refus avant une nouvelle saisie."""
+    adoption = adoption_courante(classe)
+    if adoption:
+        return not adoption.clos and any(c["id"] == competence.pk and c["active"]
+            for c in contenu_adoption(adoption).get("competences", []))
+    return any(c.pk == competence.pk and c.active
+        for d in arbre_competences(classe.ecole, classe=classe) for c in d.visibles)

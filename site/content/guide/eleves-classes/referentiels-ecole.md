@@ -62,3 +62,7 @@ reste son choix tant qu’elle demeure autorisée.
 
 Les exemples de nouvelles sources restent fictifs. La trame Petits Pas est
 une trame de travail provisoire.
+
+Pour proposer des libellés ou masquer des compétences dans l’année, ouvrir
+[Libellés et compétences masquées]({{< relref "/guide/eleves-classes/adapter-competences" >}}).
+Une classe peut adapter ces propositions ; cela ne change pas les bases autorisées.
