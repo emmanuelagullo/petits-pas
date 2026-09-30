@@ -8,9 +8,9 @@
 <article class="encadre">
   <p><strong>{{ item.date_observation|date:'j F Y' }}</strong> · {{ item.attributions_actives|length }} enfant(s)</p>
   <p>{{ item.commentaire }}</p>
-  <a href="{% url 'modifier_trace_commune' classe.pk competence.pk item.pk %}">Modifier pour les enfants associés</a>
+  {% if responsable %}<a href="{% url 'modifier_trace_commune' classe.pk competence.pk item.pk %}">Modifier pour les enfants associés</a>{% endif %}
   {% if responsable %}<form method="post" action="{% url 'supprimer_trace_commune' classe.pk competence.pk item.pk %}" onsubmit="return confirm('Retirer cette trace commune des carnets associés ? Les versions personnelles seront conservées.');">{% csrf_token %}<button class="bouton discret" type="submit">Retirer cette trace commune</button></form>{% endif %}
 </article>
 {% endfor %}
-<p><a class="bouton" href="{% url 'ajouter_trace_commune' classe.pk competence.pk %}">Ajouter une trace commune</a></p>
+{% if responsable %}<p><a class="bouton" href="{% url 'ajouter_trace_commune' classe.pk competence.pk %}">Ajouter une trace commune</a></p>{% endif %}
 {% endblock %}
