@@ -127,6 +127,7 @@ from .services.pedagogie import (
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
 from .referentiels import arbre_competences as _arbre
+from .statistiques import repartition_competences
 from .services.equipe import (
     accepter_invitation,
     activer_classe,
@@ -817,10 +818,11 @@ def choisir_competence(request, pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
     domaines = [(d, d.visibles) for d in _arbre(ecole) if d.visibles]
+    effectif = repartition_competences(classe, [c for _d, competences in domaines for c in competences])
     return render(
         request,
         "suivi/choisir_competence.html",
-        {"classe": classe, "domaines": domaines},
+        {"classe": classe, "domaines": domaines, "effectif": effectif},
     )
 
 

@@ -21,6 +21,17 @@ statut = "disponible"
 
 ## Résultat attendu
 
+Dans le choix d'une compétence, une petite barre indique la répartition des
+observations : réussites en vert, apprentissages en cours en orange, compétences
+pas encore observées en gris. Le nombre de réussites est affiché sous la barre ;
+les autres nombres apparaissent au survol ou lorsque le lien est sélectionné
+au clavier. Les lecteurs d'écran disposent également des trois nombres.
+
+Le total comprend les élèves non archivés inscrits dans cette classe pour son
+année scolaire. Les états actuels sont les mêmes que dans la saisie : une
+réussite conservée d'une année précédente compte aussi. Une absence
+d'observation ne signifie pas que l'enfant ne maîtrise pas la compétence.
+
 La page conserve la compétence en titre et présente une ligne par élève actif.
 Chaque changement est enregistré immédiatement et apparaît aussi dans la fiche
 individuelle de l’élève.
