@@ -1,0 +1,289 @@
+#+title: Édition et évolution des référentiels — audit et jalons #R
+
+* Statut et périmètre
+
+=#R1= est un audit et une proposition à discuter, sans changement de données,
+de droits ou d'interface. Aucune règle proposée ci-dessous n'est déjà livrée.
+Base examinée : main, commit =6627aca9b717ab028011a99ee2cc920559da56f8=,
+après =#T5b=. Les résultats CI et les validations d'usage de #T restent à recueillir.
+
+Lectures : AGENTS.md, README.md, CONTRIBUTING.md, AUDIT-TRACES-PARTAGEES.org,
+MODELE-LONGITUDINAL.org, modèles, import YAML, services pédagogiques et de
+présentation, autorisations, vues de saisie et de carnet, administration Django,
+inventaire du Guide pratique. Audit statique : aucun essai sur une école réelle.
+La documentation du site est examinée dans ses sources versionnées ; le rendu
+public et la démonstration distante ne sont pas validés par cet audit.
+
+* État actuel et conséquences
+
+| Élément | Constat vérifiable | Conséquence pour #R |
+|---------+--------------------+--------------------|
+| Catalogue | Domaine appartient à une école ; Competence appartient à un domaine | Pas d'entité représentant plusieurs référentiels sources, leurs versions ou leur autorisation |
+| Identité | Competence a une clé de base et un code, sans origine source ; pas de contrainte unique domaine-code | Le code seul ne suffit pas à établir une filiation fiable |
+| Import | charger_referentiel utilise update_or_create par domaine et code | Déplacer un code vers un autre domaine crée une autre compétence ; les observations restent sur l'ancienne |
+| Mise à jour | Libellé, niveau, ordre, sous-domaine, icône et active=True sont réécrits | Un rechargement peut effacer une adaptation directe et réafficher une compétence masquée |
+| Absences | --desactiver-absents filtre toute l'école par les codes vus | Ne distingue ni source, ni ajout local, ni deux codes identiques de domaines différents |
+| Phrases | Codes explicites possibles, sinon générés par position ; propositions absentes désactivées | Réordonner des phrases sans code stable peut modifier le sens d'une origine locale |
+| Structure | Domaines, sous-domaines et attendus mis à jour ; absents non retirés explicitement | Risque de structure résiduelle ; pas de version historique |
+| Masquage | Competence.active est commun à l'école | Pas de choix distinct pour une classe ou une année |
+| Observation | Une ligne unique par élève et compétence, état courant ; lien CASCADE | Ni identité source ni version de sens enregistrée ; supprimer une compétence peut supprimer son suivi selon les autres protections présentes |
+| Traces | Traces datées liées à une scolarité ; TraceCommune protège sa compétence | Bonne base annuelle, mais pas de version de référentiel attachée à la trace |
+| Carnet | _contexte_carnet parcourt arbre_competences, limité aux actives | Une compétence désactivée quitte aussi les carnets reconstruits, même si ses données existent |
+| Présentation | Libellés lus en base ; illustrations école puis classe courante | Un nouveau PDF peut présenter différemment des observations anciennes ; les PDF déjà téléchargés restent inchangés |
+| Écrans | Saisies, réglages et carnet partagent l'arbre par école ; certains compteurs interrogent directement Competence | La résolution par classe doit couvrir aussi statistiques, grilles et génération collective |
+| Droits | #T utilise ADMINISTRER_ECOLE pour l'école et MODIFIER_ETAT pour la classe | Référence utile ; ces droits ne constituent pas encore une politique d'édition des référentiels |
+| Exploitation | Installation, atelier, initialisation serveur et --charger-referentiel chargent la trame | Tous ces chemins doivent être adaptés, ainsi que sauvegarde, restauration et paquets autonomes |
+
+Sources principales : =suivi/models.py=, =suivi/management/commands/charger_referentiel.py=,
+=suivi/referentiels.py=, =suivi/views.py=, =suivi/statistiques.py=,
+=suivi/presentation.py=, =suivi/services/presentation.py=, =suivi/admin.py=,
+=suivi/autorisations.py= et =scripts/lancer-local.py=.
+
+La trame =referentiel/trame-cycle1.yaml= est une proposition de travail,
+pas un référentiel national officiel. Son en-tête conseille encore de modifier
+le YAML pour remplacer une progression. Ce conseil et l'aide de la commande
+seront à revoir avec le nouveau parcours : conserver une ligne en base ne
+garantit pas de conserver son sens ou son ancienne présentation.
+
+* Principes proposés
+
+** Identité, origine et sens
+
+Distinguer une compétence durable, les versions de sa définition et son
+présentation locale. Une reformulation fidèle garde son identité ; un changement
+de sens crée une nouvelle compétence, éventuellement reliée à l'ancienne.
+La différence est une décision pédagogique, jamais une déduction automatique
+à partir d'un texte semblable ou d'un code réutilisé.
+
+Une source possède un identifiant durable, une version, un titre, une provenance,
+un statut explicite (trame de travail, proposition d'école, source officielle
+si vérifiée), une licence et des identifiants stables pour ses éléments.
+Un code est unique dans un espace défini, pas nécessairement entre sources.
+Une référence nationale est un lien explicite vers une source identifiée ; elle
+ne se déduit pas de l'organisation actuelle en cinq domaines.
+
+** Choix proposés et restrictions
+
+Le niveau application propose un catalogue ; l'école choisit parmi les bases
+autorisées ; la classe choisit parmi celles autorisées par l'école. Chaque
+niveau peut proposer un défaut, sans que ce défaut interdise les autres choix.
+Les restrictions sont enregistrées séparément : bases autorisées et opérations
+permises (reformuler, masquer, ajouter). Leur détail reste à valider.
+
+Un défaut sert à préparer un nouveau choix. Le changer ne fait pas basculer les
+classes existantes. Une restriction nouvelle ne doit pas invalider silencieusement
+un historique ou une classe en cours : signaler les situations à examiner.
+Prévoir une proposition initiale simple, et rendre les restrictions avancées
+visibles seulement aux personnes qui les administrent.
+
+** Adaptations
+
+Pour chaque compétence : « Garder le libellé proposé », « Utiliser mon libellé »,
+« Masquer dans la saisie ». Montrer le libellé d'origine et permettre de revenir
+au choix proposé. Un masquage par défaut et une interdiction de réaffichage
+sont deux règles différentes. Les adaptations portent aussi sur une version
+connue de l'origine afin qu'une mise à jour puisse signaler un conflit.
+
+Une compétence ajoutée appartient à l'école ou à une classe annuelle. Elle
+peut ne posséder ni illustration, ni phrase, ni correspondance. Elle reçoit une
+identité propre ; elle n'est pas recopiée comme une nouvelle identité à chaque
+élève. Prévoir son classement dans les domaines existants ; création et
+remodelage des domaines et attendus restent à décider séparément.
+
+** Correspondances
+
+Enregistrer les compétences et versions reliées, le sens du lien, son type,
+son périmètre, sa justification, son auteur et sa validation. Distinguer par
+exemple « rapprochement à examiner », « plus précise que » et « remplace ».
+Autoriser plusieurs liens dans chaque sens. Ne pas rendre un lien symétrique
+ou transitif par défaut ; refuser un lien vers soi et contrôler les cycles de
+remplacement. Une référence nationale n'est pas une preuve d'équivalence.
+
+Aucun lien ne copie une réussite, ne fusionne des observations et ne rend
+visibles des données d'une autre école. Une réutilisation d'image ou de phrase
+est une action séparée et explicite, avec origine conservée et droits vérifiés.
+Un lien pédagogique n'accorde jamais l'accès à une photo privée.
+Le transfert d'acquisitions est hors de la première livraison ; s'il devient
+nécessaire, il exigera une règle distincte, revue et traçable.
+
+* Données et transition proposées
+
+Conception indicative, à finaliser en #R2 plutôt que figer immédiatement des
+noms de modèles :
+
+- catalogue de sources et versions publiées conservées ;
+- identité durable et définitions versionnées des compétences et de leur structure ;
+- choix de base école/classe, adaptations et restrictions distinctes ;
+- état adopté du référentiel par classe annuelle, avec révisions conservées ;
+- correspondances explicites ;
+- contexte de définition et de présentation associé aux nouvelles traces et
+  aux changements d'état, sans perdre les observations actuelles.
+
+Conserver si possible les clés Competence existantes pour protéger les liens
+Observation, TraceCommune, FormulationProposee et les réglages #T. Ajouter des
+relations avant toute transformation destructive. Ne pas créer une observation
+par version de libellé : plusieurs états concurrents seraient ambigus.
+
+La migration ne peut retrouver ni d'anciens libellés écrasés, ni l'origine
+exacte des éléments modifiés en base. Photographier l'état réellement présent
+comme « état initial repris », puis proposer les filiations à vérifier. Ne pas
+inventer une origine nationale ni utiliser le YAML actuel comme preuve de
+l'état historique. Contrôler codes doublons, relations école/classe et médias
+avant de poser les nouvelles contraintes ; refuser les cas ambigus avec un
+rapport exploitable, plutôt que fusionner silencieusement.
+
+Protéger la suppression des identités et définitions utilisées, y compris
+via domaines, administration Django et commandes. Le retrait normal reste
+réversible. Les sauvegardes doivent contenir sources adoptées, adaptations,
+liens et révisions ; vérifier SQLite et PostgreSQL, ainsi que la restauration
+d'un paquet ancien puis sa migration. Retour par sauvegarde préalable ; ne
+pas promettre qu'un ancien programme saura lire la nouvelle base.
+
+* Carnets, historique et passages d'année
+
+Proposition à valider : masquer concerne la saisie future, pas la disparition
+des traces déjà publiables. Conserver une entrée « Apprentissages antérieurs »
+pour les compétences hors du référentiel courant, selon les droits existants.
+La publication des traces reste régie par leurs choix de visibilité propres.
+
+Distinguer trois usages :
+
+1. Carnet courant : référentiel adopté pour la classe, avec les observations
+   anciennes identifiées sous leur sens d'origine lorsqu'il diffère.
+2. Consultation d'une ancienne année : définition et présentation connues de
+   cette période, sans utiliser automatiquement les réglages de la classe actuelle.
+3. Copie exacte d'un carnet remis : nécessite une édition conservée (contenu,
+   options et ressources, ou PDF archivé). Ce besoin dépasse le simple
+   versionnement du référentiel et reste à décider ; les états courants et
+   médias remplaçables ne permettent pas aujourd'hui cette garantie.
+
+Lors d'une nouvelle année, proposer les choix précédents, puis faire adopter
+le référentiel de la nouvelle classe. La copie d'adaptations est explicite,
+avec origine conservée ; les classes précédentes ne changent pas. Lors d'un
+changement de classe en cours d'année, conserver le contexte des traces déjà
+créées : Scolarite est actuellement déplacée, elle ne suffit donc pas seule
+à figer leur ancien contexte de référentiel.
+
+Si une compétence garde réellement la même identité, le suivi longitudinal
+peut continuer. Si elle change de sens ou possède seulement une correspondance,
+présenter l'ancien apprentissage séparément ; ne pas attribuer de réussite à
+la nouvelle compétence. Les compétences locales d'une ancienne classe restent
+consultables dans le parcours sans être ajoutées automatiquement à la nouvelle.
+Le transfert d'élèves entre écoles n'est pas inclus dans ce chantier initial.
+
+* Import et mises à jour YAML
+
+Prévoir un format versionné, compatible avec la trame actuelle à l'entrée,
+mais distinguant source, version et identifiants stables. Imposer des codes
+explicites aux formulations publiées ; ne pas générer leur identité par position.
+Valider avant écriture : structure, types, longueurs, niveaux, unicité,
+références, icônes, version et provenance. Refuser qu'une version déjà publiée
+reçoive un contenu différent ; un rechargement identique reste sans effet.
+
+Séparer « charger une version disponible » et « l'adopter pour l'école ou la
+classe ». Avant adoption, présenter ajouts, retraits, déplacements,
+reformulations et changements de sens à examiner. Comparer l'ancienne source,
+la nouvelle et le choix local : conserver les adaptations, signaler leurs
+origines modifiées, et ne jamais réactiver un masquage local implicitement.
+Un élément absent est retiré de cette version source, sans suppression ni
+application à tous les ajouts de l'école. Application atomique et journalisée,
+avec vérification que l'état n'a pas changé depuis la prévisualisation.
+
+* Droits et parcours proposés
+
+| Action | Proposition de droit | Limite |
+|--------+----------------------+--------|
+| Publier une source pour l'application | Administration de l'installation | Pas de rôle pédagogique global déjà disponible à présumer |
+| Choisir les bases autorisées et le défaut école | Direction | Sans accès supplémentaire aux observations |
+| Adapter ou ajouter à l'école | Direction | Respect des restrictions application |
+| Choisir, adapter, masquer ou ajouter dans une classe | Responsable actif | Respect des règles école ; classe annuelle explicitement indiquée |
+| Consulter les choix de classe | Responsable et associé | Le contributeur ne reçoit pas le suivi complet |
+| Valider une correspondance locale | Direction ou responsable selon son périmètre | Pas d'effet sur les réussites |
+| Mettre à jour une ancienne classe | Droit spécifique à définir | Une ancienne affectation ne vaut pas autorisation actuelle |
+
+Créer des opérations d'autorisation dédiées, testées côté serveur. Ne pas
+étendre automatiquement MODIFIER_ETAT à toute opération de référentiel.
+Limiter les recherches et les liens au périmètre autorisé, aussi en accès
+direct aux URL, dans l'administration et les imports.
+
+Parcours ordinaire : « Référentiel de la classe », nom et origine de la base,
+liste dans le même ordre que le carnet, actions par compétence, option
+« Afficher les compétences masquées » et aperçu du résultat. Le choix proposé
+permet de commencer sans configuration obligatoire. Les correspondances et
+les restrictions relèvent d'un écran séparé ; aucune saisie de YAML nécessaire
+pour les enseignants. Une adoption ou mise à jour importante montre un résumé
+avant confirmation, pas une série de décisions techniques pour chaque ligne.
+
+Le Guide pratique sera mis à jour à chaque parcours réellement accessible,
+avec disponibilité, rôle, effets sur l'historique et exemples fictifs.
+Aucune fiche actuelle ne doit annoncer ces propositions comme déjà livrées.
+
+* Jalons proposés et critères de sortie
+
+| Jalon | Livraison | Critère principal |
+|-------+-----------+-------------------|
+| #R1 | Présent audit | Constats et arbitrages discutés, aucune implémentation |
+| #R2 | Règles validées et modèle de données | Identité/sens, droits, restrictions, carnet historique et migration précisés par scénarios |
+| #R3 | Fondations et reprise des données | Liens et clés conservés ; état initial repris ; doublons signalés ; restauration testée |
+| #R4 | Catalogue, import versionné et choix de base | Deux sources fictives coexistent ; choix par classe ; défaut distinct de l'autorisation |
+| #R5 | Libellés et masquage école/classe | Retour au proposé ; ancien parcours accessible ; saisies et compteurs cohérents |
+| #R6 | Ajouts locaux | Identité durable, portée claire, aucune image ou phrase obligatoire |
+| #R7 | Correspondances et consultation lors des passages | Liens multiples explicites ; aucun transfert automatique d'état ni de média |
+| #R8 | Adoption des mises à jour | Prévisualisation, conflits, retrait source et adaptations conservées |
+| #R9 | Audit final, Guide et validation d'usage | Droits, carnets, paquets et CI vérifiés ; limites restantes documentées |
+
+La conservation du contexte historique commence dès #R3 ; elle ne peut être
+repoussée à #R9. Chaque jalon fonctionnel comprend ses tests, sa documentation
+et un patch applicable avec git am. Préfixe : « Référentiels: #R… » ; suffixes
+pour les corrections d'un même jalon.
+
+* Scénarios de validation à préparer
+
+Uniquement des écoles, classes et élèves fictifs :
+
+- Ana réussit A en PS ; A est reformulée fidèlement en MS : même identité,
+  ancienne définition consultable, pas de nouvelle réussite créée.
+- A devient B avec un sens plus large : lien possible, état de B indépendant.
+- Deux classes utilisent des bases différentes et des codes identiques :
+  aucune collision ; observations et statistiques dans le bon périmètre.
+- Une compétence masquée possède une trace commune et une version personnelle :
+  les traces restent consultables et leurs règles #T restent inchangées.
+- L'école masque par défaut, une classe réaffiche si autorisée ; vérifier le
+  refus serveur si le réaffichage est interdit.
+- Ajout local sans phrase ni image ; source mise à jour : ajout conservé.
+- Mise à jour d'un libellé ou d'une phrase adaptée : conflit signalé,
+  commentaire enregistré inchangé, origine conservée.
+- Compétence déplacée de domaine ou code renommé : identité stable si le sens
+  reste le même et si la source le déclare ; aucune déduction par texte.
+- Correspondances une-vers-plusieurs et plusieurs-vers-une : aucun cumul ni
+  réussite copiée ; réutilisation de contenu explicitement choisie.
+- Passage d'année puis changement de classe intra-annuel : contextes anciens
+  conservés malgré le déplacement de la scolarité.
+- Import malformé, doublons, répétition, écriture concurrente, interruption :
+  aucune mise à jour partielle ou adoption depuis un aperçu périmé.
+- Responsable, associé, contributeur, direction, affectation terminée et
+  autre école : contrôles serveur et boutons cohérents, médias privés protégés.
+- Sauvegarde/restauration, migration d'une base existante, PDF individuel,
+  grille, ZIP de classe, paquets Linux/Windows : mêmes règles de sélection.
+
+* Arbitrages prioritaires avant #R2
+
+1. Confirmer qu'un masquage retire de la saisie future, mais pas du parcours
+   antérieur ; préciser les choix d'affichage du carnet courant.
+2. Valider les restrictions minimales : bases autorisées seulement au départ,
+   ou aussi droits de reformuler, masquer et ajouter ? Qui peut réafficher ?
+3. Choisir quand une classe adopte un nouvel état de référentiel : recommandation
+   à la préparation de l'année, et mise à jour explicite en cours d'année.
+4. Confirmer la distinction reformulation fidèle / changement de sens, et la
+   personne autorisée à décider lorsqu'une source ne l'indique pas clairement.
+5. Définir la portée des ajouts de classe et leur reprise à la rentrée suivante.
+6. Fixer la garantie historique : ancien sens conservé dès ce chantier ; copie
+   exacte d'un carnet remis seulement si une édition est réellement conservée.
+7. Valider les premiers types de correspondance ; différer le transfert d'états.
+
+* Vérifications de cette livraison
+
+Document de conception seul : aucune migration ni modification applicative.
+Contrôle d'espacement et application git am sur la base auditée à effectuer
+avant livraison. Tests Django, construction Hugo, captures et essais des paquets
+non exécutés : aucun code, page du site ou binaire n'est modifié.
