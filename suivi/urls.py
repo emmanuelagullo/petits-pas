@@ -4,6 +4,10 @@ from django.urls import path, reverse_lazy
 from . import views, views_presentation, views_referentiels
 
 urlpatterns = [
+    path("gestion/referentiels/competences/", views_referentiels.adapter_competences, name="adaptations_ecole"),
+    path("gestion/referentiels/competence/<int:competence_pk>/", views_referentiels.adapter_competences, name="adaptation_competence_ecole"),
+    path("classe/<int:classe_pk>/referentiel/competences/", views_referentiels.adapter_competences, name="adaptations_classe"),
+    path("classe/<int:classe_pk>/referentiel/competence/<int:competence_pk>/", views_referentiels.adapter_competences, name="adaptation_competence_classe"),
     path("gestion/referentiels/", views_referentiels.choisir_bases_ecole, name="referentiels_ecole"),
     path("classe/<int:classe_pk>/referentiel/", views_referentiels.choisir_base_classe, name="referentiel_classe"),
     path("eleve/<int:eleve_pk>/media-referentiel/<int:pk>/", views.media_referentiel, name="media_referentiel"),

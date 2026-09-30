@@ -354,3 +354,12 @@ classe. Les choix sont annuels et restent distincts des identités de suivi.
 Le masquage retire des saisies futures ; le parcours antérieur reste accessible.
 La clôture conserve le dernier résultat effectif. Voir ADAPTATIONS-REFERENTIELS.org
 pour les droits, contraintes et migration 0022. Les écrans restent #R5b.
+
+
+* Libellés et masquage accessibles — #R5b
+
+Les parcours de l'école et de la classe permettent la reformulation fidèle,
+le masquage réversible et le retour aux choix proposés. Le lecteur conserve
+identité, origine et anciens parcours ; les carnets clos restent figés.
+Le Guide pratique décrit les choix ordinaires et les cas hors base. #R5 est
+livré sous réserve des validations CI et d'usage ; les ajouts restent #R6.
