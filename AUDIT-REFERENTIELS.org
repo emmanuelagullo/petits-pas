@@ -287,3 +287,13 @@ Document de conception seul : aucune migration ni modification applicative.
 Contrôle d'espacement et application git am sur la base auditée à effectuer
 avant livraison. Tests Django, construction Hugo, captures et essais des paquets
 non exécutés : aucun code, page du site ou binaire n'est modifié.
+
+* Consolidation #R2
+
+Les arbitrages de cet audit sont précisés dans MODELE-REFERENTIELS.org :
+masquage réversible, restrictions limitées aux bases, changement en cours
+d’année, identité des ajouts repris et dernier état annuel avec héritage vivant.
+La restitution de libellés intermédiaires proposée dans #R1 est remplacée par
+le dernier état pédagogique de chaque année ; les bases successives et les
+changements de sens restent distingués. Les types de liens sont provisoires.
+Ce document reste le constat initial ; #R2 est la référence de conception suivante.
