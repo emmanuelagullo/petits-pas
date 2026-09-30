@@ -383,3 +383,10 @@ modification, la redistribution et l'auto-hébergement du logiciel.
 
 La politique applicable à la documentation, aux illustrations et aux données
 est détaillée dans [CONTENUS-ET-LICENCES.md](CONTENUS-ET-LICENCES.md).
+
+### Catalogue des sources de référentiels
+
+La commande technique `importer_source_referentiel` prépare des versions au
+catalogue sans modifier les suivis ni les choix des classes. Le format et les
+contrôles sont décrits dans [IMPORT-SOURCES-REFERENTIELS.org](IMPORT-SOURCES-REFERENTIELS.org).
+Le choix d'une base depuis l'interface reste en préparation.

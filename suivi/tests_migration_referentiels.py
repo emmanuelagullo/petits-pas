@@ -22,7 +22,7 @@ class MigrationReferentiels(TransactionTestCase):
         return executant.loader.project_state([cible]).apps
 
     def tearDown(self):
-        self.migrer(APRES)
+        self.migrer(("suivi", "0018_identites_sources_referentiels"))
         super().tearDown()
 
     def test_ancienne_base_garde_identites_et_traces_masquees(self):

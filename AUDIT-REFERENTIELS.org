@@ -297,3 +297,11 @@ La restitution de libellés intermédiaires proposée dans #R1 est remplacée pa
 le dernier état pédagogique de chaque année ; les bases successives et les
 changements de sens restent distingués. Les types de liens sont provisoires.
 Ce document reste le constat initial ; #R2 est la référence de conception suivante.
+
+* Import de sources livré — #R4a
+
+Le catalogue peut recevoir plusieurs sources déclarées et leurs versions, avec
+identités explicites, sans changer les choix de classe ou les données élèves.
+Voir IMPORT-SOURCES-REFERENTIELS.org pour la commande, le format, les garanties
+et les limites. Les bases autorisées, le défaut annuel et l'adoption par classe
+restent la suite de #R4 ; ce sous-jalon ne clôt pas #R4.
