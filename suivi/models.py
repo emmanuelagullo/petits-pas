@@ -826,6 +826,37 @@ class DefinitionSourceCompetence(models.Model):
             raise ValidationError("La définition et l'identité doivent appartenir à la même source.")
 
 
+class CompetenceSourceEcole(models.Model):
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT)
+    identite = models.ForeignKey(IdentiteSourceCompetence, on_delete=models.PROTECT)
+    competence = models.OneToOneField(Competence, on_delete=models.PROTECT, related_name="origine_source")
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["ecole", "identite"], name="identite_suivi_source_ecole_unique")]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.competence_id and self.ecole_id and self.competence.domaine.ecole_id != self.ecole_id:
+            raise ValidationError("L'identité de suivi doit appartenir à l'école.")
+
+
+class VersionSourceEcole(models.Model):
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT)
+    version = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT)
+    contenu = models.JSONField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["ecole", "version"], name="version_source_ecole_unique")]
+
+    def save(self, *args, **kwargs):
+        from django.core.exceptions import ValidationError
+        if self.pk:
+            ancienne = type(self).objects.get(pk=self.pk)
+            if any(getattr(ancienne, champ) != getattr(self, champ) for champ in ("ecole_id", "version_id", "contenu")):
+                raise ValidationError("La définition d'une version dans une école ne peut pas être modifiée.")
+        return super().save(*args, **kwargs)
+
+
 class ChoixApplicationAnnuel(models.Model):
     annee_scolaire = models.CharField(max_length=9, unique=True)
     configure = models.BooleanField(default=False)
