@@ -22,6 +22,8 @@ def contenu_adoption(adoption):
     if adoption.clos:
         return adoption.etat_final.get("contenu", contenu)
     from .adaptations_referentiels import contenu_adapte
+    from .ajouts_referentiels import contenu_avec_ajouts
+    contenu = contenu_avec_ajouts(contenu, adoption.classe)
     return contenu_adapte(adoption.classe.ecole, adoption.classe.annee_scolaire,
                           contenu, adoption.classe)
 

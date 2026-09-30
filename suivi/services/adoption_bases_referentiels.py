@@ -22,22 +22,27 @@ def apercu_adoption(*, utilisateur, classe, version_id):
     actuelle = AdoptionReferentiel.objects.filter(classe=classe, courante=True).select_related("version").first()
     if actuelle and actuelle.clos:
         raise ValidationError("Les choix de cette classe sont clos.")
+    from suivi.models import DisponibiliteCompetenceLocale
+    locaux = set(DisponibiliteCompetenceLocale.objects.filter(classe=classe).values_list("locale__competence_id", flat=True))
     if actuelle and actuelle.version_id == version_id:
         nouveaux_ids = {c["id"] for c in contenu_adoption(actuelle).get("competences", [])}
+        nouveaux_ids -= locaux
         nombre = len(nouveaux_ids)
     elif version.source.ecole_id is not None:
         nouveaux_ids = {c["id"] for c in version.contenu.get("competences", [])}
+        nouveaux_ids -= locaux
         nombre = len(nouveaux_ids)
     else:
         nouveaux_ids = set(CompetenceSourceEcole.objects.filter(ecole=classe.ecole,
             identite__definitions__version=version).values_list("competence_id", flat=True))
         nombre = version.definitions.count()
     anciens_ids = {c["id"] for c in contenu_adoption(actuelle).get("competences", [])} if actuelle else set()
+    anciens_ids -= locaux
     meme = bool(actuelle and actuelle.version_id == version_id)
     return {"version": version, "adoption_id": actuelle.pk if actuelle else None,
             "revisions": choix.revisions, "communes": len(anciens_ids & nouveaux_ids),
             "nouvelles": nombre - len(anciens_ids & nouveaux_ids),
-            "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme}
+            "ajouts": len(locaux), "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme}
 
 
 @transaction.atomic
