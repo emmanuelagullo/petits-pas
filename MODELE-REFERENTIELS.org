@@ -1,0 +1,308 @@
+#+title: Référentiels pédagogiques — règles et modèle proposés #R2
+
+* Statut
+
+Document de conception, sans fonction nouvelle ni migration livrée. Il complète
+AUDIT-REFERENTIELS.org (#R1). Les règles issues de la discussion sont retenues
+pour le chantier ; les entités et modalités techniques ci-dessous constituent
+une proposition pour #R3. Les trois types de correspondance restent à éprouver
+avec les équipes. Le Guide pratique sera modifié quand les parcours existeront.
+
+* Règles retenues
+
+- Plusieurs bases peuvent coexister dans une école ; une seule base courante
+  par classe annuelle, complétée par les adaptations et ajouts locaux.
+- L'application définit les bases disponibles ; l'école autorise les bases de
+  ses classes et propose un défaut. Un défaut n'est pas une interdiction.
+- Dans une base autorisée, direction à l'école et responsable dans sa classe
+  peuvent reformuler, masquer/démasquer et ajouter. Pas d'interdictions fines
+  par action dans le premier périmètre.
+- Masquer retire de la saisie future, sans supprimer réussites, traces ou
+  parcours antérieur. Démasquer permet une saisie ou correction, puis un nouveau
+  masquage. La visibilité d'une trace dans le carnet reste indépendante.
+- Une reformulation fidèle conserve identité et suivi ; un changement de sens
+  crée une compétence distincte. L'origine reste consultable.
+- Les ajouts d'une classe appartiennent à cette classe annuelle ; une reprise
+  explicite conserve leur identité. La direction peut les proposer à l'école,
+  sans les ajouter automatiquement à toutes les classes.
+- Changer de base pendant l'année est possible, daté, prévisualisé et confirmé.
+  Aucun état ni trace ne migre par une simple correspondance.
+- Pendant l'année, un choix hérité suit les évolutions du niveau supérieur ;
+  une adaptation locale garde la priorité. Chaque année conserve son dernier
+  état ; la nouvelle année évolue indépendamment.
+- Reproduire exactement un PDF remis n'est pas garanti par ce chantier :
+  commentaires, photos et options peuvent changer.
+
+* Ce que signifie « dernier état de l'année »
+
+Les réglages de l'application, de l'école et de chaque classe sont associés
+à une année scolaire explicite. Une source publiée est immuable ; l'application
+peut proposer une version plus récente pour une année ouverte. Son adoption
+suit le parcours de mise à jour, jamais le simple déploiement d'un programme.
+
+Le dernier état annuel remplace les anciennes reformulations fidèles de cette
+année dans la présentation pédagogique. On ne promet pas de retrouver le
+libellé de janvier après une correction en mars. En revanche, une compétence
+ayant changé de sens ne remplace jamais l'identité de l'ancienne.
+
+Une année ouverte peut contenir plusieurs bases successives. Chacune reste
+conservée ; son dernier libellé annuel est disponible pour les apprentissages
+recueillis sous cette base. La dernière base adoptée sert aux nouvelles saisies.
+« État final » ne signifie donc pas « ne garder que la dernière base ».
+
+Proposition opérationnelle : à la préparation de la nouvelle année, présenter
+la reprise des choix précédents et la clôture de l'ancienne. Clôturer calcule
+et conserve les choix effectifs, y compris ceux hérités. L'ouverture de la
+nouvelle année ne doit pas supposer que toutes les anciennes classes sont
+closes. Une classe terminée peut être figée avant les autres ; elle cesse alors
+de suivre l'héritage vivant. Les dates civiles ne clôturent rien silencieusement.
+
+Une correction exceptionnelle après clôture nécessite une action explicite
+« Corriger les choix de cette année », réservée à un rôle autorisé actuellement,
+avec motif et journal. Elle produit un nouvel état final et conserve le précédent
+pour le contrôle, sans rétablir un héritage vivant depuis la nouvelle année.
+Cette correction ne promet pas une réédition exacte des PDF antérieurs.
+Ces modalités de clôture/correction sont proposées, pas encore validées par usage.
+
+* Proposition de modèle
+
+Les noms ci-dessous décrivent les responsabilités des entités, pas une migration
+Django définitive. Préserver les clés existantes est prioritaire.
+
+| Entité | Information conservée | Invariant |
+|--------+------------------------+-----------|
+| SourceReferentiel | Identifiant durable, titre, provenance, statut, licence | La trame fournie reste identifiée comme provisoire |
+| VersionReferentiel | Source, version, empreinte du contenu, structure et éléments | Une version publiée ne change plus |
+| IdentiteSourceCompetence | Identifiant source stable et identité pédagogique déclarée | Un code ou libellé identique ne suffit pas à rapprocher |
+| DefinitionSourceCompetence | Version, libellé, domaine, sous-domaine, niveau, ordre, contenus facultatifs | Liée à une identité ; changement de sens = nouvelle identité |
+| Competence | Identité de suivi propre à l'école, origine source ou locale | Clés actuelles et liens Observation conservés |
+| ChoixApplicationAnnuel | Année, catalogue proposé et défaut, versions proposées | Pas de modification d'une année close par un déploiement |
+| ChoixEcoleAnnuel | École, année, bases autorisées, base par défaut, état | Défaut parmi les bases autorisées |
+| ChoixClasseAnnuel | Classe, choix de base proposé ou explicite, état ouvert/clos | Année de la classe ; une seule adoption courante |
+| AdoptionBaseClasse | Classe, version adoptée, date effective, auteur, adoption précédente | Historique des bases successives conservé |
+| AdaptationCompetenceAnnuelle | École, année, classe facultative, compétence, libellé et masquage indépendants | Une valeur locale distincte de l'absence d'adaptation |
+| UsageCompetenceClasse | Adoption, compétence, définition utilisée ou ajout repris | Unique pour la compétence dans une adoption ; contexte protégé |
+| EtatFinalReferentiel | Classe/année, choix effectifs résolus, structures, origines et ressources | Lecture indépendante des réglages des années suivantes |
+| CorrespondanceCompetence | Extrémités, sens, type, justification, portée, auteur | Aucun effet implicite sur les observations |
+| EtatAnnuelObservation | Observation, année, état/date final, contexte de compétence | Un état annuel par observation et année, pas par libellé |
+
+L'identité source peut être partagée entre bases seulement si la filiation est
+explicitement déclarée et validée. Chaque école garde ses propres Competence
+et données pédagogiques ; aucune observation globale entre écoles.
+
+Pour un ajout local, enregistrer l'école propriétaire et la classe d'origine
+facultative. Proposer à l'école ajoute une disponibilité, sans déplacer ni
+changer l'origine de l'identité. Reprendre dans une autre classe crée un usage,
+pas une nouvelle compétence ni une copie des réussites. Un ajout peut avoir
+zéro phrase, zéro illustration et zéro correspondance.
+
+Domaines, sous-domaines et attendus doivent être définis par version et
+conservés dans l'état annuel ; une référence à Domaine.nom modifiable ne
+suffit pas. Création libre de domaines/attendus et mélange de plusieurs bases
+courantes restent hors du premier périmètre.
+
+* Résolution des choix et héritage
+
+Le lecteur commun reçoit explicitement école, classe, année et usage
+(saisie, carnet courant, parcours antérieur). Il ne choisit pas une année à
+partir de la date du jour ou de la seule scolarité courante.
+
+Ordre de résolution d'une propriété : définition fournie pour la base annuelle,
+adaptation école de cette année, adaptation classe de cette année. Libellé,
+masquage, image et phrases sont résolus séparément. « Garder le choix proposé »
+retire l'adaptation de la propriété concernée, sans toucher aux autres.
+
+Un masquage école est une proposition réversible pour la classe. Trois valeurs
+sont nécessaires : garder le choix proposé, masquer, afficher. L'affichage
+explicite par une classe l'emporte sur un masquage proposé par l'école.
+Le retrait d'un élément d'une version source n'est pas un masquage local :
+l'ancien apprentissage reste dans l'historique, et sa reprise doit être explicite.
+
+L'autorisation des bases et leur défaut sont annuels. Une nouvelle restriction
+n'abandonne pas une adoption existante : l'écran signale la situation, puis
+la direction décide d'une transition. Le catalogue autorisé limite les nouvelles
+adoptions ; les anciennes versions utilisées restent consultables.
+
+Les réglages #T (ReglagePresentation et FormulationLocale) doivent devenir
+annuels eux aussi, en préservant leurs liens d'origine. Les commentaires déjà
+insérés dans les traces ne changent pas. À la clôture, conserver la résolution
+finale des propositions, les références immuables des SVG et les médias requis.
+Une photo remplacée ne doit pas être nettoyée si un état final la référence.
+Une suppression explicite de données personnelles peut rendre une ancienne
+image indisponible : la conservation du référentiel ne contourne pas cette action.
+
+* Observations et contexte annuel
+
+Observation reste le suivi courant unique (élève, compétence). Une réussite
+continue si l'identité pédagogique est la même. Une nouvelle compétence a son
+propre suivi, même si elle est reliée à une ancienne.
+
+Pour consulter réellement une ancienne année, sa présentation ne suffit pas :
+un état annuel doit éviter que la réussite de MS apparaisse rétroactivement
+dans le carnet de PS. Proposition : garder l'état final annuel séparément du
+suivi longitudinal courant. Il ne crée pas un suivi concurrent par libellé.
+Au premier usage d'une année, le suivi connu peut être repris avec sa date et
+son origine ; une reprise n'est pas une nouvelle réussite. Les vues distinguent
+ce qui était déjà connu des acquisitions de l'année.
+
+Trace et TraceCommune reçoivent un contexte UsageCompetenceClasse protégé.
+Personnaliser une trace garde ce contexte. Modifier une ancienne trace ne la
+rattache pas automatiquement à la base courante. Un changement de classe
+intra-annuel peut déplacer Scolarite : le contexte enregistré reste celui du
+recueil. Les règles #T de sélection, association et versions personnelles restent.
+
+Un changement d'état reçoit lui aussi un contexte annuel ; l'audit ne constitue
+pas seul le modèle de restitution. Traces et états servent la présentation
+finale de leur année ; aucun historique complet des libellés intermédiaires
+n'est exigé. Les adoptions successives restent nécessaires pour préserver les
+origines lors d'un changement de base.
+
+* Changement de base et rentrée
+
+Avant confirmation : présenter les identités réellement communes, les nouvelles
+compétences, celles hors de la nouvelle base et les ajouts locaux. Les liens
+pédagogiques apparaissent séparément des identités communes. Les adaptations
+applicables continuent ; les autres sont conservées pour l'ancien usage.
+La reprise d'un ajout est explicite. Changer de base puis revenir à l'ancienne
+retrouve les identités et leurs suivis, sans créer de doublons.
+
+Une source corrigée fidèlement peut être adoptée pendant l'année avec aperçu :
+les choix hérités suivent cette adoption, les adaptations locales restent.
+Une classe ayant choisi explicitement une ancienne version ne bascule pas
+silencieusement. L'école peut proposer une mise à jour aux classes ; afficher
+clairement celles qui suivent et celles qui conservent leur choix.
+
+À la rentrée : proposer un défaut et la reprise sélective des adaptations et
+ajouts. Conserver les identités et origines, créer les réglages de la nouvelle
+année. Ne pas recopier les états annuels comme de nouvelles acquisitions.
+
+* Carnets et lecture du parcours
+
+- Saisie : compétences utilisables de la base courante et ajouts repris, hors
+  masquage ; option pour afficher et démasquer les compétences masquées.
+- Carnet courant : base actuelle et apprentissages antérieurs hors de cette
+  base, identifiés clairement ; filtres de contenu et visibilité des traces
+  restent applicables. Masquer ne suffit pas à retirer une acquisition.
+- Ancienne année : dernier état pédagogique de cette année et état annuel des
+  apprentissages ; pas de libellé, illustration ou réussite emprunté implicitement
+  à une année suivante.
+- Référentiel complet : liste courante ; les apprentissages antérieurs retenus
+  apparaissent à part, sans mélanger deux bases comme une seule liste.
+
+Statistiques et barres utilisent le périmètre courant visible, avec numérateur
+et dénominateur cohérents ; anciennes compétences consultables à part.
+Grilles, PDF individuel et ZIP de classe utilisent le même lecteur. Les droits
+sur les scolarités et médias restent vérifiés indépendamment du référentiel.
+
+* Correspondances et explications
+
+Types provisoires : « En lien avec », « Précise cette compétence », « Remplace
+cette compétence ». Pas d'équivalence, de symétrie ou de transitivité déduite.
+Plusieurs liens possibles ; refuser lien vers soi et cycle de remplacement.
+Une correspondance source est conservée avec sa provenance ; une correspondance
+locale ne publie rien dans le catalogue application.
+
+« Même compétence » est une identité commune déclarée, pas un quatrième lien
+permettant de fusionner facilement les suivis. Deux sources indépendantes qui
+semblent équivalentes restent deux identités tant que leur filiation n'est pas
+établie. Une fusion de données existantes reste hors du premier périmètre.
+
+Parcours naturel : reformuler ou ajouter sans lien obligatoire. Dans l'écran,
+afficher les conséquences essentielles ; un dépliant apporte les détails :
+
+| Choix | Explication courte | Exemple fictif |
+|-------+--------------------+----------------|
+| Reformuler | Les observations et réussites restent associées à cette compétence | « Je dis mon prénom » devient « Je peux dire mon prénom » |
+| Créer une autre compétence | Son suivi sera distinct ; les réussites anciennes ne seront pas reprises | « Je reconnais mon prénom » et « Je reconnais plusieurs prénoms » |
+| En lien avec | Réussir l'une ne signifie pas réussir l'autre | Dire une comptine / reconnaître des rimes |
+| Précise cette compétence | Décrit une partie plus ciblée de l'apprentissage | Découper en syllabes un prénom / découper des mots en syllabes |
+| Remplace cette compétence | La nouvelle sera utilisée ; l'ancien suivi reste conservé | Une école remplace une compétence trop générale par une nouvelle formulation de sens différent |
+
+Dépliants proposés : « Que deviennent les observations déjà saisies ? »,
+« Quand relier deux compétences ? », puis « Relier plusieurs compétences ».
+Les usages avancés restent accessibles, sans imposer ces choix au parcours
+habituel. Réutiliser une image ou phrase est une action distincte, autorisée,
+avec origine et périmètre conservés ; jamais de transfert implicite de média privé.
+
+* Droits proposés et invariants serveur
+
+Direction : catalogue autorisé/défaut école, adaptations école, disponibilité
+des ajouts pour l'école, clôture/correction annuelle administrative.
+Responsable actif : adoption, adaptation et ajouts dans sa classe, clôture de
+ses choix de classe. Associé : consultation selon ses droits existants.
+Contributeur : sélection de compétences nécessaire à sa contribution, sans
+accès supplémentaire au suivi complet ni aux réglages collectifs.
+Administration de l'installation : publication des sources disponibles.
+
+Créer des droits spécifiques ; ne pas assimiler toutes ces actions à modifier
+un état d'élève. Modifier un référentiel ne donne pas accès aux traces. Une
+ancienne affectation ne vaut pas autorisation actuelle de correction. La direction
+peut corriger des réglages annuels sans gagner un droit de correction pédagogique.
+
+Toutes écritures : même école, année et classe cohérentes ; base autorisée pour
+une nouvelle adoption ; adaptation d'une identité accessible ; source immuable ;
+état final protégé. Vérifier aussi administration Django, commandes, accès direct
+et restauration. Aperçu puis confirmation contrôlent une révision attendue ;
+transaction atomique et verrouillage empêchent une adoption depuis un aperçu périmé.
+
+* Migration #R3 proposée
+
+1. Diagnostiquer codes doublons et relations ; sauvegarder base et médias.
+2. Ajouter les entités et liens sans retirer les champs existants. Photographier
+   les données présentes comme « état initial repris » ; garder les clés Competence.
+3. Créer les choix annuels pour les années réellement présentes ; affecter un
+   contexte aux traces via leurs scolarités et aux traces communes via leur classe.
+4. Ne pas inventer les anciens libellés, réglages ou états d'acquisition. Les
+   réglages actuels s'appliquent aux années ouvertes ; pour les anciennes, la
+   reprise est marquée comme non reconstituée historiquement. Un état dont
+   l'année est ambiguë reste signalé à examiner, pas antidaté.
+5. Proposer les filiations source avec vérification ; un code commun au YAML
+   actuel ne prouve pas une origine. Aucun rapprochement entre écoles.
+6. Adapter le lecteur commun, imports, initialisations, sauvegardes et protections
+   avant d'ouvrir les nouvelles écritures. Conserver la compatibilité #T.
+7. Vérifier volumes et liens, SQLite/PostgreSQL, restauration d'un ancien paquet,
+   puis appliquer les contraintes et retirer seulement les champs devenus inutiles.
+
+La garantie annuelle vaut pour les contextes conservés après transition.
+Les historiques préexistants sont conservés tels que disponibles, sans promesse
+de retrouver des informations déjà écrasées. Les nouvelles contraintes doivent
+être précédées d'un rapport de diagnostic, jamais d'une fusion automatique.
+
+* Scénarios relus et résultats attendus
+
+| Cas fictif | Résultat attendu | Élément qui le garantit |
+|------------+------------------+-------------------------|
+| École reformule en mars, classe garde le proposé | Saisie et carnet de l'année suivent ; ancienne année inchangée | Réglages annuels et résolution |
+| Classe reformule elle-même | Correction école ne remplace pas ce texte | Adaptation locale prioritaire |
+| École masque, classe affiche | Saisie permise ; retour au proposé remasque | Trois choix de masquage |
+| A masquée après réussite d'Ana | Réussite et traces consultables et publiables selon leurs options | Sélection historique distincte |
+| Base A puis B en février, identité X commune | Même suivi de X ; contextes des traces conservés | Identité commune explicite et adoptions |
+| B ne contient que Y reliée à X | Y n'est pas réussie ; X reste au parcours | Lien sans effet sur état |
+| Retour de B à A | Pas de deuxième X ; suivi conservé | Unicité élève-compétence |
+| Changement de classe en avril | Trace de mars garde sa base et son origine de classe | Contexte indépendant de Scolarite déplacée |
+| Compétence locale reprise à la rentrée | Même apprentissage ; nouvelle disponibilité et nouveaux réglages | Identité durable et usages distincts |
+| Réussite en MS après état en cours en PS | PS conserve son dernier état en cours | EtatAnnuelObservation |
+| Année close, nouvelle icône fournie | Ancienne illustration annuelle inchangée | Etat final et ressource conservée |
+| Import identique ou version altérée | Sans effet si identique ; refus si contenu différent | Empreinte et version immuable |
+| Code identique dans deux bases sans filiation | Deux identités ; aucune réussite copiée | Espace source et mapping explicite |
+| Deux responsables confirment des aperçus différents | Second aperçu périmé refusé | Révision attendue et transaction |
+
+Cette revue établit la cohérence de la proposition, pas une validation logicielle
+ou d'usage. Les critères deviendront des tests lors des jalons d'implémentation.
+
+* Suite et vérifications
+
+#R3 commence par diagnostic et migration additive. Sa sortie exige la reprise
+sans perte, les contextes et états annuels, les protections et la restauration ;
+les nouveaux écrans restent #R4 à #R8. Prévoir un découpage #R3a diagnostic,
+#R3b fondations, #R3c reprise et lecteur, #R3d restauration et vérification.
+La fermeture des droits d'écriture anciens doit accompagner le nouveau modèle,
+pas attendre l'audit final.
+
+Points à vérifier en usage : intitulés des liens, présentation des apprentissages
+antérieurs, clôture annuelle et correction exceptionnelle. Ils n'empêchent pas
+le diagnostic #R3a ; ils doivent être résolus avant les interfaces concernées.
+
+Livraison documentaire seule : contrôle d'espacement et application git am.
+Tests Django, migrations, Hugo et paquets non exécutés, aucun de ces éléments
+n'étant modifié. Pas de données réelles utilisées.
