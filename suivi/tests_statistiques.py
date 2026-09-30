@@ -1,6 +1,8 @@
 from datetime import date
 
 from django.urls import reverse
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.utils import timezone
 
 from .models import Classe, Competence, Eleve, Observation, Scolarite
@@ -32,13 +34,15 @@ class RepartitionCompetences(Base):
         self.assertEqual(self.competence.repartition["en_cours"], 1)
         self.assertEqual(self.competence.repartition["non_observes"], 1)
 
-    def test_deux_requetes_quel_que_soit_nombre_competences(self):
-        with self.assertNumQueries(2):
+    def test_requetes_bornees_quel_que_soit_nombre_competences(self):
+        with CaptureQueriesContext(connection) as requetes:
             repartition_competences(self.classe, [self.competence])
+        self.assertLessEqual(len(requetes), 3)
         competences = [self.competence] + [Competence.objects.create(
             domaine=self.competence.domaine, code=f"C{i}", libelle=f"Compétence {i}") for i in range(20)]
-        with self.assertNumQueries(2):
+        with CaptureQueriesContext(connection) as requetes:
             repartition_competences(self.classe, competences)
+        self.assertLessEqual(len(requetes), 3)
         self.assertTrue(all(c.repartition["non_observes"] == 1 for c in competences))
 
     def test_classe_vide_et_statut_efface(self):

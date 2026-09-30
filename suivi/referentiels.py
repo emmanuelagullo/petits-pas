@@ -108,3 +108,47 @@ def competence_classe(classe, competence):
             if candidate.pk == competence.pk:
                 return candidate
     return None
+
+
+def classe_historique(classe):
+    # Une date civile ne clôture pas une classe implicitement.
+    adoption = adoption_courante(classe)
+    return bool(adoption and adoption.clos)
+
+
+def observations_classe(classe):
+    """États de lecture SQL ; les comptages ne chargent pas les traces/photos."""
+    from datetime import date
+    from django.db.models import BooleanField, Case, CharField, DateField, Exists, F, OuterRef, Subquery, Value, When
+    from .models import EtatAnnuelObservation, Observation, Scolarite
+    queryset = Observation.objects.filter(eleve__scolarites__classe=classe, eleve__ecole_id=classe.ecole_id,
+                                          competence__domaine__ecole_id=classe.ecole_id)
+    adoption = adoption_courante(classe)
+    if adoption is None:
+        return queryset.annotate(statut_lecture=F("statut"), connu_lecture=Value(True), date_lecture=F("date_observation"))
+    if adoption.clos and "etats" in adoption.etat_final:
+        etats = adoption.etat_final["etats"]
+        return queryset.annotate(
+            statut_lecture=Case(*[When(pk=e["observation_id"], then=Value(e["statut"])) for e in etats if e["connu"]],
+                                default=Value(None), output_field=CharField()),
+            connu_lecture=Case(*[When(pk=e["observation_id"], then=Value(e["connu"])) for e in etats],
+                               default=Value(False), output_field=BooleanField()),
+            date_lecture=Case(*[When(pk=e["observation_id"], then=Value(date.fromisoformat(e["date_observation"])))
+                               for e in etats if e["connu"] and e["date_observation"]],
+                              default=Value(None), output_field=DateField()))
+    annuels = EtatAnnuelObservation.objects.filter(observation_id=OuterRef("pk"), annee_scolaire=classe.annee_scolaire, connu=True)
+    plus_recent = Scolarite.objects.filter(eleve_id=OuterRef("eleve_id"), annee_scolaire__gt=classe.annee_scolaire)
+    return queryset.annotate(autre_annee=Exists(plus_recent),
+        statut_ancien=Subquery(annuels.values("statut")[:1]),
+        connu_ancien=Subquery(annuels.values("connu")[:1]),
+        date_ancienne=Subquery(annuels.values("date_observation")[:1])).annotate(
+            statut_lecture=Case(When(autre_annee=True, then=F("statut_ancien")), default=F("statut")),
+            connu_lecture=Case(When(autre_annee=True, then=F("connu_ancien")), default=Value(True), output_field=BooleanField()),
+            date_lecture=Case(When(autre_annee=True, then=F("date_ancienne")), default=F("date_observation")))
+
+
+def projeter_etat_classe(observation):
+    observation.statut = observation.statut_lecture
+    observation.date_observation = observation.date_lecture
+    observation.historique_inconnu = not observation.connu_lecture
+    return observation

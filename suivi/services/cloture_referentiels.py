@@ -58,7 +58,7 @@ def clore(*, utilisateur, classe):
                 # Une ancienne année reprise ne gagne pas de réussite depuis le
                 # suivi courant : seul un nouvel état saisi dans l'année est connu.
                 etat.usage = usage
-                if classe.statut_annee == "courante":
+                if not observation.eleve.scolarites.filter(annee_scolaire__gt=classe.annee_scolaire).exists():
                     etat.connu = True
                     etat.statut = observation.statut
                     etat.date_observation = observation.date_observation

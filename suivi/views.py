@@ -24,7 +24,7 @@ from django.contrib.staticfiles import finders
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection, transaction
-from django.db.models import Count, Prefetch, Q
+from django.db.models import F, Max, Count, Prefetch, Q
 from django.http import (
     FileResponse,
     Http404,
@@ -127,7 +127,7 @@ from .services.pedagogie import (
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
-from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe
+from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe, observations_classe, projeter_etat_classe, classe_historique
 from .statistiques import repartition_competences
 from .services.equipe import (
     accepter_invitation,
@@ -586,7 +586,8 @@ def _progression(eleves, ecole, filtre="classe", classe=None):
         totaux_par_niveau[competence.niveau] = totaux_par_niveau.get(competence.niveau, 0) + 1
     total_cycle = len(competences)
     reussies_par_eleve_et_niveau = {}
-    lignes = Observation.objects.filter(eleve__pk__in=[e.pk for e in eleves], statut="reussi",
+    queryset = observations_classe(classe) if classe else Observation.objects.annotate(statut_lecture=F("statut"))
+    lignes = queryset.filter(eleve__pk__in=[e.pk for e in eleves], statut_lecture="reussi",
         competence_id__in=niveaux_competences).values("eleve_id", "competence_id")
     for ligne in lignes:
         niveau = niveaux_competences[ligne["competence_id"]]
@@ -780,6 +781,10 @@ def saisie_eleve(request, pk):
     etats = {o.competence_id: o for o in _observations_visibles(request.user, eleve)}
     domaines = []
     courante = eleve.scolarite_courante()
+    if courante and classe_historique(courante.classe):
+        visibles = set(etats)
+        etats = {o.competence_id: projeter_etat_classe(o)
+                 for o in observations_classe(courante.classe).filter(eleve=eleve, competence_id__in=visibles)}
     for d in _arbre(ecole, niveaux, classe=courante.classe if courante else None):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if lignes:
@@ -788,7 +793,8 @@ def saisie_eleve(request, pk):
     return render(
         request,
         "suivi/saisie_eleve.html",
-        {"eleve": eleve, "domaines": domaines, "filtre": filtre},
+        {"eleve": eleve, "domaines": domaines, "filtre": filtre,
+         "responsable": autorise(request.user, MODIFIER_ETAT, eleve) and not (courante and classe_historique(courante.classe))},
     )
 
 
@@ -833,18 +839,18 @@ def saisie_competence(request, pk, competence_pk):
     competence = competence_classe(classe, competence)
     if competence is None:
         raise Http404
-    etats = {
-        o.eleve_id: o
-        for o in Observation.objects.filter(
-            competence=competence, eleve__scolarites__classe=classe
-        ).prefetch_related("traces")
-    }
-    lignes = [(e, etats.get(e.pk)) for e in classe.eleves]
+    etats = {o.eleve_id: projeter_etat_classe(o)
+             for o in observations_classe(classe).filter(competence=competence).prefetch_related("traces")}
+    eleves = list(classe.eleves.annotate(derniere_annee=Max("scolarites__annee_scolaire")))
+    for eleve in eleves:
+        eleve.peut_saisir_dans_classe = eleve.derniere_annee == classe.annee_scolaire
+    lignes = [(e, etats.get(e.pk)) for e in eleves]
     return render(
         request,
         "suivi/saisie_competence.html",
         {"classe": classe, "competence": competence, "lignes": lignes,
-         "responsable": autorise(request.user, MODIFIER_ETAT, classe)},
+         "historique": classe_historique(classe),
+         "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
     )
 
 
@@ -859,18 +865,14 @@ def _contexte_grille_competence(
     competence = competence_classe(classe, competence)
     if competence is None:
         raise Http404
-    etats = {
-        observation.eleve_id: observation
-        for observation in Observation.objects.filter(
-            competence=competence,
-            eleve__scolarites__classe=classe,
-        )
-    }
+    etats = {o.eleve_id: projeter_etat_classe(o) for o in observations_classe(classe).filter(competence=competence)}
     lignes = []
-    compteurs = {"a_observer": 0, "en_cours": 0, "reussi": 0}
+    compteurs = {"a_observer": 0, "en_cours": 0, "reussi": 0, "non_retrouve": 0}
     for eleve in classe.eleves:
         observation = etats.get(eleve.pk)
-        if observation and observation.statut == Observation.REUSSI:
+        if observation and observation.historique_inconnu:
+            etat = "non_retrouve"
+        elif observation and observation.statut == Observation.REUSSI:
             etat = "reussi"
         elif observation and observation.statut == Observation.EN_COURS:
             etat = "en_cours"
@@ -978,6 +980,7 @@ def basculer(request, eleve_pk, competence_pk):
         statut=suivant,
     )
 
+    eleve.peut_saisir_dans_classe = True
     gabarit = (
         "suivi/partiels/case_eleve.html"
         if request.GET.get("vue") == "classe"
@@ -986,7 +989,7 @@ def basculer(request, eleve_pk, competence_pk):
     return render(
         request,
         gabarit,
-        {"eleve": eleve, "competence": competence, "obs": obs},
+        {"eleve": eleve, "competence": competence, "obs": obs, "responsable": True},
     )
 
 

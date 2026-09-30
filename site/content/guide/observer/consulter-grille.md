@@ -34,3 +34,9 @@ date d’édition et le caractère interne du document.
 
 Voir la distinction entre **voir le suivi** et **générer** dans la
 [matrice des autorisations]({{< relref "/conception/documents/matrice-autorisations.org" >}}).
+
+Pour une ancienne classe, la grille indique les états connus de cette année.
+Un **état non retrouvé** est signalé à part : cela ne signifie pas que l'élève
+n'avait pas réussi. Les réussites enregistrées plus tard ne sont pas reportées
+dans cette grille. La saisie d'un élève passé dans une nouvelle année se fait
+depuis sa classe actuelle.
