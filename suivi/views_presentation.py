@@ -84,7 +84,7 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         index_url = reverse("presentation_ecole")
     domaines = []
     if not competence:
-        for domaine in arbre_competences(ecole):
+        for domaine in arbre_competences(ecole, classe=classe):
             lignes = []
             for c in domaine.visibles:
                 url = reverse("presentation_competence_classe", args=[classe.pk, c.pk]) if classe else reverse("presentation_competence_ecole", args=[c.pk])
