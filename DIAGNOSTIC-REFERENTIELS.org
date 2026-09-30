@@ -1,0 +1,86 @@
+#+title: Préparer la migration des référentiels — #R3a
+
+* Portée
+
+La commande =diagnostiquer_referentiels= lit la base actuelle, sans correction,
+import de YAML, création d'origine ou modification des médias. Elle prépare
+#R3b ; elle ne certifie pas que la migration peut déjà être lancée.
+
+Utiliser de préférence une copie restaurée de la base : la commande ne bloque
+pas les écritures concurrentes et un rapport sur une base utilisée peut refléter
+plusieurs instants. Utiliser les mêmes réglages de connexion que manage.py.
+
+#+begin_src sh
+python manage.py diagnostiquer_referentiels
+python manage.py diagnostiquer_referentiels --ecole 1 --json
+python manage.py diagnostiquer_referentiels --json --exiger-coherent > diagnostic-referentiels.json
+#+end_src
+
+Sans filtre, toutes les écoles sont examinées. Le filtre désigne une école par
+identifiant ; une école inexistante échoue. Une base vide est acceptée.
+L'option --exiger-coherent rend un code de sortie non nul en présence d'un
+constat bloquant, après émission du rapport complet ; les avertissements seuls
+ne provoquent pas cet échec. Le JSON a un numéro de format, pour distinguer
+une évolution ultérieure de ses champs. Les listes contiennent les identifiants
+du type d'objet annoncé par le code du constat, pas des noms ni du contenu privé.
+
+* Lire les constats
+
+| Code | Objets désignés | Suite à préparer |
+|------+----------------+------------------|
+| codes_doublons_dans_domaine | Compétences | Examiner les suivis avant toute contrainte ; ne pas fusionner automatiquement |
+| codes_partages_entre_domaines | Compétences | Identités possibles distinctes ; ne pas rapprocher par code seul |
+| competence_sous_domaine_incoherent | Compétences | Vérifier le domaine d'appartenance |
+| observation_autre_ecole | Observations | Examiner la relation élève-compétence |
+| competence_masquee_avec_observations | Compétences | Préserver l'historique lors du nouveau lecteur ; ce masquage est autorisé |
+| scolarite_ecole_ou_annee_incoherente | Scolarités | Vérifier école et année de la classe |
+| classe_annee_invalide | Classes | Vérifier AAAA-AAAA et années consécutives |
+| scolarite_annee_invalide | Scolarités | Même vérification |
+| etat_sans_annee_unique | Observations | Plusieurs scolarités ou aucune ; ne pas inventer l'état final de chaque année |
+| trace_contexte_incoherent | Traces | Vérifier l'élève et l'école de la scolarité |
+| trace_origine_commune_incoherente | Traces | Vérifier compétence, classe d'origine et association/personnalisation ; un déplacement de classe peut expliquer le constat |
+| trace_commune_autre_ecole | Traces communes | Vérifier la compétence choisie |
+| reglage_presentation_incoherent | Réglages #T | Examiner les relations et le choix d'image selon les validations actuelles |
+| formulation_locale_incoherente | Formulations locales | Examiner périmètre, origine, mode et texte selon les validations actuelles |
+| competence_sans_origine_versionnee | Compétences | Information normale avant #R3b, origine à reprendre sans invention |
+
+Les codes partagés, compétences masquées et années ambiguës sont « à examiner » ;
+l'absence d'origine est informative. Les autres constats sont bloquants pour
+la reprise automatique proposée. La commande ne décide d'aucune correction.
+
+* Limites importantes
+
+Même une observation ayant une seule scolarité ne prouve pas son contexte
+historique : une date ne reconstruit pas les états effacés. Le diagnostic ne
+compare pas la base au YAML actuel pour inventer une filiation. Les volumes
+incluent les traces retirées et les éléments inactifs, qui doivent être conservés.
+Les identifiants du rapport restent à traiter comme des informations internes.
+
+La commande ne lit pas les fichiers médias et ne vérifie pas leur existence.
+Les protections de clés étrangères de la base sont supposées actives ; ce
+rapport ne remplace pas un contrôle d'intégrité d'une sauvegarde. Avec --ecole,
+les relations sont contrôlées à partir des objets propriétaires de cette école ;
+utiliser le rapport complet pour couvrir les relations provenant d'autres écoles.
+Aucune vérification de source versionnée n'est possible avant #R3b.
+
+* Préparation de #R3b
+
+Conserver le rapport d'une copie restaurée et les volumes de référence.
+Examiner les blocages, les codes ambigus et les états sans année unique ;
+consigner les décisions sans modifier une base réelle dans le cadre des essais.
+La future migration doit reprendre les clés et les liens, conserver les objets
+masqués et produire explicitement un état initial repris. Un diagnostic sans
+blocage ne garantit pas une reconstitution historique complète.
+
+Tests avec données fictives : lecture sans INSERT/UPDATE/DELETE, base vide,
+filtrage d'école, école absente, doublon, masquage, état multi-années et relation
+entre écoles. Aucun parcours enseignant nouveau : le Guide pratique ne change pas.
+
+* Vérifications de livraison
+
+27 tests réussis sur SQLite avec Django 6.1.1 : les 7 tests du diagnostic et
+les 20 tests de présentation #T, après collectstatic. Contrôle des migrations :
+aucun changement détecté. Syntaxe Python et espacement vérifiés. Application
+git am contrôlée avant livraison. PostgreSQL et la suite complète non exécutés ;
+les deux profils de CI devront compléter cette validation. Hugo et paquets
+non reconstruits : aucun écran, page publique ou emballage n'est modifié.
