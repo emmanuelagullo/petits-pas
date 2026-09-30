@@ -1055,3 +1055,75 @@ class DisponibiliteCompetenceLocale(models.Model):
         if self.classe_id and (self.classe.ecole_id != self.locale.ecole_id or
                               self.classe.annee_scolaire != self.annee_scolaire):
             raise ValidationError("La reprise doit appartenir à l'école et à l'année de la classe.")
+
+
+class CorrespondanceCompetence(models.Model):
+    """Lien pédagogique orienté ; ne fusionne ni compétences ni observations."""
+    TYPES = [("lien", "En lien avec"), ("precise", "Précise cette compétence"),
+             ("remplace", "Remplace cette compétence")]
+    ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT)
+    annee_scolaire = models.CharField(max_length=9)
+    classe = models.ForeignKey(Classe, on_delete=models.PROTECT, null=True, blank=True)
+    depart = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="correspondances_sortantes")
+    arrivee = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="correspondances_entrantes")
+    version_depart = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT, null=True, blank=True,
+                                      related_name="correspondances_sortantes")
+    version_arrivee = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT, null=True, blank=True,
+                                       related_name="correspondances_entrantes")
+    # Références et textes d'origine au moment de la validation, jamais réinterprétés.
+    reference_depart = models.CharField(max_length=100)
+    reference_arrivee = models.CharField(max_length=100)
+    origine_depart = models.JSONField()
+    origine_arrivee = models.JSONField()
+    type_lien = models.CharField(max_length=10, choices=TYPES)
+    justification = models.TextField(max_length=1000)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="correspondances_validees")
+    cree_le = models.DateTimeField(default=timezone.now)
+    active = models.BooleanField(default=True)
+    revision = models.PositiveIntegerField(default=0)
+    retire_le = models.DateTimeField(null=True, blank=True)
+    retire_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+                                  related_name="correspondances_retirees")
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(condition=~models.Q(depart=models.F("arrivee")), name="correspondance_pas_vers_soi"),
+            models.UniqueConstraint(fields=["ecole", "annee_scolaire", "reference_depart", "reference_arrivee", "type_lien"],
+                condition=models.Q(classe__isnull=True, active=True), name="correspondance_ecole_active_unique"),
+            models.UniqueConstraint(fields=["classe", "reference_depart", "reference_arrivee", "type_lien"],
+                condition=models.Q(classe__isnull=False, active=True), name="correspondance_classe_active_unique"),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        from .services.choix_bases_referentiels import verifier_annee
+        verifier_annee(self.annee_scolaire)
+        if self.depart_id == self.arrivee_id:
+            raise ValidationError("Une compétence ne peut pas être reliée à elle-même, même dans deux versions.")
+        for competence in (self.depart, self.arrivee):
+            if competence.domaine.ecole_id != self.ecole_id:
+                raise ValidationError("Les deux compétences doivent appartenir à l'école.")
+        if self.classe_id and (self.classe.ecole_id != self.ecole_id or self.classe.annee_scolaire != self.annee_scolaire):
+            raise ValidationError("Le lien doit appartenir à l'école et à l'année de la classe.")
+        for version in (self.version_depart, self.version_arrivee):
+            if version and version.source.ecole_id not in (None, self.ecole_id):
+                raise ValidationError("Une version d'origine appartient à une autre école.")
+        for origine, competence_id, version_id, reference in (
+            (self.origine_depart, self.depart_id, self.version_depart_id, self.reference_depart),
+            (self.origine_arrivee, self.arrivee_id, self.version_arrivee_id, self.reference_arrivee)):
+            if not isinstance(origine, dict) or origine.get("competence_id") != competence_id or (
+                    origine.get("version_id") != version_id or origine.get("reference") != reference):
+                raise ValidationError("Les origines doivent correspondre aux compétences et versions reliées.")
+        if not self.justification.strip():
+            raise ValidationError("Expliquez pourquoi vous reliez ces apprentissages.")
+
+    def save(self, *args, **kwargs):
+        from django.core.exceptions import ValidationError
+        if self.pk:
+            ancienne = type(self).objects.get(pk=self.pk)
+            champs = ("ecole_id", "annee_scolaire", "classe_id", "depart_id", "arrivee_id",
+                "version_depart_id", "version_arrivee_id", "reference_depart", "reference_arrivee",
+                "origine_depart", "origine_arrivee", "type_lien", "justification", "auteur_id", "cree_le")
+            if any(getattr(self, c) != getattr(ancienne, c) for c in champs):
+                raise ValidationError("Ce lien est conservé. Retirez-le puis créez un lien corrigé.")
+        return super().save(*args, **kwargs)

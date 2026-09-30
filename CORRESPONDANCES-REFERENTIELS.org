@@ -1,0 +1,47 @@
+#+TITLE: Correspondances entre compétences
+
+* #R7a — Liens locaux explicites
+
+Trois types orientés : « En lien avec », « Précise cette compétence »,
+« Remplace cette compétence ». Le départ précise ou remplace l'arrivée.
+Aucune symétrie, transitivité, équivalence ou fusion n'est déduite. Le lien
+n'adopte pas une base, ne masque pas l'ancienne compétence et ne reprend pas
+un ajout. Ces actions restent séparées. Aucun état, trace, image ou phrase
+n'est copié. Aucun droit sur des élèves ou médias n'est accordé.
+
+Chaque lien appartient à l'école et à une année ; il peut être réservé à une
+classe annuelle. Les liens d'école sont consultés avec ceux de la classe.
+Seule la direction valide ou retire un lien d'école ; le responsable ou la
+direction valide ou retire un lien de sa classe ouverte. Un responsable ne
+retire pas un lien proposé par l'école. La validation enregistre le type,
+la justification obligatoire, l'auteur, la date, les deux compétences, les
+versions d'origine facultatives et les textes d'origine choisis.
+
+Les candidats sont des définitions déjà préparées ou adoptées dans l'école,
+et les ajouts disponibles dans le périmètre. La consultation ne prépare pas
+une nouvelle source et ne dévoile aucun suivi d'élève, réglage privé d'une
+classe ni média. Une version utilisée antérieurement peut servir d'origine
+sans redevenir une base autorisée pour les nouvelles adoptions.
+
+Plusieurs liens sont possibles. Un lien vers la même identité est refusé,
+même entre deux versions. Les doublons actifs dans le même périmètre sont
+refusés. Les cycles de remplacement sont contrôlés sur les identités, avec
+les liens d'école et ceux de chaque classe concernée, sans mélanger les liens
+de deux classes. L'école est verrouillée avant la classe pour coordonner
+validation, retrait, changements de base et clôture.
+
+Retirer garde l'enregistrement, son origine, son auteur et les informations du
+retrait ; aucune destruction. Corriger se fait par retrait puis nouvelle
+validation. Le texte d'un lien validé n'est pas réécrit par une adaptation de
+libellé ou une nouvelle version. La clôture conserve les liens alors actifs
+avec leurs textes et justifications ; les classes déjà closes avant #R7 n'ont
+pas de liens déduits a posteriori. La nouvelle année commence sans copie des
+liens de l'année précédente.
+
+* Disponibilité
+
+#R7a prépare le modèle, les services et la conservation finale. Les écrans et
+le Guide seront livrés dans #R7b. Les correspondances déclarées par une source
+YAML ne sont pas importées dans ce jalon : il n'est pas nécessaire d'inventer
+une provenance fournie pour un lien validé localement. Une éventuelle reprise
+d'illustration ou phrase restera une action distincte avec sa propre origine.
