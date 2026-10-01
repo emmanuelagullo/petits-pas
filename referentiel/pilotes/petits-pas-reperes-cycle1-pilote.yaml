@@ -1,0 +1,83 @@
+# Édition pilote pour relecture — couverture partielle, notice obligatoire.
+format: 1
+source:
+  identifiant: petits-pas-reperes-cycle1-pilote
+  titre: Petits Pas — Repères de progrès cycle 1 — pilote de relecture
+  provenance: 'Douze reformulations originales Petits Pas à partir des programmes : BO n°41 du 31
+    octobre 2024, n°19 du 7 mai 2026 et n°6 du 6 février 2025 (EVAR). Source pilote destinée à la
+    relecture pédagogique, distincte des futures sources complètes. Couverture partielle. Voir referentiel/pilotes/NOTICE-CR3.org
+    et referentiel/REGISTRE-CONTENUS-CR2.org dans le dépôt Petits Pas. Les noms de domaines sont
+    abrégés. PS/MS/GS est un classement de lecture, pas une échéance d’acquisition.'
+  licence: CC-BY-SA-4.0
+  provisoire: true
+version: 2026-10-01-pilote-1
+domaines:
+- code: LANG
+  nom: Langage oral et écrit
+  competences:
+  - identite: r-dire-action-presente
+    code: R01
+    libelle: Je dis ce que je suis en train de faire.
+    niveau: PS
+  - identite: r-expliquer-procedure
+    code: R02
+    libelle: J'explique comment j'ai fait ou comment je vais faire.
+    niveau: MS
+- code: PHYS
+  nom: Activités physiques
+  competences:
+  - identite: r-saut-obstacle-sans-elan
+    code: R06
+    libelle: Je franchis un obstacle en sautant sans prendre d'élan.
+    niveau: PS
+- code: ARTS
+  nom: Activités artistiques
+  competences:
+  - identite: r-emotion-apres-musique
+    code: R07
+    libelle: Je dis ce que je ressens après avoir écouté un extrait musical.
+    niveau: MS
+- code: MATH
+  nom: Premiers outils mathématiques
+  competences:
+  - identite: r-denombrer-jusqua3voire4
+    code: R03
+    libelle: Je trouve combien il y a d'objets, jusqu'à trois, voire quatre.
+    niveau: PS
+  - identite: r-denombrer-jusqua6
+    code: R04
+    libelle: Je trouve combien il y a d'objets, jusqu'à six.
+    niveau: MS
+  - identite: r-reciter-suite1a30
+    code: R05
+    libelle: Je récite les nombres de un à trente dans l'ordre.
+    niveau: GS
+- code: TEMPS
+  nom: Temps et espace
+  competences:
+  - identite: r-enoncer-date
+    code: R08
+    libelle: Je dis la date du jour.
+    niveau: GS
+- code: VIVANT
+  nom: Vivant, matière et objets
+  competences:
+  - identite: r-soins-plantations
+    code: R09
+    libelle: Je participe aux soins des plantations de la classe.
+    niveau: PS
+- code: EVAR
+  nom: EVAR — section complémentaire
+  competences:
+  - identite: r-exprimer-refus
+    code: R10
+    libelle: Je peux dire ou montrer que je ne suis pas d'accord.
+    niveau: PS
+  - identite: r-demander-aide-adulte
+    code: R11
+    libelle: Je demande de l'aide à un adulte de confiance quand j'en ai besoin.
+    niveau: MS
+  - identite: r-nommer-emotion-personnage
+    code: R12
+    libelle: Je nomme une émotion d'un personnage dans une histoire.
+    niveau: MS
