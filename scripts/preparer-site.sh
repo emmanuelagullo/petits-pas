@@ -21,4 +21,17 @@ MATRICE-AUTORISATIONS.org:matrice-autorisations.org
 PLAN-IMPLEMENTATION-AUTORISATIONS.org:plan-implementation-autorisations.org
 EOF
 
+# Publication explicite des contenus cycle 1, depuis leurs seules sources.
+contenus="$racine/site/static/referentiels/cycle1"
+mkdir -p "$contenus/illustrations"
+for source in objectifs-programmes.yaml cycle1-etaye.yaml REGISTRE.csv NOTICE.org COUVERTURE.org EMPREINTES.org; do
+    cp "$racine/referentiel/cycle1/$source" "$contenus/$source"
+done
+cp "$racine/referentiel/REGISTRE-CONTENUS-CR2.org" "$contenus/REGISTRE-CONTENUS-CR2.org"
+for source in ILLUSTRATIONS-CR5.org ILLUSTRATIONS-CR5.yaml ASSOCIATIONS-CR5.yaml; do
+    cp "$racine/referentiel/$source" "$contenus/$source"
+done
+cp "$racine/referentiel/static/referentiel/icones/openmoji/"*.svg "$contenus/illustrations/"
+cp "$racine/referentiel/static/referentiel/icones/openmoji/LICENSE.txt" "$contenus/illustrations/LICENSE.txt"
+
 echo "Documents Org publics préparés dans ${destination#"$racine/"}/."

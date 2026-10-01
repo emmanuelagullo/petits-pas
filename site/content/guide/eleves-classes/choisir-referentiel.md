@@ -101,3 +101,10 @@ conservent leur choix jusqu’à confirmation. Les numéros de version ne sont p
 un ordre chronologique garanti : revenir à une ancienne version autorisée
 utilise le même parcours. Si les adaptations ont changé depuis l’aperçu,
 consulter à nouveau les conséquences.
+
+## Essayer avec des contenus cycle 1
+
+La [présentation des deux offres cycle 1]({{< relref "/referentiels/cycle1" >}})
+précise leur couverture, leur provenance et leurs licences. Dans la démonstration,
+Rémi suit Les Mésanges avec l’offre étayée et Nadia suit Les Hirondelles avec les
+objectifs officiels seuls. Ces éditions restent provisoires pour relecture.

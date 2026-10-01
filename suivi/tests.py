@@ -3430,7 +3430,7 @@ class JeuDemoLarge(TestCase):
             profil for profil in configuration["profils"] if profil["id"] == "alice"
         )
         self.assertEqual(alice["affectations"][0]["periode"], "terminee")
-        self.assertEqual(len(configuration["scenarios"]), 17)
+        self.assertEqual(len(configuration["scenarios"]), 19)
         self.assertEqual(
             {scenario["profil"] for scenario in configuration["scenarios"]},
             {"diane", "remi", "nadia", "cora", "samir"},
@@ -3456,7 +3456,7 @@ class JeuDemoLarge(TestCase):
                 "#formulaire-trace",
                 "#formulaire-bilan",
                 "#preparer-carnets",
-                "#membre-enseignant-demo .gerer-affectation .panneau-action",
+                "#membre-enseignant-demo .gerer-affectation .panneau-action >> nth=0",
             },
         )
 

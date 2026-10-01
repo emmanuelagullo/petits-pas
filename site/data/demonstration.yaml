@@ -332,7 +332,27 @@ scenarios:
       - { action: titre, nom: "Équipe pédagogique" }
       - { action: lien, nom: "Personnes" }
       - { action: selecteur, selecteur: "#membre-enseignant-demo .gerer-affectation > summary" }
-    cible: "#membre-enseignant-demo .gerer-affectation .panneau-action"
+    cible: "#membre-enseignant-demo .gerer-affectation .panneau-action >> nth=0"
     capture: guide/equipe/remplacer-responsable.png
     titre: Remplacer un responsable
     legende: Le formulaire prépare la nouvelle responsabilité avant de terminer l'ancienne dans les données fictives.
+  - id: contenus-cycle1-mesanges
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: mesanges }
+      - { action: lien, nom: "Référentiel de la classe" }
+      - { action: titre, nom: "Choisir le référentiel de la classe" }
+    capture: referentiels/cycle1/mesanges.png
+    titre: L'offre étayée des Mésanges
+    legende: La classe fictive utilise les objectifs des programmes et les repères proposés, en version 2026.2.
+  - id: contenus-cycle1-hirondelles
+    profil: nadia
+    parcours: guide
+    etapes:
+      - { action: classe, classe: hirondelles }
+      - { action: lien, nom: "Référentiel de la classe" }
+      - { action: titre, nom: "Choisir le référentiel de la classe" }
+    capture: referentiels/cycle1/hirondelles.png
+    titre: Les objectifs officiels des Hirondelles
+    legende: L'autre classe fictive utilise uniquement les objectifs officiels, en version 2026.1.

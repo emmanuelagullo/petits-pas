@@ -80,3 +80,10 @@ modification explicite et validée, et non un effet de bord du tag `latest`.
 La construction en CI utilise `--panicOnWarning` : tout avertissement Hugo fait
 échouer le job. Les jobs Hugo désactivent aussi le cache Python global, dont ils
 n'ont pas besoin.
+
+## Contenus cycle 1
+
+`scripts/preparer-site.sh` publie aussi une liste explicite de YAML, registre,
+notices et illustrations dans `static/referentiels/cycle1/`, ignoré par Git.
+Modifier uniquement les originaux sous `referentiel/` ; la page publique
+`content/referentiels/cycle1.md` les présente et propose un parcours d’essai.

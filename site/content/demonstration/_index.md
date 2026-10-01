@@ -41,6 +41,17 @@ d'effacement à la demande.
   une collectivité, avec les garanties organisationnelles et techniques
   adaptées aux données réelles.
 
+## Essayer les contenus complets du cycle 1
+
+Deux classes multi-niveaux permettent de relire les contenus applicables en
+2026-2027 : **Les Mésanges**, avec Rémi, utilisent l’édition étayée ;
+**Les Hirondelles**, avec Nadia, utilisent les objectifs officiels seuls.
+Chacune comporte douze élèves fictifs, avec des observations contextualisées.
+
+Le [parcours d’essai des référentiels cycle 1]({{< relref "/referentiels/cycle1" >}})
+présente les deux offres, les sources, les licences, les limites de couverture,
+les fichiers à télécharger et une proposition de relecture en dix minutes.
+
 ## Tester les référentiels avec l’équipe fictive
 
 Pour l’année **2026-2027**, ouvrir **Les Coccinelles** avec Rémi ou Nadia,

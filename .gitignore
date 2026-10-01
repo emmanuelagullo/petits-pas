@@ -23,3 +23,5 @@ site/.hugo_build.lock
 .env.*
 !.env.example
 /notes-locales/
+
+/site/static/referentiels/cycle1/
