@@ -1,0 +1,7 @@
+#+TITLE: Documents contrôlés le 1er octobre 2026
+
+- consolide.pdf : SHA-256 =15f244ef5937eaead0a4eb85cb11fceb34cb8a0ac0453ec0a6df5b12006bee8a=
+- cycle1-2026.pdf : SHA-256 =d4ef177c83542c287cd61b1be35b8cec2416b4a21e9396361623482e42905237=
+- evar.pdf : SHA-256 =7090b6e2cba1009b063a8bac2ab390f63cfc55aa38256b21e3024e897dba9a97=
+
+Les documents tiers ne sont pas embarqués. Les liens officiels figurent dans NOTICE.org.

@@ -54,3 +54,10 @@ conservées séparément. Une formulation locale conserve son lien d'origine ;
 une mise à jour de la source n'écrase pas son texte adapté. Masquer une
 proposition conserve également son identité. Les textes déjà enregistrés dans
 les traces ne sont pas modifiés par l'import.
+
+## Éditions couvrant les objectifs du cycle 1
+
+Les [éditions 2026.1](cycle1/NOTICE.org) proposent les 426 objectifs inventoriés
+(six domaines et EVAR) et une offre étayée de douze repères supplémentaires.
+Leur [couverture](cycle1/COUVERTURE.org) et leur [registre](cycle1/REGISTRE.csv)
+accompagnent les YAML. Ces éditions restent provisoires pour relecture.
