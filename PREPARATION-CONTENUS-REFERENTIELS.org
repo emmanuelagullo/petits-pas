@@ -1,0 +1,173 @@
+#+TITLE: Référentiels cycle 1 — couverture et échantillon de relecture #CR2
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+* Objet
+
+Ce document prolonge CONTENUS-REFERENTIELS.org. Il prépare les deux nouvelles
+offres proposées et un échantillon de libellés à relire avec des enseignants.
+Les références sont conservées dans
+=referentiel/REGISTRE-CONTENUS-CR2.org=. Les tableaux décrivent un projet de
+contenus ; ils ne constituent pas des référentiels déjà disponibles.
+
+La trame de démarrage conserve son nom proposé, sa notice et son contenu.
+Les correspondances et l'adoption de nouvelles bases restent des actions
+explicites, indépendantes de la préparation de ces documents.
+
+* Deux offres complémentaires
+
+| Offre | Choix éditorial | Usage proposé |
+|-------+-----------------+---------------|
+| Cycle 1 — Objectifs des programmes | Conserver les objectifs dans leur rédaction officielle, leurs repères d'âge et leurs références | Lecture détaillée du cadre d'enseignement |
+| Petits Pas — Repères de progrès cycle 1 | Rédiger des libellés courts, avec une notice de sens et le passage d'origine | Choix d'observations et communication des progrès |
+
+Les titres restent sans millésime pour pouvoir accueillir plusieurs éditions.
+L'année d'application sera indiquée dans la notice de chaque version. Les
+identifiants de source proposés sont =cycle1-objectifs-programmes= et
+=petits-pas-reperes-cycle1= ; leur validation précède le premier import.
+
+La première offre conservera les objectifs composés lorsqu'ils expriment une
+cible globale. Les exemples de réussite seront référencés dans la notice de
+lecture, sans devenir systématiquement autant de lignes à valider. La seconde
+pourra choisir des repères plus ciblés : la couverture partielle sera explicite.
+
+La rédaction des repères proposée ici relève de CC-BY-SA-4.0, conformément à
+la licence de documentation des contributions. Les textes officiels gardent
+leur provenance institutionnelle et leur régime de réutilisation, exposé en
+#CR1. Aucun contenu de synthèse externe n'est repris dans cet échantillon.
+La licence à déclarer pour chaque fichier complet sera précisée avec sa notice.
+
+* Couverture prévue
+
+Les noms courts ci-dessous sont des repères de préparation. Les intitulés
+officiels des domaines figurent dans #CR1. Les références L24, M24, C26 et E25
+sont définies dans le registre. « À préparer » désigne un contenu qui n'est
+pas encore rédigé ; la couverture complète sera vérifiée objectif par objectif
+au jalon #CR3. Ce tableau ne mesure pas un pourcentage de réalisation.
+
+| Ensemble | Référence | Offre Objectifs | Offre Repères | Échantillon actuel |
+|----------+-----------+----------------+---------------+--------------------|
+| Langage : oral, préparation à la lecture et à l'écriture | L24 | À préparer dans les trois composantes | Repères et références à préparer | R01-R02 : discours oral |
+| Activités physiques : quatre sous-domaines | C26 | À préparer | Repères à préparer | R06 : saut |
+| Activités artistiques : arts visuels, univers sonores, spectacle vivant | C26 | À préparer | Repères à préparer | R07 : écoute musicale |
+| Mathématiques : quantité/rang, problèmes, formes, grandeurs, motifs | M24 | À préparer dans toutes les composantes | Repères à préparer | R03-R05 : nombre |
+| Temps et espace | C26 | À préparer dans les deux composantes | Repères à préparer | R08 : date |
+| Vivant, matière et objets | C26 | À préparer dans les deux composantes | Repères à préparer | R09 : plantations |
+| EVAR : connaissance de soi, relations, place dans le collectif | E25 | Section complémentaire à préparer | Sélection scolaire à préparer et documenter | R10-R12 : refus, aide, émotions |
+
+L'échantillon porte sur douze repères et couvre un sujet dans chacun des six
+domaines, ainsi qu'une sélection EVAR. Il sert à relire les choix de rédaction.
+La présence d'un exemple dans un domaine ne signifie pas que ce domaine est
+couvert par une progression complète.
+
+* Place proposée pour l'EVAR
+
+L'EVAR sera présentée comme une section complémentaire, distincte des six
+domaines. La couverture des trois axes et des trois repères d'âge reste à
+préparer. Les libellés de suivi porteront sur des situations scolaires ; les
+exemples seront fictifs et respectueux de l'intimité des enfants.
+
+Pour la relecture, les repères R10-R12 sont volontairement ciblés. Ils ne
+résument ni un axe ni le programme. Les contenus relatifs au corps, à l'intimité,
+à l'égalité, aux relations et à la diversité des familles seront examinés dans
+la matrice détaillée. Les regroupements possibles avec d'autres domaines
+seront documentés sans fusion automatique d'identités.
+
+* Échantillon pour l'offre Objectifs
+
+Ces quatre citations brèves illustrent la conservation du texte officiel.
+Le registre fournit les repères d'âge, les rubriques et la pagination des
+annexes. Les autres références de l'échantillon sont décrites par des résumés
+de sens ; leur rédaction officielle complète sera vérifiée lors de #CR3.
+
+| Référence | Identité proposée dans cycle1-objectifs-programmes | Texte officiel |
+|-----------+-----------------------------------------------------+----------------|
+| R01 | o-dire-action-presente | « Dire ce qu’on fait. » |
+| R03 | o-denombrer-jusqua3voire4 | « Dénombrer une collection d’objets (jusqu’à trois, voire quatre). » |
+| R06 | o-saut-obstacle-sans-elan | « Sauter sans élan un obstacle. » |
+| R08 | o-enoncer-date | « Énoncer la date. » |
+
+Ces identités sont des propositions de rédaction, pas les identifiants du
+ministère. Elles seront conservées après publication si le sens reste le même.
+Elles n'établissent aucune filiation avec les codes de la trame historique.
+
+* Échantillon pour l'offre Repères
+
+Tous les libellés de ce tableau sont des reformulations Petits Pas à relire.
+Les indications « cible reprise » ou « partie ciblée » décrivent leur rapport
+éditorial au passage officiel ; elles n'affirment pas une équivalence de suivi.
+Les notices de sens du registre font partie de la proposition pédagogique.
+
+| Référence | Identité proposée dans petits-pas-reperes-cycle1 | Libellé proposé | Portée |
+|-----------+--------------------------------------------------+-----------------+--------|
+| R01 | r-dire-action-presente | Je dis ce que je suis en train de faire. | Cible reprise |
+| R02 | r-expliquer-procedure | J'explique comment j'ai fait ou comment je vais faire. | Cible reprise |
+| R03 | r-denombrer-jusqua3voire4 | Je trouve combien il y a d'objets, jusqu'à trois, voire quatre. | Cible reprise |
+| R04 | r-denombrer-jusqua6 | Je trouve combien il y a d'objets, jusqu'à six. | Cible reprise |
+| R05 | r-reciter-suite1a30 | Je récite les nombres de un à trente dans l'ordre. | Partie ciblée |
+| R06 | r-saut-obstacle-sans-elan | Je franchis un obstacle en sautant sans prendre d'élan. | Cible reprise |
+| R07 | r-emotion-apres-musique | Je dis ce que je ressens après avoir écouté un extrait musical. | Partie ciblée : expression orale |
+| R08 | r-enoncer-date | Je dis la date du jour. | Cible reprise |
+| R09 | r-soins-plantations | Je participe aux soins des plantations de la classe. | Partie ciblée : cultures |
+| R10 | r-exprimer-refus | Je peux dire ou montrer que je ne suis pas d'accord. | Partie ciblée : exprimer un refus |
+| R11 | r-demander-aide-adulte | Je demande de l'aide à un adulte de confiance quand j'en ai besoin. | Partie ciblée : appel à un adulte |
+| R12 | r-nommer-emotion-personnage | Je nomme une émotion d'un personnage dans une histoire. | Partie ciblée : situation fictive |
+
+** Lecture de quelques choix
+
+- R03 et R04 désignent des étapes distinctes. La réussite de l'une ne renseigne
+  pas automatiquement celle de l'autre. Le terme « trouver combien » vise la
+  quantité obtenue ; aucune procédure unique n'est imposée par le libellé.
+- R05 isole la récitation en ordre croissant. Les autres usages de la suite
+  numérique demandent des repères complémentaires. Il ne remplace pas un
+  dénombrement de collection.
+- R07 précise une modalité orale ; les autres formes d'expression demandent
+  une autre rédaction si l'équipe souhaite les inclure dans le même repère.
+- R09 laisse visible la participation accompagnée. Une exigence nouvelle
+  d'autonomie serait à examiner comme un changement de cible.
+- R10 porte sur l'expression d'un refus. Le respect du refus d'autrui appelle
+  un autre repère ; les deux ne sont pas réunis sous une réussite unique.
+
+* Repères d'âge et niveaux
+
+Le registre conserve le repère d'âge du passage officiel. Pour les passages
+à partir de quatre ou cinq ans, il conserve aussi la possibilité de les aborder
+lorsque les apprentissages précédents ont été observés. Les niveaux PS/MS/GS
+ne remplacent pas cette indication.
+
+Une proposition technique de niveau pour le futur import est conservée dans
+le registre : PS pour le repère avant quatre ans, MS pour celui à partir de
+quatre ans et GS pour celui à partir de cinq ans. Ce choix de classement sera
+à confirmer lors de #CR3 ; il ne fixe ni une échéance ni une restriction de
+saisie. La notice de la base conservera les indications officielles.
+
+* Relecture attendue
+
+Pour chaque ligne, la relecture portera sur la compréhension du libellé,
+l'étendue de l'apprentissage et les conditions d'observation. Les critères
+de validation sont les suivants :
+
+1. L'équipe comprend la cible sans devoir deviner le sens d'un mot général.
+2. La notice conserve les bornes et le contexte nécessaires.
+3. Un repère partiel ne sert pas à conclure sur l'ensemble de l'objectif.
+4. La première personne convient à la communication avec les familles ; une
+   rédaction destinée aux enseignants peut être retenue si elle est plus claire.
+5. L'identité reste stable pour une reformulation fidèle et change si la cible
+   évolue. Les rapprochements entre les deux offres ne transfèrent aucun acquis.
+
+Les libellés R07, R09 et R12 méritent particulièrement cette relecture : leur
+portée est plus étroite que celle de l'objectif d'origine. Les notices pourront
+être affinées avant de décider de les publier.
+
+* Suite
+
+#CR3 préparera les contenus retenus, les fichiers YAML, les notices de licence
+et une matrice détaillée de tous les objectifs. Chaque entrée sera identifiée
+comme transcrite, reformulée, partiellement couverte ou laissée hors du périmètre
+avec une justification. Les exemples de réussite resteront distincts des
+objectifs. Les éléments dépassant les limites du format seront recensés avant
+toute décision de restitution.
+
+Ce jalon n'importe pas de source, ne modifie pas le modèle et n'ouvre pas de
+nouveau parcours. Une compétence sans illustration ni phrase proposée reste
+un contenu possible dans les deux offres.

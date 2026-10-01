@@ -5,6 +5,10 @@ L'audit des contenus, de leur provenance et des offres à préparer est consign�
 dans [CONTENUS-REFERENTIELS.org](../CONTENUS-REFERENTIELS.org) (#CR1).
 Il ne remplace ni n'importe cette trame ; les deux versions sous `exemples/`
 restent exclusivement fictives.
+La préparation de la couverture et l'échantillon à relire figurent dans
+[PREPARATION-CONTENUS-REFERENTIELS.org](../PREPARATION-CONTENUS-REFERENTIELS.org)
+(#CR2), avec le [registre de références et de sens](REGISTRE-CONTENUS-CR2.org).
+Ces documents préparent les contenus ; ils ne publient pas de source au catalogue.
 Pour le chargement historique dans une école non reprise, les codes des
 compétences et formulations servent à retrouver les éléments lors d'un import.
 Pour l'import versionné au catalogue, l'identité d'une compétence est déclarée

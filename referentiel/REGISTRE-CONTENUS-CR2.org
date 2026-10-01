@@ -1,0 +1,102 @@
+#+TITLE: Registre de références et de sens — échantillon #CR2
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+* Statut et lecture
+
+Registre documentaire de douze repères proposés dans
+PREPARATION-CONTENUS-REFERENTIELS.org. Les codes R01-R12 repèrent les lignes
+de cette étude ; ils ne sont ni des codes officiels ni des identités importées.
+Les identités candidates sont indiquées dans le document de préparation.
+Le sens et les références devront être relus avant une première publication.
+
+Les indications de page comptent les pages du PDF depuis la première page,
+y compris sa couverture. Les résumés de cible sont rédigés par Petits Pas et
+ne sont pas des citations. Les objectifs, les notions/compétences et les
+exemples de réussite ou démarches sont distingués dans la dernière colonne.
+
+* Sources officielles
+
+Les sources suivantes ont été consultées le 1er octobre 2026. Les arrêtés
+et leur chronologie sont décrits dans CONTENUS-REFERENTIELS.org.
+
+| Repère | Texte | Publication | Application |
+|--------+-------+-------------+-------------|
+| L24 | Annexe 1, langage oral et écrit | BO n°41 du 31 octobre 2024 | Rentrée 2025-2026 |
+| M24 | Annexe 2, premiers outils mathématiques | BO n°41 du 31 octobre 2024 | Rentrée 2025-2026 |
+| C26 | Annexe, programme cycle 1 | BO n°19 du 7 mai 2026 | Rentrée 2026-2027 |
+| E25 | Programme EVAR, partie maternelle | BO n°6 du 6 février 2025 | Rentrée 2025-2026 |
+
+- L24 et M24 : [[https://www.education.gouv.fr/bo/2024/Hebdo41/MENE2415135A][arrêté et annexes de 2024]].
+- C26 : [[https://www.education.gouv.fr/bo/2026/Hebdo19/MENE2608627A][arrêté et annexe de 2026]].
+- E25 : [[https://www.education.gouv.fr/bo/2025/Hebdo6/MENE2503064A][arrêté de 2025]] et
+  [[https://www.education.gouv.fr/sites/default/files/document/Programme%20d%E2%80%99%C3%A9ducation%20%C3%A0%20la%20vie%20affective%20et%20relationnelle%20%C3%A0%20l%E2%80%99%C3%A9cole%20maternelle-405258.pdf][PDF EVAR maternelle, 16 pages]].
+- P26 : [[https://eduscol.education.gouv.fr/sites/default/files/document/programme-cycle-1-consolide-127565.pdf][PDF consolidé Éduscol, 63 pages]], réunion des textes L24, M24 et C26.
+
+La pagination P26 sert à retrouver les passages dans le document consolidé ;
+elle ne désigne pas une nouvelle publication normative. Les liens vers les
+annexes d'origine restent nécessaires pour l'identification de la source.
+
+* Localisation des passages
+
+Âges : A = à aborder avant quatre ans ; B = à partir de quatre ans ou lorsque
+les apprentissages précédents ont été observés ; C = à partir de cinq ans ou
+lorsque les apprentissages précédents ont été observés. Le classement PS/MS/GS
+de la colonne suivante est une proposition pour l'import, distincte de ces
+repères officiels.
+
+| Repère | Texte et localisation | Âge | Niveau proposé | Cible résumée et place du repère |
+|--------+-----------------------+-----+----------------+---------------------------------|
+| R01 | L24 ; P26 p.12 ; oral, produire des discours variés | A | PS | Objectif : verbaliser l'action en cours |
+| R02 | L24 ; P26 p.12 ; même rubrique | B | MS | Objectif : expliciter une manière de faire, passée ou envisagée |
+| R03 | M24 ; P26 p.38 ; quantité par un nombre | A | PS | Objectif : quantité d'une collection, borne trois voire quatre |
+| R04 | M24 ; P26 p.40 ; même rubrique | B | MS | Objectif : quantité d'une collection, borne six |
+| R05 | M24 ; P26 p.42 ; même rubrique | C | GS | Objectif : connaissance et usages de la suite numérique jusqu'à trente ; repère limité à sa récitation croissante |
+| R06 | C26 ; P26 p.23 ; se déplacer | A | PS | Objectif : franchissement par saut sans élan |
+| R07 | C26 ; P26 p.33 ; univers sonores, affiner son écoute | B | MS | Objectif : expression d'une émotion après une écoute ; repère limité à la parole |
+| R08 | C26 ; P26 p.54 ; se repérer dans le temps | C | GS | Objectif : énonciation de la date |
+| R09 | C26 ; P26 p.60 ; animaux et végétaux | A | PS | Objectif : soins des élevages et cultures ; repère limité aux plantations |
+| R10 | E25 p.11 ; relations avec les autres | A | PS | Objectif : accord/refus et respect d'un refus ; repère limité à l'expression du refus |
+| R11 | E25 pp.12-13 ; relations avec les autres | B | MS | Objectif : personne de confiance et appel à elle ; notions et démarches liées à la demande d'aide ; repère limité à l'appel à un adulte |
+| R12 | E25 p.12 ; connaissance de soi | B | MS | Objectif : corps et émotions ; démarche proposée autour de personnages ; repère limité à cette situation |
+
+* Notices de sens pour la relecture
+
+Ces notices sont des propositions éditoriales. Elles aident à interpréter une
+observation ; elles ne prescrivent pas une épreuve unique ni une réussite
+définitive à partir d'une seule situation.
+
+| Repère | Conditions à conserver | Point de relecture |
+|--------+------------------------+--------------------|
+| R01 | Action actuelle ; interlocuteur présent ; aide apportée à noter | Distinguer expression spontanée et sollicitée sans imposer l'une dans le libellé |
+| R02 | Procédure et temporalité explicites | Une simple nomination de l'activité ne suffit pas à décrire la manière de faire |
+| R03 | Collections variées ; borne trois voire quatre conservée | La quantité obtenue importe ; la récitation seule n'établit pas ce repère |
+| R04 | Borne six ; conditions d'observation documentées | Identité distincte de R03 ; aucune réussite déduite de l'étape précédente |
+| R05 | Récitation croissante à partir de un | Portée partielle clairement annoncée ; ne pas étendre aux autres usages de la suite |
+| R06 | Obstacle adapté, espace sécurisé | Le ressenti de l'enfant ne constitue pas le critère de ce repère |
+| R07 | Écoute préalable ; parole accueillie sans réponse attendue unique | Confirmer si la modalité orale est le périmètre souhaité |
+| R08 | Date du jour ; supports disponibles et aide notée | Le libellé ne demande pas de lire une date écrite ni de la produire sans support |
+| R09 | Participation aux soins, accompagnement décrit | Aucun jugement global sur l'autonomie ou sur l'ensemble du vivant |
+| R10 | Expression verbale ou gestuelle reconnue | Distinguer refus personnel et prise en compte du refus d'autrui |
+| R11 | Besoin d'aide en situation scolaire | La possibilité de solliciter de l'aide reste ouverte quel que soit l'état de suivi |
+| R12 | Personnage fictif et contexte d'histoire | Une situation ciblée, distincte de la connaissance de ses propres émotions |
+
+* Évolutions et registre futur
+
+Les douze entrées commencent à cette édition documentaire. Aucun historique
+de version pédagogique n'est supposé. Après publication, chaque entrée du
+registre complet conservera source, identité, première version, référence,
+cible, couverture et justification d'une évolution.
+
+| Cas proposé | Décision d'identité |
+|-------------+--------------------|
+| R01 : changement de style sans changer l'action en cours | Même identité dans la même source |
+| R03 vers R04 : extension de la borne | Identité distincte |
+| R05 étendu à d'autres usages de la suite | Nouvelle identité si la cible s'élargit |
+| R09 limité aux plantations versus objectif incluant les élevages | Identités distinctes entre les offres ; portée partielle documentée |
+| R10 complété par le respect du refus d'autrui | Nouveau repère distinct plutôt qu'une extension silencieuse |
+
+Les lignes de ce registre relient un travail éditorial à ses références.
+Elles ne créent pas de correspondance dans l'application. Un éventuel lien
+validé entre sources suivra les règles de CORRESPONDANCES-REFERENTIELS.org,
+sans fusion de suivi ni transfert de réussite.
