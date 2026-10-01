@@ -27,13 +27,13 @@
 <form method="get" class="filtres-referentiel" data-recherche-referentiel data-lecture="{{ lecture }}">
 <input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="annee" value="{{ annee }}">
 {% if historique %}<label for="lecture">Libellés à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Libellés de la base fournie</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select>{% endif %}
-<label for="q">Rechercher un apprentissage</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300" aria-describedby="aide-recherche">
-<p class="aide" data-aide-instantanee hidden>Les résultats se mettent à jour pendant la saisie, sans chargement supplémentaire.</p>
-<p id="aide-recherche" class="aide">Plusieurs mots possibles, dans n’importe quel ordre. Les accents et les petites fautes de frappe sont tolérés ; les résultats exacts apparaissent en premier.</p>
 <label for="domaine">Domaine</label><select id="domaine" name="domaine"><option value="">Tous les domaines</option>{% for nom in domaines %}<option{% if domaine == nom %} selected{% endif %}>{{ nom }}</option>{% endfor %}</select>
 <label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Toutes les sections</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
 <p class="aide">Les sections de classement ne remplacent pas les repères d'âge des programmes.</p>
+<div class="recherche-referentiel">
+<div class="champ-recherche"><label for="q">Rechercher un apprentissage</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300"></div>
 <button class="bouton discret">Filtrer les compétences</button>
+</div>
 </form>
 <p data-compteur-referentiel role="status" aria-live="polite">{{ page.paginator.count }} résultat{{ page.paginator.count|pluralize }}.</p>
 <ul class="liste" data-resultats-referentiel>{% for ligne in page %}<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{{ ligne.domaine }}{% if ligne.groupe %} · {{ ligne.groupe }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>{% empty %}<li>Aucun apprentissage ne correspond à ces filtres.</li>{% endfor %}</ul>
