@@ -20,13 +20,13 @@ const form = element(); form.dataset = {lecture: 'source'};
 form.elements = {q: {...element(), value: ''}, domaine: {...element(), value: ''}, niveau: {...element(), value: ''}};
 const liste = element(), compteur = element(), nav = element(), avant = element(), apres = element(), position = element();
 nav.querySelector = selecteur => ({'[data-precedent]': avant, '[data-suivant]': apres, '[data-position]': position})[selecteur];
-const serveur = element(), aide = element();
+const serveur = element();
 const catalogue = Array.from({length: 61}, (_, i) => ({libelle: `Je reconnais mon prénom ${i}`, domaine: i === 60 ? 'Langage' : 'Autre', niveau: 'MS', active: true}));
 const document = {
   getElementById: () => ({textContent: JSON.stringify(catalogue)}),
   createElement: element, createDocumentFragment: element,
   querySelector: selecteur => ({'[data-recherche-referentiel]': form, '[data-resultats-referentiel]': liste,
-    '[data-compteur-referentiel]': compteur, '[data-pagination-locale]': nav, '[data-aide-instantanee]': aide})[selecteur],
+    '[data-compteur-referentiel]': compteur, '[data-pagination-locale]': nav})[selecteur],
   querySelectorAll: () => [serveur]
 };
 vm.runInNewContext(fs.readFileSync(require.resolve('../suivi/static/suivi/recherche_referentiel.js'), 'utf8'),

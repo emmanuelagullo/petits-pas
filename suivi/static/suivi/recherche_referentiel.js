@@ -84,5 +84,4 @@
   suivant.addEventListener('click', () => { page++; afficher(); });
   filtrer(false);
   document.querySelectorAll('[data-pagination-serveur]').forEach(element => { element.hidden = true; });
-  document.querySelector('[data-aide-instantanee]').hidden = false;
 })();
