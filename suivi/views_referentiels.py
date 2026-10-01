@@ -235,3 +235,60 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
     contexte.update(competence=competence, origine=definition, courante=courante, proposee=proposee,
                     form=form, erreur=erreur, jeton=jeton, consultation_url=request.path + suffixe)
     return render(request, "suivi/adapter_competences.html", contexte, status=400 if erreur else 200)
+
+
+@acces_requis
+@require_http_methods(["GET"])
+def consulter_referentiels(request, classe_pk=None):
+    from django.core.exceptions import PermissionDenied
+    from django.http import Http404
+    from django.core.paginator import Paginator
+    from django.utils import timezone
+    from .autorisations import VOIR_CLASSE, ACCEDER_APPLICATION, autorise
+    from .consultation_referentiels import lignes_consultation
+    from .models import AdoptionReferentiel, annee_scolaire_pour
+    from .services.choix_bases_referentiels import verifier_annee
+
+    ecole = ecole_courante(request)
+    classe = charger_classe_autorisee(request.user, classe_pk, VOIR_CLASSE, ecole=ecole) if classe_pk else None
+    if not classe and not autorise(request.user, ACCEDER_APPLICATION, ecole):
+        raise PermissionDenied
+    annee = classe.annee_scolaire if classe else request.GET.get("annee", annee_scolaire_pour(timezone.localdate()))
+    try:
+        verifier_annee(annee)
+    except ValidationError as cause:
+        raise Http404 from cause
+    disponibles = choix_bases(ecole, annee).versions
+    adoptions = AdoptionReferentiel.objects.filter(classe=classe).select_related("version__source").order_by("-courante", "-pk") if classe else []
+    versions = {v.pk: v for v in disponibles}
+    historiques = {}
+    for adoption in adoptions:
+        versions[adoption.version_id] = adoption.version
+        historiques.setdefault(adoption.version_id, adoption)
+    try:
+        version_id = int(request.GET.get("version", next(iter(versions), 0)))
+    except ValueError as cause:
+        raise Http404 from cause
+    version = versions.get(version_id)
+    if version_id and not version:
+        raise Http404
+    mode = request.GET.get("lecture", "source")
+    adoption = historiques.get(version_id) if mode == "classe" else None
+    if mode not in ("source", "classe") or (mode == "classe" and not adoption):
+        raise Http404
+    lignes = lignes_consultation(version, adoption) if version else []
+    total = len(lignes)
+    domaines = list(dict.fromkeys(c["domaine"] for c in lignes))
+    recherche = request.GET.get("q", "").strip()[:300]
+    domaine = request.GET.get("domaine", "")
+    niveau = request.GET.get("niveau", "")
+    lignes = [c for c in lignes if (not recherche or recherche.casefold() in c["libelle"].casefold())
+              and (not domaine or c["domaine"] == domaine) and (not niveau or c["niveau"] == niveau)]
+    page = Paginator(lignes, 60).get_page(request.GET.get("page"))
+    params = request.GET.copy()
+    params.pop("page", None)
+    return render(request, "suivi/consulter_referentiels.html", {"classe": classe, "annee": annee,
+        "versions": versions.values(), "version": version, "historique": historiques.get(version_id),
+        "disponible": version_id in {v.pk for v in disponibles}, "lecture": mode,
+        "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
+        "domaines": domaines, "domaine": domaine, "niveau": niveau})

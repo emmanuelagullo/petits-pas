@@ -1,0 +1,30 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Consulter les référentiels — {{ annee }}{% endblock %}
+{% block contenu %}
+<p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'accueil' %}">Accueil</a>{% endif %}</p>
+<h1>Consulter les référentiels</h1>
+<p>Lecture seule — cette consultation ne change ni les compétences proposées ni les parcours. Année {{ annee }}.</p>
+<form method="get">
+{% if not classe %}<label for="annee">Année scolaire</label><input name="annee" id="annee" value="{{ annee }}" pattern="[0-9]{4}-[0-9]{4}" required>{% endif %}
+<label for="version">Référentiel à consulter</label><select name="version" id="version">{% for base in versions %}<option value="{{ base.pk }}"{% if base.pk == version.pk %} selected{% endif %}>{{ base.source.titre }} — {{ base.numero }}</option>{% endfor %}</select>
+<button class="bouton discret">Consulter cette base</button>
+</form>
+{% if version %}
+<h2>{{ version.source.titre }} — {{ version.numero }}</h2>
+<p>{{ total }} entrées. {% if version.source.provisoire %}Édition provisoire.{% endif %} {% if not disponible %}Ancienne base conservée pour comprendre les parcours ; indisponible pour un nouveau choix.{% endif %}</p>
+<details><summary>Provenance et droits de réutilisation</summary><p>{{ version.source.provenance|urlize|linebreaksbr }}</p><p>Licence ou mention de réutilisation : {{ version.source.licence|default:"Non renseignée" }}.</p></details>
+{% if lecture == 'classe' %}<p>Présentation de la classe avec ses adaptations et ajouts{% if historique.clos %}, conservée à la clôture{% endif %}.</p>{% else %}<p>Textes de la source, avant les adaptations locales.</p>{% endif %}
+<form method="get">
+<input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="annee" value="{{ annee }}">
+{% if historique %}<label for="lecture">Textes à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Textes de la source</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select>{% endif %}
+<label for="q">Rechercher un apprentissage</label><input id="q" name="q" value="{{ recherche }}" maxlength="300">
+<label for="domaine">Domaine</label><select id="domaine" name="domaine"><option value="">Tous les domaines</option>{% for nom in domaines %}<option{% if domaine == nom %} selected{% endif %}>{{ nom }}</option>{% endfor %}</select>
+<label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Toutes les sections</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
+<p class="aide">Les sections de classement ne remplacent pas les repères d'âge des programmes.</p>
+<button class="bouton discret">Filtrer les compétences</button>
+</form>
+<p>{{ page.paginator.count }} résultat{{ page.paginator.count|pluralize }}.</p>
+<ul class="liste">{% for ligne in page %}<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{{ ligne.domaine }}{% if ligne.groupe %} · {{ ligne.groupe }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>{% empty %}<li>Aucun apprentissage ne correspond à ces filtres.</li>{% endfor %}</ul>
+{% if page.has_other_pages %}<nav aria-label="Pages des compétences">{% if page.has_previous %}<a href="?{{ params }}&amp;page={{ page.previous_page_number }}">Page précédente</a>{% endif %} · Page {{ page.number }} sur {{ page.paginator.num_pages }} · {% if page.has_next %}<a href="?{{ params }}&amp;page={{ page.next_page_number }}">Page suivante</a>{% endif %}</nav>{% endif %}
+{% else %}<p>Aucun référentiel disponible pour cette année.</p>{% endif %}
+{% endblock %}

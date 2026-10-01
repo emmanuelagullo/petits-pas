@@ -17,6 +17,7 @@
 
 <div class="actions">
   {% if peut_gerer_referentiel %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% endif %}
+  <a class="bouton discret" href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels</a>
   <a class="bouton discret" href="{% url 'collaborateurs_classe' classe.pk %}">Collaborateurs</a>
   {% if suivi_complet %}
   <a class="bouton" href="{% url 'choisir_competence' classe.pk %}">Saisir pour toute la classe</a>
