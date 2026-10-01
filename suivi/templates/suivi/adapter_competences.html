@@ -1,6 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Libellés et compétences masquées — {{ annee }}{% endblock %}
 {% block contenu %}
+<div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% else %}<a href="{% url 'gestion' %}">Gérer l'école</a> · <a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Libellés et compétences masquées</h1>
 <p>Choisissez une compétence pour reformuler son libellé ou décider si elle apparaît dans les prochaines saisies. Son identité et ses observations sont conservées. Vous pouvez revenir au libellé proposé ou démasquer la compétence.</p>
@@ -50,4 +51,5 @@
 <p>Pour commencer, gardez le libellé et la visibilité proposés. Les deux choix sont séparés : vous pouvez garder le libellé de l'école tout en montrant une compétence masquée par l'école.</p>
 <p>Un libellé personnel doit décrire le même apprentissage. Il s'applique aux présentations et aux anciens parcours de cette année. Revenir au libellé proposé retrouve les évolutions du niveau supérieur.</p>
 <p>Ces choix concernent {% if classe %}cette classe{% else %}l'école{% endif %} pour {{ annee }}. À la clôture, le carnet garde le dernier état de la classe. La nouvelle année possède ses propres choix.</p></details>
+</div>
 {% endblock %}

@@ -114,3 +114,18 @@ adapter leurs libellés ne change pas la base des prochaines saisies.
 Les règles de permission et de confirmation de #R9b–#R9d sont inchangées.
 Deux fermetures de dépliables introduites dans les titres des pages de choix
 sont également corrigées.
+
+* #R9g — audit de présentation et recherche
+
+La consultation présentait son caractère de lecture seule et ses filtres comme
+un simple texte continu. Les aides dépliables avaient plusieurs présentations.
+La feuille de style commune regroupe désormais les aides, panneaux de filtres
+et métadonnées des pages de référentiel. Le composant d'information existant
+signale la lecture seule ; les couleurs orange et rouge restent réservées aux
+opérations qui demandent une précaution accrue.
+
+La recherche auparavant limitée à une sous-chaîne accepte maintenant tous les
+mots, sans accents ni ordre imposé, et des erreurs limitées dans les mots longs.
+Les résultats exacts précèdent les rapprochements ; ceux-ci ne concernent que
+les libellés, ne créent aucune correspondance pédagogique et ne modifient aucun
+choix. Les filtres, droits, pagination et données restent inchangés.

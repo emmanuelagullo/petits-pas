@@ -1,6 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Correspondances entre compétences — {{ annee }}{% endblock %}
 {% block contenu %}
+<div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% if modifier %} · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% endif %}{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Correspondances entre compétences</h1>
 <p>Cette page sert à expliquer à l’équipe comment deux apprentissages se rapprochent, par exemple lorsqu’on ajoute une compétence ou qu’on prépare un changement de référentiel.</p>
@@ -35,4 +36,5 @@
 <p>« Remplace » explique l'intention d'utiliser le premier à la place du second. Il faut encore choisir la base ou reprendre l'ajout concerné et, si souhaité, masquer l'ancien. Ce lien ne fait aucune de ces actions.</p>
 <p>Plusieurs liens sont possibles ; aucun lien vers soi, lien inverse ou chaîne de liens ne fusionne les suivis. Les boucles de remplacement sont refusées. Une nouvelle année ne reprend pas automatiquement les liens. Pour corriger une explication, retirez le lien puis validez-en un nouveau.</p>
 <p>Les images et phrases peuvent être choisies séparément dans les réglages de présentation ; ce lien ne les réutilise pas. Les droits sur les élèves et photos restent inchangés.</p></details>
+</div>
 {% endblock %}

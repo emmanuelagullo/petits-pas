@@ -2,6 +2,7 @@
 {% load static illustrations %}
 {% block titre %}Présentation du carnet{% endblock %}
 {% block contenu %}
+<div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'gestion' %}">{{ ecole.nom }}</a>{% endif %}{% if competence %} · <a href="{{ index_url }}">Présentation du carnet</a>{% endif %}</p>
 <h1>{% if competence %}{{ competence.libelle }}{% else %}Présentation du carnet{% endif %}</h1>
 <p>{% if competence %}Choisissez l’illustration de cette compétence et adaptez les phrases proposées pour rédiger les prochaines traces.{% else %}Choisissez la photo de couverture, puis ouvrez une compétence pour adapter son illustration et ses phrases proposées.{% endif %} Les commentaires déjà enregistrés ne sont pas réécrits.</p>
@@ -81,4 +82,5 @@
 {% endif %}
 {{ icones_apercu|json_script:"icones-apercu" }}
 <script src="{% static 'suivi/presentation.js' %}" defer></script>
+</div>
 {% endblock %}

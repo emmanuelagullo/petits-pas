@@ -890,11 +890,18 @@ textarea { min-height: 7rem; resize: vertical; }
 .avertissement-referentiel p:last-child { margin-bottom: 0; }
 .avertissement-orange { border-color: #9d5a08; background: #fff3df; color: #593307; }
 .avertissement-rouge { border-color: #a52a2a; background: #fff0f0; color: #742020; }
-.operations-avancees { border: 1px solid var(--trait); border-radius: .5rem; padding: 1rem; margin: 1.5rem 0; }
-.operations-avancees > summary { font-weight: 700; cursor: pointer; }
+.operations-avancees, .page-referentiel details { border: 1px solid var(--trait); border-radius: .5rem; padding: 1rem; margin: 1.5rem 0; }
+.operations-avancees > summary, .page-referentiel details > summary { font-weight: 700; cursor: pointer; }
 
 .menus-referentiel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .8rem; }
 .menus-referentiel > a { display: flex; flex-direction: column; gap: .45rem; border: 1px solid var(--trait); border-radius: .5rem; padding: 1rem; background: #fff; text-decoration: none; }
 .menus-referentiel > a:hover, .menus-referentiel > a:focus-visible { background: #edf5f8; outline: 2px solid #527b8c; outline-offset: 2px; }
 .menus-referentiel span { color: var(--ardoise); font-weight: 400; }
-.bases-precedentes { margin: 1rem 0; padding: .8rem; border: 1px solid var(--trait); border-radius: .5rem; }
+/* Composants communs : informations, filtres, aides et métadonnées. */
+.page-referentiel details[open] > summary { margin-bottom: .8rem; }
+.page-referentiel details details { margin-bottom: 0; }
+.filtres-referentiel { padding: 1rem; margin: 1rem 0; border: 1px solid var(--trait); border-radius: .5rem; background: var(--papier); }
+.filtres-referentiel .aide { margin-top: .3rem; }
+.page-referentiel .entree > div { min-width: 0; }
+.page-referentiel .entree p { margin: .4rem 0 0; color: var(--ardoise-clair); overflow-wrap: anywhere; }
+.page-referentiel details p { overflow-wrap: anywhere; }

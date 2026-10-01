@@ -264,7 +264,7 @@ def consulter_referentiels(request, classe_pk=None):
     from django.core.paginator import Paginator
     from django.utils import timezone
     from .autorisations import VOIR_CLASSE, ACCEDER_APPLICATION, autorise
-    from .consultation_referentiels import lignes_consultation
+    from .consultation_referentiels import lignes_consultation, rechercher_apprentissages
     from .models import AdoptionReferentiel, annee_scolaire_pour
     from .services.choix_bases_referentiels import verifier_annee
 
@@ -301,8 +301,9 @@ def consulter_referentiels(request, classe_pk=None):
     recherche = request.GET.get("q", "").strip()[:300]
     domaine = request.GET.get("domaine", "")
     niveau = request.GET.get("niveau", "")
-    lignes = [c for c in lignes if (not recherche or recherche.casefold() in c["libelle"].casefold())
-              and (not domaine or c["domaine"] == domaine) and (not niveau or c["niveau"] == niveau)]
+    lignes = [c for c in lignes if (not domaine or c["domaine"] == domaine)
+              and (not niveau or c["niveau"] == niveau)]
+    lignes = rechercher_apprentissages(lignes, recherche)
     page = Paginator(lignes, 60).get_page(request.GET.get("page"))
     params = request.GET.copy()
     params.pop("page", None)
