@@ -13,7 +13,7 @@ source:
     complète.'
   licence: 'Textes officiels : Etalab-2.0 ; apports Petits Pas : CC-BY-SA-4.0'
   provisoire: true
-version: '2026.2'
+version: '2026.1'
 domaines:
 - code: LANG
   nom: Le développement et la structuration du langage oral et écrit
@@ -121,7 +121,6 @@ domaines:
       code: LANG-O022
       libelle: 'Objectif : Dire ce qu’on fait.'
       niveau: PS
-      icone: om-parole
     - identite: lang-o023
       code: LANG-O023
       libelle: 'Objectif : Dire ce qu’on a fait et, peu à peu, ce qu’on va faire.'
@@ -168,12 +167,10 @@ domaines:
       code: R01
       libelle: 'Repère : Je dis ce que je suis en train de faire.'
       niveau: PS
-      icone: om-parole
     - identite: r-expliquer-procedure
       code: R02
       libelle: 'Repère : J''explique comment j''ai fait ou comment je vais faire.'
       niveau: MS
-      icone: om-parole
   - code: S05
     nom: Acquérir les habiletés phonologiques et le principe alphabétique
     competences:
@@ -405,7 +402,6 @@ domaines:
       code: LANG-O080
       libelle: 'Objectif : Tracer des lettres capitales.'
       niveau: MS
-      icone: om-crayon
     - identite: lang-o081
       code: LANG-O081
       libelle: 'Objectif : S’initier aux tracés de l’écriture cursive.'
@@ -423,7 +419,6 @@ domaines:
       code: LANG-O084
       libelle: 'Objectif : Tracer des lettres en écriture cursive, les enchainer.'
       niveau: GS
-      icone: om-crayon
   - code: S09
     nom: Produire de premiers écrits
     competences:
@@ -807,7 +802,6 @@ domaines:
       code: ARTS-O021
       libelle: 'Objectif : Réaliser individuellement ou collectivement une production plastique en volume.'
       niveau: PS
-      icone: om-peinture
     - identite: arts-o022
       code: ARTS-O022
       libelle: 'Objectif : S’approprier les constituants plastiques (couleurs, formes, matières, rythmes,
@@ -984,7 +978,6 @@ domaines:
       code: R07
       libelle: 'Repère : Je dis ce que je ressens après avoir écouté un extrait musical.'
       niveau: MS
-      icone: om-musique
   - code: S08
     nom: Pratiquer
     competences:
@@ -1080,7 +1073,6 @@ domaines:
       code: MATH-O003
       libelle: 'Objectif : Dénombrer une collection d’objets (jusqu’à trois, voire quatre).'
       niveau: PS
-      icone: om-nombres
     - identite: math-o004
       code: MATH-O004
       libelle: 'Objectif : Constituer une collection (jusqu’à trois, voire quatre objets) d’un cardinal
@@ -1217,17 +1209,14 @@ domaines:
       code: R03
       libelle: 'Repère : Je trouve combien il y a d''objets, jusqu''à trois, voire quatre.'
       niveau: PS
-      icone: om-nombres
     - identite: r-denombrer-jusqua6
       code: R04
       libelle: 'Repère : Je trouve combien il y a d''objets, jusqu''à six.'
       niveau: MS
-      icone: om-nombres
     - identite: r-reciter-suite1a30
       code: R05
       libelle: 'Repère : Je récite les nombres de un à trente dans l''ordre.'
       niveau: GS
-      icone: om-nombres
   - code: S02
     nom: Exprimer un rang ou une position par un nombre
     competences:
@@ -1330,7 +1319,6 @@ domaines:
       code: MATH-O053
       libelle: 'Objectif : Reproduire des assemblages de solides ou de formes planes.'
       niveau: PS
-      icone: om-formes
     - identite: math-o054
       code: MATH-O054
       libelle: 'Objectif : Reconnaitre et classer des solides (cube, boule, pyramide à base carrée, cylindre)
@@ -1511,7 +1499,6 @@ domaines:
       code: TEMPS-O012
       libelle: 'Objectif : Énoncer la date.'
       niveau: GS
-      icone: om-calendrier
     - identite: temps-o013
       code: TEMPS-O013
       libelle: 'Objectif : Utiliser des mois qui servent de repères pour se situer dans l’année.'
@@ -1528,7 +1515,6 @@ domaines:
       code: R08
       libelle: 'Repère : Je dis la date du jour.'
       niveau: GS
-      icone: om-calendrier
   - code: S02
     nom: S’approprier la notion de chronologie
     competences:
@@ -1701,7 +1687,6 @@ domaines:
       code: TEMPS-O053
       libelle: 'Objectif : Reconnaitre quelques espaces géographiques sur un planisphère.'
       niveau: GS
-      icone: om-globe
     - identite: temps-o054
       code: TEMPS-O054
       libelle: 'Objectif : Enrichir le lexique relatif à l’espace de mots plus complexes ou désignant
@@ -1806,7 +1791,6 @@ domaines:
       code: VIVANT-O003
       libelle: 'Objectif : Prodiguer des soins nécessaires aux élevages et aux cultures.'
       niveau: PS
-      icone: om-plante
     - identite: vivant-o004
       code: VIVANT-O004
       libelle: 'Objectif : Reconnaitre une ou plusieurs étapes d’un cycle de vie à partir de l’observation
@@ -1848,7 +1832,6 @@ domaines:
       code: R09
       libelle: 'Repère : Je participe aux soins des plantations de la classe.'
       niveau: PS
-      icone: om-plante
   - code: S02
     nom: Découvrir le corps humain et la santé
     competences:

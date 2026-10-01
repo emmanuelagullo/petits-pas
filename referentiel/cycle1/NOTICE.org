@@ -116,3 +116,11 @@ indiquer offre, version, code, cible comprise et modification souhaitée.
 Utiliser uniquement des exemples fictifs. L’absence d’illustration ou de phrase
 proposée est admise. La présence d’une icône ne constitue pas un critère de
 réussite et ne change pas l’identité de l’apprentissage.
+
+* Illustrations et versions
+
+L’offre officielle reste en version =2026.1=. L’offre étayée passe en =2026.2=
+pour les 17 associations d’icônes, sans changement d’apprentissage ni d’identité.
+La version étayée =2026.1= sans icônes est conservée dans =editions/= pour
+permettre de reproduire un import déjà effectué. Voir
+=../ILLUSTRATIONS-CR5.org= pour les crédits et les choix de correspondance.

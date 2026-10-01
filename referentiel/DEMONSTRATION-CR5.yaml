@@ -1,0 +1,35 @@
+# Scénario entièrement fictif ; les objectifs pédagogiques proviennent des programmes.
+annee: 2026-2027
+classes:
+  - nom: Les Mésanges
+    responsable: remi
+    source: petits-pas-cycle1-etaye
+    ordre: 4
+  - nom: Les Hirondelles
+    responsable: nadia
+    source: cycle1-objectifs-programmes
+    ordre: 5
+prenoms: [Ada, Basile, Camille, Dalia, Émile, Flora, Gabriel, Iris, Jade, Léo, Mila, Noé]
+# Trois observations de situations fictives pour chaque niveau ; la plupart des objectifs restent sans observation.
+situations:
+  PS:
+    - identite: o-dire-action-presente
+      commentaire: "Exemple fictif : pendant une construction, l'enfant explique l'action en cours ; une question de l'adulte l'aide à commencer."
+    - identite: o-denombrer-jusqua3voire4
+      commentaire: "Exemple fictif : collections de trois puis quatre cubes, déplacés un à un ; une seconde situation reste à observer."
+    - identite: o-saut-obstacle-sans-elan
+      commentaire: "Exemple fictif : franchissement d'un obstacle bas, sans élan, dans un espace sécurisé et adapté."
+  MS:
+    - identite: lang-o026
+      commentaire: "Exemple fictif : l'enfant explique comment préparer une construction ; l'adulte l'aide à préciser l'ordre des gestes."
+    - identite: arts-o055
+      commentaire: "Exemple fictif : après l'écoute musicale, l'enfant exprime ce qu'il ressent ; plusieurs expressions sont accueillies."
+    - identite: evar-o005
+      commentaire: "Exemple fictif : dans une histoire jouée avec des marionnettes, un personnage cherche une personne de confiance pour demander de l'aide."
+  GS:
+    - identite: o-enoncer-date
+      commentaire: "Exemple fictif : l'enfant dit la date du jour à l'aide du calendrier collectif."
+    - identite: math-o032
+      commentaire: "Exemple fictif : récitation de la suite numérique ; les autres usages de la comptine restent à observer."
+    - identite: vivant-o009
+      commentaire: "Exemple fictif : remise en ordre de trois images de la croissance d'une plante, à partir des observations de la classe."

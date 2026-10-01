@@ -14,6 +14,12 @@ classes:
   papillons:
     nom: Les Papillons
     annee_scolaire: 2026-2027
+  mesanges:
+    nom: Les Mésanges
+    annee_scolaire: 2026-2027
+  hirondelles:
+    nom: Les Hirondelles
+    annee_scolaire: 2026-2027
   lucioles:
     nom: Les Lucioles — rentrée suivante
     annee_scolaire: 2027-2028
@@ -43,12 +49,13 @@ profils:
     prenom: Rémi
     nom_famille: Responsable
     fonction: Responsable de classe
-    nom: Rémi — responsable des Coccinelles
-    resume: Assume la responsabilité pédagogique complète des Coccinelles.
+    nom: Rémi — responsable de classe
+    resume: Assume la responsabilité pédagogique des Coccinelles et des Mésanges.
     affectations:
       - { classe: coccinelles, type: responsable, periode: active }
+      - { classe: mesanges, type: responsable, periode: active }
     peut:
-      - consulter et modifier le suivi des élèves des Coccinelles
+      - consulter et modifier le suivi des élèves des Coccinelles et des Mésanges
       - relire les contributions de l'équipe et préparer les carnets
       - générer les PDF et télécharger les médias originaux autorisés
     ne_peut_pas:
@@ -61,13 +68,14 @@ profils:
     prenom: Nadia
     nom_famille: Co-titulaire
     fonction: Co-responsable
-    nom: Nadia — co-responsable de deux classes
-    resume: Partage la responsabilité des Coccinelles et des Papillons.
+    nom: Nadia — responsable de plusieurs classes
+    resume: Partage la responsabilité des Coccinelles et des Papillons, et suit les Hirondelles.
     affectations:
       - { classe: coccinelles, type: responsable, periode: active }
       - { classe: papillons, type: responsable, periode: active }
+      - { classe: hirondelles, type: responsable, periode: active }
     peut:
-      - exercer les mêmes droits pédagogiques dans ses deux classes
+      - exercer les mêmes droits pédagogiques dans ses trois classes
       - préparer les carnets et PDF des élèves de ces classes
     ne_peut_pas:
       - administrer l'école par le seul fait d'être responsable de plusieurs classes

@@ -1,0 +1,25 @@
+#+TITLE: Illustrations du cycle 1 — sélection #CR5
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+Neuf SVG OpenMoji, version 17.0.0 du 23 avril 2026, sont ajoutés au catalogue.
+Ils sont distribués sous CC-BY-SA-4.0, avec leur licence dans
+=static/referentiel/icones/openmoji/LICENSE.txt=. Les trois dessins Petits Pas
+existants gardent leur licence CC-BY-SA-4.0 et leurs identifiants.
+
+Attribution : OpenMoji — HfG Schwäbisch Gmünd et contributeurs.
+Le manifeste ILLUSTRATIONS-CR5.yaml indique pour chaque SVG l’auteur déclaré,
+la version, l’URL et l’empreinte SHA-256. Les fichiers sont repris sans retouche.
+Le catalogue source est [[https://github.com/hfg-gmuend/openmoji/tree/17.0.0][OpenMoji 17.0.0]], sous [[https://creativecommons.org/licenses/by-sa/4.0/deed.fr][CC-BY-SA-4.0]].
+
+ASSOCIATIONS-CR5.yaml documente 17 associations explicites entre identité
+pédagogique et identifiant d’icône, uniquement dans l’offre étayée. Le choix
+illustre un thème : une plante ne résume pas les besoins du vivant, un boulier
+ne prescrit pas une méthode de dénombrement. Le texte reste nécessaire.
+Les autres compétences restent sans icône ; aucune association n’est déduite
+par ressemblance de mots ni par correspondance entre référentiels.
+
+Une modification d’icône ne change pas l’identité de l’apprentissage.
+Les choix locaux de présentation suivent les mécanismes déjà disponibles.
+La sélection reste à relire pour son utilité, sa lisibilité dans le carnet,
+l’absence de stéréotypes et la compréhension par les familles.

@@ -1,0 +1,77 @@
+origine: OpenMoji — HfG Schwäbisch Gmünd et contributeurs
+licence: CC-BY-SA-4.0
+version: 17.0.0
+modifications: Aucune modification des SVG
+illustrations:
+- identifiant: om-parole
+  code_openmoji: 1F4AC
+  nom: Parole et échanges
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4AC.svg
+  sha256: 4c27a874ea4eb7d11ae09b2c082d2708c8c027e1f7e666b570eb17436fa9ac19
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-nombres
+  code_openmoji: 1F9EE
+  nom: Quantités et nombres
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9EE.svg
+  sha256: 3fe49fe9a15d4247ee8da856198b572963366bdec8d7b5151c0065443652eee6
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-musique
+  code_openmoji: 1F3B5
+  nom: Écoute musicale
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3B5.svg
+  sha256: 2cbf924ad24a25f62f53bb62e67353c2937f03bfe5dc784635b464c9b0d7dccb
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-calendrier
+  code_openmoji: 1F4C5
+  nom: Date et calendrier
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4C5.svg
+  sha256: ea09b06a917f3d813cf3a9aee3f5d3e922899a74930e52e64bddb51360b23160
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-plante
+  code_openmoji: 1F331
+  nom: Plantations
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F331.svg
+  sha256: 5f7b280dd0435ea429e6086f18f11a4e02ce46b2497c2231a115feca40634513
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-crayon
+  code_openmoji: 270F
+  nom: Tracé et écriture
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/270F.svg
+  sha256: ecba2acd2790c57042db30194f1052d525959017f5148670225adb3902301a53
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-formes
+  code_openmoji: 1F9E9
+  nom: Assemblages de formes
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9E9.svg
+  sha256: 484306b66fbbe2f59fa55797b63ed2dbc96fc5322f3d32fea378bd16a0b5d9f0
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-peinture
+  code_openmoji: 1F3A8
+  nom: Création plastique
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3A8.svg
+  sha256: 1e440790c0d02486a2dbd061ec465f78e28111d0c778dec08de62df123959cb6
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
+- identifiant: om-globe
+  code_openmoji: 1F30D
+  nom: Espaces géographiques
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F30D.svg
+  sha256: 0a68747c6c59b68024885df41a1dd46fef36f4d7db014c27c9713558a56a40ac
+  auteur: null
+  licence: CC-BY-SA-4.0
+  version: 17.0.0
