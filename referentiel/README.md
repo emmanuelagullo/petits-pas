@@ -9,6 +9,10 @@ La préparation de la couverture et l'échantillon à relire figurent dans
 [PREPARATION-CONTENUS-REFERENTIELS.org](../PREPARATION-CONTENUS-REFERENTIELS.org)
 (#CR2), avec le [registre de références et de sens](REGISTRE-CONTENUS-CR2.org).
 Ces documents préparent les contenus ; ils ne publient pas de source au catalogue.
+Deux [fichiers pilotes pour relecture pédagogique](pilotes/NOTICE-CR3.org)
+(#CR3) rendent cet échantillon importable : quatre objectifs officiels et douze
+repères reformulés. Leur couverture est partielle ; la notice et le registre
+accompagnent les fichiers. Ils ne sont pas importés automatiquement.
 Pour le chargement historique dans une école non reprise, les codes des
 compétences et formulations servent à retrouver les éléments lors d'un import.
 Pour l'import versionné au catalogue, l'identité d'une compétence est déclarée

@@ -1,0 +1,127 @@
+#+TITLE: Référentiels cycle 1 — édition pilote pour relecture pédagogique #CR3
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+* Objet et statut
+
+Cette livraison rend l'échantillon #CR2 disponible en deux fichiers YAML
+compatibles avec l'import versionné. Elle propose une première évaluation des
+libellés et de leur organisation. Elle ne constitue pas une progression complète
+ni une transcription intégrale des programmes. Les programmes restent le cadre
+pour préparer les enseignements ; ces fichiers sont des supports de discussion.
+
+La livraison porte sur quatre objectifs officiels et douze repères reformulés.
+La matrice exhaustive annoncée dans PREPARATION-CONTENUS-REFERENTIELS.org reste
+à préparer. Le présent jalon #CR3 est une édition pilote de ce chantier.
+Aucune source n'est importée ou adoptée par la seule présence des fichiers.
+La trame de démarrage et les deux exemples fictifs conservent leur contenu.
+
+* Fichiers et droits
+
+| Fichier | Nature des libellés | Licence et attribution |
+|---------+--------------------+------------------------|
+| cycle1-objectifs-programmes-pilote.yaml | Quatre objectifs transcrits ; titres de domaines abrégés par Petits Pas | Licence Ouverte / Open Licence 2.0 ; ministère de l'Éducation nationale, programmes cycle 1, publications 2024 et 2026 ; sélection et organisation Petits Pas, 2026 |
+| petits-pas-reperes-cycle1-pilote.yaml | Douze reformulations originales ; aucune synthèse externe reproduite | CC-BY-SA-4.0 ; Petits Pas, 2026 ; sources officielles indiquées dans le registre #CR2 |
+
+La première licence est celle annoncée pour les documents Éduscol, sauf
+contenus tiers. La sélection provient du PDF consolidé Éduscol, retrouvé dans
+les annexes réglementaires. Elle ne reprend ni logo, ni image, ni contenu tiers.
+La seconde licence porte sur les reformulations et leur organisation ; elle
+ne réattribue pas à Petits Pas la rédaction des textes officiels.
+Cette notice et le registre documentaire relèvent de CC-BY-SA-4.0.
+
+- [[https://eduscol.education.gouv.fr/mentions-legales][Conditions de réutilisation Éduscol]].
+- [[https://www.etalab.gouv.fr/licence-ouverte-open-licence/][Licence Ouverte 2.0]].
+- [[https://creativecommons.org/licenses/by-sa/4.0/deed.fr][CC-BY-SA-4.0]].
+
+Les fichiers ne comportent ni illustration ni phrase proposée pour les carnets.
+Le champ technique « compétence » accueille ici soit un objectif officiel,
+soit un repère de suivi. Il n'affirme pas que ces deux notions sont identiques.
+
+* Sources et dates
+
+Le registre =../REGISTRE-CONTENUS-CR2.org= précise les passages, les pages PDF,
+les repères d'âge et les conditions de lecture de chaque ligne R01-R12.
+Les références et la vérification de ces quatre transcriptions datent du
+1er octobre 2026.
+
+- Langage et mathématiques : [[https://www.education.gouv.fr/bo/2024/Hebdo41/MENE2415135A][BO n°41 du 31 octobre 2024]], application rentrée 2025-2026.
+- Autres domaines : [[https://www.education.gouv.fr/bo/2026/Hebdo19/MENE2608627A][BO n°19 du 7 mai 2026]], application rentrée 2026-2027.
+- EVAR : [[https://www.education.gouv.fr/bo/2025/Hebdo6/MENE2503064A][BO n°6 du 6 février 2025]], application rentrée 2025-2026.
+- [[https://eduscol.education.gouv.fr/sites/default/files/document/programme-cycle-1-consolide-127565.pdf][Programme cycle 1 consolidé Éduscol]] : support de localisation, sans nouveau statut normatif.
+
+* Couverture de cette édition
+
+O01, O03, O06 et O08 reprennent les objectifs associés aux lignes R01, R03,
+R06 et R08 du registre. Tous les libellés R sont des reformulations Petits Pas.
+Les rapprochements ci-dessous sont documentaires : aucune équivalence ni
+correspondance dans l'application n'en découle.
+
+| Ensemble | Objectifs officiels sélectionnés | Repères proposés | Hors de cette édition |
+|----------+----------------------------------+------------------+-----------------------|
+| Langage | O01 : action présente | R01-R02 : verbalisation et procédure | Vocabulaire, syntaxe, articulation, autres discours, lecture et écriture |
+| Activités physiques | O06 : saut sans élan | R06 : même cible de franchissement | Autres déplacements, équilibres, expression et jeux collectifs |
+| Activités artistiques | Aucun | R07 : expression orale après une écoute | Autres modalités d'expression, arts visuels, autres apprentissages sonores, spectacle vivant |
+| Mathématiques | O03 : quantité jusqu'à trois, voire quatre | R03-R04 : quantité ; R05 : récitation jusqu'à trente | Autres usages du nombre, rang, problèmes, formes, grandeurs et motifs |
+| Temps et espace | O08 : énoncer la date | R08 : date du jour | Autres repères temporels et ensemble des apprentissages spatiaux |
+| Vivant, matière et objets | Aucun | R09 : participation aux soins des plantations | Élevages, autres connaissances du vivant, matière et objets |
+| EVAR, section complémentaire | Aucun | R10-R12 : refus personnel, aide d'un adulte, émotion d'un personnage | Autres situations et objectifs des trois axes ; pas de couverture complète d'un axe |
+
+Les trois derniers repères EVAR restent ciblés sur des situations scolaires.
+Ils ne demandent aucun récit personnel relatif à la vie privée de l'enfant.
+Le registre détaille les limites de R07, R09 et R12, notamment. R10 ne permet
+pas de conclure au respect du refus d'autrui ; R11 ne restreint jamais le droit
+de demander de l'aide. Une observation isolée ne vaut pas jugement global.
+
+* Âges, identités et versions
+
+Le classement PS/MS/GS reprend la proposition #CR2 : PS pour « avant quatre
+ans », MS pour « à partir de quatre ans », GS pour « à partir de cinq ans ».
+Les deux derniers repères d'âge admettent aussi l'abord lorsque les
+apprentissages précédents ont été observés. Ce classement n'est ni une
+équivalence stricte âge/classe, ni une date limite, ni une restriction de saisie.
+Les repères d'âge exacts figurent dans le registre et accompagnent cette notice.
+
+Les sources portent le suffixe =-pilote=, distinct des identifiants proposés
+pour les offres complètes. Leurs titres et leur provenance annoncent leur
+statut durablement : l'import conserve les métadonnées d'une source.
+La version initiale est =2026-10-01-pilote-1=. Une correction publiée prendra
+un nouveau numéro de version, sans remplacer un fichier déjà importé sous
+le même numéro. Le millésime indique l'édition, pas une nouvelle date
+réglementaire.
+
+Dans chaque source pilote, une reformulation fidèle conserve son identité ;
+un changement de cible reçoit une nouvelle identité. L'extension de la borne
+numérique de R03 à R04 est déjà représentée par deux identités distinctes.
+La préparation ultérieure d'une source complète devra préciser ses identités
+et les éventuels liens proposés avec le pilote. Aucun transfert de réussite
+ne sera présumé, y compris lorsque deux libellés semblent proches.
+
+* Proposition de relecture par l'équipe
+
+Pour transmettre un retour, indiquer le fichier, son numéro de version et le
+code de ligne. Aucun nom d'élève ni situation personnelle n'est nécessaire.
+
+| Ligne | Libellé compris et cible souhaitée ? | Modification proposée | Le sens change-t-il ? | Conditions d'observation à préciser |
+|-------+-------------------------------------+------------------------+-----------------------+-------------------------------------|
+| R… / O… | À renseigner | À renseigner | À examiner | À renseigner avec un exemple fictif |
+
+La relecture peut porter sur la clarté pour les enseignants, la première
+personne pour les familles, la fidélité à la cible, les bornes numériques,
+les aides possibles, le classement et les parties prioritaires à développer.
+La suite du chantier complétera la couverture objectif par objectif à partir
+des textes officiels, en distinguant objectifs, compétences/notions et
+exemples de réussite. Les retours sur ce pilote guideront ce travail.
+
+* Vérifier les fichiers
+
+Depuis la racine du dépôt, sur un environnement préparé :
+
+#+begin_src sh
+python3 manage.py importer_source_referentiel referentiel/pilotes/cycle1-objectifs-programmes-pilote.yaml --verifier
+python3 manage.py importer_source_referentiel referentiel/pilotes/petits-pas-reperes-cycle1-pilote.yaml --verifier
+#+end_src
+
+L'option =--verifier= contrôle le format et les conflits sans écriture. Elle
+ne vaut pas validation pédagogique. Un import au catalogue, une autorisation,
+un choix de base et une adoption restent des opérations distinctes.
