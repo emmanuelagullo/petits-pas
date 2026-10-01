@@ -1,0 +1,31 @@
+# Deuxième version entièrement fictive : reformulation, retrait et ajout.
+format: 1
+source:
+  identifiant: exemple-fictif-langage
+  titre: Progression fictive de langage
+  provenance: Exemple de documentation Petits Pas, sans portée officielle
+  licence: CC-BY-SA-4.0
+  provisoire: true
+version: '2'
+domaines:
+- code: LANG
+  nom: Langage
+  attendus:
+  - code: ORAL
+    texte: Prendre la parole dans un échange
+  sous_domaines:
+  - code: PARLER
+    nom: Parler avec les autres
+    competences:
+    - identite: oser-parler
+      code: LANG-01
+      libelle: Je prends la parole devant un groupe
+      niveau: PS
+      icone: livre
+      formulations:
+      - code: PAROLE
+        texte: <prénom> partage une découverte avec le groupe.
+    - identite: raconter
+      code: LANG-03
+      libelle: Je raconte une histoire courte
+      niveau: MS

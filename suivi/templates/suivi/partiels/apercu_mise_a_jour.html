@@ -1,0 +1,29 @@
+{% if mise_a_jour %}
+<h2>Ce qui change dans cette source</h2>
+<p>Vous choisissez une autre version de la même source. Les compétences conservées gardent leur suivi. Vos libellés et masquages restent prioritaires sur les propositions de cette version.</p>
+<details><summary>{{ mise_a_jour.modifiees|length }} compétence{{ mise_a_jour.modifiees|length|pluralize }} modifiée{{ mise_a_jour.modifiees|length|pluralize }} dans la source</summary>
+{% for c in mise_a_jour.modifiees %}
+<p><strong>{{ c.avant }}</strong> → {{ c.apres }}<br>Changements : {{ c.changements|join:", " }}.{% if c.adaptation %} Un choix de l’école ou de la classe reste appliqué ; voir ci-dessous.{% endif %}</p>
+{% for d in c.details %}<p>{{ d.champ }} : {{ d.avant }} → <strong>{{ d.apres }}</strong>.</p>{% endfor %}
+{% empty %}<p>Aucune définition de compétence conservée n’a changé.</p>{% endfor %}
+</details>
+<details><summary>{{ mise_a_jour.ajoutees|length }} compétence{{ mise_a_jour.ajoutees|length|pluralize }} ajoutée{{ mise_a_jour.ajoutees|length|pluralize }}</summary>
+{% for libelle in mise_a_jour.ajoutees %}<p>{{ libelle }}</p>{% empty %}<p>Aucun ajout.</p>{% endfor %}
+<p>Chaque nouvelle compétence possède son propre suivi. Aucun rapprochement ne copie une réussite.</p>
+</details>
+<details><summary>{{ mise_a_jour.retirees|length }} compétence{{ mise_a_jour.retirees|length|pluralize }} retirée{{ mise_a_jour.retirees|length|pluralize }} de cette version</summary>
+{% for libelle in mise_a_jour.retirees %}<p>{{ libelle }}</p>{% empty %}<p>Aucun retrait.</p>{% endfor %}
+<p>Leurs observations restent dans les parcours. Les montrer dans les réglages ne suffit pas à les remettre dans les prochaines saisies : il faut une base autorisée qui les contient.</p>
+</details>
+{% if mise_a_jour.adaptations %}
+<details><summary>Les choix locaux conservés</summary>
+{% for c in mise_a_jour.adaptations %}<p>Proposition source : {{ c.source }}<br>Libellé après adoption : <strong>{{ c.libelle }}</strong>.<br>Choix de visibilité conservé : {% if c.visible %}montrée{% else %}masquée{% endif %}.</p>{% endfor %}
+<p>Si vous préférez le nouveau texte proposé, vous pourrez revenir au libellé proposé dans <strong>Libellés et compétences masquées</strong>. Une adaptation de classe reste prioritaire sur celle de l’école.</p>
+</details>
+{% endif %}
+<details><summary>Quel effet sur les carnets et les illustrations ?</summary>
+<p>Pour cette année ouverte, la présentation suit la version adoptée avec les choix de l’école et de la classe. Les images et phrases proposées suivent cette version lorsque vous gardez les propositions ; vos choix personnels restent conservés. Les observations ne changent pas de compétence et leurs contextes d’origine restent enregistrés. Les années closes gardent leur dernière présentation.</p>
+<p>Une phrase retirée de la source n’est plus proposée, même si vous l’aviez adaptée. Votre adaptation reste enregistrée et sera retrouvée si la phrase revient ; les textes déjà saisis dans les traces restent conservés.</p>
+<p>Les numéros de version sont des noms : cette liste ne garantit pas que la version choisie est plus récente. Vous pouvez aussi revenir à une ancienne version autorisée.</p>
+</details>
+{% endif %}

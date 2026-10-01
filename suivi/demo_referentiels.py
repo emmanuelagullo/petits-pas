@@ -18,7 +18,10 @@ def preparer_referentiels(ecole, classes, utilisateurs):
     version, _, _ = importer_source(
         (settings.BASE_DIR / "referentiel/exemples/source-fictive.yaml").read_text(encoding="utf-8")
     )
-    publier_choix_application(annee=annee, versions_ids=[version.pk],
+    deux, _, _ = importer_source(
+        (settings.BASE_DIR / "referentiel/exemples/source-fictive-v2.yaml").read_text(encoding="utf-8")
+    )
+    publier_choix_application(annee=annee, versions_ids=[version.pk, deux.pk],
         proposee_id=version.pk, revision_attendue=0)
     # L'autorisation ne change pas la base déjà utilisée par les classes.
     classe = classes["coccinelles"]

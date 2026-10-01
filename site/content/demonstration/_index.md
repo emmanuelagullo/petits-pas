@@ -74,3 +74,14 @@ restent inconnues lorsque les données ne permettent pas de les établir.
 
 Voir les fiches pour [ajouter une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
 et [choisir une base]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
+
+### Essayer une mise à jour de source
+
+Deux versions de **Progression fictive de langage** sont autorisées pour
+**2026-2027**. Avec Rémi, choisir d’abord la version **1** aux Coccinelles.
+Adapter **J’ose parler devant les autres**, puis consulter les conséquences de
+la version **2** : un texte et ses propositions changent, une compétence est
+retirée, une autre ajoutée. Votre adaptation apparaît parmi les choix conservés.
+Confirmer avec **Adopter cette version pour la classe**, puis vérifier le
+libellé, les prochaines saisies et le carnet. Vous pouvez revenir à la version
+**1** tant qu’elle reste autorisée. Toutes ces compétences sont fictives.
