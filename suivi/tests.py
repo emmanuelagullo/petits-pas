@@ -3292,7 +3292,8 @@ class JeuDemoLarge(TestCase):
         )
 
         self.assertEqual(observations_avant,
-            list(Observation.objects.order_by("pk").values_list("pk", "competence_id")))
+            list(Observation.objects.filter(pk__in=[pk for pk, _ in observations_avant])
+                 .order_by("pk").values_list("pk", "competence_id")))
         from suivi.models import (
             AdoptionReferentiel, AdaptationCompetence, CompetenceLocale,
             CorrespondanceCompetence, ChoixApplicationAnnuel,
@@ -3310,7 +3311,7 @@ class JeuDemoLarge(TestCase):
             classe__isnull=True, annee_scolaire="2026-2027").exists())
         self.assertEqual(CorrespondanceCompetence.objects.count(), 1)
         choix = ChoixApplicationAnnuel.objects.get(annee_scolaire="2026-2027")
-        self.assertEqual(choix.version_proposee.source.identifiant, "exemple-fictif-langage")
+        self.assertEqual(choix.version_proposee.source.identifiant, "petits-pas-cycle1-etaye")
         self.assertFalse(Observation.objects.filter(competence__in=
             CompetenceLocale.objects.values("competence_id")).exists())
 
@@ -3327,7 +3328,7 @@ class JeuDemoLarge(TestCase):
                 appartenance__utilisateur=nadia,
                 type=AffectationClasse.RESPONSABLE,
             ).count(),
-            2,
+            3,
         )
         self.assertEqual(
             set(
@@ -3366,7 +3367,7 @@ class JeuDemoLarge(TestCase):
             self.ecole.classes.filter(
                 annee_scolaire="2026-2027", etat=Classe.ACTIVE
             ).count(),
-            2,
+            4,
         )
         self.assertFalse(
             Trace.objects.filter(
@@ -3384,6 +3385,23 @@ class JeuDemoLarge(TestCase):
                 auteur__isnull=True,
             ).exists()
         )
+
+        mesanges = self.ecole.classes.get(nom="Les Mésanges", annee_scolaire="2026-2027")
+        hirondelles = self.ecole.classes.get(nom="Les Hirondelles", annee_scolaire="2026-2027")
+        for classe, nombre, source in (
+            (mesanges, 438, "petits-pas-cycle1-etaye"),
+            (hirondelles, 426, "cycle1-objectifs-programmes"),
+        ):
+            adoption = AdoptionReferentiel.objects.get(classe=classe, courante=True)
+            self.assertEqual(adoption.version.source.identifiant, source)
+            self.assertEqual(adoption.usages.count(), nombre)
+            self.assertEqual(classe.scolarites.count(), 12)
+            self.assertEqual(set(classe.scolarites.values_list("niveau", flat=True)), {"PS", "MS", "GS"})
+            traces = Trace.objects.filter(scolarite__classe=classe)
+            self.assertTrue(traces.exists())
+            self.assertFalse(traces.filter(usage_referentiel__isnull=True).exists())
+            self.assertFalse(traces.exclude(usage_referentiel__adoption=adoption).exists())
+            self.assertFalse(traces.exclude(commentaire__startswith="Exemple fictif").exists())
 
     def test_refuse_le_scenario_d_equipe_sans_confirmation_fictive(self):
         with self.assertRaisesMessage(CommandError, "donnée réelle"):

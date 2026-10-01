@@ -48,3 +48,6 @@ def preparer_referentiels(ecole, classes, utilisateurs):
         classe=classe, adoption_attendue=adoption.pk,
         reference_depart=f"ajout:{ajout.pk}", reference_arrivee=f"base:{adoption.version_id}:{cible['id']}",
         type_lien="lien", justification="Exemple fictif de rapprochement à discuter en équipe ; aucun acquis n’est transféré.")
+
+    from suivi.demo_contenus_cycle1 import preparer_contenus_cycle1
+    preparer_contenus_cycle1(ecole, utilisateurs, [version.pk, deux.pk], 1)

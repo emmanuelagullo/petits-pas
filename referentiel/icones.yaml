@@ -1,4 +1,3 @@
-# Petit catalogue facultatif. Les associations sont dans le référentiel YAML.
 icones:
   parler:
     nom: Parler et échanger
@@ -9,3 +8,30 @@ icones:
   collection:
     nom: Observer une collection
     fichier: referentiel/icones/collection.svg
+  om-parole:
+    nom: Parole et échanges
+    fichier: referentiel/icones/openmoji/1F4AC.svg
+  om-nombres:
+    nom: Quantités et nombres
+    fichier: referentiel/icones/openmoji/1F9EE.svg
+  om-musique:
+    nom: Écoute musicale
+    fichier: referentiel/icones/openmoji/1F3B5.svg
+  om-calendrier:
+    nom: Date et calendrier
+    fichier: referentiel/icones/openmoji/1F4C5.svg
+  om-plante:
+    nom: Plantations
+    fichier: referentiel/icones/openmoji/1F331.svg
+  om-crayon:
+    nom: Tracé et écriture
+    fichier: referentiel/icones/openmoji/270F.svg
+  om-formes:
+    nom: Assemblages de formes
+    fichier: referentiel/icones/openmoji/1F9E9.svg
+  om-peinture:
+    nom: Création plastique
+    fichier: referentiel/icones/openmoji/1F3A8.svg
+  om-globe:
+    nom: Espaces géographiques
+    fichier: referentiel/icones/openmoji/1F30D.svg

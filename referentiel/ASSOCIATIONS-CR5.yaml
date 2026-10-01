@@ -1,0 +1,120 @@
+associations:
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: o-dire-action-presente
+  code: LANG-O022
+  icone: om-parole
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-dire-action-presente
+  code: R01
+  icone: om-parole
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-expliquer-procedure
+  code: R02
+  icone: om-parole
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: lang-o080
+  code: LANG-O080
+  icone: om-crayon
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: lang-o084
+  code: LANG-O084
+  icone: om-crayon
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: arts-o021
+  code: ARTS-O021
+  icone: om-peinture
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-emotion-apres-musique
+  code: R07
+  icone: om-musique
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: o-denombrer-jusqua3voire4
+  code: MATH-O003
+  icone: om-nombres
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-denombrer-jusqua3voire4
+  code: R03
+  icone: om-nombres
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-denombrer-jusqua6
+  code: R04
+  icone: om-nombres
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-reciter-suite1a30
+  code: R05
+  icone: om-nombres
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: math-o053
+  code: MATH-O053
+  icone: om-formes
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: o-enoncer-date
+  code: TEMPS-O012
+  icone: om-calendrier
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-enoncer-date
+  code: R08
+  icone: om-calendrier
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: temps-o053
+  code: TEMPS-O053
+  icone: om-globe
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: vivant-o003
+  code: VIVANT-O003
+  icone: om-plante
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
+- source: petits-pas-cycle1-etaye
+  version: '2026.2'
+  identite: r-soins-plantations
+  code: R09
+  icone: om-plante
+  raison: Illustration du thème de la situation ; ne représente pas tous les critères
+    de l’objectif.
