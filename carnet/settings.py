@@ -272,3 +272,23 @@ AXES_COOLOFF_TIME = timedelta(
 AXES_LOCKOUT_PARAMETERS = [["ip_address", "username"]]
 AXES_RESET_COOL_OFF_ON_FAILURE_DURING_LOCKOUT = False
 AXES_LOCKOUT_TEMPLATE = "suivi/connexion_bloquee.html"
+
+# --------------------------------------------------------------------------
+# Limitation de fréquence des demandes de réinitialisation de mot de passe
+# --------------------------------------------------------------------------
+#
+# django-axes protège la connexion (succès/échec d'authentification), mais
+# la demande de réinitialisation ne s'authentifie jamais : rien n'y limitait
+# la fréquence des envois, ouvrant un risque de nuisance (bombardement
+# d'e-mails vers une adresse qu'on ne possède pas), pas de fuite de compte
+# (PasswordResetForm ne révèle jamais si l'adresse existe). django-ratelimit
+# comble ce point précis, sans dépendre de django-axes conçu pour des
+# tentatives d'authentification, pas un simple comptage de requêtes.
+#
+# django-ratelimit utilise le cache Django par défaut : en mémoire locale du
+# processus si CARNET_CACHE_URL n'est pas défini (donc par worker gunicorn,
+# pas global au déploiement) ; suffisant pour un frein de nuisance, pas une
+# garantie stricte multi-worker.
+RATELIMIT_MOT_DE_PASSE_OUBLIE = os.environ.get(
+    "CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE", "5/h"
+)

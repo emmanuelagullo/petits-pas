@@ -19,6 +19,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.management import call_command
 from django.contrib.auth import views as auth_views
+from django_ratelimit.core import is_ratelimited
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -380,6 +381,17 @@ def sauvegardes_locales(request):
 def mot_de_passe_oublie(request):
     if not settings.EMAIL_DISPONIBLE:
         return render(request, "suivi/mot_de_passe_oublie.html")
+    if request.method == "POST" and is_ratelimited(
+        request,
+        group="mot_de_passe_oublie",
+        key="ip",
+        rate=settings.RATELIMIT_MOT_DE_PASSE_OUBLIE,
+        method="POST",
+        increment=True,
+    ):
+        return render(
+            request, "suivi/mot_de_passe_oublie.html", {"trop_de_demandes": True}
+        )
     return auth_views.PasswordResetView.as_view(
         template_name="suivi/mot_de_passe_oublie.html",
         email_template_name="suivi/emails/mot_de_passe_reinitialisation.txt",

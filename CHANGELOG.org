@@ -26,6 +26,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Demande de réinitialisation de mot de passe limitée en fréquence par
+  adresse IP (=django-ratelimit=), pour éviter le bombardement d'e-mails
+  vers une adresse qu'on ne possède pas.
 - Actions de création et modification des traces communes masquées pour
   les enseignants associés, qui conservent leur accès en consultation.
 - Commande =marquer_invitations_expirees=, à planifier périodiquement, pour
