@@ -39,6 +39,15 @@ encore proposée, cela est signalé explicitement.
 - préparer la rentrée suivante ;
 - valider un rapprochement entre deux dossiers possibles.
 
+### [Consulter et adapter les référentiels]({{< relref "/guide/referentiels" >}})
+
+- consulter les bases disponibles et leurs sources ;
+- adapter les libellés, masquer ou démasquer des compétences ;
+- choisir les illustrations et les phrases proposées ;
+- ajouter des apprentissages propres à l’école ou à la classe ;
+- comprendre les précautions avant un changement de base ;
+- expliquer, si utile, les liens entre deux apprentissages.
+
 ### [Organiser l’équipe](equipe/)
 
 - inviter une personne et activer son compte ;
