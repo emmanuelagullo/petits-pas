@@ -50,16 +50,25 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     regle_ecole = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
         classe__isnull=True, competence=locale.competence).first() if locale and classe else None
     libelle_ecole = bool(regle_ecole and regle_ecole.libelle is not None)
-    libelle_direct = bool(locale and classe and locale.classe_origine_id == classe.pk and not libelle_ecole)
+    proposition_ecole = bool(locale and classe and locale.disponibilites.filter(
+        annee_scolaire=annee, classe__isnull=True).exists())
+    libelle_direct = bool(locale and classe and locale.classe_origine_id == classe.pk and not libelle_ecole and not proposition_ecole)
+    visibilite_directe = bool(locale and classe and locale.classe_origine_id == classe.pk and
+        not proposition_ecole and not (regle_ecole and regle_ecole.visible is not None))
     choix_garder = "Suivre le libellé de l’école" if libelle_ecole else "Garder le libellé d’origine"
+    visible_effective = regle.visible if regle and regle.visible is not None else proposee["active"] if proposee else True
+    choix_visibilite_garder = (f"Suivre le choix de l’école (actuellement {'montrée' if proposee and proposee['active'] else 'masquée'})"
+        if proposition_ecole or (regle_ecole and regle_ecole.visible is not None) else "Garder la visibilité proposée")
     initial = {"mode_libelle": "personnel" if regle and regle.libelle is not None else "garder",
         "libelle": regle.libelle if regle and regle.libelle is not None else (proposee["libelle"] if proposee else ""),
-        "visibilite": "garder" if not regle or regle.visible is None else ("montrer" if regle.visible else "masquer")}
+        "visibilite": visible_effective if visibilite_directe else
+            "garder" if not regle or regle.visible is None else ("montrer" if regle.visible else "masquer")}
     contexte = {"auteur": request.user.pk, "ecole": ecole.pk, "annee": annee,
         "classe": classe.pk if classe else None, "adoption": adoption.pk if adoption else None,
         "locale": locale.pk if locale else None, "revision": regle.revision if regle else 0}
     erreur = None
-    form = AdaptationCompetenceForm(initial=initial, choix_garder=choix_garder, libelle_direct=libelle_direct) if locale else AjoutCompetenceForm(domaines=domaines.values())
+    form = AdaptationCompetenceForm(initial=initial, choix_garder=choix_garder, libelle_direct=libelle_direct,
+        visibilite_directe=visibilite_directe, choix_visibilite_garder=choix_visibilite_garder) if locale else AjoutCompetenceForm(domaines=domaines.values())
     perime = False
     if request.method == "POST":
         try:
@@ -95,7 +104,9 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                 else:
                     raise PermissionDenied
             elif action == "adapter" and locale:
-                form = AdaptationCompetenceForm(request.POST, choix_garder=choix_garder, libelle_direct=libelle_direct)
+                form = AdaptationCompetenceForm(request.POST, choix_garder=choix_garder,
+                    libelle_direct=libelle_direct, visibilite_directe=visibilite_directe,
+                    choix_visibilite_garder=choix_visibilite_garder)
                 if form.is_valid():
                     enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
                         competence=locale.competence, adoption_attendue=contexte["adoption"],
@@ -126,5 +137,6 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     origine = locale.definition["competences"][0] if locale else None
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "direction": direction, "ouvert": ouvert, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole, "adaptable": adaptable, "index_url": index_url, "erreur": erreur,
+        "origine": origine, "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
+        "visibilite_directe": visibilite_directe, "adaptable": adaptable, "index_url": index_url, "erreur": erreur,
         "jeton": None if perime else signing.dumps(contexte, salt="ajouts-referentiels")}, status=400 if erreur else 200)

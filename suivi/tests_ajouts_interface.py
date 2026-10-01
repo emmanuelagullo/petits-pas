@@ -59,13 +59,13 @@ class InterfaceAjouts(Base):
         page = self.client.get(url)
         self.assertContains(page, "Origine de cet ajout")
         donnees = {"jeton": page.context["jeton"], "action": "adapter", "mode_libelle": "personnel",
-            "libelle": "Je classe des objets fictifs", "visibilite": "masquer"}
+            "libelle": "Je classe des objets fictifs"}
         self.assertEqual(self.client.post(url, donnees).status_code, 302)
         self.assertContains(self.client.get(self.page()), "Je classe des objets fictifs")
         self.assertEqual(self.client.post(url, donnees).status_code, 400)
         page = self.client.get(url)
         self.assertEqual(self.client.post(url, {"jeton": page.context["jeton"], "action": "adapter",
-            "libelle": "Je classe des objets fictifs", "visibilite": "montrer"}).status_code, 302)
+            "libelle": "Je classe des objets fictifs", "visibilite": "on"}).status_code, 302)
 
     def test_compte_annee_et_base_lies_au_formulaire(self):
         self.adopter()
@@ -116,16 +116,22 @@ class InterfaceAjouts(Base):
         url = self.page(locale=locale)
         page = self.client.get(url)
         self.assertContains(page, "Libellé de la compétence")
+        self.assertContains(page, "Proposer cette compétence dans les prochaines saisies")
         self.assertNotContains(page, 'name="mode_libelle"')
         self.assertNotContains(page, "data-libelle-personnel")
         self.assertNotContains(page, "Libellé proposé par l’école")
+        self.assertNotContains(page, "Visibilité proposée")
+        self.assertNotContains(page, "Visibilité :")
+        self.assertNotContains(page, "Libellé à la création")
         self.assertEqual(page.context["form"]["libelle"].value(), locale.competence.libelle)
+        self.assertTrue(page.context["form"]["visibilite"].value())
         enregistrer_adaptation(utilisateur=self.direction, ecole=self.ecole,
             annee=self.classe.annee_scolaire, competence=locale.competence,
             libelle="Je classe des objets fictifs", visible=None, revision_attendue=0)
         page = self.client.get(url)
         self.assertContains(page, "Suivre le libellé de l’école")
-        self.assertContains(page, "Libellé proposé par l’école")
+        self.assertNotContains(page, "Libellé proposé par l’école")
+        self.assertEqual(page.context["form"].fields["mode_libelle"].choices[0][1], "Suivre le libellé de l’école")
         self.assertEqual(page.context["form"]["libelle"].value(), "Je classe des objets fictifs")
 
     def test_libelle_direct_sans_confirmation_conserve_origine(self):
@@ -135,7 +141,7 @@ class InterfaceAjouts(Base):
         url = self.page(locale=locale)
         page = self.client.get(url)
         donnees = {"jeton": page.context["jeton"], "action": "adapter", "mode_libelle": "garder",
-            "libelle": "Je trie des objets fictifs", "visibilite": "montrer"}
+            "libelle": "Je trie des objets fictifs", "visibilite": "on"}
         self.assertNotContains(page, 'name="meme_sens"')
         self.assertEqual(self.client.post(url, donnees).status_code, 302)
         locale.refresh_from_db()
@@ -143,6 +149,31 @@ class InterfaceAjouts(Base):
         self.assertEqual(locale.competence_id, competence_id)
         self.assertContains(self.client.get(self.page()), "Je trie des objets fictifs")
         self.assertEqual(self.client.get(url).context["form"]["libelle"].value(), "Je trie des objets fictifs")
+
+    def test_interrupteur_change_la_saisie_et_preserve_le_parcours(self):
+        locale = self.creer()
+        url = self.page(locale=locale)
+        page = self.client.get(url)
+        self.assertTrue(page.context["form"].visibilite_directe)
+        self.assertEqual(self.client.post(url, {"jeton": page.context["jeton"], "action": "adapter",
+            "libelle": locale.competence.libelle}).status_code, 302)
+        self.assertContains(self.client.get(self.page()), "masquée")
+        page = self.client.get(url)
+        self.assertFalse(page.context["form"]["visibilite"].value())
+        self.assertEqual(self.client.post(url, {"jeton": page.context["jeton"], "action": "adapter",
+            "libelle": locale.competence.libelle, "visibilite": "on"}).status_code, 302)
+        self.assertContains(self.client.get(self.page()), "Je trie des objets fictifs")
+
+    def test_proposition_ecole_garde_les_choix_dheritage(self):
+        from .services.ajouts_referentiels import proposer_ajout
+        locale = self.creer()
+        proposer_ajout(utilisateur=self.direction, ecole=self.ecole, annee=self.classe.annee_scolaire, locale=locale)
+        page = self.client.get(self.page(locale=locale))
+        self.assertFalse(page.context["form"].visibilite_directe)
+        self.assertContains(page, "Suivre le choix de l’école (actuellement montrée)")
+        self.assertContains(page, "Montrer cette compétence")
+        self.assertContains(page, "Masquer cette compétence")
+        self.assertNotContains(page, "Proposer cette compétence dans les prochaines saisies")
 
     def test_ajout_ecole_repris_garde_choix_de_libelle(self):
         locale = self.creer(classe=False)
