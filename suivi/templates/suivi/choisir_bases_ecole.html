@@ -1,8 +1,10 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Référentiels de l'école — {{ annee }}{% endblock %}
+{% block titre %}Référentiels de l'école — {{ annee }}{% if form %}</details>{% endif %}
+{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Référentiels de l'école</h1>
+<p><a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
 <p>Choisir les bases disponibles pour les classes et celle proposée par défaut. Ces choix ne changent pas automatiquement la base d'une classe.</p>
 <form method="get">
 <label for="annee">Année scolaire</label>
@@ -21,6 +23,8 @@
 {% if not choix.proposee %}<p>Aucune base n'est proposée par défaut.</p>{% endif %}
 {% for avertissement in choix.avertissements %}<p class="message">{{ avertissement }}</p>{% endfor %}
 <p>Choix proposé par l'application : {% if proposee_superieure %}<strong>{{ proposee_superieure.source.titre }}</strong> — version {{ proposee_superieure.numero }}{% else %}aucun{% endif %}.</p>
+<details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — choix et restrictions de l’école</summary>
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Choix pour toute l’école" resume="Ces réglages changent les possibilités et les propositions des classes pour cette année. Les classes conservent leur base actuelle." %}
 <form method="post">{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}">
 <fieldset><legend>{{ form.autorisations.label }}</legend>{{ form.autorisations.errors }}{{ form.autorisations }}</fieldset>
 <details{% if form.autorisations.value == "restreindre" or form.versions.errors %} open{% endif %}><summary>Choisir une liste plus courte</summary>
@@ -51,4 +55,5 @@
 <p>Pour commencer, gardez les autorisations et le choix proposés par l'application. Choisissez une autre base proposée si l'équipe a un besoin pédagogique précis : les autres bases restent disponibles.</p>
 <p>Conservez une liste plus courte seulement si l'école souhaite limiter les nouveaux choix de ses classes. Ce choix concerne toute l'école pour l'année indiquée.</p>
 <p>À la nouvelle année, vérifiez les propositions disponibles. Les choix de l'année précédente ne sont pas recopiés automatiquement. L'import d'une nouvelle version ne bascule aucune classe.</p></details>
+{% if form %}</details>{% endif %}
 {% endblock %}

@@ -884,3 +884,11 @@ textarea { min-height: 7rem; resize: vertical; }
 .interrupteur input[type="checkbox"]:checked { background: var(--reussi); border-color: var(--reussi); }
 .interrupteur input[type="checkbox"]:checked::before { transform: translateX(1.25rem); }
 .interrupteur input[type="checkbox"]:focus-visible { outline: 3px solid var(--lien); outline-offset: 3px; }
+
+/* Référentiels : le texte et la couleur signalent la portée des opérations. */
+.avertissement-referentiel { border: 2px solid #527b8c; border-left-width: 6px; border-radius: .5rem; padding: 1rem; margin: 1rem 0; background: #edf5f8; }
+.avertissement-referentiel p:last-child { margin-bottom: 0; }
+.avertissement-orange { border-color: #9d5a08; background: #fff3df; color: #593307; }
+.avertissement-rouge { border-color: #a52a2a; background: #fff0f0; color: #742020; }
+.operations-avancees { border: 1px solid var(--trait); border-radius: .5rem; padding: 1rem; margin: 1.5rem 0; }
+.operations-avancees > summary { font-weight: 700; cursor: pointer; }

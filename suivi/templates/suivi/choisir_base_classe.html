@@ -1,15 +1,20 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Référentiel de {{ classe.libelle_avec_annee }}{% endblock %}
+{% block titre %}Référentiel de {{ classe.libelle_avec_annee }}</details>
+{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
-<h1>Choisir le référentiel de la classe</h1>
+<h1>Compétences de {{ classe.libelle_avec_annee }}</h1>
+<p><a class="bouton discret" href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels</a></p>
+<p><a class="bouton discret" href="{% url 'presentation_classe' classe.pk %}">Illustrations et phrases proposées</a></p>
 <p><a class="bouton discret" href="{% url 'adaptations_classe' classe.pk %}">Libellés et compétences masquées</a></p>
 <p><a class="bouton discret" href="{% url 'ajouts_classe' classe.pk %}">Compétences ajoutées</a></p>
 <p><a class="bouton discret" href="{% url 'correspondances_classe' classe.pk %}">Correspondances entre compétences</a></p>
-<p>Une base à la fois sert aux prochaines saisies. Choisir une autre base ne crée aucune réussite et ne relie pas automatiquement ses compétences aux anciennes.</p>
 {% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% endif %}
 {% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+<details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — changements pour toute la classe</summary>
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Modifier la base de toute la classe" resume="Changer de référentiel peut compliquer les comparaisons avec les autres classes et les autres années. Privilégiez les adaptations courantes lorsque la base vous convient." %}
+<h2>Choisir le référentiel de la classe</h2>
 {% if actuelle.clos %}
 <p>Les choix de cette classe sont clos. Ils restent consultables.</p>
 {% elif choix.versions %}
@@ -43,4 +48,5 @@
 {% endif %}
 <details><summary>Choix proposé et autres possibilités</summary><p>Le choix proposé est le point de départ prévu pour cette année. Les autres bases de la liste sont également autorisées. Pour une première utilisation, gardez le choix proposé sauf besoin pédagogique précis discuté avec l'équipe.</p>
 <p>Une source corrigée ou une base nouvellement importée ne remplace jamais votre choix de classe toute seule. Les restrictions concernent les nouveaux choix, pas l'effacement des anciens parcours.</p></details>
+</details>
 {% endblock %}

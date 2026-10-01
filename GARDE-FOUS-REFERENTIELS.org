@@ -34,3 +34,20 @@ Les commandes d'import et de publication de bases n'ouvrent aucune permission.
 Les tests anciens de conservation préparent explicitement les exceptions
 fictives ; les tests dédiés vérifient le refus initial et chaque niveau.
 #R9c–#R9d ajoutent les parcours de consultation, d'ouverture et de confirmation.
+
+* #R9c — Organisation et consultation
+
+La page de compétences place consultation, adaptation, ajouts, phrases et
+illustrations avant une rubrique Avancé fermée par défaut. Les réglages des
+bases de l'école sont également regroupés dans Avancé. L'aperçu ou une erreur
+rouvre la rubrique. L'avertissement partagé associe texte et couleur.
+
+Consulter les référentiels est accessible aux intervenants autorisés à voir
+la classe, sans leur donner le droit de changer ses choix. Le catalogue
+accessible à l'école respecte les bases autorisées ; les versions anciennement
+adoptées restent consultables pour la classe. Les textes de la source et la
+présentation de classe sont distingués ; celle d'une classe close utilise le
+contenu final. Recherche, domaine, section et pagination limitent les listes
+longues. Provenance et licence sont consultables. Aucun GET de consultation
+ne crée de projection, compétence, usage ou adoption. Une section de classement
+n'est pas présentée comme un repère d'âge officiel.
