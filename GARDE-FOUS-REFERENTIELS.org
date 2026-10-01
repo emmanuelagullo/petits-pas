@@ -141,3 +141,12 @@ par page. Les textes sont insérés comme texte, jamais comme HTML.
 Changer de base ou de présentation source/classe passe toujours par le serveur
 et ses droits. Sans JavaScript, le formulaire et la pagination serveur restent
 utilisables. Les deux recherches ont les mêmes seuils de tolérance aux erreurs.
+
+* #R9i — préciser la lecture et ouvrir les références
+
+L'indication de lecture décrit explicitement les libellés de la liste affichée,
+soit ceux de la base fournie, soit ceux de la présentation de classe. Le bloc
+documentaire distingue origine et réutilisation. Les URL présentes restent
+cliquables ; les mentions précises connues des BO, de la notice, du registre
+et des licences reçoivent des liens nommés. Aucun lien n'est déduit pour une
+référence inconnue et aucune métadonnée protégée n'est modifiée.

@@ -6,7 +6,11 @@ liste_auto = false
 
 Depuis une classe, ouvrir **Compétences**. La consultation permet de parcourir
 les référentiels disponibles, leur provenance et leurs conditions de
-réutilisation, sans modifier les choix de la classe. La recherche accepte
+réutilisation, sans modifier les choix de la classe. Le bloc **Provenance et
+droits de réutilisation** distingue l’origine et les licences ; les documents
+identifiés disposent de liens pour les consulter. **Libellés de la base fournie**
+affiche les compétences sans adaptations locales ; **Présentation de la classe**
+affiche ses libellés, masquages et ajouts. La recherche accepte
 plusieurs mots dans n’importe quel ordre, ignore les accents et tolère de
 petites fautes de frappe dans les mots longs. Les résultats exacts apparaissent
 en premier ; les filtres de domaine et de section restent applicables.

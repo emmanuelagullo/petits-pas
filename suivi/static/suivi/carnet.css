@@ -905,3 +905,8 @@ textarea { min-height: 7rem; resize: vertical; }
 .page-referentiel .entree > div { min-width: 0; }
 .page-referentiel .entree p { margin: .4rem 0 0; color: var(--ardoise-clair); overflow-wrap: anywhere; }
 .page-referentiel details p { overflow-wrap: anywhere; }
+
+.documents-referentiel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1.2rem; }
+.documents-referentiel > section { padding: 1rem; background: var(--papier); border-radius: .5rem; min-width: 0; }
+.documents-referentiel h3 { margin-top: 0; }
+.documents-referentiel li { margin: .5rem 0; overflow-wrap: anywhere; }

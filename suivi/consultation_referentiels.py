@@ -68,3 +68,22 @@ def rechercher_apprentissages(lignes, recherche):
         else:
             resultats.append((score, ligne))
     return [ligne for _, ligne in sorted(resultats, key=lambda r: r[0])]
+
+
+def liens_documentaires(source):
+    """Liens explicites des références connues, sans réécrire les métadonnées."""
+    documents = [
+        ("BO n°41 du 31 octobre 2024", "https://www.education.gouv.fr/bo/2024/Hebdo41/MENE2415135A"),
+        ("BO n°19 du 7 mai 2026", "https://www.education.gouv.fr/bo/2026/Hebdo19/MENE2608627A"),
+        ("BO n°6 du 6 février 2025", "https://www.education.gouv.fr/bo/2025/Hebdo6/MENE2503064A"),
+        ("referentiel/cycle1/NOTICE.org", "https://petits-pas.gitlabpages.inria.fr/petits-pas/referentiels/cycle1/NOTICE.org"),
+        ("REGISTRE.csv", "https://petits-pas.gitlabpages.inria.fr/petits-pas/referentiels/cycle1/REGISTRE.csv"),
+    ]
+    licences = [
+        ("Etalab-2.0", "https://github.com/etalab/licence-ouverte/blob/master/LO.md"),
+        ("CC-BY-SA-4.0", "https://creativecommons.org/licenses/by-sa/4.0/deed.fr"),
+    ]
+    return {
+        "documents": [(titre, url) for titre, url in documents if titre in source.provenance],
+        "licences": [(titre, url) for titre, url in licences if titre in source.licence],
+    }

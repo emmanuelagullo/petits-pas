@@ -80,3 +80,15 @@ class RechercheApprentissages(SimpleTestCase):
         lignes = [{"libelle": "Je classe"}, {"libelle": "Je chasse"}, {"libelle": "Je chasse des images"}]
         self.assertEqual(rechercher_apprentissages(lignes, "chasse"), lignes[1:] + lignes[:1])
         self.assertEqual(rechercher_apprentissages(lignes, ""), lignes)
+
+
+class LiensDocumentaires(SimpleTestCase):
+    def test_liens_seulement_pour_references_declarees(self):
+        from types import SimpleNamespace
+        from .consultation_referentiels import liens_documentaires
+        source = SimpleNamespace(provenance="BO n°41 du 31 octobre 2024", licence="CC-BY-SA-4.0")
+        liens = liens_documentaires(source)
+        self.assertEqual(len(liens["documents"]), 1)
+        self.assertIn("MENE2415135A", liens["documents"][0][1])
+        self.assertEqual(len(liens["licences"]), 1)
+        self.assertEqual(liens_documentaires(SimpleNamespace(provenance="Source fictive inconnue", licence="Autre mention")), {"documents": [], "licences": []})
