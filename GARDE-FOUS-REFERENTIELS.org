@@ -1,0 +1,36 @@
+#+TITLE: Garde-fous des référentiels — #R9
+
+* #R9b — Règles et restrictions
+
+Les permissions application/année, école/année et classe annuelle sont
+fermées par défaut. Elles sont indépendantes de la liste des bases autorisées
+et du choix proposé. Un changement après saisies nécessite les trois accords.
+Une ouverture de classe permet un seul changement effectif, puis se referme
+atomiquement. Conserver la même base ne consomme pas cette ouverture.
+Retirer une permission ne change aucune adoption et n'empêche pas les saisies
+sur la base actuelle. Une nouvelle année commence sans permission reconduite.
+
+Le classement est commun à l'aperçu et au service d'adoption : info pour
+conserver la base ou choisir initialement le défaut avant saisies, orange pour
+les autres choix avant saisies, rouge après saisies. Une autre version de la
+même source suit ces règles. États annuels connus, traces contextualisées et
+traces communes comptent, y compris supprimées logiquement et avec un élève
+déplacé. Une observation sans état connu, pour un élève scolarisé dans la
+classe, entraîne une alerte conservatrice sans inventer son année.
+
+L'empreinte de l'aperçu comprend le risque et les permissions/révisions. Sous
+les verrous application, école, classe, l'adoption les recalcule : une saisie
+nouvelle ou un retrait de permission impose un nouvel aperçu. Les lecteurs,
+identités et parcours ne changent pas ; aucun acquis n'est transféré.
+
+Migration 0025 additive : les adoptions existantes sont conservées. La commande
+regler_changements_referentiels consulte l'état application avec --annee ;
+--ouvrir exige --revision-attendue et --confirmer-ouverture. --fermer exige
+la révision. L'ouverture/fermeture d'exploitation est conservée dans l'historique
+annuel de l'application ; celles de l'école et de la classe sont journalisées
+avec leur auteur, ainsi que la consommation d'une exception de classe.
+Les commandes d'import et de publication de bases n'ouvrent aucune permission.
+
+Les tests anciens de conservation préparent explicitement les exceptions
+fictives ; les tests dédiés vérifient le refus initial et chaque niveau.
+#R9c–#R9d ajoutent les parcours de consultation, d'ouverture et de confirmation.

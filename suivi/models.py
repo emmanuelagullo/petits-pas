@@ -863,6 +863,8 @@ class ChoixApplicationAnnuel(models.Model):
     versions_autorisees = models.ManyToManyField(VersionReferentiel, blank=True, related_name="choix_application")
     version_proposee = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT, null=True, blank=True, related_name="defauts_application")
     revision = models.PositiveIntegerField(default=0)
+    changements_apres_saisies = models.BooleanField(default=False)
+    historique_permissions = models.JSONField(default=list, blank=True)
 
 
 class ChoixEcoleAnnuel(models.Model):
@@ -874,9 +876,16 @@ class ChoixEcoleAnnuel(models.Model):
     # Null suit le défaut supérieur, sans choisir la première base disponible.
     version_proposee = models.ForeignKey(VersionReferentiel, on_delete=models.PROTECT, null=True, blank=True, related_name="defauts_ecoles")
     revision = models.PositiveIntegerField(default=0)
+    changements_apres_saisies = models.BooleanField(default=False)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["ecole", "annee_scolaire"], name="choix_bases_ecole_annee_unique")]
+
+
+class PermissionChangementClasse(models.Model):
+    classe = models.OneToOneField(Classe, on_delete=models.PROTECT, related_name="permission_changement")
+    ouverte = models.BooleanField(default=False)
+    revision = models.PositiveIntegerField(default=0)
 
 
 class ReferentielAnnuel(models.Model):

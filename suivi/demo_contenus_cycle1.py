@@ -51,6 +51,7 @@ def preparer_contenus_cycle1(ecole, utilisateurs, versions_fictives, revision_ap
         adoption = adopter_base(
             utilisateur=responsable, classe=classe, version_id=version.pk,
             revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
+            garde_attendue=apercu["garde"]["empreinte"],
         )
         contenu = contenu_adoption(adoption)
         identites = {f"source-{d.identite_id}": d.identite.identifiant

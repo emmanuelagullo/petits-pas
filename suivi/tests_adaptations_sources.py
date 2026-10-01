@@ -25,8 +25,13 @@ class AdaptationsSources(Base):
 
     def adopter(self, version):
         apercu = apercu_adoption(utilisateur=self.enseignant, classe=self.classe, version_id=version.pk)
+        if apercu["garde"]["niveau"] == "rouge" and not apercu["meme"]:
+            from .fixtures_garde_fous import ouvrir_exception_fictive
+            ouvrir_exception_fictive(self.classe)
+            apercu = apercu_adoption(utilisateur=self.enseignant, classe=self.classe, version_id=version.pk)
         return adopter_base(utilisateur=self.enseignant, classe=self.classe, version_id=version.pk,
-            revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"])
+            revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
+            garde_attendue=apercu["garde"]["empreinte"])
 
     def regler(self, *, libelle=None, visible=None, revision=0):
         return enregistrer_adaptation(utilisateur=self.enseignant, ecole=self.ecole,

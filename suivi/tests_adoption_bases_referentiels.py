@@ -33,8 +33,13 @@ class AdoptionBases(Base):
     def adopter(self, version=None):
         version = version or self.a
         apercu = apercu_adoption(utilisateur=self.enseignant, classe=self.classe, version_id=version.pk)
+        if apercu["garde"]["niveau"] == "rouge" and not apercu["meme"]:
+            from .fixtures_garde_fous import ouvrir_exception_fictive
+            ouvrir_exception_fictive(self.classe)
+            apercu = apercu_adoption(utilisateur=self.enseignant, classe=self.classe, version_id=version.pk)
         return adopter_base(utilisateur=self.enseignant, classe=self.classe, version_id=version.pk,
-            revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"])
+            revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
+            garde_attendue=apercu["garde"]["empreinte"])
 
     def test_apercu_sans_ecriture_puis_identites_et_contexte(self):
         nombre = Competence.objects.count()
@@ -126,7 +131,8 @@ class AdoptionBases(Base):
         self.adopter(self.b)
         with self.assertRaises(ValidationError):
             adopter_base(utilisateur=self.enseignant, classe=self.classe, version_id=self.a.pk,
-                revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"])
+                revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
+            garde_attendue=apercu["garde"]["empreinte"])
         with self.assertRaises(PermissionDenied):
             apercu_adoption(utilisateur=get_user_model().objects.create_user(username="sans-affectation-fictif"), classe=self.classe, version_id=self.a.pk)
 
@@ -185,7 +191,8 @@ class AdoptionBases(Base):
         autre = Classe.objects.create(ecole=self.ecole, nom="Hirondelles", annee_scolaire=self.classe.annee_scolaire)
         apercu = apercu_adoption(utilisateur=self.direction, classe=autre, version_id=deux.pk)
         adoption = adopter_base(utilisateur=self.direction, classe=autre, version_id=deux.pk,
-                               revisions_attendues=apercu["revisions"], adoption_attendue=None)
+                               revisions_attendues=apercu["revisions"], adoption_attendue=None,
+                               garde_attendue=apercu["garde"]["empreinte"])
         competence = adoption.usages.get().competence
         self.assertEqual(competence.pk, premiere.usages.get().competence_id)
         self.assertEqual(illustration_effective(self.ecole, competence, self.classe).icone, "parler")

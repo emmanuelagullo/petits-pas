@@ -11,6 +11,7 @@ from suivi.referentiels import contenu_adoption
 from .choix_bases_referentiels import _application_verrouillee, choix_bases
 from .versions_sources_ecoles import definir_version_ecole
 from .apercu_mises_a_jour import apercu_mise_a_jour
+from .garde_fous_referentiels import garde_adoption, consommer_permission
 
 
 def apercu_adoption(*, utilisateur, classe, version_id):
@@ -45,6 +46,7 @@ def apercu_adoption(*, utilisateur, classe, version_id):
         (l["arrivee_id"] in nouveaux_ids | locaux and l["depart_id"] in anciens_ids | locaux)]
     meme = bool(actuelle and actuelle.version_id == version_id)
     return {"version": version, "adoption_id": actuelle.pk if actuelle else None,
+            "garde": garde_adoption(classe, version_id, choix),
             "mise_a_jour": apercu_mise_a_jour(classe, actuelle, version),
             "revisions": choix.revisions, "communes": len(anciens_ids & nouveaux_ids),
             "nouvelles": nombre - len(anciens_ids & nouveaux_ids),
@@ -52,7 +54,7 @@ def apercu_adoption(*, utilisateur, classe, version_id):
 
 
 @transaction.atomic
-def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None):
+def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None):
     classe_fournie = classe
     # Même ordre de coordination que les choix d'école.
     _application_verrouillee(classe.annee_scolaire)
@@ -67,6 +69,11 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
         raise ValidationError("Les adaptations ont changé. Consultez à nouveau les conséquences avant de confirmer.")
     if apercu["meme"]:
         return AdoptionReferentiel.objects.get(pk=apercu["adoption_id"])
+    garde = apercu["garde"]
+    if garde_attendue is None or garde["empreinte"] != list(garde_attendue):
+        raise ValidationError("La situation de la classe ou les permissions ont changé. Préparez un nouvel aperçu.")
+    if not garde["permis"]:
+        raise ValidationError("Le changement après saisies est interdit. Une autorisation explicite de l'application, de l'école et de la classe est nécessaire.")
     version = apercu["version"]
     contenu = definir_version_ecole(classe.ecole, version)
     annuel, _ = ReferentielAnnuel.objects.get_or_create(ecole=classe.ecole, annee_scolaire=classe.annee_scolaire,
@@ -82,5 +89,7 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
         usage.save()
     journaliser(utilisateur, "referentiel.base_classe", adoption,
         anciennes={"adoption": apercu["adoption_id"]}, nouvelles={"version": version.pk})
+    if garde["niveau"] == "rouge":
+        consommer_permission(utilisateur, classe)
     classe_fournie._adoption_referentiel_lecture = adoption
     return adoption
