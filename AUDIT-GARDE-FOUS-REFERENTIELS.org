@@ -1,0 +1,251 @@
+#+TITLE: Référentiels — audit des opérations et garde-fous #R9a
+
+* Statut et périmètre
+
+Audit du main aeb4cc85aa49c6944b2ec4788d839191d805556a, après #R8 et
+#CR4–#CR6. Proposition issue du retour d'usage du 1 octobre 2026 ; aucune
+fonction, migration ou règle nouvelle n'est implémentée par ce document.
+L'audit porte sur le code, les gabarits et les documents du dépôt. Il ne
+constitue pas une vérification du déploiement Render ni un essai graphique.
+Le Guide pratique reste la description des fonctions effectivement accessibles.
+
+* Conclusion
+
+La conservation des données est organisée, mais la présentation ne distingue
+pas assez une adaptation courante d'un changement de base pour toute la classe.
+Une explication dépliable et un aperçu ne suffisent pas à rendre ce contraste
+visible. Séparer consultation, adaptations courantes et opérations avancées ;
+ajouter une restriction hiérarchique propre aux changements après saisies.
+Conserver les protections déjà présentes, plutôt que reconstruire l'adoption.
+
+La gravité tient à l'organisation du suivi, pas à une destruction automatique
+des données. Plusieurs bases dans une école ou plusieurs années ne constituent
+pas une incohérence informatique. Elles compliquent la lecture commune et les
+comparaisons pédagogiques ; le logiciel ne garantit aucune équivalence.
+
+* État constaté
+
+- suivi/templates/suivi/classe.html ouvre « Référentiel de la classe ».
+  choisir_base_classe.html commence par « Choisir le référentiel de la classe »
+  et juxtapose adaptation, ajouts, correspondances et choix de base.
+  Le choix majeur est ainsi le centre de la page de réglages ordinaires.
+- suivi/views_referentiels.py utilise un aperçu puis une confirmation signée,
+  liés au compte, à la classe, à la version et aux révisions, avec expiration
+  à trente minutes. Aucun mot de passe n'est demandé pour cette opération.
+- suivi/services/adoption_bases_referentiels.py vérifie droit, base autorisée,
+  clôture, adoption courante et révisions sous transaction. Il conserve les
+  adoptions, observations et contextes ; il ne copie pas de réussite.
+  Il n'y a plus de blocage spécifique après saisies depuis #R4b3.
+- ChoixApplicationAnnuel et ChoixEcoleAnnuel séparent bases autorisées et
+  proposition par défaut. Ils ne contiennent aucune permission spécifique
+  de changement après saisies. Retirer une base des choix n'enlève pas une
+  adoption existante et n'empêche pas les saisies dans celle-ci.
+- suivi/autorisations.py accorde la gestion du référentiel de classe à la
+  direction active ou au responsable actif. Le même droit couvre adaptations
+  et adoption. À l'école, il est réservé à la direction. L'application règle
+  ses choix par commande d'exploitation, sans interface dédiée.
+- #R8 compare deux versions d'une même source et explique les adaptations
+  conservées. Une identité conservée retrouve son suivi ; une correspondance
+  ou une ressemblance de texte n'en transfère aucun.
+- La consultation des bases disponibles est mêlée au formulaire de choix.
+  Elle ne fournit pas un parcours indépendant pour parcourir un référentiel
+  non adopté. Les adaptations consultent surtout les bases déjà utilisées.
+
+* Nature et réversibilité des opérations
+
+| Opération | Effet réel | Retour possible | Présentation proposée |
+|-----------+------------+-----------------+-----------------------|
+| Consulter une base disponible | Aucun changement du suivi | Sans objet | Accès ordinaire, lecture seule |
+| Masquer une compétence | Refus des prochaines saisies ; parcours conservé | Démasquer ou suivre la visibilité supérieure, si la compétence appartient encore à la base | Information courte |
+| Reformuler une compétence | Même identité ; texte annuel des parcours et carnets ouverts adapté | Suivre le libellé supérieur actuel | Information courte |
+| Adapter une phrase proposée | Change une aide aux prochaines rédactions | Revenir à la proposition actuelle ; textes déjà saisis inchangés | Information courte |
+| Ajouter une compétence | Crée une identité et des choix annuels supplémentaires | Masquer pour les prochaines saisies ; l'identité reste enregistrée | Information courte, sans promesse d'effacement |
+| Changer de base sans saisies de l'année | Change la liste de travail de toute la classe | Réadopter une base encore autorisée ; historique des choix conservé | Orange, aperçu et confirmation renforcée |
+| Changer de base après saisies de l'année | Coexistence de parcours sous plusieurs bases ; prochaines saisies modifiées | Réadopter si autorisé ; les saisies intermédiaires restent conservées | Rouge, exception hiérarchique et confirmation renforcée |
+| Adopter une autre version d'une source | Même mécanisme d'adoption, avec différences et identités conservées ou retirées | Réadopter une version autorisée ; pas d'annulation des saisies intermédiaires | Orange ou rouge selon les saisies, avec aperçu #R8 |
+| Changer les bases autorisées ou le défaut de l'école | Affecte les possibilités ou propositions, pas les adoptions existantes | Rétablir les choix, sous réserve des autorisations supérieures actuelles | Avancé, orange ; rouge pour ouvrir les changements après saisies |
+
+Ces retours n'effacent pas le journal. Le retour à l'héritage n'est pas une
+restauration du texte d'un jour passé : le niveau supérieur peut avoir évolué.
+Une reformulation locale peut aussi avoir remplacé un autre texte local ;
+revenir à celui-ci n'est pas garanti par le seul bouton de retour à l'héritage.
+La présentation des années ouvertes évolue ; celle d'une classe close reste
+figée. Les PDF déjà téléchargés ne sont pas réécrits.
+
+* Seuil orange ou rouge : les saisies, pas le calendrier
+
+Nommer les situations « Avant les premières saisies » et « Après des saisies ».
+Ne pas décider d'après septembre, la date d'une observation, le nombre
+d'élèves ou la seule présence d'une réussite. Une trace avec commentaire,
+sans réussite ni photo, suffit à engager un parcours.
+
+Le prédicat commun proposé doit examiner toute l'histoire de la classe pour
+l'année : états annuels connus liés aux usages de ses adoptions, traces
+personnelles contextualisées par usage ou scolarité, traces communes et
+versions personnelles associées. Inclure les ajouts locaux et les anciennes
+bases. Un élève déplacé ne doit pas faire disparaître le constat. Une trace
+masquée du carnet ou supprimée logiquement ne rend pas la classe vierge.
+Les UsageCompetence préparés à l'adoption ne sont pas des saisies.
+
+Les observations des années précédentes n'engagent pas à elles seules la
+nouvelle classe annuelle. Les états repris sans année connue ne doivent pas
+être attribués arbitrairement à celle-ci : si leur rattachement laisse un
+doute dans une base ancienne, appliquer le parcours rouge et expliquer
+« Des observations anciennes ne peuvent pas être situées avec certitude ».
+La définition exacte de ce cas doit être éprouvée sur les fixtures de reprise.
+
+Le résultat est recalculé à la confirmation, sous les verrous utilisés par
+les saisies. Une saisie entre aperçu orange et confirmation oblige à produire
+un nouvel aperçu rouge ; aucune confirmation orange ne doit suffire ensuite.
+
+* Restriction hiérarchique proposée
+
+Séparer trois questions : « Cette base est-elle disponible ? », « Le changement
+après saisies est-il permis ? », « Le compte a-t-il le droit d'agir ? ».
+Un mot de passe correct ne remplace aucune de ces conditions.
+
+Proposition : permission annuelle à l'application, à l'école, puis ouverture
+explicite pour la classe annuelle. Changement après saisies possible seulement
+si les trois niveaux le permettent ; refus par défaut à chaque niveau.
+Une permission inférieure ne peut pas passer outre un refus supérieur.
+Chaque niveau affiche sa valeur locale, la permission effective et l'origine
+du blocage. Chaque ouverture est rouge, confirmée et journalisée.
+
+La direction ouvre la possibilité pour l'école ; la direction ou le responsable
+ouvre l'exception pour sa classe. Les autres intervenants ne gagnent pas le
+droit de changer de base. Une nouvelle année démarre fermée, sans reconduire
+silencieusement une exception. Une classe close reste inchangée.
+
+Recommandation pour limiter les oublis : l'ouverture de classe permet un seul
+changement effectif, puis se referme dans la même transaction. Application et
+école restent dans leur état choisi ; proposer de refermer l'école lorsqu'elle
+n'a plus besoin de permettre d'exceptions. Ne pas la refermer automatiquement
+si d'autres classes en dépendent. Conserver la même base ne consomme pas
+l'exception. Un retour ultérieur est un nouveau changement, soumis aux règles.
+Cette ouverture à usage unique est une proposition, pas une règle acquise.
+
+Un refus ajouté après une ouverture bloque les prochaines transitions ; il
+ne rétablit aucune ancienne base et ne bloque pas les saisies courantes.
+Chaque transition vérifie de nouveau permissions supérieures et révisions.
+Les nouvelles restrictions s'appliquent aussi aux appels directs des services,
+pas uniquement aux boutons. Les commandes de démonstration et d'initialisation
+doivent passer par un chemin explicite, testé et journalisé, sans contournement
+général réservé aux comptes techniques.
+
+* Confirmation et avertissements
+
+Pour les actions orange et rouges : récapitulatif toujours visible avec classe,
+année, base actuelle et cible, portée collective et conséquence principale.
+Les détails longs restent dépliables. La couleur accompagne des mots et des
+symboles accessibles ; elle n'est jamais le seul indicateur.
+
+Exemple orange : « Vous changez le référentiel de toute la classe. Les
+compétences proposées peuvent différer de celles des autres classes et des
+années précédentes. Discutez ce choix avec l'équipe. »
+
+Exemple rouge : « Cette classe a déjà des saisies. Le changement modifie les
+prochaines compétences proposées. Les observations précédentes restent dans
+les parcours. Les compétences d'une autre identité ne reçoivent aucune
+réussite. Revenir ensuite ne supprimera pas les saisies faites entre-temps. »
+
+Afficher les nombres utiles et les différences #R8 ; ne pas prétendre que
+toutes les compétences repartiront à zéro lorsqu'elles gardent leur identité.
+Le retour des mêmes identités retrouve le suivi existant, sans transfert.
+
+Demander le mot de passe du compte connecté à chaque ouverture exceptionnelle
+et à chaque adoption orange ou rouge ; jamais celui d'un supérieur. Ne pas
+utiliser une confirmation mémorisée pour une autre action. Réutiliser le
+mécanisme d'authentification et sa limitation des tentatives, sans enregistrer
+ni journaliser le mot de passe. Une future connexion sans mot de passe exige
+un moyen équivalent de réauthentification ; ne pas inventer un mot de passe.
+La commande d'exploitation au niveau application nécessite sa propre
+confirmation explicite ; elle n'a pas de compte web auquel demander un secret.
+
+Le jeton signé reste nécessaire et lie en plus le niveau de risque, l'état des
+permissions et leurs révisions. La réauthentification prouve l'identité, pas
+la compréhension ; le récapitulatif et un bouton précis restent essentiels.
+Une action sans effet ne demande pas de mot de passe. Garder le choix initial
+proposé avant toute saisie relève du parcours ordinaire ; choisir une autre
+base initiale ou remplacer une base adoptée relève de l'orange.
+
+* Organisation des pages
+
+La page de compétences devient un point d'entrée de travail : base actuelle
+et année, consultation, libellés et masquages, ajouts, phrases et illustrations.
+Chaque action courante fournit une information concise sur son effet et le
+retour possible, sans case de confirmation répétitive ni mot de passe.
+Les correspondances restent facultatives, consultables et sans transfert.
+
+Une rubrique « Avancé », fermée par défaut, commence par un avertissement
+visible dans son intitulé puis dans son contenu. Elle contient changement de
+base, adoption d'une nouvelle version et permissions exceptionnelles. Les
+pages directement accessibles par URL portent les mêmes avertissements et
+contrôles ; le repli visuel n'est pas une protection des données.
+À l'école, les défauts et listes de bases sont également regroupés dans Avancé.
+
+La consultation indépendante montre les bases autorisées au niveau concerné,
+leur version, provenance et contenu, avec recherche et filtrage utiles aux
+438 entrées. Elle distingue contenu source et adaptations effectives de la
+classe. Consulter ne crée ni projection en base, ni adoption, ni usage, et ne
+déverrouille rien. Un intervenant peut consulter avec un droit de lecture
+adapté à son rôle, sans gagner le droit de gérer le référentiel. Les bases
+anciennement adoptées restent consultables pour expliquer les parcours,
+même si elles ne sont plus disponibles pour un nouveau choix.
+
+* Factorisation et conséquences techniques
+
+- Un service commun calcule la catégorie de l'action et les conditions
+  effectives. Aperçu, confirmation, interface et appels métier l'utilisent.
+- Un composant de présentation commun reçoit niveau info/orange/rouge, titre,
+  résumé, détails, portée, libellé du bouton et exigence de réauthentification.
+  Garder les textes propres à chaque opération ; éviter un assistant général
+  configuré par une accumulation de drapeaux.
+- Un formulaire commun de confirmation renforcée reçoit un jeton et le mot
+  de passe. La vue vérifie l'authentification ; le service revérifie les droits,
+  permissions, saisies et révisions dans la transaction. Pour une entrée web,
+  l'autorisation obtenue après réauthentification doit être liée à l'action
+  exacte, pas représentée par un simple booléen envoyé par le navigateur.
+- Étendre les choix annuels et ajouter la permission annuelle de classe
+  demande une migration additive. Conserver les historiques d'adoption,
+  identités, observations et versions. Journaliser ouverture, fermeture,
+  auteur, portée et consommation d'exception ; pas seulement le choix final.
+- Coordonner les écritures dans l'ordre application, école, classe, déjà
+  utilisé pour l'adoption. Relire les permissions après verrouillage ; un
+  retrait simultané ne doit pas être ignoré.
+- Import YAML inchangé : importer ne permet ni n'effectue une adoption. Une
+  nouvelle version demeure soumise au même parcours. Les choix annuels et la
+  clôture conservent leurs règles ; aucune restriction nouvelle ne réécrit
+  un ancien carnet. Le Guide et les captures changent lors de la livraison
+  effective des écrans, sans annoncer dès maintenant les règles proposées.
+
+À la migration, fermer les permissions nouvelles sans changer les bases déjà
+adoptées. Les classes de démonstration gardent donc leurs deux référentiels ;
+le scénario d'essai prépare explicitement les permissions nécessaires à ses
+exercices. Une ancienne permission de choisir plusieurs bases ne doit pas
+être interprétée comme l'accord d'effectuer une transition après saisies.
+
+* Jalons proposés après convergence
+
+- #R9b : règles et migration des permissions, prédicat des saisies, contrôle
+  transactionnel et journal. Décider l'ouverture de classe à usage unique et
+  le traitement conservateur des états anciens ambigus avant ce jalon.
+- #R9c : page de compétences hiérarchisée et consultation indépendante ;
+  composant commun d'information et d'avertissement, sans modifier les sources.
+- #R9d : parcours orange/rouge, réauthentification et confirmations, Guide,
+  scénario fictif et captures. Livrer les protections métier et leurs écrans
+  de façon coordonnée pour ne pas rendre une exception impossible à ouvrir.
+
+Chaque jalon produit un commit et un patch git am distinct. Tests nécessaires :
+refus de chaque niveau, retrait concurrent, première saisie concurrente,
+mot de passe erroné et limitation des tentatives, jeton expiré ou réutilisé pour
+une autre action, responsables et associés, consommation unique, années
+distinctes, reprise ambiguë, élève déplacé, traces communes ou supprimées,
+ajouts locaux, mises à jour conservant les identités, classe close, observations
+inchangées et carnets HTML/PDF. Vérifier clavier, mobile et absence de JavaScript.
+
+* Vérification de cet audit
+
+Lecture des modèles, droits, services de choix/adoption et contextes de saisie,
+gabarits et documents #R2–#R8. Aucun test d'exécution ou de navigateur n'est
+revendiqué pour cet audit documentaire. Vérifier git diff --check et
+l'application du patch sur main ; pas de migration ni de changement d'interface.

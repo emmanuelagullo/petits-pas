@@ -385,3 +385,12 @@ présentées. Les versions restent autorisées et adoptées explicitement ;
 aucune classe ne bascule lors d'un import ou d'un nouveau défaut proposé.
 Voir MISES-A-JOUR-REFERENTIELS.org et le Guide pratique. Les deux versions de
 la petite source fictive permettent l'essai sur la démonstration.
+
+* Garde-fous et hiérarchie des opérations — audit #R9a
+
+AUDIT-GARDE-FOUS-REFERENTIELS.org examine la réversibilité des adaptations,
+la consultation indépendante et les changements de base avant ou après
+saisies. Il propose une rubrique Avancé, des avertissements gradués, une
+restriction hiérarchique annuelle et des confirmations renforcées factorisées.
+Il s'agit d'une proposition à faire converger, sans modification du modèle,
+des écrans ou des règles actuellement accessibles.
