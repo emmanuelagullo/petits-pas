@@ -47,9 +47,12 @@ Deux classes multi-niveaux permettent de relire les contenus applicables en
 2026-2027 : **Les Mésanges**, avec Rémi, utilisent l’édition étayée ;
 **Les Hirondelles**, avec Nadia, utilisent les objectifs officiels seuls.
 Chacune comporte douze élèves fictifs, avec des observations contextualisées.
+Une troisième classe, **Les Pinsons**, avec Rémi, permet d’essayer les
+**tableaux Chat d’école**, dans les six domaines, sans EVAR. Elle comporte
+également douze élèves fictifs et garde un suivi distinct des autres classes.
 
 Le [parcours d’essai des référentiels cycle 1]({{< relref "/referentiels/cycle1" >}})
-présente les deux offres, les sources, les licences, les limites de couverture,
+présente les trois offres, les sources, les conditions d’usage, les limites de couverture,
 les fichiers à télécharger et une proposition de relecture en dix minutes.
 
 ## Tester les référentiels avec l’équipe fictive

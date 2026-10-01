@@ -61,3 +61,12 @@ Les [éditions 2026.1](cycle1/NOTICE.org) proposent les 426 objectifs inventori�
 (six domaines et EVAR) et une offre étayée de douze repères supplémentaires.
 Leur [couverture](cycle1/COUVERTURE.org) et leur [registre](cycle1/REGISTRE.csv)
 accompagnent les YAML. Ces éditions restent provisoires pour relecture.
+
+## Tableaux Chat d’école
+
+L’[édition pilote Chat d’école 2026.1](chatdecole/NOTICE.org) ajoute
+[417 entrées importables](chatdecole/tableaux-cycle1.yaml) dans les six domaines,
+sans EVAR, illustration ni phrase ajoutée. Son [registre](chatdecole/REGISTRE.csv)
+conserve les fichiers sources et les repères de transcription. Les conditions
+publiées par Chat d’école et les crédits restent distincts de la licence du
+logiciel. La classe fictive des Pinsons permet de l’essayer dans la démonstration.

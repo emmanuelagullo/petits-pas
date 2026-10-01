@@ -87,3 +87,5 @@ n'ont pas besoin.
 notices et illustrations dans `static/referentiels/cycle1/`, ignoré par Git.
 Modifier uniquement les originaux sous `referentiel/` ; la page publique
 `content/referentiels/cycle1.md` les présente et propose un parcours d’essai.
+L’édition Chat d’école, sa notice et son registre sont copiés de la même façon
+dans `static/referentiels/chatdecole/`, depuis `referentiel/chatdecole/`.

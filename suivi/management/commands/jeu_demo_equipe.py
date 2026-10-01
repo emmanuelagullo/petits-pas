@@ -127,7 +127,7 @@ class Command(BaseCommand):
             classe = ecole.classes.filter(
                 nom=donnees["nom"], annee_scolaire=donnees["annee_scolaire"]
             ).first()
-            if classe is None and identifiant in ("lucioles", "mesanges", "hirondelles"):
+            if classe is None and identifiant in ("lucioles", "mesanges", "hirondelles", "pinsons"):
                 classe = Classe.objects.create(
                     ecole=ecole,
                     nom=donnees["nom"],

@@ -22,9 +22,10 @@ def preparer_contenus_cycle1(ecole, utilisateurs, versions_fictives, revision_ap
     )
     annee = configuration["annee"]
     versions = {}
-    for fichier in ("objectifs-programmes.yaml", "cycle1-etaye.yaml"):
+    for fichier in ("cycle1/objectifs-programmes.yaml", "cycle1/cycle1-etaye.yaml",
+                    "chatdecole/tableaux-cycle1.yaml"):
         version, _, _ = importer_source(
-            (settings.BASE_DIR / "referentiel/cycle1" / fichier).read_text(encoding="utf-8")
+            (settings.BASE_DIR / "referentiel" / fichier).read_text(encoding="utf-8")
         )
         versions[version.source.identifiant] = version
     publier_choix_application(
@@ -66,7 +67,8 @@ def preparer_contenus_cycle1(ecole, utilisateurs, versions_fictives, revision_ap
             scolarite = Scolarite(eleve=eleve, classe=classe, annee_scolaire=annee, niveau=niveau)
             scolarite.full_clean()
             scolarite.save()
-            for j, situation in enumerate(configuration["situations"][niveau]):
+            situations = specification.get("situations", configuration["situations"])
+            for j, situation in enumerate(situations[niveau]):
                 definition = definitions[situation["identite"]]
                 competence = Competence.objects.get(pk=definition["id"])
                 statut = (Observation.EN_COURS, Observation.REUSSI, Observation.NON_DEBUTE)[(indice + j) % 3]

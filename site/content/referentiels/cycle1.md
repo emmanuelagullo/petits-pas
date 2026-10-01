@@ -1,5 +1,5 @@
 +++
-title = "Cycle 1 : deux référentiels à essayer"
+title = "Cycle 1 : trois référentiels à essayer"
 description = "Objectifs des programmes, repères proposés et essai avec deux classes fictives."
 +++
 
@@ -12,6 +12,7 @@ approuvées par le ministère ou par une équipe pédagogique.
 |---|---|---|---|
 | Cycle 1 — Objectifs des programmes | 2026.1 | 426 objectifs dans leur rédaction officielle | Les Hirondelles, avec Nadia |
 | Petits Pas — Cycle 1, objectifs et repères (pilote) | 2026.2 | Les mêmes 426 objectifs, 12 repères ciblés et 17 associations d’illustrations | Les Mésanges, avec Rémi |
+| Chat d’école — Tableaux cycle 1 (pilote) | 2026.1 | 417 entrées issues des tableaux par niveau, six domaines, sans EVAR | Les Pinsons, avec Rémi |
 
 Dans l’offre étayée, **Objectif :** annonce le texte officiel et **Repère :**
 une reformulation Petits Pas. Les douze repères seuls ne couvrent pas tout le
@@ -65,6 +66,14 @@ que tout a déjà été travaillé.
 7. Se connecter avec **Nadia** (`nadia-demo`), puis ouvrir **Les Hirondelles — 2026-2027** et comparer l’offre contenant uniquement les objectifs officiels.
 8. Pour essayer un changement de base, consulter **Voir les conséquences** avant de confirmer. Les observations existantes restent conservées ; aucune réussite n’est copiée entre les deux sources.
 
+Pour essayer **Chat d’école**, rester connecté avec Rémi et ouvrir
+**Les Pinsons — 2026-2027** : 12 autres élèves fictifs, quatre PS, quatre MS et
+quatre GS. Consulter le référentiel de la classe, les observations d’Ada E.
+et son carnet. Cette base conserve les textes des tableaux, sans EVAR,
+illustration ni phrase ajoutée. La [notice et les crédits](../../referentiels/chatdecole/NOTICE.org)
+et le [registre de transcription](../../referentiels/chatdecole/REGISTRE.csv)
+accompagnent son essai. Aucun suivi n’est copié depuis les autres classes.
+
 Les mots de passe publics figurent sur la page de démonstration. Les visiteurs
 partagent cette démonstration : leurs essais peuvent modifier le jeu initial.
 Utiliser uniquement des données fictives. Le profil Render gratuit est éphémère,
@@ -78,11 +87,13 @@ historiques, dont les observations restent conservées. Les [fiches de choix de 
 et d’[adaptation des libellés]({{< relref "/guide/eleves-classes/adapter-competences" >}})
 expliquent les actions possibles.
 
-## Deux classes prêtes à essayer
+## Trois classes prêtes à essayer
 
 {{< capture-guide src="captures/referentiels/cycle1/mesanges.png" alt="Référentiel de la classe fictive des Mésanges, édition étayée 2026.2" caption="Rémi suit les Mésanges avec l’offre étayée. Données fictives." >}}
 
 {{< capture-guide src="captures/referentiels/cycle1/hirondelles.png" alt="Référentiel de la classe fictive des Hirondelles, objectifs officiels 2026.1" caption="Nadia suit les Hirondelles avec les objectifs officiels seuls. Données fictives." >}}
+
+{{< capture-guide src="captures/referentiels/cycle1/pinsons.png" alt="Référentiel de la classe fictive des Pinsons, tableaux Chat d’école 2026.1" caption="Rémi suit les Pinsons avec les tableaux Chat d’école. Données fictives." >}}
 
 ## Sources et droits
 
@@ -96,8 +107,17 @@ restent les textes à consulter.
 Textes officiels : ministère de l’Éducation nationale, **Etalab-2.0**, avec les
 exclusions prévues par les [mentions légales Éduscol](https://eduscol.education.gouv.fr/4656/mentions-legales).
 Extraction, organisation et repères originaux : **Petits Pas, 2026** ; apports
-originaux sous **CC-BY-SA-4.0**. Les fichiers ne reprennent aucun contenu de
-Chat d’école ou d’ITICarnet.
+originaux sous **CC-BY-SA-4.0**. Ces mentions concernent les deux offres
+Objectifs des programmes et Petits Pas étayée.
+
+L’offre **Chat d’école** provient des [tableaux simplifiés](https://www.chatdecole.site/tableaux-simplifies-des-nouveaux-programmes/),
+page datée du 26 juillet 2026, avec les contributions de Juliette et Vanessa
+mentionnées par l’autrice. Conversion Petits Pas, 1er octobre 2026.
+Les [conditions publiées](https://www.chatdecole.site/a-propos/) indiquent
+un usage en classe ou en formation et demandent de mentionner l’origine lors
+d’une republication. Aucune licence libre non déclarée n’est attribuée aux
+apports Chat d’école. Les droits sur ces contenus sont distincts de la licence
+du logiciel. Aucun référentiel ITICarnet n’est inclus.
 
 Illustrations : **OpenMoji — HfG Schwäbisch Gmünd et contributeurs**, version
 17.0.0, **CC-BY-SA-4.0**, sans retouche. [Crédits détaillés](../../referentiels/cycle1/ILLUSTRATIONS-CR5.yaml),
@@ -122,6 +142,7 @@ permet pas de transférer automatiquement une réussite.
 - [Objectifs officiels, YAML 2026.1](../../referentiels/cycle1/objectifs-programmes.yaml)
 - [Édition étayée, YAML 2026.2](../../referentiels/cycle1/cycle1-etaye.yaml)
 - [Registre de provenance et de sens, CSV](../../referentiels/cycle1/REGISTRE.csv)
+- [Chat d’école, YAML 2026.1](../../referentiels/chatdecole/tableaux-cycle1.yaml)
 
 Les fichiers utilisent l’import versionné de Petits Pas. Télécharger ou importer
 une source ne change pas automatiquement le référentiel d’une classe.

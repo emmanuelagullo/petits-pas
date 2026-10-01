@@ -3367,7 +3367,7 @@ class JeuDemoLarge(TestCase):
             self.ecole.classes.filter(
                 annee_scolaire="2026-2027", etat=Classe.ACTIVE
             ).count(),
-            4,
+            5,
         )
         self.assertFalse(
             Trace.objects.filter(
@@ -3388,9 +3388,11 @@ class JeuDemoLarge(TestCase):
 
         mesanges = self.ecole.classes.get(nom="Les Mésanges", annee_scolaire="2026-2027")
         hirondelles = self.ecole.classes.get(nom="Les Hirondelles", annee_scolaire="2026-2027")
+        pinsons = self.ecole.classes.get(nom="Les Pinsons", annee_scolaire="2026-2027")
         for classe, nombre, source in (
             (mesanges, 438, "petits-pas-cycle1-etaye"),
             (hirondelles, 426, "cycle1-objectifs-programmes"),
+            (pinsons, 417, "chatdecole-tableaux-cycle1"),
         ):
             adoption = AdoptionReferentiel.objects.get(classe=classe, courante=True)
             self.assertEqual(adoption.version.source.identifiant, source)
@@ -3430,7 +3432,7 @@ class JeuDemoLarge(TestCase):
             profil for profil in configuration["profils"] if profil["id"] == "alice"
         )
         self.assertEqual(alice["affectations"][0]["periode"], "terminee")
-        self.assertEqual(len(configuration["scenarios"]), 19)
+        self.assertEqual(len(configuration["scenarios"]), 20)
         self.assertEqual(
             {scenario["profil"] for scenario in configuration["scenarios"]},
             {"diane", "remi", "nadia", "cora", "samir"},
