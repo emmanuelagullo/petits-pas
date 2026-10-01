@@ -16,11 +16,17 @@
 {% if version %}
 <h2>{{ version.source.titre }} — {{ version.numero }}</h2>
 <p>{{ total }} entrées. {% if version.source.provisoire %}Édition provisoire.{% endif %} {% if not disponible %}Ancienne base conservée pour comprendre les parcours ; indisponible pour un nouveau choix.{% endif %}</p>
-<details><summary>Provenance et droits de réutilisation</summary><p>{{ version.source.provenance|urlize|linebreaksbr }}</p><p>Licence ou mention de réutilisation : {{ version.source.licence|default:"Non renseignée" }}.</p></details>
-{% if lecture == 'classe' %}<p>Présentation de la classe avec ses adaptations et ajouts{% if historique.clos %}, conservée à la clôture{% endif %}.</p>{% else %}<p>Textes de la source, avant les adaptations locales.</p>{% endif %}
+<details><summary>Provenance et droits de réutilisation</summary>
+<div class="documents-referentiel">
+<section aria-labelledby="origine-source"><h3 id="origine-source">Origine du référentiel</h3><p>{{ version.source.provenance|urlize|linebreaksbr }}</p>
+{% if liens_source.documents %}<h4>Consulter les documents cités</h4><ul>{% for titre, url in liens_source.documents %}<li><a href="{{ url }}">{{ titre }}</a></li>{% endfor %}</ul>{% endif %}</section>
+<section aria-labelledby="droits-source"><h3 id="droits-source">Conditions de réutilisation</h3><p>{{ version.source.licence|default:"Non renseignées"|urlize|linebreaksbr }}</p>
+{% if liens_source.licences %}<ul>{% for titre, url in liens_source.licences %}<li><a href="{{ url }}">Lire la licence {{ titre }}</a></li>{% endfor %}</ul>{% endif %}</section>
+</div></details>
+{% if lecture == 'classe' %}<p>La liste ci-dessous présente les libellés utilisés par la classe, avec ses adaptations et ajouts{% if historique.clos %}, conservée à la clôture{% endif %}.</p>{% else %}<p>La liste ci-dessous présente les libellés de la base fournie, sans les reformulations, masquages ni ajouts de l’école ou de la classe.</p>{% endif %}
 <form method="get" class="filtres-referentiel" data-recherche-referentiel data-lecture="{{ lecture }}">
 <input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="annee" value="{{ annee }}">
-{% if historique %}<label for="lecture">Textes à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Textes de la source</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select>{% endif %}
+{% if historique %}<label for="lecture">Libellés à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Libellés de la base fournie</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select>{% endif %}
 <label for="q">Rechercher un apprentissage</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300" aria-describedby="aide-recherche">
 <p class="aide" data-aide-instantanee hidden>Les résultats se mettent à jour pendant la saisie, sans chargement supplémentaire.</p>
 <p id="aide-recherche" class="aide">Plusieurs mots possibles, dans n’importe quel ordre. Les accents et les petites fautes de frappe sont tolérés ; les résultats exacts apparaissent en premier.</p>

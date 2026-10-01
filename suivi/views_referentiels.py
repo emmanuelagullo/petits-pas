@@ -264,7 +264,7 @@ def consulter_referentiels(request, classe_pk=None):
     from django.core.paginator import Paginator
     from django.utils import timezone
     from .autorisations import VOIR_CLASSE, ACCEDER_APPLICATION, autorise
-    from .consultation_referentiels import lignes_consultation, rechercher_apprentissages
+    from .consultation_referentiels import lignes_consultation, rechercher_apprentissages, liens_documentaires
     from .models import AdoptionReferentiel, annee_scolaire_pour
     from .services.choix_bases_referentiels import verifier_annee
 
@@ -311,6 +311,7 @@ def consulter_referentiels(request, classe_pk=None):
     return render(request, "suivi/consulter_referentiels.html", {"classe": classe, "annee": annee,
         "versions": versions.values(), "version": version, "historique": historiques.get(version_id),
         "disponible": version_id in {v.pk for v in disponibles}, "lecture": mode,
+        "liens_source": liens_documentaires(version.source) if version else {},
         "catalogue": catalogue, "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
         "domaines": domaines, "domaine": domaine, "niveau": niveau})
 
