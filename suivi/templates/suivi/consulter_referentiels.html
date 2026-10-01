@@ -1,4 +1,5 @@
 {% extends "suivi/base.html" %}
+{% load static %}
 {% block titre %}Consulter les référentiels — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
@@ -17,19 +18,23 @@
 <p>{{ total }} entrées. {% if version.source.provisoire %}Édition provisoire.{% endif %} {% if not disponible %}Ancienne base conservée pour comprendre les parcours ; indisponible pour un nouveau choix.{% endif %}</p>
 <details><summary>Provenance et droits de réutilisation</summary><p>{{ version.source.provenance|urlize|linebreaksbr }}</p><p>Licence ou mention de réutilisation : {{ version.source.licence|default:"Non renseignée" }}.</p></details>
 {% if lecture == 'classe' %}<p>Présentation de la classe avec ses adaptations et ajouts{% if historique.clos %}, conservée à la clôture{% endif %}.</p>{% else %}<p>Textes de la source, avant les adaptations locales.</p>{% endif %}
-<form method="get" class="filtres-referentiel">
+<form method="get" class="filtres-referentiel" data-recherche-referentiel data-lecture="{{ lecture }}">
 <input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="annee" value="{{ annee }}">
 {% if historique %}<label for="lecture">Textes à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Textes de la source</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select>{% endif %}
 <label for="q">Rechercher un apprentissage</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300" aria-describedby="aide-recherche">
+<p class="aide" data-aide-instantanee hidden>Les résultats se mettent à jour pendant la saisie, sans chargement supplémentaire.</p>
 <p id="aide-recherche" class="aide">Plusieurs mots possibles, dans n’importe quel ordre. Les accents et les petites fautes de frappe sont tolérés ; les résultats exacts apparaissent en premier.</p>
 <label for="domaine">Domaine</label><select id="domaine" name="domaine"><option value="">Tous les domaines</option>{% for nom in domaines %}<option{% if domaine == nom %} selected{% endif %}>{{ nom }}</option>{% endfor %}</select>
 <label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Toutes les sections</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
 <p class="aide">Les sections de classement ne remplacent pas les repères d'âge des programmes.</p>
 <button class="bouton discret">Filtrer les compétences</button>
 </form>
-<p>{{ page.paginator.count }} résultat{{ page.paginator.count|pluralize }}.</p>
-<ul class="liste">{% for ligne in page %}<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{{ ligne.domaine }}{% if ligne.groupe %} · {{ ligne.groupe }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>{% empty %}<li>Aucun apprentissage ne correspond à ces filtres.</li>{% endfor %}</ul>
-{% if page.has_other_pages %}<nav aria-label="Pages des compétences">{% if page.has_previous %}<a href="?{{ params }}&amp;page={{ page.previous_page_number }}">Page précédente</a>{% endif %} · Page {{ page.number }} sur {{ page.paginator.num_pages }} · {% if page.has_next %}<a href="?{{ params }}&amp;page={{ page.next_page_number }}">Page suivante</a>{% endif %}</nav>{% endif %}
+<p data-compteur-referentiel role="status" aria-live="polite">{{ page.paginator.count }} résultat{{ page.paginator.count|pluralize }}.</p>
+<ul class="liste" data-resultats-referentiel>{% for ligne in page %}<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{{ ligne.domaine }}{% if ligne.groupe %} · {{ ligne.groupe }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>{% empty %}<li>Aucun apprentissage ne correspond à ces filtres.</li>{% endfor %}</ul>
+{% if page.has_other_pages %}<nav data-pagination-serveur aria-label="Pages des compétences">{% if page.has_previous %}<a href="?{{ params }}&amp;page={{ page.previous_page_number }}">Page précédente</a>{% endif %} · Page {{ page.number }} sur {{ page.paginator.num_pages }} · {% if page.has_next %}<a href="?{{ params }}&amp;page={{ page.next_page_number }}">Page suivante</a>{% endif %}</nav>{% endif %}
+<nav data-pagination-locale hidden aria-label="Pages des compétences"><button type="button" class="bouton discret" data-precedent>Page précédente</button> <span data-position></span> <button type="button" class="bouton discret" data-suivant>Page suivante</button></nav>
+{{ catalogue|json_script:"catalogue-referentiel" }}
+<script src="{% static 'suivi/recherche_referentiel.js' %}" defer></script>
 {% else %}<p>Aucun référentiel disponible pour cette année.</p>{% endif %}
 </div>
 {% endblock %}

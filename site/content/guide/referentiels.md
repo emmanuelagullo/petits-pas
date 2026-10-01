@@ -10,6 +10,9 @@ réutilisation, sans modifier les choix de la classe. La recherche accepte
 plusieurs mots dans n’importe quel ordre, ignore les accents et tolère de
 petites fautes de frappe dans les mots longs. Les résultats exacts apparaissent
 en premier ; les filtres de domaine et de section restent applicables.
+Avec JavaScript, les résultats se mettent à jour pendant la saisie, sans
+recharger la page. Sinon, cliquer sur **Filtrer les compétences**. Changer de
+base ou de présentation source/classe demande de valider le choix.
 
 ## Adapter au quotidien
 

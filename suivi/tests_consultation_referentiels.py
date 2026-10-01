@@ -37,6 +37,15 @@ class ConsultationReferentiels(Base):
         self.assertEqual(self.client.get(self.url, {"version": hors.pk}).status_code, 404)
         self.assertEqual(self.client.get(self.url, {"version": self.version.pk, "lecture": "classe"}).status_code, 404)
 
+    def test_catalogue_local_complet_malgre_filtres_sans_donnees_de_suivi(self):
+        page = self.client.get(self.url, {"version": self.version.pk, "q": "introuvable"})
+        self.assertEqual(page.context["page"].paginator.count, 0)
+        self.assertEqual(len(page.context["catalogue"]), 1)
+        self.assertEqual(set(page.context["catalogue"][0]),
+                         {"libelle", "domaine", "groupe", "niveau", "code", "active"})
+        self.assertContains(page, 'id="catalogue-referentiel"')
+        self.assertContains(page, 'data-recherche-referentiel')
+
     def test_associe_consulte_sans_droit_de_changer(self):
         from comptes.models import AffectationClasse
         # Modifier l'affectation fictive existante ; ne pas créer un rôle supplémentaire.
