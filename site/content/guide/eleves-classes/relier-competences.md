@@ -19,7 +19,9 @@ référentiels sans renseigner cette page.
 
 ## Étapes
 
-1. Ouvrir **Correspondances entre compétences**. À l’école, vérifier l’année.
+1. Depuis le référentiel de la classe ou de l’école, ouvrir **Avancé —
+   correspondances entre compétences**, puis **Correspondances entre compétences**.
+   À l’école, vérifier l’année.
    Lire l’exemple, puis ouvrir **Ajouter un repère entre deux apprentissages**
    si une explication est utile à l’équipe.
 2. Choisir **L’apprentissage que je veux situer**, puis **L’autre apprentissage**, en

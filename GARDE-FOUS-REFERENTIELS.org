@@ -103,3 +103,14 @@ une installation locale ; le démarrage Render applique déjà les migrations.
 Redéployer le profil fictif sur une base neuve pour retrouver le scénario,
 avec école et classes fermées. Les adoptions des bases existantes restent
 inchangées lors d'une simple migration sur une autre installation.
+
+* #R9e — rendre les parcours lisibles
+
+Les adaptations courantes sont regroupées et expliquées à leur entrée.
+La consultation reste un accès indépendant. Les correspondances et le
+changement complet de base occupent deux blocs avancés distincts, fermés
+par défaut. Les anciennes bases de classe se consultent depuis un dépliable ;
+adapter leurs libellés ne change pas la base des prochaines saisies.
+Les règles de permission et de confirmation de #R9b–#R9d sont inchangées.
+Deux fermetures de dépliables introduites dans les titres des pages de choix
+sont également corrigées.

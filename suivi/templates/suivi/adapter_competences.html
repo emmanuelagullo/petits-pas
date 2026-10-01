@@ -3,6 +3,7 @@
 {% block contenu %}
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% else %}<a href="{% url 'gestion' %}">Gérer l'école</a> · <a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Libellés et compétences masquées</h1>
+<p>Choisissez une compétence pour reformuler son libellé ou décider si elle apparaît dans les prochaines saisies. Son identité et ses observations sont conservées. Vous pouvez revenir au libellé proposé ou démasquer la compétence.</p>
 <p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Choix proposés par l'école pour {{ annee }}. Les classes qui les gardent suivent leurs évolutions ; leurs propres choix restent prioritaires.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if clos %}<p>Les choix de cette classe sont clos. Le dernier état conservé reste consultable.</p>{% endif %}
@@ -28,11 +29,19 @@
 </form>
 {% endif %}
 {% else %}
-<form method="get">
-{% if not classe %}<label for="annee">Année scolaire</label><input id="annee" name="annee" value="{{ annee }}" required pattern="[0-9]{4}-[0-9]{4}">{% endif %}
-{% if bases %}<label for="version">Base à consulter</label><select id="version" name="version">{% for base in bases %}<option value="{{ base.pk }}"{% if version.pk == base.pk %} selected{% endif %}>{{ base.source.titre }} — version {{ base.numero }}</option>{% endfor %}</select>{% endif %}
-<button class="bouton discret" type="submit">Consulter les compétences</button>
-</form>
+{% if classe %}
+{% if version %}<p>Compétences de <strong>{{ version.source.titre }}</strong> — version {{ version.numero }}{% if hors_base %} · ancienne base{% else %} · base actuelle{% endif %}.</p>{% endif %}
+{% if bases|length > 1 %}
+<details class="bases-precedentes"{% if hors_base %} open{% endif %}><summary>Voir les bases précédemment utilisées cette année ?</summary>
+<p>Ces compétences restent dans les anciens parcours. Consulter une ancienne base ou adapter ses libellés ne change pas la base des prochaines saisies. Pour changer toute la base, revenez au référentiel de la classe et ouvrez « Avancé — changer la base de compétences ».</p>
+<form method="get"><label for="version">Base dont consulter ou adapter les libellés</label><select id="version" name="version">{% for base in bases %}<option value="{{ base.pk }}"{% if version.pk == base.pk %} selected{% endif %}>{{ base.source.titre }} — version {{ base.numero }}</option>{% endfor %}</select><button class="bouton discret" type="submit">Consulter les compétences</button></form>
+</details>
+{% endif %}
+{% else %}
+<form method="get"><label for="annee">Année scolaire</label><input id="annee" name="annee" value="{{ annee }}" required pattern="[0-9]{4}-[0-9]{4}">
+{% if bases %}<label for="version">Base dont adapter les compétences</label><select id="version" name="version">{% for base in bases %}<option value="{{ base.pk }}"{% if version.pk == base.pk %} selected{% endif %}>{{ base.source.titre }} — version {{ base.numero }}</option>{% endfor %}</select>{% endif %}
+<button class="bouton discret" type="submit">Consulter les compétences</button></form>
+{% endif %}
 {% for domaine in domaines %}{% if domaine.visibles %}<h2>{{ domaine.nom }}</h2>
 <ul class="liste">{% for competence in domaine.visibles %}<li class="entree"><a class="principal" href="{{ competence.url_adaptation }}">{{ competence.libelle }}</a> <span>{% if not competence.active %}masquée · {% endif %}{{ competence.get_niveau_display }}</span></li>{% endfor %}</ul>{% endif %}
 {% empty %}<p>Aucune compétence n'est encore disponible ici. {% if classe %}Choisissez d'abord une base pour la classe.{% else %}Les bases utilisées par les classes et celles déjà préparées peuvent être adaptées. Pour une nouvelle source, choisissez d'abord la base d'une classe.{% endif %}</p>{% endfor %}

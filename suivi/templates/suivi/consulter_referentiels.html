@@ -3,6 +3,7 @@
 {% block contenu %}
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'accueil' %}">Accueil</a>{% endif %}</p>
 <h1>Consulter les référentiels</h1>
+<p>Parcourez les apprentissages, recherchez un texte et filtrez par domaine ou section. Vous pouvez aussi consulter la provenance et les droits de réutilisation de chaque base.</p>
 <p>Lecture seule — cette consultation ne change ni les compétences proposées ni les parcours. Année {{ annee }}.</p>
 <form method="get">
 {% if not classe %}<label for="annee">Année scolaire</label><input name="annee" id="annee" value="{{ annee }}" pattern="[0-9]{4}-[0-9]{4}" required>{% endif %}

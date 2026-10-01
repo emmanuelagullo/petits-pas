@@ -10,6 +10,11 @@ depart = "Gérer l’école → Référentiels de l’école"
 statut = "disponible"
 +++
 
+Les illustrations, phrases proposées, libellés et compétences ajoutées sont
+regroupés dans **Proposer des adaptations à l’équipe**. Les correspondances
+ont leur propre bloc **Avancé** ; elles restent facultatives. Les choix et
+restrictions de base décrits ci-dessous sont une démarche distincte.
+
 ## Étapes
 
 1. Ouvrir **Gérer l’école → Référentiels de l’école**.

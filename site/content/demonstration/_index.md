@@ -100,7 +100,7 @@ libellé, les prochaines saisies et le carnet. Vous pouvez revenir à la version
 ## Tester les précautions lors d’un changement de référentiel
 
 Dans **Référentiel de la classe**, commencer par **Consulter les référentiels**
-ou les adaptations courantes. **Avancé — changements pour toute la classe**
+ou les adaptations courantes. **Avancé — changer la base de compétences**
 est fermé par défaut. Les classes fictives ont déjà des saisies : un changement
 est rouge et bloqué tant que l’école et la classe ne l’ont pas autorisé.
 

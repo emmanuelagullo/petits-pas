@@ -3,6 +3,7 @@
 {% block contenu %}
 <p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Compétences de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Autorisation de changement après saisies</h1>
+<p>Consultez les accords nécessaires et ouvrez ou refermez une autorisation exceptionnelle. Autoriser un changement et changer effectivement la base sont deux étapes séparées.</p>
 <p>{% if classe %}{{ classe.libelle_avec_annee }}{% else %}{{ ecole.nom }} — {{ annee }}{% endif %}.</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p><p><a href="{{ request.path }}?annee={{ annee }}">Reconsulter les autorisations</a></p>{% endif %}
 <ul><li>Application pour cette année : {% if permission.application %}permet les exceptions{% else %}interdit les exceptions{% endif %}.</li><li>École pour cette année : {% if permission.ecole %}permet les exceptions{% else %}interdit les exceptions{% endif %}.</li>{% if classe %}<li>Cette classe : {% if permission.classe %}exception ouverte{% else %}exception fermée{% endif %}.</li>{% endif %}</ul>
