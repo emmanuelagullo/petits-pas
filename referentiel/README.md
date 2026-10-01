@@ -1,6 +1,10 @@
 # Contenus du référentiel
 
 `trame-cycle1.yaml` est une trame de travail, sans statut de référentiel officiel.
+L'audit des contenus, de leur provenance et des offres à préparer est consigné
+dans [CONTENUS-REFERENTIELS.org](../CONTENUS-REFERENTIELS.org) (#CR1).
+Il ne remplace ni n'importe cette trame ; les deux versions sous `exemples/`
+restent exclusivement fictives.
 Pour le chargement historique dans une école non reprise, les codes des
 compétences et formulations servent à retrouver les éléments lors d'un import.
 Pour l'import versionné au catalogue, l'identité d'une compétence est déclarée

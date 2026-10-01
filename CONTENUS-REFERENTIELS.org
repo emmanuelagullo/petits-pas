@@ -1,0 +1,331 @@
+#+TITLE: Contenus des référentiels cycle 1 — audit et propositions #CR1
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+* Objet et propositions
+
+Ce document rassemble les sources et les propositions de contenus pour les
+référentiels cycle 1 de Petits Pas. Il s'adresse aux équipes pédagogiques et
+aux personnes qui contribuent à leur préparation. Les sources ont été
+consultées le 1er octobre 2026 ; leur actualité sera vérifiée avant publication
+à partir des textes officiels.
+
+L'étude porte sur le dépôt au commit
+=75fc2063b7650f8d23c05e338f871072981b02ad=. Elle prépare des choix de contenu ;
+les référentiels proposés ci-dessous ne sont pas encore intégrés au catalogue.
+Les documents MODELE-REFERENTIELS.org, IMPORT-SOURCES-REFERENTIELS.org,
+CORRESPONDANCES-REFERENTIELS.org et MISES-A-JOUR-REFERENTIELS.org décrivent les
+règles de gestion et de suivi. Les exemples du catalogue sont fictifs et
+destinés aux vérifications de fonctionnement.
+
+Proposition : préparer deux offres nouvelles et conserver la trame de démarrage
+comme troisième option provisoire. Les textes officiels constituent la source
+de référence. Les synthèses pédagogiques apportent des lectures complémentaires
+; leurs conditions de réutilisation seront précisées avant une éventuelle
+distribution. Les correspondances peuvent être étudiées progressivement, sans
+retarder la préparation d'une première base utile.
+
+* Textes applicables et chronologie
+
+| Texte | Publication et application | Portée pour ce chantier |
+|-------+----------------------------+-------------------------|
+| Arrêté du 18 février 2015, modifié notamment en 2020 et 2021 | BO spécial du 26 mars 2015 ; BO du 30 juillet 2020 et du 24 juin 2021 | Corpus historique à consulter pour les anciennes années, pas référence courante complète |
+| Arrêté du 22 octobre 2024, NOR MENE2415135A | JO du 25 octobre ; BO n°41 du 31 octobre 2024 ; rentrée 2025-2026 | Nouveaux programmes de langage et de mathématiques, en remplacement des parties correspondantes de 2015 |
+| Arrêté du 3 février 2025, NOR MENE2503064A | JO du 5 février ; BO n°6 du 6 février 2025 ; rentrée 2025-2026 | Programme d'éducation à la vie affective et relationnelle (EVAR) en maternelle |
+| Arrêté du 16 avril 2026, NOR MENE2608627A | JO du 6 mai ; BO n°19 du 7 mai 2026 ; rentrée 2026-2027 | Nouveau cadre et autres domaines ; abroge l'arrêté de 2015 modifié, renvoie aux programmes langage/mathématiques de 2024 |
+
+Sources : [S1], [S2], [S3], [S4], [S9]. La consolidation Éduscol [S5] réunit
+les textes de 2024 et 2026 ; elle constitue le point de lecture pratique. Les
+arrêtés et leurs annexes restent les références normatives. Les projets du
+Conseil supérieur des programmes ne doivent pas être importés comme textes
+applicables. « Programmes 2025 » et « programmes 2026 » ne désignent donc pas
+deux remplacements successifs de l'ensemble du cycle.
+
+** Structure courante
+
+Six domaines, au lieu des cinq de l'ancien cadre ; l'ancien « Explorer le monde
+» est réparti entre deux domaines. L'EVAR s'ajoute à cet ensemble [S4-S5].
+
+| Domaine du corpus courant | Organisation à conserver pour la lecture |
+|---------------------------+-------------------------------------------|
+| Le développement et la structuration du langage oral et écrit | Oral ; préparation à la lecture ; préparation à l'écriture |
+| Agir, s'exprimer, comprendre à travers les activités physiques | Déplacements ; équilibres ; expression corporelle ; coopération/opposition |
+| Agir, s'exprimer, comprendre à travers les activités artistiques | Arts visuels ; univers sonores ; spectacle vivant |
+| L'acquisition des premiers outils mathématiques | Nombre, quantité et rang ; problèmes ; solides/formes ; longueurs/masses ; motifs |
+| Se repérer dans le temps et l'espace | Temps ; espace |
+| Découvrir le monde du vivant, de la matière et des objets | Vivant ; matière et objets |
+
+Ces intitulés proviennent de la table des matières de [S5]. Les regroupements
+de la seconde colonne sont des résumés de lecture, pas des citations
+intégrales. Le préambule, les conditions d'enseignement et les points de
+vigilance restent nécessaires à l'interprétation d'un tableau d'objectifs.
+
+** Du programme aux libellés de suivi
+
+- Compétence : capacité et finalité relativement large ; ce mot dans le
+  programme ne correspond pas automatiquement à une ligne de suivi logiciel.
+- Objectif d'apprentissage : cible de l'enseignement, avec contexte et
+  progressivité. Certains objectifs associent plusieurs actions.
+- Exemple de réussite : manifestation possible en situation. Les exemples
+  n'épuisent pas l'objectif et ne constituent pas une liste obligatoire de situations à évaluer.
+- Libellé de suivi Petits Pas : choix éditorial permettant à l'équipe de
+  documenter un progrès. Le présenter comme reformulation, avec son objectif
+  d'origine, et non comme texte ministériel.
+
+Les repères du programme sont par âge et par apprentissages déjà observés [S2,
+S4]. Les indications PS/MS/GS servent au repérage et tiennent compte du
+parcours de chaque enfant. Un objectif répété à plusieurs âges peut recouvrir
+une exigence qui augmente : comparer le contexte et les exemples avant de
+décider qu'il s'agit du même apprentissage.
+
+Éduscol distingue le carnet de suivi d'une liste d'items cochés [S6]. Le
+référentiel doit aider à choisir et interpréter des observations régulières,
+dans des situations variées. Une réussite isolée, un pourcentage ou l'absence
+de trace ne suffisent pas à conclure sur le parcours d'un enfant. La synthèse
+nationale de fin de cycle est un autre document ; ne pas l'assimiler à ce YAML.
+
+* Déclinaisons pédagogiques examinées
+
+** Chat d'école
+
+Page [S7] datée du 26 juillet 2026, consultée le 1er octobre. Chat d'école
+présente ces tableaux comme une aide à la préparation des progressions et
+programmations en équipe. L’autrice se présente comme conseillère pédagogique
+[S8] et mentionne la contribution de collègues à leur réalisation. Ces
+synthèses pédagogiques sont à lire en complément des programmes officiels.
+
+22 fichiers cycle 1 téléchargés : deux tableaux Word/PDF langage et maths, puis
+18 Word par section couvrant les six domaines. Le manifeste adjacent conserve
+URLs, date et SHA-256. Les chemins /2025/02/, /2026/06/, /2026/07/ et /2026/08/
+sont des chemins d'hébergement, et ne renseignent pas à eux seuls la date de
+rédaction.
+
+Lecture des textes extraits et contrôles ponctuels face aux annexes ; contrôle
+visuel de la première page du PDF maths. Il ne s'agit pas encore d'une
+comparaison exhaustive de chaque objectif et de chaque colonne. Résultats :
+
+| Contrôle | Constat | Conséquence |
+|----------+---------+-------------|
+| Langage : vocabulaire et syntaxe, PDF p.1 / annexe 2024 pp.3-4 | Reprise des objectifs, notamment corpus et organisation lexicale | Objectifs concordants sur ces passages ; consulter aussi le contexte et les exemples officiels |
+| Maths : quantité, PDF p.1 / annexe 2024 pp.3-6 | Conservation des progressions de collections (3 voire 4 ; 6 ; 10 voire au-delà) | Conserver les bornes lors d’une reformulation |
+| Physique PS : se déplacer / annexe 2026 p.6 | Les quatre objectifs observés sont repris, avec quelques différences typographiques | Concordance sur les passages examinés ; comparaison complète à poursuivre |
+| Vivant PS : animaux et végétaux / annexe 2026 p.24 | Les trois objectifs observés correspondent à l'annexe | Concordance sur les passages examinés ; comparaison complète à poursuivre |
+| En-têtes des PDF langage et maths | Les mentions « dès que les apprentissages précédents… » sont abrégées | Accompagner le tableau d’une notice rappelant la progressivité des apprentissages |
+| Liste de téléchargement cycle 1 | Six domaines, sans tableau EVAR cycle 1 visible | Prévoir une lecture complémentaire du programme EVAR |
+
+Les PDF synthétiques rassemblent les objectifs ; les exemples restent
+disponibles dans les annexes officielles. Les Word par section transposent les
+repères en PS/MS/GS : cela doit être annoncé comme un choix de présentation. La
+révision exhaustive vérifiera la couverture des objectifs et la cohérence des
+versions Word et PDF.
+
+Conditions de réutilisation [S8] : les ressources sont proposées pour un usage
+en classe ou en formation ; leur origine doit être mentionnée lors d'une
+republication. Les pages consultées ne précisent pas l'ensemble des conditions
+d'une adaptation distribuée avec un logiciel libre. Une telle intégration
+nécessiterait donc un accord précisant les adaptations, l'attribution et les
+possibilités de redistribution. Dans l'intervalle, Petits Pas peut proposer ces
+liens de lecture et préparer ses contenus directement à partir des programmes
+officiels.
+
+** Autres ressources retenues pour comparaison
+
+- Éduscol [S6] : cadre national d'observation et de carnet ; utile pour choisir
+  les formulations et éviter une grille d'épreuves. Cette ressource ne constitue pas une
+  base complète de compétences à importer. Les exemples préparés pour ce
+  chantier seront fictifs.
+- GDEM 74 / Emmanuel Pont [S10] : résumés langage et maths sur le portail
+  académique, langage daté janvier 2025. Ils associent objectifs, exemples et
+  points de vigilance ; une lecture complémentaire aux tableaux d’objectifs.
+  Contrôle ponctuel : vocabulaire et quantité, non audit exhaustif. Couverture
+  de deux domaines, pas des nouveautés 2026 ni de l'EVAR. Conditions de redistribution de ces
+  supports à préciser auprès de leur éditeur. Les conditions d’Éduscol
+  concernent son propre site. Ces ressources sont proposées ici comme liens de lecture.
+
+La sélection privilégie des contenus pédagogiquement complémentaires plutôt que
+plusieurs présentations d’une même source. Les livrets d'accompagnement
+ministériels pourront aider la relecture du prochain jalon, sans être présentés
+comme nouveaux programmes.
+
+* Trame de démarrage Petits Pas
+
+Nom proposé : *Petits Pas — Trame de démarrage cycle 1 (provisoire, 2026)*.
+Notice : « 57 propositions de suivi présentes dans le dépôt initial du 14
+septembre 2026. Provenance pédagogique à compléter. Sélection d’apprentissages,
+organisation en cinq domaines ; ne constitue pas une transcription des
+programmes. » Le millésime indique la date de la trame ; la notice distingue
+celle-ci des programmes en vigueur. Le fichier conserve son chemin actuel et
+les contenus déjà utilisés restent préservés.
+
+** Intérêt et limites pédagogiques
+
+Les libellés courts facilitent un premier usage et les échanges avec les
+familles. Une déclinaison plus détaillée pourrait préciser les situations et
+les critères d’observation. Les pistes suivantes concernent la préparation de
+nouveaux contenus ; elles ne modifient pas la trame utilisée :
+
+| Élément | Point à préciser | Piste pour une nouvelle déclinaison |
+|---------+-------------------+------------------------------------|
+| LANG-06 : « bien » tenir le crayon | Critère à expliciter | Expliciter geste et situation, avec relecture enseignante |
+| LANG-08 : être compris de tous | Interlocuteurs et situations à préciser | Préciser interlocuteur et contexte |
+| PHYS-01 : courir, sauter, grimper « sans avoir peur » | Plusieurs actions et référence au ressenti de l’enfant | Distinguer les actions et décrire les progrès dans un cadre sécurisant |
+| MATH-04/08 : compter jusqu'à dix/trente | Récitation ou dénombrement non distingués | Séparer comptine et cardinal d'une collection |
+| MATH-10 : ce qui se passe quand on ajoute/enlève | Quantités, problème et procédure non précisés | Cibler un apprentissage et ses conditions |
+| MATH-11 : chiffres de 1 à 10 | Distinction entre chiffre et nombre : 10 s’écrit avec deux chiffres | Employer « écrire les nombres… », puis vérifier le sens conservé |
+| ART-07 : bonhomme avec tous ses détails | Détails attendus et intention du dessin à préciser | Décrire l’intention de représentation et son évolution |
+| MOND-08 : jour et lecture de date | Deux apprentissages | Distinguer repérage temporel et lecture |
+
+La trame propose une sélection d’apprentissages. Pour une couverture détaillée,
+l’enseignement lexical, compréhension de textes, rang, masses, diversité des
+problèmes, matière et EVAR demandent notamment des contenus complémentaires.
+
+Lorsqu’une cible change, une nouvelle identité préserve la distinction entre
+les apprentissages. Scinder PHYS-01 ou préciser fortement MATH-10 produit de
+nouveaux apprentissages. Leurs réussites antérieures ne peuvent pas être
+assimilées aux nouvelles.
+
+* Sélection limitée proposée, avant décision
+
+| Offre | Intérêt et couverture visée | Provenance et droits | Décision proposée |
+|-------+-----------------------------+---------------------+-------------------|
+| Cycle 1 — Objectifs des programmes en vigueur 2026-2027 | Base de référence détaillée : six domaines ; EVAR explicitement traité dans la notice et le contenu à convenir | Extraction Petits Pas des textes ministériels ; informations publiques, voir ci-dessous ; édition Petits Pas avec références aux textes officiels | Première source à préparer après convergence |
+| Petits Pas — Repères de progrès cycle 1, édition 2026 | Reformulations pour observation et communication ; tableau de couverture des objectifs, sans exhaustivité implicite | Rédaction propre, directement appuyée sur les programmes ; proposer CC-BY-SA-4.0 pour cette contribution éditoriale, avec attribution des sources | Préparer après un échantillon relu par des enseignants |
+| Petits Pas — Trame de démarrage cycle 1 (provisoire, 2026) | Les 57 propositions historiques ; base courte et continuité, couverture partielle | Présente dans le dépôt initial ; provenance pédagogique et licence des contenus à documenter pour la publication versionnée | Conserver sans altération ; Documenter les contenus avant publication versionnée |
+
+La première offre présente une extraction des textes officiels réalisée par
+Petits Pas et identifiée comme telle. La seconde a ses propres identités ; elle
+ne partage pas automatiquement le suivi avec la première. Trois bases nouvelles
+PS/MS/GS ne sont pas nécessaires : garder une progression de cycle dans une
+base complète. La limitation à une base courante par classe conduit à intégrer
+les contenus retenus dans cette base, plutôt que proposer un supplément isolé
+qui exigerait le mélange de bases.
+
+La couverture de l’EVAR sera indiquée dans la notice de chaque offre.
+Proposition à discuter : une section complémentaire dédiée dans les deux
+nouvelles offres, sans la présenter comme un septième domaine officiel. Les
+propositions de suivi porteront sur des observations en contexte scolaire, avec
+des exemples fictifs adaptés à l’âge des enfants et respectueux de leur
+intimité. Une livraison sans EVAR serait possible si sa couverture est
+explicitement annoncée comme limitée aux six domaines.
+
+Chat d'école et GDEM 74 restent des ressources comparatives externes. Une base
+supplémentaire pourrait être étudiée si elle apporte un contenu complémentaire
+et dispose de conditions de redistribution documentées. La préparation d’une
+base nationale historique supplémentaire pourrait être étudiée ultérieurement
+pour les anciennes années, en préservant les origines des données existantes.
+
+** Réutilisation et licences
+
+Éduscol [S11] place ses pages et téléchargements sous Etalab-2.0, avec
+exclusions pour les contenus de tiers. Choisir son document consolidé comme
+source, conserver auteur institutionnel, URL, dates et modifications ; exclure
+logos, photos, pictogrammes et extraits tiers. Vérifier la notice du fichier
+exact au jalon de publication. Les textes normatifs publiés au BO et le régime
+des informations publiques [S12] fournissent aussi une base de réutilisation ;
+ne pas déduire de cela que tous les supports pédagogiques trouvés en ligne sont
+libres.
+
+La licence du logiciel ne remplace pas celle d'un contenu tiers.
+CONTRIBUTING.md prévoit AGPL pour le code et CC-BY-SA pour la documentation
+publique ; il ne tranche pas explicitement la licence pédagogique du YAML
+historique. Les trois SVG sont, eux, explicitement CC-BY-SA-4.0 dans
+referentiel/README.md. Pour les nouveaux textes rédigés, déclarer leur licence
+expressément et distinguer les passages officiels réutilisés des
+reformulations. Les citations officielles restent fidèles ; ne pas placer une
+reformulation entre guillemets comme si elle provenait du BO. Les conditions de
+réutilisation sont documentées séparément de la gratuité ou de la possibilité
+de modifier un fichier.
+
+* Identités, évolutions et correspondances
+
+Préparer un registre éditorial par source, indépendant de l'ordre des lignes :
+identité, première version, sens visé, contexte/borne, référence exacte (texte,
+section, âge, page), reformulation éventuelle, justification de maintien ou
+nouvelle identité. Ne pas calculer l'identité depuis le libellé ou la position.
+
+| Évolution | Traitement proposé |
+|-----------+--------------------|
+| Orthographe ou reformulation strictement fidèle | Même identité dans la source ; nouvelle version publiée |
+| Déplacement de rubrique, sans changement de sens | Même identité ; structure de version modifiée |
+| Extension de quantité, changement d'aide ou de contexte substantiel | Comparer les exigences ; nouvelle identité si la cible change |
+| Division d'une ligne en deux apprentissages | Deux nouvelles identités ; ancien suivi conservé |
+| Regroupement de plusieurs objectifs | Nouvelle identité si réussite plus large ; pas de fusion d'acquis |
+| Retrait puis retour du même apprentissage | Même identité si le sens est réellement inchangé |
+| Même texte dans deux sources indépendantes | Identités distinctes ; éventuel lien justifié |
+
+Exemples fictifs : « Je peux dire mon prénom » / « Je dis mon prénom » peut
+conserver une identité ; dire son prénom / reconnaître son prénom écrit reste
+distinct. Réciter une suite numérique / dénombrer une collection n'est pas une
+équivalence. Dénombrer trois puis dix objets exprime une progression ; le
+second ne doit pas être déclaré réussi parce que le premier l'est.
+
+Un tableau de correspondances candidat peut indiquer départ, arrivée, versions,
+type, justification, auteur de proposition et statut à relire. Respecter #R7 :
+« Précise » et « Remplace » vont de la nouvelle cible vers celle qu'elle
+précise ou remplace. « En lien avec » reste orienté dans le logiciel. Aucun
+lien symétrique, transitif, équivalent ou transfert de réussite n'est déduit.
+Un remplacement est un choix pédagogique à confirmer, pas un constat national.
+Les propositions de correspondance seront d’abord conservées dans un registre
+documentaire séparé, conformément au périmètre de l’import décrit dans #R7.
+
+* Préparation des contenus
+
+Les fichiers versionnés seront accompagnés d’une notice indiquant leur titre,
+leur provenance, leurs dates d’application, leur couverture et leur licence. Un
+registre de références permettra de retrouver, pour chaque apprentissage, le
+passage officiel et la reformulation retenue. Les indications de niveau seront
+explicites et accompagnées d’une explication sur leur portée.
+
+Une compétence peut être proposée sans illustration ni phrase de commentaire.
+La version éditoriale du référentiel, l’année d’application du programme et la
+version de l’application seront distinguées dans les notices.
+
+* Jalons proposés et critères de livraison
+
+- #CR1 (ce jalon) : audit, sources, provenance historique, propositions et
+  questions de contenu. Aucun fichier YAML ni catalogue modifié.
+- #CR2 : choix des offres et de l'EVAR ; matrice de couverture, registre de
+  références et petit échantillon de formulations/identités pour relecture.
+- #CR3 : fichiers YAML retenus, notices et licences explicites. Comparaison
+  exhaustive avec les objectifs choisis, bornes et âges ; liste des omissions
+  assumées ; vérification d'import sans écriture sur une base isolée fictive.
+- #CR4 : contrôle de publication et éventuels candidats de correspondance.
+  Chaque patch reste indépendant d'une adoption ou d'un déploiement.
+
+Convergence attendue : deux nouvelles offres et trame conservée ; couverture
+EVAR ou limite explicite ; licence des reformulations ; précision souhaitée des
+items de suivi. La documentation de la trame historique peut être complétée en
+parallèle de la préparation des contenus issus des textes officiels.
+
+* Sources consultées le 1er octobre 2026
+
+- [S1] [[https://www.education.gouv.fr/bo/21/Hebdo25/MENE2116550A.htm][BO n°25 du 24 juin 2021]], arrêté du 2 juin 2021 ;
+  [[https://www.education.gouv.fr/bo/20/Hebdo31/MENE2018712A.htm][BO du 30 juillet 2020]], arrêté du 17 juillet 2020.
+- [S2] [[https://www.education.gouv.fr/bo/2024/Hebdo41/MENE2415135A][BO n°41 du 31 octobre 2024]], arrêté du 22 octobre 2024 et annexes langage/mathématiques.
+- [S3] [[https://www.education.gouv.fr/bo/2025/Hebdo6/MENE2503064A][BO n°6 du 6 février 2025]], arrêté du 3 février 2025 et programme EVAR.
+- [S4] [[https://www.education.gouv.fr/bo/2026/Hebdo19/MENE2608627A][BO n°19 du 7 mai 2026]], arrêté du 16 avril 2026 et annexe cycle 1.
+- [S5] [[https://eduscol.education.gouv.fr/4341/enseigner-au-cycle-1][Éduscol : enseigner au cycle 1]] et
+  [[https://eduscol.education.gouv.fr/sites/default/files/document/programme-cycle-1-consolide-127565.pdf][programme consolidé 2024/2026, 63 pages]].
+- [S6] [[https://eduscol.education.gouv.fr/4671/suivi-et-evaluation-des-apprentissages-des-eleves-l-ecole-maternelle][Éduscol : suivi et évaluation]], page datée avril 2026.
+- [S7] [[https://www.chatdecole.site/tableaux-simplifies-des-nouveaux-programmes/][Chat d'école : tableaux simplifiés]], page datée 26 juillet 2026 ; fichiers dans le manifeste.
+- [S8] [[https://www.chatdecole.site/a-propos/][Chat d'école : à propos et règles d'utilisation]], sans date de mise à jour indiquée.
+- [S9] [[https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000054037379][JORF du 6 mai 2026]], arrêté du 16 avril 2026.
+- [S10] [[https://portail-ressources-education-dsden74.web.ac-grenoble.fr/annecy-ouest-Actualit%C3%A9s-%C3%A9v%C3%A9nements/resume-des-nouveaux-programmes-2025][Portail Ressources Éducation 74 : résumés 2025]], PDFs langage (17 p.) et maths (21 p.).
+- [S11] [[https://eduscol.education.gouv.fr/4656/mentions-legales][Éduscol : mentions légales]], section reproduction ;
+  [[https://www.data.gouv.fr/pages/legal/licences/etalab-2.0][Licence ouverte Etalab 2.0]].
+- [S12] [[https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000033219044][CRPA, article L321-1]], réutilisation des informations publiques.
+
+* Méthode et travaux à poursuivre
+
+L’étude s’appuie sur les documents du projet, les pages
+institutionnelles, les annexes officielles et les ressources pédagogiques
+citées. Les 22 fichiers Chat d’école sont identifiés dans
+=referentiel/SOURCES-CONSULTEES-CR1.org=. Les comparaisons ponctuelles sont
+décrites dans la section correspondante ; elles ne constituent pas une
+vérification exhaustive des documents.
+
+La prochaine étape comprend une comparaison complète des objectifs retenus, une
+relecture pédagogique et une vérification des fichiers d’import. Les exemples
+de travail utilisent des données fictives. Le présent jalon ajoute uniquement
+de la documentation et des liens de lecture, sans redistribution des supports
+externes ni modification des référentiels existants.

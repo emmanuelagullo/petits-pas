@@ -1,0 +1,32 @@
+#+TITLE: Sources Chat d’école examinées — manifeste #CR1
+#+DATE: 2026-10-01
+
+Lecture seulement : les fichiers tiers ne sont pas redistribués.
+Les empreintes permettent de retrouver la version des fichiers examinés.
+Leur provenance, leurs conditions de réutilisation et les comparaisons
+ponctuelles réalisées sont décrites dans CONTENUS-REFERENTIELS.org.
+
+| Fichier | SHA-256 du téléchargement | URL |
+|---------+--------------------------+-----|
+| Programmes-CYCLE-1-FR-Langage.docx | 2dcbff198667337adf171002716e6f9c965c858695999a85a01c5fba95466161 | [[https://www.chatdecole.site/wp-content/uploads/2025/02/Programmes-CYCLE-1-FR-Langage.docx][Source]] |
+| Programmes-CYCLE-1-FR-Langage.pdf | 8c40e0e76e8a0d7d3fec6ba64ee9b27848ba02a64e16ccd8acea67c978fdb147 | [[https://www.chatdecole.site/wp-content/uploads/2025/02/Programmes-CYCLE-1-FR-Langage.pdf][Source]] |
+| Programmes-CYCLE-1-FR-Langage-PS.docx | 3412e3a8a5c4bb35417bc431318b58672ec6d9651e3725a7eafc86054abcd962 | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-FR-Langage-PS.docx][Source]] |
+| Programmes-CYCLE-1-FR-Langage-MS.docx | 22da823216ef2f029c838e1e6c01c9567bc6653b0ea3c1675516471e84059d01 | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-FR-Langage-MS.docx][Source]] |
+| Programmes-CYCLE-1-FR-Langage-GS.docx | 876693146a19ad8f966c46ad7dc0fdd4f9f19c8e19f40c486e32eb67e31a05a1 | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-FR-Langage-GS.docx][Source]] |
+| Programmes-CYCLE-1-Maths.docx | ecf05c7c037f1fcbd07e38c356cf39cb4dac6cedd1a5d62e1ac24b97dda81ad8 | [[https://www.chatdecole.site/wp-content/uploads/2025/02/Programmes-CYCLE-1-Maths.docx][Source]] |
+| Programmes-CYCLE-1-Maths.pdf | 13b11f0ec6e4456ba28e6cf73616280941567185b7716caad91443bb66b97135 | [[https://www.chatdecole.site/wp-content/uploads/2025/02/Programmes-CYCLE-1-Maths.pdf][Source]] |
+| Programmes-CYCLE-1-Maths-PS.docx | b51cf7d410929ccde6c5c0c959f18aa95b3b863ab0d2c0111a9cbe9dfdd05cfd | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-Maths-PS.docx][Source]] |
+| Programmes-CYCLE-1-Maths-MS.docx | 0ee5a1c07f89c8f46282baa4d5fda9e90bbbb8c0d915e729830fdbd9a3d27d82 | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-Maths-MS.docx][Source]] |
+| Programmes-CYCLE-1-Maths-GS.docx | da6eea86ecc1ac4aebeb85c5417531a7250211063a399d9bca77217b2aa9f4c9 | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-Maths-GS.docx][Source]] |
+| Programmes-CYCLE-1-ACTIVITES-PHYSIQUES-PS.docx | 315649dbd668249b688da31bea595eb030055d8652617b1b3fa2628573409218 | [[https://www.chatdecole.site/wp-content/uploads/2026/07/Programmes-CYCLE-1-ACTIVITES-PHYSIQUES-PS.docx][Source]] |
+| Programmes-CYCLE-1-ACTIVITES-PHYSIQUES-MS.docx | 3cd7f58d3fea8a6fbdc9f716021c278bb0d3a2f4135d2804be427764a6a938f6 | [[https://www.chatdecole.site/wp-content/uploads/2026/07/Programmes-CYCLE-1-ACTIVITES-PHYSIQUES-MS.docx][Source]] |
+| Programmes-CYCLE-1-ACTIVITES-PHYSIQUES-GS.docx | 2c3c3b36772560b022b2e8a5b48e7689bbe34f2c8c66673b3bda76837c099f16 | [[https://www.chatdecole.site/wp-content/uploads/2026/07/Programmes-CYCLE-1-ACTIVITES-PHYSIQUES-GS.docx][Source]] |
+| Programmes-CYCLE-1-ACTIVITES-ARTISTIQUES-PS.docx | 591d62a3449aeaa03a4cf27b6bf1bdf058623543e8290bbe9050511e1afbd72e | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-ACTIVITES-ARTISTIQUES-PS.docx][Source]] |
+| Programmes-CYCLE-1-ACTIVITES-ARTISTIQUES-MS.docx | 56573f23ea19d10293f7b5729c5f1b1f45c92453ad20fd76a2f49c035773cc8e | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-ACTIVITES-ARTISTIQUES-MS.docx][Source]] |
+| Programmes-CYCLE-1-ACTIVITES-ARTISTIQUES-GS.docx | 2d1e3c42a038074a2d2b4a8d2349764924ad13ff5697f9e3b5c5970c354d7fa1 | [[https://www.chatdecole.site/wp-content/uploads/2026/06/Programmes-CYCLE-1-ACTIVITES-ARTISTIQUES-GS.docx][Source]] |
+| Programmes-CYCLE-1-SE-REPERER-DANS-LE-TEMPS-ET-LESPACE-PS.docx | dcf04156864d4626e2764ea46e407a16ea78dbd67520d19745182bb029ae907c | [[https://www.chatdecole.site/wp-content/uploads/2026/07/Programmes-CYCLE-1-SE-REPERER-DANS-LE-TEMPS-ET-LESPACE-PS.docx][Source]] |
+| Programmes-CYCLE-1-SE-REPERER-DANS-LE-TEMPS-ET-LESPACE-MS.docx | c886c5a1a64368e702f3d84b26a567fe3d0ea21f660096819158caa4cdb8965f | [[https://www.chatdecole.site/wp-content/uploads/2026/07/Programmes-CYCLE-1-SE-REPERER-DANS-LE-TEMPS-ET-LESPACE-MS.docx][Source]] |
+| Programmes-CYCLE-1-SE-REPERER-DANS-LE-TEMPS-ET-LESPACE-GS.docx | 43db71840347f505e3d70cdea7cdb9397304a067dd356d71b04d5af4277d25e7 | [[https://www.chatdecole.site/wp-content/uploads/2026/07/Programmes-CYCLE-1-SE-REPERER-DANS-LE-TEMPS-ET-LESPACE-GS.docx][Source]] |
+| Programmes-CYCLE-1-monde-du-vivant-des-objets-PS.docx | b8d370e5f7d2f4d4aab21b812a2180b675039fb9529e7ac07c02147050351d31 | [[https://www.chatdecole.site/wp-content/uploads/2026/08/Programmes-CYCLE-1-monde-du-vivant-des-objets-PS.docx][Source]] |
+| Programmes-CYCLE-1-monde-du-vivant-des-objets-MS.docx | 1b0ddec406fddc295e5e0833ae5084043bb326b386c55938a428481b898a350d | [[https://www.chatdecole.site/wp-content/uploads/2026/08/Programmes-CYCLE-1-monde-du-vivant-des-objets-MS.docx][Source]] |
+| Programmes-CYCLE-1-monde-du-vivant-des-objets-GS.docx | a26d738871cd8a105110b32c1d9a1939ace92f603576175de8a956ee8f7fb406 | [[https://www.chatdecole.site/wp-content/uploads/2026/08/Programmes-CYCLE-1-monde-du-vivant-des-objets-GS.docx][Source]] |
