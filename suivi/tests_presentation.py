@@ -115,9 +115,12 @@ class HeritagePresentation(Base):
                 call_command("charger_referentiel", str(fichier), ecole=self.ecole.pk, stdout=StringIO())
 
     def test_svg_fournis_disponibles_pour_collectstatic_et_paquet(self):
-        self.assertEqual(len(catalogue_icones()), 3)
-        for icone in catalogue_icones().values():
-            self.assertTrue(finders.find(icone["fichier"]))
+        catalogue = catalogue_icones()
+        # Les icônes historiques restent disponibles ; le catalogue peut grandir.
+        self.assertTrue({"parler", "livre", "collection"}.issubset(catalogue))
+        for cle, icone in catalogue.items():
+            with self.subTest(icone=cle):
+                self.assertTrue(finders.find(icone["fichier"]))
         spec = (Path(__file__).resolve().parents[1] / "scripts" / "PetitsPas.spec").read_text()
         self.assertIn('str(racine / "referentiel")', spec)
 
