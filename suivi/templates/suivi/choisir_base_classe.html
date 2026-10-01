@@ -1,19 +1,28 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Référentiel de {{ classe.libelle_avec_annee }}</details>
-{% endblock %}
+{% block titre %}Compétences de {{ classe.libelle_avec_annee }}{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Compétences de {{ classe.libelle_avec_annee }}</h1>
-<p><a class="bouton discret" href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels</a></p>
-<p><a class="bouton discret" href="{% url 'presentation_classe' classe.pk %}">Illustrations et phrases proposées</a></p>
-<p><a class="bouton discret" href="{% url 'adaptations_classe' classe.pk %}">Libellés et compétences masquées</a></p>
-<p><a class="bouton discret" href="{% url 'ajouts_classe' classe.pk %}">Compétences ajoutées</a></p>
+<p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des apprentissages sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
+<p><a href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels sans modifier les choix →</a></p>
+<section class="encadre adaptations-courantes" aria-labelledby="adaptations-courantes">
+<h2 id="adaptations-courantes">Adapter au quotidien</h2>
+<p>Ces réglages conservent les compétences et les observations. Ils ne demandent pas de confirmation par mot de passe.</p>
+<div class="menus-referentiel">
+<a href="{% url 'presentation_classe' classe.pk %}" aria-labelledby="menu-presentation" aria-describedby="aide-presentation"><strong id="menu-presentation">Illustrations et phrases proposées</strong><span id="aide-presentation">Choisir les images du carnet et les suggestions pour rédiger de nouvelles traces.</span></a>
+<a href="{% url 'adaptations_classe' classe.pk %}" aria-labelledby="menu-libelles" aria-describedby="aide-libelles"><strong id="menu-libelles">Libellés et compétences masquées</strong><span id="aide-libelles">Reformuler un apprentissage, le masquer pour les prochaines saisies ou le montrer à nouveau.</span></a>
+<a href="{% url 'ajouts_classe' classe.pk %}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Créer un apprentissage propre à la classe ou reprendre un ajout proposé par l’école.</span></a>
+</div>
+</section>
+<details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary>
+<p>Pour expliquer à l’équipe comment deux apprentissages se rapprochent. Ces repères facultatifs ne changent pas la liste de saisie et ne transfèrent aucune réussite. Vous pouvez utiliser les autres réglages sans en créer.</p>
 <p><a class="bouton discret" href="{% url 'correspondances_classe' classe.pk %}">Correspondances entre compétences</a></p>
+</details>
 {% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% endif %}
 {% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}
-<details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — changements pour toute la classe</summary>
+<details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — changer la base de compétences</summary>
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Modifier la base de toute la classe" resume="Changer de référentiel peut compliquer les comparaisons avec les autres classes et les autres années. Privilégiez les adaptations courantes lorsque la base vous convient." %}
 <p>Changements après saisies : {% if permission.effective %}<strong>exception ouverte pour un seul changement</strong>{% else %}<strong>interdits au niveau {{ permission.blocage }}</strong>{% endif %}.</p>
 <p><a href="{% url 'permissions_referentiels_classe' classe.pk %}">Autorisation exceptionnelle de cette classe</a></p>

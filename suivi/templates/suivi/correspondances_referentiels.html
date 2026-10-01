@@ -4,8 +4,11 @@
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% if modifier %} · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% endif %}{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Correspondances entre compétences</h1>
 <p>Cette page sert à expliquer à l’équipe comment deux apprentissages se rapprochent, par exemple lorsqu’on ajoute une compétence ou qu’on prépare un changement de référentiel.</p>
+<p>Cette démarche est facultative. Un lien ne transfère aucune réussite et ne change pas les compétences proposées à la saisie.</p>
+<details><summary>Quand utiliser une correspondance ?</summary>
 <p><strong>Exemple fictif :</strong> « Je reconnais mon prénom » décrit un apprentissage plus ciblé que « Je reconnais des mots écrits ». On peut noter ce rapport pour aider l’équipe à comprendre les deux compétences. Elles gardent chacune leurs observations et leurs réussites.</p>
 <p>Vous pouvez utiliser les référentiels et ajouter des compétences sans renseigner cette page. Un lien est seulement un repère pour l’équipe : il ne coche aucune réussite et ne modifie aucune liste de saisie.</p>
+</details>
 <p>{% if classe %}Repères de l’école et de {{ classe.libelle_avec_annee }}.{% else %}Repères proposés par l’école pour {{ annee }}.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if clos %}<p>Les choix de cette classe sont clos. Les liens conservés à la clôture restent consultables.</p>{% elif modifier and not ouvert %}<p>Choisissez d'abord une base pour la classe.</p>{% endif %}

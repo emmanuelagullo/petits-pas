@@ -3,6 +3,7 @@
 {% block contenu %}
 <p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Compétences ajoutées</h1>
+<p>Créez une compétence pour un apprentissage supplémentaire, ou reprenez un ajout disponible. Les ajouts gardent leur propre suivi ; ils ne remplacent pas automatiquement les compétences de la base.</p>
 <p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Propositions de l'école pour {{ annee }}. Chaque classe choisit les ajouts qu'elle reprend.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not ouvert %}<p>Choisissez une base pour une classe ouverte avant d'ajouter ou de reprendre une compétence. Les choix d'une classe close restent consultables.</p>{% endif %}

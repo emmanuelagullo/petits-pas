@@ -15,8 +15,10 @@ statut = "disponible"
 1. Dans **Référentiel de la classe**, ouvrir **Libellés et compétences masquées**.
    La direction peut aussi ouvrir ce bouton dans **Référentiels de l’école**,
    après avoir vérifié l’année scolaire.
-2. Choisir la base à consulter, puis cliquer sur une compétence. La liste
-   inclut aussi les compétences masquées.
+2. La liste présente la base actuelle, y compris ses compétences masquées.
+   Cliquer sur une compétence. Pour consulter une ancienne base, ouvrir
+   **Voir les bases précédemment utilisées cette année ?** et la sélectionner.
+   Cela ne change pas la base des prochaines saisies.
 3. Pour reformuler, choisir **Utiliser mon libellé** : la zone de texte
    devient active. Corriger ou préciser le texte de cette compétence. **Origine et libellé fourni**
    permet de retrouver le texte de la source.

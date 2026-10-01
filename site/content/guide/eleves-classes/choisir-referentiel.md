@@ -21,7 +21,11 @@ Une section de classement ne remplace pas un repère d’âge officiel.
 
 La page **Référentiel de la classe** regroupe les libellés et compétences
 masquées, les ajouts, les illustrations et phrases proposées. Ces adaptations
-courantes ne demandent pas de mot de passe. Masquer conserve les anciens
+courantes sont regroupées dans **Adapter au quotidien** et ne demandent pas
+de mot de passe. Le lien de consultation permet de quitter les réglages pour
+parcourir les contenus sans les modifier. Les correspondances possèdent leur
+propre bloc **Avancé — correspondances entre compétences**, distinct du
+changement de toute la base. Masquer conserve les anciens
 parcours ; démasquer permet de reprendre les saisies si la compétence appartient
 encore à la base. Revenir au libellé proposé suit le texte supérieur actuel,
 qui peut avoir évolué. Les commentaires déjà saisis ne sont pas réécrits par
@@ -32,7 +36,7 @@ une modification des phrases proposées.
 1. Ouvrir **Référentiel de la classe**. Pour une classe sans base, utiliser
    **Préparer le choix proposé** : ce premier choix ordinaire ne demande pas
    de nouvelle confirmation par mot de passe.
-2. Pour une autre base, ouvrir **Avancé — changements pour toute la classe**.
+2. Pour une autre base, ouvrir **Avancé — changer la base de compétences**.
 3. Choisir une base autorisée puis cliquer sur **Voir les conséquences**.
 4. Lire l’avertissement orange : les choix de toute la classe changent et les
    comparaisons avec les autres classes ou années peuvent devenir plus difficiles.
@@ -53,7 +57,7 @@ le catalogue ne constitue pas à elle seule cet accord.
 1. Si le blocage vient de l’application, contacter son gestionnaire. S’il vient
    de l’école, contacter la direction ; elle utilise **Autoriser les changements
    après saisies** dans les réglages avancés des référentiels de l’école.
-2. Dans **Avancé — changements pour toute la classe**, ouvrir **Autorisation
+2. Dans **Avancé — changer la base de compétences**, ouvrir **Autorisation
    exceptionnelle de cette classe**.
 3. Lire l’avertissement rouge puis utiliser **Ouvrir cette autorisation** avec
    le mot de passe de votre compte connecté.

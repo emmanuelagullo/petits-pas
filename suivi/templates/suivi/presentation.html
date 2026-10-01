@@ -4,6 +4,7 @@
 {% block contenu %}
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'gestion' %}">{{ ecole.nom }}</a>{% endif %}{% if competence %} · <a href="{{ index_url }}">Présentation du carnet</a>{% endif %}</p>
 <h1>{% if competence %}{{ competence.libelle }}{% else %}Présentation du carnet{% endif %}</h1>
+<p>{% if competence %}Choisissez l’illustration de cette compétence et adaptez les phrases proposées pour rédiger les prochaines traces.{% else %}Choisissez la photo de couverture, puis ouvrez une compétence pour adapter son illustration et ses phrases proposées.{% endif %} Les commentaires déjà enregistrés ne sont pas réécrits.</p>
 <details class="aide-presentation">
   <summary>Que changent ces choix dans les carnets ?</summary>
   <p>Les images choisies ici apparaîtront quand vous ouvrirez un carnet ou créerez un nouveau PDF. Les PDF déjà téléchargés ne changeront pas.</p>

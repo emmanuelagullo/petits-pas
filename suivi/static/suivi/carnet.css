@@ -892,3 +892,9 @@ textarea { min-height: 7rem; resize: vertical; }
 .avertissement-rouge { border-color: #a52a2a; background: #fff0f0; color: #742020; }
 .operations-avancees { border: 1px solid var(--trait); border-radius: .5rem; padding: 1rem; margin: 1.5rem 0; }
 .operations-avancees > summary { font-weight: 700; cursor: pointer; }
+
+.menus-referentiel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .8rem; }
+.menus-referentiel > a { display: flex; flex-direction: column; gap: .45rem; border: 1px solid var(--trait); border-radius: .5rem; padding: 1rem; background: #fff; text-decoration: none; }
+.menus-referentiel > a:hover, .menus-referentiel > a:focus-visible { background: #edf5f8; outline: 2px solid #527b8c; outline-offset: 2px; }
+.menus-referentiel span { color: var(--ardoise); font-weight: 400; }
+.bases-precedentes { margin: 1rem 0; padding: .8rem; border: 1px solid var(--trait); border-radius: .5rem; }
