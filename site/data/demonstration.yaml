@@ -20,6 +20,9 @@ classes:
   hirondelles:
     nom: Les Hirondelles
     annee_scolaire: 2026-2027
+  pinsons:
+    nom: Les Pinsons
+    annee_scolaire: 2026-2027
   lucioles:
     nom: Les Lucioles — rentrée suivante
     annee_scolaire: 2027-2028
@@ -50,12 +53,13 @@ profils:
     nom_famille: Responsable
     fonction: Responsable de classe
     nom: Rémi — responsable de classe
-    resume: Assume la responsabilité pédagogique des Coccinelles et des Mésanges.
+    resume: Assume la responsabilité pédagogique des Coccinelles, des Mésanges et des Pinsons.
     affectations:
       - { classe: coccinelles, type: responsable, periode: active }
       - { classe: mesanges, type: responsable, periode: active }
+      - { classe: pinsons, type: responsable, periode: active }
     peut:
-      - consulter et modifier le suivi des élèves des Coccinelles et des Mésanges
+      - consulter et modifier le suivi des élèves de ses trois classes
       - relire les contributions de l'équipe et préparer les carnets
       - générer les PDF et télécharger les médias originaux autorisés
     ne_peut_pas:
@@ -356,3 +360,13 @@ scenarios:
     capture: referentiels/cycle1/hirondelles.png
     titre: Les objectifs officiels des Hirondelles
     legende: L'autre classe fictive utilise uniquement les objectifs officiels, en version 2026.1.
+  - id: contenus-cycle1-pinsons
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: pinsons }
+      - { action: lien, nom: "Référentiel de la classe" }
+      - { action: titre, nom: "Choisir le référentiel de la classe" }
+    capture: referentiels/cycle1/pinsons.png
+    titre: Les tableaux Chat d’école des Pinsons
+    legende: La classe fictive utilise l’édition pilote Chat d’école 2026.1, dans les six domaines, sans EVAR.

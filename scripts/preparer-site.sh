@@ -34,4 +34,10 @@ done
 cp "$racine/referentiel/static/referentiel/icones/openmoji/"*.svg "$contenus/illustrations/"
 cp "$racine/referentiel/static/referentiel/icones/openmoji/LICENSE.txt" "$contenus/illustrations/LICENSE.txt"
 
+chatdecole="$racine/site/static/referentiels/chatdecole"
+mkdir -p "$chatdecole"
+for source in tableaux-cycle1.yaml NOTICE.org REGISTRE.csv; do
+    cp "$racine/referentiel/chatdecole/$source" "$chatdecole/$source"
+done
+
 echo "Documents Org publics préparés dans ${destination#"$racine/"}/."

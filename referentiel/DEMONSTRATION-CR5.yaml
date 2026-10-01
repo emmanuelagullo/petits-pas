@@ -9,6 +9,40 @@ classes:
     responsable: nadia
     source: cycle1-objectifs-programmes
     ordre: 5
+  - nom: Les Pinsons
+    responsable: remi
+    source: chatdecole-tableaux-cycle1
+    ordre: 6
+    situations:
+      PS:
+      - identite: cde-lang-o022
+        commentaire: 'Exemple fictif : pendant une construction, l''enfant explique l''action en cours ;
+          une question de l''adulte l''aide à commencer.'
+      - identite: cde-math-o003
+        commentaire: 'Exemple fictif : collections de trois puis quatre cubes, déplacés un à un ; une seconde
+          situation reste à observer.'
+      - identite: cde-phys-o003
+        commentaire: 'Exemple fictif : franchissement d''un obstacle bas, sans élan, dans un espace sécurisé
+          et adapté.'
+      MS:
+      - identite: cde-lang-o026
+        commentaire: 'Exemple fictif : l''enfant explique comment préparer une construction ; l''adulte
+          l''aide à préciser l''ordre des gestes.'
+      - identite: cde-arts-o055
+        commentaire: 'Exemple fictif : après l''écoute musicale, l''enfant exprime ce qu''il ressent ; plusieurs
+          expressions sont accueillies.'
+      - identite: cde-math-o014
+        commentaire: 'Exemple fictif : l''enfant construit une collection de six objets à partir d''une
+          quantité annoncée ; une seconde situation reste à observer.'
+      GS:
+      - identite: cde-temps-o012
+        commentaire: 'Exemple fictif : l''enfant dit la date du jour à l''aide du calendrier collectif.'
+      - identite: cde-math-o032
+        commentaire: 'Exemple fictif : récitation de la suite numérique ; les autres usages de la comptine
+          restent à observer.'
+      - identite: cde-vivant-o009
+        commentaire: 'Exemple fictif : remise en ordre de trois images de la croissance d''une plante, à
+          partir des observations de la classe.'
 prenoms: [Ada, Basile, Camille, Dalia, Émile, Flora, Gabriel, Iris, Jade, Léo, Mila, Noé]
 # Trois observations de situations fictives pour chaque niveau ; la plupart des objectifs restent sans observation.
 situations:

@@ -1,0 +1,74 @@
+#+TITLE: Chat d’école — Tableaux cycle 1 (pilote), édition 2026.1
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+* Origine et conditions d’usage
+
+Source : [[https://www.chatdecole.site/tableaux-simplifies-des-nouveaux-programmes/][Chat d’école — Tableaux simplifiés des nouveaux programmes]],
+page datée du 26 juillet 2026, consultée le 1er octobre 2026. L’autrice y
+mentionne les contributions de Juliette et Vanessa aux documents par niveau.
+Les 18 Word PS/MS/GS des six domaines servent à cette édition.
+
+Les [[https://www.chatdecole.site/a-propos/][conditions publiées par Chat d’école]] indiquent un usage en classe ou en
+formation et demandent de mentionner l’origine lors d’une republication.
+La présente édition conserve ces mentions et sa provenance. Aucune licence
+Creative Commons, Etalab ou AGPL n’est attribuée aux apports Chat d’école.
+Les conditions de contenu sont distinctes de la licence du logiciel Petits Pas.
+Les textes officiels cités gardent leur provenance ministérielle.
+
+Crédits : Chat d’école ; contributions de Juliette et Vanessa mentionnées sur
+la page source. Conversion et organisation pour l’import : Petits Pas, 2026.
+Ne pas laisser entendre que cette conversion est approuvée par les auteurs
+ou constitue une édition ministérielle.
+
+* Contenu et transcription
+
+417 entrées : langage 103, activités physiques 39, activités artistiques 76,
+mathématiques 80, temps et espace 72, vivant/matière/objets 47.
+Six domaines et 38 sous-domaines. L’EVAR n’est pas incluse : consulter le
+programme complémentaire officiel, ou l’offre Objectifs des programmes de
+Petits Pas. Les niveaux PS/MS/GS reprennent les tableaux par section ; ils
+ne limitent pas les possibilités d’observation.
+
+Les titres de domaines et rubriques sont organisés selon les niveaux permis
+par l’import Petits Pas. Les retours à la ligne et espaces sont normalisés.
+Un objectif composé reste une entrée : ses paragraphes successifs sont joints,
+y compris l’introduction des deux faits numériques en MS et GS. Les différences
+rédactionnelles des tableaux sont conservées. Deux libellés de temps/espace
+(TEMPS-O008 et TEMPS-O057, MS) sont à relire avec le programme : situer/restituer
+les événements et représenter un espace connu/inconnu.
+
+Les textes importés ne sont pas des reformulations nouvelles de Petits Pas.
+Ils restent à interpréter avec le contexte des programmes, les activités et
+les aides proposées. Une liste complète ne signifie pas que chaque ligne doit
+faire l’objet d’une épreuve ou d’une validation isolée.
+Aucune illustration ni phrase proposée n’est ajoutée à cette édition.
+
+REGISTRE.csv indique, pour chacune des entrées, le fichier Word et les numéros
+de paragraphes du XML document.xml (comptés à partir de 1). Le repère vers
+l’inventaire des programmes Petits Pas sert à la lecture documentaire, sans
+identité commune ni correspondance automatique. Les URLs et SHA-256 des
+fichiers sont conservés dans ../SOURCES-CONSULTEES-CR1.org ; les 22 fichiers de
+ce manifeste ont été revérifiés le 1er octobre 2026, sans changement d’empreinte.
+Les documents tiers Word/PDF ne sont pas joints à la conversion.
+
+* Identités et versions
+
+Source =chatdecole-tableaux-cycle1= ; version =2026.1= ; statut pilote.
+Chaque identité =cde-…= est attribuée une fois dans cette première édition,
+indépendamment de son ordre dans une prochaine version. Les codes facilitent
+la lecture, mais ne prouvent pas une identité commune entre sources.
+Une reformulation fidèle conserve l’identité ; un changement de cible crée
+une nouvelle identité. Publier une nouvelle version pour modifier le fichier.
+Aucune observation ni réussite n’est transférée depuis un autre référentiel.
+
+* Essai pédagogique
+
+La démonstration prépare Les Pinsons — 2026-2027 avec Rémi : 12 élèves fictifs,
+quatre PS, quatre MS, quatre GS, et quelques situations entièrement fictives.
+La plupart des entrées restent sans observation. Les Mésanges et Hirondelles
+conservent leurs bases respectives. Chaque classe choisit sa source explicitement.
+
+Le démarrage Render prépare ce scénario dans le jeu fictif. Il ne faut pas
+l’exécuter sur une école réelle. Importer, autoriser au catalogue et adopter
+une base restent des actions distinctes.
