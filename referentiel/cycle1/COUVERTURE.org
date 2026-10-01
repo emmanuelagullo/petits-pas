@@ -1,0 +1,29 @@
+#+TITLE: Couverture de l’édition cycle 1 — 2026.1
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+Le décompte porte sur chaque tiret de la colonne « Objectifs d’apprentissage »
+du programme consolidé, avec ses sous-puces conservées dans la même entrée,
+et sur les neuf objectifs détaillés de l’EVAR maternelle. Une cellule peut
+contenir plusieurs tirets ; un tiret composite reste une seule cible.
+Les occurrences par âge restent distinctes, même quand le texte est identique :
+les situations et exemples associés évoluent. Aucune équivalence n’est déduite.
+
+| Ensemble | Objectifs | PS | MS | GS | Rubriques |
+|----------+-----------+----+----+----+-----------|
+| Le développement et la structuration du langage oral et écrit | 103 | 27 | 37 | 39 | 9 |
+| Agir, s’exprimer, comprendre à travers les activités physiques | 39 | 12 | 12 | 15 | 4 |
+| Agir, s’exprimer, comprendre à travers les activités artistiques | 76 | 24 | 26 | 26 | 9 |
+| L’acquisition des premiers outils mathématiques | 80 | 17 | 28 | 35 | 6 |
+| Se repérer dans le temps et l’espace | 72 | 22 | 21 | 29 | 6 |
+| Découvrir le monde du vivant, de la matière et des objets | 47 | 14 | 15 | 18 | 4 |
+| EVAR — section complémentaire | 9 | 3 | 3 | 3 | 3 |
+
+Toutes ces entrées sont transcrites dans les deux offres. L’édition étayée
+ajoute douze repères ciblés, avec les limites documentées dans le registre #CR2.
+REGISTRE.csv localise chaque entrée. « Complet » concerne cet inventaire des
+objectifs explicites, pas l’ensemble des conditions nécessaires à l’enseignement.
+Les principes, points de vigilance, exemples de réussite et notions/compétences
+EVAR restent à consulter dans les textes sources ; ils ne deviennent pas une
+liste de validations supplémentaires. Aucun objectif inventorié n’est laissé
+hors du YAML. L’édition reste soumise à la relecture pédagogique.

@@ -1,0 +1,118 @@
+#+TITLE: Cycle 1 — objectifs des programmes et édition étayée 2026.1
+#+DATE: 2026-10-01
+#+LANGUAGE: fr
+
+* Deux offres pour la relecture
+
+=objectifs-programmes.yaml= contient 426 objectifs : 417 dans les six domaines
+et neuf dans une section EVAR complémentaire. =cycle1-etaye.yaml= contient
+les mêmes 426 objectifs, précédés de « Objectif : », et douze repères Petits Pas
+précédés de « Repère : ». Les repères ajoutés sont ciblés et ne constituent
+pas à eux seuls une progression complète. Cette édition étayée remplace,
+pour la suite du chantier, le projet d’une offre entièrement reformulée : elle
+permet d’évaluer rapidement une couverture complète, avec des propositions de
+suivi distinctes. Les deux fichiers restent provisoires pour la relecture ;
+aucune approbation ministérielle ou pédagogique n’est présumée.
+
+La couverture complète porte sur l’inventaire des objectifs explicites des
+programmes applicables en 2026-2027, selon le découpage de COUVERTURE.org.
+Elle ne transforme pas l’enseignement en une liste de cases à valider.
+Les objectifs composites restent composites ; une observation ciblée ne suffit
+pas à déclarer l’ensemble atteint. Les principes, points de vigilance,
+conditions d’enseignement, exemples de réussite et notions/compétences EVAR
+restent nécessaires à la préparation des situations. Ils ne sont pas tous
+reproduits dans les fichiers d’import.
+
+Le nombre d’entrées est un décompte éditorial Petits Pas, pas un décompte
+publié par le ministère. L’extraction distingue la colonne des objectifs de
+celle des exemples. Elle reconstitue les passages coupés entre deux pages et
+retire les en-têtes de rubriques longueur/masse. Les espaces, retours à la ligne
+et césures de mise en page sont normalisés ; les libellés officiels conservent
+leur rédaction. Aucun objectif inventorié ne dépasse 300 caractères.
+
+* Provenance et droits
+
+Sources consultées et contrôlées le 1er octobre 2026 :
+
+- [[https://www.education.gouv.fr/bo/2024/Hebdo41/MENE2415135A][BO n°41 du 31 octobre 2024]] : langage et mathématiques, rentrée 2025-2026.
+- [[https://www.education.gouv.fr/bo/2026/Hebdo19/MENE2608627A][BO n°19 du 7 mai 2026]] : autres domaines, rentrée 2026-2027.
+- [[https://www.education.gouv.fr/bo/2025/Hebdo6/MENE2503064A][BO n°6 du 6 février 2025]] : EVAR, rentrée 2025-2026.
+- [[https://eduscol.education.gouv.fr/sites/default/files/document/programme-cycle-1-consolide-127565.pdf][P26 : programme consolidé Éduscol, 63 pages PDF]].
+- [[https://www.education.gouv.fr/sites/default/files/document/Programme%20d%E2%80%99%C3%A9ducation%20%C3%A0%20la%20vie%20affective%20et%20relationnelle%20%C3%A0%20l%E2%80%99%C3%A9cole%20maternelle-405258.pdf][E25 : EVAR maternelle, 16 pages PDF]]. Les pages 10 à 15 concernent la maternelle.
+
+Le ministère de l’Éducation nationale est l’auteur des textes officiels.
+Petits Pas assure leur extraction et leur organisation, et rédige les douze
+repères supplémentaires. Les empreintes des documents lus figurent dans
+EMPREINTES.org. La pagination du registre compte les pages du PDF depuis
+la première, couverture comprise ; elle diffère du numéro imprimé de P26.
+
+Les [[https://eduscol.education.gouv.fr/4656/mentions-legales][mentions légales Éduscol]], section reproduction, placent pages et
+documents sous [[https://github.com/etalab/licence-ouverte/blob/master/LO.md][Etalab-2.0]], en excluant les contenus tiers. Les objectifs
+institutionnels transcrits ici n’intègrent ni logo, image, extrait d’œuvre ni
+synthèse pédagogique tierce. L’EVAR est le texte réglementaire annexé au BO,
+également référencé par Éduscol ; les seuls passages repris sont ses objectifs
+institutionnels. Les reformulations et notices originales Petits Pas relèvent
+de [[https://creativecommons.org/licenses/by-sa/4.0/deed.fr][CC-BY-SA-4.0]], conformément à CONTRIBUTING.md. L’offre étayée annonce
+les deux régimes ; elle ne place pas les textes officiels sous une nouvelle
+licence. Attribution à conserver : ministère de l’Éducation nationale,
+programmes et dates ci-dessus ; extraction, organisation et repères Petits Pas,
+édition 2026.1, 1er octobre 2026. Les illustrations ont leur propre notice.
+
+Chat d’école, ITICarnet et les synthèses externes ne sont pas incorporés à cette
+édition ; leur examen se poursuivra après la mise à disposition du démonstrateur.
+La trame historique et les fichiers pilotes #CR3 restent conservés.
+
+* Hiérarchie et âges
+
+Les six domaines conservent leurs intitulés officiels. La section EVAR est
+explicitement complémentaire. Les rubriques terminales deviennent les
+sous-domaines ; elles portent les objectifs ou repères de suivi. Les grandes
+composantes parentes figurent dans les programmes : cette organisation à deux
+niveaux de regroupement n’ajoute pas un étage au modèle actuel.
+
+Le registre conserve pour chaque entrée son âge officiel, sa source, ses pages,
+son texte d’origine, sa nature et son libellé proposé. PS/MS/GS est un classement
+transversal : avant quatre ans / à partir de quatre ans / à partir de cinq ans.
+Pour les deux derniers, la possibilité d’aborder lorsque les apprentissages
+précédents ont été observés est conservée dans le registre. Il n’y a ni échéance
+rigide, ni restriction de saisie liée au niveau. Deux occurrences d’un libellé
+identique à des âges différents gardent des identités distinctes : leurs
+exemples et leur portée progressive doivent être examinés avant tout rapprochement.
+
+* Registre et identités
+
+REGISTRE.csv est le document adjacent faisant foi pour la provenance de chaque
+ligne. Les douze notices de sens R01-R12 restent dans
+=../REGISTRE-CONTENUS-CR2.org=. Elles expliquent notamment les couvertures
+partielles de la récitation, de l’expression musicale orale, des plantations,
+du refus personnel, de la demande d’aide et de l’émotion d’un personnage.
+Le code dans la saisie permet de retrouver la ligne du registre.
+
+Les identités sont attribuées une fois pour cette première édition : ne pas
+les recalculer selon l’ordre des lignes à l’occasion d’une révision. Le même
+apprentissage reformulé conserve son identité dans la même source ; une borne,
+une modalité ou une cible différente appelle une nouvelle identité après revue.
+La suppression d’une entrée n’autorise pas à réutiliser son identité.
+La même chaîne d’identité dans deux sources ne constitue pas une identité
+partagée par l’application. Les liens entre les offres et avec les pilotes
+sont documentaires à ce stade : aucune correspondance n’est créée et aucune
+réussite n’est transférée. Les identifiants proposés pour les quatre objectifs
+et les douze repères du pilote sont réutilisés comme repères éditoriaux.
+
+Les métadonnées de source sont stables après import. Le statut provisoire est
+conservé ; une édition validée demandera une décision explicite sur sa source.
+Toute modification d’un contenu publié nécessite un nouveau numéro de version,
+sans remplacer silencieusement le contenu déjà importé sous =2026.1=.
+
+* Import et relecture
+
+#+begin_src sh
+python3 manage.py importer_source_referentiel referentiel/cycle1/objectifs-programmes.yaml --verifier
+python3 manage.py importer_source_referentiel referentiel/cycle1/cycle1-etaye.yaml --verifier
+#+end_src
+
+Le contrôle du format ne remplace pas la relecture pédagogique. Pour un retour,
+indiquer offre, version, code, cible comprise et modification souhaitée.
+Utiliser uniquement des exemples fictifs. L’absence d’illustration ou de phrase
+proposée est admise. La présence d’une icône ne constitue pas un critère de
+réussite et ne change pas l’identité de l’apprentissage.
