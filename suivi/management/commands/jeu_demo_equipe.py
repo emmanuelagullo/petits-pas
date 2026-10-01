@@ -16,6 +16,7 @@ from comptes.models import (
 )
 from suivi.models import Bilan, Classe, Ecole, Observation, Trace
 from suivi.configuration_demo import charger_configuration_demo
+from suivi.demo_referentiels import preparer_referentiels
 
 
 class Command(BaseCommand):
@@ -110,6 +111,7 @@ class Command(BaseCommand):
         )
         self._invitations(ecole, direction)
         self._attribuer_auteurs(coccinelles, papillons, utilisateurs)
+        preparer_referentiels(ecole, classes, utilisateurs)
 
         self.stdout.write(
             self.style.SUCCESS(
