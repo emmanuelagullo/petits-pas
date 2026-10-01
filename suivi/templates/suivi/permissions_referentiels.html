@@ -1,6 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Autorisation de changement après saisies — {{ annee }}{% endblock %}
 {% block contenu %}
+<div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Compétences de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Autorisation de changement après saisies</h1>
 <p>Consultez les accords nécessaires et ouvrez ou refermez une autorisation exceptionnelle. Autoriser un changement et changer effectivement la base sont deux étapes séparées.</p>
@@ -14,4 +15,5 @@
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="info" titre="Refermer l’autorisation" resume="Les prochains changements après saisies seront bloqués. Les classes conservent leur base actuelle ; leurs observations et leurs prochaines saisies ne sont pas retirées." %}
 {% endif %}
 {% if clos %}<p>Cette classe est close : aucune exception ne peut être ouverte.</p>{% elif not permis %}<p><strong>Le niveau supérieur interdit cette ouverture.</strong> {% if not permission.application %}Contactez le gestionnaire de l’application.{% else %}Contactez la direction pour la permission de l’école.{% endif %}</p>{% elif ouvrir %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Ouvrir cette autorisation" %}{% else %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Refermer cette autorisation" %}{% endif %}
+</div>
 {% endblock %}

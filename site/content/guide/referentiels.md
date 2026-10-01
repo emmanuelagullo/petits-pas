@@ -6,7 +6,10 @@ liste_auto = false
 
 Depuis une classe, ouvrir **Compétences**. La consultation permet de parcourir
 les référentiels disponibles, leur provenance et leurs conditions de
-réutilisation, sans modifier les choix de la classe.
+réutilisation, sans modifier les choix de la classe. La recherche accepte
+plusieurs mots dans n’importe quel ordre, ignore les accents et tolère de
+petites fautes de frappe dans les mots longs. Les résultats exacts apparaissent
+en premier ; les filtres de domaine et de section restent applicables.
 
 ## Adapter au quotidien
 

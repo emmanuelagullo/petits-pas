@@ -1,5 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.test import SimpleTestCase
+from .consultation_referentiels import rechercher_apprentissages
 from .tests import Base
 from .models import AdoptionReferentiel, Competence, UsageCompetence, VersionSourceEcole
 from .tests_import_sources_referentiels import document, importer
@@ -29,6 +31,7 @@ class ConsultationReferentiels(Base):
 
     def test_recherche_sections_et_refus_version_etrangere(self):
         self.assertEqual(self.client.get(self.url, {"version": self.version.pk, "q": "PARLE"}).context["page"].paginator.count, 1)
+        self.assertEqual(self.client.get(self.url, {"version": self.version.pk, "q": "parlf"}).context["page"].paginator.count, 1)
         self.assertEqual(self.client.get(self.url, {"version": self.version.pk, "niveau": "GS"}).context["page"].paginator.count, 0)
         hors = importer(document("hors-choix-fictif"))[0]
         self.assertEqual(self.client.get(self.url, {"version": hors.pk}).status_code, 404)
@@ -52,3 +55,19 @@ class ConsultationReferentiels(Base):
         self.assertNotContains(page, 'class="operations-avancees" open')
         self.assertContains(page, "Consulter les référentiels")
         self.assertContains(page, "Libellés et compétences masquées")
+
+
+class RechercheApprentissages(SimpleTestCase):
+    def test_accents_ordre_des_mots_et_faute(self):
+        lignes = [{"libelle": "Je reconnais mon prénom"}, {"libelle": "Je découpe du papier"}]
+        self.assertEqual(rechercher_apprentissages(lignes, "prenom reconnais"), lignes[:1])
+        self.assertEqual(rechercher_apprentissages(lignes, "reconnais prenom"), lignes[:1])
+        self.assertEqual(rechercher_apprentissages(lignes, "reconnais prenomx"), lignes[:1])
+        self.assertEqual(rechercher_apprentissages(lignes, "prneom"), lignes[:1])
+        self.assertEqual(rechercher_apprentissages(lignes, "prenom papier"), [])
+        self.assertEqual(rechercher_apprentissages(lignes, "xyz"), [])
+
+    def test_exact_avant_proche_et_ordre_stable(self):
+        lignes = [{"libelle": "Je classe"}, {"libelle": "Je chasse"}, {"libelle": "Je chasse des images"}]
+        self.assertEqual(rechercher_apprentissages(lignes, "chasse"), lignes[1:] + lignes[:1])
+        self.assertEqual(rechercher_apprentissages(lignes, ""), lignes)

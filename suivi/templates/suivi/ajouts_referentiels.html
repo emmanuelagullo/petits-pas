@@ -1,6 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Compétences ajoutées — {{ annee }}{% endblock %}
 {% block contenu %}
+<div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Compétences ajoutées</h1>
 <p>Créez une compétence pour un apprentissage supplémentaire, ou reprenez un ajout disponible. Les ajouts gardent leur propre suivi ; ils ne remplacent pas automatiquement les compétences de la base.</p>
@@ -44,4 +45,5 @@
 <p>Reprendre conserve l'identité et l'origine d'un ajout. Cette action ne copie aucune réussite dans la nouvelle classe ou année. Une proposition de l'école reste un choix pour chaque classe.</p>
 <p>Les ajouts retenus restent présents lors d'un changement de base en cours d'année, dans un groupe « Ajouts » qui conserve le domaine choisi. À la rentrée, reprenez seulement ceux dont la nouvelle classe a besoin. Les libellés et masquages de l'année précédente ne sont pas recopiés.</p>
 <p>À la clôture, le carnet garde le dernier état de la classe. Les changements ultérieurs des propositions de l'école ne le modifient plus. Les correspondances entre apprentissages seront étudiées dans une étape suivante.</p></details>
+</div>
 {% endblock %}

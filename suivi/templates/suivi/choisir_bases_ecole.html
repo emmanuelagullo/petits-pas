@@ -1,6 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Référentiels de l'école — {{ annee }}{% endblock %}
 {% block contenu %}
+<div class="page-referentiel">
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Référentiels de l'école</h1>
 <p><a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
@@ -60,4 +61,5 @@
 <p>Conservez une liste plus courte seulement si l'école souhaite limiter les nouveaux choix de ses classes. Ce choix concerne toute l'école pour l'année indiquée.</p>
 <p>À la nouvelle année, vérifiez les propositions disponibles. Les choix de l'année précédente ne sont pas recopiés automatiquement. L'import d'une nouvelle version ne bascule aucune classe.</p></details>
 {% if form %}</details>{% endif %}
+</div>
 {% endblock %}
