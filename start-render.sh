@@ -64,6 +64,8 @@ python3 manage.py creer_ecole "${parametres_demo[0]}" \
 
 python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
 python3 manage.py jeu_demo_large
+# L’équipe fictive prépare aussi les deux offres cycle 1 et leurs classes d’essai.
+# Aucune de ces opérations ne doit être exécutée sur une école réelle.
 python3 manage.py jeu_demo_equipe \
   --mot-de-passe "${parametres_demo[2]}" \
   --confirmer-donnees-fictives
