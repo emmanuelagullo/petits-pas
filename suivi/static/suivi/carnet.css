@@ -877,3 +877,10 @@ textarea { min-height: 7rem; resize: vertical; }
 .choix-confirmation input { flex: none; width: auto; min-height: 0; margin-top: .25rem; }
 [data-libelle-personnel]:disabled { color: var(--ardoise-clair); background: var(--papier); }
 [data-libelle-personnel] textarea:disabled { background: var(--papier); opacity: .65; cursor: not-allowed; }
+
+.interrupteur { display: inline-flex; align-items: center; gap: .7rem; cursor: pointer; font-weight: 600; }
+.interrupteur input[type="checkbox"] { appearance: none; position: relative; width: 2.8rem; height: 1.55rem; min-height: 1.55rem; margin: 0; flex: none; border: 1px solid var(--ardoise-clair); border-radius: 1rem; background: var(--ardoise-clair); cursor: pointer; transition: background .15s ease; }
+.interrupteur input[type="checkbox"]::before { content: ""; position: absolute; width: 1.15rem; height: 1.15rem; left: .14rem; top: .14rem; border-radius: 50%; background: white; transition: transform .15s ease; }
+.interrupteur input[type="checkbox"]:checked { background: var(--reussi); border-color: var(--reussi); }
+.interrupteur input[type="checkbox"]:checked::before { transform: translateX(1.25rem); }
+.interrupteur input[type="checkbox"]:focus-visible { outline: 3px solid var(--lien); outline-offset: 3px; }

@@ -36,10 +36,19 @@ class AdaptationCompetenceForm(forms.Form):
         ("garder", "Garder la visibilité proposée"), ("montrer", "Montrer cette compétence"),
         ("masquer", "Masquer cette compétence")], widget=forms.RadioSelect)
 
-    def __init__(self, *args, choix_garder="Garder le libellé proposé", libelle_direct=False, **kwargs):
+    def __init__(self, *args, choix_garder="Garder le libellé proposé", libelle_direct=False,
+                 visibilite_directe=False, choix_visibilite_garder="Garder la visibilité proposée", **kwargs):
         super().__init__(*args, **kwargs)
         self.libelle_direct = libelle_direct
+        self.visibilite_directe = visibilite_directe
         self.fields["mode_libelle"].choices = [("garder", choix_garder), ("personnel", "Utiliser mon libellé")]
+        if visibilite_directe:
+            self.fields["visibilite"] = forms.BooleanField(
+                label="Proposer cette compétence dans les prochaines saisies", required=False)
+        else:
+            self.fields["visibilite"].choices = [
+                ("garder", choix_visibilite_garder), ("montrer", "Montrer cette compétence"),
+                ("masquer", "Masquer cette compétence")]
         if libelle_direct:
             del self.fields["mode_libelle"]
             self.fields["libelle"].label = "Libellé de la compétence"
@@ -52,7 +61,8 @@ class AdaptationCompetenceForm(forms.Form):
                 self.add_error("libelle", "Précisez votre libellé.")
         else:
             donnees["libelle"] = None
-        donnees["visible"] = {"garder": None, "montrer": True, "masquer": False}.get(donnees.get("visibilite"))
+        donnees["visible"] = (bool(donnees.get("visibilite")) if self.visibilite_directe else
+            {"garder": None, "montrer": True, "masquer": False}.get(donnees.get("visibilite")))
         return donnees
 
 

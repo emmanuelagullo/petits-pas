@@ -21,8 +21,11 @@ statut = "disponible"
 3. Pour un ajout déjà proposé, cliquer sur **Reprendre dans cette classe**.
    Les propositions de l’école pour l’année et les ajouts déjà utilisés dans
    une classe dont vous gérez le référentiel sont disponibles.
-4. Pour un ajout retenu, **Libellé et visibilité** permet de reformuler
-   fidèlement ou de masquer. **Enregistrer les choix** applique ces réglages.
+4. Pour une compétence créée dans la classe, utiliser le bouton **Proposer
+   cette compétence dans les prochaines saisies** pour la montrer ou la masquer.
+   Pour un ajout venu de l’école, choisir de suivre son choix, de montrer ou de
+   masquer la compétence.
+5. Cliquer sur **Enregistrer**.
 
 ## Résultat attendu
 
@@ -39,7 +42,11 @@ un groupe qui conserve le domaine choisi même si la base change.
 
 Pour une compétence créée dans la classe, modifier directement **Libellé de
 la compétence**. Pour décrire un autre apprentissage, créer une nouvelle compétence.
-Le texte à la création reste conservé dans l’origine de l’ajout.
+Le texte à la création reste conservé dans **Origine de cet ajout**.
+
+Le bouton **Proposer cette compétence dans les prochaines saisies** indique si
+elle est disponible pour les prochaines observations. Le désactiver ne retire
+pas les observations déjà enregistrées dans le parcours.
 
 Pour un ajout repris, **Garder le libellé d’origine** conserve le texte de sa
 création ; **Utiliser mon libellé** permet une reformulation propre à la classe.

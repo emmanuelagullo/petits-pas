@@ -63,3 +63,13 @@ apprentissage : modifier le libellé exprime déjà cette intention.
 L'écriture utilise les adaptations annuelles existantes : identité, définition
 à la création et observations restent conservées. Les ajouts repris et les
 propositions de libellé de l'école conservent le choix explicite d'héritage.
+
+* #R7f — Réglage visible des ajouts de classe
+
+Pour un ajout créé dans sa classe et non proposé par l'école, la page de réglage
+n'affiche pas de phrases isolées sur la visibilité ou le texte de création.
+Le libellé est éditable et un interrupteur prérempli contrôle sa présence dans
+les prochaines saisies ; l'enregistrement écrit le choix annuel montré/masqué.
+La désactivation conserve les observations et le texte de création consultable
+dans le dépliable d'origine. Si l'ajout est proposé par l'école, les choix
+« Suivre le choix de l'école », « Montrer » et « Masquer » restent disponibles.
