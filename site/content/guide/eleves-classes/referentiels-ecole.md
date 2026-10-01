@@ -15,7 +15,7 @@ statut = "disponible"
 1. Ouvrir **Gérer l’école → Référentiels de l’école**.
 2. Vérifier l’**Année scolaire**, puis cliquer sur **Consulter cette année** si
    vous souhaitez en préparer une autre.
-3. Pour commencer, garder toutes les bases autorisées par l’application et son
+3. Ouvrir **Avancé — choix et restrictions de l’école**. Pour commencer, garder toutes les bases autorisées par l’application et son
    choix proposé. Vous pouvez proposer une autre base sans interdire les autres.
 4. Si l’équipe souhaite limiter les nouveaux choix de classe, sélectionner
    **Conserver une liste plus courte pour l’école**, ouvrir **Choisir une liste
@@ -24,7 +24,8 @@ statut = "disponible"
 5. Cliquer sur **Voir les conséquences**, puis lire la liste et le choix
    proposé. Une explication dépliable indique les classes qui garderont une
    base hors des nouveaux choix.
-6. Confirmer avec **Enregistrer ces choix pour l’année**.
+6. Confirmer avec **Enregistrer ces choix pour l’année** et le mot de passe
+   de votre compte connecté.
 
 ## Résultat attendu
 
@@ -66,3 +67,22 @@ une trame de travail provisoire.
 Pour proposer des libellés ou masquer des compétences dans l’année, ouvrir
 [Libellés et compétences masquées]({{< relref "/guide/eleves-classes/adapter-competences" >}}).
 Une classe peut adapter ces propositions ; cela ne change pas les bases autorisées.
+
+## Changements après saisies
+
+La liste des bases autorisées et la permission de changer après saisies sont
+séparées. Dans **Avancé — choix et restrictions de l’école**, ouvrir
+**Autoriser les changements après saisies**. Si l’application l’interdit pour
+cette année, contacter son gestionnaire. Si elle le permet, lire l’avertissement
+rouge puis **Ouvrir cette autorisation** avec votre mot de passe.
+
+Cela ne change aucune classe : chaque classe doit aussi ouvrir son exception
+et confirmer son changement, avec des avertissements et un mot de passe à
+chaque opération. L’exception de classe se referme après un changement. La
+permission de l’école reste ouverte jusqu’à ce que la direction la referme.
+Utiliser **Refermer cette autorisation** lorsque les opérations prévues sont
+terminées. Les bases actuelles et leurs prochaines saisies restent utilisables.
+La nouvelle année commence avec ces permissions fermées.
+
+**Consulter les référentiels** reste indépendant : parcourir une base, sa
+provenance et sa licence n’ouvre aucune permission et ne l’adopte pas.

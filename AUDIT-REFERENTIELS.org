@@ -394,3 +394,13 @@ saisies. Il propose une rubrique Avancé, des avertissements gradués, une
 restriction hiérarchique annuelle et des confirmations renforcées factorisées.
 Il s'agit d'une proposition à faire converger, sans modification du modèle,
 des écrans ou des règles actuellement accessibles.
+
+* Garde-fous accessibles — #R9b–#R9d
+
+Les permissions annuelles, le classement avant/après saisies et la consommation
+unique de l'exception de classe sont livrés avec migration additive 0025.
+La consultation sans adoption et la rubrique Avancé sont accessibles. Les
+ouvertures exceptionnelles et les changements majeurs demandent chacun un
+mot de passe, avec avertissements communs orange/rouge et limitation des
+tentatives. Le Guide et le scénario fictif décrivent le parcours effectivement
+livré. Voir GARDE-FOUS-REFERENTIELS.org ; l'audit #R9a reste son état préparatoire.

@@ -1,0 +1,16 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Autorisation de changement après saisies — {{ annee }}{% endblock %}
+{% block contenu %}
+<p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Compétences de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
+<h1>Autorisation de changement après saisies</h1>
+<p>{% if classe %}{{ classe.libelle_avec_annee }}{% else %}{{ ecole.nom }} — {{ annee }}{% endif %}.</p>
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p><p><a href="{{ request.path }}?annee={{ annee }}">Reconsulter les autorisations</a></p>{% endif %}
+<ul><li>Application pour cette année : {% if permission.application %}permet les exceptions{% else %}interdit les exceptions{% endif %}.</li><li>École pour cette année : {% if permission.ecole %}permet les exceptions{% else %}interdit les exceptions{% endif %}.</li>{% if classe %}<li>Cette classe : {% if permission.classe %}exception ouverte{% else %}exception fermée{% endif %}.</li>{% endif %}</ul>
+{% if ouvrir %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="rouge" titre="Permettre un changement après des saisies" resume="Cette autorisation permet une opération majeure sur la liste de travail. Elle ne change pas encore le référentiel et ne transfère aucune réussite. Le changement lui-même demandera un nouvel aperçu et votre mot de passe." details="Des bases successives peuvent rendre les parcours et les comparaisons entre classes et années plus difficiles à lire. Les anciennes observations restent liées à leurs compétences. Un retour à une ancienne base conserve les saisies intermédiaires. Les compétences d’une autre identité ne deviennent pas réussies par une correspondance." %}
+{% if classe %}<p>Cette ouverture vaut pour un seul changement effectif, puis se referme automatiquement. Un autre changement, même pour revenir, demandera une nouvelle ouverture.</p>{% else %}<p>Chaque classe doit aussi ouvrir sa propre exception. Après les opérations prévues, vous pouvez refermer cette permission de l'école.</p>{% endif %}
+{% else %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="info" titre="Refermer l’autorisation" resume="Les prochains changements après saisies seront bloqués. Les classes conservent leur base actuelle ; leurs observations et leurs prochaines saisies ne sont pas retirées." %}
+{% endif %}
+{% if clos %}<p>Cette classe est close : aucune exception ne peut être ouverte.</p>{% elif not permis %}<p><strong>Le niveau supérieur interdit cette ouverture.</strong> {% if not permission.application %}Contactez le gestionnaire de l’application.{% else %}Contactez la direction pour la permission de l’école.{% endif %}</p>{% elif ouvrir %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Ouvrir cette autorisation" %}{% else %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Refermer cette autorisation" %}{% endif %}
+{% endblock %}

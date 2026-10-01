@@ -89,7 +89,7 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
         usage.save()
     journaliser(utilisateur, "referentiel.base_classe", adoption,
         anciennes={"adoption": apercu["adoption_id"]}, nouvelles={"version": version.pk})
-    if garde["niveau"] == "rouge":
+    if garde["permission"]["classe"]:
         consommer_permission(utilisateur, classe)
     classe_fournie._adoption_referentiel_lecture = adoption
     return adoption

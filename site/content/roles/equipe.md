@@ -19,6 +19,10 @@ comment ils s'appliquent dans les parcours.
 
 Le responsable de classe et la direction peuvent
 [choisir ou changer une base autorisée]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
+Après des saisies, ce changement est interdit par défaut : accord de
+l’application, autorisation de l’école puis exception de classe sont nécessaires.
+Ouverture et changement demandent chacun un avertissement rouge et un mot
+de passe ; l’exception de classe se referme après un changement.
 Ce choix ne donne pas à la direction un droit de correction des acquisitions.
 Les anciennes observations restent dans les parcours, même si leur compétence
 quitte les prochaines saisies.

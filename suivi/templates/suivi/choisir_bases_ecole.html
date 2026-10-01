@@ -25,6 +25,8 @@
 <p>Choix proposé par l'application : {% if proposee_superieure %}<strong>{{ proposee_superieure.source.titre }}</strong> — version {{ proposee_superieure.numero }}{% else %}aucun{% endif %}.</p>
 <details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — choix et restrictions de l’école</summary>
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Choix pour toute l’école" resume="Ces réglages changent les possibilités et les propositions des classes pour cette année. Les classes conservent leur base actuelle." %}
+<p><a href="{% url 'permissions_referentiels_ecole' %}?annee={{ annee }}">Autoriser les changements après saisies</a></p>
+<p>Permission de l’application : {% if permission.application %}accordée{% else %}refusée{% endif %}. Permission de l’école : {% if permission.ecole %}accordée{% else %}refusée{% endif %}.</p>
 <form method="post">{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}">
 <fieldset><legend>{{ form.autorisations.label }}</legend>{{ form.autorisations.errors }}{{ form.autorisations }}</fieldset>
 <details{% if form.autorisations.value == "restreindre" or form.versions.errors %} open{% endif %}><summary>Choisir une liste plus courte</summary>
@@ -48,8 +50,7 @@
 <ul>{% for adoption in apercu.classes_conservees %}<li>{{ adoption.classe.libelle_avec_annee }} : {{ adoption.version.source.titre }} — version {{ adoption.version.numero }}{% if adoption.clos %} · choix clos{% endif %}</li>{% endfor %}</ul>
 <p>Ces classes conservent leur suivi. Pour adopter une autre base, elles devront choisir dans la nouvelle liste autorisée. Une classe close garde ses choix.</p></details>
 {% endif %}
-<form method="post">{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}"><input type="hidden" name="jeton" value="{{ jeton }}">
-<button class="bouton" name="action" value="confirmer">Enregistrer ces choix pour l'année</button></form>
+{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Enregistrer ces choix pour l’année" %}
 {% endif %}
 <details><summary>Quel choix privilégier ?</summary>
 <p>Pour commencer, gardez les autorisations et le choix proposés par l'application. Choisissez une autre base proposée si l'équipe a un besoin pédagogique précis : les autres bases restent disponibles.</p>

@@ -18,6 +18,7 @@
 {% if not clos %}<p>Libellé proposé {% if classe %}par l'école{% else %}par la base{% endif %} : <strong>{{ proposee.libelle }}</strong>.</p>
 <p>Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
 {% if not clos %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="info" titre="Adapter sans changer de compétence" resume="Le suivi est conservé. Pour revenir aux propositions actuelles du niveau supérieur, gardez le libellé ou la visibilité proposés. Démasquer permet de reprendre les saisies si la compétence appartient encore à la base." %}
 <form method="post">{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}"><input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="jeton" value="{{ jeton }}">
 {% include "suivi/partiels/choix_libelle.html" %}
 <fieldset><legend>{{ form.visibilite.label }}</legend>{{ form.visibilite.errors }}{{ form.visibilite }}</fieldset>

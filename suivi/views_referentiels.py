@@ -10,6 +10,7 @@ from .referentiels import adoption_courante
 from .services.adoption_bases_referentiels import adopter_base, apercu_adoption
 from .services.choix_bases_referentiels import choix_bases
 from .views import acces_requis
+from .confirmations_referentiels import ConfirmationReferentielForm, verifier_confirmation
 
 
 @acces_requis
@@ -29,6 +30,12 @@ def choisir_base_classe(request, classe_pk):
                     raise ValidationError("L'aperçu a expiré ou n'est plus valable. Préparez un nouvel aperçu.") from cause
                 if donnees["classe"] != classe.pk or donnees["auteur"] != request.user.pk:
                     raise ValidationError("Cet aperçu ne correspond pas à votre classe.")
+                apercu_confirmation = apercu_adoption(utilisateur=request.user, classe=classe, version_id=donnees["version"])
+                if apercu_confirmation["garde"]["empreinte"] != donnees.get("garde"):
+                    raise ValidationError("La situation de la classe ou les permissions ont changé. Préparez un nouvel aperçu.")
+                if not apercu_confirmation["garde"]["permis"]:
+                    raise ValidationError("Le changement après saisies est interdit. Consultez les autorisations dans Avancé.")
+                verifier_confirmation(request, renforcee=apercu_confirmation["garde"]["niveau"] != "info")
                 adopter_base(utilisateur=request.user, classe=classe, version_id=donnees["version"],
                     revisions_attendues=donnees["revisions"], adoption_attendue=donnees["adoption"],
                     adaptations_attendues=donnees.get("adaptations"), garde_attendue=donnees.get("garde"))
@@ -49,8 +56,17 @@ def choisir_base_classe(request, classe_pk):
             erreur = " ".join(cause.messages)
     disponibles = {v.pk for v in choix.versions}
     selection_id = actuelle.version_id if actuelle and actuelle.version_id in disponibles else (choix.proposee.pk if choix.proposee else None)
+    from .services.garde_fous_referentiels import permissions
+    confirmation_form = ConfirmationReferentielForm(renforcee=bool(apercu and apercu["garde"]["niveau"] != "info"))
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
+        "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
         "actuelle": actuelle, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
+
+
+def choix_ecole_modifies(local, donnees):
+    return (bool(local and local.restreindre) != donnees["restreindre"] or
+            (local.version_proposee_id if local else None) != donnees["proposee_id"] or
+            set(local.versions_autorisees.values_list("pk", flat=True) if local else []) != set(donnees["versions_ids"]))
 
 
 @acces_requis
@@ -99,6 +115,7 @@ def choisir_bases_ecole(request):
                     raise ValidationError("L'aperçu a expiré ou n'est plus valable. Préparez un nouvel aperçu.") from cause
                 if donnees["ecole"] != ecole.pk or donnees["auteur"] != request.user.pk or donnees["annee"] != annee:
                     raise ValidationError("Cet aperçu ne correspond pas à votre école ou à l'année choisie.")
+                verifier_confirmation(request, renforcee=choix_ecole_modifies(local, donnees))
                 enregistrer_choix_ecole(utilisateur=request.user, ecole=ecole, annee=annee,
                     restreindre=donnees["restreindre"], versions_ids=donnees["versions_ids"],
                     proposee_id=donnees["proposee_id"], revisions_attendues=donnees["revisions"])
@@ -116,7 +133,9 @@ def choisir_bases_ecole(request):
                 **{cle: apercu[cle] for cle in ("restreindre", "versions_ids", "proposee_id", "revisions")}}, salt="bases-ecole")
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
-    contexte.update(form=form, choix=choix, proposee_superieure=proposee_superieure,
+    from .services.garde_fous_referentiels import permissions
+    contexte.update(confirmation_form=ConfirmationReferentielForm(renforcee=bool(apercu and choix_ecole_modifies(local, apercu))), permission=permissions(ecole, annee),
+        form=form, choix=choix, proposee_superieure=proposee_superieure,
         apercu=apercu, jeton=jeton, erreur=erreur)
     return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400 if erreur else 200)
 
@@ -292,3 +311,59 @@ def consulter_referentiels(request, classe_pk=None):
         "disponible": version_id in {v.pk for v in disponibles}, "lecture": mode,
         "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
         "domaines": domaines, "domaine": domaine, "niveau": niveau})
+
+
+@acces_requis
+@require_http_methods(["GET", "POST"])
+def permissions_referentiels(request, classe_pk=None):
+    from django.core.exceptions import PermissionDenied
+    from django.utils import timezone
+    from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
+    from .models import AdoptionReferentiel, annee_scolaire_pour
+    from .services.garde_fous_referentiels import permissions, regler_permission
+    from .services.choix_bases_referentiels import verifier_annee
+
+    ecole = ecole_courante(request)
+    classe = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole) if classe_pk else None
+    if not classe and not autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
+        raise PermissionDenied
+    annee = classe.annee_scolaire if classe else (request.POST if request.method == "POST" else request.GET).get("annee", annee_scolaire_pour(timezone.localdate()))
+    try:
+        verifier_annee(annee)
+    except ValidationError as cause:
+        from django.http import Http404
+        raise Http404 from cause
+    etat = permissions(ecole, annee, classe)
+    locale = etat["classe"] if classe else etat["ecole"]
+    ouvrir = not locale
+    clos = bool(classe and AdoptionReferentiel.objects.filter(classe=classe, courante=True, clos=True).exists())
+    permis = not clos and (not ouvrir or (etat["application"] and (not classe or etat["ecole"])))
+    attente = {"auteur": request.user.pk, "ecole": ecole.pk, "classe": classe.pk if classe else None,
+               "annee": annee, "ouverte": ouvrir, "empreinte": etat["empreinte"]}
+    jeton = signing.dumps(attente, salt="permissions-referentiel") if permis else None
+    erreur = None
+    if request.method == "POST":
+        try:
+            try:
+                donnees = signing.loads(request.POST.get("jeton", ""), salt="permissions-referentiel", max_age=1800)
+            except signing.BadSignature as cause:
+                raise ValidationError("La confirmation a expiré ou n'est plus valable. Consultez à nouveau les permissions.") from cause
+            if donnees != attente or not permis or request.POST.get("action") != "confirmer":
+                raise ValidationError("Les permissions ont changé ou cette confirmation ne correspond pas à l'opération affichée.")
+            verifier_confirmation(request, renforcee=ouvrir)
+            regler_permission(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
+                ouverte=ouvrir, empreinte_attendue=donnees["empreinte"])
+            messages.success(request, "L'autorisation est ouverte pour un seul changement de cette classe." if classe and ouvrir else (
+                "L'école permet aux classes d'ouvrir une exception ; aucune classe ne change de base automatiquement." if ouvrir else
+                "L'autorisation est refermée. Les bases actuelles et leurs saisies restent utilisables."))
+            if classe:
+                return redirect("referentiel_classe", classe_pk=classe.pk)
+            from django.urls import reverse
+            return redirect(f"{reverse('referentiels_ecole')}?annee={annee}")
+        except ValidationError as cause:
+            erreur = " ".join(cause.messages)
+            jeton = None
+    return render(request, "suivi/permissions_referentiels.html", {"classe": classe, "annee": annee,
+        "permission": etat, "ouvrir": ouvrir, "locale": locale, "clos": clos, "permis": permis,
+        "jeton": jeton, "erreur": erreur, "confirmation_form": ConfirmationReferentielForm(renforcee=ouvrir)},
+        status=400 if erreur else 200)

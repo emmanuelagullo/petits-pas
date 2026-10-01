@@ -51,3 +51,55 @@ contenu final. Recherche, domaine, section et pagination limitent les listes
 longues. Provenance et licence sont consultables. Aucun GET de consultation
 ne crée de projection, compétence, usage ou adoption. Une section de classement
 n'est pas présentée comme un repère d'âge officiel.
+
+* #R9d — Confirmations et parcours accessibles
+
+L'ouverture à l'école et l'ouverture de classe portent un avertissement rouge
+et exigent chacune le mot de passe du compte connecté. L'adoption orange ou
+rouge demande de nouveau ce mot de passe ; le premier choix du défaut avant
+saisies et la conservation de la même base restent ordinaires. Un choix d'école
+modifié est orange et confirmé par mot de passe. Refermer une permission ou
+conserver les choix sans changement n'exige pas de réauthentification.
+
+Les formulaires d'avertissement et de confirmation sont partagés. Le jeton
+signé lie la requête à l'acteur, l'école, la classe/année et l'opération précise,
+avec expiration à trente minutes. La vue authentifie le compte par le backend
+habituel avec limitation Axes, puis appelle le service avec le contenu signé.
+Aucune confirmation mémorisée n'est réutilisée pour une autre action et aucun
+mot de passe n'est transmis au journal ou au service d'adoption. Les règles
+métier et révisions sont revérifiées sous transaction après authentification.
+Un refus supérieur ne peut pas être contourné en modifiant le formulaire.
+
+Le Guide, l'inventaire, les rôles et le scénario décrivent les opérations
+accessibles. Les captures des contenus cycle 1 ciblent le nouveau titre visible
+sans ouvrir Avancé. La commande d'équipe fictive ouvre explicitement la
+permission application pour 2026-2027, et conserve école et classes fermées.
+Sur Render : Diane ouvre l'école, Rémi ou Nadia ouvre une classe, puis change
+sa base et vérifie la fermeture automatique, les parcours et le PDF.
+Les deux classes cycle 1 gardent leurs versions et volumes initiaux.
+
+Le sens des correspondances, les imports YAML et les données pédagogiques
+ne sont pas modifiés. Les quatre décisions actuelles sont disponibilité de
+base, proposition par défaut, permission après saisies et droit du compte.
+Les conserver distinctes dans tout futur parcours.
+
+* Vérifications finales et déploiement
+
+546 tests Django 6.1.1 réussis sur SQLite, avec quatre processus, après les
+derniers ajustements ; contrôles Django et absence d'écart de migration,
+syntaxe shell, Guide (42 fiches, 13 captures référencées), construction Hugo
+sans avertissement et git diff --check réussis. Le parcours de mots de passe
+et ses refus est exercé par le client Django, ainsi que les anciennes traces,
+le carnet PDF, les restrictions et les changements entre aperçu et confirmation.
+
+La génération graphique des captures, l'essai tactile/clavier et les tests
+PostgreSQL / Django 5.2 n'ont pas été exécutés localement : ils restent à
+valider en CI et sur Render. Les scénarios de capture ont été ajustés aux
+titres visibles. Aucun serveur public n'a été modifié par cette livraison.
+Les trois patchs sont vérifiés successivement avec git am sur main récent.
+
+Appliquer #R9b, #R9c puis #R9d avant l'essai. Exécuter manage.py migrate sur
+une installation locale ; le démarrage Render applique déjà les migrations.
+Redéployer le profil fictif sur une base neuve pour retrouver le scénario,
+avec école et classes fermées. Les adoptions des bases existantes restent
+inchangées lors d'une simple migration sur une autre installation.

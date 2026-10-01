@@ -1,110 +1,126 @@
 +++
-title = "Choisir ou changer le référentiel d’une classe"
-description = "Choisir une base autorisée, vérifier les conséquences et confirmer sans créer de réussites."
+title = "Consulter, choisir ou changer le référentiel d’une classe"
+description = "Distinguer les adaptations courantes d’un changement pour toute la classe et confirmer ses conséquences."
 fiche = true
 categorie = "eleves-classes"
 publics = ["responsable", "direction"]
-intentions = ["référentiel", "base", "compétences", "choisir", "classe"]
-prerequis = "Vous êtes responsable de la classe ou direction de l’école. Une base est autorisée pour cette année."
+intentions = ["référentiel", "base", "compétences", "choisir", "classe", "autorisation", "mot de passe"]
+prerequis = "Vous êtes responsable de la classe ou direction de l’école pour modifier ses choix. Une base est autorisée pour cette année."
 depart = "Classe → Référentiel de la classe"
 statut = "disponible"
 +++
 
-## Étapes
+## Consulter et adapter au quotidien
 
-1. Dans la classe, ouvrir **Référentiel de la classe**.
-2. Choisir une base dans la liste autorisée. Le **choix proposé** est le point
-   de départ prévu pour cette année ; les autres possibilités sont également
-   autorisées.
-3. Cliquer sur **Voir les conséquences**.
-4. Lire les nombres de compétences avec la même identité, nouvelles ou hors
-   de la base choisie, et les ajouts locaux conservés. Ouvrir l’explication dépliable si nécessaire.
-5. Confirmer avec **Choisir cette base pour la classe**, ou revenir à la classe
-   pour garder son choix actuel.
+**Consulter les référentiels** permet de parcourir les bases disponibles,
+rechercher un apprentissage et filtrer par domaine ou section. La provenance
+et les droits de réutilisation sont dépliables. Cette consultation ne change
+aucune donnée. Pour une base déjà utilisée, vous pouvez afficher les textes de
+la source ou la présentation de la classe avec ses adaptations et ajouts.
+Une section de classement ne remplace pas un repère d’âge officiel.
 
-## Résultat attendu
+La page **Référentiel de la classe** regroupe les libellés et compétences
+masquées, les ajouts, les illustrations et phrases proposées. Ces adaptations
+courantes ne demandent pas de mot de passe. Masquer conserve les anciens
+parcours ; démasquer permet de reprendre les saisies si la compétence appartient
+encore à la base. Revenir au libellé proposé suit le texte supérieur actuel,
+qui peut avoir évolué. Les commentaires déjà saisis ne sont pas réécrits par
+une modification des phrases proposées.
 
-Les prochaines saisies utilisent la base choisie. Une identité déjà utilisée
-retrouve son propre suivi ; une nouvelle compétence ne reçoit aucune réussite
-copiée. Un code ou un libellé identique ne suffit pas à reconnaître la même
-compétence. Les images et phrases proposées sont facultatives.
+## Avant les premières saisies
 
-Une base importée, un nouveau choix proposé ou une restriction ne remplace pas
-silencieusement la base d’une classe déjà renseignée. Les anciennes origines
-restent conservées.
+1. Ouvrir **Référentiel de la classe**. Pour une classe sans base, utiliser
+   **Préparer le choix proposé** : ce premier choix ordinaire ne demande pas
+   de nouvelle confirmation par mot de passe.
+2. Pour une autre base, ouvrir **Avancé — changements pour toute la classe**.
+3. Choisir une base autorisée puis cliquer sur **Voir les conséquences**.
+4. Lire l’avertissement orange : les choix de toute la classe changent et les
+   comparaisons avec les autres classes ou années peuvent devenir plus difficiles.
+5. Lire les nombres de compétences conservées, nouvelles et hors de la base,
+   puis confirmer avec **Choisir cette base pour la classe** et votre mot de passe.
 
-Vous pouvez changer de base pendant l’année, même après des saisies. Ce choix
-concerne toute la classe. Les compétences sorties de la base quittent les
-prochaines saisies, mais leurs observations, commentaires et photos restent
-dans les carnets. Pour les renseigner à nouveau, choisissez une base autorisée
-qui les contient. Revenir à une ancienne base retrouve le suivi de ses
-compétences ; cela ne copie aucune réussite vers d’autres compétences.
+La situation dépend des saisies, pas de la date de rentrée. Un commentaire
+sans réussite suffit à engager un parcours. Conserver exactement la base
+actuelle ne demande pas de mot de passe.
 
-Les [ajouts retenus par la classe]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
-restent présents lors du changement de base ; ils sont comptés séparément dans
-l’aperçu. À la rentrée, leur reprise est explicite.
+## Après des saisies : une exception explicite
 
-À la clôture annuelle, le dernier choix et les compétences des parcours déjà
-renseignés sont conservés avec leur présentation. Une nouvelle année a ses
-propres choix.
+Le changement est **interdit par défaut**. Il faut que l’application le permette
+pour l’année, que la direction l’autorise pour l’école, puis que le responsable
+ou la direction ouvre une exception pour la classe. Une base autorisée dans
+le catalogue ne constitue pas à elle seule cet accord.
 
-## Limites et refus
+1. Si le blocage vient de l’application, contacter son gestionnaire. S’il vient
+   de l’école, contacter la direction ; elle utilise **Autoriser les changements
+   après saisies** dans les réglages avancés des référentiels de l’école.
+2. Dans **Avancé — changements pour toute la classe**, ouvrir **Autorisation
+   exceptionnelle de cette classe**.
+3. Lire l’avertissement rouge puis utiliser **Ouvrir cette autorisation** avec
+   le mot de passe de votre compte connecté.
+4. Revenir au choix de base et préparer un nouvel aperçu.
+5. Lire l’avertissement rouge et ses conséquences, puis confirmer le changement
+   avec votre mot de passe, même si vous venez de confirmer l’ouverture.
 
-- Les choix d’une classe close restent consultables.
-- Si les choix ont changé depuis l’aperçu, préparer un nouvel aperçu.
-- Si aucune base n’est autorisée, contacter la direction. La préparation du
-  catalogue et des autorisations de l’application reste une opération
-  d’administration. La direction peut
-  [proposer ou limiter les bases de l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}).
-- La direction peut choisir une base sans obtenir le droit de modifier les
-  acquisitions individuelles. Associés et contributeurs ne gèrent pas ce choix.
+L’autorisation de classe se referme **automatiquement après un changement**.
+Pour revenir à une ancienne base, il faudra une nouvelle ouverture, si les
+niveaux supérieurs le permettent toujours. La direction peut aussi utiliser
+**Refermer cette autorisation** pour l’école lorsqu’elle n’a plus besoin
+d’exceptions. Refermer n’enlève aucune base actuelle et ne bloque pas les
+saisies ordinaires.
 
-La trame Petits Pas est une trame de travail provisoire. Les exemples de nouvelles
-sources sont fictifs ; cette fonction ne garantit pas un référentiel officiel.
+## Ce qui est conservé et ce qui change
 
-Les [libellés et compétences masquées]({{< relref "/guide/eleves-classes/adapter-competences" >}})
-se règlent séparément, sans changer de base ni de compétence.
+Les prochaines saisies utilisent la base choisie. Les compétences sorties de
+cette base restent dans les parcours mais quittent la liste de saisie. Les
+observations, commentaires et photos déjà enregistrés restent conservés.
+Revenir à une ancienne base ne supprime pas les saisies faites entre-temps.
 
-Les [correspondances]({{< relref "/guide/eleves-classes/relier-competences" >}})
-entre apprentissages apparaissent séparément dans l’aperçu lorsqu’elles
-rapprochent les compétences des deux bases. Elles ne rendent pas leurs
-réussites équivalentes et ne modifient pas les nombres d’identités communes.
+Une identité conservée retrouve son propre suivi. Les compétences d’une autre
+identité ne reçoivent aucune réussite ; un code, un texte ressemblant ou une
+[correspondance]({{< relref "/guide/eleves-classes/relier-competences" >}})
+ne transfère pas de réussite. Les
+[ajouts retenus]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
+restent disponibles avec leur identité et leur suivi.
+
+Une nouvelle base importée ou proposée par défaut ne remplace aucune adoption
+silencieusement. Une nouvelle année possède ses propres choix et démarre sans
+exception reconduite. Les classes closes conservent leur présentation finale.
 
 ## Adopter une autre version de la même source
 
-Lorsqu’une autre version est autorisée, la choisir dans la même liste et
-cliquer sur **Voir les conséquences**. L’aperçu présente les compétences
-modifiées, ajoutées et retirées. Les explications dépliables montrent les
-anciens et nouveaux textes, ainsi que les choix de libellé et de visibilité
-qui seront conservés pour l’école et la classe.
+Choisir la version dans Avancé, puis **Voir les conséquences**. L’aperçu détaille
+les compétences modifiées, ajoutées ou retirées et les adaptations conservées.
+L’avertissement est orange avant saisies, rouge après saisies ; les permissions
+et confirmations sont les mêmes que pour un changement de base.
 
-Cliquer sur **Adopter cette version pour la classe** après cette lecture.
-Si le nouveau texte proposé diffère de votre adaptation, votre texte reste
-appliqué. Pour utiliser la nouvelle proposition, revenir ensuite aux réglages
-de libellé. Il n’est pas nécessaire de retaper votre adaptation pour la garder.
+Utiliser **Adopter cette version pour la classe** avec votre mot de passe.
+Vos libellés et masquages restent prioritaires pour les identités conservées.
+Les illustrations et phrases suivent la version adoptée lorsque vous gardez
+les propositions. Une phrase retirée n’est plus proposée ; son adaptation
+reste enregistrée et revient si la proposition est retrouvée. Les textes déjà
+saisis dans les traces ne sont pas réécrits. Les carnets ouverts suivent la
+présentation adoptée ; ceux des classes closes ne changent pas.
 
-Pendant l’année ouverte, le carnet suit la présentation adoptée et les choix
-locaux. Les observations conservent leur compétence et leur contexte d’origine ;
-les compétences retirées restent dans les parcours déjà renseignés. Les carnets
-des années closes ne suivent pas cette mise à jour.
+## Limites et refus
 
-Les illustrations et phrases proposées suivent la version adoptée lorsque
-vous gardez les propositions. Les illustrations et phrases adaptées restent
-conservées. Si une phrase est retirée de la source, son adaptation reste
-enregistrée mais n’est plus proposée ; un retour à une version qui contient
-cette phrase retrouve l’adaptation. Une phrase déjà enregistrée dans une
-trace n’est pas réécrite.
+- Une saisie ou un changement de permission après l’aperçu oblige à préparer
+  un nouvel aperçu. Une confirmation expire après trente minutes.
+- Les observations anciennes dont l’année reste incertaine demandent les
+  mêmes précautions que des saisies déjà enregistrées ; aucune année n’est inventée.
+- Une trace masquée ou supprimée logiquement, ou le déplacement d’un élève,
+  ne rend pas la classe vierge.
+- La direction ne gagne pas le droit de corriger des acquisitions en changeant
+  une base. Associés et contributeurs peuvent consulter les référentiels de
+  leurs classes, sans modifier leurs choix.
+- L’application limite les tentatives de confirmation par mot de passe, comme
+  les tentatives de connexion. Aucun mot de passe n’est enregistré dans le journal.
 
-Importer une version et l’autoriser ne l’adopte pas pour les classes. La
-direction peut la proposer pour l’année ; les classes déjà renseignées
-conservent leur choix jusqu’à confirmation. Les numéros de version ne sont pas
-un ordre chronologique garanti : revenir à une ancienne version autorisée
-utilise le même parcours. Si les adaptations ont changé depuis l’aperçu,
-consulter à nouveau les conséquences.
+## Essayer sur la démonstration
 
-## Essayer avec des contenus cycle 1
-
-La [présentation des deux offres cycle 1]({{< relref "/referentiels/cycle1" >}})
-précise leur couverture, leur provenance et leurs licences. Dans la démonstration,
-Rémi suit Les Mésanges avec l’offre étayée et Nadia suit Les Hirondelles avec les
-objectifs officiels seuls. Ces éditions restent provisoires pour relecture.
+Les [deux offres cycle 1]({{< relref "/referentiels/cycle1" >}}) sont présentes :
+Rémi / Les Mésanges utilise l’édition étayée 2026.2 (438 entrées) ; Nadia /
+Les Hirondelles utilise les objectifs officiels 2026.1 (426 entrées).
+Les données sont entièrement fictives. L’application y permet les exceptions
+pour 2026-2027, mais les permissions de l’école et des classes sont initialement
+fermées. Diane ouvre la permission de l’école ; Rémi ou Nadia ouvre celle de sa
+classe. Le changement demande ensuite sa propre confirmation.
