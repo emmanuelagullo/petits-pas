@@ -3282,6 +3282,7 @@ class JeuDemoLarge(TestCase):
         self._creer_comptes_initiaux()
         call_command("jeu_demo_large", stdout=StringIO())
 
+        observations_avant = list(Observation.objects.order_by("pk").values_list("pk", "competence_id"))
         call_command(
             "jeu_demo_equipe",
             "--mot-de-passe",
@@ -3289,6 +3290,29 @@ class JeuDemoLarge(TestCase):
             "--confirmer-donnees-fictives",
             stdout=StringIO(),
         )
+
+        self.assertEqual(observations_avant,
+            list(Observation.objects.order_by("pk").values_list("pk", "competence_id")))
+        from suivi.models import (
+            AdoptionReferentiel, AdaptationCompetence, CompetenceLocale,
+            CorrespondanceCompetence, ChoixApplicationAnnuel,
+        )
+        from suivi.referentiels import contenu_adoption
+        coccinelles = self.ecole.classes.get(nom="Les Coccinelles", annee_scolaire="2026-2027")
+        adoption = AdoptionReferentiel.objects.get(classe=coccinelles, courante=True)
+        self.assertEqual(adoption.version.source.identifiant, f"reprise-ecole-{self.ecole.pk}")
+        self.assertEqual(CompetenceLocale.objects.filter(ecole=self.ecole).count(), 3)
+        masque = CompetenceLocale.objects.get(
+            competence__libelle="Je présente un objet de notre boîte à histoires")
+        self.assertFalse(next(c["active"] for c in contenu_adoption(adoption)["competences"]
+            if c["id"] == masque.competence_id))
+        self.assertTrue(AdaptationCompetence.objects.filter(
+            classe__isnull=True, annee_scolaire="2026-2027").exists())
+        self.assertEqual(CorrespondanceCompetence.objects.count(), 1)
+        choix = ChoixApplicationAnnuel.objects.get(annee_scolaire="2026-2027")
+        self.assertEqual(choix.version_proposee.source.identifiant, "exemple-fictif-langage")
+        self.assertFalse(Observation.objects.filter(competence__in=
+            CompetenceLocale.objects.values("competence_id")).exists())
 
         Utilisateur = get_user_model()
         nadia = Utilisateur.objects.get(username="nadia-demo")
