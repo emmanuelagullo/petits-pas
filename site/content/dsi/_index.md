@@ -187,3 +187,19 @@ Les détails et limites des profils sont suivis dans la
 [documentation de déploiement](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/DEPLOIEMENT.org)
 et la
 [documentation de l'atelier pédagogique](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/ATELIER-PEDAGOGIQUE.org).
+
+## Restrictions sur les changements de référentiel
+
+Les changements après saisies sont interdits par défaut. Le gestionnaire de
+l’application doit les permettre explicitement pour l’année, puis la direction
+pour son école, puis le responsable ou la direction pour une classe. L’exception
+de classe se referme après un changement. Une autorisation de base dans le
+catalogue reste distincte de cette permission exceptionnelle.
+
+L’opération d’exploitation `regler_changements_referentiels` demande une
+révision consultée et une confirmation explicite d’ouverture. Les opérations
+web majeures demandent une réauthentification, avec limitation des tentatives.
+Les adoptions et parcours existants restent conservés lors du retrait d’une
+permission. La démonstration fictive ouvre seulement la permission supérieure
+pour permettre les essais ; ce réglage n’est pas une recommandation pour une
+école réelle.

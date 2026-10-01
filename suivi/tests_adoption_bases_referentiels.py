@@ -151,11 +151,11 @@ class AdoptionBases(Base):
         page = self.client.post(url, {"action": "apercu", "version": self.a.pk})
         jeton = page.context["jeton"]
         self.assertTrue(jeton)
-        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": "invalide"}).status_code, 400)
-        self.assertRedirects(self.client.post(url, {"action": "confirmer", "jeton": jeton}),
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "mot_de_passe": "ens-mdp", "jeton": "invalide"}).status_code, 400)
+        self.assertRedirects(self.client.post(url, {"action": "confirmer", "mot_de_passe": "ens-mdp", "jeton": jeton}),
                              reverse("classe_detail", args=[self.classe.pk]))
         self.assertEqual(AdoptionReferentiel.objects.get(classe=self.classe, courante=True).version_id, self.a.pk)
-        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton}).status_code, 400)
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "mot_de_passe": "ens-mdp", "jeton": jeton}).status_code, 400)
 
     def test_version_non_autorisee_refusee(self):
         hors = importer(document("hors-liste"))[0]

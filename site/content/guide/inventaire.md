@@ -191,9 +191,10 @@ phase d’authentification, sans bloquer le présent guide.
 | Relier deux compétences | Responsable ou direction ; consultation selon les droits de classe | Disponible | Liens orientés annuels ; aucun transfert automatique de suivi ou de média. |
 | Ajouter ou reprendre une compétence | Responsable ou direction | Disponible | Reprise explicite par classe et année ; aucune réussite copiée. |
 | Adapter les libellés et masquer des compétences | Responsable ou direction | Disponible | Choix annuels séparés ; même apprentissage et ancien parcours conservés. |
-| Choisir une base autorisée | Responsable ou direction | Disponible | Aperçu puis confirmation ; aucun transfert de réussite. |
-| Changer de base après des saisies | Responsable ou direction | Disponible | Aperçu puis confirmation ; les anciens parcours restent conservés. |
-| Proposer ou limiter les bases pour l’école | Direction | Disponible | Choix annuels, aperçu puis confirmation ; aucune bascule des classes. |
+| Consulter les référentiels | Intervenants de la classe | Disponible | Lecture seule, textes sources ou présentation adaptée ; aucune adoption. |
+| Choisir une base autorisée | Responsable ou direction | Disponible | Avancé, avertissement orange et mot de passe pour changer avant saisies ; premier choix proposé ordinaire. |
+| Changer de base après des saisies | Responsable ou direction | Disponible | Interdit par défaut ; accords application, école et classe, avertissements rouges et mots de passe ; exception de classe consommée après un changement. |
+| Proposer ou limiter les bases pour l’école | Direction | Disponible | Avancé, choix annuels, aperçu puis mot de passe ; aucune bascule des classes. |
 | Publier le catalogue et les autorisations de l’application | Administration | Interne | Commandes techniques ; aucun écran enseignant annoncé. |
 
 Voir [les choix de l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}) et

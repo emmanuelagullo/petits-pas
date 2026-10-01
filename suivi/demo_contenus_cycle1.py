@@ -93,3 +93,9 @@ def preparer_contenus_cycle1(ecole, utilisateurs, versions_fictives, revision_ap
                 libelle="Je participe aux soins des plantations de notre jardin de classe.",
                 visible=None, revision_attendue=0,
             )
+
+    # Le scénario fictif permet d’exercer les exceptions, sans ouvrir école ni classes.
+    from suivi.models import ChoixApplicationAnnuel
+    from suivi.services.garde_fous_referentiels import regler_permission_application
+    regle = ChoixApplicationAnnuel.objects.get(annee_scolaire=annee)
+    regler_permission_application(annee=annee, ouverte=True, revision_attendue=regle.revision, confirmer=True)

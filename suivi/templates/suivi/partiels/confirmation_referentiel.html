@@ -1,0 +1,7 @@
+<form method="post">{% csrf_token %}
+<input type="hidden" name="jeton" value="{{ jeton }}">
+{% if annee %}<input type="hidden" name="annee" value="{{ annee }}">{% endif %}
+{{ confirmation_form.as_p }}
+{% if confirmation_form.mot_de_passe %}<p class="aide">Confirmez avec le mot de passe de votre compte connecté. Cette confirmation concerne uniquement l'opération affichée.</p>{% endif %}
+<button class="bouton" name="action" value="confirmer"{% if not jeton %} disabled{% endif %}>{{ bouton_confirmation }}</button>
+</form>

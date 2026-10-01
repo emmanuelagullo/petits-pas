@@ -96,3 +96,25 @@ retirée, une autre ajoutée. Votre adaptation apparaît parmi les choix conserv
 Confirmer avec **Adopter cette version pour la classe**, puis vérifier le
 libellé, les prochaines saisies et le carnet. Vous pouvez revenir à la version
 **1** tant qu’elle reste autorisée. Toutes ces compétences sont fictives.
+
+## Tester les précautions lors d’un changement de référentiel
+
+Dans **Référentiel de la classe**, commencer par **Consulter les référentiels**
+ou les adaptations courantes. **Avancé — changements pour toute la classe**
+est fermé par défaut. Les classes fictives ont déjà des saisies : un changement
+est rouge et bloqué tant que l’école et la classe ne l’ont pas autorisé.
+
+Pour l’essai, l’application permet explicitement les exceptions pour 2026-2027.
+Avec Diane, ouvrir **Gérer l’école → Référentiels de l’école → Avancé — choix
+et restrictions de l’école → Autoriser les changements après saisies**.
+Confirmer l’ouverture avec le mot de passe public de son compte.
+
+Avec Rémi ou Nadia, ouvrir l’autorisation exceptionnelle de sa classe, puis
+confirmer avec son propre mot de passe. Choisir ensuite une autre base dans
+Avancé, lire l’aperçu et confirmer à nouveau avec le mot de passe. Vérifier
+que les anciennes observations restent dans les carnets et qu’aucune réussite
+n’est copiée vers une compétence d’une autre identité. L’autorisation de classe
+est alors refermée ; un retour demandera une nouvelle ouverture.
+
+L’édition étayée des Mésanges reste en 2026.2 avec 438 entrées ; les objectifs
+seuls des Hirondelles restent en 2026.1 avec 426 entrées au démarrage.

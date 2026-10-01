@@ -73,7 +73,8 @@ Cette commande concerne les anciens paquets qui n'utilisent pas encore les
 référentiels annuels. Les nouvelles installations préparent automatiquement
 leur trame de travail annuelle ; les paquets repris avec #R3 refusent le
 rechargement direct, afin de conserver le sens des observations. Le choix et
-la mise à jour des bases seront proposés dans le chantier des référentiels.
+la mise à jour des bases passent par les réglages avancés du référentiel
+de classe, avec aperçu et confirmation renforcée.
 La reprise des bases existantes est décrite dans `DIAGNOSTIC-REFERENTIELS.org`.
 
 Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
@@ -389,4 +390,7 @@ est détaillée dans [CONTENUS-ET-LICENCES.md](CONTENUS-ET-LICENCES.md).
 La commande technique `importer_source_referentiel` prépare des versions au
 catalogue sans modifier les suivis ni les choix des classes. Le format et les
 contrôles sont décrits dans [IMPORT-SOURCES-REFERENTIELS.org](IMPORT-SOURCES-REFERENTIELS.org).
-Le choix d'une base depuis l'interface reste en préparation.
+Le choix et la mise à jour depuis l’interface sont accessibles dans Avancé.
+Après saisies, ils sont interdits par défaut et demandent les permissions
+application, école et classe, puis une confirmation par mot de passe.
+Voir `GARDE-FOUS-REFERENTIELS.org` et le Guide pratique.

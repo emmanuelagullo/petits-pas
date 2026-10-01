@@ -34,7 +34,7 @@ class ChoixEcoleInterface(Base):
         return self.client.post(self.url, valeurs)
 
     def confirmer(self, page, **options):
-        valeurs = {"action": "confirmer", "annee": self.annee, "jeton": page.context["jeton"]}
+        valeurs = {"action": "confirmer", "mot_de_passe": "dir-mdp", "annee": self.annee, "jeton": page.context["jeton"]}
         valeurs.update(options)
         return self.client.post(self.url, valeurs)
 
@@ -149,4 +149,15 @@ class ChoixEcoleInterface(Base):
         with patch("django.core.signing.TimestampSigner.timestamp", return_value=ancienne_date):
             page = self.apercu()
         self.assertEqual(self.confirmer(page).status_code, 400)
+        self.assertFalse(ChoixEcoleAnnuel.objects.exists())
+
+    def test_conserver_choix_sans_effet_ne_demande_pas_mot_de_passe(self):
+        page = self.apercu()
+        self.assertNotContains(page, "Votre mot de passe")
+        self.assertEqual(self.confirmer(page, mot_de_passe="").status_code, 302)
+
+    def test_modifier_choix_ecole_exige_mot_de_passe(self):
+        page = self.apercu(proposee=self.b.pk)
+        self.assertContains(page, "Votre mot de passe")
+        self.assertEqual(self.confirmer(page, mot_de_passe="").status_code, 400)
         self.assertFalse(ChoixEcoleAnnuel.objects.exists())

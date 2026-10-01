@@ -25,8 +25,12 @@ avec les équipes. Le Guide pratique sera modifié quand les parcours existeront
 - Les ajouts d'une classe appartiennent à cette classe annuelle ; une reprise
   explicite conserve leur identité. La direction peut les proposer à l'école,
   sans les ajouter automatiquement à toutes les classes.
-- Changer de base pendant l'année est possible, daté, prévisualisé et confirmé.
-  Aucun état ni trace ne migre par une simple correspondance.
+- Changer de base pendant l’année est daté, prévisualisé et confirmé. Depuis
+  #R9, après saisies, cette opération exige les permissions annuelles explicites
+  application, école et classe ; l’exception de classe se referme après un
+  changement. Avant saisies, un autre choix que le premier défaut est orange ;
+  après saisies, il est rouge. Ouvertures et changements majeurs demandent
+  chacun le mot de passe. Aucun état ni trace ne migre par une correspondance.
 - Pendant l'année, un choix hérité suit les évolutions du niveau supérieur ;
   une adaptation locale garde la priorité. Chaque année conserve son dernier
   état ; la nouvelle année évolue indépendamment.

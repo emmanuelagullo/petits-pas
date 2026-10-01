@@ -342,7 +342,7 @@ scenarios:
     etapes:
       - { action: classe, classe: mesanges }
       - { action: lien, nom: "Référentiel de la classe" }
-      - { action: titre, nom: "Choisir le référentiel de la classe" }
+      - { action: titre, nom: "Compétences de Les Mésanges — 2026-2027" }
     capture: referentiels/cycle1/mesanges.png
     titre: L'offre étayée des Mésanges
     legende: La classe fictive utilise les objectifs des programmes et les repères proposés, en version 2026.2.
@@ -352,7 +352,7 @@ scenarios:
     etapes:
       - { action: classe, classe: hirondelles }
       - { action: lien, nom: "Référentiel de la classe" }
-      - { action: titre, nom: "Choisir le référentiel de la classe" }
+      - { action: titre, nom: "Compétences de Les Hirondelles — 2026-2027" }
     capture: referentiels/cycle1/hirondelles.png
     titre: Les objectifs officiels des Hirondelles
     legende: L'autre classe fictive utilise uniquement les objectifs officiels, en version 2026.1.

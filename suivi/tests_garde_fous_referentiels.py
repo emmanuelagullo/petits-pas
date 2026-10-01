@@ -141,3 +141,121 @@ class GardeFous(Base):
         regle = self.application()
         self.assertEqual(regle.historique_permissions[-1]["apres"], True)
         self.assertEqual(regle.revision, 2)
+
+    def test_confirmation_orange_exige_mot_de_passe_sans_changer_les_donnees(self):
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        page = self.client.post(url, {"action": "apercu", "version": self.b.pk})
+        self.assertContains(page, "Votre mot de passe")
+        jeton = page.context["jeton"]
+        avant = AdoptionReferentiel.objects.count()
+        for mdp in ("", "mot-de-passe-errone"):
+            self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton, "mot_de_passe": mdp}).status_code, 400)
+        self.assertEqual(AdoptionReferentiel.objects.count(), avant)
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton, "mot_de_passe": "ens-mdp"}).status_code, 302)
+
+    def test_ouvertures_et_changement_rouge_demandent_chacun_le_mot_de_passe(self):
+        self.saisir()
+        self.application()
+        self.client.logout()
+        self.entrer("dir-mdp")
+        ecole = reverse("permissions_referentiels_ecole")
+        page = self.client.get(ecole, {"annee": self.classe.annee_scolaire})
+        jeton = page.context["jeton"]
+        post = {"annee": self.classe.annee_scolaire, "action": "confirmer", "jeton": jeton}
+        self.assertEqual(self.client.post(ecole, post).status_code, 400)
+        self.assertEqual(self.client.post(ecole, {**post, "mot_de_passe": "dir-mdp"}).status_code, 302)
+        self.client.logout()
+        self.entrer()
+        classe = reverse("permissions_referentiels_classe", args=[self.classe.pk])
+        jeton = self.client.get(classe).context["jeton"]
+        post = {"action": "confirmer", "jeton": jeton}
+        self.assertEqual(self.client.post(classe, post).status_code, 400)
+        self.assertEqual(self.client.post(classe, {**post, "mot_de_passe": "ens-mdp"}).status_code, 302)
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        page = self.client.post(url, {"action": "apercu", "version": self.b.pk})
+        self.assertContains(page, "Avertissement majeur")
+        jeton = page.context["jeton"]
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton}).status_code, 400)
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton, "mot_de_passe": "ens-mdp"}).status_code, 302)
+        self.assertFalse(PermissionChangementClasse.objects.get(classe=self.classe).ouverte)
+
+    def test_ouverture_signee_expire_et_ne_peut_servir_a_une_autre_classe(self):
+        from unittest.mock import patch
+        self.application()
+        self.permission()
+        url = reverse("permissions_referentiels_classe", args=[self.classe.pk])
+        jeton = self.client.get(url).context["jeton"]
+        post = {"action": "confirmer", "jeton": jeton, "mot_de_passe": "ens-mdp"}
+        with patch("django.core.signing.time.time", return_value=9999999999):
+            self.assertEqual(self.client.post(url, post).status_code, 400)
+        autre = Classe.objects.create(ecole=self.ecole, nom="Classe témoin fictive", annee_scolaire=self.classe.annee_scolaire)
+        self.affecter_enseignant(autre)
+        autre.activer()
+        self.assertEqual(self.client.post(reverse("permissions_referentiels_classe", args=[autre.pk]), post).status_code, 400)
+        self.assertFalse(PermissionChangementClasse.objects.exists())
+
+    def test_confirmation_memebase_et_fermeture_sans_mot_de_passe(self):
+        self.ouvrir()
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        jeton = self.client.post(url, {"action": "apercu", "version": self.a.pk}).context["jeton"]
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton}).status_code, 302)
+        url = reverse("permissions_referentiels_classe", args=[self.classe.pk])
+        jeton = self.client.get(url).context["jeton"]
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton}).status_code, 302)
+        self.assertFalse(PermissionChangementClasse.objects.get(classe=self.classe).ouverte)
+
+    def test_reauthentification_limite_les_tentatives(self):
+        from datetime import timedelta
+        from django.test import override_settings
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        jeton = self.client.post(url, {"action": "apercu", "version": self.b.pk}).context["jeton"]
+        with override_settings(AXES_FAILURE_LIMIT=3, AXES_COOLOFF_TIME=timedelta(minutes=15)):
+            for _ in range(3):
+                self.client.post(url, {"action": "confirmer", "jeton": jeton, "mot_de_passe": "errone"})
+            reponse = self.client.post(url, {"action": "confirmer", "jeton": jeton, "mot_de_passe": "ens-mdp"})
+            self.assertEqual(reponse.status_code, 429)
+        self.assertEqual(AdoptionReferentiel.objects.get(classe=self.classe, courante=True).version_id, self.a.pk)
+
+    def test_premier_choix_propose_sans_reauthentification_et_classe_close_refuse(self):
+        from .services.cloture_referentiels import clore
+        nouvelle = Classe.objects.create(ecole=self.ecole, nom="Nouvelle classe fictive", annee_scolaire=self.classe.annee_scolaire)
+        self.affecter_enseignant(nouvelle)
+        nouvelle.activer()
+        url = reverse("referentiel_classe", args=[nouvelle.pk])
+        page = self.client.post(url, {"action": "apercu", "version": self.a.pk})
+        self.assertEqual(page.context["apercu"]["garde"]["niveau"], "info")
+        self.assertNotContains(page, "Votre mot de passe")
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": page.context["jeton"]}).status_code, 302)
+        self.ouvrir()
+        clore(utilisateur=self.enseignant, classe=self.classe)
+        with self.assertRaises(ValidationError): self.permission(classe=True)
+        page = self.client.get(reverse("permissions_referentiels_classe", args=[self.classe.pk]))
+        self.assertTrue(page.context["clos"])
+        self.assertFalse(page.context["jeton"])
+
+    def test_mise_a_jour_de_source_apres_saisies_reste_bloquee(self):
+        self.saisir()
+        nouvelle = importer(document(version="2"))[0]
+        publier_choix_application(annee=self.classe.annee_scolaire, versions_ids=[self.a.pk, nouvelle.pk],
+                                 proposee_id=nouvelle.pk, revision_attendue=1)
+        apercu = self.apercu(nouvelle)
+        self.assertTrue(apercu["mise_a_jour"])
+        self.assertEqual(apercu["garde"]["niveau"], "rouge")
+        with self.assertRaises(ValidationError): self.appliquer(apercu)
+
+    def test_consultation_adaptee_et_source_restent_distinctes(self):
+        from .services.adaptations_referentiels import enregistrer_adaptation
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        enregistrer_adaptation(utilisateur=self.enseignant, ecole=self.ecole, classe=self.classe,
+            annee=self.classe.annee_scolaire, competence=self.competence, adoption_attendue=adoption.pk,
+            libelle="Mon libellé fictif", visible=False, revision_attendue=0)
+        url = reverse("consulter_referentiels_classe", args=[self.classe.pk])
+        self.assertContains(self.client.get(url, {"version": self.a.pk, "lecture": "classe"}), "Mon libellé fictif")
+        page = self.client.get(url, {"version": self.a.pk})
+        self.assertContains(page, "Je parle")
+        self.assertNotContains(page, "Mon libellé fictif")
+
+    def test_exception_de_classe_est_consommee_meme_si_changement_avant_saisies(self):
+        self.ouvrir()
+        self.adopter(self.b)
+        self.assertFalse(PermissionChangementClasse.objects.get(classe=self.classe).ouverte)

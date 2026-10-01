@@ -99,12 +99,12 @@ class MisesAJour(Base):
         self.assertContains(page, "Adopter cette version pour la classe")
         jeton = page.context["jeton"]
         self.adapter(ancienne)
-        page = self.client.post(url, {"action": "confirmer", "jeton": jeton})
+        page = self.client.post(url, {"action": "confirmer", "mot_de_passe": "ens-mdp", "jeton": jeton})
         self.assertEqual(page.status_code, 400)
         self.assertContains(page, "Les adaptations ont changé", status_code=400)
         self.assertFalse(VersionSourceEcole.objects.filter(version=nouvelle).exists())
         page = self.client.post(url, {"action": "apercu", "version": nouvelle.pk})
-        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": page.context["jeton"]}).status_code, 302)
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "mot_de_passe": "ens-mdp", "jeton": page.context["jeton"]}).status_code, 302)
 
     def test_autre_source_et_meme_version_ne_sont_pas_mises_a_jour(self):
         self.adopter()
