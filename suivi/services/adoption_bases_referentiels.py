@@ -10,6 +10,7 @@ from suivi.models import (AdoptionReferentiel, Classe, CompetenceSourceEcole, Ec
 from suivi.referentiels import contenu_adoption
 from .choix_bases_referentiels import _application_verrouillee, choix_bases
 from .versions_sources_ecoles import definir_version_ecole
+from .apercu_mises_a_jour import apercu_mise_a_jour
 
 
 def apercu_adoption(*, utilisateur, classe, version_id):
@@ -44,13 +45,14 @@ def apercu_adoption(*, utilisateur, classe, version_id):
         (l["arrivee_id"] in nouveaux_ids | locaux and l["depart_id"] in anciens_ids | locaux)]
     meme = bool(actuelle and actuelle.version_id == version_id)
     return {"version": version, "adoption_id": actuelle.pk if actuelle else None,
+            "mise_a_jour": apercu_mise_a_jour(classe, actuelle, version),
             "revisions": choix.revisions, "communes": len(anciens_ids & nouveaux_ids),
             "nouvelles": nombre - len(anciens_ids & nouveaux_ids),
             "correspondances": liens, "ajouts": len(locaux), "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme}
 
 
 @transaction.atomic
-def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue):
+def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None):
     classe_fournie = classe
     # Même ordre de coordination que les choix d'école.
     _application_verrouillee(classe.annee_scolaire)
@@ -59,6 +61,10 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     apercu = apercu_adoption(utilisateur=utilisateur, classe=classe, version_id=version_id)
     if apercu["revisions"] != tuple(revisions_attendues) or apercu["adoption_id"] != adoption_attendue:
         raise ValidationError("Les choix ont changé. Consultez à nouveau l'aperçu avant de confirmer.")
+    mise_a_jour = apercu["mise_a_jour"]
+    if adaptations_attendues is not None and (not mise_a_jour or
+            mise_a_jour["empreinte_adaptations"] != adaptations_attendues):
+        raise ValidationError("Les adaptations ont changé. Consultez à nouveau les conséquences avant de confirmer.")
     if apercu["meme"]:
         return AdoptionReferentiel.objects.get(pk=apercu["adoption_id"])
     version = apercu["version"]

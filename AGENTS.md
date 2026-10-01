@@ -37,7 +37,8 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   `CHOIX-BASES-REFERENTIELS.org` les autorisations et défauts annuels,
   `ADAPTATIONS-REFERENTIELS.org` les libellés et masquages annuels,
   `AJOUTS-REFERENTIELS.org` les identités et reprises des ajouts locaux,
-  `CORRESPONDANCES-REFERENTIELS.org` les liens explicites sans transfert d’acquis. Leur lecture
+  `CORRESPONDANCES-REFERENTIELS.org` les liens explicites sans transfert d’acquis,
+  `MISES-A-JOUR-REFERENTIELS.org` l’aperçu et l’adoption des versions sources. Leur lecture
   commune est dans `suivi/adaptations_referentiels.py` ; les écritures contrôlées
   sont dans `suivi/services/adaptations_referentiels.py`.
   Distinguer les services préparés des fonctions accessibles ; importer,

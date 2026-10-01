@@ -36,9 +36,10 @@
 <p>Les ajouts locaux retenus restent présents lors du changement de base, avec leur identité et leurs observations. Ils sont comptés séparément des compétences de la base.</p>
 <p>Les compétences hors de la base choisie quittent les prochaines saisies, mais restent dans les parcours déjà renseignés. Pour reprendre leur saisie, il faut choisir une base autorisée qui les contient.</p>
 <p>Les anciennes bases et leurs origines restent enregistrées. Aucun commentaire ni aucune photo n'est effacé par ce choix.</p></details>
+{% include "suivi/partiels/apercu_mise_a_jour.html" with mise_a_jour=apercu.mise_a_jour %}
 {% include "suivi/partiels/correspondances_competences.html" with correspondances=apercu.correspondances %}
 <form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}">
-<button class="bouton" name="action" value="confirmer">{% if apercu.meme %}Conserver cette base{% else %}Choisir cette base pour la classe{% endif %}</button></form>
+<button class="bouton" name="action" value="confirmer">{% if apercu.meme %}Conserver cette base{% elif apercu.mise_a_jour %}Adopter cette version pour la classe{% else %}Choisir cette base pour la classe{% endif %}</button></form>
 {% endif %}
 <details><summary>Choix proposé et autres possibilités</summary><p>Le choix proposé est le point de départ prévu pour cette année. Les autres bases de la liste sont également autorisées. Pour une première utilisation, gardez le choix proposé sauf besoin pédagogique précis discuté avec l'équipe.</p>
 <p>Une source corrigée ou une base nouvellement importée ne remplace jamais votre choix de classe toute seule. Les restrictions concernent les nouveaux choix, pas l'effacement des anciens parcours.</p></details>

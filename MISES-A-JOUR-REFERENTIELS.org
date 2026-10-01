@@ -1,0 +1,74 @@
+#+TITLE: Adoption des mises à jour de sources — #R8
+
+* Parcours
+
+L'import immuable et les autorisations restent distincts de l'adoption. Une
+nouvelle version autorisée apparaît dans le choix de base de la classe. Les
+classes existantes ne changent pas automatiquement ; la direction peut proposer
+une version par défaut sans forcer leur adoption. Aucun ordre chronologique
+n'est déduit des numéros de version.
+
+Pour deux versions différentes d'une même source fournie, l'aperçu compare
+les identités déclarées, les libellés, codes, sections, groupes, attendus,
+ordre, illustrations et phrases proposées. Les listes détaillent les ajouts,
+retraits et modifications, sans écrire de projection ni créer de compétence.
+Une reprise historique ne fournit pas de filiation source supposée.
+
+Les différences avec les adaptations ne sont pas des erreurs bloquantes :
+l'aperçu rend visible leur priorité. Les libellés et masquages école/classe
+continuent de s'appliquer aux identités conservées ou retrouvées, dans le même
+ordre que le lecteur commun. Les adaptations des compétences retirées restent
+enregistrées pour leur parcours et un éventuel retour. Aucun rapprochement par
+code ou texte, ni correspondance, ne transfère un acquis.
+
+* Confirmation et conservation
+
+La confirmation existante lie compte, classe, version, adoption courante et
+révisions des autorisations, avec expiration à trente minutes. Pour une mise
+à jour elle lie aussi une empreinte des adaptations annuelles de libellé et
+masquage de la source, incluant leurs révisions. Une modification entre aperçu
+et confirmation exige un nouvel aperçu. Le verrou d'école coordonne adoption
+et adaptations ; la transaction annule toute écriture en cas de refus.
+
+La nouvelle adoption réutilise les identités école de la source. Elle conserve
+les anciennes adoptions, usages, observations, états annuels, traces et leurs
+contextes. La présentation de l'année ouverte suit la version adoptée avec
+les adaptations ; l'état final d'une année close ne change pas. Le retrait
+source retire de la saisie future, même si une adaptation demande de montrer
+la compétence. Revenir à une version autorisée contenant la compétence retrouve
+son suivi, sans duplication ni copie de réussite.
+
+Les images et phrases passent par les lecteurs de présentation existants ;
+leurs choix locaux restent prioritaires pour les propositions présentes. Une
+phrase retirée de la source n’est plus proposée ; son adaptation reste en base
+et est retrouvée au retour de la proposition, sans réinterprétation. Cette
+conséquence est explicitée dans l’aperçu et le Guide. Les textes déjà enregistrés dans les
+traces ne sont pas réécrits. L'empreinte supplémentaire protège les libellés et
+masquages détaillés dans l'aperçu, pas une photographie des médias ou de toutes
+les phrases adaptées. Le détail des choix de présentation reste leur écran
+dédié ; il n'est pas dupliqué ici.
+
+* Démonstration et limites
+
+Le jeu fictif propose les versions 1 et 2 de la même petite source. La seconde
+reformule une identité, change ses propositions, retire une autre identité et
+ajoute un apprentissage distinct. Les deux restent autorisées sans modifier
+les bases déjà utilisées. Guide et page de démonstration donnent le parcours.
+Aucune source réelle n'est recherchée ou intégrée.
+
+Le sens pédagogique d'une identité reste une responsabilité de l'auteur de la
+source ; le logiciel ne déduit pas une équivalence. Il n'existe pas de choix
+élément par élément de version source : une classe adopte une version complète,
+puis conserve ou adapte ses libellés et masquages. Aucun changement de schéma.
+
+* Vérifications
+
+La suite complète de 520 tests Django passe ; les six tests ciblés de mise à
+jour passent après ajout des cas de conservation et retrait des phrases.
+Les contrôles Django, migrations et Guide (42 fiches, 13 captures référencées)
+passent, ainsi que la préparation documentaire, la syntaxe du démarrage Render
+et git diff --check. L'application git am est vérifiée sur main avant livraison.
+Construction Hugo, vérification visuelle navigateur et PostgreSQL non exécutés
+ici : Hugo et navigateur local absents, aucune instance PostgreSQL disponible.
+La validation CI et l'essai Render restent nécessaires ; aucun serveur n'a été
+modifié depuis cet environnement.

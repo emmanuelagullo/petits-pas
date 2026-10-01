@@ -375,3 +375,13 @@ Aucun acquis n'est copié. Le démarrage Render utilise déjà cette commande ;
 il suffit de déployer le patch puis de recréer le jeu éphémère. Aucun serveur
 n'est modifié par la livraison du patch. Le parcours d'essai est publié sur
 la page de démonstration. #R8 reste le jalon des mises à jour de sources.
+
+* Adoption des mises à jour accessible — #R8
+
+Le parcours de choix de base présente désormais les différences détaillées
+entre deux versions d'une même source, les retraits et les adaptations
+conservées. La confirmation contrôle aussi les révisions des adaptations
+présentées. Les versions restent autorisées et adoptées explicitement ;
+aucune classe ne bascule lors d'un import ou d'un nouveau défaut proposé.
+Voir MISES-A-JOUR-REFERENTIELS.org et le Guide pratique. Les deux versions de
+la petite source fictive permettent l'essai sur la démonstration.

@@ -30,7 +30,8 @@ def choisir_base_classe(request, classe_pk):
                 if donnees["classe"] != classe.pk or donnees["auteur"] != request.user.pk:
                     raise ValidationError("Cet aperçu ne correspond pas à votre classe.")
                 adopter_base(utilisateur=request.user, classe=classe, version_id=donnees["version"],
-                    revisions_attendues=donnees["revisions"], adoption_attendue=donnees["adoption"])
+                    revisions_attendues=donnees["revisions"], adoption_attendue=donnees["adoption"],
+                    adaptations_attendues=donnees.get("adaptations"))
                 messages.success(request, "La base de la classe est choisie. Aucune réussite n'a été créée ou transférée.")
                 return redirect("classe_detail", pk=classe.pk)
             if request.POST.get("action") != "apercu":
@@ -41,7 +42,8 @@ def choisir_base_classe(request, classe_pk):
                 raise ValidationError("Choisissez une base autorisée.") from cause
             apercu = apercu_adoption(utilisateur=request.user, classe=classe, version_id=version_id)
             jeton = signing.dumps({"classe": classe.pk, "auteur": request.user.pk,
-                "version": version_id, "revisions": apercu["revisions"], "adoption": apercu["adoption_id"]}, salt="base-classe")
+                "version": version_id, "revisions": apercu["revisions"], "adoption": apercu["adoption_id"],
+                "adaptations": apercu["mise_a_jour"]["empreinte_adaptations"] if apercu["mise_a_jour"] else None}, salt="base-classe")
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     disponibles = {v.pk for v in choix.versions}
