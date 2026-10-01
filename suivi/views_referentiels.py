@@ -296,6 +296,7 @@ def consulter_referentiels(request, classe_pk=None):
     if mode not in ("source", "classe") or (mode == "classe" and not adoption):
         raise Http404
     lignes = lignes_consultation(version, adoption) if version else []
+    catalogue = [{cle: c.get(cle, "") for cle in ("libelle", "domaine", "groupe", "niveau", "code", "active")} for c in lignes]
     total = len(lignes)
     domaines = list(dict.fromkeys(c["domaine"] for c in lignes))
     recherche = request.GET.get("q", "").strip()[:300]
@@ -310,7 +311,7 @@ def consulter_referentiels(request, classe_pk=None):
     return render(request, "suivi/consulter_referentiels.html", {"classe": classe, "annee": annee,
         "versions": versions.values(), "version": version, "historique": historiques.get(version_id),
         "disponible": version_id in {v.pk for v in disponibles}, "lecture": mode,
-        "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
+        "catalogue": catalogue, "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
         "domaines": domaines, "domaine": domaine, "niveau": niveau})
 
 

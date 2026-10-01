@@ -129,3 +129,15 @@ mots, sans accents ni ordre imposé, et des erreurs limitées dans les mots long
 Les résultats exacts précèdent les rapprochements ; ceux-ci ne concernent que
 les libellés, ne créent aucune correspondance pédagogique et ne modifient aucun
 choix. Les filtres, droits, pagination et données restent inchangés.
+
+* #R9h — recherche instantanée dans la consultation
+
+Le catalogue de la seule base et présentation autorisées est transmis sous forme
+JSON échappée, limité aux libellés et métadonnées de classement. Aucun état
+individuel, observation, commentaire ou média n'y figure. Le navigateur filtre
+et classe cette liste pendant la saisie, sans requête, et affiche 60 résultats
+par page. Les textes sont insérés comme texte, jamais comme HTML.
+
+Changer de base ou de présentation source/classe passe toujours par le serveur
+et ses droits. Sans JavaScript, le formulaire et la pagination serveur restent
+utilisables. Les deux recherches ont les mêmes seuils de tolérance aux erreurs.
