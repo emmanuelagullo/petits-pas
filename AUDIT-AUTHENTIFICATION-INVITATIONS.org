@@ -137,7 +137,7 @@ AXES_FAILURE_LIMIT = int(os.environ.get("CARNET_CONNEXION_TENTATIVES_MAX", "5"))
 AXES_COOLOFF_TIME = timedelta(
     minutes=int(os.environ.get("CARNET_CONNEXION_BLOCAGE_MINUTES", "15"))
 )
-AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
+AXES_LOCKOUT_PARAMETERS = [["ip_address", "username"]]
 #+end_src
 
 Valeurs par défaut proposées :
@@ -259,3 +259,94 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
   autorisent l'envoi SMTP sortant, ou nécessitent une passerelle API
   (=django-anymail= gère les deux cas).
 - Choix définitif du fournisseur d'e-mail transactionnel.
+- Pas de changement de mot de passe en libre-service pour un compte
+  déjà connecté : =mon_compte.html= permet de modifier nom/e-mail,
+  mais pas le mot de passe. Le seul chemin est de se déconnecter puis
+  de passer par « mot de passe oublié ».
+- =AXES_LOCKOUT_PARAMETERS= dépend de =REMOTE_ADDR= ; derrière un
+  reverse-proxy sans configuration =AXES_IPWARE_*= adaptée, le
+  blocage porte de fait sur l'identifiant seul (déjà documenté dans
+  =DEPLOIEMENT.org=, rappelé ici pour mémoire).
+
+* 6. Bilan (28-29 septembre 2026)
+
+** 6.1 État d'avancement face à la feuille de route
+
+| Jalon                             | État                                                          |
+|------------------------------------+----------------------------------------------------------------|
+| #C1 Audit et feuille de route      | Fait (ce document)                                             |
+| #C2 Infrastructure e-mail          | Fait, puis affiné : =django-anymail= rendu facultatif           |
+| #C3 E-mail d'invitation            | Fait                                                            |
+| #C4 Mot de passe oublié            | Fait                                                            |
+| #C5 UX mot de passe                | Fait                                                            |
+| #C6 Anti-bruteforce et audit       | Fait (=django-axes=, seuils par déploiement, inactif en =MODE_LOCAL=) |
+| #C7 Bascule vers =LoginView=       | Abandonné, documenté au Jalon 6 ; remplacé par la conservation de l'identifiant après échec |
+| #C8 2FA                            | Reporté explicitement (décision du 25/09), à reprendre une fois #C définitivement stabilisé |
+| #C9 Cosmétique (invitations expirées) | Fait (=marquer_invitations_expirees=, à planifier)           |
+
+Un ajout hors feuille de route initiale : la **pré-attribution d'une
+fonction dès l'invitation** (§ 6.2), née d'un audit intermédiaire sur
+le blocage de connexion d'un compte fraîchement créé sans affectation.
+
+** 6.2 Pré-attribution — résumé pour ce document
+
+=AffectationClasse.appartenance= est devenue optionnelle ; une
+=AffectationClasse.invitation= facultative permet à la direction de
+préattribuer une fonction (classe + rôle) au moment de l'invitation,
+avant même que le compte existe. =est_active()= renvoie toujours
+=False= tant que =appartenance= est =None= : aucun accès réel n'est
+jamais accordé prématurément. À l'acceptation, la pré-attribution est
+promue automatiquement (=appartenance= renseignée), et la personne
+peut se connecter immédiatement.
+
+Affichée avec un badge « Invitation en cours » (couleur =--en-cours=,
+déjà dans la charte) dans la vue « classes » et sur la page
+Collaborateurs d'une classe ; annulable par la direction comme une
+affectation ordinaire, sans obligation de remplacement (elle ne compte
+de toute façon pas comme un responsable actif). Limites assumées :
+préattribution possible uniquement au moment de l'invitation (pas
+d'ajout après coup sur une invitation déjà en attente), absente de la
+vue « personnes », et =remplacer_responsable()= non étendu aux
+invitations.
+
+** 6.3 Captcha ou autre frein aux automatismes ?
+
+Revue des surfaces exposées sans authentification :
+
+- *Connexion* (=connexion()=, branche =compte_existant= de
+  l'acceptation d'invitation) : protégée par =django-axes= depuis le
+  Jalon 5. Un captcha n'apporterait rien de plus contre la devinette
+  de mot de passe.
+- *Lien d'invitation* : jeton à 256 bits d'entropie, jamais indexable
+  par force brute quel que soit le débit d'essais.
+- *Demande de réinitialisation de mot de passe*
+  (=mot_de_passe_oublie=) : =PasswordResetForm= ne révèle jamais si
+  l'adresse existe (comportement Django standard), donc pas de risque
+  d'énumération de comptes ; le risque était la nuisance (bombardement
+  d'e-mails vers une adresse qu'on ne possède pas). Traité par
+  =django-ratelimit= (§ 6.4), plutôt qu'un captcha ou que détourner
+  =django-axes=, conçu pour des tentatives d'authentification avec
+  succès/échec, pas un simple comptage de requêtes.
+- *Création de compte* : jamais publique, seulement via un jeton
+  d'invitation à haute entropie.
+
+Décision : pas de captcha, disproportionné pour une application
+d'école sans registre public et déjà protégée où ça compte
+(connexion) — et ça évite une dépendance à un service tiers
+(reCAPTCHA/hCaptcha), avec ses propres questions RGPD pour un usage en
+école.
+
+** 6.4 Limitation de fréquence sur la demande de réinitialisation
+
+=django-ratelimit= limite les requêtes =POST= vers
+=mot_de_passe_oublie= par adresse IP (=CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE=,
+=5/h= par défaut). Au-delà, un message dédié s'affiche plutôt que le
+formulaire, sans jamais bloquer la connexion elle-même (surface
+distincte de =django-axes=).
+
+Limite connue : le compteur utilise le cache Django par défaut, en
+mémoire locale du processus si =CARNET_CACHE_URL= n'est pas défini —
+donc par worker gunicorn, pas global au déploiement, sur une
+installation à plusieurs workers. Suffisant comme frein de nuisance,
+pas une garantie stricte multi-worker ; à revoir avec un cache partagé
+(Redis/memcached) si ça devient sensible.

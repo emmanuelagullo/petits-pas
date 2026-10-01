@@ -1,6 +1,7 @@
 # Dépendances de l'application autonome (sans PostgreSQL, S3 ni Gunicorn).
 Django>=5.2,<7
 dj-database-url>=2
+django-ratelimit>=4,<5
 PyYAML>=6
 Pillow>=10
 tzdata

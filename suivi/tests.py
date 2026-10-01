@@ -14,6 +14,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core import mail
+from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.management import call_command
@@ -911,6 +912,8 @@ class AntiBruteforce(Base):
 class ReinitialisationMotDePasse(Base):
     def setUp(self):
         super().setUp()
+        cache.clear()
+        self.addCleanup(cache.clear)
         self.enseignant.email = "oubli@example.test"
         self.enseignant.save(update_fields=["email"])
 
@@ -918,6 +921,17 @@ class ReinitialisationMotDePasse(Base):
         return self.client.post(
             reverse("mot_de_passe_oublie"), {"email": email}, follow=True
         )
+
+    @override_settings(RATELIMIT_MOT_DE_PASSE_OUBLIE="3/h")
+    def test_les_demandes_repetees_sont_limitees(self):
+        for _ in range(3):
+            self.demander_reinitialisation("inconnue@example.test")
+        mail.outbox.clear()
+
+        reponse = self.demander_reinitialisation("inconnue@example.test")
+
+        self.assertContains(reponse, "Trop de demandes")
+        self.assertEqual(len(mail.outbox), 0)
 
     def suivre_le_lien_de_l_email(self):
         message = mail.outbox[0]

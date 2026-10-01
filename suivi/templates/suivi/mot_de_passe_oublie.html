@@ -5,6 +5,11 @@
 {% if not email_disponible %}
 <p class="sous-titre">La réinitialisation par courriel n’est pas disponible sur cette installation.</p>
 <p>Contactez la direction de l’école pour retrouver l’accès à votre compte.</p>
+{% elif trop_de_demandes %}
+<div class="encadre">
+  <p>Trop de demandes de réinitialisation depuis cette adresse.</p>
+  <p class="aide">Réessayez un peu plus tard.</p>
+</div>
 {% else %}
 <p class="sous-titre">Indiquez l'adresse électronique associée à votre compte Petits Pas.</p>
 <form method="post" class="encadre">
