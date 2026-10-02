@@ -1,5 +1,5 @@
 #+title: Genèse
-#+description: Du besoin laissé par l'arrêt annoncé d'Iticarnet à la construction d'un bien commun.
+#+description: Du besoin laissé par l'arrêt annoncé d'Iticarnet à la construction de Petits Pas.
 
 Petits Pas est né à la suite de l'annonce de l'arrêt du support d'Iticarnet,
 utilisé par des équipes de maternelle pour constituer les carnets de suivi des
