@@ -11,16 +11,14 @@ partagé avec la famille.
 ## Pourquoi ce projet ?
 
 Le point de départ de Petits Pas est l'annonce de l'arrêt du support
-d'Iticarnet. Pour les équipes qui s'appuient sur cet outil, elle soulève une
-question très concrète : comment poursuivre cet usage lorsque le service ne
-peut plus évoluer ?
+d'Iticarnet qui a rendu de grands services à de nombreuses équipes
+pédagogiques.
 
-Cette situation n'efface en rien les services rendus par Iticarnet. Petits Pas
-ne présume ni de sa réussite ni de sa longévité. Le projet part simplement
-d'une hypothèse : publier librement le logiciel et documenter son déploiement
-peuvent faciliter sa reprise, son adaptation et son hébergement auprès du
-prestataire choisi par ses utilisateurs. [Lire la genèse du
-projet]({{< relref "/projet/genese/" >}}).
+Le projet Petits Pas part simplement d'une hypothèse : publier
+librement le logiciel et documenter son déploiement peuvent faciliter
+sa reprise, son adaptation et son hébergement auprès du prestataire
+choisi par ses utilisateurs. [Lire la genèse du projet]({{< relref
+"/projet/genese/" >}}).
 
 ## Partir des gestes de la classe
 
