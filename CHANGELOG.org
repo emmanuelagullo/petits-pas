@@ -17,6 +17,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Traces communes d'une classe avec sélection explicite des élèves,
   personnalisation individuelle sans duplication initiale de la photo,
   aperçu des commentaires et retour vers la fiche d'origine.
+- Changement de mot de passe en libre-service pour un compte connecté,
+  depuis « Mon compte » : ancien mot de passe exigé, tentatives plafonnées
+  par compte (=CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE=), autres sessions
+  invalidées.
 
 ** Changed
 

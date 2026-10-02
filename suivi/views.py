@@ -19,6 +19,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.core.management import call_command
 from django.contrib.auth import views as auth_views
+from django.contrib.messages.views import SuccessMessageMixin
 from django_ratelimit.core import is_ratelimited
 from django.conf import settings
 from django.contrib.staticfiles import finders
@@ -400,6 +401,34 @@ def mot_de_passe_oublie(request):
         ),
         success_url=reverse_lazy("mot_de_passe_oublie_envoye"),
     )(request)
+
+
+class _ChangementMotDePasseView(SuccessMessageMixin, auth_views.PasswordChangeView):
+    template_name = "suivi/mot_de_passe_changer.html"
+    success_url = reverse_lazy("mon_compte")
+    success_message = "Votre mot de passe a été modifié."
+
+
+@acces_requis
+def changer_mot_de_passe(request):
+    # PasswordChangeView renouvelle le hachage de session après le
+    # changement (update_session_auth_hash) : la personne reste connectée,
+    # mais ses autres sessions ouvertes sont invalidées.
+    if request.method == "POST" and is_ratelimited(
+        request,
+        group="changer_mot_de_passe",
+        key="user",
+        rate=settings.RATELIMIT_CHANGEMENT_MOT_DE_PASSE,
+        method="POST",
+        increment=True,
+    ):
+        return render(
+            request,
+            "suivi/mot_de_passe_changer.html",
+            {"trop_de_tentatives": True},
+            status=429,
+        )
+    return _ChangementMotDePasseView.as_view()(request)
 
 
 def deconnexion(request):

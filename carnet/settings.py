@@ -292,3 +292,10 @@ AXES_LOCKOUT_TEMPLATE = "suivi/connexion_bloquee.html"
 RATELIMIT_MOT_DE_PASSE_OUBLIE = os.environ.get(
     "CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE", "5/h"
 )
+# Changement de mot de passe d'un compte connecté : la vérification de
+# l'ancien mot de passe (check_password) ne passe pas par authenticate(),
+# donc django-axes ne la voit pas. Ce plafond, par compte, empêche une
+# session détournée de deviner l'ancien mot de passe sans frein.
+RATELIMIT_CHANGEMENT_MOT_DE_PASSE = os.environ.get(
+    "CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE", "10/h"
+)

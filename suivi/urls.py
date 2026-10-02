@@ -33,6 +33,11 @@ urlpatterns = [
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path("mon-compte/", views.mon_compte, name="mon_compte"),
     path(
+        "mon-compte/mot-de-passe/",
+        views.changer_mot_de_passe,
+        name="changer_mot_de_passe",
+    ),
+    path(
         "mot-de-passe/oublie/",
         views.mot_de_passe_oublie,
         name="mot_de_passe_oublie",
