@@ -1,0 +1,68 @@
+const CACHE = 'petits-pas-pwa-' + '__BUILD__';
+self.addEventListener('install', event => event.waitUntil((async () => {
+  const config = await (await fetch('/config.json', {cache: 'no-store'})).json();
+  const cache = await caches.open(CACHE);
+  await cache.put('/config.json', new Response(JSON.stringify(config), {headers: {'Content-Type': 'application/json'}}));
+  for (const asset of config.assets) {
+    const response = await fetch(asset.url, {cache: 'no-store'});
+    if (!response.ok) throw new Error('Fichier absent : ' + asset.url);
+    const bytes = await response.clone().arrayBuffer();
+    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
+    if (hash !== asset.sha256) throw new Error('Empreinte incorrecte : ' + asset.url);
+    await cache.put(asset.url, response);
+  }
+})()));
+self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
+function body64(buffer) {
+  const bytes = new Uint8Array(buffer); let binary = '';
+  for (let i = 0; i < bytes.length; i += 8192) binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
+  return btoa(binary);
+}
+async function local(request) {
+  const clients = await self.clients.matchAll({type: 'window', includeUncontrolled: false});
+  const owners = clients.filter(client => {
+    const url = new URL(client.url);
+    return url.origin === self.location.origin && ['/', '/index.html'].includes(url.pathname);
+  });
+  // Le shell possédant le verrou est le seul autorisé ; les onglets bloqués ne
+  // démarrent pas d'iframe. Demander à tous les shells n'est jamais acceptable.
+  let owner = null;
+  for (const client of owners) {
+    if (await hasRuntime(client)) { if (owner) throw new Error('Plusieurs propriétaires'); owner = client; }
+  }
+  if (!owner) return new Response('Ouvrez le prototype depuis sa page d’accueil.', {status: 503});
+  const channel = new MessageChannel();
+  const body = request.method === 'GET' || request.method === 'HEAD' ? '' : body64(await request.arrayBuffer());
+  return new Promise(resolve => {
+    const timeout = setTimeout(() => { channel.port1.close(); resolve(new Response('Délai dépassé ; résultat incertain.', {status: 503})); }, 120000);
+    channel.port1.onmessage = event => {
+      clearTimeout(timeout); channel.port1.close();
+      const r = event.data;
+      if (!r.ok) { resolve(new Response(r.error, {status: 507})); return; }
+      const bytes = Uint8Array.from(atob(r.body), c => c.charCodeAt(0));
+      resolve(new Response(request.method === 'HEAD' || [204, 304].includes(r.status) ? null : bytes, {status: r.status, headers: r.headers}));
+    };
+    owner.postMessage({kind: 'http', request: {url: request.url, method: request.method, headers: [...request.headers], body}}, [channel.port2]);
+  });
+}
+async function hasRuntime(client) {
+  return new Promise(resolve => {
+    const channel = new MessageChannel();
+    const timeout = setTimeout(() => {channel.port1.close(); resolve(false);}, 1000);
+    channel.port1.onmessage = event => {clearTimeout(timeout); channel.port1.close(); resolve(event.data === true);};
+    client.postMessage({kind: 'owner'}, [channel.port2]);
+  });
+}
+self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/app/')) {
+    event.respondWith(local(event.request).catch(() => new Response('Transport local interrompu.', {status: 503})));
+  } else {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      const response = await cache.match(url.pathname === '/' ? '/index.html' : url.pathname);
+      return response || new Response('Ressource absente du prototype hors ligne.', {status: 404});
+    })());
+  }
+});

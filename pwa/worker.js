@@ -1,0 +1,61 @@
+import {load, save} from './storage.js';
+let python, bridge, config, fatal = false, initialized = false;
+let queue = Promise.resolve();
+function call(name, ...args) {
+  const method = bridge[name];
+  try { return method(...args); } finally { method.destroy(); }
+}
+async function persist(failpoint = '') {
+  const proxy = call('snapshot');
+  try { return await save(proxy.toJs(), config.version, failpoint); }
+  finally { proxy.destroy(); }
+}
+async function process(message) {
+  if (fatal) throw new Error('Enregistrement interrompu. Fermez puis rouvrez le prototype pour retrouver le dernier état confirmé.');
+  if (message.kind === 'init') {
+    if (initialized) throw new Error('Runtime déjà initialisé');
+    config = await (await fetch('./config.json')).json();
+    const started = performance.now();
+    const restored = await load(config.version);
+    const {loadPyodide} = await import('./runtime/pyodide.mjs');
+    python = await loadPyodide({indexURL: new URL('./runtime/', location.href).href});
+    await python.loadPackage(['sqlite3', 'pillow', 'pyyaml', 'micropip', 'hashlib']);
+    // hashlib a pu être importé par Pyodide avant le chargement de _hashlib.
+    python.runPython('import hashlib, importlib; importlib.reload(hashlib)');
+    const micropip = python.pyimport('micropip');
+    try { await micropip.install(config.wheels.map(name => new URL('./wheels/' + name, location.href).href)); }
+    finally { micropip.destroy(); }
+    const app = new Uint8Array(await (await fetch('./application.zip')).arrayBuffer());
+    python.unpackArchive(app, 'zip', {extractDir: '/application'});
+    python.runPython("import sys; sys.path.insert(0, '/application')");
+    bridge = python.pyimport('pwa.bridge');
+    if (restored) call('restore', restored);
+    call('initialize', location.origin, config.version);
+    const durability = await persist();
+    initialized = true;
+    return {durationMs: performance.now() - started, restored: !!restored, durability};
+  }
+  if (!initialized) throw new Error('Runtime indisponible');
+  let result;
+  if (message.kind === 'http') {
+    const url = new URL(message.request.url);
+    if (url.origin !== location.origin || !url.pathname.startsWith('/app/')) throw new Error('Origine ou route refusée');
+    result = JSON.parse(call('handle', JSON.stringify(message.request)));
+  } else if (message.kind === 'test-python' && config.testMode) {
+    result = python.runPython(message.code);
+    if (result?.destroy) { result.destroy(); result = null; }
+  } else { throw new Error('Commande refusée'); }
+  try {
+    const durability = await persist(config.testMode ? (message.failpoint || '') : '');
+    return {result, durability};
+  } catch (error) { fatal = true; throw error; }
+}
+self.onmessage = event => {
+  const port = event.ports[0];
+  if (!port) return;
+  queue = queue.then(async () => {
+    try { port.postMessage({ok: true, value: await process(event.data)}); }
+    catch (error) { port.postMessage({ok: false, error: String(error.stack || error)}); }
+    finally { port.close(); }
+  });
+};
