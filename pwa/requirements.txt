@@ -1,0 +1,8 @@
+# Profil expérimental, distinct du lock serveur. CPython 3.13 / Pyodide 0.28.3.
+Django==6.1.1
+asgiref==3.12.1
+sqlparse==0.6.0
+dj-database-url==3.0.1
+django-ratelimit==4.1.0
+whitenoise==6.11.0
+tzdata==2025.2
