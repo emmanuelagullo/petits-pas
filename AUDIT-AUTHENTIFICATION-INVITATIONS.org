@@ -259,10 +259,6 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
   autorisent l'envoi SMTP sortant, ou nécessitent une passerelle API
   (=django-anymail= gère les deux cas).
 - Choix définitif du fournisseur d'e-mail transactionnel.
-- Pas de changement de mot de passe en libre-service pour un compte
-  déjà connecté : =mon_compte.html= permet de modifier nom/e-mail,
-  mais pas le mot de passe. Le seul chemin est de se déconnecter puis
-  de passer par « mot de passe oublié ».
 - =AXES_LOCKOUT_PARAMETERS= dépend de =REMOTE_ADDR= ; derrière un
   reverse-proxy sans configuration =AXES_IPWARE_*= adaptée, le
   blocage porte de fait sur l'identifiant seul (déjà documenté dans
@@ -283,6 +279,7 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
 | #C7 Bascule vers =LoginView=       | Abandonné, documenté au Jalon 6 ; remplacé par la conservation de l'identifiant après échec |
 | #C8 2FA                            | Reporté explicitement (décision du 25/09), à reprendre une fois #C définitivement stabilisé |
 | #C9 Cosmétique (invitations expirées) | Fait (=marquer_invitations_expirees=, à planifier)           |
+| #C10 Changement de mot de passe connecté | Fait (§ 6.5), hors feuille de route initiale          |
 
 Un ajout hors feuille de route initiale : la **pré-attribution d'une
 fonction dès l'invitation** (§ 6.2), née d'un audit intermédiaire sur
@@ -350,3 +347,23 @@ donc par worker gunicorn, pas global au déploiement, sur une
 installation à plusieurs workers. Suffisant comme frein de nuisance,
 pas une garantie stricte multi-worker ; à revoir avec un cache partagé
 (Redis/memcached) si ça devient sensible.
+
+** 6.5 Changement de mot de passe pour un compte connecté
+
+Page =mon-compte/mot-de-passe/= (=changer_mot_de_passe=), liée depuis
+=mon_compte.html=, protégée par =acces_requis=. Elle s'appuie sur
+=PasswordChangeView= de Django : ancien mot de passe exigé, mêmes
+validateurs que partout ailleurs (dont longueur minimale 12), bouton
+« afficher » du Jalon 4 appliqué automatiquement.
+
+Après un changement, la personne reste connectée sur son navigateur
+(=update_session_auth_hash=) ; ses autres sessions ouvertes sont
+invalidées, ce qui est le comportement voulu si le changement fait suite
+à un doute sur le compte.
+
+La vérification de l'ancien mot de passe passe par =check_password=, pas
+par =authenticate()= : =django-axes= ne la voit donc pas. Elle est
+plafonnée par compte avec =django-ratelimit=
+(=CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE=, =10/h= par défaut), avec la
+même limite de cache par worker que le § 6.4. Au-delà, une réponse 429
+affiche un message dédié, sans toucher à la connexion elle-même.

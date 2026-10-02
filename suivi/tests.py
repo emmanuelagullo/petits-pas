@@ -1017,6 +1017,105 @@ class ReinitialisationMotDePasse(Base):
         self.assertNotContains(reponse, "new_password1")
 
 
+class ChangementMotDePasse(Base):
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        self.addCleanup(cache.clear)
+        self.url = reverse("changer_mot_de_passe")
+
+    def changer(self, ancien="ens-mdp", nouveau="un-nouveau-mot-de-passe-solide",
+                confirmation=None):
+        return self.client.post(
+            self.url,
+            {
+                "old_password": ancien,
+                "new_password1": nouveau,
+                "new_password2": nouveau if confirmation is None else confirmation,
+            },
+            follow=True,
+        )
+
+    def test_la_page_est_reservee_aux_comptes_connectes(self):
+        reponse = self.client.get(self.url)
+        self.assertRedirects(reponse, reverse("connexion"))
+
+    def test_mon_compte_propose_le_lien(self):
+        self.entrer()
+        reponse = self.client.get(reverse("mon_compte"))
+        self.assertContains(reponse, self.url)
+
+    def test_le_mot_de_passe_est_change_et_la_session_conservee(self):
+        self.entrer()
+        reponse = self.changer()
+        self.assertContains(reponse, "Votre mot de passe a été modifié.")
+        self.assertEqual(
+            self.client.get(reverse("mon_compte")).status_code, 200
+        )
+
+        self.client.post(reverse("deconnexion"))
+        self.entrer(mdp="ens-mdp")
+        self.assertNotIn("_auth_user_id", self.client.session)
+        self.entrer(mdp="un-nouveau-mot-de-passe-solide")
+        self.assertEqual(
+            self.client.session["_auth_user_id"], str(self.enseignant.pk)
+        )
+
+    def test_un_ancien_mot_de_passe_incorrect_est_refuse(self):
+        self.entrer()
+        reponse = self.changer(ancien="n-importe-quoi")
+        self.assertNotContains(reponse, "Votre mot de passe a été modifié.")
+        self.enseignant.refresh_from_db()
+        self.assertTrue(self.enseignant.check_password("ens-mdp"))
+
+    def test_un_mot_de_passe_trop_court_est_refuse(self):
+        self.entrer()
+        self.changer(nouveau="court")
+        self.enseignant.refresh_from_db()
+        self.assertTrue(self.enseignant.check_password("ens-mdp"))
+
+    def test_une_confirmation_differente_est_refusee(self):
+        self.entrer()
+        self.changer(confirmation="un-autre-mot-de-passe-solide")
+        self.enseignant.refresh_from_db()
+        self.assertTrue(self.enseignant.check_password("ens-mdp"))
+
+    @override_settings(RATELIMIT_CHANGEMENT_MOT_DE_PASSE="3/h")
+    def test_les_tentatives_repetees_sont_limitees(self):
+        self.entrer()
+        for _ in range(3):
+            self.changer(ancien="n-importe-quoi")
+
+        # Même avec le bon ancien mot de passe, le plafond s'applique.
+        reponse = self.client.post(
+            self.url,
+            {
+                "old_password": "ens-mdp",
+                "new_password1": "un-nouveau-mot-de-passe-solide",
+                "new_password2": "un-nouveau-mot-de-passe-solide",
+            },
+        )
+
+        self.assertEqual(reponse.status_code, 429)
+        self.assertContains(reponse, "Trop de tentatives", status_code=429)
+        self.enseignant.refresh_from_db()
+        self.assertTrue(self.enseignant.check_password("ens-mdp"))
+
+    def test_les_autres_sessions_sont_invalidees(self):
+        autre = self.client_class()
+        autre.post(
+            reverse("connexion"),
+            {"nom_utilisateur": self.enseignant.username, "mot_de_passe": "ens-mdp"},
+        )
+        self.assertEqual(autre.get(reverse("mon_compte")).status_code, 200)
+
+        self.entrer()
+        self.changer()
+
+        reponse = autre.get(reverse("mon_compte"))
+        self.assertRedirects(reponse, reverse("connexion"))
+
+
 class Bascule(Base):
     def setUp(self):
         super().setUp()
