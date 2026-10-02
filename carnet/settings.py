@@ -245,6 +245,18 @@ ANYMAIL = {
     "BREVO_API_KEY": os.environ.get("CARNET_ANYMAIL_BREVO_CLE", ""),
 }
 
+# Adresse IP des clients derrière un reverse-proxy (voir DEPLOIEMENT.org).
+# 0 (défaut) : seule REMOTE_ADDR est lue, comportement inchangé. N > 0 :
+# l'application est derrière N proxys de confiance qui complètent chacun
+# X-Forwarded-For ; le client est alors la N-ième entrée en partant de la
+# droite (carnet/reseau.py). N doit être EXACTEMENT le nombre de proxys de
+# confiance : trop petit, on voit l'adresse d'un proxy (perte de finesse, sans
+# danger) ; trop grand, on lit une entrée que le client a pu forger en
+# préfixant l'en-tête (blocage contournable). À vérifier avec la procédure de
+# DEPLOIEMENT.org.
+PROXYS_DE_CONFIANCE = max(0, int(os.environ.get("CARNET_PROXYS_NB", "0")))
+AXES_CLIENT_IP_CALLABLE = "carnet.reseau.adresse_client"
+
 # --------------------------------------------------------------------------
 # Anti-bruteforce sur la connexion
 # --------------------------------------------------------------------------
@@ -285,10 +297,11 @@ AXES_LOCKOUT_TEMPLATE = "suivi/connexion_bloquee.html"
 # comble ce point précis, sans dépendre de django-axes conçu pour des
 # tentatives d'authentification, pas un simple comptage de requêtes.
 #
-# django-ratelimit utilise le cache Django par défaut : en mémoire locale du
-# processus si CARNET_CACHE_URL n'est pas défini (donc par worker gunicorn,
-# pas global au déploiement) ; suffisant pour un frein de nuisance, pas une
-# garantie stricte multi-worker.
+# django-ratelimit utilise le cache Django par défaut, ici la mémoire locale
+# du processus (aucun cache partagé n'est configurable aujourd'hui) : les
+# compteurs repartent de zéro au redémarrage et ne sont pas partagés entre
+# workers gunicorn (un seul par défaut). Suffisant pour un frein de nuisance,
+# pas une garantie stricte multi-worker.
 RATELIMIT_MOT_DE_PASSE_OUBLIE = os.environ.get(
     "CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE", "5/h"
 )

@@ -21,6 +21,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   depuis « Mon compte » : ancien mot de passe exigé, tentatives plafonnées
   par compte (=CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE=), autres sessions
   invalidées.
+- Variable =CARNET_PROXYS_NB= : adresse IP du client lue derrière N
+  reverse-proxys de confiance, pour le blocage après échecs de connexion, le
+  plafond du mot de passe oublié et les journaux (0 par défaut, comportement
+  inchangé). Procédure de vérification et prérequis pour un hébergeur ou une
+  DSI dans =DEPLOIEMENT.org=.
+- Le diagnostic de déploiement avertit, sans jamais échouer, d'une adresse IP
+  non résolue derrière un proxy et d'un expéditeur de courriel fictif.
 
 ** Changed
 
