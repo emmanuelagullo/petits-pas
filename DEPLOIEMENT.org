@@ -23,6 +23,51 @@ doivent permettre au minimum la création, la lecture et la suppression
 d’objets dans ce bucket. Aucun média ne doit être rendu public : Django génère
 des URL temporaires signées.
 
+* Prérequis pour un hébergeur ou une DSI
+
+Trois points demandent une décision ou une action de l’hébergeur avant une
+mise en service avec des données réelles d’école.
+
+** Envoi de courriel (invitations, mot de passe oublié)
+
+Il faut :
+
+- un relais SMTP (celui de l’hébergeur ou d’un prestataire transactionnel),
+  joignable en sortie depuis le serveur, typiquement port 587 avec STARTTLS ;
+- un domaine d’envoi dédié, avec *SPF*, *DKIM* et idéalement *DMARC*
+  configurés : sans cela, les invitations risquent d’être classées en
+  indésirables ou refusées, ce qui empêche les utilisateurs d’arriver ;
+- une adresse d’expéditeur de ce domaine, dans =CARNET_EMAIL_EXPEDITEUR=.
+  L’adresse fictive du modèle =.env.example= (=petits-pas.example=) ne doit pas
+  être conservée : le diagnostic de déploiement le signale.
+
+À défaut de courriel, le déploiement reste possible en mode explicitement sans
+courriel (=CARNET_EMAIL_DESACTIVE=oui=) : la direction transmet alors les
+liens d’invitation à la main et le « mot de passe oublié » est indisponible.
+
+** Reverse-proxy et adresse IP des clients
+
+L’application attend =X-Forwarded-Proto: https= du proxy. Elle utilise aussi
+l’adresse IP du client pour le blocage après échecs de connexion et pour la
+limitation des demandes de réinitialisation de mot de passe. Pour que ces
+protections fonctionnent par utilisateur, l’hébergeur doit indiquer :
+
+- le nombre de proxys entre Internet et l’application, chacun complétant
+  =X-Forwarded-For= avec l’adresse de son interlocuteur ;
+- que l’application n’est joignable *que* par ces proxys (jamais directement),
+  faute de quoi un client peut envoyer lui-même l’en-tête.
+
+Ce nombre est ensuite porté par =CARNET_PROXYS_NB= (voir plus bas).
+
+** Compteurs de limitation de fréquence
+
+Les compteurs sont gardés en mémoire du processus et repartent de zéro à
+chaque redémarrage. Les scripts de démarrage lancent Gunicorn avec un seul
+worker par défaut : le compteur est alors global au déploiement. Avec
+plusieurs workers (=WEB_CONCURRENCY= ou =--workers=), chacun compte de son
+côté. Aucun cache partagé n’est configurable aujourd’hui ; le blocage après
+échecs de connexion, lui, est enregistré en base et reste global.
+
 * Variables d’environnement
 
 ** Obligatoires
@@ -67,6 +112,13 @@ démarrage ne constitue pas un contrôle des sauvegardes.
 - =CARNET_S3_URL_EXPIRATION= : durée de validité des URL signées, en secondes
   (300 par défaut) ;
 - =PORT= : port d’écoute de Gunicorn (8000 par défaut).
+- =CARNET_PROXYS_NB= : nombre de reverse-proxys de confiance devant
+  l’application (0 par défaut) ; voir « Adresse IP des clients derrière un
+  reverse-proxy » ;
+- =CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE= (=5/h= par défaut) et
+  =CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE= (=10/h= par défaut) : plafonds
+  des demandes de réinitialisation (par adresse IP) et des changements de mot
+  de passe d’un compte connecté (par compte).
 
 * Construction et démarrage
 
@@ -164,14 +216,64 @@ immédiatement avec =python manage.py axes_reset=. Les tentatives sont visibles
 avec =python manage.py axes_list_attempts=, et chaque échec écrit une ligne
 dans les journaux du serveur (jamais le mot de passe).
 
-*Limite connue derrière un reverse-proxy.* Par prudence, axes ne lit que
-=REMOTE_ADDR= : un client ne peut pas usurper son adresse avec un en-tête
-=X-Forwarded-For=. Derrière un proxy, =REMOTE_ADDR= est celle du proxy : le
-blocage porte alors en pratique sur l'identifiant seul, ce qui reste efficace
-contre la devinette de mots de passe mais permet à un tiers de bloquer
-temporairement un compte ciblé. Un hébergeur qui fournit une chaîne
-=X-Forwarded-For= fiable peut être pris en compte via =AXES_IPWARE_PROXY_COUNT=
-et =AXES_IPWARE_META_PRECEDENCE_ORDER=, à valider sur l'hébergeur concerné.
+** Adresse IP des clients derrière un reverse-proxy
+
+Par défaut (=CARNET_PROXYS_NB=0=), l’application ne lit que l’adresse directe de
+la connexion (=REMOTE_ADDR=), et un client ne peut donc pas l’usurper avec un
+en-tête =X-Forwarded-For=. Derrière un reverse-proxy, cette adresse est celle
+du proxy, avec deux conséquences :
+
+- le blocage après échecs de connexion porte en pratique sur l’identifiant
+  seul : cela reste efficace contre la devinette de mots de passe, mais permet
+  à un tiers de bloquer temporairement un compte ciblé, y compris celui de la
+  direction, en multipliant les échecs ;
+- le plafond des demandes de « mot de passe oublié » est commun à tous les
+  visiteurs : quelques demandes suffisent à l’épuiser pour tout le monde.
+
+Le diagnostic de déploiement le signale par un avertissement (jamais une
+erreur) lorsque HTTPS est forcé et que la variable vaut 0.
+
+Pour y remédier, définir =CARNET_PROXYS_NB=N=, où N est le nombre de proxys de
+confiance entre Internet et l’application. Le client est alors la N-ième
+entrée de =X-Forwarded-For= en partant de la droite ; les entrées à gauche,
+que le client peut forger, sont ignorées. Cette adresse est utilisée de façon
+cohérente par =django-axes=, par le plafond du mot de passe oublié et par la
+ligne « Échec de connexion … depuis … » des journaux.
+
+*N doit être exact.* Trop petit, l’application voit l’adresse d’un proxy
+(perte de finesse, sans danger). Trop grand, elle lit une entrée que le client
+a pu forger en préfixant l’en-tête : le blocage devient contournable. Une
+adresse qui n’est pas une adresse IP valide (par exemple avec un numéro de
+port ajouté par certains proxys) ou un en-tête plus court que N font retomber
+sur l’adresse directe.
+
+*Vérification, à refaire à chaque changement d’hébergeur ou de proxy :*
+
+1. définir =CARNET_PROXYS_NB= et redémarrer ;
+2. provoquer un échec de connexion depuis un poste dont on connaît l’adresse
+   publique, puis lire la ligne « Échec de connexion … depuis … » du journal :
+   elle doit afficher cette adresse, et non celle d’un proxy ;
+3. refaire l’essai en ajoutant à la requête un en-tête =X-Forwarded-For=
+   forgé : l’adresse forgée ne doit jamais apparaître dans le journal.
+
+* Points d’attention pour un déploiement déjà en service
+
+À vérifier sur toute instance déjà déployée avec des données réelles :
+
+- *Adresse IP des clients.* Derrière un reverse-proxy sans =CARNET_PROXYS_NB=,
+  un tiers peut bloquer un compte ciblé et épuiser pour tous le plafond du mot
+  de passe oublié (voir ci-dessus). Un compte bloqué se libère avec
+  =python manage.py axes_reset=.
+- *Expéditeur des courriels.* Une instance copiée depuis =.env.example= sans
+  changer =CARNET_EMAIL_EXPEDITEUR= envoie depuis un domaine fictif : les
+  invitations et les liens de réinitialisation sont refusés ou classés en
+  indésirables. Sans SPF/DKIM sur le vrai domaine, le risque est le même.
+- *Compteurs de limitation.* Ils repartent de zéro à chaque redémarrage et ne
+  sont pas partagés entre workers (voir plus haut).
+
+Aucun de ces points n’empêche l’application de démarrer ; ils sont signalés par
+=python manage.py diagnostiquer_deploiement=, sans jamais faire échouer
+=--exiger-persistant= ni les autres profils.
 
 * Sondes
 

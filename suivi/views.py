@@ -21,6 +21,7 @@ from django.core.management import call_command
 from django.contrib.auth import views as auth_views
 from django.contrib.messages.views import SuccessMessageMixin
 from django_ratelimit.core import is_ratelimited
+from carnet.reseau import adresse_client, cle_ip
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -211,7 +212,7 @@ def _tracer_echec_connexion(request, nom_utilisateur):
     logger.warning(
         "Échec de connexion pour %r depuis %s",
         nom_utilisateur,
-        request.META.get("REMOTE_ADDR", "?"),
+        adresse_client(request) or "?",
     )
 
 
@@ -385,7 +386,7 @@ def mot_de_passe_oublie(request):
     if request.method == "POST" and is_ratelimited(
         request,
         group="mot_de_passe_oublie",
-        key="ip",
+        key=cle_ip,
         rate=settings.RATELIMIT_MOT_DE_PASSE_OUBLIE,
         method="POST",
         increment=True,

@@ -148,6 +148,20 @@ class Command(BaseCommand):
         else:
             etat_email = "non configuré"
         self.stdout.write(f"- Courriel : {etat_email}")
+        if settings.EMAIL_DISPONIBLE and (
+            settings.EMAIL_BACKEND.endswith(".smtp.EmailBackend")
+            or settings.EMAIL_BACKEND.startswith("anymail.")
+        ) and "petits-pas.example" in settings.DEFAULT_FROM_EMAIL:
+            # Information, jamais une erreur (voir DEPLOIEMENT.org).
+            self.stdout.write(
+                self.style.WARNING(
+                    "  L'expéditeur est encore l'adresse fictive par défaut "
+                    "(petits-pas.example) : les serveurs de réception "
+                    "refuseront ou classeront en indésirables les courriels. "
+                    "Définir CARNET_EMAIL_EXPEDITEUR avec un domaine réel "
+                    "(SPF/DKIM)."
+                )
+            )
         if settings.ANTIBRUTEFORCE_ACTIF:
             minutes = int(settings.AXES_COOLOFF_TIME.total_seconds() // 60)
             etat_antibruteforce = (
@@ -157,6 +171,28 @@ class Command(BaseCommand):
         else:
             etat_antibruteforce = "inactif"
         self.stdout.write(f"- Anti-bruteforce à la connexion : {etat_antibruteforce}")
+        if settings.PROXYS_DE_CONFIANCE > 0:
+            self.stdout.write(
+                "- Adresse IP des clients : lue derrière "
+                f"{settings.PROXYS_DE_CONFIANCE} proxy(s) de confiance"
+            )
+        else:
+            self.stdout.write(
+                "- Adresse IP des clients : adresse directe (REMOTE_ADDR)"
+            )
+            if https_force:
+                # Information, jamais une erreur : un déploiement existant
+                # ne doit pas échouer à cause de ce point (voir DEPLOIEMENT.org).
+                self.stdout.write(
+                    self.style.WARNING(
+                        "  Si l'application est derrière un reverse-proxy, "
+                        "tous les clients paraissent avoir la même adresse : "
+                        "le blocage après échecs de connexion se réduit à "
+                        "l'identifiant seul et le plafond du mot de passe "
+                        "oublié devient commun à tous. Voir CARNET_PROXYS_NB "
+                        "dans DEPLOIEMENT.org."
+                    )
+                )
 
         erreurs = []
 

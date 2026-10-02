@@ -259,10 +259,13 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
   autorisent l'envoi SMTP sortant, ou nécessitent une passerelle API
   (=django-anymail= gère les deux cas).
 - Choix définitif du fournisseur d'e-mail transactionnel.
-- =AXES_LOCKOUT_PARAMETERS= dépend de =REMOTE_ADDR= ; derrière un
-  reverse-proxy sans configuration =AXES_IPWARE_*= adaptée, le
-  blocage porte de fait sur l'identifiant seul (déjà documenté dans
-  =DEPLOIEMENT.org=, rappelé ici pour mémoire).
+- Adresse IP des clients derrière un reverse-proxy : traitée par
+  =CARNET_PROXYS_NB= (§ 6.6), mais la valeur exacte reste à établir et à
+  vérifier avec chaque hébergeur réel, selon la procédure de
+  =DEPLOIEMENT.org=.
+- Cache partagé pour les compteurs de limitation de fréquence : non
+  configurable aujourd'hui (§ 6.4), à traiter seulement si un hébergeur
+  impose plusieurs workers.
 
 * 6. Bilan (28-29 septembre 2026)
 
@@ -280,6 +283,7 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
 | #C8 2FA                            | Reporté explicitement (décision du 25/09), à reprendre une fois #C définitivement stabilisé |
 | #C9 Cosmétique (invitations expirées) | Fait (=marquer_invitations_expirees=, à planifier)           |
 | #C10 Changement de mot de passe connecté | Fait (§ 6.5), hors feuille de route initiale          |
+| #C11 Adresse IP derrière un proxy  | Fait (§ 6.6), hors feuille de route initiale                   |
 
 Un ajout hors feuille de route initiale : la **pré-attribution d'une
 fonction dès l'invitation** (§ 6.2), née d'un audit intermédiaire sur
@@ -341,12 +345,16 @@ d'école sans registre public et déjà protégée où ça compte
 formulaire, sans jamais bloquer la connexion elle-même (surface
 distincte de =django-axes=).
 
-Limite connue : le compteur utilise le cache Django par défaut, en
-mémoire locale du processus si =CARNET_CACHE_URL= n'est pas défini —
-donc par worker gunicorn, pas global au déploiement, sur une
-installation à plusieurs workers. Suffisant comme frein de nuisance,
-pas une garantie stricte multi-worker ; à revoir avec un cache partagé
-(Redis/memcached) si ça devient sensible.
+Limite connue : le compteur utilise le cache Django par défaut, c'est-à-dire
+la mémoire locale du processus. Aucun cache partagé n'est configurable
+aujourd'hui (une variable =CARNET_CACHE_URL= a été mentionnée à tort dans une
+version antérieure de ce paragraphe ; elle n'existe pas). Les compteurs
+repartent de zéro au redémarrage et, avec plusieurs workers gunicorn, chacun
+compte de son côté ; les scripts de démarrage n'en lancent qu'un par défaut,
+auquel cas le compteur est global au déploiement. Suffisant comme frein de
+nuisance, pas une garantie stricte multi-worker. =django-ratelimit= n'officialise
+que memcached et Redis (le cache en base est déclaré non atomique) : une
+évolution demanderait une dépendance et un réglage de =CACHES=.
 
 ** 6.5 Changement de mot de passe pour un compte connecté
 
@@ -367,3 +375,28 @@ plafonnée par compte avec =django-ratelimit=
 (=CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE=, =10/h= par défaut), avec la
 même limite de cache par worker que le § 6.4. Au-delà, une réponse 429
 affiche un message dédié, sans toucher à la connexion elle-même.
+
+** 6.6 Adresse IP des clients derrière un reverse-proxy (#C11)
+
+Constat : =django-axes= (=AXES_LOCKOUT_PARAMETERS= sur adresse + identifiant)
+et le plafond du mot de passe oublié (=key="ip"= de =django-ratelimit=) ne
+lisaient que =REMOTE_ADDR=, soit l'adresse du proxy derrière tout hébergeur
+réel. Le blocage se réduisait alors à l'identifiant seul (un tiers pouvait
+bloquer un compte ciblé) et le plafond était commun à tous les visiteurs.
+
+Décision : une fonction unique, =carnet.reseau.adresse_client=, réglée par
+=CARNET_PROXYS_NB= (0 par défaut : comportement inchangé). Avec N proxys de
+confiance qui complètent chacun =X-Forwarded-For=, le client est la N-ième
+entrée en partant de la droite. Elle est branchée sur =django-axes=
+(=AXES_CLIENT_IP_CALLABLE=), sur le plafond du mot de passe oublié et sur la
+ligne de journal des échecs de connexion, de sorte que les trois voient la
+même adresse. Elle n'ajoute aucune dépendance (le module =ipware= n'est pas
+utilisé) et fonctionne aussi sans =django-axes= (installation autonome).
+
+Le réglage est dangereux s'il est trop grand : la N-ième entrée à partir de la
+droite sort alors de la zone ajoutée par les proxys et le client peut la
+forger. Il n'est donc jamais activé par défaut, documenté avec une procédure
+de vérification dans =DEPLOIEMENT.org=, et un test fige ce comportement. Le
+diagnostic de déploiement avertit (sans jamais échouer) lorsque HTTPS est forcé
+sans =CARNET_PROXYS_NB=, et lorsque l'expéditeur des courriels est l'adresse
+fictive par défaut.
