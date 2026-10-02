@@ -366,7 +366,7 @@ scenarios:
     etapes:
       - { action: classe, classe: pinsons }
       - { action: lien, nom: "Référentiel de la classe" }
-      - { action: titre, nom: "Choisir le référentiel de la classe" }
+      - { action: titre, nom: "Compétences de Les Pinsons — 2026-2027" }
     capture: referentiels/cycle1/pinsons.png
     titre: Les tableaux Chat d’école des Pinsons
     legende: La classe fictive utilise l’édition pilote Chat d’école 2026.1, dans les six domaines, sans EVAR.
