@@ -108,9 +108,14 @@ service du Jalon 2 chez un hébergeur donné.
 
 ** 3.3 Authentification à deux facteurs
 
-Activable pour la direction et pour l'ensemble du personnel, mais
-=non activée par défaut= en phase de prototype. Implémentation prévue
-au Jalon 7, sans blocage sur les jalons précédents.
+Décision révisée le 4 octobre 2026. L'interrupteur par compte envisagé
+d'abord est remplacé par une politique hiérarchique : le déployeur, puis
+l'école, rendent le 2FA obligatoire jusqu'à un rang de fonction, ou le
+désactivent à partir d'un rang ; entre les deux, il reste optionnel. Une
+obligation reçue du dessus ne se baisse pas, une désactivation reçue du
+dessus ne se rouvre pas, comme pour les choix de bases en =#R4=. Le détail
+des règles figure au § 6.7. Rien de cela n'est encore implémenté : le 2FA
+reste absent de l'application et n'est pas activé par défaut.
 
 ** 3.4 Lien d'invitation affiché une fois
 
@@ -240,10 +245,11 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
 
 ** Jalon 7 — #C8 2FA pour la direction et le personnel
 
-- =django-otp= + =qrcode=, activable par compte, non activée par
-  défaut en phase de prototype (§ 3.3).
-- Écran d'activation dans =equipe.html= ou un nouvel écran
-  « sécurité du compte ».
+Conception arrêtée le 4 octobre 2026 (§ 3.3 et § 6.7), livrée en
+sous-étapes : =#C8a= conception, =#C8b= politique et exigence effective,
+=#C8c= inscription TOTP et vérification à la connexion, =#C8d= codes de
+secours et réinitialisation, =#C8e= écrans de la direction, diagnostic et
+documentation de déploiement.
 
 ** Jalon 8 — #C9 Cosmétique
 
@@ -266,6 +272,10 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
 - Cache partagé pour les compteurs de limitation de fréquence : non
   configurable aujourd'hui (§ 6.4), à traiter seulement si un hébergeur
   impose plusieurs workers.
+- 2FA (§ 6.7) : compatibilité de =django-otp= avec la version de Django
+  verrouillée, et manière de chiffrer la clé du dispositif, à vérifier avant
+  =#C8c=. Sort de la clé d'une personne dont la fonction devient désactivée
+  (conservée inactive ou supprimée), à fixer à l'implémentation.
 
 * 6. Bilan (28-29 septembre 2026)
 
@@ -280,7 +290,7 @@ retaper, ce qui compte double une fois l'anti-bruteforce en place.
 | #C5 UX mot de passe                | Fait                                                            |
 | #C6 Anti-bruteforce et audit       | Fait (=django-axes=, seuils par déploiement, inactif en =MODE_LOCAL=) |
 | #C7 Bascule vers =LoginView=       | Abandonné, documenté au Jalon 6 ; remplacé par la conservation de l'identifiant après échec |
-| #C8 2FA                            | Reporté explicitement (décision du 25/09), à reprendre une fois #C définitivement stabilisé |
+| #C8 2FA                            | Conception arrêtée (#C8a, § 6.7) ; implémentation à venir (#C8b à #C8e), rien de livré côté application |
 | #C9 Cosmétique (invitations expirées) | Fait (=marquer_invitations_expirees=, à planifier)           |
 | #C10 Changement de mot de passe connecté | Fait (§ 6.5), hors feuille de route initiale          |
 | #C11 Adresse IP derrière un proxy  | Fait (§ 6.6), hors feuille de route initiale                   |
@@ -400,3 +410,113 @@ de vérification dans =DEPLOIEMENT.org=, et un test fige ce comportement. Le
 diagnostic de déploiement avertit (sans jamais échouer) lorsque HTTPS est forcé
 sans =CARNET_PROXYS_NB=, et lorsque l'expéditeur des courriels est l'adresse
 fictive par défaut.
+
+** 6.7 Conception du 2FA hiérarchique (#C8a, 4 octobre 2026)
+
+État : décisions arrêtées avec Emmanuel, *aucune n'est encore implémentée*.
+Les variables d'environnement citées ci-dessous n'existent pas encore et ne
+figurent donc ni dans =DEPLOIEMENT.org= ni dans =.env.example=.
+
+*** Périmètre et échelle
+
+Deux niveaux posent une politique : le déployeur (hébergeur ou DSI) et
+l'école. Il n'y a pas de niveau classe : le 2FA protège un compte, qui est
+indépendant de toute classe. Les populations forment une échelle ordonnée :
+
+| Rang | Population                                            |
+|------+-------------------------------------------------------|
+|    1 | direction                                             |
+|    2 | responsables de classe                                |
+|    3 | enseignants associés                                  |
+|    4 | contributeurs                                         |
+|    5 | personnes authentifiées sans fonction                 |
+
+*** Deux curseurs par niveau
+
+- /obligatoire jusqu'au rang n/ (0 : personne) : le 2FA est exigé pour les
+  rangs inférieurs ou égaux à n ;
+- /désactivé à partir du rang m/ (6 : jamais) : le 2FA est retiré pour les
+  rangs supérieurs ou égaux à m ;
+- entre les deux, il est optionnel ; on exige n < m à chaque niveau.
+
+Héritage : n effectif = max(n du dessus, n propre) et m effectif = min(m du
+dessus, m propre). Une école ne peut donc ni baisser une obligation du
+déployeur, ni rouvrir ce que le déployeur a désactivé. Elle peut durcir, ou
+désactiver là où rien n'est obligatoire au-dessus. L'interface refuse toute
+valeur qui violerait ces règles. =CARNET_MODE_LOCAL= équivaut à une
+désactivation du déployeur dès le rang 1.
+
+*** Comptes rattachés à plusieurs écoles
+
+Le rang se lit par école. L'obligation l'emporte : si une seule école
+l'exige pour le rang de la personne, le compte est obligé. La fonction n'est
+retirée que si toutes ses écoles la désactivent pour son rang. Une personne
+sans aucune appartenance active n'est soumise qu'à la politique du
+déployeur. L'exigence est toujours calculée à partir des rattachements et
+fonctions actifs, jamais stockée.
+
+*** Cycle de vie
+
+- Délai de grâce unique, fixé par le déployeur
+  (=CARNET_2FA_DELAI_GRACE_JOURS=, valeur par défaut de l'application
+  proposée : 14 jours, 0 pour une application immédiate, plafond proposé :
+  90). Il court à partir du premier accès où l'obligation est constatée, de
+  sorte que les vacances scolaires ne le consomment pas. Passé ce délai,
+  l'accès est bloqué jusqu'à l'inscription. L'école ne règle pas ce délai.
+- Un compte neuf créé par invitation et déjà soumis à l'obligation s'inscrit
+  dès sa création, sans délai de grâce.
+- Hors obligation, une personne déjà inscrite garde son 2FA et peut le
+  retirer elle-même, en présentant un code valide. Si sa fonction devient
+  désactivée, le second facteur n'est plus demandé.
+
+*** Mécanique
+
+- TOTP avec =django-otp= et =qrcode=, en dépendances facultatives (comme
+  =django-anymail=), absentes du paquet autonome.
+- Clé secrète stockée chiffrée, avec une clé dédiée au déploiement (pas
+  dérivée de =CARNET_SECRET_KEY=, dont la rotation casserait tous les
+  comptes), ce qui ajoute la dépendance =cryptography=, absente de
+  =requirements.lock= aujourd'hui.
+- Dix codes de secours à usage unique, conservés sous forme d'empreintes
+  seules (comme les jetons d'invitation), régénérables par la personne,
+  chaque usage journalisé.
+- Tolérance d'horloge de plus ou moins un pas de 30 secondes, un code déjà
+  accepté ne pouvant pas être rejoué.
+- Les saisies du code TOTP et des codes de secours ne passent pas par
+  =authenticate()= : =django-axes= ne les voit pas. Elles sont plafonnées par
+  compte avec =django-ratelimit=, l'adresse du client venant de
+  =carnet.reseau.adresse_client=.
+- « Mot de passe oublié » ne touche pas au second facteur : après une
+  réinitialisation, le code reste demandé. La branche « compte existant » de
+  l'acceptation d'invitation passe par le même contrôle.
+- Le diagnostic de déploiement avertit seulement (obligation configurée sans
+  clé de chiffrement ou sans les dépendances), sans jamais faire échouer un
+  profil existant.
+
+*** Politique : où elle vit
+
+Le déployeur la fixe par variables d'environnement à valeurs nommées (par
+exemple une obligation « direction » et une désactivation « contributeur »
+et en dessous), cohérentes avec les autres réglages du déployeur. La
+politique de l'école est en base, avec révision attendue et journalisation,
+modifiable par la direction, comme les choix de bases de =CHOIX-BASES-REFERENTIELS.org=.
+
+*** Récupération
+
+La direction réinitialise le 2FA des personnes dont le rang est strictement
+inférieur au sien, comparé au plus haut rang du compte toutes écoles
+confondues : une direction ne peut pas affaiblir un compte qui est aussi
+direction ailleurs. Dans les autres cas, y compris pour la direction,
+l'intervention est celle du déployeur, par commande. Une réinitialisation
+n'annule jamais l'obligation : la personne se réinscrit à sa connexion
+suivante.
+
+*** Sous-étapes
+
+| Étape | Contenu                                                                 |
+|-------+-------------------------------------------------------------------------|
+| #C8a  | Conception (ce paragraphe), sans code                                   |
+| #C8b  | Modèle de politique, exigence effective, tests, sans TOTP               |
+| #C8c  | Inscription TOTP, vérification à la connexion, clé chiffrée, délai de grâce |
+| #C8d  | Codes de secours et réinitialisation hiérarchique                       |
+| #C8e  | Écrans de la direction, diagnostic, =.env.example=, =DEPLOIEMENT.org=     |
