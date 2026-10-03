@@ -1,6 +1,12 @@
 const status = document.querySelector('#status');
 const frame = document.querySelector('#app');
 let worker, registration, ready = false;
+function showVolume(durability) {
+  if (!durability?.bytes) return;
+  const mib = durability.bytes / 1024**2;
+  document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 16 Mio.`
+    + (mib >= 13 ? ' Limite proche : téléchargez une sauvegarde et terminez cet essai.' : '');
+}
 function showUpdate() { document.querySelector('#update').hidden = !registration?.waiting; }
 function rpc(message) {
   return new Promise((resolve, reject) => {
@@ -22,6 +28,7 @@ navigator.serviceWorker.addEventListener('message', async event => {
   status.textContent = 'Enregistrement / lecture en cours…';
   try {
     const value = await rpc(event.data);
+    showVolume(value.durability);
     status.textContent = value.result.status >= 400
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
       : 'État enregistré sur cet appareil.';
@@ -88,8 +95,14 @@ try {
     worker = new Worker('./worker.js', {type: 'module'});
     const initial = await rpc({kind: 'init'});
     ready = true;
+    showVolume(initial.durability);
     const config = await (await fetch('./config.json')).json();
-    if (config.testMode) window.pwaTest = rpc;
+    if (config.testMode) {
+      window.pwaTest = rpc;
+      worker.addEventListener('message', event => {
+        if (event.data?.kind === 'test-checkpoint') window.pwaCheckpoint = event.data.phase;
+      });
+    }
     status.textContent = `Prêt en ${(initial.durationMs / 1000).toFixed(1)} s — ${initial.restored ? 'données retrouvées' : 'installation fictive à créer'}.`;
     frame.hidden = false;
     frame.src = '/app/';

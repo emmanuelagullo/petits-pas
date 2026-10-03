@@ -363,3 +363,15 @@ pwa-prototype:
     paths:
       - dist/pwa/
       - resultats-pwa.json
+
+# Qualification Linux à la demande : aucune école réelle ni bundle de test livré.
+pwa-qualification:
+  extends: pwa-prototype
+  script:
+    - python3 scripts/construire-pwa.py --test
+    - node scripts/qualifier-pwa.cjs
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - dist/qualification-pwa.json

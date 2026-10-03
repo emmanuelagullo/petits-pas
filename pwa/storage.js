@@ -64,12 +64,20 @@ export async function save(bytes, version, failpoint = '', preserve = false) {
     handle.truncate(bytes.length);
     handle.flush();
   } finally { handle.close(); }
+  if (failpoint === 'pause-before-activate') {
+    self.postMessage({kind: 'test-checkpoint', phase: 'before-activate'});
+    await new Promise(() => {});
+  }
   if (failpoint === 'before-activate') throw new Error('Interruption simulée avant activation');
   const hash = await digest(bytes);
   const recovery = current && (preserve || current.version !== version)
     ? {file: current.file, hash: current.hash, version: current.version}
     : current?.recovery || null;
   await activate({file, hash, version, previous: current?.file || null, recovery});
+  if (failpoint === 'pause-after-activate') {
+    self.postMessage({kind: 'test-checkpoint', phase: 'after-activate'});
+    await new Promise(() => {});
+  }
   // Garder actif + précédent. Les orphelins de panne sont nettoyés après succès.
   for await (const [name] of dir.entries()) {
     if (name !== file && name !== current?.file && name !== recovery?.file) await dir.removeEntry(name).catch(() => {});

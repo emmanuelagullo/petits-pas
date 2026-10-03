@@ -184,7 +184,8 @@ with (parent/'version-future.zip').open('wb') as sortie: creer_sauvegarde(paquet
   await frame.locator('[name="nom_utilisateur"]').waitFor(); await login(page);
   assert.equal(await python(page, "Ecole.objects.get().nom"), 'École fictive transférée');
   assert.equal(await python(page, "Trace.objects.get().photo.name"), media.photo);
-  pass('Restauration du ZIP autonome dans la PWA, reconnexion et photo conservée');
+  assert.equal(await python(page, "from pathlib import Path; len(list(Path('/').glob('.data-avant-restauration-*')))"), 0);
+  pass('Restauration du ZIP autonome dans la PWA, photo conservée et ancienne copie mémoire libérée');
   // Le retour vers la sauvegarde initiale utilise le même parcours enseignant.
   await prepareImport(archivePath);
   await frame.getByRole('button', {name: 'Confirmer la restauration', exact: true}).click();

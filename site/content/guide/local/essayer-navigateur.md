@@ -30,8 +30,10 @@ Reconnectez-vous avec un compte de la sauvegarde importée.
 
 Dans ce prototype, un ZIP téléchargé est limité à 20 Mio à l’import et son
 contenu à 64 Mio après décompression. Le stockage de travail reste limité à
-16 Mio compressés ; une erreur de stockage impose de fermer puis rouvrir
-l’application pour retrouver le dernier état enregistré.
+16 Mio compressés. Le bandeau affiche le volume du dernier état enregistré.
+À partir de 13 Mio, il conseille de télécharger une sauvegarde et de terminer
+l’essai. Une erreur de stockage impose de fermer puis rouvrir l’application
+pour retrouver le dernier état enregistré.
 
 ## Imprimer ou enregistrer un PDF
 
