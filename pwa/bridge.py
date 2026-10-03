@@ -1,5 +1,6 @@
 """Pont WSGI du prototype. Ne lance aucun serveur et garde CSRF/droits Django."""
 import base64
+import hashlib
 import io
 import json
 import os
@@ -18,6 +19,9 @@ DATA = Path("/data")
 COOKIES = {}
 APPLICATION = None
 PREVIOUS_PACKAGE = None
+MEDIA_INDEX = {}
+FULL_MEDIA_SCAN = True
+RESPONSE_BODY = b""
 
 
 def initialize(origin, version):
@@ -69,6 +73,67 @@ def restore(snapshot):
             target.write_bytes(archive.read(name))
 
 
+def restore_file(name, content):
+    """Fichiers vérifiés par OPFS ; pas de migration dans le Worker de secours."""
+    parts = Path(name).parts
+    if (name not in {"carnet.sqlite3", "secret-key"}
+            and not name.startswith("media/")) or name.startswith("/") or ".." in parts or "\\" in name:
+        raise ValueError("Chemin local invalide")
+    target = DATA / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(bytes(content))
+
+
+def describe(path):
+    content = path.read_bytes()
+    return {"hash": hashlib.sha256(content).hexdigest(), "size": len(content)}
+
+
+def inventory(force_scan=False):
+    """Base cohérente, sans ZIP ; ne relire que les médias écrits/supprimés.
+
+    Le SQLite sauvegardé est comparé même après un GET : sessions, audit et
+    écritures hors ORM sont ainsi couverts. La file JS reste exclusive.
+    """
+    global MEDIA_INDEX, FULL_MEDIA_SCAN
+    from pwa.media_storage import changed
+    if force_scan or FULL_MEDIA_SCAN:
+        MEDIA_INDEX = {p.relative_to(DATA).as_posix(): describe(p)
+                       for p in (DATA / "media").rglob("*") if p.is_file()}
+        FULL_MEDIA_SCAN = False
+    else:
+        for name in changed:
+            path = DATA / "media" / name
+            key = path.relative_to(DATA).as_posix()
+            if path.is_file():
+                MEDIA_INDEX[key] = describe(path)
+            else:
+                MEDIA_INDEX.pop(key, None)
+    changed.clear()
+    # Garder cette copie jusqu'au prochain inventaire, pour les transferts JS.
+    copy = DATA.parent / ".pwa-sqlite-copy"
+    copy.unlink(missing_ok=True)
+    with closing(sqlite3.connect(DATA / "carnet.sqlite3")) as source:
+        with closing(sqlite3.connect(copy)) as target:
+            source.backup(target)
+    files = {**MEDIA_INDEX, "carnet.sqlite3": describe(copy),
+             "secret-key": describe(DATA / "secret-key")}
+    from suivi.paquet_local import FORMAT, VERSION
+    # Même sérialisation et longueur de date que l'export public. Compter le
+    # manifeste, y compris les noms Unicode échappés, dans la limite d'import.
+    manifest_size = len(json.dumps({"format": FORMAT, "version": VERSION,
+        "created_at": "2000-01-01T00:00:00+00:00",
+        "files": {name: entry["hash"] for name, entry in files.items()}}).encode())
+    if manifest_size > 1024**2:
+        raise ValueError("Manifeste de sauvegarde trop volumineux.")
+    return json.dumps({"files": files, "bytes": sum(f["size"] for f in files.values()) + manifest_size})
+
+
+def file_bytes(name):
+    return ((DATA.parent / ".pwa-sqlite-copy") if name == "carnet.sqlite3"
+            else DATA / name).read_bytes()
+
+
 def validate_migrations(path):
     from django.db.migrations.loader import MigrationLoader
     if not path.exists():
@@ -103,7 +168,7 @@ def release_previous_package():
 
 
 def apply_pending_restore():
-    global PREVIOUS_PACKAGE
+    global PREVIOUS_PACKAGE, FULL_MEDIA_SCAN
     from django.conf import settings
     from django.core.management import call_command
     from django.db import connections
@@ -114,6 +179,7 @@ def apply_pending_restore():
     connections.close_all()
     # Le précédent OPFS reste actif tant que le worker n'a pas validé le nouveau.
     PREVIOUS_PACKAGE = paquet_local.appliquer_restauration(DATA, preparation)
+    FULL_MEDIA_SCAN = True
     validate_migrations(DATA / "carnet.sqlite3")
     settings.SECRET_KEY = (DATA / "secret-key").read_text()
     call_command("migrate", interactive=False, verbosity=0)
@@ -124,11 +190,18 @@ def apply_pending_restore():
     return True
 
 
-def handle(encoded):
+def response_bytes():
+    global RESPONSE_BODY
+    content, RESPONSE_BODY = RESPONSE_BODY, b""
+    return content
+
+
+def handle(encoded, raw_body=None):
+    global RESPONSE_BODY
     request = json.loads(encoded)
     url = urlsplit(request["url"])
     path = url.path.removeprefix("/app") or "/"
-    body = base64.b64decode(request["body"])
+    body = bytes(raw_body) if raw_body is not None else base64.b64decode(request["body"])
     environ = {
         "REQUEST_METHOD": request["method"], "PATH_INFO": path,
         "QUERY_STRING": url.query, "SCRIPT_NAME": "/app",
@@ -179,5 +252,6 @@ def handle(encoded):
         response["status"] = 302
         headers = [["Location", "/app/connexion/"], ["Cache-Control", "no-store"]]
         content = b""
-    response.update(headers=headers, body=base64.b64encode(content).decode(), restored=restored)
+    RESPONSE_BODY = content
+    response.update(headers=headers, restored=restored)
     return json.dumps(response)

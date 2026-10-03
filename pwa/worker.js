@@ -5,17 +5,17 @@ function call(name, ...args) {
   const method = bridge[name];
   try { return method(...args); } finally { method.destroy(); }
 }
-async function persist(failpoint = '', preserve = false) {
+async function persist(failpoint = '', preserve = false, force = false, scan = false) {
   const started = performance.now();
-  const proxy = call('snapshot');
+  const files = JSON.parse(call('inventory', scan));
   const snapshotMs = performance.now() - started;
-  try {
-    const result = await save(proxy.toJs(), config.version, failpoint, preserve);
-    // Le secours durable reste dans OPFS ; libérer la copie MEMFS remplacée.
-    call('release_previous_package');
-    return {...result, snapshotMs, persistMs: performance.now() - started};
-  }
-  finally { proxy.destroy(); }
+  const result = await save(files, name => {
+    const proxy = call('file_bytes', name);
+    try {return proxy.toJs();} finally {proxy.destroy();}
+  }, config.version, failpoint, preserve, force);
+  // Le secours durable reste dans OPFS ; libérer la copie MEMFS remplacée.
+  call('release_previous_package');
+  return {...result, snapshotMs, persistMs: performance.now() - started};
 }
 async function process(message) {
   if (fatal) throw new Error('Enregistrement interrompu. Fermez puis rouvrez le prototype pour retrouver le dernier état confirmé.');
@@ -37,13 +37,15 @@ async function process(message) {
     python.unpackArchive(app, 'zip', {extractDir: '/application'});
     python.runPython("import sys; sys.path.insert(0, '/application')");
     bridge = python.pyimport('pwa.bridge');
-    if (restored) call('restore', restored);
+    if (restored?.files) {
+      for (const [name, entry] of Object.entries(restored.files)) call('restore_file', name, await restored.read(entry));
+    } else if (restored) call('restore', restored);
     if (message.kind === 'recovery') {
       const proxy = call('snapshot');
       try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
     }
     call('initialize', location.origin, config.version);
-    const durability = await persist();
+    const durability = await persist('', false, true);
     initialized = true;
     return {durationMs: performance.now() - started, restored: !!restored, durability};
   }
@@ -53,20 +55,27 @@ async function process(message) {
   }
   let result;
   if (message.kind === 'checkpoint') {
-    try { return {durability: await persist()}; }
+    try { return {durability: await persist('', false, true)}; }
     catch (error) { fatal = true; throw error; }
   }
   if (message.kind === 'http') {
     const url = new URL(message.request.url);
     if (url.origin !== location.origin || !url.pathname.startsWith('/app/')) throw new Error('Origine ou route refusée');
-    try { result = JSON.parse(call('handle', JSON.stringify(message.request))); }
+    try {
+      const {body, ...metadata} = message.request;
+      const bytes = typeof body === 'string' ? Uint8Array.from(atob(body), c => c.charCodeAt(0)) : body;
+      result = JSON.parse(call('handle', JSON.stringify(metadata), bytes));
+      const proxy = call('response_bytes');
+      try {result.body = proxy.toJs();} finally {proxy.destroy();}
+    }
     catch (error) { fatal = true; throw error; }
   } else if (message.kind === 'test-python' && config.testMode) {
     result = python.runPython(message.code);
     if (result?.destroy) { result.destroy(); result = null; }
   } else { throw new Error('Commande refusée'); }
   try {
-    const durability = await persist(config.testMode ? (message.failpoint || '') : '', !!result?.restored);
+    const durability = await persist(config.testMode ? (message.failpoint || '') : '', !!result?.restored,
+      false, message.kind === 'test-python');
     return {result, durability};
   } catch (error) { fatal = true; throw error; }
 }
@@ -74,7 +83,11 @@ self.onmessage = event => {
   const port = event.ports[0];
   if (!port) return;
   queue = queue.then(async () => {
-    try { port.postMessage({ok: true, value: await process(event.data)}); }
+    try {
+      const value = await process(event.data);
+      const bytes = value.result?.body || value.bytes;
+      port.postMessage({ok: true, value}, bytes?.buffer ? [bytes.buffer] : []);
+    }
     catch (error) { port.postMessage({ok: false, error: String(error.stack || error)}); }
     finally { port.close(); }
   });

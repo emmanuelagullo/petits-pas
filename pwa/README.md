@@ -1,10 +1,10 @@
-# #PWA1 à #PWA4 : prototype navigateur
+# #PWA1 à #PWA6 : prototype navigateur
 
 Expérience réservée aux **données fictives**. Aucun profil serveur ou programme
-autonome n'est remplacé. #PWA3/#PWA4 prolongent le premier prototype de `main`
-(`925c9c6`). Ils proposent l'import/export commun, l'impression PDF et les
-mises à jour avec récupération ; appareils d'école et production restent à
-qualifier.
+autonome n'est remplacé. Le prototype propose l'import/export commun,
+l'impression PDF et les mises à jour avec récupération. #PWA6 remplace les
+ZIP de travail par une persistance incrémentale ; appareils d'école et
+production restent à qualifier.
 
 ## Essayer et mettre à jour le premier prototype
 
@@ -61,11 +61,51 @@ un profil partagé avec des personnes non autorisées. Les autorisations Django
 ne chiffrent pas les données OPFS et ne protègent pas contre un accès direct au
 profil ou du JavaScript exécuté sur la même origine.
 
-Limites du prototype : ZIP reçu ≤ 20 Mio, contenu décompressé ≤ 64 Mio,
-≤ 5 000 entrées, instantané de travail ≤ 16 Mio compressés. Tous les médias sont
-aussi en mémoire. Un import peut passer la validation ZIP mais dépasser la
-limite de persistance : il est alors refusé au moment de l'activation durable,
+Limites du prototype : envoi HTTP/multipart ≤ 70 Mio, contenu ZIP décompressé
+≤ 64 Mio, ≤ 5 000 entrées. L'état de travail est limité à 64 Mio avant
+compression, manifeste ZIP public compris. Les médias restent
+aussi en mémoire ; cette borne technique ne qualifie pas la RAM d'une tablette.
+La coque avertit dès 52 Mio. L'espace OPFS réel comprend aussi l'état précédent,
+le secours et les ressources, et peut dépasser 64 Mio. Un quota navigateur plus
+faible reste possible. Un import dépassant la persistance bloque le runtime,
 et l'ancien état reste actif. Ces limites ne sont pas des quotas de production.
+
+## Stockage incrémental (#PWA6)
+
+SQLite reste **natif Pyodide dans MEMFS**, avec `journal_mode=DELETE` : ce n'est
+pas SQLite WASM/OPFS utilisé directement par Django. Après chaque requête, une
+copie SQLite cohérente par `backup()` est comparée par SHA-256. La méthode HTTP
+ne décide pas si une sauvegarde est nécessaire. La session PWA conserve sa durée
+maximale de 12 heures mais ne prolonge plus son échéance à chaque lecture ; les
+cookies virtuels sont toujours perdus à la fermeture du Worker.
+
+Les écritures/suppressions des médias passent par `pwa.media_storage`, propre
+à ce profil, qui retient les noms modifiés. Leur empreinte est recalculée ; les
+médias inchangés ne sont ni relus ni recopiés à chaque consultation. Un inventaire
+complet est effectué au démarrage, après restauration et pour le protocole
+Python des tests. Les futurs traitements qui écriraient directement dans MEMFS
+hors du stockage Django devront aussi invalider cet inventaire.
+
+Les blobs et le manifeste sont immuables dans OPFS. Les blobs nouveaux sont
+écrits, `flush()` puis fermés ; le manifeste fait ensuite de même. Une transaction
+IndexedDB de durabilité `strict` active sa référence et son SHA-256. **Une seule
+activation réunit la base, la clé et tous les médias.** Sans différence de contenu,
+aucun fichier OPFS ni pointeur actif n'est réécrit. La base entière est encore
+recopiée lors d'une modification SQL ; elle n'est pas persistée page par page.
+Le transport HTTP local utilise des buffers binaires transférables, sans
+base64 ni corps HTTP dans le JSON des métadonnées.
+
+La réouverture vérifie manifeste et empreinte de chaque blob avant toute
+migration. Elle refuse un fichier absent/altéré sans créer une école vide.
+Actif, précédent et secours peuvent partager des blobs ; le nettoyage garde
+l'union de leurs références et supprime les orphelins après activation réussie.
+Un nettoyage raté n'annule pas une saisie déjà enregistrée.
+
+Les ZIP #PWA1–#PWA5 restent lisibles. Leur conversion en format interne 2 est
+activée après migration et le ZIP d'avant version est conservé en secours.
+Exporter avant la mise à jour : un ancien exécutable ne lit pas ce nouveau
+format interne. Les sauvegardes exportées restent des ZIP du paquet autonome,
+produits à la demande par `suivi.paquet_local`, sans modification du format public.
 
 ## Impression et mises à jour (#PWA4)
 
@@ -104,7 +144,7 @@ python3 -m unittest discover -s scripts -p test_paquet_local.py
 
 `PWA_CHROMIUM=/chemin/chromium` choisit un navigateur installé.
 `PWA_OLD_BUNDLE=/chemin/ancien-bundle-test` ajoute le passage réel depuis
-#PWA1/#PWA2. Le script démarre son serveur statique et utilise un contexte
+#PWA1–#PWA5. Le script démarre son serveur statique et utilise un contexte
 navigateur temporaire, avec école, élève et image entièrement fictifs.
 Résultats : `dist/pwa/resultats-tests.json`. Les caches `--runtime DOSSIER`
 et `--wheels DOSSIER` évitent les téléchargements pendant la construction.
@@ -146,17 +186,17 @@ Ce ne sont pas des mesures sur tablette ou réseau d'école.
 arrêts SIGKILL ; voir [QUALIFICATION.md](QUALIFICATION.md). Il reste à qualifier
 Safari/Firefox/Android, l'installation PWA, l'impression interactive réelle,
 les grands carnets sur appareils d'école, un disque physiquement plein et la
-coupure électrique. La stratégie
-reste un instantané complet après chaque réponse, y compris lecture.
+coupure électrique. #PWA6 sauvegarde les fichiers modifiés après chaque
+réponse et active leur manifeste commun, sans ZIP intermédiaire.
 Web Lock et file exclusive du Worker sont indispensables ; seuls eux
 justifient `DJANGO_ALLOW_ASYNC_UNSAFE` dans ce profil Pyodide.
 
 Les versions Pyodide/Django/wheels et la maintenance de sécurité doivent être
 requalifiées avant production. Synchronisation, sauvegarde automatique hors
 appareil, chiffrement et travail concurrent restent hors périmètre. Ne pas
-considérer #PWA4 comme une validation de production sur données réelles.
+considérer #PWA6 comme une validation de production sur données réelles.
 
-## Vérifications de livraison
+## Vérifications de livraison #PWA3/#PWA4
 
 Le 3 octobre 2026 : 22 scénarios navigateur passent, dont une vraie migration
 SQL ajoutée à un bundle d'essai lors de la mise à jour. Le passage réel du
@@ -168,7 +208,7 @@ modèle n'est créée. Hugo, syntaxes et YAML CI ont été vérifiés.
 La suite Django complète et le job GitLab sur runner ne sont pas exécutés dans
 cette livraison. Le job manuel est à lancer après application du patch.
 
-## #PWA5 : volumes et interruptions
+## #PWA5/#PWA6 : volumes et interruptions
 
 ```sh
 python3 scripts/construire-pwa.py --test
@@ -178,21 +218,22 @@ node scripts/qualifier-pwa.cjs
 Ce banc Linux crée un profil Chromium persistant temporaire. Il ne termine
 que le groupe de processus Chromium qu'il a lui-même lancé. Le serveur reste
 actif pour préserver la même origine lors des reprises. École de 120 élèves,
-six classes, JPEG synthétique de 107 Kio : toutes les données sont fictives.
+six classes, jusqu’à 550 JPEG synthétiques distincts de 107 Kio : toutes les
+données sont fictives.
 Résultats : `dist/qualification-pwa.json`, hors du bundle distribuable.
 Le job manuel **pwa-qualification** publie ce rapport, y compris en cas d'échec,
 et ne publie pas le bundle de test. `PWA_CHROMIUM` sélectionne un exécutable.
 
 Le protocole `test-metrics` et les pauses avant/après activation ne sont
-accessibles qu'avec `--test`. La durée de création du ZIP et de persistance
-est aussi mesurée. Le tas WASM est une capacité allouée, pas une mesure de toute
+accessibles qu'avec `--test`. L'inventaire de l'état et la persistance sont
+mesurés, avec le nombre d'octets écrits par lecture (attendu : zéro). Le tas WASM est une capacité allouée, pas une mesure de toute
 la RAM ; la PSS Linux est indiquée seulement si `/proc` autorise sa lecture.
 Les mesures de lecture passent par le pont WSGI/Worker sans inclure le rendu
 visuel ni tous les échanges du Service Worker.
 
-La coque affiche le volume du dernier état confirmé et avertit à partir de
-13 Mio. Après restauration et confirmation OPFS/IndexedDB, la copie du paquet
-remplacé en mémoire est libérée ; le ZIP de secours OPFS reste conservé.
-La limite de 16 Mio n'est pas relevée. Le prochain chantier doit traiter le
-stockage des médias et le coût d'un ZIP complet par lecture, avant de viser
-un carnet annuel d'école sur tablette.
+Les essais imposent une erreur réelle de quota via Chromium et un SIGKILL
+avant/après activation, puis vérifient SQLite et le SHA-256 de chaque photo.
+Ils exportent et réimportent aussi un ZIP de 550 photos par le parcours commun.
+Après restauration et confirmation OPFS/IndexedDB, la copie du paquet remplacé
+en mémoire est libérée ; le secours OPFS reste conservé. Les résultats et
+limites de la livraison sont consignés dans `QUALIFICATION.md`.

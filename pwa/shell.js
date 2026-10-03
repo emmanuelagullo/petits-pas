@@ -4,8 +4,8 @@ let worker, registration, ready = false;
 function showVolume(durability) {
   if (!durability?.bytes) return;
   const mib = durability.bytes / 1024**2;
-  document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 16 Mio.`
-    + (mib >= 13 ? ' Limite proche : téléchargez une sauvegarde et terminez cet essai.' : '');
+  document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 64 Mio (avant compression).`
+    + (mib >= 52 ? ' Limite proche : téléchargez une sauvegarde et terminez cet essai.' : '');
 }
 function showUpdate() { document.querySelector('#update').hidden = !registration?.waiting; }
 function rpc(message) {
@@ -16,7 +16,7 @@ function rpc(message) {
       clearTimeout(timeout); channel.port1.close();
       event.data.ok ? resolve(event.data.value) : reject(new Error(event.data.error));
     };
-    worker.postMessage(message, [channel.port2]);
+    worker.postMessage(message, [channel.port2, ...(message.request?.body?.buffer ? [message.request.body.buffer] : [])]);
   });
 }
 navigator.serviceWorker.addEventListener('message', async event => {
@@ -32,7 +32,7 @@ navigator.serviceWorker.addEventListener('message', async event => {
     status.textContent = value.result.status >= 400
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
       : 'État enregistré sur cet appareil.';
-    port.postMessage({ok: true, ...value.result});
+    port.postMessage({ok: true, ...value.result}, value.result.body?.buffer ? [value.result.body.buffer] : []);
   } catch (error) {
     status.textContent = String(error.message);
     port.postMessage({ok: false, error: 'Opération interrompue. Fermez puis rouvrez le prototype ; ne répétez pas automatiquement cette saisie.'});
