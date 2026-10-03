@@ -5,7 +5,7 @@ const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const assert = require('node:assert/strict');
-const {spawn} = require('node:child_process');
+const {spawn, execFileSync} = require('node:child_process');
 const {createRequire} = require('node:module');
 const localRequire = createRequire(path.resolve(__dirname, '../pwa/package.json'));
 const {chromium} = process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES
@@ -81,14 +81,16 @@ async function sample(photos, mutation) {
   const storage = await page.evaluate(() => navigator.storage.estimate());
   const sorted = reads.map(r => r.totalMs).sort((a,b)=>a-b);
   const row = {photos, ...metrics, medianReadMs: sorted[2], maxReadMs: sorted[4],
-    medianSnapshotMs: reads.map(r=>r.snapshotMs).sort((a,b)=>a-b)[2],
-    archiveBytes: reads[4].bytes, mutationPersistMs: mutation?.durability.persistMs || null,
+    medianInventoryMs: reads.map(r=>r.snapshotMs).sort((a,b)=>a-b)[2],
+    readWrittenBytes: reads.map(r=>r.writtenBytes),
+    stateBytes: reads[4].bytes, mutationPersistMs: mutation?.durability.persistMs || null,
     browserPssBytes: browserPss(), originUsageBytes:storage.usage, originQuotaBytes:storage.quota};
+  assert(reads.every(r => !r.changed && r.writtenBytes === 0), 'Une lecture pure a réécrit OPFS');
   report.samples.push(row); console.log('MESURE', JSON.stringify(row));
 }
 async function integrity(photos, name) {
   const hashes = JSON.parse(await value("import hashlib, json; from suivi.models import Trace; json.dumps(sorted({hashlib.sha256(trace.photo.read()).hexdigest() for trace in Trace.objects.all()}))"));
-  assert.deepEqual(hashes, [report.jpegSha256], 'Photos perdues ou altérées après reprise');
+  assert.deepEqual(hashes, report.photoHashes, 'Photos perdues ou altérées après reprise');
   assert.equal(await value("from suivi.models import Trace; Trace.objects.count()"), photos);
   assert.equal(await value("from suivi.models import Ecole; Ecole.objects.get().nom"), name);
   assert.equal(await value("import sqlite3; db=sqlite3.connect('/data/carnet.sqlite3'); str((db.execute('PRAGMA quick_check').fetchone(), db.execute('PRAGMA foreign_key_check').fetchall()))"), "(('ok',), [])");
@@ -126,40 +128,101 @@ def ajouter_photos(total):
         scolarite=scolarites[i%120]
         observation,_=Observation.objects.get_or_create(eleve=scolarite.eleve,competence=competence)
         trace=Trace.objects.create(observation=observation,scolarite=scolarite,commentaire='Réalisation entièrement fictive.')
-        trace.photo.save(f'qualification-{i}.jpg',ContentFile(photo))
+        trace.photo.save(f'qualification-{i}.jpg',ContentFile(photo + str(i).encode()))
 `);
   report.jpegSha256 = await value("import hashlib; hashlib.sha256(photo).hexdigest()");
   pass('École fictive : 120 élèves, six classes, photographie synthétique reproductible');
   await sample(0);
-  for (const count of [30,90,140]) {const mutation=await rpc(`ajouter_photos(${count})`); await sample(count,mutation);}
+  for (const count of [30,90,140,300,550]) {const mutation=await rpc(`ajouter_photos(${count})`); await sample(count,mutation);}
+  report.photoHashes = JSON.parse(await value("import hashlib, json; json.dumps(sorted({hashlib.sha256(trace.photo.read()).hexdigest() for trace in Trace.objects.all()}))"));
+  assert.equal(report.photoHashes.length, 550);
   assert.equal(await page.evaluate(async () => (await fetch('/app/eleve/1/')).status), 200);
   await page.locator('#volume').filter({hasText: 'Limite proche'}).waitFor();
   pass('Volume confirmé et avertissement visibles à proximité de la limite');
-  await assert.rejects(rpc('ajouter_photos(180)'), /16 Mio/);
+  await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+  const downloadReady = page.waitForEvent('download', {timeout:120000});
+  await frame.getByRole('button', {name:'Télécharger une sauvegarde',exact:true}).click();
+  const download = await downloadReady;
+  const archive = await download.path();
+  report.exportBytes = fs.statSync(archive).size;
+  execFileSync('python3',['-c',`
+import sys,tempfile
+from pathlib import Path
+from suivi.paquet_local import preparer_restauration
+with tempfile.TemporaryDirectory() as folder:
+    with open(sys.argv[1],'rb') as source:
+        prepared=preparer_restauration(source,Path(folder),taille_max=64*1024**2,fichiers_max=5000)
+    assert prepared.nombre_medias==550
+`,archive]);
+  // Réimportation réelle : le multipart >20 Mio traverse bien le Service Worker.
+  // Chromium et le script sont locaux ; CDP sait ouvrir ce chemin directement.
+  // Playwright connectOverCDP limite sinon les transferts distants à 50 Mo.
+  const upload = await context.newCDPSession(page);
+  await upload.send('DOM.enable');
+  const nodes = await upload.send('DOM.getFlattenedDocument', {depth:-1,pierce:true});
+  const input = nodes.nodes.find(node => node.nodeName === 'INPUT'
+    && node.attributes?.some((attribute,index) => attribute === 'name' && node.attributes[index+1] === 'archive'));
+  assert(input, 'Champ de sauvegarde absent');
+  await upload.send('DOM.setFileInputFiles', {backendNodeId:input.backendNodeId, files:[archive]});
+  await upload.detach();
+  await frame.getByRole('button',{name:'Vérifier la sauvegarde',exact:true}).click();
+  await frame.getByRole('button',{name:'Confirmer la restauration',exact:true}).waitFor({timeout:120000});
+  await frame.getByRole('button',{name:'Confirmer la restauration',exact:true}).click();
+  await frame.locator('[name="nom_utilisateur"]').waitFor();
+  await integrity(550,'École fictive qualification');
+  report.afterTransfer = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
+  pass('ZIP de 550 photos validé par le paquet autonome, réimporté et confirmé dans la PWA');
+  await assert.rejects(rpc('ajouter_photos(650)'), /64 Mio/);
   await assert.rejects(rpc('Trace.objects.count()'), /Enregistrement interrompu/);
   killBrowser(); report.restartMs = await boot();
-  await integrity(140, 'École fictive qualification');
-  pass('Limite réelle de 16 Mio dépassée : runtime bloqué, reprise à 140 photos et intégrité SQLite');
+  await integrity(550, 'École fictive qualification');
+  pass('Limite réelle de 64 Mio dépassée : runtime bloqué, reprise à 550 photos et intégrité SQLite');
   // Quota imposé par Chromium, sans injection d'une exception dans l'application.
   const cdp = await context.newCDPSession(page);
   const quota = await cdp.send('Storage.getUsageAndQuota', {origin:url.slice(0,-1)});
   await cdp.send('Storage.overrideQuotaForOrigin', {origin:url.slice(0,-1),quotaSize:quota.usage+1024});
   await assert.rejects(rpc("from suivi.models import Ecole; Ecole.objects.update(nom='Quota fictif non confirmé')"), /Quota|quota|espace/i);
   await cdp.send('Storage.overrideQuotaForOrigin', {origin:url.slice(0,-1)});
-  killBrowser(); await boot(); await integrity(140,'École fictive qualification');
+  killBrowser(); await boot(); await integrity(550,'École fictive qualification');
   pass('Quota Chromium contraint : erreur réelle d’écriture et état précédent retrouvé');
   for (const [phase, expected] of [['before-activate','École fictive qualification'], ['after-activate','École fictive après activation']]) {
-    const pending = rpc("from suivi.models import Ecole; Ecole.objects.update(nom='École fictive après activation')", 'pause-'+phase).catch(()=>{});
+    const oldHash = await value("import hashlib; from suivi.models import Trace; hashlib.sha256(Trace.objects.order_by('pk').first().photo.read()).hexdigest()");
+    const nextHash = await value("hashlib.sha256(Trace.objects.order_by('pk').first().photo.read()+b'PWA6-interruption').hexdigest()");
+    const pending = rpc(`
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from suivi.models import Ecole, Trace
+trace=Trace.objects.order_by('pk').first()
+old_name=trace.photo.name
+payload=trace.photo.read()+b'PWA6-interruption'
+trace.photo.save('interruption-fictive.jpg',ContentFile(payload))
+default_storage.delete(old_name)
+Ecole.objects.update(nom='École fictive après activation')
+`, 'pause-'+phase).catch(()=>{});
     await page.waitForFunction(expected => window.pwaCheckpoint === expected, phase, {timeout:120000});
-    killBrowser(); await pending; await boot(); await integrity(140,expected);
-    pass(`SIGKILL avant réponse, ${phase} : état attendu et intégrité retrouvés`);
+    killBrowser(); await pending; await boot();
+    if (phase === 'after-activate') report.photoHashes = report.photoHashes.filter(hash=>hash!==oldHash).concat(nextHash).sort();
+    await integrity(550,expected);
+    pass(`SIGKILL avant réponse, ${phase} : base et photo remplacée retrouvent ensemble l’état attendu`);
   }
+  report.afterRecovery = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
   const files = await page.evaluate(async () => {
     const dir=await (await navigator.storage.getDirectory()).getDirectoryHandle('petits-pas-prototype');
-    const names=[]; for await (const [name] of dir.entries()) names.push(name); return names.length;
+    const names=[]; for await (const [name] of dir.entries()) names.push(name);
+    const req=indexedDB.open('petits-pas-pwa-prototype-v1');
+    const db=await new Promise((resolve,reject)=>{req.onsuccess=()=>resolve(req.result); req.onerror=()=>reject(req.error);});
+    const get=db.transaction('state').objectStore('state').get('active');
+    const active=await new Promise((resolve,reject)=>{get.onsuccess=()=>resolve(get.result); get.onerror=()=>reject(get.error);}); db.close();
+    const keep=new Set();
+    for (const entry of [active,active.previous,active.recovery].filter(Boolean)) {
+      keep.add(entry.file);
+      const tree=JSON.parse(await (await (await dir.getFileHandle(entry.file)).getFile()).text());
+      for (const file of Object.values(tree.files)) keep.add(file.file);
+    }
+    return {names:names.sort(), keep:[...keep].sort()};
   });
-  assert(files<=3, 'Instantanés orphelins non nettoyés');
-  pass('Instantanés OPFS orphelins nettoyés après reprise');
+  assert.deepEqual(files.names, files.keep, 'Fichiers orphelins non nettoyés');
+  pass('Manifestes et blobs OPFS orphelins nettoyés après reprise');
   assert(!requests.some(route=>route.startsWith('/app/')));
   pass('Aucune requête métier reçue par le serveur statique');
 })().then(()=>{report.status='passed';}).catch(error=>{report.status='failed';report.error=String(error.stack||error);console.error(error);process.exitCode=1;}).finally(async()=>{

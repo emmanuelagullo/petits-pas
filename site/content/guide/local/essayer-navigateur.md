@@ -28,12 +28,14 @@ Vérifiez les détails, puis choisissez **Annuler** ou **Confirmer la
 restauration**. La confirmation remplace les données présentes sur cet appareil.
 Reconnectez-vous avec un compte de la sauvegarde importée.
 
-Dans ce prototype, un ZIP téléchargé est limité à 20 Mio à l’import et son
-contenu à 64 Mio après décompression. Le stockage de travail reste limité à
-16 Mio compressés. Le bandeau affiche le volume du dernier état enregistré.
-À partir de 13 Mio, il conseille de télécharger une sauvegarde et de terminer
+Dans ce prototype, le contenu d’une sauvegarde est limité à 64 Mio après
+décompression et son envoi à 70 Mio. Les données de travail sont également
+limitées à 64 Mio avant compression. Le bandeau affiche le volume du dernier
+état enregistré. À partir de 52 Mio, il conseille de télécharger une sauvegarde et de terminer
 l’essai. Une erreur de stockage impose de fermer puis rouvrir l’application
-pour retrouver le dernier état enregistré.
+pour retrouver le dernier état enregistré. Les consultations sans modification
+ne réécrivent plus les photos. Une nouvelle connexion peut être nécessaire
+après 12 heures ; elle est toujours nécessaire après fermeture puis réouverture.
 
 ## Imprimer ou enregistrer un PDF
 

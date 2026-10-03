@@ -92,7 +92,7 @@ async function login(page) {
     await boot(page, url); await login(page); frame = page.frameLocator('#app');
     assert.equal(await python(page, "import os; os.environ['CARNET_VERSION']"), expected);
     assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
-    pass('Passage réel du bundle #PWA1/#PWA2 au nouveau bundle après fermeture, base conservée');
+    pass('Passage réel de l’ancien bundle ZIP au stockage incrémental après fermeture, base conservée');
   }
 
   const ids = JSON.parse(await python(page, `
@@ -138,6 +138,15 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
   const photoResponse = await page.evaluate(async route => {const r=await fetch(route);return {status:r.status,bytes:(await r.arrayBuffer()).byteLength};}, `/app/media/trace/${media.id}/`);
   assert.equal(photoResponse.status, 200); assert(photoResponse.bytes > 20);
   pass('Upload multipart Pillow et média autorisé local');
+  const pureRead = await page.evaluate(async route => window.pwaTest({kind:'http',
+    request:{url:location.origin+route,method:'GET',headers:[],body:''}}), `/app/media/trace/${media.id}/`);
+  assert.equal(pureRead.result.status, 200);
+  assert.equal(pureRead.durability.changed, false);
+  assert.equal(pureRead.durability.writtenBytes, 0);
+  const sqlOnly = await page.evaluate(() => window.pwaTest({kind:'test-python',
+    code:"from suivi.models import Ecole; Ecole.objects.update(commune='Commune fictive modifiée')"}));
+  assert.equal(sqlOnly.durability.writtenFiles, 1, 'Une écriture SQL a recopié les médias');
+  pass('Lecture du média sans écriture OPFS ; modification SQL sans recopie des médias');
   await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
   const downloadReady = page.waitForEvent('download');
   await page.frameLocator('#app').getByRole('button', {name: 'Télécharger une sauvegarde', exact: true}).click();
