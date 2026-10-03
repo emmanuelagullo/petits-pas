@@ -155,6 +155,11 @@ essais. Reconstruire sans cette option après les tests. Le job manuel GitLab
 Il livre `dist/pwa/` et `resultats-pwa.json`, sans école ni secret local.
 Il ne publie pas le site automatiquement et n'interrompt pas Hugo/Django.
 
+Pour publier ensuite par un clic, le job **pwa-publication** de `main`
+déclenche le projet Pages dédié et réutilise l'artefact exact de ce pipeline.
+Voir [PUBLICATION.md](PUBLICATION.md) pour sa configuration initiale, le domaine
+unique et les étapes. Le site Hugo conserve sa publication actuelle.
+
 ## Déploiement statique pilote
 
 Servir le contenu de `dist/pwa` à la racine d'une **origine dédiée stable**, en
