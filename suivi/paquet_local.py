@@ -75,12 +75,14 @@ def creer_sauvegarde(paquet, destination):
             )
 
 
-def preparer_restauration(source, parent, nom_paquet="paquet-autonome"):
+def preparer_restauration(source, parent, nom_paquet="paquet-autonome", *,
+                         taille_max=TAILLE_MAX, fichiers_max=FICHIERS_MAX,
+                         migrations_connues=None):
     """Valider le ZIP avant de préparer un nouveau paquet sans toucher à l'ancien."""
     with ZipFile(source) as archive:
         entrees = archive.infolist()
         noms = [entree.filename for entree in entrees]
-        if len(noms) != len(set(noms)) or len(noms) > FICHIERS_MAX:
+        if len(noms) != len(set(noms)) or len(noms) > fichiers_max:
             raise ValueError("Archive trop volumineuse ou noms de fichiers répétés.")
         if "manifest.json" not in noms:
             raise ValueError("Manifeste du paquet absent.")
@@ -100,7 +102,7 @@ def preparer_restauration(source, parent, nom_paquet="paquet-autonome"):
             raise ValueError("Base ou clé absente de la sauvegarde.")
         if set(noms) != set(attendus) | {"manifest.json"}:
             raise ValueError("Le contenu ne correspond pas au manifeste.")
-        if sum(e.file_size for e in entrees) > TAILLE_MAX:
+        if sum(e.file_size for e in entrees) > taille_max:
             raise ValueError("La sauvegarde dépasse la taille autorisée.")
 
         etape = Path(tempfile.mkdtemp(prefix=".restauration-", dir=parent))
@@ -135,6 +137,15 @@ def preparer_restauration(source, parent, nom_paquet="paquet-autonome"):
                     "SELECT 1 FROM sqlite_master WHERE name = 'django_migrations'"
                 ).fetchone():
                     raise ValueError("La base ne contient pas les migrations Django.")
+                if connexion.execute("PRAGMA foreign_key_check").fetchone():
+                    raise ValueError("Relations SQLite invalides.")
+                if migrations_connues is not None:
+                    appliquees = set(connexion.execute(
+                        "SELECT app, name FROM django_migrations"
+                    ).fetchall())
+                    if appliquees - set(migrations_connues):
+                        raise ValueError("Cette sauvegarde provient d'une version plus récente ou incompatible de Petits Pas.")
+
             (etape / "media").mkdir(exist_ok=True)
             (etape / "secret-key").chmod(0o600)
             ancien = parent / (

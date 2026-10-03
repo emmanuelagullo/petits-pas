@@ -1,9 +1,13 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Grille — {{ competence.libelle }}{% endblock %}
 {% block contenu %}
+{% if impression_pwa %}<section class="sans-impression encadre">
+  <p>Le carnet est prêt à imprimer. Dans la fenêtre d’impression, choisissez « Enregistrer au format PDF » si votre navigateur le propose. La mise en page peut différer du PDF du programme autonome.</p>
+  <button type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button>
+</section>{% endif %}
 <div class="actions sans-impression">
   <a class="bouton discret" href="{% url 'saisie_competence' classe.pk competence.pk %}">Retour à la saisie</a>
-  <a class="bouton" href="{% url 'grille_competence_pdf' classe.pk competence.pk %}">Télécharger le PDF</a>
+  <a class="bouton" href="{% url 'grille_competence_pdf' classe.pk competence.pk %}">{% if mode_pwa %}Préparer l’impression / PDF{% else %}Télécharger le PDF{% endif %}</a>
   <button class="bouton discret" type="button" onclick="window.print()">Imprimer</button>
 </div>
 

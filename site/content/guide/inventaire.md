@@ -205,3 +205,12 @@ Voir [adapter les libellés et masquer des compétences]({{< relref "/guide/elev
 Voir [ajouter ou reprendre une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
 
 Voir [relier deux compétences]({{< relref "/guide/eleves-classes/relier-competences" >}}).
+
+## Prototype dans le navigateur
+
+Le [prototype PWA]({{< relref "/guide/local/essayer-navigateur.md" >}}) propose
+l’export/import du ZIP autonome, la vérification avant confirmation, une
+impression PDF par le navigateur et des mises à jour avec état de récupération.
+Il reste **partiel**, réservé aux données fictives : limites de volume,
+mise en page groupée et appareils d’école restent à qualifier. Les procédures du
+programme autonome et du mode hébergé restent leurs références respectives.

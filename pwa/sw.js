@@ -32,7 +32,9 @@ async function local(request) {
   }
   if (!owner) return new Response('Ouvrez le prototype depuis sa page d’accueil.', {status: 503});
   const channel = new MessageChannel();
-  const body = request.method === 'GET' || request.method === 'HEAD' ? '' : body64(await request.arrayBuffer());
+  const raw = request.method === 'GET' || request.method === 'HEAD' ? new ArrayBuffer(0) : await request.arrayBuffer();
+  if (raw.byteLength > 20 * 1024**2) return new Response('Fichier trop volumineux pour ce prototype (20 Mio).', {status: 413});
+  const body = body64(raw);
   return new Promise(resolve => {
     const timeout = setTimeout(() => { channel.port1.close(); resolve(new Response('Délai dépassé ; résultat incertain.', {status: 503})); }, 120000);
     channel.port1.onmessage = event => {
@@ -65,4 +67,9 @@ self.addEventListener('fetch', event => {
       return response || new Response('Ressource absente du prototype hors ligne.', {status: 404});
     })());
   }
+});
+
+// Activation explicite après arrêt du runtime par la coque propriétaire.
+self.addEventListener('message', event => {
+  if (event.data?.kind === 'activate-update') event.waitUntil(self.skipWaiting());
 });

@@ -6,9 +6,10 @@
 {% if resultat %}
 <section class="encadre">
   <h2>Restauration terminée</h2>
+  {% if mode_pwa %}<p>La sauvegarde a été restaurée sur cet appareil. L’état précédent reste téléchargeable depuis « Exporter l’état de récupération ».</p>{% else %}
   <p>La sauvegarde <strong>{{ resultat.nom_archive }}</strong> du <strong>{{ date_resultat }}</strong> a été restaurée dans <code>{{ paquet }}</code>.</p>
   <p>La base, la clé et {{ resultat.nombre_medias }} fichier{{ resultat.nombre_medias|pluralize }} média ont été restaurés. L’ancien paquet, avec sa base et ses médias, est conservé dans le dossier <code>{{ resultat.ancien }}</code>. Ce dossier n’est pas une archive ZIP.</p>
-  <p>Restauration appliquée le {{ date_application }}.</p>
+  {% endif %}<p>Restauration appliquée le {{ date_application }}.</p>
   <form method="post">{% csrf_token %}<input type="hidden" name="action" value="accuser"><button class="bouton" type="submit">J’ai pris connaissance du résultat</button></form>
 </section>
 {% elif restauration_attente %}
@@ -42,10 +43,11 @@
 <section class="encadre">
   <h2>Confirmer la restauration</h2>
   <p>La sauvegarde <strong>{{ preparation.nom_archive }}</strong>, créée le <strong>{{ date_sauvegarde }}</strong>, a été vérifiée. Elle contient une base SQLite, une clé et {{ preparation.nombre_medias }} fichier{{ preparation.nombre_medias|pluralize }} média.</p>
+  {% if mode_pwa %}<p>Si vous confirmez, cette sauvegarde remplacera les données de l’école sur cet appareil. Vous devrez vous reconnecter avec un compte de la sauvegarde. L’état actuel restera téléchargeable depuis « Exporter l’état de récupération ».</p>{% else %}
   <p>Si vous confirmez, Petits Pas restaurera cette sauvegarde dans <code>{{ paquet }}</code> après la fermeture de la fenêtre. Le paquet actuel (base, médias et clé) sera conservé par renommage dans le dossier <code>{{ preparation.ancien }}</code>. Cette conservation automatique ne crée pas de ZIP.</p>
-  <p>Pour disposer aussi d’un ZIP de l’état actuel, téléchargez-le et conservez-le avant de confirmer. Cette sauvegarde supplémentaire est facultative.</p>
+  {% endif %}<p>Pour disposer aussi d’un ZIP de l’état actuel, téléchargez-le et conservez-le avant de confirmer. Cette sauvegarde supplémentaire est facultative.</p>
   <form method="post">{% csrf_token %}<input type="hidden" name="action" value="sauvegarder"><button type="submit">Télécharger un ZIP du paquet actuel</button></form>
-  <p>Après confirmation, les nouvelles modifications seront bloquées jusqu’à la fermeture de la fenêtre.</p>
+  {% if not mode_pwa %}<p>Après confirmation, les nouvelles modifications seront bloquées jusqu’à la fermeture de la fenêtre.</p>{% endif %}
   <div class="actions">
     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="confirmer"><button class="bouton" type="submit">Confirmer la restauration</button></form>
     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="annuler"><button type="submit">Annuler</button></form>
@@ -60,7 +62,7 @@
 </section>
 <section class="encadre">
   <h2>Restaurer une sauvegarde</h2>
-  <p>Le fichier est vérifié avant toute modification. Avant confirmation, vous pourrez également télécharger un ZIP de l’état actuel. Après restauration, Petits Pas conservera automatiquement l’ancien paquet sous forme de dossier.</p>
+  <p>Le fichier est vérifié avant toute modification. Avant confirmation, vous pourrez également télécharger un ZIP de l’état actuel. {% if mode_pwa %}Après restauration, un état de récupération restera conservé sur cet appareil.{% else %}Après restauration, Petits Pas conservera automatiquement l’ancien paquet sous forme de dossier.{% endif %}</p>
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}<input type="hidden" name="action" value="restaurer">
     <label for="archive">Fichier ZIP Petits Pas</label>

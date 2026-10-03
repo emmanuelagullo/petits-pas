@@ -70,7 +70,8 @@ def main():
             for path in sorted((ROOT / folder).rglob("*")):
                 if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
                     continue
-                if folder == "pwa" and path.name not in {"bridge.py", "settings.py"}:
+                if (folder == "pwa" and "templates" not in path.relative_to(ROOT / folder).parts
+                        and path.name not in {"bridge.py", "settings.py", "urls.py", "views.py"}):
                     continue
                 if path.name.startswith("tests") or path.suffix not in {".py", ".html", ".yaml", ".css", ".js", ".svg", ".png", ".jpg", ".json"}:
                     continue
@@ -82,6 +83,8 @@ def main():
     for folder in [ROOT / "referentiel/static", ROOT / "suivi/static"]:
         shutil.copytree(folder, output / "static", dirs_exist_ok=True)
     build = hashlib.sha256()
+    # Une version de test ne doit jamais partager le cache de la distribution.
+    build.update(b"test=1" if args.test else b"test=0")
     for path in sorted(output.rglob("*")):
         if path.is_file() and path.name not in {"sw.js", "config.json"}:
             build.update(path.relative_to(output).as_posix().encode())

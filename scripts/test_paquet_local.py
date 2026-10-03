@@ -250,6 +250,31 @@ class PaquetLocalTests(unittest.TestCase):
                         local.main()
             self.assertFalse(paquet.exists())
 
+    def test_limites_et_migrations_inconnues_avant_import(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            parent = Path(temporaire)
+            paquet = parent / "paquet"; paquet.mkdir()
+            (paquet / "media").mkdir()
+            (paquet / "secret-key").write_text("cle fictive")
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as db, db:
+                db.execute("CREATE TABLE django_migrations (app TEXT, name TEXT)")
+                db.execute("INSERT INTO django_migrations VALUES ('suivi', '0001_fictive')")
+            archive = parent / "copie.zip"
+            creer_sauvegarde(paquet, archive)
+            for options, message in [
+                ({"taille_max": 10}, "taille autorisée"),
+                ({"fichiers_max": 2}, "trop volumineuse"),
+                ({"migrations_connues": set()}, "version plus récente"),
+            ]:
+                with self.assertRaisesRegex(ValueError, message):
+                    preparer_restauration(archive, parent, **options)
+                self.assertFalse(list(parent.glob(".restauration-*")))
+                self.assertTrue((paquet / "carnet.sqlite3").exists())
+            preparation = preparer_restauration(
+                archive, parent, migrations_connues={("suivi", "0001_fictive")}
+            )
+            self.assertTrue(preparation.etape.is_dir())
+
     def test_sauvegarde_et_restauration_complete(self):
         with tempfile.TemporaryDirectory() as temporaire:
             racine = Path(temporaire)
