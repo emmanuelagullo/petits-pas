@@ -4,6 +4,7 @@ import io
 import json
 import os
 import secrets
+import shutil
 import sqlite3
 import sys
 import traceback
@@ -16,6 +17,7 @@ from zipfile import ZipFile
 DATA = Path("/data")
 COOKIES = {}
 APPLICATION = None
+PREVIOUS_PACKAGE = None
 
 
 def initialize(origin, version):
@@ -86,7 +88,22 @@ def snapshot():
     return output.getvalue()
 
 
+def metrics():
+    files = [p for p in (DATA / "media").rglob("*") if p.is_file()]
+    return json.dumps({"databaseBytes": (DATA / "carnet.sqlite3").stat().st_size,
+                       "mediaBytes": sum(p.stat().st_size for p in files),
+                       "mediaFiles": len(files)})
+
+
+def release_previous_package():
+    global PREVIOUS_PACKAGE
+    if PREVIOUS_PACKAGE is not None:
+        shutil.rmtree(PREVIOUS_PACKAGE, ignore_errors=True)
+        PREVIOUS_PACKAGE = None
+
+
 def apply_pending_restore():
+    global PREVIOUS_PACKAGE
     from django.conf import settings
     from django.core.management import call_command
     from django.db import connections
@@ -96,7 +113,7 @@ def apply_pending_restore():
         return False
     connections.close_all()
     # Le précédent OPFS reste actif tant que le worker n'a pas validé le nouveau.
-    paquet_local.appliquer_restauration(DATA, preparation)
+    PREVIOUS_PACKAGE = paquet_local.appliquer_restauration(DATA, preparation)
     validate_migrations(DATA / "carnet.sqlite3")
     settings.SECRET_KEY = (DATA / "secret-key").read_text()
     call_command("migrate", interactive=False, verbosity=0)

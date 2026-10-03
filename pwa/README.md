@@ -142,9 +142,11 @@ les droits testés, l'impression Chromium, les erreurs injectées, l'intégrité
 la relance hors ligne, les mises à jour et le secours après refus au démarrage.
 Ce ne sont pas des mesures sur tablette ou réseau d'école.
 
-Il reste à qualifier Safari/Firefox/Android, l'installation PWA, l'impression
-interactive réelle et les grands carnets (RAM/latence), un quota réellement
-épuisé, l'arrêt brutal du processus et la coupure électrique. La stratégie
+#PWA5 qualifie un scénario de volume, un quota Chromium contraint et des
+arrêts SIGKILL ; voir [QUALIFICATION.md](QUALIFICATION.md). Il reste à qualifier
+Safari/Firefox/Android, l'installation PWA, l'impression interactive réelle,
+les grands carnets sur appareils d'école, un disque physiquement plein et la
+coupure électrique. La stratégie
 reste un instantané complet après chaque réponse, y compris lecture.
 Web Lock et file exclusive du Worker sont indispensables ; seuls eux
 justifient `DJANGO_ALLOW_ASYNC_UNSAFE` dans ce profil Pyodide.
@@ -165,3 +167,32 @@ modèle n'est créée. Hugo, syntaxes et YAML CI ont été vérifiés.
 
 La suite Django complète et le job GitLab sur runner ne sont pas exécutés dans
 cette livraison. Le job manuel est à lancer après application du patch.
+
+## #PWA5 : volumes et interruptions
+
+```sh
+python3 scripts/construire-pwa.py --test
+node scripts/qualifier-pwa.cjs
+```
+
+Ce banc Linux crée un profil Chromium persistant temporaire. Il ne termine
+que le groupe de processus Chromium qu'il a lui-même lancé. Le serveur reste
+actif pour préserver la même origine lors des reprises. École de 120 élèves,
+six classes, JPEG synthétique de 107 Kio : toutes les données sont fictives.
+Résultats : `dist/qualification-pwa.json`, hors du bundle distribuable.
+Le job manuel **pwa-qualification** publie ce rapport, y compris en cas d'échec,
+et ne publie pas le bundle de test. `PWA_CHROMIUM` sélectionne un exécutable.
+
+Le protocole `test-metrics` et les pauses avant/après activation ne sont
+accessibles qu'avec `--test`. La durée de création du ZIP et de persistance
+est aussi mesurée. Le tas WASM est une capacité allouée, pas une mesure de toute
+la RAM ; la PSS Linux est indiquée seulement si `/proc` autorise sa lecture.
+Les mesures de lecture passent par le pont WSGI/Worker sans inclure le rendu
+visuel ni tous les échanges du Service Worker.
+
+La coque affiche le volume du dernier état confirmé et avertit à partir de
+13 Mio. Après restauration et confirmation OPFS/IndexedDB, la copie du paquet
+remplacé en mémoire est libérée ; le ZIP de secours OPFS reste conservé.
+La limite de 16 Mio n'est pas relevée. Le prochain chantier doit traiter le
+stockage des médias et le coût d'un ZIP complet par lecture, avant de viser
+un carnet annuel d'école sur tablette.

@@ -6,8 +6,15 @@ function call(name, ...args) {
   try { return method(...args); } finally { method.destroy(); }
 }
 async function persist(failpoint = '', preserve = false) {
+  const started = performance.now();
   const proxy = call('snapshot');
-  try { return await save(proxy.toJs(), config.version, failpoint, preserve); }
+  const snapshotMs = performance.now() - started;
+  try {
+    const result = await save(proxy.toJs(), config.version, failpoint, preserve);
+    // Le secours durable reste dans OPFS ; libérer la copie MEMFS remplacée.
+    call('release_previous_package');
+    return {...result, snapshotMs, persistMs: performance.now() - started};
+  }
   finally { proxy.destroy(); }
 }
 async function process(message) {
@@ -41,6 +48,9 @@ async function process(message) {
     return {durationMs: performance.now() - started, restored: !!restored, durability};
   }
   if (!initialized) throw new Error('Runtime indisponible');
+  if (message.kind === 'test-metrics' && config.testMode) {
+    return {result: {...JSON.parse(call('metrics')), wasmHeapBytes: python._module?.HEAP8?.byteLength || null}};
+  }
   let result;
   if (message.kind === 'checkpoint') {
     try { return {durability: await persist()}; }

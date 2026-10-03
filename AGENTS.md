@@ -52,6 +52,13 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   l'ordre des compétences entre saisies, réglages et carnets ; réutiliser cette
   logique plutôt que créer des tris concurrents.
 
+- Prototype navigateur : `pwa/README.md` décrit l'architecture et les parcours ;
+  `pwa/QUALIFICATION.md` consigne les essais et leurs limites. Les commandes
+  `scripts/verifier-pwa.cjs` et `scripts/qualifier-pwa.cjs` n'emploient que des
+  profils fictifs. Ne jamais distribuer un bundle construit avec `--test`.
+  Conserver les sauvegardes communes dans `suivi/paquet_local.py` et distinguer
+  les essais du prototype de la qualification sur appareils d'école.
+
 ## Travail dans le dépôt
 
 - Préserver les parcours existants et vérifier les droits d'accès quand une
