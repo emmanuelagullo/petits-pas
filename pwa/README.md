@@ -1,11 +1,14 @@
-# #PWA1 + #PWA2 : prototype navigateur
+# #PWA1 à #PWA4 : prototype navigateur
 
-Expérience isolée, réservée aux données fictives. Elle ne remplace aucun des
-profils serveur ou autonome. Base de départ : `main` au commit `647ae36`.
+Expérience réservée aux **données fictives**. Aucun profil serveur ou programme
+autonome n'est remplacé. #PWA3/#PWA4 prolongent le premier prototype de `main`
+(`925c9c6`). Ils proposent l'import/export commun, l'impression PDF et les
+mises à jour avec récupération ; appareils d'école et production restent à
+qualifier.
 
-## Essayer
+## Essayer et mettre à jour le premier prototype
 
-Python 3 avec pip et accès Internet sont nécessaires à la construction :
+Python 3 avec pip et Internet sont nécessaires à la construction :
 
 ```sh
 python3 scripts/construire-pwa.py
@@ -13,120 +16,152 @@ python3 -m http.server 8000 --directory dist/pwa
 ```
 
 Ouvrir **http://localhost:8000/** dans Chromium récent, dans un profil dédié.
-Le site doit occuper la racine d'une origine dédiée. En dehors de localhost,
-HTTPS est obligatoire. Tout le dossier `dist/pwa` peut être servi par un
-hébergement statique ; aucun serveur Python n'est nécessaire à l'utilisation.
-Le premier téléchargement exige Internet. Ensuite le navigateur conserve le
-runtime et les ressources. Une école créée ici appartient à ce profil et à
-cette origine, pas à l'ensemble de l'ordinateur.
+Le site doit occuper la racine d'une origine dédiée. Hors localhost, HTTPS est
+obligatoire. Le dossier `dist/pwa` est un site statique ; aucun serveur Python
+n'est nécessaire à l'utilisation. Après le premier téléchargement, les
+ressources et le runtime sont utilisables hors ligne.
 
-L'écran existant du mode autonome permet de créer l'école et son compte.
-Les mots de passe restent hachés par Django avec PBKDF2 ; CSRF et autorisations
-Django restent actifs. Il faut se reconnecter après fermeture/rechargement.
-Ne pas déplacer l'origine ni actualiser le bundle avec une école à conserver :
-la reprise entre versions n'est pas qualifiée et est refusée.
+Pour reprendre une installation #PWA1/#PWA2, conserver **la même adresse et le
+même port**, reconstruire, puis fermer tous les onglets de cette installation
+et la rouvrir. Le nouveau Service Worker reprend les instantanés précédents,
+même dépourvus de manifeste. Si l'ancienne page reste affichée après la prise
+en charge par le nouveau Service Worker, la recharger. Exporter auparavant un
+ZIP depuis la version actuelle. Ne jamais effacer les données du site pour
+mettre à jour une école à conserver.
 
-## Vérification reproductible
+L'école appartient au profil de navigateur et à l'origine. Se reconnecter
+après rechargement. Le stockage local n'est pas chiffré ; un ZIP comprend toutes
+les données de l'école et la clé. Le bouton de protection du stockage ne
+remplace pas une sauvegarde externe.
 
-Node.js et Chromium Playwright sont nécessaires :
+## Sauvegardes communes (#PWA3)
+
+La page existante **Gérer l'école → Sauvegardes locales** reste réservée à la
+direction. `suivi.paquet_local` fournit l'export et la vérification communs :
+SQLite cohérent par `backup()`, clé, médias, manifeste SHA-256, chemins sûrs,
+contrôle d'intégrité et de relations SQLite. La PWA ajoute des limites et la
+vérification des migrations connues, sans remplacer ce validateur.
+
+À l'import : vérifier le ZIP, consulter les détails, annuler ou confirmer.
+La confirmation ferme les connexions Django, active le paquet **en mémoire**,
+applique les migrations connues, efface les cookies virtuels et prépare un
+nouvel instantané. Le Worker attend ensuite l'écriture OPFS et l'activation du
+pointeur IndexedDB avant d'envoyer la redirection vers la connexion. Une erreur
+bloque le runtime ; le dernier OPFS confirmé reste la référence à la réouverture.
+Le remplacement en mémoire n'est pas une activation durable par renommage.
+
+L'instantané avant remplacement reste conservé à travers les requêtes
+suivantes. Il est remplacé au prochain import ou changement de version réussi.
+**Exporter l'état de récupération** produit lui aussi un ZIP autonome. En
+fonctionnement normal, ce bouton vérifie le droit de direction. Après échec du
+démarrage, il reste accessible sans authentification, dans un Worker séparé qui
+ne migre pas et n'écrit rien : c'est un accès de secours pour le propriétaire du
+profil, analogue à la lecture des fichiers du paquet bureau. Ne pas utiliser
+un profil partagé avec des personnes non autorisées. Les autorisations Django
+ne chiffrent pas les données OPFS et ne protègent pas contre un accès direct au
+profil ou du JavaScript exécuté sur la même origine.
+
+Limites du prototype : ZIP reçu ≤ 20 Mio, contenu décompressé ≤ 64 Mio,
+≤ 5 000 entrées, instantané de travail ≤ 16 Mio compressés. Tous les médias sont
+aussi en mémoire. Un import peut passer la validation ZIP mais dépasser la
+limite de persistance : il est alors refusé au moment de l'activation durable,
+et l'ancien état reste actif. Ces limites ne sont pas des quotas de production.
+
+## Impression et mises à jour (#PWA4)
+
+Les routes `.pdf` du carnet et de la grille réutilisent les contextes et droits
+métier communs, avec leurs URLs de photos autorisées. Elles servent une page
+HTML imprimable. **Préparer l'impression / PDF** puis **Imprimer / enregistrer
+en PDF** ouvre le dialogue du navigateur ; choisir l'option PDF si disponible.
+Ce n'est pas un téléchargement PDF calculé par Django/WeasyPrint.
+
+La préparation pour plusieurs enfants garde les choix communs et réunit les
+fragments du carnet dans un document à imprimer. Elle ne fabrique pas un ZIP
+de PDF individuels. Le fragment du carnet est partagé avec le rendu serveur
+et autonome ; WeasyPrint reste inchangé dans ces deux profils.
+
+**Vérifier les mises à jour** télécharge une nouvelle version en attente.
+**Appliquer la mise à jour** termine les requêtes en file, enregistre un état,
+arrête le Worker et active le Service Worker suivant. Une version en attente
+peut également s'activer après fermeture de tous les clients. Le nouveau
+runtime vérifie les migrations, migre sa copie en mémoire, puis persiste ;
+il conserve l'état avant version. Une base comportant des migrations inconnues
+est refusée avant migration, sans créer une école vide. Exporter le secours et
+le restaurer dans une version compatible ; aucun retour automatique vers un
+ancien exécutable ou une ancienne base n'est imposé.
+
+## Vérification et artefact CI
+
+Node.js, Chromium Playwright, Python et `pdftotext` (poppler-utils) sont nécessaires :
 
 ```sh
-npm install --prefix pwa
-npx --prefix pwa playwright install chromium
+npm install --prefix pwa --ignore-scripts
+node pwa/node_modules/playwright/cli.js install --with-deps chromium
 python3 scripts/construire-pwa.py --test
 node scripts/verifier-pwa.cjs
+python3 -m unittest discover -s scripts -p test_paquet_local.py
 ```
 
-`PWA_CHROMIUM=/chemin/chromium` permet d'utiliser un Chromium installé.
-Les caches facultatifs `--runtime DOSSIER` et `--wheels DOSSIER` évitent de
-retélécharger les dépendances à la construction. Le test crée son propre
-serveur statique et un contexte navigateur temporaire ; aucune donnée réelle
-n'est nécessaire. Résultats générés dans `dist/pwa/resultats-tests.json`.
+`PWA_CHROMIUM=/chemin/chromium` choisit un navigateur installé.
+`PWA_OLD_BUNDLE=/chemin/ancien-bundle-test` ajoute le passage réel depuis
+#PWA1/#PWA2. Le script démarre son serveur statique et utilise un contexte
+navigateur temporaire, avec école, élève et image entièrement fictifs.
+Résultats : `dist/pwa/resultats-tests.json`. Les caches `--runtime DOSSIER`
+et `--wheels DOSSIER` évitent les téléchargements pendant la construction.
 
-**Ne jamais publier une construction `--test`** : elle expose une commande
-Python arbitraire aux essais automatisés. Reconstruire sans cette option.
+**Ne jamais publier un bundle `--test`** : il expose l'exécution Python des
+essais. Reconstruire sans cette option après les tests. Le job manuel GitLab
+**pwa-prototype** effectue les essais puis reconstruit sans protocole de test.
+Il livre `dist/pwa/` et `resultats-pwa.json`, sans école ni secret local.
+Il ne publie pas le site automatiquement et n'interrompt pas Hugo/Django.
 
-## Ce qui est réalisé
+## Déploiement statique pilote
 
-- #PWA1 : CPython/Pyodide 0.28.3 et Django 6.1.1 dans un Worker dédié ;
-  vraies migrations, vues, templates et formulaires HTMX du dépôt.
-- Service Worker servant les ressources et transportant les requêtes `/app/`
-  par MessageChannel vers le shell propriétaire et son Worker WSGI. Le shell
-  reste ouvert autour d'une iframe pour que les navigations Django ne détruisent
-  pas le runtime. `SAMEORIGIN` remplace `DENY` seulement dans ce profil.
-- Cookies Django virtuels en mémoire dans Python ; le pont conserve le CSRF
-  pour HTMX. Le profil local existant fournit la gestion côté école.
-- SQLite de CPython en mémoire, avec `sqlite3.backup()` puis instantané ZIP
-  cohérent comprenant base, clé locale et médias. Pillow WASM traite les photos.
-- #PWA2 expérimental : écriture d'un nouvel instantané OPFS, `flush()` et
-  fermeture, puis activation du pointeur avec transaction IndexedDB de durabilité
-  stricte. La réponse utilisateur attend cette activation. L'ancien instantané
-  est conservé jusqu'au succès suivant. Une erreur d'enregistrement bloque le
-  runtime ; une réouverture reprend le dernier état confirmé.
-- Un Web Lock interdit deux runtimes concurrents. La file du Worker est
-  exclusive ; cela justifie ici `DJANGO_ALLOW_ASYNC_UNSAFE`, puisque Pyodide
-  fournit une boucle active même pour les appels synchrones. Ne pas supprimer
-  cette sérialisation ni réutiliser ce réglage dans le serveur standard.
-- Export ZIP par la fonction **commune du mode autonome** : base SQLite,
-  clé, médias et manifeste de sommes de contrôle. Restauration PWA bloquée.
+Servir le contenu de `dist/pwa` à la racine d'une **origine dédiée stable**, en
+HTTPS, avec types MIME corrects (`.js/.mjs` JavaScript, `.wasm`
+`application/wasm`). Pas de proxy `/app/` vers Django : le Service Worker
+intercepte ces routes. L'entrée utilisateur est toujours `/`.
 
-Cette approche n'est **pas** un branchement de SQLite WASM/OPFS sur l'ORM Django.
-Elle conserve le pilote SQLite natif de Pyodide et persiste des instantanés.
-Cela permet de tester le métier sans inventer un nouveau backend SQL.
+Publier un bundle complet d'un seul coup (répertoire versionné puis changement
+de la racine statique), avec `Cache-Control: no-cache` pour `sw.js` et
+`config.json`. Ne pas mélanger les fichiers de deux constructions. Le cache
+vérifie les SHA-256 du bundle à l'installation ; une installation incomplète
+n'active pas la nouvelle version. Conserver l'ancien dossier publié pour
+pouvoir réparer une publication, sans imposer un retour de données.
 
-## Limites et suites
+Le déploiement n'a pas besoin de COOP/COEP dans cette architecture. S3, SMTP,
+pywebview, serveur WSGI réseau et moteur PDF ne sont pas embarqués. Le site
+Hugo du projet, servi sous un sous-chemin, n'est pas la destination de ce bundle.
+Aucune URL pilote publique ni machine d'école n'est provisionnée par ce patch.
 
-La base et tous les médias résident aussi en mémoire. L'instantané est limité
-à 16 Mio compressés, et est refait après chaque requête, même une lecture
-(session/messages peuvent écrire). Ce choix privilégie la simplicité de
-l'expérience ; il n'est pas adapté à un gros carnet. Il faut mesurer RAM,
-latence de sauvegarde et volumes réalistes avant d'envisager un pilote OPFS
-plus fin ou des médias séparés avec protocole de validation cohérent.
+## Qualification restante
 
-Le cache est vérifié par SHA-256 à l'installation ; ceci détecte un bundle
-incohérent mais n'authentifie pas un hébergeur compromis. Le stockage local
-n'est pas chiffré. La protection demandée par le bouton du navigateur ne
-remplace pas une sauvegarde externe. Effacement du profil ou changement
-d'origine suppriment l'accès aux données.
+Les essais sont réalisés sur Chromium 138 headless/Linux et Playwright 1.62.1.
+Ils couvrent l'aller-retour ZIP natif, la confirmation/annulation, la photo,
+les droits testés, l'impression Chromium, les erreurs injectées, l'intégrité,
+la relance hors ligne, les mises à jour et le secours après refus au démarrage.
+Ce ne sont pas des mesures sur tablette ou réseau d'école.
 
-PDF, restauration, import entre versions, synchronisation et multi-onglet
-actif restent hors périmètre. Les liens de PDF renvoient 501 ; les POST de
-restauration sont refusés avant d'appeler les opérations de fichiers du mode
-bureau. Aucun accès S3 ni SMTP n'est nécessaire. Pywebview, serveur WSGI réseau
-et moteur PDF ne sont pas embarqués. Pyodide, wheels et versions Django doivent
-être requalifiés et maintenus avant production.
+Il reste à qualifier Safari/Firefox/Android, l'installation PWA, l'impression
+interactive réelle et les grands carnets (RAM/latence), un quota réellement
+épuisé, l'arrêt brutal du processus et la coupure électrique. La stratégie
+reste un instantané complet après chaque réponse, y compris lecture.
+Web Lock et file exclusive du Worker sont indispensables ; seuls eux
+justifient `DJANGO_ALLOW_ASYNC_UNSAFE` dans ce profil Pyodide.
 
-Le manifeste permet l'installation PWA selon le navigateur ; cette expérience
-n'a pas qualifié les parcours d'installation sur tablette. Pas de preuve de
-résistance à une coupure électrique : les essais injectent des erreurs au
-point de validation et ferment réellement la page. Safari, Firefox, Android,
-quota réel, gros médias et arrêt brutal du processus doivent être testés.
+Les versions Pyodide/Django/wheels et la maintenance de sécurité doivent être
+requalifiées avant production. Synchronisation, sauvegarde automatique hors
+appareil, chiffrement et travail concurrent restent hors périmètre. Ne pas
+considérer #PWA4 comme une validation de production sur données réelles.
 
-Suite proposée : #PWA2b, mesurer ces cas et le budget mémoire ; #PWA3, partager
-le format et la validation d'import avec le paquet autonome en remplaçant
-uniquement l'activation propre à chaque plateforme ; #PWA4, alternative PDF,
-protocole de mise à jour/récupération, essais sur appareils d'école et déploiement
-statique pilote. Ne pas promouvoir le prototype en utilisation réelle avant
-ces étapes.
+## Vérifications de livraison
 
-## Résultats obtenus le 2 octobre 2026
+Le 3 octobre 2026 : 22 scénarios navigateur passent, dont une vraie migration
+SQL ajoutée à un bundle d'essai lors de la mise à jour. Le passage réel du
+bundle #PWA1/#PWA2 au nouveau runtime a aussi été vérifié avec l'option
+`PWA_OLD_BUNDLE`. Les 18 tests du paquet autonome et 27 tests Django ciblés
+(installation, sauvegardes, carnets et grilles) passent ; aucune migration de
+modèle n'est créée. Hugo, syntaxes et YAML CI ont été vérifiés.
 
-Chromium 138 headless, Playwright 1.62.1, Linux, profil temporaire, données
-fictives : les 12 scénarios du script passent. Dernière exécution : premier
-chargement 17,1 s, relance hors ligne avec reconnexion 10,2 s. Les essais
-précédents donnaient 13–16 s au premier lancement. Ce ne sont pas des mesures
-sur un réseau ou une tablette d'école. Bundle : 23,2 Mio de fichiers avant
-compression HTTP, hors données locales.
-
-L'installation de l'école, un clic HTMX enregistrant une compétence, le refus
-CSRF, l'ajout d'une photo, son accès autorisé, l'export ZIP, le refus du deuxième
-onglet, la reprise hors ligne, les erreurs de validation et quota injectées,
-l'intégrité SQLite et la fermeture/réouverture sont vérifiés. Le serveur
-statique ne reçoit aucune requête `/app/` pendant ces parcours.
-
-Les 17 tests natifs du paquet autonome passent également ; aucune migration
-n'est créée (`makemigrations --check --dry-run`). Syntaxes Python/JS et patch
-vérifiés. La suite Django complète et Hugo ne sont pas exécutés : le changement
-est isolé dans le profil prototype et ne modifie ni modèles ni site public.
-La validation des autorisations reste limitée aux parcours du test, sans
-prétention de couvrir toute la matrice de droits.
+La suite Django complète et le job GitLab sur runner ne sont pas exécutés dans
+cette livraison. Le job manuel est à lancer après application du patch.

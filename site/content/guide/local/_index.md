@@ -16,6 +16,11 @@ de l’école sont conservées séparément du programme.
 - [Télécharger une sauvegarde du paquet]({{< relref "/guide/local/sauvegarder-paquet.md" >}}).
 - [Vérifier et restaurer une sauvegarde]({{< relref "/guide/local/restaurer-paquet.md" >}}).
 
+Un [prototype dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
+permet aussi des essais hors ligne, avec sauvegardes compatibles et impression
+PDF. Il reste réservé aux données fictives et n’est pas une installation de
+production.
+
 ## Où se trouvent les sauvegardes ?
 
 Une direction voit la même page **Gérer l’école** dans les deux modes. Seule

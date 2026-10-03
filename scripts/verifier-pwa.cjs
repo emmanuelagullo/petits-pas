@@ -11,11 +11,17 @@ const playwright = process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES
   ? require(path.join(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES, 'playwright')) : requirePwa('playwright');
 const types = {'.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm', '.css': 'text/css', '.svg': 'image/svg+xml'};
 const network = [];
+let published = null;
+let serverRoot = process.env.PWA_OLD_BUNDLE ? path.resolve(process.env.PWA_OLD_BUNDLE) : root;
 const server = http.createServer((req, res) => {
   const name = new URL(req.url, 'http://localhost').pathname;
   network.push(name);
-  const file = path.resolve(root, '.' + (name === '/' ? '/index.html' : name));
-  if (!file.startsWith(root + path.sep)) {res.writeHead(403).end(); return;}
+  if (published && ['/config.json', '/sw.js', '/application.zip'].includes(name)) {
+    res.setHeader('Content-Type', types[path.extname(name)] || 'application/octet-stream');
+    res.end(name === '/config.json' ? JSON.stringify(published.config) : name === '/sw.js' ? published.sw : published.application); return;
+  }
+  const file = path.resolve(serverRoot, '.' + (name === '/' ? '/index.html' : name));
+  if (!file.startsWith(serverRoot + path.sep)) {res.writeHead(403).end(); return;}
   try {
     res.setHeader('Content-Type', types[path.extname(file)] || 'application/octet-stream');
     res.end(fs.readFileSync(file));
@@ -41,7 +47,12 @@ async function login(page) {
   await frame.locator('[name="nom_utilisateur"]').fill('direction-fictive');
   await frame.locator('[name="mot_de_passe"]').fill('Test-fictif-PWA-2026!');
   await frame.getByRole('button', {name: 'Entrer', exact: true}).click();
-  await frame.locator('h1').filter({hasText: 'Les classes'}).waitFor({timeout: 30000});
+  await frame.locator('.bandeau .marque').waitFor({timeout: 30000});
+  const result = frame.getByRole('button', {name: 'J’ai pris connaissance du résultat'});
+  if (await result.count()) {
+    await result.click();
+    await frame.getByRole('heading', {name: "Gérer l'école", exact: true}).waitFor();
+  }
 }
 (async () => {
   assert(JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).testMode, 'Reconstruire avec --test');
@@ -51,20 +62,39 @@ async function login(page) {
     ...(process.env.PWA_CHROMIUM ? {executablePath: process.env.PWA_CHROMIUM} : {}),
     args: ['--no-sandbox', '--disable-dev-shm-usage']});
   const context = await browser.newContext({acceptDownloads: true});
-  const page = await context.newPage();
+  let page = await context.newPage();
   currentPage = page;
   page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') console.error('CONSOLE', message.text()); });
   page.on('pageerror', error => console.error('PAGE', error.message));
   const started = performance.now();
   await boot(page, url);
   pass('Django, migrations, pont SW/WSGI et installation', {coldMs: Math.round(performance.now() - started)});
-  const frame = page.frameLocator('#app');
+  let frame = page.frameLocator('#app');
   for (const [name, value] of Object.entries({ecole_nom: 'École fictive PWA', commune: 'Commune fictive', first_name: 'Nadia', last_name: 'Fictive', username: 'direction-fictive', password1: 'Test-fictif-PWA-2026!', password2: 'Test-fictif-PWA-2026!'})) {
     await frame.locator(`[name="${name}"]`).fill(value);
   }
   await frame.getByRole('button', {name: 'Créer l’école et mon compte'}).click();
   await frame.getByRole('heading', {name: "Gérer l'école", exact: true}).waitFor({timeout: 30000});
   pass('Formulaire installation, CSRF et session virtuelle');
+  if (process.env.PWA_OLD_BUNDLE) {
+    serverRoot = root;
+    const expected = JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).version;
+    await page.evaluate(async () => {const r=await navigator.serviceWorker.getRegistration(); await r.update();});
+    await page.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration()).waiting, null, {timeout: 120000});
+    let next;
+    for (const sw of context.serviceWorkers()) {
+      if ((await sw.evaluate(() => CACHE)).endsWith(expected)) next = sw;
+    }
+    assert(next, 'Nouveau Service Worker absent');
+    const activated = next.evaluate(() => new Promise(resolve => self.addEventListener('activate', () => resolve(true), {once:true})));
+    await page.close(); await activated;
+    page = await context.newPage(); currentPage = page;
+    await boot(page, url); await login(page); frame = page.frameLocator('#app');
+    assert.equal(await python(page, "import os; os.environ['CARNET_VERSION']"), expected);
+    assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
+    pass('Passage réel du bundle #PWA1/#PWA2 au nouveau bundle après fermeture, base conservée');
+  }
+
   const ids = JSON.parse(await python(page, `
 import json
 from suivi.models import Ecole, Classe, Eleve, Scolarite, Competence
@@ -116,6 +146,101 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
   const {execFileSync} = require('node:child_process');
   execFileSync('python3', ['-c', "import sys,zipfile,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); m=json.loads(z.read('manifest.json')); assert m['format']=='petits-pas-paquet'; assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items()); assert any(n.startswith('media/') for n in m['files'])", archivePath]);
   pass('Export ZIP commun au mode autonome, manifeste et photos vérifiés');
+  const transfer = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'petits-pas-transfert-'));
+  execFileSync('python3', ['-c', `
+from pathlib import Path
+import sqlite3, sys
+from suivi.paquet_local import preparer_restauration, appliquer_restauration, creer_sauvegarde
+parent = Path(sys.argv[2]); paquet = parent / 'paquet-autonome'; paquet.mkdir()
+with open(sys.argv[1], 'rb') as source:
+    preparation = preparer_restauration(source, parent, paquet.name)
+appliquer_restauration(paquet, preparation)
+with sqlite3.connect(paquet/'carnet.sqlite3') as db:
+    assert db.execute('SELECT commentaire FROM suivi_trace').fetchone()[0] == 'Réalisation entièrement fictive.'
+    db.execute("UPDATE suivi_ecole SET nom='École fictive transférée'")
+with (parent/'depuis-local.zip').open('wb') as sortie: creer_sauvegarde(paquet, sortie)
+with sqlite3.connect(paquet/'carnet.sqlite3') as db:
+    db.execute("INSERT INTO django_migrations(app,name,applied) VALUES ('suivi','9999_inconnue','2026-10-02')")
+with (parent/'version-future.zip').open('wb') as sortie: creer_sauvegarde(paquet, sortie)
+`, archivePath, transfer]);
+  pass('ZIP PWA restauré dans un paquet autonome natif puis réexporté');
+  async function prepareImport(file) {
+    await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+    await frame.locator('[name="archive"]').setInputFiles(file);
+    await frame.getByRole('button', {name: 'Vérifier la sauvegarde', exact: true}).click();
+  }
+  await prepareImport(path.join(transfer, 'version-future.zip'));
+  await frame.getByText(/Cette sauvegarde provient d'une version plus récente/).waitFor();
+  assert.equal(await python(page, "Ecole.objects.get().nom"), 'École fictive PWA');
+  pass('Version de base inconnue refusée avant confirmation, école actuelle conservée');
+  await prepareImport(path.join(transfer, 'depuis-local.zip'));
+  await frame.getByRole('heading', {name: 'Confirmer la restauration'}).waitFor();
+  await frame.getByRole('button', {name: 'Annuler', exact: true}).click();
+  await frame.getByRole('heading', {name: 'Restaurer une sauvegarde'}).waitFor();
+  assert.equal(await python(page, "Ecole.objects.get().nom"), 'École fictive PWA');
+  pass('Vérification et annulation sans remplacer les données');
+  await prepareImport(path.join(transfer, 'depuis-local.zip'));
+  await frame.getByRole('button', {name: 'Confirmer la restauration', exact: true}).click();
+  await frame.locator('[name="nom_utilisateur"]').waitFor(); await login(page);
+  assert.equal(await python(page, "Ecole.objects.get().nom"), 'École fictive transférée');
+  assert.equal(await python(page, "Trace.objects.get().photo.name"), media.photo);
+  pass('Restauration du ZIP autonome dans la PWA, reconnexion et photo conservée');
+  // Le retour vers la sauvegarde initiale utilise le même parcours enseignant.
+  await prepareImport(archivePath);
+  await frame.getByRole('button', {name: 'Confirmer la restauration', exact: true}).click();
+  await frame.locator('[name="nom_utilisateur"]').waitFor(); await login(page);
+  assert.equal(await python(page, "Ecole.objects.get().nom"), 'École fictive PWA');
+  const recoveryDownload = page.waitForEvent('download', {timeout: 120000});
+  await page.getByRole('button', {name: 'Exporter l’état de récupération'}).click();
+  const recovery = await recoveryDownload;
+  execFileSync('python3', ['-c', `
+import sys,sqlite3,tempfile,zipfile
+from pathlib import Path
+from suivi.paquet_local import preparer_restauration
+with tempfile.TemporaryDirectory() as dossier:
+    with open(sys.argv[1],'rb') as source: p=preparer_restauration(source,Path(dossier))
+    with sqlite3.connect(p.etape/'carnet.sqlite3') as db:
+        assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='École fictive transférée'
+`, await recovery.path()]);
+  pass('État avant remplacement exportable et compatible avec le paquet autonome');
+  const printPage = await context.newPage();
+  await printPage.goto(url + `app/eleve/${ids.eleve}/carnet.pdf?colonnes=2&contenu=observes`);
+  await printPage.getByRole('button', {name: 'Imprimer / enregistrer en PDF', exact: true}).waitFor();
+  await printPage.waitForFunction(() => [...document.images].every(image => image.complete && image.naturalWidth > 0));
+  assert(await printPage.locator('img').count() > 0);
+  await printPage.evaluate(() => {window.print = () => window.printCalled = true;});
+  await printPage.getByRole('button', {name: 'Imprimer / enregistrer en PDF', exact: true}).click();
+  assert(await printPage.evaluate(() => window.printCalled));
+  const pdf = await printPage.pdf({preferCSSPageSize: true, printBackground: true});
+  const pdfPath = path.join(transfer, 'carnet.pdf'); fs.writeFileSync(pdfPath, pdf);
+  const text = execFileSync('pdftotext', [pdfPath, '-'], {encoding: 'utf8'});
+  assert(text.includes('Ana')); assert(text.includes('Réalisation entièrement fictive.'));
+  assert(!text.includes('Le carnet est prêt à imprimer'));
+  await printPage.close();
+  const grid = await context.newPage();
+  await grid.goto(url + `app/classe/${ids.classe}/competence/${ids.competence}/grille.pdf`);
+  await grid.getByRole('button', {name: 'Imprimer / enregistrer en PDF', exact: true}).waitFor();
+  assert((await grid.locator('tbody').innerText()).includes('Ana'));
+  await grid.close();
+  pass('Carnet PDF Chromium avec photo et texte, grille imprimable, bouton impression');
+  await page.frames()[1].goto(url + `app/classe/${ids.classe}/edition/`);
+  await frame.locator(`input[name="eleves"][value="${ids.eleve}"]`).check();
+  await frame.getByRole('button', {name: 'Préparer l’impression des carnets', exact: true}).click();
+  await frame.getByRole('heading', {name: 'Carnets à imprimer', exact: true}).waitFor();
+  assert.equal(await frame.locator('article.carnet').count(), 1);
+  assert((await frame.locator('article.carnet').innerText()).includes('Ana'));
+  pass('Préparation groupée par les mêmes choix, document imprimable unique sans moteur natif');
+
+  await python(page, "from comptes.models import ResponsabiliteEcole, AffectationClasse; ResponsabiliteEcole.objects.update(etat='suspendue'); AffectationClasse.objects.update(type='contributeur')");
+  const denied = await page.evaluate(async route => {
+    const responses = await Promise.all([route, '/app/pwa/autoriser-recuperation/', '/app/gestion/sauvegardes-locales/'].map(url => fetch(url)));
+    return responses.map(r => r.status);
+  }, `/app/eleve/${ids.eleve}/carnet.pdf`);
+  assert([403,404].includes(denied[0])); assert.equal(denied[1], 403); assert.equal(denied[2], 403);
+  await python(page, "ResponsabiliteEcole.objects.update(etat='active'); AffectationClasse.objects.update(type='responsable')");
+  pass('Contributeur sans direction : impression du carnet et exports réservés refusés');
+
+
 
   const second = await context.newPage();
   await second.goto(url);
@@ -144,6 +269,60 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
   await boot(reopened, url);
   assert.equal(await python(reopened, "from suivi.models import Trace; Trace.objects.get().photo.name"), media.photo);
   pass('Fermeture de la page propriétaire puis réouverture hors ligne');
+  await context.setOffline(false);
+  const config = JSON.parse(fs.readFileSync(path.join(root, 'config.json')));
+  const previousVersion = config.version;
+  const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8').replace(config.version, config.version + '-mise-a-jour-fictive');
+  config.version += '-mise-a-jour-fictive';
+  config.assets.find(asset => asset.url === '/sw.js').sha256 = require('node:crypto').createHash('sha256').update(sw).digest('hex');
+
+  const migratedApplication = path.join(transfer, 'application-migration-fictive.zip');
+  execFileSync('python3', ['-c', `
+import sys,zipfile
+with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',zipfile.ZIP_DEFLATED) as target:
+    for name in original.namelist(): target.writestr(name,original.read(name))
+    last=sorted(n for n in original.namelist() if n.startswith('suivi/migrations/00') and n.endswith('.py'))[-1].split('/')[-1][:-3]
+    sql = "CREATE TABLE pwa_test_upgrade (preuve TEXT); INSERT INTO pwa_test_upgrade VALUES ('migration fictive');"
+    code = "from django.db import migrations\\nclass Migration(migrations.Migration):\\n    dependencies = [('suivi', " + repr(last) + ")]\\n    operations = [migrations.RunSQL(" + repr(sql) + ")]\\n"
+    target.writestr('suivi/migrations/0026_pwa_test.py', code)
+`, path.join(root, 'application.zip'), migratedApplication]);
+  const application = fs.readFileSync(migratedApplication);
+  config.assets.find(asset => asset.url === '/application.zip').sha256 = require('node:crypto').createHash('sha256').update(application).digest('hex');
+  published = {config, sw, application};
+  await reopened.getByRole('button', {name: 'Vérifier les mises à jour', exact: true}).click();
+  await reopened.locator('#update').waitFor({state: 'visible', timeout: 120000});
+  // Le runtime actif continue à lire l'école pendant le téléchargement.
+  assert.equal(await python(reopened, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
+  const navigated = reopened.waitForEvent('framenavigated', {predicate: f => f === reopened.mainFrame(), timeout: 120000});
+  await reopened.locator('#update').click(); await navigated;
+  await reopened.waitForFunction(() => !!window.pwaTest, null, {timeout: 120000});
+  await reopened.frameLocator('#app').locator('h1').waitFor();
+  assert.equal(await python(reopened, "from suivi.models import Trace; Trace.objects.get().photo.name"), media.photo);
+  assert.equal(await python(reopened, "import os; os.environ['CARNET_VERSION']"), config.version);
+  const preserved = await reopened.evaluate(() => new Promise((resolve, reject) => {
+    const request = indexedDB.open('petits-pas-pwa-prototype-v1');
+    request.onsuccess = () => {const db=request.result; const get=db.transaction('state').objectStore('state').get('active'); get.onsuccess=()=>{resolve(get.result.recovery.version); db.close();}; get.onerror=()=>reject(get.error);};
+  }));
+  assert.equal(preserved, previousVersion);
+  assert.equal(await python(reopened, "from django.db import connection; connection.cursor().execute('SELECT preuve FROM pwa_test_upgrade').fetchone()[0]"), 'migration fictive');
+  pass('Mise à jour explicite, ancien runtime arrêté, migration SQL appliquée, école conservée et checkpoint pré-version retenu');
+  await python(reopened, "from django.db import connection; connection.cursor().execute(\"INSERT INTO django_migrations(app,name,applied) VALUES ('suivi','9999_inconnue','2026-10-02')\")");
+  await assert.rejects(boot(reopened, url));
+  const rescueDownload = reopened.waitForEvent('download', {timeout: 120000});
+  await reopened.getByRole('button', {name: 'Exporter l’état de récupération'}).click();
+  const rescued = await rescueDownload;
+  execFileSync('python3', ['-c', `
+import sys,tempfile,sqlite3
+from pathlib import Path
+from suivi.paquet_local import preparer_restauration
+with tempfile.TemporaryDirectory() as dossier:
+    with open(sys.argv[1],'rb') as source: p=preparer_restauration(source,Path(dossier))
+    with sqlite3.connect(p.etape/'carnet.sqlite3') as db:
+        assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='École fictive PWA'
+        assert not db.execute("SELECT 1 FROM django_migrations WHERE name='9999_inconnue'").fetchone()
+`, await rescued.path()]);
+  pass('Base incompatible refusée au démarrage sans création vide, récupération disponible sans connexion');
+
   assert(!network.some(route => route.startsWith('/app/')), 'Une requête métier est sortie vers le serveur statique');
   pass('Aucune requête métier sur le réseau');
   fs.writeFileSync(path.join(root, 'resultats-tests.json'), JSON.stringify(report, null, 2));

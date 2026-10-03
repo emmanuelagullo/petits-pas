@@ -1,6 +1,7 @@
 const status = document.querySelector('#status');
 const frame = document.querySelector('#app');
-let worker;
+let worker, registration, ready = false;
+function showUpdate() { document.querySelector('#update').hidden = !registration?.waiting; }
 function rpc(message) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel();
@@ -34,15 +35,59 @@ document.querySelector('#persist').onclick = async () => {
   const granted = await navigator.storage.persist();
   status.textContent = granted ? 'Stockage protégé contre l’éviction automatique ; sauvegarde externe toujours nécessaire.' : 'Protection non accordée. Utilisez uniquement des données fictives.';
 };
+document.querySelector('#check-update').onclick = async () => {
+  try {
+    if (!registration) throw new Error('Installation indisponible');
+    await registration.update(); showUpdate();
+    status.textContent = registration.waiting ? 'Nouvelle version prête. Exportez une sauvegarde avant de l’appliquer.' : 'Vérification lancée. Une mise à jour disponible sera proposée après son téléchargement.';
+  } catch { status.textContent = 'Vérification impossible hors ligne. Vous pouvez continuer à utiliser cette version.'; }
+};
+document.querySelector('#update').onclick = async event => {
+  event.target.disabled = true;
+  try {
+    if (!registration?.waiting) throw new Error('Mise à jour indisponible');
+    if (ready) await rpc({kind: 'checkpoint'});
+    ready = false; frame.hidden = true; frame.src = 'about:blank';
+    worker?.terminate(); worker = null;
+    status.textContent = 'Mise à jour en cours…';
+    navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), {once: true});
+    registration.waiting.postMessage({kind: 'activate-update'});
+  } catch (error) { status.textContent = String(error.message); event.target.disabled = false; }
+};
+document.querySelector('#recovery').onclick = async event => {
+  event.target.disabled = true;
+  const recoveryWorker = new Worker('./worker.js', {type: 'module'});
+  try {
+    if (ready && (await fetch('/app/pwa/autoriser-recuperation/')).status !== 204) throw new Error('L’export est réservé à la direction de l’école. Connectez-vous avec ce compte.');
+    status.textContent = 'Préparation du ZIP de récupération…';
+    const value = await new Promise((resolve, reject) => {
+      const channel = new MessageChannel();
+      const timer = setTimeout(() => {channel.port1.close(); reject(new Error('Export trop long'));}, 120000);
+      channel.port1.onmessage = e => {clearTimeout(timer); channel.port1.close(); e.data.ok ? resolve(e.data.value) : reject(new Error(e.data.error));};
+      recoveryWorker.postMessage({kind: 'recovery'}, [channel.port2]);
+    });
+    const url = URL.createObjectURL(new Blob([value.bytes], {type: 'application/zip'}));
+    const link = document.createElement('a'); link.href = url; link.download = 'petits-pas-recuperation.zip'; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    status.textContent = 'ZIP de récupération téléchargé : il contient l’état conservé avant le dernier remplacement, ou l’état actuel si aucun remplacement n’a eu lieu.';
+  } catch (error) {status.textContent = String(error.message);}
+  finally {recoveryWorker.terminate(); event.target.disabled = false;}
+};
+
 try {
   if (!navigator.locks || !navigator.storage.getDirectory) throw new Error('Navigateur incompatible : Web Locks et OPFS requis.');
   await navigator.locks.request('petits-pas-pwa-prototype', {ifAvailable: true}, async lock => {
     if (!lock) throw new Error('Petits Pas est déjà ouvert dans un autre onglet. Revenez à cet onglet.');
-    await navigator.serviceWorker.register('./sw.js');
+    registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'});
+    showUpdate();
+    registration.addEventListener('updatefound', () => {
+      registration.installing?.addEventListener('statechange', showUpdate);
+    });
     await navigator.serviceWorker.ready;
     if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, {once: true}));
     worker = new Worker('./worker.js', {type: 'module'});
     const initial = await rpc({kind: 'init'});
+    ready = true;
     const config = await (await fetch('./config.json')).json();
     if (config.testMode) window.pwaTest = rpc;
     status.textContent = `Prêt en ${(initial.durationMs / 1000).toFixed(1)} s — ${initial.restored ? 'données retrouvées' : 'installation fictive à créer'}.`;
@@ -50,4 +95,7 @@ try {
     frame.src = '/app/';
     await new Promise(() => {}); // Possession du verrou jusqu'à fermeture du document.
   });
-} catch (error) { status.textContent = String(error.message); }
+} catch (error) {
+  worker?.terminate(); worker = null; ready = false; frame.hidden = true;
+  status.textContent = String(error.message);
+}

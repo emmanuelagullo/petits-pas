@@ -3,7 +3,7 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Préparer les carnets PDF</h1>
-<p class="sous-titre">Chaque enfant sélectionné aura son propre PDF dans une archive ZIP.</p>
+<p class="sous-titre">{% if mode_pwa %}Les carnets sélectionnés seront réunis dans un document à imprimer ou enregistrer en PDF.{% else %}Chaque enfant sélectionné aura son propre PDF dans une archive ZIP.{% endif %}</p>
 
 <form method="post" class="formulaire" id="preparer-carnets">
   {% csrf_token %}
@@ -37,7 +37,7 @@
     <label class="choix"><input type="checkbox" name="bilans"{% if parametres_carnet.inclure_bilans %} checked{% endif %}> Inclure les bilans</label>
   </fieldset>
 
-  <div class="actions"><button class="bouton" type="submit">Télécharger l'archive ZIP</button></div>
+  <div class="actions"><button class="bouton" type="submit">{% if mode_pwa %}Préparer l’impression des carnets{% else %}Télécharger l'archive ZIP{% endif %}</button></div>
 </form>
 
 {% endblock %}

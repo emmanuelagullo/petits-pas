@@ -5,18 +5,19 @@ function call(name, ...args) {
   const method = bridge[name];
   try { return method(...args); } finally { method.destroy(); }
 }
-async function persist(failpoint = '') {
+async function persist(failpoint = '', preserve = false) {
   const proxy = call('snapshot');
-  try { return await save(proxy.toJs(), config.version, failpoint); }
+  try { return await save(proxy.toJs(), config.version, failpoint, preserve); }
   finally { proxy.destroy(); }
 }
 async function process(message) {
   if (fatal) throw new Error('Enregistrement interrompu. Fermez puis rouvrez le prototype pour retrouver le dernier état confirmé.');
-  if (message.kind === 'init') {
+  if (['init', 'recovery'].includes(message.kind)) {
     if (initialized) throw new Error('Runtime déjà initialisé');
     config = await (await fetch('./config.json')).json();
     const started = performance.now();
-    const restored = await load(config.version);
+    const restored = await load(config.version, message.kind === 'recovery');
+    if (message.kind === 'recovery' && !restored) throw new Error("Aucune donnée locale à exporter.");
     const {loadPyodide} = await import('./runtime/pyodide.mjs');
     python = await loadPyodide({indexURL: new URL('./runtime/', location.href).href});
     await python.loadPackage(['sqlite3', 'pillow', 'pyyaml', 'micropip', 'hashlib']);
@@ -30,6 +31,10 @@ async function process(message) {
     python.runPython("import sys; sys.path.insert(0, '/application')");
     bridge = python.pyimport('pwa.bridge');
     if (restored) call('restore', restored);
+    if (message.kind === 'recovery') {
+      const proxy = call('snapshot');
+      try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
+    }
     call('initialize', location.origin, config.version);
     const durability = await persist();
     initialized = true;
@@ -37,16 +42,21 @@ async function process(message) {
   }
   if (!initialized) throw new Error('Runtime indisponible');
   let result;
+  if (message.kind === 'checkpoint') {
+    try { return {durability: await persist()}; }
+    catch (error) { fatal = true; throw error; }
+  }
   if (message.kind === 'http') {
     const url = new URL(message.request.url);
     if (url.origin !== location.origin || !url.pathname.startsWith('/app/')) throw new Error('Origine ou route refusée');
-    result = JSON.parse(call('handle', JSON.stringify(message.request)));
+    try { result = JSON.parse(call('handle', JSON.stringify(message.request))); }
+    catch (error) { fatal = true; throw error; }
   } else if (message.kind === 'test-python' && config.testMode) {
     result = python.runPython(message.code);
     if (result?.destroy) { result.destroy(); result = null; }
   } else { throw new Error('Commande refusée'); }
   try {
-    const durability = await persist(config.testMode ? (message.failpoint || '') : '');
+    const durability = await persist(config.testMode ? (message.failpoint || '') : '', !!result?.restored);
     return {result, durability};
   } catch (error) { fatal = true; throw error; }
 }

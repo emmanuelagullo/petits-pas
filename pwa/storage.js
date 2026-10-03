@@ -35,18 +35,18 @@ async function digest(bytes) {
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)),
     b => b.toString(16).padStart(2, '0')).join('');
 }
-export async function load(version) {
-  const current = await state();
+export async function load(version, recovery = false) {
+  let current = await state();
+  if (recovery) current = current?.recovery || current;
   const root = await navigator.storage.getDirectory();
   const dir = await root.getDirectoryHandle('petits-pas-prototype', {create: true});
   if (!current) return null;
-  if (current.version !== version) throw new Error('Version différente : migration PWA non qualifiée. Conservez cette installation.');
   const file = await (await dir.getFileHandle(current.file)).getFile();
   const bytes = new Uint8Array(await file.arrayBuffer());
   if (await digest(bytes) !== current.hash) throw new Error('Instantané endommagé : ouverture refusée. Aucune école vide ne sera créée.');
   return bytes;
 }
-export async function save(bytes, version, failpoint = '') {
+export async function save(bytes, version, failpoint = '', preserve = false) {
   if (bytes.byteLength > 16 * 1024 * 1024) throw new Error('Limite expérimentale : instantané supérieur à 16 Mio.');
   const current = await state();
   const root = await navigator.storage.getDirectory();
@@ -66,10 +66,13 @@ export async function save(bytes, version, failpoint = '') {
   } finally { handle.close(); }
   if (failpoint === 'before-activate') throw new Error('Interruption simulée avant activation');
   const hash = await digest(bytes);
-  await activate({file, hash, version, previous: current?.file || null});
+  const recovery = current && (preserve || current.version !== version)
+    ? {file: current.file, hash: current.hash, version: current.version}
+    : current?.recovery || null;
+  await activate({file, hash, version, previous: current?.file || null, recovery});
   // Garder actif + précédent. Les orphelins de panne sont nettoyés après succès.
   for await (const [name] of dir.entries()) {
-    if (name !== file && name !== current?.file) await dir.removeEntry(name).catch(() => {});
+    if (name !== file && name !== current?.file && name !== recovery?.file) await dir.removeEntry(name).catch(() => {});
   }
   return {bytes: bytes.length, hash};
 }

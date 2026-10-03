@@ -331,3 +331,35 @@ pages:
         - "start-*.sh"
         - "suivi/**/*"
         - trame-cycle1.yaml
+
+# Essai à la demande, indépendant des tests Django et du site Hugo.
+# L'artefact final désactive impérativement le protocole Python des tests.
+pwa-prototype:
+  # Trixie fournit Node >= 20, requis par Playwright 1.62.
+  image: python:3.12-slim-trixie
+  stage: construction
+  needs: []
+  rules:
+    - when: manual
+  allow_failure: true
+  variables:
+    DATABASE_URL: ""
+    CARNET_ANTIBRUTEFORCE: "non"
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends nodejs npm poppler-utils
+    - npm install --prefix pwa --ignore-scripts
+    - node pwa/node_modules/playwright/cli.js install --with-deps chromium
+  script:
+    - python3 scripts/construire-pwa.py --test
+    - node scripts/verifier-pwa.cjs
+    - cp dist/pwa/resultats-tests.json resultats-pwa.json
+    - python3 -m unittest discover -s scripts -p test_paquet_local.py
+    - python3 scripts/construire-pwa.py
+    - python3 -c 'import json; assert not json.load(open("dist/pwa/config.json"))["testMode"]'
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+      - dist/pwa/
+      - resultats-pwa.json

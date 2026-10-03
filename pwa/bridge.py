@@ -10,8 +10,8 @@ import traceback
 from contextlib import closing
 from http.cookies import SimpleCookie
 from pathlib import Path
-from urllib.parse import parse_qs, urlsplit
-from zipfile import ZIP_DEFLATED, ZipFile
+from urllib.parse import urlsplit
+from zipfile import ZipFile
 
 DATA = Path("/data")
 COOKIES = {}
@@ -43,6 +43,7 @@ def initialize(origin, version):
     from django.core.signals import got_request_exception
     got_request_exception.connect(lambda **kwargs: traceback.print_exc(file=sys.stderr), weak=False)
     APPLICATION = get_wsgi_application()
+    validate_migrations(DATA / "carnet.sqlite3")
     call_command("migrate", interactive=False, verbosity=0)
     with closing(sqlite3.connect(DATA / "carnet.sqlite3")) as db:
         if db.execute("PRAGMA quick_check").fetchone()[0] != "ok":
@@ -54,6 +55,8 @@ def initialize(origin, version):
 def restore(snapshot):
     with ZipFile(io.BytesIO(bytes(snapshot))) as archive:
         for name in archive.namelist():
+            if name == "manifest.json":
+                continue
             if name not in {"carnet.sqlite3", "secret-key"} and not name.startswith("media/"):
                 raise ValueError("Instantané local invalide")
             parts = Path(name).parts
@@ -64,35 +67,50 @@ def restore(snapshot):
             target.write_bytes(archive.read(name))
 
 
+def validate_migrations(path):
+    from django.db.migrations.loader import MigrationLoader
+    if not path.exists():
+        return
+    with closing(sqlite3.connect(path)) as db:
+        if db.execute("SELECT 1 FROM sqlite_master WHERE name='django_migrations'").fetchone():
+            applied = set(db.execute("SELECT app, name FROM django_migrations"))
+            if applied - set(MigrationLoader(None).disk_migrations):
+                raise ValueError("Base issue d'une version plus récente ou incompatible. Exportez un état de récupération.")
+
+
 def snapshot():
-    """Copie SQLite cohérente ; file de requêtes exclusive côté worker."""
-    target = Path("/tmp/pwa-snapshot.sqlite3")
-    with closing(sqlite3.connect(DATA / "carnet.sqlite3")) as source:
-        with closing(sqlite3.connect(target)) as copy:
-            source.backup(copy)
+    """Même format public que le paquet autonome, base/clé/médias/manifeste."""
+    from suivi.paquet_local import creer_sauvegarde
     output = io.BytesIO()
-    with ZipFile(output, "w", ZIP_DEFLATED) as archive:
-        archive.write(target, "carnet.sqlite3")
-        archive.write(DATA / "secret-key", "secret-key")
-        for item in sorted((DATA / "media").rglob("*")):
-            if item.is_file():
-                archive.write(item, item.relative_to(DATA).as_posix())
-    target.unlink()
+    creer_sauvegarde(DATA, output)
     return output.getvalue()
+
+
+def apply_pending_restore():
+    from django.conf import settings
+    from django.core.management import call_command
+    from django.db import connections
+    from suivi import paquet_local
+    preparation = paquet_local.restauration_en_attente()
+    if preparation is None:
+        return False
+    connections.close_all()
+    # Le précédent OPFS reste actif tant que le worker n'a pas validé le nouveau.
+    paquet_local.appliquer_restauration(DATA, preparation)
+    validate_migrations(DATA / "carnet.sqlite3")
+    settings.SECRET_KEY = (DATA / "secret-key").read_text()
+    call_command("migrate", interactive=False, verbosity=0)
+    COOKIES.clear()
+    # Réinitialiser seulement les attentes du module, après activation en mémoire.
+    import importlib
+    importlib.reload(paquet_local)
+    return True
 
 
 def handle(encoded):
     request = json.loads(encoded)
     url = urlsplit(request["url"])
     path = url.path.removeprefix("/app") or "/"
-    # Ces fonctions exigent #PWA3/#PWA4 ; ne pas déclencher la restauration OS.
-    if path.endswith(".pdf") or (
-        path == "/gestion/sauvegardes-locales/" and request["method"] == "POST"
-        and (dict(request["headers"]).get("content-type", "").split(";")[0] != "application/x-www-form-urlencoded"
-             or parse_qs(base64.b64decode(request["body"]).decode()).get("action") != ["sauvegarder"])
-    ):
-        return json.dumps({"status": 501, "headers": [["Content-Type", "text/plain; charset=utf-8"]],
-                           "body": base64.b64encode("Fonction non disponible dans ce prototype PWA.".encode()).decode()})
     body = base64.b64decode(request["body"])
     environ = {
         "REQUEST_METHOD": request["method"], "PATH_INFO": path,
@@ -139,5 +157,10 @@ def handle(encoded):
                      'e.detail.headers["X-CSRFToken"]=' + json.dumps(COOKIES.get("csrftoken", "")) + ';});</script>')
         content = content.replace(b"</head>", injection.encode() + b"</head>", 1)
         headers = [[k, v] for k, v in headers if k.lower() != "content-length"]
-    response.update(headers=headers, body=base64.b64encode(content).decode())
+    restored = apply_pending_restore()
+    if restored:
+        response["status"] = 302
+        headers = [["Location", "/app/connexion/"], ["Cache-Control", "no-store"]]
+        content = b""
+    response.update(headers=headers, body=base64.b64encode(content).decode(), restored=restored)
     return json.dumps(response)

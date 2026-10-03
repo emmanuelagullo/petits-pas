@@ -1,0 +1,11 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Carnets à imprimer{% endblock %}
+{% block contenu %}
+<section class="sans-impression encadre">
+  <h1>Carnets à imprimer</h1>
+  <p>Les carnets sélectionnés sont réunis dans un seul document. Choisissez « Enregistrer au format PDF » dans la fenêtre d’impression si votre navigateur le propose.</p>
+  <button type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button>
+</section>
+<style>@media print{.carnet+.carnet{break-before:page}}</style>
+{% for carnet in carnets %}{{ carnet }}{% endfor %}
+{% endblock %}

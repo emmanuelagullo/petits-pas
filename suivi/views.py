@@ -345,7 +345,12 @@ def sauvegardes_locales(request):
                 messages.error(request, "Choisissez un fichier de sauvegarde.")
             else:
                 try:
-                    etape = preparer_restauration(archive, paquet.parent, paquet.name)
+                    limites = {}
+                    if getattr(settings, "MODE_PWA", False):
+                        from django.db.migrations.loader import MigrationLoader
+                        limites = {"taille_max": 64 * 1024**2, "fichiers_max": 5000,
+                                   "migrations_connues": MigrationLoader(None).disk_migrations}
+                    etape = preparer_restauration(archive, paquet.parent, paquet.name, **limites)
                     try:
                         retenir_preparation(etape)
                     except Exception:
