@@ -15,6 +15,15 @@ fonctionner hors ligne après le premier téléchargement. Il ne remplace pas
 encore le programme Windows ou Linux : utilisez **uniquement des données
 fictives**. Les tablettes et les grands carnets restent à vérifier.
 
+## Ouvrir une installation d'essai
+
+Ouvrez l'adresse HTTPS fournie par la personne qui prépare l'essai, dans
+Chromium, puis attendez le premier chargement. Conservez cette adresse pour
+les prochaines ouvertures. Chaque appareil garde sa propre école ; pour
+transférer les données vers un autre appareil, utilisez une sauvegarde ZIP.
+Une école créée lors d'un essai local sur l'ordinateur doit également être
+transférée par un ZIP pour être retrouvée à cette nouvelle adresse.
+
 ## Sauvegarder et transférer
 
 Avec un compte de direction, ouvrez **Gérer l’école → Sauvegardes locales**,

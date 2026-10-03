@@ -1,0 +1,6 @@
+# À copier comme .gitlab-ci.yml dans petits-pas/petits-pas-pwa.
+# Seule la CI de publication est partagée ; le code applicatif reste dans son dépôt.
+include:
+  - project: petits-pas/petits-pas
+    ref: main
+    file: pwa/publication/pages.yml

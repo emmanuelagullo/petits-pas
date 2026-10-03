@@ -56,6 +56,8 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   `pwa/QUALIFICATION.md` consigne les essais et leurs limites. Les commandes
   `scripts/verifier-pwa.cjs` et `scripts/qualifier-pwa.cjs` n'emploient que des
   profils fictifs. Ne jamais distribuer un bundle construit avec `--test`.
+  `pwa/PUBLICATION.md` décrit la publication manuelle du bundle validé vers
+  un projet Pages dédié ; conserver son origine stable et le site Hugo.
   Conserver les sauvegardes communes dans `suivi/paquet_local.py` et distinguer
   les essais du prototype de la qualification sur appareils d'école.
 

@@ -355,6 +355,7 @@ pwa-prototype:
     - node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa.json
     - python3 -m unittest discover -s scripts -p test_paquet_local.py
+    - python3 -m unittest discover -s scripts -p test_publication_pwa.py
     - python3 scripts/construire-pwa.py
     - python3 -c 'import json; assert not json.load(open("dist/pwa/config.json"))["testMode"]'
   artifacts:
@@ -375,3 +376,31 @@ pwa-qualification:
     expire_in: 30 days
     paths:
       - dist/qualification-pwa.json
+
+# Publier le bundle déjà vérifié sur le projet Pages dédié, après clic explicite.
+# Le projet destinataire contient le fichier décrit dans pwa/PUBLICATION.md.
+pwa-publication:
+  stage: publication
+  needs:
+    - job: pwa-prototype
+      artifacts: false
+  inherit:
+    default: false
+    variables: false
+  variables:
+    PWA_SOURCE_PROJECT: "$CI_PROJECT_PATH"
+    PWA_SOURCE_PROJECT_ID: "$CI_PROJECT_ID"
+    PWA_SOURCE_PIPELINE_ID: "$CI_PIPELINE_ID"
+    PWA_SOURCE_SHA: "$CI_COMMIT_SHA"
+    PWA_SOURCE_REF: "$CI_COMMIT_REF_NAME"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+  allow_failure: true
+  trigger:
+    project: petits-pas/petits-pas-pwa
+    branch: main
+    strategy: depend
+    forward:
+      yaml_variables: true
+      pipeline_variables: false
