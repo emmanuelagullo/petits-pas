@@ -44,4 +44,4 @@ L’école fictive ne devient pas automatiquement votre école réelle. Revenez 
 à jour de l’application conservent les essais ; elles ne remettent pas l’école
 fictive à zéro. Une restauration dans l’un des espaces remplace uniquement
 les données de cet espace, sans fusion. L’ouverture temporaire de votre propre
-ZIP avant restauration relève d’un autre parcours, encore à venir.
+ZIP avant restauration suit [le parcours de vérification séparée]({{< relref "/guide/local/verifier-zip" >}}), dans une version qui le propose.

@@ -374,6 +374,7 @@ pwa-prototype:
     - cp dist/pwa/resultats-tests.json resultats-pwa-sous-chemin.json
     - python3 -m unittest discover -s scripts -p test_paquet_local.py
     - python3 -m unittest discover -s scripts -p test_essai_local.py
+    - python3 -m unittest discover -s scripts -p test_apercu_local.py
     - python3 -m unittest discover -s scripts -p test_publication_pwa.py
     - python3 scripts/construire-pwa.py --runtime .cache/pwa/runtime-0.28.3 --wheels dist/pwa/wheels
     - python3 -c 'import json; assert not json.load(open("dist/pwa/config.json"))["testMode"]'

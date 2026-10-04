@@ -1,5 +1,6 @@
 import {load, save, configurerEspace} from './storage.js';
 let ESSAI = false;
+let APERCU = false;
 const BASE = new URL('./', import.meta.url).pathname;
 let python, bridge, config, fatal = false, initialized = false;
 let queue = Promise.resolve();
@@ -25,7 +26,9 @@ async function process(message) {
   if (['init', 'recovery'].includes(message.kind)) {
     if (initialized) throw new Error('Runtime déjà initialisé');
     ESSAI = message.essai === true;
-    configurerEspace(ESSAI);
+    APERCU = message.apercu === true;
+    if (APERCU) ESSAI = false;
+    configurerEspace(ESSAI, APERCU);
     config = await (await fetch('./config.json')).json();
     const started = performance.now();
     progress("Lecture des données conservées sur cet appareil…");
@@ -48,6 +51,7 @@ async function process(message) {
     if (restored?.files) {
       for (const [name, entry] of Object.entries(restored.files)) call('restore_file', name, await restored.read(entry));
     } else if (restored) call('restore', restored);
+    else if (APERCU) throw new Error("Aucun ZIP à vérifier dans cet espace. Revenez à l’école habituelle pour ouvrir une copie.");
     else if (ESSAI && message.kind === 'init') {
       const reponse = await fetch('./ecole-fictive.zip');
       if (!reponse.ok) throw new Error("École fictive indisponible dans cette version.");
@@ -62,11 +66,16 @@ async function process(message) {
       try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
     }
     progress('Ouverture de l’école et vérification de la base…');
-    call('initialize', location.origin, config.version, BASE, ESSAI);
+    call('initialize', location.origin, config.version, BASE, ESSAI, APERCU);
     progress('Enregistrement de l’état initial…');
     const durability = await persist('', false, true);
     initialized = true;
-    return {durationMs: performance.now() - started, restored: !!restored, durability};
+    let apercuDisponible = false;
+    configurerEspace(false, true);
+    try {apercuDisponible = !!(await load());}
+    catch { /* Une copie endommagée ne bloque pas l'école habituelle. */ }
+    finally {configurerEspace(ESSAI, APERCU);}
+    return {durationMs: performance.now() - started, restored: !!restored, durability, apercuDisponible};
   }
   if (!initialized) throw new Error('Runtime indisponible');
   if (message.kind === 'test-metrics' && config.testMode) {
@@ -95,6 +104,17 @@ async function process(message) {
   try {
     const durability = await persist(config.testMode ? (message.failpoint || '') : '', !!result?.restored,
       false, message.kind === 'test-python');
+    if (result?.ouvrir_apercu) {
+      configurerEspace(false, true);
+      try {
+        const files = JSON.parse(call('inventory_apercu'));
+        await save(files, name => {
+          const proxy = call('file_bytes_apercu', name);
+          try {return proxy.toJs();} finally {proxy.destroy();}
+        }, config.version, '', false, true);
+        call('nettoyer_apercu');
+      } finally {configurerEspace(ESSAI, APERCU);}
+    }
     return {result, durability};
   } catch (error) { fatal = true; throw error; }
 }

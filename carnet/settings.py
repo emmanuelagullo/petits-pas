@@ -30,6 +30,7 @@ ENVIRONNEMENT_EPHEMERE = (
 )
 MODE_LOCAL = os.environ.get("CARNET_MODE_LOCAL", "") == "oui"
 ESPACE_ESSAI = MODE_LOCAL and os.environ.get("CARNET_ESPACE_ESSAI", "") == "oui"
+ESPACE_APERCU = MODE_LOCAL and os.environ.get("CARNET_ESPACE_APERCU", "") == "oui"
 VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip() or version_application()
 # Anti-bruteforce sur la connexion (django-axes). Actif par défaut, sauf pour
 # l'installation autonome mono-poste (non exposée au réseau, et dont le paquet

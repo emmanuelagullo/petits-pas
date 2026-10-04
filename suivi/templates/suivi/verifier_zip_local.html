@@ -1,0 +1,41 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Vérifier un ZIP sans remplacer mon école{% endblock %}
+{% block contenu %}
+<h1>Vérifier un ZIP sans remplacer mon école</h1>
+<p>Le fichier sera ouvert dans une copie séparée. Votre école habituelle et l’école fictive restent à leur place. Utilisez un compte et le mot de passe du ZIP pour vous connecter : aucun accès supplémentaire n’est accordé.</p>
+<p>Vous pourrez consulter, imprimer et faire des modifications dans cette copie. Elles ne seront pas reportées dans votre école habituelle. Terminez vos saisies avant de changer d’espace.</p>
+{% if mode_pwa %}<p>La PWA publiée reste destinée aux données fictives. L’ouverture remplacera la précédente copie de vérification de ce navigateur. Téléchargez d’abord un ZIP de cette copie si vous souhaitez la conserver.</p>{% endif %}
+{% if restauration_attente %}
+<h2>Installation du ZIP confirmée</h2>
+<p>Le ZIP deviendra l’école de cet appareil. Connectez-vous ensuite avec un compte du ZIP.</p>
+<button type="button" onclick="window.pywebview?.api?.appliquer_et_redemarrer()">Appliquer la restauration et redémarrer</button>
+<p>Dans un navigateur externe, fermez la fenêtre du programme puis relancez Petits Pas.</p>
+{% elif ouverture_demandee %}
+<p role="status">Ouverture de la copie dans un autre espace…</p>
+{% if not mode_pwa %}<button type="button" id="ouvrir-apercu">Fermer et ouvrir la copie</button>
+<p id="aide-apercu">Cette action nécessite la fenêtre du programme.</p>
+<script>
+document.getElementById('ouvrir-apercu').onclick = async function () {
+  if (!window.pywebview?.api?.ouvrir_apercu) return;
+  this.disabled = true;
+  const accepte = await window.pywebview.api.ouvrir_apercu();
+  if (!accepte) {this.disabled = false; document.getElementById('aide-apercu').textContent = 'Ouverture refusée. Revenez à la vérification du ZIP.';}
+};
+</script>{% endif %}
+{% elif copie %}
+<h2>La copie est prête</h2>
+<p><strong>{{ copie.nom_archive }}</strong> : base vérifiée, {{ copie.nombre_medias }} fichier{{ copie.nombre_medias|pluralize }} média. Le contrôle du fichier ne garantit pas que son contenu correspond à vos attentes : ouvrez-le pour le vérifier.</p>
+<div class="actions"><form method="post">{% csrf_token %}<input type="hidden" name="action" value="ouvrir"><button type="submit">Ouvrir la copie pour vérifier</button></form>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="annuler"><button type="submit">Annuler</button></form></div>
+{% if installation_vide %}<h2>Installer sur cet appareil vide</h2>
+<p>Il n’y a encore ni école ni compte dans l’espace habituel. Cette autre action y installe le ZIP, avec ses comptes, classes, observations et médias. Vous pouvez d’abord ouvrir la copie ci-dessus pour vérifier son contenu.</p>
+<form method="post">{% csrf_token %}<input type="hidden" name="action" value="installer_vide"><button type="submit">Utiliser ce ZIP comme école sur cet appareil</button></form>{% endif %}
+{% else %}
+{% if derniere_copie %}<p>Une copie précédente est conservée dans <code>{{ derniere_copie }}</code>.</p>
+<button type="button" onclick="window.pywebview?.api?.reprendre_apercu()">Revenir à la copie de vérification</button>{% endif %}
+<form method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="action" value="verifier">
+<label for="archive-apercu">Fichier ZIP Petits Pas</label><input id="archive-apercu" type="file" name="archive" accept=".zip,application/zip" required>
+<button type="submit">Vérifier le ZIP pour ouvrir une copie</button></form>
+{% endif %}
+<p>Pour remplacer ensuite votre école habituelle, téléchargez un ZIP de la copie vérifiée, revenez à l’école habituelle et choisissez Sauvegardes / transfert, puis Restaurer. Cette autre action demande une confirmation et remplace les données, sans fusion. Gardez une sauvegarde de l’école habituelle hors de cet appareil.</p>
+{% endblock %}

@@ -383,6 +383,50 @@ def _trop_de_tentatives_double_facteur_connecte(request):
 
 
 @never_cache
+def verifier_zip_local(request):
+    if not settings.MODE_LOCAL or settings.ESPACE_APERCU:
+        raise Http404
+    from . import apercu_local
+    if request.method == "POST":
+        action = request.POST.get("action")
+        try:
+            if restauration_en_attente() is not None or preparation_en_attente() is not None:
+                raise ValueError("Terminez ou annulez la restauration en cours avant d'ouvrir une copie.")
+            if action == "annuler":
+                apercu_local.annuler()
+            elif action == "ouvrir":
+                apercu_local.demander_ouverture()
+            elif action == "installer_vide":
+                if Ecole.objects.exists() or Utilisateur.objects.exists():
+                    raise ValueError("Une école ou un compte existe déjà. Utilisez la restauration avec un compte de direction.")
+                copie = apercu_local.preparation()
+                if copie is None:
+                    raise ValueError("Vérifiez d’abord un ZIP.")
+                (copie.etape / apercu_local.MARQUEUR).unlink()
+                retenir_preparation(copie)
+                apercu_local.detacher()
+                confirmer_restauration()
+            elif action == "verifier":
+                archive = request.FILES.get("archive")
+                if not archive:
+                    raise ValueError("Choisissez un fichier ZIP Petits Pas.")
+                from django.db.migrations.loader import MigrationLoader
+                limites = {"migrations_connues": MigrationLoader(None).disk_migrations}
+                if getattr(settings, "MODE_PWA", False):
+                    limites.update(taille_max=64 * 1024**2, fichiers_max=5000)
+                paquet = Path(settings.DATABASES["default"]["NAME"]).parent
+                apercu_local.preparer(archive, paquet.parent, **limites)
+        except (ValueError, OSError, RuntimeError, KeyError, BadZipFile, sqlite3.DatabaseError) as erreur:
+            messages.error(request, f"Copie refusée : {erreur}")
+    paquet = Path(settings.DATABASES["default"]["NAME"]).parent
+    derniere = None if getattr(settings, "MODE_PWA", False) else apercu_local.derniere_copie(paquet.parent, paquet, paquet.parent / "essai-fictif")
+    return render(request, "suivi/verifier_zip_local.html", {
+        "copie": apercu_local.preparation(), "ouverture_demandee": apercu_local.ouverture_demandee(),
+        "derniere_copie": derniere, "installation_vide": not Ecole.objects.exists() and not Utilisateur.objects.exists(),
+        "restauration_attente": restauration_en_attente() is not None})
+
+
+@never_cache
 def choisir_espace_local(request):
     if not settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False):
         raise Http404
@@ -392,7 +436,7 @@ def choisir_espace_local(request):
     except (OSError, ValueError, KeyError):
         identifiants = None
     return render(request, "suivi/choisir_espace_local.html",
-                  {"destination": "habituel" if settings.ESPACE_ESSAI else "essai",
+                  {"destination": "habituel" if settings.ESPACE_ESSAI or settings.ESPACE_APERCU else "essai",
                    "identifiants": identifiants})
 
 
@@ -494,6 +538,9 @@ def sauvegardes_locales(request):
         if preparation_en_attente() is not None:
             return redirect("sauvegardes_locales")
         if request.POST.get("action") == "restaurer":
+            if settings.ESPACE_APERCU:
+                messages.error(request, "Pour ouvrir un autre ZIP, revenez d’abord à l’école habituelle.")
+                return redirect("sauvegardes_locales")
             archive = request.FILES.get("archive")
             if not archive:
                 messages.error(request, "Choisissez un fichier de sauvegarde.")

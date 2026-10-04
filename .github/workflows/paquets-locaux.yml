@@ -38,6 +38,7 @@ jobs:
           python -m unittest discover -s scripts -p test_paquet_local.py
           python -m unittest discover -s scripts -p test_essai_local.py
           python -m unittest discover -s scripts -p test_ecole_fictive.py
+          python -m unittest discover -s scripts -p test_apercu_local.py
       - name: Construire et contrôler
         shell: pwsh
         env:
@@ -126,6 +127,7 @@ jobs:
           /usr/bin/python3 -m unittest discover -s scripts -p test_paquet_local.py
           /usr/bin/python3 -m unittest discover -s scripts -p test_essai_local.py
           /usr/bin/python3 -m unittest discover -s scripts -p test_ecole_fictive.py
+          /usr/bin/python3 -m unittest discover -s scripts -p test_apercu_local.py
           PATH="/usr/bin:$PATH" bash scripts/construire-paquet-linux.sh
       - uses: actions/upload-artifact@v6
         with:
