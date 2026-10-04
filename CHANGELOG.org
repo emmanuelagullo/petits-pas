@@ -71,6 +71,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   blocage d'un compte soumis à l'obligation. Les codes de secours et la
   réinitialisation arrivent avec =#C8d= : ne pas rendre le 2FA obligatoire en
   production avant. Voir =DEPLOIEMENT.org=.
+- Second facteur : dix codes de secours à usage unique (empreintes seules,
+  affichés une fois, régénérables avec un code actuel, journalisés à l'usage),
+  et réinitialisation en cas de téléphone perdu : par la direction pour les
+  rangs inférieurs de son école (écran d'équipe), par le déployeur pour tous
+  (commande =reinitialiser_double_facteur=). Une réinitialisation ne lève
+  jamais l'obligation : la personne se réinscrit à sa connexion suivante.
 - Envoi de courriel désormais facultatif : SMTP fonctionne sans
   =django-anymail=, disponible comme extension, et le mode sans courriel doit
   être choisi explicitement pour un déploiement persistant.

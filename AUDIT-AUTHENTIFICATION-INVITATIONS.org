@@ -272,9 +272,11 @@ documentation de déploiement.
 - Cache partagé pour les compteurs de limitation de fréquence : non
   configurable aujourd'hui (§ 6.4), à traiter seulement si un hébergeur
   impose plusieurs workers.
-- 2FA (§ 6.7) : sans =#C8d=, une personne qui perd son téléphone n'a aucun
-  recours hors intervention sur la base : ne pas rendre le 2FA obligatoire en
-  production avant. Sort de la clé d'une personne dont la fonction devient
+- 2FA (§ 6.7) : la politique de l'école n'a pas encore d'écran (=#C8e=) ; en
+  attendant, seul le déployeur la fixe, par variables d'environnement. Une
+  réinitialisation ne ferme pas les sessions déjà ouvertes du compte : elle
+  efface la clé et les codes, pas les sessions (à traiter si le besoin
+  apparaît). Sort de la clé d'une personne dont la fonction devient
   désactivée : elle est conservée, inactive (le code n'est plus demandé).
 
 * 6. Bilan (28-29 septembre 2026)
@@ -290,7 +292,7 @@ documentation de déploiement.
 | #C5 UX mot de passe                | Fait                                                            |
 | #C6 Anti-bruteforce et audit       | Fait (=django-axes=, seuils par déploiement, inactif en =MODE_LOCAL=) |
 | #C7 Bascule vers =LoginView=       | Abandonné, documenté au Jalon 6 ; remplacé par la conservation de l'identifiant après échec |
-| #C8 2FA                            | Conception arrêtée (#C8a) ; politique et exigence effective (#C8b) ; TOTP, second facteur à la connexion, échéance d'inscription (#C8c, facultatif et absent par défaut) ; codes de secours, réinitialisation et écrans de la direction à venir (#C8d, #C8e), § 6.7 |
+| #C8 2FA                            | Conception arrêtée (#C8a) ; politique et exigence effective (#C8b) ; TOTP, second facteur à la connexion, échéance d'inscription (#C8c, facultatif et absent par défaut)  ; codes de secours et réinitialisation par la direction ou le déployeur (#C8d) ; écrans de la direction pour la politique de l'école à venir (#C8e), § 6.7 |
 | #C9 Cosmétique (invitations expirées) | Fait (=marquer_invitations_expirees=, à planifier)           |
 | #C10 Changement de mot de passe connecté | Fait (§ 6.5), hors feuille de route initiale          |
 | #C11 Adresse IP derrière un proxy  | Fait (§ 6.6), hors feuille de route initiale                   |
@@ -416,8 +418,9 @@ fictive par défaut.
 État : décisions arrêtées avec Emmanuel. =#C8a= les consigne ; =#C8b= implémente
 la politique (variables du déployeur, politique de l'école, rangs, exigence
 effective) ; =#C8c= l'applique : second facteur TOTP à la connexion, échéance
-d'inscription, inscription et retrait volontaire. Les codes de secours, la
-réinitialisation et les écrans de la direction n'existent pas encore.
+d'inscription, inscription et retrait volontaire ; =#C8d= ajoute les codes de
+secours et la réinitialisation. Les écrans de la direction pour la politique de
+l'école n'existent pas encore.
 
 *** Périmètre et échelle
 
@@ -561,6 +564,31 @@ suivante.
 - L'exigence est recalculée au plus toutes les 60 secondes par session : un
   changement de politique peut mettre jusqu'à une minute à s'appliquer.
 
+*** Précisions de l'implémentation (#C8d)
+
+- Codes de secours : dix codes de seize caractères (alphabet de 32 sans
+  ambiguïté, 80 bits), à usage unique, conservés sous forme d'empreinte SHA-256
+  seule, affichés une seule fois (à l'inscription, puis à chaque régénération,
+  qui invalide les précédents). La régénération exige un code actuel de
+  l'application : un code de secours ne suffit pas. Saisis à la connexion dans
+  le même champ que le code TOTP, sous le même plafond de tentatives. Chaque
+  usage prévient la personne (codes restants, rappel quand il en reste peu) et
+  est journalisé dans chaque école où elle est active.
+- Réinitialisation par la direction (écran d'équipe) : réservée à la direction
+  de l'école, pour un membre de cette école qui a un second facteur, dont le
+  plus haut rang toutes écoles confondues est strictement inférieur à celui de
+  direction ; jamais pour soi-même. Une direction, ou un compte direction dans
+  une autre école, relève du déployeur. Journal =securite.double_facteur_reinitialise=
+  dans l'école de la direction.
+- Réinitialisation par le déployeur : commande =reinitialiser_double_facteur=
+  (=--utilisateur=, =--operateur= compte technique actif, =--motif=), pour tout
+  compte, direction comprise ; journalisée dans chaque école du compte. Elle
+  fonctionne même si la fonction est indisponible.
+- Une réinitialisation efface la clé et les codes mais *jamais l'obligation* :
+  si elle s'applique encore, la personne est invitée à se réinscrire dès sa
+  connexion suivante, sans nouveau délai de grâce ; sinon la connexion ne
+  demande plus de code.
+
 *** Sous-étapes
 
 | Étape | Contenu                                                                 |
@@ -568,5 +596,5 @@ suivante.
 | #C8a  | Conception (ce paragraphe), sans code. Fait                             |
 | #C8b  | Modèle de politique, exigence effective, tests, sans TOTP. Fait         |
 | #C8c  | Inscription TOTP, vérification à la connexion, clé chiffrée, délai de grâce. Fait |
-| #C8d  | Codes de secours et réinitialisation hiérarchique                       |
+| #C8d  | Codes de secours et réinitialisation hiérarchique. Fait                 |
 | #C8e  | Écrans de la direction, diagnostic, =.env.example=, =DEPLOIEMENT.org=     |

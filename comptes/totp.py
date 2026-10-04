@@ -6,6 +6,7 @@ qrcode et django_otp sont paresseuses : sans requirements-2fa.txt, ce module
 s'importe quand même et la fonction reste simplement indisponible.
 """
 import base64
+import hashlib
 import logging
 import secrets
 from io import BytesIO
@@ -16,7 +17,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
-from .models import DoubleFacteurCompte
+from .models import CodeSecoursDoubleFacteur, DoubleFacteurCompte
 
 logger = logging.getLogger(__name__)
 
@@ -154,4 +155,75 @@ def confirmer_inscription(utilisateur, code, *, instant=None):
 
 
 def retirer(utilisateur):
+    CodeSecoursDoubleFacteur.objects.filter(utilisateur=utilisateur).delete()
     DoubleFacteurCompte.objects.filter(utilisateur=utilisateur).delete()
+
+
+def reinitialiser(utilisateur):
+    """Efface le second facteur et les codes de secours d'un compte.
+
+    La ligne reste (avec son échéance éventuelle) : le compte n'est plus
+    inscrit et devra se réinscrire, sans que l'obligation disparaisse.
+    """
+    with transaction.atomic():
+        CodeSecoursDoubleFacteur.objects.filter(utilisateur=utilisateur).delete()
+        DoubleFacteurCompte.objects.filter(utilisateur=utilisateur).update(
+            cle_chiffree="", confirme_le=None, dernier_pas=0)
+
+
+# --- Codes de secours -------------------------------------------------------
+# Seize caractères d'un alphabet de 32 sans ambiguïté (80 bits) : assez pour
+# qu'une simple empreinte SHA-256 résiste à une fuite de la base.
+ALPHABET_SECOURS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+LONGUEUR_CODE_SECOURS = 16
+NOMBRE_CODES_SECOURS = 10
+
+
+def _empreinte(code_normalise):
+    return hashlib.sha256(code_normalise.encode()).hexdigest()
+
+
+def normaliser_code_secours(saisie):
+    """Majuscules, sans espaces ni tirets ; None si la forme est impossible."""
+    code = "".join(c for c in str(saisie or "").upper() if c not in " -")
+    if len(code) != LONGUEUR_CODE_SECOURS or any(c not in ALPHABET_SECOURS for c in code):
+        return None
+    return code
+
+
+def presenter_code_secours(code):
+    return "-".join(code[i:i + 4] for i in range(0, LONGUEUR_CODE_SECOURS, 4))
+
+
+def generer_codes_secours(utilisateur):
+    """Remplace les codes d'un compte inscrit ; retourne les nouveaux, en clair,
+    pour un affichage unique : seules leurs empreintes sont conservées."""
+    with transaction.atomic():
+        if not DoubleFacteurCompte.objects.select_for_update().filter(
+                utilisateur=utilisateur, confirme_le__isnull=False).exists():
+            raise ValidationError("Le second facteur n'est pas configuré pour ce compte.")
+        CodeSecoursDoubleFacteur.objects.filter(utilisateur=utilisateur).delete()
+        codes = []
+        while len(codes) < NOMBRE_CODES_SECOURS:
+            code = "".join(secrets.choice(ALPHABET_SECOURS) for _ in range(LONGUEUR_CODE_SECOURS))
+            if code not in codes:
+                codes.append(code)
+        CodeSecoursDoubleFacteur.objects.bulk_create(
+            CodeSecoursDoubleFacteur(utilisateur=utilisateur, empreinte=_empreinte(code))
+            for code in codes)
+    return [presenter_code_secours(code) for code in codes]
+
+
+def utiliser_code_secours(utilisateur, saisie):
+    """Consomme un code de secours ; chaque code ne sert qu'une fois."""
+    code = normaliser_code_secours(saisie)
+    if code is None or not est_inscrit(utilisateur):
+        return False
+    return bool(CodeSecoursDoubleFacteur.objects.filter(
+        utilisateur=utilisateur, empreinte=_empreinte(code), utilise_le__isnull=True,
+    ).update(utilise_le=timezone.now()))
+
+
+def codes_secours_restants(utilisateur):
+    return CodeSecoursDoubleFacteur.objects.filter(
+        utilisateur=utilisateur, utilise_le__isnull=True).count()

@@ -345,7 +345,9 @@ class InscriptionEtRetrait(BaseAcces):
     def test_inscription_par_un_code_valide(self):
         cle = self.lire_cle(self.client.get(reverse("double_facteur")))
         reponse = self.client.post(reverse("double_facteur"), {"code": self.code(cle)})
-        self.assertRedirects(reponse, reverse("mon_compte"), fetch_redirect_response=False)
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, "Vos codes de secours")
+        self.assertEqual(len(reponse.context["codes_secours"]), 10)
         self.assertTrue(totp.est_inscrit(self.enseignant))
         self.assertTrue(self.client.session[SESSION_VERIFIE])
         self.assertEqual(self.client.get(reverse("accueil")).status_code, 200)

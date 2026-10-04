@@ -8,11 +8,11 @@
   <p><a href="{% url 'connexion' %}">Retour à la connexion</a></p>
 </div>
 {% else %}
-<p class="sous-titre">Saisissez le code à 6 chiffres affiché par votre application d'authentification.</p>
+<p class="sous-titre">Saisissez le code à 6 chiffres affiché par votre application d'authentification, ou un code de secours si vous n'avez plus votre téléphone.</p>
 <form method="post" class="encadre">
   {% csrf_token %}
   <label for="code">Code de vérification</label>
-  <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" autofocus required>
+  <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="24" autofocus required>
   <div class="actions">
     <button class="bouton" type="submit">Valider</button>
     <a href="{% url 'connexion' %}">Annuler</a>

@@ -96,6 +96,16 @@
   {% if afficher_historique %}{% for affectation in appartenance.affectations_historiques %}{% include "suivi/partiels/affectation_equipe.html" with vue="personnes" historique=True %}{% endfor %}{% endif %}
   </div>
 
+  {% if appartenance.double_facteur_reinitialisable %}
+  <details class="ajout-contextuel">
+    <summary>Second facteur de {{ appartenance.utilisateur.first_name|default:appartenance.utilisateur.username }}</summary>
+    <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="reinitialiser_double_facteur"><input type="hidden" name="appartenance" value="{{ appartenance.pk }}"><input type="hidden" name="vue" value="personnes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
+      <p class="aide">À utiliser si cette personne a perdu son téléphone et ses codes de secours. Elle devra configurer de nouveau son second facteur à sa prochaine connexion ; l'opération est consignée dans le journal de l'école.</p>
+      <button class="bouton discret" type="submit">Réinitialiser le second facteur</button>
+    </form>
+  </details>
+  {% endif %}
+
   {% if appartenance in membres_affectables %}
   <details class="ajout-contextuel">
     <summary>Attribuer une fonction à {{ appartenance.utilisateur.first_name|default:appartenance.utilisateur.username }}</summary>
