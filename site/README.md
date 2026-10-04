@@ -100,8 +100,14 @@ le titre explicite accompagne toujours la couleur et le symbole décoratif.
 
 Distinguer le service de l’école de l’utilisation sur cet appareil ; cette
 dernière permet plusieurs comptes, dans le navigateur ou le programme. Ne pas
-présenter les fonctions prévues (école fictive ZIP, espace d’essai, ouverture
-temporaire avant restauration, premier démarrage simplifié) comme livrées.
+confondre le code livré et les fonctions accessibles dans chaque publication.
+La version affichée dans l’application et le catalogue des téléchargements
+permettent de vérifier les fonctions disponibles.
+
+Les comptes fictifs sont lus dans `site/data/demonstration.yaml` par le partial
+`acces-demonstration.html`. Le shortcode `parcours` peut les afficher après
+ses actions avec `comptes="oui"`, sans imbriquer un shortcode HTML dans son
+contenu Markdown. Leur présentation est commune aux deux espaces d’essai.
 
 ## École fictive commune (#SP4)
 

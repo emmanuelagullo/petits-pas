@@ -7,7 +7,7 @@ Petits Pas est une application Django dont l'interface web s'appuie sur HTMX.
 Deux façons de travailler existent : le mode hébergé, accessible à plusieurs
 personnes par navigateur, et l’utilisation sur un appareil, dans le navigateur ou avec le programme téléchargé. Plusieurs comptes peuvent s’y relayer. Les profils ci-dessous précisent leurs usages et leurs données.
 
-Le projet ne propose pas encore un service prêt à recevoir des données réelles.
+Le projet ne fournit pas d’hébergement centralisé pour les écoles.
 Cette page distingue donc l'architecture déjà exercée des garanties qui restent
 à établir avant un pilote ou une production.
 
@@ -19,7 +19,8 @@ La [protection des données]({{< relref "/proteger-donnees/" >}}) concerne les d
 | Profil | Où sont les données ? | Données admises | Finalité |
 | --- | --- | --- | --- |
 | [Démonstration publique]({{< relref "/demonstration/" >}}) | Sur un serveur distant, effacées lors de son arrêt | Fictives uniquement, visibles par les visiteurs | Découvrir librement l'interface |
-| [Mode autonome local](#mode-autonome-local) | SQLite, médias et clé dans un paquet persistant sur le poste | Le projet reste en développement ; qualification nécessaire avant des données réelles | Usage sur un poste, sans partage entre ordinateurs |
+| [Navigateur sur cet appareil](#application-dans-le-navigateur) | Base et médias dans le stockage local du navigateur | Fictives uniquement pour la publication actuelle | Essai personnel, sans synchronisation entre appareils |
+| [Programme sur cet appareil](#mode-autonome-local) | SQLite, médias et clé dans un paquet persistant sur le poste | Préparer la protection des données avec l’école ; les essais sur appareil recueillent les retours | Usage sur un poste, sans partage entre ordinateurs |
 | Atelier pédagogique hébergé | PostgreSQL et stockage S3 persistants sur un serveur distant | Fictives uniquement | Recueillir des retours dans la durée |
 | Pilote ou production hébergés | PostgreSQL et stockage S3 persistants sur un serveur distant | Réelles, seulement après validation des garanties nécessaires | Usage partagé d'une école ou d'une collectivité |
 

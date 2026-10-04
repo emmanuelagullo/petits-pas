@@ -1,0 +1,28 @@
+<div class="comptes-essai">
+<h3>Pour vous connecter</h3>
+{{- $demo := .Site.Data.demonstration -}}
+<div class="demo-access">
+  <article>
+    <h4>Enseignant</h4>
+    <span>Utilisateur : <code>{{ $demo.identifiants.enseignant.utilisateur }}</code></span>
+    <span>Mot de passe : <code>{{ $demo.identifiants.enseignant.mot_de_passe }}</code></span>
+  </article>
+  <article>
+    <h4>Direction</h4>
+    <span>Utilisateur : <code>{{ $demo.identifiants.direction.utilisateur }}</code></span>
+    <span>Mot de passe : <code>{{ $demo.identifiants.direction.mot_de_passe }}</code></span>
+  </article>
+</div>
+<details>
+  <summary>Essayer les autres profils fictifs</summary>
+  <p>Ces comptes utilisent le mot de passe enseignant affiché ci-dessus.</p>
+  <ul>
+    {{- range $demo.profils }}
+    {{- if not .compte_initial }}
+    <li><code>{{ .utilisateur }}</code> — {{ .nom }}</li>
+    {{- end }}
+    {{- end }}
+  </ul>
+  <p><a href="{{ "roles/equipe/" | relURL }}">Comprendre le périmètre de chaque personnage</a></p>
+</details>
+</div>

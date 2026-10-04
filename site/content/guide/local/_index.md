@@ -10,8 +10,11 @@ personnel. Les données restent ici ; les appareils ne se synchronisent pas.
 - **Avec le programme à télécharger** : [choisir une version]({{< relref "/guide/local/telecharger-programme" >}}),
   puis [installer et mettre à jour]({{< relref "/guide/local/installer-programme" >}}).
 
-Après création de l’école et du premier compte, [préparer la classe]({{< relref "/guide/eleves-classes/creer-activer-classe" >}}),
-affecter son responsable et [ajouter les élèves]({{< relref "/guide/eleves-classes/ajouter-eleves" >}}).
+Après création de l’école et du premier compte, si vous avez choisi
+**Préparer aussi ma première classe**, passez directement à
+[ajouter les élèves]({{< relref "/guide/eleves-classes/ajouter-eleves" >}}).
+Sinon, [préparez la classe]({{< relref "/guide/eleves-classes/creer-activer-classe" >}})
+et affectez son responsable avant d’ajouter les élèves.
 Les fiches pédagogiques du Guide s’appliquent aux deux options.
 
 [Essayer avec l’école fictive sans remplacer son école]({{< relref "/guide/local/essayer-ecole-fictive" >}}).
@@ -32,7 +35,8 @@ Dans le navigateur, les carnets passent par la fenêtre d’impression ; plusieu
 carnets forment un document commun. Le programme peut générer des PDF séparés.
 Consultez les [fiches des carnets]({{< relref "/guide/carnets/" >}}).
 
-Les essais actuels utilisent des données fictives. Avant des données réelles,
+L’application dans le navigateur est actuellement réservée aux données fictives.
+Avant toute utilisation de données réelles,
 préparer avec l’école la [protection des données]({{< relref "/proteger-donnees/" >}}).
 Le stockage protégé du navigateur et les copies de récupération ne remplacent
 pas une sauvegarde conservée ailleurs.

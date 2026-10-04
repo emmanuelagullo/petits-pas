@@ -4,10 +4,8 @@ description = "Fonctions accessibles, publics concernés et limites actuelles de
 +++
 
 Cet inventaire est établi à partir des vues, formulaires, autorisations, tests
-et scénarios de démonstration. La première série comptait 31 fiches ; le guide
-couvre maintenant 38 fiches dans six rubriques. Il prend comme référence l’interface et
-les tests après la consolidation initiale de l’authentification (#C2 à #C4),
-ainsi que les scénarios documentaires jusqu’à #G8.
+et scénarios de démonstration. Les fiches précisent les différences entre modes
+et les limites des versions publiées.
 
 Les statuts employés sont :
 
@@ -106,18 +104,18 @@ Les statuts employés sont :
 | Suspendre une affectation en urgence | Disponible | Motif obligatoire ; une anomalie peut être ouverte. |
 | Attribuer ou retirer une responsabilité de direction | Interne | Services présents, sans interface publique. |
 
-## Utiliser le mode autonome local
+## Utiliser Petits Pas sur cet appareil
 
 | Je voudrais… | État | Point important |
 | --- | --- | --- |
-| Télécharger le programme Linux ou l'installateur Windows | Selon publication | La version 0.6 publiée propose encore une archive Windows technique ; les futures préversions peuvent joindre le setup graphique. |
-| Installer ou mettre à jour le programme | Prototype | Le setup Windows guide l'installation et la mise à jour ; les données restent séparées du programme. |
+| Télécharger le programme Linux ou l'installateur Windows | Selon publication | Consulter la fiche de téléchargement pour les versions et fichiers effectivement publiés. |
+| Installer ou mettre à jour le programme | Disponible | Le setup Windows guide l'installation et la mise à jour ; les données restent séparées du programme. |
 | Revenir à la version précédente du programme | Technique uniquement sous Windows | Pas de bouton dans le setup ; une migration de la base peut empêcher une ancienne version de relire l'école. |
 | Télécharger un ZIP du paquet local | Disponible en mode local | Direction ; conserve la base, les médias et la clé du paquet. |
 | Restaurer un ZIP du paquet local | Disponible en mode local | Direction ; après vérification et confirmation, l’application redémarre et l’ancien paquet reste dans un dossier séparé. |
 
-Ce mode fonctionne sur un seul ordinateur, sans serveur distant et sans
-collaboration entre postes. Les [fiches du mode local]({{< relref "/guide/local/" >}})
+Plusieurs personnes peuvent se relayer avec leurs comptes sur cet appareil.
+Il n’y a pas de synchronisation entre appareils. Les [fiches du mode local]({{< relref "/guide/local/" >}})
 décrivent les manipulations. Le déploiement serveur garde ses propres procédures
 de sauvegarde et de reprise.
 
@@ -224,8 +222,8 @@ le service peuvent générer un ZIP de PDF séparés.
 
 Le formulaire initial avec première classe est livré dans le code actuel ; sa
 disponibilité dépend de la version effectivement publiée. L’école fictive téléchargeable
-et l’espace d’essai distinct sont livrés dans le code, à publier avec le site,
-la PWA et les programmes. Les versions précédentes ne les proposent pas.
+et l’espace d’essai distinct sont décrits dans [Essayer]({{< relref "/demonstration/" >}}),
+avec les précautions pour les versions antérieures, dont le programme 0.7.
 L’ouverture d’une [copie du ZIP à vérifier]({{< relref "/guide/local/verifier-zip" >}})
 est également livrée dans le code actuel ; sa disponibilité dépend de la publication.
 Les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}})

@@ -32,7 +32,7 @@ remplace pas votre copie externe. Voir la [récupération navigateur]({{< relref
 
 ## Avec le programme : vérifier, confirmer, redémarrer
 
-Les étapes ci-dessous concernent le programme autonome. Le [application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
+Les étapes ci-dessous concernent le programme autonome. L’[application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
 utilise le même ZIP avec une confirmation et une reconnexion, sans ce redémarrage.
 La direction ne
 peut pas remplacer depuis son navigateur la base d’une installation hébergée

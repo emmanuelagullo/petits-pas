@@ -63,6 +63,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Changed
 
+- Site public : #SP7 rapproche les comptes fictifs des actions d’essai dans
+  les deux modes, conserve l’avertissement de chargement de la démonstration
+  et met les parcours par mode en tête du Guide. Le démarrage, les sauvegardes
+  et l’inventaire distinguent les fonctions livrées des versions publiées.
+
+
 - Conception de l'authentification à deux facteurs documentée dans
   =AUDIT-AUTHENTIFICATION-INVITATIONS.org= (§ 6.7) : politique hiérarchique
   déployeur puis école, obligatoire jusqu'à un rang ou désactivée à partir
