@@ -6,4 +6,7 @@
   {{ if eq (.Get "demonstration") "oui" }}
   <p class="actions"><a class="button primary" href="{{ .Site.Data.demonstration.url }}" rel="external">Ouvrir la démonstration en ligne</a></p>
   {{ end }}
+  {{ if eq (.Get "comptes") "oui" }}
+  {{ partial "acces-demonstration.html" . }}
+  {{ end }}
 </section>

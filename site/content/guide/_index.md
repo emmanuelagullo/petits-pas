@@ -9,6 +9,17 @@ indique où commencer, qui peut agir et ce que l’application doit produire.
 Il décrit l’interface disponible aujourd’hui ; lorsqu’une fonction n’est pas
 encore proposée, cela est signalé explicitement.
 
+## Selon votre façon de travailler
+
+- [Avec le service de votre école]({{< relref "/guide/service/" >}}) :
+  invitation, connexion et accès à votre classe depuis plusieurs appareils.
+- [Sur cet appareil]({{< relref "/guide/local/" >}}) : navigateur ou programme
+  téléchargé, démarrage, sauvegardes, transfert et récupération.
+
+Les gestes pédagogiques sont communs. Les fiches précisent les différences
+lorsqu’elles concernent l’impression, les mises à jour ou les sauvegardes.
+Pour choisir, commencer par [Démarrer]({{< relref "/demarrer/" >}}).
+
 {{< recherche-guide >}}
 
 ## Parcourir par intention
@@ -62,17 +73,6 @@ Une action peut être absente, refusée ou présentée comme une ressource
 introuvable selon le contexte. Les fiches de diagnostic expliquent notamment
 pourquoi une personne ne voit pas une classe, peut prévisualiser mais pas
 générer un carnet, ou ne peut pas terminer la dernière affectation responsable.
-
-## Selon votre façon de travailler
-
-- [Avec le service de votre école]({{< relref "/guide/service/" >}}) :
-  invitation, connexion et accès à votre classe depuis plusieurs appareils.
-- [Sur cet appareil]({{< relref "/guide/local/" >}}) : navigateur ou programme
-  téléchargé, démarrage, sauvegardes, transfert et récupération.
-
-Les gestes pédagogiques sont communs. Les fiches précisent les différences
-lorsqu’elles concernent l’impression, les mises à jour ou les sauvegardes.
-Pour choisir, commencer par [Démarrer]({{< relref "/demarrer/" >}}).
 
 Les principes communs ne sont pas répétés dans chaque parcours : la
 [présentation des rôles]({{< relref "/roles/" >}}) donne la vue synthétique et

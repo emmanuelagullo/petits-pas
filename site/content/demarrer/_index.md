@@ -41,7 +41,10 @@ Les essais actuels utilisent uniquement des données fictives.
 
 [Choisir le téléchargement Windows ou Linux]({{< relref "/guide/local/telecharger-programme" >}}),
 puis [installer et ouvrir le programme]({{< relref "/guide/local/installer-programme" >}}).
-Au premier démarrage, créer l’école et le premier compte personnel. Si l’écran
+
+### Préparer l’école et la première classe
+
+Dans les deux options, au premier démarrage, créer l’école et le premier compte personnel. Si l’écran
 propose **Préparer aussi ma première classe**, cette option cochée prépare la
 classe et vous en attribue la responsabilité. Choisissez le référentiel de départ,
 qui sera proposé pour l’école et adopté par cette classe. Après validation,

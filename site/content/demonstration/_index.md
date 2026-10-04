@@ -1,85 +1,54 @@
 +++
 title = "Essayer Petits Pas"
-description = "Une démonstration publique avec des données entièrement fictives."
+description = "Essayer la même école fictive en ligne ou sur cet appareil."
 +++
 
-Utilisez uniquement des données fictives, dans les deux façons d’essayer.
+Choisissez où essayer la même école fictive. Utilisez uniquement des données fictives.
 
-{{< parcours mode="service" titre="Dans la démonstration en ligne" demonstration="oui" >}}
-Une école fictive partagée entre les visiteurs et régulièrement réinitialisée.
+{{< parcours mode="service" titre="Dans la démonstration partagée" demonstration="oui" comptes="oui" >}}
+L’école est partagée entre tous les visiteurs : chacun peut voir et modifier
+les essais des autres. Les modifications sont régulièrement effacées.
+
 **Cette démonstration peut prendre quelques minutes à démarrer. Un écran noir
-peut apparaître pendant le chargement : c’est normal pour cette démonstration.
-Patientez jusqu’à l’ouverture de Petits Pas.**
+peut apparaître pendant le chargement : c’est normal pour cette démonstration
+jetable. Patientez jusqu’à l’ouverture de Petits Pas.**
 
-La démonstration permet d'explorer librement les parcours enseignant et
-direction de Petits Pas. Elle est partagée par toutes les personnes qui la
-visitent : vous pouvez donc voir leurs essais, comme elles peuvent voir les
-vôtres.
-
-Avant de choisir un compte, la page [« Qui peut faire quoi ? »]({{< relref "/roles/" >}})
-donne une vue rapide des fonctions et de leurs limites. Les [fiches de l'équipe
-fictive]({{< relref "/roles/equipe/" >}}) présentent ensuite chaque compte et
-son périmètre.
-
-
-
-## Avant de commencer
-
-N'y saisissez **aucune donnée sensible ou réelle** : ni nom d'enfant, ni
-commentaire concernant une personne, ni photographie, ni document. Toute
-donnée saisie et tout fichier téléversé peuvent être consultés par les autres
-visiteurs tant que la démonstration reste active.
-
-Le service gratuit s'arrête après **quinze minutes sans aucune visite ni
-requête, de quiconque**. Les modifications sont alors effacées. La visite
-suivante recrée le jeu de données fictives ; ce redémarrage peut prendre
-quelques minutes.
-
-Cette remise à zéro dépend donc de l'inactivité de l'ensemble des visiteurs :
-elle ne doit jamais être utilisée comme une mesure de confidentialité ou
-d'effacement à la demande.
-
+N’y saisissez aucun nom d’enfant réel, commentaire personnel, photographie ou
+document privé. La remise à zéro n’est pas une garantie de confidentialité
+ni un effacement à la demande.
 {{< /parcours >}}
 
-{{< parcours mode="appareil" titre="Sur cet appareil" >}}
-### Dans le navigateur de cet appareil
+{{< parcours mode="appareil" titre="Sur cet appareil" comptes="oui" >}}
+Vos essais sont conservés dans un espace distinct de votre école habituelle.
+Les autres visiteurs n’y ont pas accès.
 
-[Ouvrir Petits Pas](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/)
-et suivre la [fiche navigateur]({{< relref "/guide/local/essayer-navigateur" >}}).
+### Dans votre navigateur
+
+[Ouvrir l’espace d’essai](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/essai.html).
 
 ### Avec le programme à télécharger
 
-[Télécharger une version publiée]({{< relref "/guide/local/telecharger-programme" >}})
+[Télécharger une version publiée]({{< relref "/guide/local/telecharger-programme" >}}),
 puis [installer le programme]({{< relref "/guide/local/installer-programme" >}}).
-
-Les versions qui proposent **Essayer avec l’école fictive** ouvrent la même
-école de départ que la démonstration en ligne, dans un espace distinct de votre
-école habituelle. Vos essais locaux sont conservés, tandis que la démonstration
-en ligne est modifiée par les autres visiteurs et régulièrement réinitialisée.
-
-[Ouvrir directement l’espace d’essai dans le navigateur](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/essai.html).
-Ce lien nécessite une publication intégrant cette fonction. Dans le programme,
-cliquez sur **Essayer avec l’école fictive**, puis **Fermer et ouvrir l’autre espace**.
-Les anciens programmes, dont 0.7, ne proposent pas encore ce bouton.
-
-[Télécharger le ZIP de l’école fictive]({{< fichier-essai >}}), généré avec le site.
-Pour les installations anciennes, faites préparer un espace distinct avant de
-le restaurer. **Ne restaurez pas ce ZIP dans votre école habituelle : il remplacerait
-ses données.** Les comptes sont ceux de [l’équipe fictive]({{< relref "/roles/equipe/" >}}).
-
-[Comment essayer et retrouver son école]({{< relref "/guide/local/essayer-ecole-fictive" >}}).
-
-[Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}}).
+Si votre version propose **Essayer avec l’école fictive**, cliquez sur ce bouton,
+puis **Fermer et ouvrir l’autre espace**. La version 0.7 ne propose pas ce bouton :
+consultez les précautions ci-dessous avant un essai avec un ZIP.
 {{< /parcours >}}
 
+## Retrouver son école ou essayer un ZIP
+
+[Comment essayer et retrouver son école habituelle]({{< relref "/guide/local/essayer-ecole-fictive" >}}).
+[Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}}).
+
+Vous pouvez aussi [télécharger le ZIP de l’école fictive]({{< fichier-essai >}}).
+Il nécessite une version compatible. [Vérifiez-le dans une copie séparée]({{< relref "/guide/local/verifier-zip" >}})
+si votre version propose cette fonction. Sinon, faites préparer une installation
+séparée compatible. **Ne restaurez pas ce ZIP dans votre école habituelle :
+il remplacerait ses données, comptes et photos compris.**
+
 Pour préparer votre utilisation, revenez à [Démarrer]({{< relref "/demarrer/" >}}).
-
-## Comptes de l’école fictive
-
-Ces comptes servent dans la démonstration en ligne et dans les espaces d’essai
-qui proposent l’école fictive commune.
-
-{{< acces-demonstration >}}
+Pour explorer les droits, consultez [Qui peut faire quoi ?]({{< relref "/roles/" >}})
+et [l’équipe fictive]({{< relref "/roles/equipe/" >}}).
 
 ## Essayer les contenus complets du cycle 1
 
