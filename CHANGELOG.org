@@ -9,6 +9,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Site public : #SP3a transmet le référent HTTPS du navigateur au Django local
+  pour éviter les refus CSRF des actions HTMX ; les contrôles restent actifs et
+  la CI couvre HTTPS. Le bouton de démonstration est rattaché à son mode en ligne.
 - Site public : #SP4 génère un ZIP public de l’école fictive commune et sépare
   les essais des données habituelles. Navigateur : stockage et récupération
   distincts ; programme : dossier dédié et redémarrage entre les espaces.

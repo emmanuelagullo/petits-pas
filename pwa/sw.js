@@ -32,6 +32,13 @@ async function local(request) {
   const raw = request.method === 'GET' || request.method === 'HEAD' ? new ArrayBuffer(0) : await request.arrayBuffer();
   if (raw.byteLength > 70 * 1024**2) return new Response('Envoi trop volumineux pour ce prototype (70 Mio).', {status: 413});
   const body = new Uint8Array(raw);
+  const headers = [...request.headers];
+  // Le référent géré par le navigateur peut être absent de Request.headers.
+  // Transmettre sa valeur réelle, sans inventer un référent si la politique
+  // du navigateur l'a supprimé ; Django conserve tous ses contrôles CSRF.
+  if (!request.headers.has('referer') && /^https?:\/\//i.test(request.referrer)) {
+    headers.push(['Referer', request.referrer]);
+  }
   return new Promise(resolve => {
     const timeout = setTimeout(() => { channel.port1.close(); resolve(new Response('Délai dépassé ; résultat incertain.', {status: 503})); }, 120000);
     channel.port1.onmessage = event => {
@@ -40,7 +47,7 @@ async function local(request) {
       if (!r.ok) { resolve(new Response(r.error, {status: 507})); return; }
       resolve(new Response(request.method === 'HEAD' || [204, 304].includes(r.status) ? null : r.body, {status: r.status, headers: r.headers}));
     };
-    owner.postMessage({kind: 'http', request: {url: request.url, method: request.method, headers: [...request.headers], body}}, [channel.port2, raw]);
+    owner.postMessage({kind: 'http', request: {url: request.url, method: request.method, headers, body}}, [channel.port2, raw]);
   });
 }
 async function hasRuntime(client) {
