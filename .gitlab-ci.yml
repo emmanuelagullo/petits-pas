@@ -253,6 +253,7 @@ captures-demonstration:
     - test ! -e carnet.sqlite3
     - python3 -m unittest discover -s scripts -p test_publier_paquets.py
     - sh scripts/preparer-site.sh
+    - python3 scripts/construire-ecole-fictive.py --destination site/static/essais/ecole-fictive.zip
     - python3 scripts/verifier-guide-pratique.py
     - |
       bash ./start-render.sh >.ci-captures-demonstration.log 2>&1 &
@@ -277,6 +278,7 @@ captures-demonstration:
     when: always
     paths:
       - site/static/captures
+      - site/static/essais
       - .ci-captures-demonstration.log
       - .ci-captures-local.log
     expire_in: 1 week
@@ -358,7 +360,8 @@ pwa-prototype:
     CARNET_ANTIBRUTEFORCE: "non"
   before_script:
     - apt-get update
-    - apt-get install --yes --no-install-recommends nodejs npm poppler-utils
+    - apt-get install --yes --no-install-recommends nodejs npm poppler-utils libpango-1.0-0 libpangoft2-1.0-0
+    - python3 -m pip install --requirement requirements.lock
     - npm install --prefix pwa --ignore-scripts
     - node pwa/node_modules/playwright/cli.js install --with-deps chromium
   script:
@@ -369,6 +372,7 @@ pwa-prototype:
     - PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa-sous-chemin.json
     - python3 -m unittest discover -s scripts -p test_paquet_local.py
+    - python3 -m unittest discover -s scripts -p test_essai_local.py
     - python3 -m unittest discover -s scripts -p test_publication_pwa.py
     - python3 scripts/construire-pwa.py --runtime .cache/pwa/runtime-0.28.3 --wheels dist/pwa/wheels
     - python3 -c 'import json; assert not json.load(open("dist/pwa/config.json"))["testMode"]'

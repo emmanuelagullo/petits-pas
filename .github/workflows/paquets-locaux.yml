@@ -13,6 +13,7 @@ on:
       - comptes/**
       - suivi/**
       - referentiel/**
+      - site/data/demonstration.yaml
 
 permissions:
   contents: read
@@ -33,7 +34,9 @@ jobs:
           update: true
           install: mingw-w64-ucrt-x86_64-pango
       - name: Tester les données autonomes
-        run: python -m unittest discover -s scripts -p test_paquet_local.py
+        run: |
+          python -m unittest discover -s scripts -p test_paquet_local.py
+          python -m unittest discover -s scripts -p test_essai_local.py
       - name: Construire et contrôler
         shell: pwsh
         env:
@@ -120,6 +123,7 @@ jobs:
         run: |
           /usr/bin/python3 -c 'import gi; gi.require_version("WebKit2", "4.1")'
           /usr/bin/python3 -m unittest discover -s scripts -p test_paquet_local.py
+          /usr/bin/python3 -m unittest discover -s scripts -p test_essai_local.py
           PATH="/usr/bin:$PATH" bash scripts/construire-paquet-linux.sh
       - uses: actions/upload-artifact@v6
         with:

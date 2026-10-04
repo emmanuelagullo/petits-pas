@@ -1,8 +1,23 @@
+const ESSAI = new URL(location.href).searchParams.get('essai') === 'oui';
+const WORKER = './worker.js';
 const BASE = new URL('./', import.meta.url).pathname;
 const status = document.querySelector('#status');
 const frame = document.querySelector('#app');
 let worker, registration, ready = false, installPrompt;
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const changement = document.querySelector('#changer-espace');
+changement.textContent = ESSAI ? 'Revenir à mon école habituelle' : 'Essayer avec l’école fictive';
+changement.href = ESSAI ? BASE : BASE + 'essai.html';
+document.querySelector('#espace').textContent = ESSAI ? 'Espace d’essai — utilisez des données fictives.' : 'École de ce navigateur — données conservées sur cet appareil.';
+if (ESSAI) {
+  fetch('./ecole-fictive.json').then(response => response.json()).then(notice => {
+    const comptes = document.querySelector('#comptes-essai');
+    comptes.textContent = 'Comptes publics — enseignant : ' + notice.identifiants.enseignant.utilisateur +
+      ' / ' + notice.identifiants.enseignant.mot_de_passe + '; direction : ' + notice.identifiants.direction.utilisateur +
+      ' / ' + notice.identifiants.direction.mot_de_passe;
+    comptes.hidden = false;
+  }).catch(() => {});
+}
 function showNetwork() {
   document.querySelector('#network').textContent = navigator.onLine ? 'Réseau disponible' : 'Hors ligne';
 }
@@ -129,7 +144,7 @@ document.querySelector('#update').onclick = async event => {
 };
 document.querySelector('#recovery').onclick = async event => {
   event.target.disabled = true;
-  const recoveryWorker = new Worker('./worker.js', {type: 'module'});
+  const recoveryWorker = new Worker(WORKER, {type: 'module'});
   try {
     if (ready && (await fetch(BASE + 'app/pwa/autoriser-recuperation/')).status !== 204) throw new Error('L’export est réservé à la direction de l’école. Connectez-vous avec ce compte.');
     status.textContent = 'Préparation du ZIP de récupération…';
@@ -137,7 +152,7 @@ document.querySelector('#recovery').onclick = async event => {
       const channel = new MessageChannel();
       const timer = setTimeout(() => {channel.port1.close(); reject(new Error('Export trop long'));}, 120000);
       channel.port1.onmessage = e => {clearTimeout(timer); channel.port1.close(); e.data.ok ? resolve(e.data.value) : reject(new Error(e.data.error));};
-      recoveryWorker.postMessage({kind: 'recovery'}, [channel.port2]);
+      recoveryWorker.postMessage({kind: 'recovery', essai: ESSAI}, [channel.port2]);
     });
     const url = URL.createObjectURL(new Blob([value.bytes], {type: 'application/zip'}));
     const link = document.createElement('a'); link.href = url; link.download = 'petits-pas-recuperation.zip'; link.click();
@@ -158,11 +173,11 @@ try {
       registration.installing?.addEventListener('statechange', showUpdate);
     });
     await controlled();
-    worker = new Worker('./worker.js', {type: 'module'});
+    worker = new Worker(WORKER, {type: 'module'});
     worker.addEventListener('message', event => {
       if (event.data?.kind === 'progress') status.textContent = event.data.text;
     });
-    const initial = await rpc({kind: 'init'});
+    const initial = await rpc({kind: 'init', essai: ESSAI});
     ready = true;
     showVolume(initial.durability);
     const config = await (await fetch('./config.json')).json();

@@ -25,7 +25,7 @@ FULL_MEDIA_SCAN = True
 RESPONSE_BODY = b""
 
 
-def initialize(origin, version, base="/"):
+def initialize(origin, version, base="/", essai=False):
     global APPLICATION, SCRIPT_NAME
     SCRIPT_NAME = base.rstrip("/") + "/app"
     DATA.mkdir(exist_ok=True)
@@ -39,7 +39,7 @@ def initialize(origin, version, base="/"):
         "DJANGO_ALLOW_ASYNC_UNSAFE": "true",
         "PWA_BASE_PATH": base,
         "DJANGO_SETTINGS_MODULE": "pwa.settings", "CARNET_DEBUG": "0",
-        "CARNET_MODE_LOCAL": "oui", "CARNET_EMAIL_DESACTIVE": "oui",
+        "CARNET_MODE_LOCAL": "oui", "CARNET_ESPACE_ESSAI": "oui" if essai else "non", "CARNET_EMAIL_DESACTIVE": "oui",
         "CARNET_ANTIBRUTEFORCE": "non", "CARNET_VERSION": version,
         "CARNET_HOSTS": urlsplit(origin).hostname,
         "CARNET_CSRF_ORIGINS": origin,
@@ -59,6 +59,11 @@ def initialize(origin, version, base="/"):
             raise RuntimeError("Base locale endommagée : ouverture refusée.")
         if db.execute("PRAGMA foreign_key_check").fetchone():
             raise RuntimeError("Relations de la base locale invalides.")
+
+
+def restore_demo(snapshot):
+    from suivi.essai_local import installer_ecole_fictive
+    installer_ecole_fictive(bytes(snapshot), DATA)
 
 
 def restore(snapshot):

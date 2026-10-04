@@ -52,11 +52,22 @@ et suivre la [fiche navigateur]({{< relref "/guide/local/essayer-navigateur" >}}
 [Télécharger une version publiée]({{< relref "/guide/local/telecharger-programme" >}})
 puis [installer le programme]({{< relref "/guide/local/installer-programme" >}}).
 
-Ces deux options créent actuellement une école locale à remplir avec des données
-fictives. Le ZIP de l’école commune et l’espace d’essai séparé ne sont pas encore
-proposés. **Si une école existe déjà sur cet appareil, ne restaurez pas un ZIP
-pour essayer : il remplacerait ses données.** Utilisez un autre profil de
-navigateur ou faites préparer une installation distincte du programme.
+Les versions qui proposent **Essayer avec l’école fictive** ouvrent la même
+école de départ que la démonstration en ligne, dans un espace distinct de votre
+école habituelle. Vos essais locaux sont conservés, tandis que la démonstration
+en ligne est modifiée par les autres visiteurs et régulièrement réinitialisée.
+
+[Ouvrir directement l’espace d’essai dans le navigateur](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/essai.html).
+Ce lien nécessite une publication intégrant cette fonction. Dans le programme,
+cliquez sur **Essayer avec l’école fictive**, puis **Fermer et ouvrir l’autre espace**.
+Les anciens programmes, dont 0.7, ne proposent pas encore ce bouton.
+
+[Télécharger le ZIP de l’école fictive]({{< fichier-essai >}}), généré avec le site.
+Pour les installations anciennes, faites préparer un espace distinct avant de
+le restaurer. **Ne restaurez pas ce ZIP dans votre école habituelle : il remplacerait
+ses données.** Les comptes sont ceux de [l’équipe fictive]({{< relref "/roles/equipe/" >}}).
+
+[Comment essayer et retrouver son école]({{< relref "/guide/local/essayer-ecole-fictive" >}}).
 
 [Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}}).
 {{< /parcours >}}

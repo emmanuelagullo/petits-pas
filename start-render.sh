@@ -17,58 +17,9 @@ if [[ "${CARNET_ENVIRONNEMENT_ATELIER:-}" == "oui" ]]; then
     exit 1
 fi
 
-configuration_demo="site/data/demonstration.yaml"
-if [[ ! -r "$configuration_demo" ]]; then
-    echo "Refus : configuration de démonstration absente : $configuration_demo" >&2
-    exit 1
-fi
-
-mapfile -t parametres_demo < <(
-    python3 - "$configuration_demo" <<'PY'
-import sys
-
-import yaml
-
-with open(sys.argv[1], encoding="utf-8") as fichier:
-    configuration = yaml.safe_load(fichier)
-
-valeurs = (
-    configuration["ecole"],
-    configuration["identifiants"]["enseignant"]["utilisateur"],
-    configuration["identifiants"]["enseignant"]["mot_de_passe"],
-    configuration["identifiants"]["direction"]["utilisateur"],
-    configuration["identifiants"]["direction"]["mot_de_passe"],
-)
-for valeur in valeurs:
-    if not isinstance(valeur, str) or not valeur or "\n" in valeur:
-        raise SystemExit("Configuration de démonstration invalide.")
-    print(valeur)
-PY
-)
-
-if [[ "${#parametres_demo[@]}" -ne 5 ]]; then
-    echo "Refus : configuration de démonstration incomplète." >&2
-    exit 1
-fi
-
 export CARNET_ENVIRONNEMENT_EPHEMERE=oui
-
 python3 manage.py migrate --noinput
-
-python3 manage.py creer_ecole "${parametres_demo[0]}" \
-  --commune "Bordeaux" \
-  --utilisateur-enseignant "${parametres_demo[1]}" \
-  --mdp-enseignant "${parametres_demo[2]}" \
-  --utilisateur-direction "${parametres_demo[3]}" \
-  --mdp-direction "${parametres_demo[4]}"
-
-python3 manage.py charger_referentiel referentiel/trame-cycle1.yaml
-python3 manage.py jeu_demo_large
-# L’équipe fictive prépare aussi les deux offres cycle 1 et leurs classes d’essai.
-# Aucune de ces opérations ne doit être exécutée sur une école réelle.
-python3 manage.py jeu_demo_equipe \
-  --mot-de-passe "${parametres_demo[2]}" \
-  --confirmer-donnees-fictives
+python3 manage.py preparer_demonstration
 
 python3 manage.py collectstatic --noinput
 

@@ -14,6 +14,8 @@ Après création de l’école et du premier compte, [préparer la classe]({{< r
 affecter son responsable et [ajouter les élèves]({{< relref "/guide/eleves-classes/ajouter-eleves" >}}).
 Les fiches pédagogiques du Guide s’appliquent aux deux options.
 
+[Essayer avec l’école fictive sans remplacer son école]({{< relref "/guide/local/essayer-ecole-fictive" >}}).
+
 ## Conserver et retrouver le travail
 
 - [Télécharger une sauvegarde et garder une copie hors appareil]({{< relref "/guide/local/sauvegarder-paquet" >}}).

@@ -26,3 +26,7 @@ site/.hugo_build.lock
 
 /site/static/referentiels/cycle1/
 /site/static/referentiels/chatdecole/
+
+# École fictive générée, jamais une base utilisateur.
+referentiel/demo/
+site/static/essais/

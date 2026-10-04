@@ -409,3 +409,33 @@ Le choix et la mise à jour depuis l’interface sont accessibles dans Avancé.
 Après saisies, ils sont interdits par défaut et demandent les permissions
 application, école et classe, puis une confirmation par mot de passe.
 Voir `GARDE-FOUS-REFERENTIELS.org` et le Guide pratique.
+
+## École fictive et espaces d’essai (#SP4)
+
+`preparer_demonstration` prépare le scénario de `site/data/demonstration.yaml`
+pour Render ; `scripts/construire-ecole-fictive.py` l’utilise dans une base
+SQLite temporaire, avec paramètres de stockage et de courrier indépendants
+de l’environnement appelant. Les tables anti-bruteforce hébergées sont omises
+pour conserver le schéma local compatible. Le ZIP et sa notice sont générés,
+jamais versionnés ; leur SHA-256, l’empreinte des sources et le commit sont
+consignés dans la notice. Tous les comptes et mots de passe sont publics et fictifs.
+
+Le programme propose **Essayer avec l’école fictive**, ou `--essai` depuis les
+sources. Il utilise le dossier `essai-fictif` voisin du paquet par défaut,
+indépendamment d’un éventuel `--paquet` personnalisé. Le retour redémarre avec
+les arguments habituels conservés. Un dossier existant n’est jamais remplacé
+au premier démarrage de l’essai. Les essais sont ensuite conservés ; les mises
+à jour ne remettent pas l’école fictive à zéro.
+
+La PWA ouvre `/essai.html`, puis sa coque avec `?essai=oui`. Le mode est transmis
+explicitement au Worker (une réponse mise en cache peut perdre la query du
+Worker). OPFS et IndexedDB reçoivent un suffixe propre à l’essai ; le stockage
+habituel garde ses noms historiques. Un verrou commun empêche l’ouverture
+simultanée des deux espaces. Le secours utilise le même choix d’espace. Ils
+partagent l’origine et le quota : cette séparation n’est pas une frontière de
+sécurité et l’effacement du site peut supprimer les deux.
+
+Les constructions PWA et autonomes embarquent le ZIP courant. Le job de captures
+le génère aussi pour Hugo et transmet `site/static/essais/`. Les règles de
+promotion/publication ne changent pas ; il faut publier les nouvelles versions.
+La consultation temporaire d’un ZIP personnel avant restauration reste #SP5.

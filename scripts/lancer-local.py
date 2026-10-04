@@ -206,6 +206,8 @@ def verifier_distribution(projet):
         raise SystemExit("La feuille de style est absente de la distribution.")
     if not (projet / "referentiel" / "trame-cycle1.yaml").is_file():
         raise SystemExit("La trame pédagogique est absente de la distribution.")
+    if getattr(sys, "frozen", False) and not (projet / "referentiel/demo/ecole-fictive.zip").is_file():
+        raise SystemExit("L'école fictive est absente de la distribution.")
     if os.name == "nt":
         # L'import de webview seul ne charge pas pythonnet. Vérifier ici la
         # passerelle .NET réellement utilisée au démarrage sous Windows.
@@ -235,6 +237,14 @@ def verifier_distribution(projet):
         from gi.repository import Gtk, WebKit2  # noqa: F401
 
     print(f"Django {django.get_version()} et PyWebView : distribution vérifiée.")
+
+
+def choisir_paquet(habituel, defaut, essai=False):
+    habituel = Path(habituel).expanduser().resolve()
+    destination = Path(defaut).parent / "essai-fictif"
+    if destination.is_symlink() or destination.resolve() == habituel:
+        raise ValueError("L'espace d'essai doit être distinct du paquet habituel, sans lien symbolique.")
+    return destination.resolve() if essai else habituel
 
 
 def main():
@@ -273,7 +283,12 @@ def main():
         "--verifier-distribution", action="store_true",
         help="contrôler les modules, modèles et ressources sans créer de paquet",
     )
+    analyseur.add_argument("--essai", action="store_true",
+        help="ouvrir l'école fictive dans un dossier distinct, sans toucher au paquet habituel")
     arguments = analyseur.parse_args()
+    if arguments.essai and (arguments.creer_ecole or arguments.charger_referentiel
+                           or arguments.copier_paquet or arguments.deplacer_paquet):
+        analyseur.error("--essai ne se combine pas avec une opération sur les données")
     if arguments.commune and not arguments.creer_ecole:
         analyseur.error("--commune nécessite --creer-ecole")
     if arguments.creer_ecole and arguments.charger_referentiel:
@@ -285,7 +300,11 @@ def main():
         arguments.creer_ecole or arguments.charger_referentiel or arguments.commune
     ):
         analyseur.error("--copier-paquet ne se combine pas avec l'initialisation")
-    paquet = arguments.paquet.expanduser().resolve()
+    try:
+        paquet = choisir_paquet(arguments.paquet, defaut, arguments.essai)
+    except ValueError as erreur:
+        raise SystemExit(str(erreur)) from erreur
+    os.environ["CARNET_ESPACE_ESSAI"] = "oui" if arguments.essai else "non"
     if paquet == projet:
         raise SystemExit(
             "Le paquet autonome doit être un répertoire distinct du projet."
@@ -332,6 +351,12 @@ def main():
 
     os.chdir(projet)
     sys.path.insert(0, str(projet))
+    if arguments.essai and not (paquet / "carnet.sqlite3").exists():
+        from suivi.essai_local import installer_ecole_fictive
+        archive = projet / "referentiel/demo/ecole-fictive.zip"
+        if not archive.exists():
+            raise SystemExit("L'école fictive manque. Depuis les sources, lancez scripts/construire-ecole-fictive.py.")
+        installer_ecole_fictive(archive, paquet)
     # Un paquet regroupe la base, les médias et la clé des sessions.
     paquet.mkdir(parents=True, exist_ok=True)
     (paquet / "media").mkdir(exist_ok=True)
@@ -420,6 +445,18 @@ def executer(paquet, projet, arguments):
             fenetre.destroy()
             return True
 
+        def changer_espace(self, espace):
+            if espace not in {"essai", "habituel"} or fenetre is None or restauration_en_attente() is not None:
+                return False
+            with requetes:
+                # Les chemins ne viennent jamais de l'écran ; seul le drapeau change.
+                sys.argv[:] = [argument for argument in sys.argv if argument != "--essai"]
+                if espace == "essai":
+                    sys.argv.append("--essai")
+                redemarrage_demande.set()
+                fenetre.destroy()
+                return True
+
     commandes = CommandesFenetre()
 
     def application_locale(environ, start_response):
@@ -458,7 +495,7 @@ def executer(paquet, projet, arguments):
         # Ne pas placer l'objet fenêtre sur js_api : PyWebView parcourt les
         # attributs publics de cet objet et récursait dans fenetre.native.
         fenetre = webview.create_window(
-            "Petits Pas", f"http://127.0.0.1:{serveur.server_port}/",
+            "Petits Pas — espace d’essai" if arguments.essai else "Petits Pas", f"http://127.0.0.1:{serveur.server_port}/",
             js_api=commandes,
         )
         webview.start()
