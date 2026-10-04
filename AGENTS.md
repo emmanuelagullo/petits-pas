@@ -61,6 +61,8 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   son adresse stable et le site Hugo. La portée du Service Worker et les
   données internes sont propres au chemin, sans isolation de sécurité entre
   projets partageant une origine.
+  Les jobs `pwa-prototype` et `pwa-qualification` sont automatiques et leurs
+  échecs font échouer la CI ; la publication seule reste manuelle.
   `pwa/ESSAIS-APPAREILS.md` recueille les retours terrain sans bloquer les
   évolutions. `pwa/AUDIT-SITE-PUBLICATIONS.md` prépare le chantier Hugo.
   Le suivi du ZIP préparé est commun à PWA/autonome dans `suivi/paquet_local.py` ;

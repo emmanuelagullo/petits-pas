@@ -8,11 +8,51 @@ from pathlib import Path
 import shutil
 import subprocess
 import urllib.request
+import urllib.error
+import http.client
+import ssl
+import tempfile
+import time
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 PYODIDE = "0.28.3"
 BASE = f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE}/full/"
+
+
+def telecharger(url, target, empreinte=None, tentatives=4):
+    """Cache complet, remplacement atomique et reprises réseau bornées ; TLS vérifié."""
+    if target.is_file() and target.stat().st_size and (
+        empreinte is None or hashlib.sha256(target.read_bytes()).hexdigest() == empreinte
+    ):
+        return
+    for numero in range(tentatives):
+        temporaire = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=target.parent, prefix=target.name + ".", suffix=".part", delete=False) as fichier:
+                temporaire = Path(fichier.name)
+                with urllib.request.urlopen(url, timeout=120) as response:
+                    shutil.copyfileobj(response, fichier)
+                    attendu = response.headers.get("Content-Length")
+                    if attendu is not None and fichier.tell() != int(attendu):
+                        raise http.client.IncompleteRead(b"", int(attendu) - fichier.tell())
+            if not temporaire.stat().st_size:
+                raise RuntimeError("Téléchargement vide : " + url)
+            if empreinte and hashlib.sha256(temporaire.read_bytes()).hexdigest() != empreinte:
+                raise RuntimeError("Empreinte incorrecte : " + url)
+            temporaire.replace(target)
+            return
+        except (urllib.error.URLError, TimeoutError, ConnectionError, http.client.HTTPException, ssl.SSLError) as erreur:
+            if isinstance(erreur, urllib.error.HTTPError) and erreur.code not in {408, 429, 500, 502, 503, 504}:
+                raise
+            cause = getattr(erreur, "reason", erreur)
+            if isinstance(cause, ssl.SSLCertVerificationError) or numero + 1 == tentatives:
+                raise
+            print(f"Téléchargement interrompu ({numero + 1}/{tentatives}) : {target.name} ; nouvel essai…", flush=True)
+            time.sleep(2 ** numero)
+        finally:
+            if temporaire is not None:
+                temporaire.unlink(missing_ok=True)
 
 
 def main():
@@ -29,14 +69,19 @@ def main():
     (output / "resultats-tests.json").unlink(missing_ok=True)
     runtime = output / "runtime"
     runtime.mkdir(exist_ok=True)
+    # Éventuels fragments laissés par un arrêt brutal du constructeur.
+    for fragment in runtime.glob("*.part"):
+        fragment.unlink()
 
-    def download(name):
+    cache_runtime = args.runtime.resolve() if args.runtime else runtime
+    cache_runtime.mkdir(parents=True, exist_ok=True)
+
+    def download(name, empreinte=None):
+        source = cache_runtime / name
+        telecharger(BASE + name, source, empreinte)
         target = runtime / name
-        if args.runtime and (args.runtime / name).is_file():
-            shutil.copyfile(args.runtime / name, target)
-        else:
-            with urllib.request.urlopen(BASE + name, timeout=120) as response:
-                target.write_bytes(response.read())
+        if source.resolve() != target.resolve():
+            shutil.copyfile(source, target)
         return name
 
     download("pyodide-lock.json")
@@ -53,8 +98,9 @@ def main():
     packages = [lock["packages"][name] for name in sorted(selected)]
     names = ["pyodide.mjs", "pyodide.asm.js", "pyodide.asm.wasm", "python_stdlib.zip"]
     names += [package["file_name"] for package in packages]
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        list(pool.map(download, names))
+    empreintes = {p["file_name"]: p["sha256"] for p in packages}
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        list(pool.map(lambda name: download(name, empreintes.get(name)), names))
     for package in packages:
         if hashlib.sha256((runtime / package["file_name"]).read_bytes()).hexdigest() != package["sha256"]:
             raise RuntimeError("Wheel WASM altérée : " + package["file_name"])
