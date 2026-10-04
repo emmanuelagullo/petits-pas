@@ -1,6 +1,8 @@
 // Fichiers et manifestes immuables OPFS + pointeur transactionnel IndexedDB.
 // Aucun accès concurrent : le propriétaire détient un Web Lock dans la coque.
-const DB = 'petits-pas-pwa-prototype-v1';
+const BASE = new URL('./', import.meta.url).pathname;
+const SUFFIX = BASE === '/' ? '' : '-' + encodeURIComponent(BASE);
+const DB = 'petits-pas-pwa-prototype-v1' + SUFFIX;
 async function database() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB, 1);
@@ -38,7 +40,7 @@ async function digest(bytes) {
 // Le format 1 (ZIP) reste lisible pour la mise à jour et le secours.
 const LIMIT = 64 * 1024**2;
 async function directory() {
-  return (await navigator.storage.getDirectory()).getDirectoryHandle('petits-pas-prototype', {create: true});
+  return (await navigator.storage.getDirectory()).getDirectoryHandle('petits-pas-prototype' + SUFFIX, {create: true});
 }
 function descriptor(value) {
   if (!value) return null;

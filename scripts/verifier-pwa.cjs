@@ -10,12 +10,16 @@ const requirePwa = createRequire(path.resolve(__dirname, '../pwa/package.json'))
 const playwright = process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES
   ? require(path.join(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES, 'playwright')) : requirePwa('playwright');
 const types = {'.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm', '.css': 'text/css', '.svg': 'image/svg+xml'};
+const base = process.env.PWA_BASE_PATH || '/';
 const network = [];
 let published = null;
 let serverRoot = process.env.PWA_OLD_BUNDLE ? path.resolve(process.env.PWA_OLD_BUNDLE) : root;
 const server = http.createServer((req, res) => {
-  const name = new URL(req.url, 'http://localhost').pathname;
-  network.push(name);
+  const pathname = new URL(req.url, 'http://localhost').pathname;
+  network.push(pathname);
+  if (pathname === '/petits-pas/temoin.html') {res.setHeader('Content-Type', 'text/html'); res.end('<h1>Site Hugo fictif</h1>'); return;}
+  if (!pathname.startsWith(base)) {res.writeHead(404).end('Hors PWA'); return;}
+  const name = '/' + pathname.slice(base.length);
   if (published && ['/config.json', '/sw.js', '/application.zip'].includes(name)) {
     res.setHeader('Content-Type', types[path.extname(name)] || 'application/octet-stream');
     res.end(name === '/config.json' ? JSON.stringify(published.config) : name === '/sw.js' ? published.sw : published.application); return;
@@ -57,7 +61,7 @@ async function login(page) {
 (async () => {
   assert(JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).testMode, 'Reconstruire avec --test');
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const url = `http://127.0.0.1:${server.address().port}/`;
+  const url = `http://127.0.0.1:${server.address().port}${base}`;
   browser = await playwright.chromium.launch({headless: true,
     ...(process.env.PWA_CHROMIUM ? {executablePath: process.env.PWA_CHROMIUM} : {}),
     args: ['--no-sandbox', '--disable-dev-shm-usage']});
@@ -68,6 +72,16 @@ async function login(page) {
   page.on('pageerror', error => console.error('PAGE', error.message));
   const started = performance.now();
   await boot(page, url);
+  if (base !== '/') {
+    const registrationScope = await page.evaluate(async () => (await navigator.serviceWorker.getRegistration()).scope);
+    assert.equal(registrationScope, url);
+    const outside = await context.newPage();
+    await outside.goto(new URL('/petits-pas/temoin.html', url).href);
+    assert.equal(await outside.evaluate(() => navigator.serviceWorker.controller), null);
+    assert.equal(await outside.locator('h1').innerText(), 'Site Hugo fictif');
+    await outside.close();
+    pass('Portée du Service Worker limitée au sous-chemin, site Hugo accessible sans contrôle PWA');
+  }
   pass('Django, migrations, pont SW/WSGI et installation', {coldMs: Math.round(performance.now() - started)});
   let frame = page.frameLocator('#app');
   for (const [name, value] of Object.entries({ecole_nom: 'École fictive PWA', commune: 'Commune fictive', first_name: 'Nadia', last_name: 'Fictive', username: 'direction-fictive', password1: 'Test-fictif-PWA-2026!', password2: 'Test-fictif-PWA-2026!'})) {
@@ -109,7 +123,7 @@ Scolarite.objects.create(eleve=eleve, classe=classe, annee_scolaire='2026-2027',
 competence = Competence.objects.filter(domaine__ecole=ecole).first()
 json.dumps({'eleve': eleve.pk, 'competence': competence.pk, 'classe': classe.pk})
 `));
-  await page.locator('#app').evaluate((node, route) => {node.src = route;}, `/app/eleve/${ids.eleve}/`);
+  await page.locator('#app').evaluate((node, route) => {node.src = route;}, `${base}app/eleve/${ids.eleve}/`);
   const button = frame.locator(`#c${ids.competence} button.bascule`);
   await button.waitFor({timeout: 30000});
   await button.click();
@@ -119,10 +133,10 @@ json.dumps({'eleve': eleve.pk, 'competence': competence.pk, 'classe': classe.pk}
   const forbidden = await page.evaluate(async ({route}) => {
     const response = await fetch(route, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'csrfmiddlewaretoken=invalide'});
     return response.status;
-  }, {route: `/app/eleve/${ids.eleve}/competence/${ids.competence}/basculer/`});
+  }, {route: `${base}app/eleve/${ids.eleve}/competence/${ids.competence}/basculer/`});
   assert.equal(forbidden, 403);
   pass('CSRF invalide refusé');
-  await page.locator('#app').evaluate((node, route) => {node.src = route;}, `/app/eleve/${ids.eleve}/competence/${ids.competence}/trace/`);
+  await page.locator('#app').evaluate((node, route) => {node.src = route;}, `${base}app/eleve/${ids.eleve}/competence/${ids.competence}/trace/`);
   await frame.locator('[name="commentaire"]').fill('Réalisation entièrement fictive.');
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+j6WQAAAAASUVORK5CYII=', 'base64');
   await frame.locator('[name="photo"]').setInputFiles({name: 'realisation-fictive.png', mimeType: 'image/png', buffer: png});
@@ -135,11 +149,11 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
 `));
   assert.equal(media.commentaire, 'Réalisation entièrement fictive.');
   assert(media.photo.endsWith('.png'));
-  const photoResponse = await page.evaluate(async route => {const r=await fetch(route);return {status:r.status,bytes:(await r.arrayBuffer()).byteLength};}, `/app/media/trace/${media.id}/`);
+  const photoResponse = await page.evaluate(async route => {const r=await fetch(route);return {status:r.status,bytes:(await r.arrayBuffer()).byteLength};}, `${base}app/media/trace/${media.id}/`);
   assert.equal(photoResponse.status, 200); assert(photoResponse.bytes > 20);
   pass('Upload multipart Pillow et média autorisé local');
   const pureRead = await page.evaluate(async route => window.pwaTest({kind:'http',
-    request:{url:location.origin+route,method:'GET',headers:[],body:''}}), `/app/media/trace/${media.id}/`);
+    request:{url:location.origin+route,method:'GET',headers:[],body:''}}), `${base}app/media/trace/${media.id}/`);
   assert.equal(pureRead.result.status, 200);
   assert.equal(pureRead.durability.changed, false);
   assert.equal(pureRead.durability.writtenBytes, 0);
@@ -243,9 +257,9 @@ with tempfile.TemporaryDirectory() as dossier:
 
   await python(page, "from comptes.models import ResponsabiliteEcole, AffectationClasse; ResponsabiliteEcole.objects.update(etat='suspendue'); AffectationClasse.objects.update(type='contributeur')");
   const denied = await page.evaluate(async route => {
-    const responses = await Promise.all([route, '/app/pwa/autoriser-recuperation/', '/app/gestion/sauvegardes-locales/'].map(url => fetch(url)));
+    const responses = await Promise.all([route, route.split('/app/')[0] + '/app/pwa/autoriser-recuperation/', route.split('/app/')[0] + '/app/gestion/sauvegardes-locales/'].map(url => fetch(url)));
     return responses.map(r => r.status);
-  }, `/app/eleve/${ids.eleve}/carnet.pdf`);
+  }, `${base}app/eleve/${ids.eleve}/carnet.pdf`);
   assert([403,404].includes(denied[0])); assert.equal(denied[1], 403); assert.equal(denied[2], 403);
   await python(page, "ResponsabiliteEcole.objects.update(etat='active'); AffectationClasse.objects.update(type='responsable')");
   pass('Contributeur sans direction : impression du carnet et exports réservés refusés');
@@ -310,7 +324,7 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   assert.equal(await python(reopened, "from suivi.models import Trace; Trace.objects.get().photo.name"), media.photo);
   assert.equal(await python(reopened, "import os; os.environ['CARNET_VERSION']"), config.version);
   const preserved = await reopened.evaluate(() => new Promise((resolve, reject) => {
-    const request = indexedDB.open('petits-pas-pwa-prototype-v1');
+    const request = indexedDB.open('petits-pas-pwa-prototype-v1' + (location.pathname === '/' ? '' : '-' + encodeURIComponent(location.pathname)));
     request.onsuccess = () => {const db=request.result; const get=db.transaction('state').objectStore('state').get('active'); get.onsuccess=()=>{resolve(get.result.recovery.version); db.close();}; get.onerror=()=>reject(get.error);};
   }));
   assert.equal(preserved, previousVersion);
@@ -333,7 +347,7 @@ with tempfile.TemporaryDirectory() as dossier:
 `, await rescued.path()]);
   pass('Base incompatible refusée au démarrage sans création vide, récupération disponible sans connexion');
 
-  assert(!network.some(route => route.startsWith('/app/')), 'Une requête métier est sortie vers le serveur statique');
+  assert(!network.some(route => route.startsWith('/app/') || route.startsWith(base + 'app/')), 'Une requête métier est sortie vers le serveur statique');
   pass('Aucune requête métier sur le réseau');
   fs.writeFileSync(path.join(root, 'resultats-tests.json'), JSON.stringify(report, null, 2));
 })().catch(async error => {

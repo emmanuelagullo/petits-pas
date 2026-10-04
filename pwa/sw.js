@@ -1,15 +1,17 @@
-const CACHE = 'petits-pas-pwa-' + '__BUILD__';
+const BASE = new URL('./', self.location.href).pathname;
+const assetURL = path => BASE + path.replace(/^\//, '');
+const CACHE = 'petits-pas-pwa-' + BASE + '__BUILD__';
 self.addEventListener('install', event => event.waitUntil((async () => {
-  const config = await (await fetch('/config.json', {cache: 'no-store'})).json();
+  const config = await (await fetch(assetURL('/config.json'), {cache: 'no-store'})).json();
   const cache = await caches.open(CACHE);
-  await cache.put('/config.json', new Response(JSON.stringify(config), {headers: {'Content-Type': 'application/json'}}));
+  await cache.put(assetURL('/config.json'), new Response(JSON.stringify(config), {headers: {'Content-Type': 'application/json'}}));
   for (const asset of config.assets) {
-    const response = await fetch(asset.url, {cache: 'no-store'});
+    const response = await fetch(assetURL(asset.url), {cache: 'no-store'});
     if (!response.ok) throw new Error('Fichier absent : ' + asset.url);
     const bytes = await response.clone().arrayBuffer();
     const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
     if (hash !== asset.sha256) throw new Error('Empreinte incorrecte : ' + asset.url);
-    await cache.put(asset.url, response);
+    await cache.put(assetURL(asset.url), response);
   }
 })()));
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
@@ -17,7 +19,7 @@ async function local(request) {
   const clients = await self.clients.matchAll({type: 'window', includeUncontrolled: false});
   const owners = clients.filter(client => {
     const url = new URL(client.url);
-    return url.origin === self.location.origin && ['/', '/index.html'].includes(url.pathname);
+    return url.origin === self.location.origin && [BASE, BASE + 'index.html'].includes(url.pathname);
   });
   // Le shell possédant le verrou est le seul autorisé ; les onglets bloqués ne
   // démarrent pas d'iframe. Demander à tous les shells n'est jamais acceptable.
@@ -51,13 +53,13 @@ async function hasRuntime(client) {
 }
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/app/')) {
+  if (url.origin !== self.location.origin || !url.pathname.startsWith(BASE)) return;
+  if (url.pathname.startsWith(BASE + 'app/')) {
     event.respondWith(local(event.request).catch(() => new Response('Transport local interrompu.', {status: 503})));
   } else {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
-      const response = await cache.match(url.pathname === '/' ? '/index.html' : url.pathname);
+      const response = await cache.match(url.pathname === BASE ? BASE + 'index.html' : url.pathname);
       return response || new Response('Ressource absente du prototype hors ligne.', {status: 404});
     })());
   }

@@ -17,6 +17,9 @@ fictives**. Les tablettes et les grands carnets restent à vérifier.
 
 ## Ouvrir une installation d'essai
 
+L'adresse d'essai est [Petits Pas dans le navigateur](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/).
+Elle est disponible après publication du prototype.
+
 Ouvrez l'adresse HTTPS fournie par la personne qui prépare l'essai, dans
 Chromium, puis attendez le premier chargement. Conservez cette adresse pour
 les prochaines ouvertures. Chaque appareil garde sa propre école ; pour

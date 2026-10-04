@@ -77,11 +77,12 @@ class PublicationTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "Chemin ou lien"):
                     publication.extract_bundle(archive, Path(self.temp.name) / ("output" + str(mode)))
 
-    def test_pages_url_must_be_https_and_root(self):
-        publication.require_root_url("https://pwa-fictive.example/")
-        for url in ["http://pwa-fictive.example/", "https://example/petits-pas/", "https://example/?x=1"]:
+    def test_pages_url_must_be_https_and_safe(self):
+        publication.require_pages_url("https://pwa-fictive.example/")
+        publication.require_pages_url("https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/")
+        for url in ["http://pwa-fictive.example/", "https://example/../", "https://example/%2f/", "https://example/?x=1"]:
             with self.subTest(url=url), self.assertRaises(ValueError):
-                publication.require_root_url(url)
+                publication.require_pages_url(url)
 
     def test_select_exact_pipeline_and_job_with_pagination(self):
         commit = "b" * 40

@@ -8,7 +8,7 @@ sont pas incluses. Cette publication statique reste destinée aux données ficti
 ## Configuration initiale, une seule fois
 
 La forge Inria utilise GitLab Community Edition. Le site Hugo conserve son
-projet Pages ; la PWA utilise un petit projet distinct, avec une origine propre.
+projet Pages ; la PWA utilise un petit projet distinct, dans son propre sous-chemin.
 Ce choix ne dépend pas des déploiements Pages parallèles Premium/Ultimate.
 
 1. Créer le projet **petits-pas/petits-pas-pwa**, sur la même forge, avec une
@@ -28,10 +28,16 @@ Ce choix ne dépend pas des déploiements Pages parallèles Premium/Ultimate.
    Il n'y a ni clone du code applicatif ni second exemplaire à maintenir.
    Le push initial ne publie rien : seuls les pipelines déclenchés par le
    job de publication sont acceptés.
-3. Dans **Deploy → Pages** du projet PWA, conserver **Use unique domain**
-   activé. L'URL doit être HTTPS à la racine d'un hôte dédié. Ne pas régénérer
-   ce domaine après le début des essais : les données locales dépendent de
-   l'origine. Le préparateur refuse une URL avec un sous-chemin.
+3. Après application de #PWA6b sur le dépôt principal, dans **Deploy → Pages**
+   du projet PWA, désactiver **Use unique domain**. L'adresse attendue est
+   `https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/`.
+   Le même bundle fonctionne aussi à la racine d'un domaine dédié.
+   Conserver ensuite cette adresse : un changement de domaine ou de chemin
+   nécessite un transfert par ZIP. La portée du Service Worker est limitée
+   à `/petits-pas-pwa/` ; le site Hugo `/petits-pas/` reste indépendant.
+   Le stockage PWA est identifié par ce chemin, mais les deux sites partagent
+   l'origine et le quota du navigateur : ce n'est pas une isolation de sécurité
+   entre les projets. N'héberger sur cette origine que des contenus de confiance.
 4. Pour un essai par simple lien, autoriser l'accès public au site Pages.
    Seuls les fichiers de l'application sont publiés ; chaque navigateur
    possède ensuite sa propre école locale. Cela ne constitue pas un partage
@@ -96,7 +102,7 @@ python3 -m unittest discover -s scripts -p test_publication_pwa.py
 
 Ils couvrent sélection du pipeline exact, pagination, job en échec ou mauvais
 commit, mode test, altération, fichier inattendu, chemins/lien invalides et
-URL Pages avec sous-chemin. Le préparateur est aussi vérifié localement sur
+URL Pages HTTPS à la racine ou dans un sous-chemin sûr. Le préparateur est aussi vérifié localement sur
 le bundle de distribution de #PWA6, avec téléchargement HTTP et préparation
 complète sur une API locale fictive. YAML et Hugo sont contrôlés.
 
@@ -106,3 +112,30 @@ scénarios Django/HTMX de #PWA6 ne sont pas relancés, car le runtime et les
 parcours applicatifs ne changent pas. Les références GitLab sont la
 [documentation Pages](https://docs.gitlab.com/user/project/pages/) et
 [l'API des artefacts](https://docs.gitlab.com/api/job_artifacts/).
+
+## #PWA6b : adresse avec sous-chemin
+
+Le runtime calcule son préfixe depuis l'emplacement des scripts : routes WSGI,
+liens Django, médias, statiques, manifeste et ressources hors ligne suivent ce
+préfixe. Le préparateur vérifie le bundle original sans réécriture ni changement
+d'empreintes. Les caches et données internes sont propres au chemin de la PWA.
+
+Le job `pwa-prototype` exécute les parcours à la racine puis sous
+`/petits-pas-pwa/`, avec deux rapports distincts. Pour reproduire le second :
+
+```sh
+PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
+```
+
+Pour basculer sans données à conserver : appliquer le patch sur `main`, désactiver
+le domaine unique dans le projet Pages, puis lancer `pwa-prototype` et
+`pwa-publication` dans le nouveau pipeline. Ouvrir l'adresse avec le `/` final.
+Aucune modification du fichier CI du projet Pages n'est nécessaire.
+
+Vérifications locales du 4 octobre 2026 : parcours Chromium à la racine et sous
+`/petits-pas-pwa/`, y compris mises à jour, secours, photos et sauvegardes ;
+la page Hugo fictive voisine reste hors du contrôle du Service Worker PWA.
+Les 8 tests de publication, 18 tests du paquet autonome, la syntaxe, les YAML
+et la construction Hugo passent. La suite Django complète et la qualification
+550 photos ne sont pas relancées : les règles métier et le protocole de
+persistance ne changent pas. La publication réelle reste à lancer sur GitLab.

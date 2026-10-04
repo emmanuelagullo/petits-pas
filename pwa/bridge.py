@@ -18,14 +18,16 @@ from zipfile import ZipFile
 DATA = Path("/data")
 COOKIES = {}
 APPLICATION = None
+SCRIPT_NAME = "/app"
 PREVIOUS_PACKAGE = None
 MEDIA_INDEX = {}
 FULL_MEDIA_SCAN = True
 RESPONSE_BODY = b""
 
 
-def initialize(origin, version):
-    global APPLICATION
+def initialize(origin, version, base="/"):
+    global APPLICATION, SCRIPT_NAME
+    SCRIPT_NAME = base.rstrip("/") + "/app"
     DATA.mkdir(exist_ok=True)
     (DATA / "media").mkdir(exist_ok=True)
     key = DATA / "secret-key"
@@ -35,6 +37,7 @@ def initialize(origin, version):
         # Pyodide possède une boucle JS active. Les appels synchrones sont
         # néanmoins exclusifs : worker unique et file JS sans réentrance.
         "DJANGO_ALLOW_ASYNC_UNSAFE": "true",
+        "PWA_BASE_PATH": base,
         "DJANGO_SETTINGS_MODULE": "pwa.settings", "CARNET_DEBUG": "0",
         "CARNET_MODE_LOCAL": "oui", "CARNET_EMAIL_DESACTIVE": "oui",
         "CARNET_ANTIBRUTEFORCE": "non", "CARNET_VERSION": version,
@@ -200,11 +203,11 @@ def handle(encoded, raw_body=None):
     global RESPONSE_BODY
     request = json.loads(encoded)
     url = urlsplit(request["url"])
-    path = url.path.removeprefix("/app") or "/"
+    path = url.path.removeprefix(SCRIPT_NAME) or "/"
     body = bytes(raw_body) if raw_body is not None else base64.b64decode(request["body"])
     environ = {
         "REQUEST_METHOD": request["method"], "PATH_INFO": path,
-        "QUERY_STRING": url.query, "SCRIPT_NAME": "/app",
+        "QUERY_STRING": url.query, "SCRIPT_NAME": SCRIPT_NAME,
         "SERVER_NAME": url.hostname, "SERVER_PORT": str(url.port or 443),
         "SERVER_PROTOCOL": "HTTP/1.1", "REMOTE_ADDR": "127.0.0.1",
         "wsgi.version": (1, 0), "wsgi.url_scheme": url.scheme,
@@ -250,7 +253,7 @@ def handle(encoded, raw_body=None):
     restored = apply_pending_restore()
     if restored:
         response["status"] = 302
-        headers = [["Location", "/app/connexion/"], ["Cache-Control", "no-store"]]
+        headers = [["Location", SCRIPT_NAME + "/connexion/"], ["Cache-Control", "no-store"]]
         content = b""
     RESPONSE_BODY = content
     response.update(headers=headers, restored=restored)
