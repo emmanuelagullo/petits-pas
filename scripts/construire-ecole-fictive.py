@@ -4,12 +4,23 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def commit_sources():
+    for nom in ("CI_COMMIT_SHA", "GITHUB_SHA"):
+        valeur = os.environ.get(nom, "")
+        if re.fullmatch(r"[0-9a-fA-F]{40,64}", valeur):
+            return valeur.lower()
+    from carnet.version import git
+    valeur = git("rev-parse", "HEAD")
+    return valeur if re.fullmatch(r"[0-9a-fA-F]{40,64}", valeur) else None
 
 
 def construire(destination):
@@ -25,8 +36,7 @@ def construire(destination):
                 empreinte.update(fichier.read_bytes())
     empreinte.update(Path(__file__).read_bytes())
     revision = empreinte.hexdigest()
-    commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
-                            capture_output=True).stdout.strip()
+    commit = commit_sources()
     notice = destination.with_suffix(".json")
     if destination.exists() and not notice.exists():
         raise ValueError("Un fichier existe sans notice fictive : remplacement refusé.")
@@ -54,8 +64,6 @@ def construire(destination):
         provisoire = Path(temporaire) / "ecole.zip"
         creer_sauvegarde(paquet, provisoire)
         destination.write_bytes(provisoire.read_bytes())
-    commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True,
-                            capture_output=True).stdout.strip()
     import yaml
     configuration = yaml.safe_load((ROOT / "site/data/demonstration.yaml").read_text())
     notice.write_text(json.dumps({"identifiants": configuration["identifiants"],"donnees": "fictives uniquement", "source_commit": commit,

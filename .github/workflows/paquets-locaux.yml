@@ -37,6 +37,7 @@ jobs:
         run: |
           python -m unittest discover -s scripts -p test_paquet_local.py
           python -m unittest discover -s scripts -p test_essai_local.py
+          python -m unittest discover -s scripts -p test_ecole_fictive.py
       - name: Construire et contrôler
         shell: pwsh
         env:
@@ -124,6 +125,7 @@ jobs:
           /usr/bin/python3 -c 'import gi; gi.require_version("WebKit2", "4.1")'
           /usr/bin/python3 -m unittest discover -s scripts -p test_paquet_local.py
           /usr/bin/python3 -m unittest discover -s scripts -p test_essai_local.py
+          /usr/bin/python3 -m unittest discover -s scripts -p test_ecole_fictive.py
           PATH="/usr/bin:$PATH" bash scripts/construire-paquet-linux.sh
       - uses: actions/upload-artifact@v6
         with:
