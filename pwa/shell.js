@@ -1,3 +1,4 @@
+const BASE = new URL('./', import.meta.url).pathname;
 const status = document.querySelector('#status');
 const frame = document.querySelector('#app');
 let worker, registration, ready = false;
@@ -65,7 +66,7 @@ document.querySelector('#recovery').onclick = async event => {
   event.target.disabled = true;
   const recoveryWorker = new Worker('./worker.js', {type: 'module'});
   try {
-    if (ready && (await fetch('/app/pwa/autoriser-recuperation/')).status !== 204) throw new Error('L’export est réservé à la direction de l’école. Connectez-vous avec ce compte.');
+    if (ready && (await fetch(BASE + 'app/pwa/autoriser-recuperation/')).status !== 204) throw new Error('L’export est réservé à la direction de l’école. Connectez-vous avec ce compte.');
     status.textContent = 'Préparation du ZIP de récupération…';
     const value = await new Promise((resolve, reject) => {
       const channel = new MessageChannel();
@@ -83,7 +84,7 @@ document.querySelector('#recovery').onclick = async event => {
 
 try {
   if (!navigator.locks || !navigator.storage.getDirectory) throw new Error('Navigateur incompatible : Web Locks et OPFS requis.');
-  await navigator.locks.request('petits-pas-pwa-prototype', {ifAvailable: true}, async lock => {
+  await navigator.locks.request('petits-pas-pwa-prototype' + (BASE === '/' ? '' : '-' + BASE), {ifAvailable: true}, async lock => {
     if (!lock) throw new Error('Petits Pas est déjà ouvert dans un autre onglet. Revenez à cet onglet.');
     registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'});
     showUpdate();
@@ -105,7 +106,7 @@ try {
     }
     status.textContent = `Prêt en ${(initial.durationMs / 1000).toFixed(1)} s — ${initial.restored ? 'données retrouvées' : 'installation fictive à créer'}.`;
     frame.hidden = false;
-    frame.src = '/app/';
+    frame.src = BASE + 'app/';
     await new Promise(() => {}); // Possession du verrou jusqu'à fermeture du document.
   });
 } catch (error) {

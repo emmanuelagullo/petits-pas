@@ -16,7 +16,7 @@ python3 -m http.server 8000 --directory dist/pwa
 ```
 
 Ouvrir **http://localhost:8000/** dans Chromium récent, dans un profil dédié.
-Le site doit occuper la racine d'une origine dédiée. Hors localhost, HTTPS est
+Le site peut occuper la racine ou un sous-chemin terminé par `/`. Hors localhost, HTTPS est
 obligatoire. Le dossier `dist/pwa` est un site statique ; aucun serveur Python
 n'est nécessaire à l'utilisation. Après le premier téléchargement, les
 ressources et le runtime sont utilisables hors ligne.
@@ -157,15 +157,17 @@ Il ne publie pas le site automatiquement et n'interrompt pas Hugo/Django.
 
 Pour publier ensuite par un clic, le job **pwa-publication** de `main`
 déclenche le projet Pages dédié et réutilise l'artefact exact de ce pipeline.
-Voir [PUBLICATION.md](PUBLICATION.md) pour sa configuration initiale, le domaine
-unique et les étapes. Le site Hugo conserve sa publication actuelle.
+Voir [PUBLICATION.md](PUBLICATION.md) pour sa configuration initiale, le sous-chemin
+et les étapes. Le site Hugo conserve sa publication actuelle.
 
 ## Déploiement statique pilote
 
-Servir le contenu de `dist/pwa` à la racine d'une **origine dédiée stable**, en
+Servir le contenu de `dist/pwa` à une **adresse stable**, à la racine ou sous
+`/petits-pas-pwa/`, en
 HTTPS, avec types MIME corrects (`.js/.mjs` JavaScript, `.wasm`
 `application/wasm`). Pas de proxy `/app/` vers Django : le Service Worker
-intercepte ces routes. L'entrée utilisateur est toujours `/`.
+intercepte ces routes sous le préfixe du site. L'entrée utilisateur est le
+répertoire publié, avec un `/` final.
 
 Publier un bundle complet d'un seul coup (répertoire versionné puis changement
 de la racine statique), avec `Cache-Control: no-cache` pour `sw.js` et
@@ -175,8 +177,9 @@ n'active pas la nouvelle version. Conserver l'ancien dossier publié pour
 pouvoir réparer une publication, sans imposer un retour de données.
 
 Le déploiement n'a pas besoin de COOP/COEP dans cette architecture. S3, SMTP,
-pywebview, serveur WSGI réseau et moteur PDF ne sont pas embarqués. Le site
-Hugo du projet, servi sous un sous-chemin, n'est pas la destination de ce bundle.
+pywebview, serveur WSGI réseau et moteur PDF ne sont pas embarqués. Le projet Pages PWA est distinct du projet Hugo ; leurs Service Workers et
+ressources ne se recouvrent pas. Ils partagent toutefois origine et quota lorsque
+le domaine unique est désactivé : conserver des contenus de confiance.
 Aucune URL pilote publique ni machine d'école n'est provisionnée par ce patch.
 
 ## Qualification restante

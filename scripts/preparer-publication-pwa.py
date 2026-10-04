@@ -20,11 +20,11 @@ MAX_BYTES = 256 * 1024**2
 MAX_FILES = 5000
 
 
-def require_root_url(value):
+def require_pages_url(value):
     url = urllib.parse.urlsplit(value)
     if (url.scheme != "https" or not url.hostname or url.username or url.password
-            or url.path not in {"", "/"} or url.query or url.fragment):
-        raise ValueError("La PWA exige une URL HTTPS à la racine. Activez « Use unique domain » dans Deploy > Pages du projet PWA.")
+            or not re.fullmatch(r"/(?:[a-zA-Z0-9_-]+/)*", url.path or "/") or url.query or url.fragment):
+        raise ValueError("La PWA exige une URL HTTPS avec un chemin terminé par /, sans paramètres.")
 
 
 def sha256(path):
@@ -131,7 +131,7 @@ def main():
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--pages-url", required=True)
     args = parser.parse_args()
-    require_root_url(args.pages_url)
+    require_pages_url(args.pages_url.rstrip("/") + "/")
     if args.destination.exists():
         raise ValueError("Destination déjà présente : publication refusée.")
     project = os.environ["PWA_SOURCE_PROJECT_ID"]

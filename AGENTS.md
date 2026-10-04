@@ -57,7 +57,10 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   `scripts/verifier-pwa.cjs` et `scripts/qualifier-pwa.cjs` n'emploient que des
   profils fictifs. Ne jamais distribuer un bundle construit avec `--test`.
   `pwa/PUBLICATION.md` décrit la publication manuelle du bundle validé vers
-  un projet Pages dédié ; conserver son origine stable et le site Hugo.
+  un projet Pages dédié, à la racine ou sous `/petits-pas-pwa/` ; conserver
+  son adresse stable et le site Hugo. La portée du Service Worker et les
+  données internes sont propres au chemin, sans isolation de sécurité entre
+  projets partageant une origine.
   Conserver les sauvegardes communes dans `suivi/paquet_local.py` et distinguer
   les essais du prototype de la qualification sur appareils d'école.
 

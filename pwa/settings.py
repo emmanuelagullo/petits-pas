@@ -6,9 +6,10 @@ STORAGES["staticfiles"] = {
     "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
 }
 STORAGES["default"] = {"BACKEND": "pwa.media_storage.LocalMediaStorage"}
-STATIC_URL = "/static/"
-MEDIA_URL = "/app/media/"
-FORCE_SCRIPT_NAME = "/app"
+PWA_BASE_PATH = os.environ.get("PWA_BASE_PATH", "/")
+STATIC_URL = PWA_BASE_PATH + "static/"
+FORCE_SCRIPT_NAME = PWA_BASE_PATH.rstrip("/") + "/app"
+MEDIA_URL = FORCE_SCRIPT_NAME + "/media/"
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True

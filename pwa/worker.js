@@ -1,4 +1,5 @@
 import {load, save} from './storage.js';
+const BASE = new URL('./', import.meta.url).pathname;
 let python, bridge, config, fatal = false, initialized = false;
 let queue = Promise.resolve();
 function call(name, ...args) {
@@ -44,7 +45,7 @@ async function process(message) {
       const proxy = call('snapshot');
       try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
     }
-    call('initialize', location.origin, config.version);
+    call('initialize', location.origin, config.version, BASE);
     const durability = await persist('', false, true);
     initialized = true;
     return {durationMs: performance.now() - started, restored: !!restored, durability};
@@ -60,7 +61,7 @@ async function process(message) {
   }
   if (message.kind === 'http') {
     const url = new URL(message.request.url);
-    if (url.origin !== location.origin || !url.pathname.startsWith('/app/')) throw new Error('Origine ou route refusée');
+    if (url.origin !== location.origin || !url.pathname.startsWith(BASE + 'app/')) throw new Error('Origine ou route refusée');
     try {
       const {body, ...metadata} = message.request;
       const bytes = typeof body === 'string' ? Uint8Array.from(atob(body), c => c.charCodeAt(0)) : body;
