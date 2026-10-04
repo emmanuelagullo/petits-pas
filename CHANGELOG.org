@@ -34,7 +34,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Conception de l'authentification à deux facteurs documentée dans
   =AUDIT-AUTHENTIFICATION-INVITATIONS.org= (§ 6.7) : politique hiérarchique
   déployeur puis école, obligatoire jusqu'à un rang ou désactivée à partir
-  d'un rang. Documentation seulement : le 2FA n'est pas encore disponible.
+  d'un rang. Le 2FA lui-même n'est pas encore disponible.
+- Politique de 2FA calculée sans effet visible : variables
+  =CARNET_2FA_OBLIGATOIRE= et =CARNET_2FA_DESACTIVE_POUR= du déployeur
+  (validées au démarrage), politique de l'école en base avec révision et
+  journal, rang de chaque compte par école et exigence effective
+  (obligatoire, optionnelle ou désactivée). Aucun second facteur n'est encore
+  demandé : voir =DEPLOIEMENT.org=.
 - Envoi de courriel désormais facultatif : SMTP fonctionne sans
   =django-anymail=, disponible comme extension, et le mode sans courriel doit
   être choisi explicitement pour un déploiement persistant.
