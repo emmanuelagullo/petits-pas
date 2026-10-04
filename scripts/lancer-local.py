@@ -247,6 +247,23 @@ def choisir_paquet(habituel, defaut, essai=False):
     return destination.resolve() if essai else habituel
 
 
+def arguments_espace(arguments, espace, dossier=None):
+    resultat = []
+    iterator = iter(arguments)
+    for argument in iterator:
+        if argument == "--apercu":
+            next(iterator, None)
+        elif argument.startswith("--apercu="):
+            continue
+        elif argument != "--essai":
+            resultat.append(argument)
+    if espace == "essai":
+        resultat.append("--essai")
+    elif espace == "apercu":
+        resultat.extend(["--apercu", str(dossier)])
+    return resultat
+
+
 def main():
     projet = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
     ancien_paquet = projet / "paquet-autonome"
@@ -285,7 +302,11 @@ def main():
     )
     analyseur.add_argument("--essai", action="store_true",
         help="ouvrir l'école fictive dans un dossier distinct, sans toucher au paquet habituel")
+    analyseur.add_argument("--apercu", type=Path, help="rouvrir une copie ZIP déjà vérifiée par Petits Pas")
     arguments = analyseur.parse_args()
+    if arguments.apercu and (arguments.essai or arguments.creer_ecole or arguments.charger_referentiel
+                            or arguments.copier_paquet or arguments.deplacer_paquet):
+        analyseur.error("--apercu ne se combine pas avec un autre espace ou une opération sur les données")
     if arguments.essai and (arguments.creer_ecole or arguments.charger_referentiel
                            or arguments.copier_paquet or arguments.deplacer_paquet):
         analyseur.error("--essai ne se combine pas avec une opération sur les données")
@@ -302,9 +323,14 @@ def main():
         analyseur.error("--copier-paquet ne se combine pas avec l'initialisation")
     try:
         paquet = choisir_paquet(arguments.paquet, defaut, arguments.essai)
-    except ValueError as erreur:
+        if arguments.apercu:
+            sys.path.insert(0, str(projet))
+            from suivi.apercu_local import verifier_dossier
+            paquet = verifier_dossier(arguments.apercu, arguments.paquet, defaut.parent / "essai-fictif")
+    except (ValueError, OSError) as erreur:
         raise SystemExit(str(erreur)) from erreur
     os.environ["CARNET_ESPACE_ESSAI"] = "oui" if arguments.essai else "non"
+    os.environ["CARNET_ESPACE_APERCU"] = "oui" if arguments.apercu else "non"
     if paquet == projet:
         raise SystemExit(
             "Le paquet autonome doit être un répertoire distinct du projet."
@@ -450,9 +476,32 @@ def executer(paquet, projet, arguments):
                 return False
             with requetes:
                 # Les chemins ne viennent jamais de l'écran ; seul le drapeau change.
-                sys.argv[:] = [argument for argument in sys.argv if argument != "--essai"]
-                if espace == "essai":
-                    sys.argv.append("--essai")
+                sys.argv[:] = arguments_espace(sys.argv, espace)
+                redemarrage_demande.set()
+                fenetre.destroy()
+                return True
+
+        def ouvrir_apercu(self):
+            from suivi import apercu_local
+            with requetes:
+                if fenetre is None or restauration_en_attente() is not None or not apercu_local.ouverture_demandee():
+                    return False
+                copie = apercu_local.detacher()
+                sys.argv[:] = arguments_espace(sys.argv, "apercu", copie.etape)
+                redemarrage_demande.set()
+                fenetre.destroy()
+                return True
+
+        def reprendre_apercu(self):
+            from suivi import apercu_local
+            with requetes:
+                if fenetre is None or restauration_en_attente() is not None or apercu_local.preparation() is not None:
+                    return False
+                dossier = apercu_local.derniere_copie(paquet.parent, arguments.paquet,
+                    paquet_par_defaut().parent / "essai-fictif")
+                if dossier is None:
+                    return False
+                sys.argv[:] = arguments_espace(sys.argv, "apercu", dossier)
                 redemarrage_demande.set()
                 fenetre.destroy()
                 return True
@@ -495,7 +544,7 @@ def executer(paquet, projet, arguments):
         # Ne pas placer l'objet fenêtre sur js_api : PyWebView parcourt les
         # attributs publics de cet objet et récursait dans fenetre.native.
         fenetre = webview.create_window(
-            "Petits Pas — espace d’essai" if arguments.essai else "Petits Pas", f"http://127.0.0.1:{serveur.server_port}/",
+            "Petits Pas — ZIP à vérifier" if arguments.apercu else ("Petits Pas — espace d’essai" if arguments.essai else "Petits Pas"), f"http://127.0.0.1:{serveur.server_port}/",
             js_api=commandes,
         )
         webview.start()
@@ -513,6 +562,8 @@ def executer(paquet, projet, arguments):
                 print(f"Restauration appliquée. Paquet précédent conservé : {ancien}")
         else:
             annuler_preparation()
+        from suivi import apercu_local
+        apercu_local.annuler()
     return redemarrage_demande.is_set()
 
 

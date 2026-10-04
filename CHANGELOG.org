@@ -9,6 +9,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Site public : #SP5 ouvre un ZIP compatible dans une copie de vérification
+  distincte, avec ses comptes et une nouvelle connexion. Retour sans restauration,
+  export puis restauration confirmée pour adopter la copie ; fiche pratique ajoutée.
 - Site public : #SP3b sépare les champs communs école/compte des champs du
   démarrage local ; la commande d’initialisation hébergée n’exige plus l’année
   scolaire et le référentiel propres au formulaire local.

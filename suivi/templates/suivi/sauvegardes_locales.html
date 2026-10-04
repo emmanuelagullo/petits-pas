@@ -3,6 +3,9 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l’école</a></p>
 <h1>Sauvegardes locales</h1>
+{% if espace_apercu %}<p>Vous sauvegardez la <strong>copie du ZIP à vérifier</strong>. Pour remplacer l’école habituelle avec cette copie, téléchargez son ZIP, revenez à l’école habituelle puis restaurez ce fichier avec confirmation. Aucun changement n’est reporté automatiquement.</p>{% else %}
+<p><a href="{% url 'verifier_zip_local' %}">Vérifier un ZIP dans une copie séparée avant de restaurer</a>.</p>{% endif %}
+{% if espace_apercu and not mode_pwa %}<p>Cette copie reste dans <code>{{ paquet }}</code> après fermeture. Vous pouvez supprimer ce dossier quand Petits Pas est fermé et que vous avez conservé le ZIP souhaité.</p>{% endif %}
 <p>{% if dernier_export_local %}Dernier ZIP préparé sur cet appareil : <strong>{{ dernier_export_local|date:"d/m/Y à H:i" }}</strong>.{% else %}Aucun ZIP préparé n’a été enregistré sur cet appareil.{% endif %}
 Vérifiez que le téléchargement est terminé et conservez une copie hors de cet appareil. Cette date ne confirme pas que le fichier a été conservé.</p>
 <details><summary>Sauvegarder ou transférer vers un autre appareil</summary>
@@ -65,7 +68,7 @@ Vérifiez que le téléchargement est terminé et conservez une copie hors de ce
   <p>Enregistrer une copie complète au format ZIP sur votre ordinateur.</p>
   <form method="post">{% csrf_token %}<input type="hidden" name="action" value="sauvegarder"><button class="bouton" type="submit">Télécharger une sauvegarde</button></form>
 </section>
-<section class="encadre">
+{% if not espace_apercu %}<section class="encadre">
   <h2>Restaurer une sauvegarde</h2>
   <p>Le fichier est vérifié avant toute modification. Avant confirmation, vous pourrez également télécharger un ZIP de l’état actuel. {% if mode_pwa %}Après restauration, un état de récupération restera conservé sur cet appareil.{% else %}Après restauration, Petits Pas conservera automatiquement l’ancien paquet sous forme de dossier.{% endif %}</p>
   <form method="post" enctype="multipart/form-data">
@@ -82,5 +85,6 @@ Vérifiez que le téléchargement est terminé et conservez une copie hors de ce
     });
   </script>
 </section>
+{% endif %}
 {% endif %}
 {% endblock %}

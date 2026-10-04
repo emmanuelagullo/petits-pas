@@ -1,4 +1,5 @@
 const ESSAI = new URL(location.href).searchParams.get('essai') === 'oui';
+const APERCU = new URL(location.href).searchParams.get('apercu') === 'oui';
 const WORKER = './worker.js';
 const BASE = new URL('./', import.meta.url).pathname;
 const status = document.querySelector('#status');
@@ -6,10 +7,11 @@ const frame = document.querySelector('#app');
 let worker, registration, ready = false, installPrompt;
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 const changement = document.querySelector('#changer-espace');
-changement.textContent = ESSAI ? 'Revenir à mon école habituelle' : 'Essayer avec l’école fictive';
-changement.href = ESSAI ? BASE : BASE + 'essai.html';
-document.querySelector('#espace').textContent = ESSAI ? 'Espace d’essai — utilisez des données fictives.' : 'École de ce navigateur — données conservées sur cet appareil.';
-if (ESSAI) {
+changement.textContent = ESSAI || APERCU ? 'Revenir à mon école habituelle' : 'Essayer avec l’école fictive';
+changement.href = ESSAI || APERCU ? BASE : BASE + 'essai.html';
+document.querySelector('#espace').textContent = APERCU ? 'Copie du ZIP à vérifier — vos modifications restent dans cette copie.' : (ESSAI ? 'Espace d’essai — utilisez des données fictives.' : 'École de ce navigateur — données conservées sur cet appareil.');
+document.querySelector('#apercu').hidden = APERCU;
+if (ESSAI && !APERCU) {
   fetch('./ecole-fictive.json').then(response => response.json()).then(notice => {
     const comptes = document.querySelector('#comptes-essai');
     comptes.textContent = 'Comptes publics — enseignant : ' + notice.identifiants.enseignant.utilisateur +
@@ -43,6 +45,7 @@ if (standalone()) document.querySelector('#installation').textContent = 'Petits 
 document.querySelector('#retry').onclick = () => location.reload();
 document.querySelector('#rescue').onclick = () => document.querySelector('#recovery').click();
 document.querySelector('#backup').onclick = () => {if (ready) frame.src = BASE + 'app/gestion/sauvegardes-locales/';};
+document.querySelector('#apercu').onclick = () => {if (ready) frame.src = BASE + 'app/verifier-zip/';};
 async function showStorage() {
   try {
     const protectedStorage = await navigator.storage.persisted();
@@ -112,6 +115,7 @@ navigator.serviceWorker?.addEventListener('message', async event => {
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
       : 'État enregistré sur cet appareil.';
     port.postMessage({ok: true, ...value.result}, value.result.body?.buffer ? [value.result.body.buffer] : []);
+    if (value.result.ouvrir_apercu) setTimeout(() => location.assign(BASE + 'apercu.html'), 0);
   } catch (error) {
     status.textContent = String(error.message);
     port.postMessage({ok: false, error: 'Opération interrompue. Fermez puis rouvrez le prototype ; ne répétez pas automatiquement cette saisie.'});
@@ -152,7 +156,7 @@ document.querySelector('#recovery').onclick = async event => {
       const channel = new MessageChannel();
       const timer = setTimeout(() => {channel.port1.close(); reject(new Error('Export trop long'));}, 120000);
       channel.port1.onmessage = e => {clearTimeout(timer); channel.port1.close(); e.data.ok ? resolve(e.data.value) : reject(new Error(e.data.error));};
-      recoveryWorker.postMessage({kind: 'recovery', essai: ESSAI}, [channel.port2]);
+      recoveryWorker.postMessage({kind: 'recovery', essai: ESSAI, apercu: APERCU}, [channel.port2]);
     });
     const url = URL.createObjectURL(new Blob([value.bytes], {type: 'application/zip'}));
     const link = document.createElement('a'); link.href = url; link.download = 'petits-pas-recuperation.zip'; link.click();
@@ -177,7 +181,8 @@ try {
     worker.addEventListener('message', event => {
       if (event.data?.kind === 'progress') status.textContent = event.data.text;
     });
-    const initial = await rpc({kind: 'init', essai: ESSAI});
+    const initial = await rpc({kind: 'init', essai: ESSAI, apercu: APERCU});
+    document.querySelector('#reprendre-apercu').hidden = APERCU || !initial.apercuDisponible;
     ready = true;
     showVolume(initial.durability);
     const config = await (await fetch('./config.json')).json();
@@ -191,6 +196,7 @@ try {
     }
     status.textContent = `Prêt en ${(initial.durationMs / 1000).toFixed(1)} s — ${initial.restored ? 'données retrouvées' : 'installation fictive à créer'}.`;
     frame.hidden = false;
+    document.querySelector('#apercu').disabled = false;
     frame.src = BASE + 'app/';
     await new Promise(() => {}); // Possession du verrou jusqu'à fermeture du document.
   });

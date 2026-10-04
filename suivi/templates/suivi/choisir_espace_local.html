@@ -1,9 +1,9 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Choisir mon espace{% endblock %}
 {% block contenu %}
-<h1>{% if espace_essai %}Revenir à mon école habituelle{% else %}Essayer avec l’école fictive{% endif %}</h1>
+<h1>{% if espace_essai or espace_apercu %}Revenir à mon école habituelle{% else %}Essayer avec l’école fictive{% endif %}</h1>
 <p>Petits Pas va fermer cette fenêtre puis ouvrir l’autre espace. Votre école et vos essais sont conservés séparément. Terminez d’abord votre saisie en cours.</p>
-{% if not espace_essai %}<p>Au premier essai, l’école fictive commune est préparée avec les comptes publics. Ensuite, vos essais seront retrouvés. N’y saisissez aucune donnée réelle.</p>
+{% if not espace_essai and not espace_apercu %}<p>Au premier essai, l’école fictive commune est préparée avec les comptes publics. Ensuite, vos essais seront retrouvés. N’y saisissez aucune donnée réelle.</p>
 {% if identifiants %}<p>Enseignant : <strong>{{ identifiants.enseignant.utilisateur }}</strong>, mot de passe <strong>{{ identifiants.enseignant.mot_de_passe }}</strong>.<br>Direction : <strong>{{ identifiants.direction.utilisateur }}</strong>, mot de passe <strong>{{ identifiants.direction.mot_de_passe }}</strong>.</p>{% endif %}{% endif %}
 <button type="button" class="bouton" id="changer-espace" data-espace="{{ destination }}">Fermer et ouvrir l’autre espace</button>
 <p id="aide-espace" role="status">Cette action utilise la fenêtre du programme. Dans un navigateur externe, fermez le programme puis relancez-le avec --essai pour essayer, ou sans --essai pour revenir.</p>

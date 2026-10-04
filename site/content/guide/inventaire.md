@@ -227,5 +227,7 @@ Le formulaire initial avec première classe est livré dans le code actuel ; sa
 disponibilité dépend de la version effectivement publiée. L’école fictive téléchargeable
 et l’espace d’essai distinct sont livrés dans le code, à publier avec le site,
 la PWA et les programmes. Les versions précédentes ne les proposent pas.
-L’ouverture temporaire d’un ZIP avant restauration n’est pas encore disponible. Les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}})
+L’ouverture d’une [copie du ZIP à vérifier]({{< relref "/guide/local/verifier-zip" >}})
+est également livrée dans le code actuel ; sa disponibilité dépend de la publication.
+Les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}})
 recueillent les retours sans constituer une campagne préalable obligatoire.

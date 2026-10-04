@@ -25,7 +25,7 @@ FULL_MEDIA_SCAN = True
 RESPONSE_BODY = b""
 
 
-def initialize(origin, version, base="/", essai=False):
+def initialize(origin, version, base="/", essai=False, apercu=False):
     global APPLICATION, SCRIPT_NAME
     SCRIPT_NAME = base.rstrip("/") + "/app"
     DATA.mkdir(exist_ok=True)
@@ -40,6 +40,7 @@ def initialize(origin, version, base="/", essai=False):
         "PWA_BASE_PATH": base,
         "DJANGO_SETTINGS_MODULE": "pwa.settings", "CARNET_DEBUG": "0",
         "CARNET_MODE_LOCAL": "oui", "CARNET_ESPACE_ESSAI": "oui" if essai else "non", "CARNET_EMAIL_DESACTIVE": "oui",
+        "CARNET_ESPACE_APERCU": "oui" if apercu else "non",
         "CARNET_ANTIBRUTEFORCE": "non", "CARNET_VERSION": version,
         "CARNET_HOSTS": urlsplit(origin).hostname,
         "CARNET_CSRF_ORIGINS": origin,
@@ -95,6 +96,30 @@ def restore_file(name, content):
 def describe(path):
     content = path.read_bytes()
     return {"hash": hashlib.sha256(content).hexdigest(), "size": len(content)}
+
+
+def inventory_apercu():
+    from suivi.apercu_local import preparation
+    copie = preparation()
+    if copie is None:
+        raise ValueError("Aucune copie prête.")
+    files = {name: describe(copie.etape / name) for name in ["carnet.sqlite3", "secret-key"]}
+    files.update({p.relative_to(copie.etape).as_posix(): describe(p)
+                  for p in (copie.etape / "media").rglob("*") if p.is_file()})
+    from suivi.paquet_local import FORMAT, VERSION
+    manifeste = json.dumps({"format": FORMAT, "version": VERSION,
+        "created_at": "2000-01-01T00:00:00+00:00", "files": {k: v["hash"] for k, v in files.items()}})
+    return json.dumps({"files": files, "bytes": sum(f["size"] for f in files.values()) + len(manifeste.encode())})
+
+
+def file_bytes_apercu(name):
+    from suivi.apercu_local import preparation
+    return (preparation().etape / name).read_bytes()
+
+
+def nettoyer_apercu():
+    from suivi.apercu_local import annuler
+    annuler()
 
 
 def inventory(force_scan=False):
@@ -264,5 +289,6 @@ def handle(encoded, raw_body=None):
         headers = [["Location", SCRIPT_NAME + "/connexion/"], ["Cache-Control", "no-store"]]
         content = b""
     RESPONSE_BODY = content
-    response.update(headers=headers, restored=restored)
+    from suivi.apercu_local import ouverture_demandee
+    response.update(headers=headers, restored=restored, ouvrir_apercu=ouverture_demandee())
     return json.dumps(response)

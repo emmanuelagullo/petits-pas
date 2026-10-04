@@ -419,6 +419,9 @@ de l’environnement appelant. Les tables anti-bruteforce hébergées sont omise
 pour conserver le schéma local compatible. Le ZIP et sa notice sont générés,
 jamais versionnés ; leur SHA-256, l’empreinte des sources et le commit sont
 consignés dans la notice. Tous les comptes et mots de passe sont publics et fictifs.
+Le commit vient de `CI_COMMIT_SHA` ou `GITHUB_SHA` en CI, sinon de Git local s’il
+est disponible. Sans ces informations, il est indiqué comme inconnu (`null`) ;
+l’empreinte des sources reste consignée.
 
 Le programme propose **Essayer avec l’école fictive**, ou `--essai` depuis les
 sources. Il utilise le dossier `essai-fictif` voisin du paquet par défaut,
@@ -438,4 +441,33 @@ sécurité et l’effacement du site peut supprimer les deux.
 Les constructions PWA et autonomes embarquent le ZIP courant. Le job de captures
 le génère aussi pour Hugo et transmet `site/static/essais/`. Les règles de
 promotion/publication ne changent pas ; il faut publier les nouvelles versions.
-La consultation temporaire d’un ZIP personnel avant restauration reste #SP5.
+La consultation d’un ZIP avant restauration est décrite ci-dessous (#SP5).
+
+## Vérifier un ZIP dans une copie indépendante (#SP5)
+
+`suivi/apercu_local.py` prépare le ZIP avec le validateur commun, refuse les
+migrations inconnues et supprime les sessions uniquement dans la copie.
+Le parcours est accessible avant toute initialisation locale ; il exige CSRF,
+puis la connexion avec un compte importé. Il ne donne aucun droit supplémentaire.
+
+Le programme ouvre le dossier temporaire validé via `--apercu`, en conservant
+les arguments du paquet habituel pour le retour. Chaque copie dispose de son
+propre dossier, clé et base ; le marqueur `apercu-zip.json` permet sa réouverture.
+Une copie ouverte reste sur disque après fermeture. Une préparation annulée
+ou non ouverte est supprimée à la fermeture du programme.
+
+La PWA enregistre la copie dans un troisième suffixe OPFS/IndexedDB (`-apercu`),
+avant de recharger la coque par `apercu.html`. Le choix est explicite dans les
+messages au Worker, y compris le secours. Sans copie enregistrée, cet espace
+refuse de créer une école vide. Une nouvelle ouverture de ZIP remplace la
+précédente copie de vérification du navigateur ; le commit est transactionnel.
+Les trois espaces partagent l’origine et le quota. La PWA publiée reste réservée
+aux données fictives.
+
+Pour adopter une copie, exporter son ZIP, revenir au paquet habituel et suivre
+la restauration commune avec confirmation. Aucune promotion implicite, fusion
+ou synchronisation n’est ajoutée. Les règles de publication restent inchangées.
+Dans un espace habituel sans école ni compte, le ZIP vérifié peut être installé
+directement avec une action explicite, sans créer une école provisoire. La présence
+d’une école ou d’un compte interdit ce raccourci ; la restauration conserve alors
+ses droits de direction et sa confirmation habituels.

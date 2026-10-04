@@ -237,6 +237,56 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
   const {execFileSync} = require('node:child_process');
   execFileSync('python3', ['-c', "import sys,zipfile,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); m=json.loads(z.read('manifest.json')); assert m['format']=='petits-pas-paquet'; assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items()); assert any(n.startswith('media/') for n in m['files'])", archivePath]);
   pass('Export ZIP commun au mode autonome, manifeste et photos vérifiés');
+  await page.frames()[1].goto(url + 'app/verifier-zip/');
+  await frame.locator('[name="archive"]').setInputFiles(archivePath);
+  await frame.getByRole('button', {name: 'Vérifier le ZIP pour ouvrir une copie', exact: true}).click();
+  await frame.getByRole('heading', {name: 'La copie est prête', exact: true}).waitFor();
+  assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
+  await frame.getByRole('button', {name: 'Ouvrir la copie pour vérifier', exact: true}).click();
+  await page.waitForURL(url + '?apercu=oui', {timeout: 60000});
+  await page.waitForFunction(() => !!window.pwaTest, null, {timeout: 120000});
+  frame = page.frameLocator('#app');
+  await frame.locator('[name="nom_utilisateur"]').waitFor();
+  await login(page);
+  assert.equal(await python(page, 'from django.conf import settings; settings.ESPACE_APERCU'), true);
+  assert.equal(await python(page, 'from django.conf import settings; settings.ESPACE_ESSAI'), false);
+  await python(page, "from suivi.models import Ecole; Ecole.objects.update(nom='Copie fictive vérifiée')");
+  await page.locator('#backup').click();
+  await frame.getByRole('heading', {name: 'Sauvegardes locales', exact: true}).waitFor();
+  assert.equal(await frame.getByRole('heading', {name: 'Restaurer une sauvegarde', exact: true}).count(), 0);
+  const previewDownload = await Promise.all([page.waitForEvent('download'), frame.getByRole('button', {name:'Télécharger une sauvegarde',exact:true}).click()]);
+  const previewPath = await previewDownload[0].path();
+  execFileSync('python3', ['-c', `
+import sys,sqlite3,tempfile,zipfile
+with tempfile.TemporaryDirectory() as folder:
+    with zipfile.ZipFile(sys.argv[1]) as archive: archive.extract('carnet.sqlite3',folder)
+    with sqlite3.connect(folder+'/carnet.sqlite3') as db:
+        assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='Copie fictive vérifiée'
+`, previewPath]);
+  const premiereInstallation = await browser.newContext({acceptDownloads: true, ignoreHTTPSErrors: tls});
+  const appareilVide = await premiereInstallation.newPage();
+  await boot(appareilVide, url);
+  await appareilVide.frames()[1].goto(url + 'app/verifier-zip/');
+  const vierge = appareilVide.frameLocator('#app');
+  await vierge.locator('[name="archive"]').setInputFiles(previewPath);
+  await vierge.getByRole('button', {name: 'Vérifier le ZIP pour ouvrir une copie', exact:true}).click();
+  await vierge.getByRole('button', {name: 'Utiliser ce ZIP comme école sur cet appareil', exact:true}).click();
+  await vierge.locator('[name="nom_utilisateur"]').waitFor();
+  await login(appareilVide);
+  assert.equal(await python(appareilVide, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'Copie fictive vérifiée');
+  assert.equal(await python(appareilVide, 'from django.conf import settings; settings.ESPACE_APERCU'), false);
+  await premiereInstallation.close();
+  pass('Installation explicite du ZIP vérifié sur un appareil vide, sans école provisoire');
+  await page.close(); page = await context.newPage(); currentPage = page;
+  await boot(page, url + '?apercu=oui'); await login(page);
+  assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'Copie fictive vérifiée');
+  assert.equal(await page.locator('#changer-espace').getAttribute('href'), base);
+  await page.close(); page = await context.newPage(); currentPage = page;
+  await boot(page, url); await login(page); frame = page.frameLocator('#app');
+  assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
+  assert(await page.locator('#reprendre-apercu').isVisible());
+  await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+  pass('ZIP ouvert dans une copie distincte, nouvelle connexion, modifications/export persistants et retour sans remplacer l’école habituelle');
   await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
   await frame.getByText(/Dernier ZIP préparé sur cet appareil/).waitFor();
   await boot(page, url); await login(page);

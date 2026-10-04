@@ -330,3 +330,16 @@ Les contrôles CSRF de Django restent actifs. Le banc sous `/petits-pas-pwa/`
 utilise désormais HTTPS (`PWA_TEST_HTTPS=oui`, OpenSSL requis) avec un certificat
 éphémère réservé aux essais. Il couvre les formulaires et actions HTMX, et
 vérifie le refus des requêtes sans jeton ou avec un référent absent ou étranger.
+
+## #SP5 : vérifier un ZIP dans une copie
+
+Le formulaire local commun prépare un ZIP compatible dans un répertoire séparé.
+Le Worker enregistre ses fichiers dans le suffixe `-apercu` avant la navigation
+vers `apercu.html`, puis supprime le répertoire MEMFS préparé. Le runtime habituel
+conserve son propre stockage. Le commit OPFS/IndexedDB réutilise le mécanisme
+transactionnel existant ; une erreur n’ouvre pas une copie partielle.
+
+La copie utilise ses comptes et les sessions du ZIP sont effacées avant ouverture.
+L’impression, les modifications et l’export restent possibles avec les droits
+habituels. Le retour ne restaure rien ; l’adoption passe par un export et la
+restauration explicitement confirmée dans l’espace habituel.

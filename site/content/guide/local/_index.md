@@ -20,6 +20,7 @@ Les fiches pédagogiques du Guide s’appliquent aux deux options.
 
 - [Télécharger une sauvegarde et garder une copie hors appareil]({{< relref "/guide/local/sauvegarder-paquet" >}}).
 - [Transférer ou restaurer l’école]({{< relref "/guide/local/restaurer-paquet" >}}).
+- [Vérifier un ZIP dans une copie séparée]({{< relref "/guide/local/verifier-zip" >}}).
 - [Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}}).
 - [Une difficulté au démarrage ?]({{< relref "/guide/demarrage-aide" >}})
 

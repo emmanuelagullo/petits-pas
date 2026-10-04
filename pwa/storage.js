@@ -3,7 +3,7 @@
 const BASE = new URL('./', import.meta.url).pathname;
 const PREFIXE = BASE === '/' ? '' : '-' + encodeURIComponent(BASE);
 let SUFFIX = PREFIXE;
-export function configurerEspace(essai) { SUFFIX = PREFIXE + (essai ? '-essai' : ''); }
+export function configurerEspace(essai, apercu = false) { SUFFIX = PREFIXE + (apercu ? '-apercu' : (essai ? '-essai' : '')); }
 async function database() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('petits-pas-pwa-prototype-v1' + SUFFIX, 1);

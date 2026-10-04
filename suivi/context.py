@@ -62,6 +62,7 @@ def session_ecole(request):
         "email_disponible": settings.EMAIL_DISPONIBLE,
         "mode_local": settings.MODE_LOCAL,
         "espace_essai": settings.ESPACE_ESSAI,
+        "espace_apercu": settings.ESPACE_APERCU,
         "double_facteur_jours_restants": getattr(request, "double_facteur_jours_restants", None),
         "affectations_utilisateur_recentes": affectations_recentes,
         "affectations_utilisateur_passees": affectations_passees,

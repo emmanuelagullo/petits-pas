@@ -65,12 +65,16 @@
 </header>
 {% endif %}
 <main>
-  {% if espace_essai %}
+  {% if espace_apercu %}
+  <aside class="encadre sans-impression"><strong>Copie du ZIP à vérifier — vos modifications restent dans cette copie.</strong>
+  {% if not mode_pwa %}<a href="{% url 'choisir_espace_local' %}">Revenir à mon école habituelle</a>{% endif %}</aside>
+  {% elif espace_essai %}
   <aside class="encadre sans-impression"><strong>Espace d’essai — utilisez des données fictives.</strong>
   {% if not mode_pwa %}<a href="{% url 'choisir_espace_local' %}">Revenir à mon école habituelle</a>{% endif %}</aside>
   {% elif mode_local and not mode_pwa %}
   <p class="sans-impression"><a href="{% url 'choisir_espace_local' %}">Essayer avec l’école fictive</a></p>
   {% endif %}
+  {% if mode_local and not mode_pwa and not espace_apercu %}<p class="sans-impression"><a href="{% url 'verifier_zip_local' %}">Vérifier un ZIP sans remplacer mon école</a></p>{% endif %}
   {% if rappel_sauvegarde_local and not generation_pdf %}
   <aside class="encadre sans-impression"><a href="{% url 'sauvegardes_locales' %}">Pensez à télécharger une sauvegarde</a> et à en garder une copie hors de cet appareil.</aside>
   {% endif %}

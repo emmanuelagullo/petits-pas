@@ -18,9 +18,9 @@ du ZIP ne sont pas fusionnées. Téléchargez d’abord un ZIP de l’état actu
 conservez-le hors appareil. Après restauration, utilisez un compte du ZIP importé.
 
 Pour un transfert, ouvrez une installation distincte avec une version compatible.
-Après vérification, poursuivez les saisies sur une seule copie. Il n’existe pas
-encore de parcours permettant de consulter le ZIP dans un espace temporaire
-avant de l’activer.
+Après vérification, poursuivez les saisies sur une seule copie. Dans une version
+qui propose ce parcours, vous pouvez d’abord [ouvrir une copie du ZIP sans
+remplacer votre école]({{< relref "/guide/local/verifier-zip" >}}).
 
 ### Dans le navigateur
 
