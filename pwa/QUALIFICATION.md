@@ -197,3 +197,19 @@ La limite 64 Mio est maintenue et expliquée dans ESSAIS-APPAREILS.md.
 Les retours terrain #PWA9 ne constituent pas un jalon bloquant pour poursuivre
 ou publier le prototype ; ses limites restent annoncées, sans prétendre
 valider toutes les plateformes ou un usage de production par ces seuls essais.
+
+## #PWA8a — constructeur et règles CI
+
+Les deux jobs PWA s'exécutent automatiquement et un échec est désormais
+bloquant pour la CI. Cela concerne les bancs automatisés disponibles, pas la
+feuille de retours terrain #PWA9, qui reste non bloquante.
+
+Six tests simulent erreur TLS temporaire, réponse tronquée, cache altéré,
+échec durable, certificat invalide, HTTP 404 et empreinte incorrecte. La
+construction test puis distribution est vérifiée avec le runtime en cache et
+les wheels de la première construction ; la reconstruction finale interdit
+explicitement tout accès réseau Pyodide et utilise pip sans index. Le bundle
+reste `pwa-prototype.e138e60d4cf2458f`, identique à #PWA7–8. Les scénarios
+navigateur ne sont donc pas relancés. Les règles YAML et l'application du patch
+sont vérifiées ; le comportement réel du planificateur GitLab et la qualité
+réseau du runner restent à confirmer par le nouveau pipeline.

@@ -332,7 +332,7 @@ pages:
         - "suivi/**/*"
         - trame-cycle1.yaml
 
-# Essai à la demande, indépendant des tests Django et du site Hugo.
+# Essais automatiques, exécutés en parallèle des autres vérifications.
 # L'artefact final désactive impérativement le protocole Python des tests.
 pwa-prototype:
   # Trixie fournit Node >= 20, requis par Playwright 1.62.
@@ -340,8 +340,13 @@ pwa-prototype:
   stage: construction
   needs: []
   rules:
-    - when: manual
-  allow_failure: true
+    - when: on_success
+  allow_failure: false
+  cache:
+    key: pwa-pyodide-0.28.3
+    paths:
+      - .cache/pwa/runtime-0.28.3/
+      - .cache/pip/
   variables:
     DATABASE_URL: ""
     CARNET_ANTIBRUTEFORCE: "non"
@@ -351,14 +356,15 @@ pwa-prototype:
     - npm install --prefix pwa --ignore-scripts
     - node pwa/node_modules/playwright/cli.js install --with-deps chromium
   script:
-    - python3 scripts/construire-pwa.py --test
+    - python3 -m unittest discover -s scripts -p test_construire_pwa.py
+    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-0.28.3
     - node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa.json
     - PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa-sous-chemin.json
     - python3 -m unittest discover -s scripts -p test_paquet_local.py
     - python3 -m unittest discover -s scripts -p test_publication_pwa.py
-    - python3 scripts/construire-pwa.py
+    - python3 scripts/construire-pwa.py --runtime .cache/pwa/runtime-0.28.3 --wheels dist/pwa/wheels
     - python3 -c 'import json; assert not json.load(open("dist/pwa/config.json"))["testMode"]'
   artifacts:
     when: on_success
@@ -368,11 +374,11 @@ pwa-prototype:
       - resultats-pwa.json
       - resultats-pwa-sous-chemin.json
 
-# Qualification Linux à la demande : aucune école réelle ni bundle de test livré.
+# Qualification Linux automatique : aucune école réelle ni bundle de test livré.
 pwa-qualification:
   extends: pwa-prototype
   script:
-    - python3 scripts/construire-pwa.py --test
+    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-0.28.3
     - node scripts/qualifier-pwa.cjs
   artifacts:
     when: always

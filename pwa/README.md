@@ -150,7 +150,7 @@ Résultats : `dist/pwa/resultats-tests.json`. Les caches `--runtime DOSSIER`
 et `--wheels DOSSIER` évitent les téléchargements pendant la construction.
 
 **Ne jamais publier un bundle `--test`** : il expose l'exécution Python des
-essais. Reconstruire sans cette option après les tests. Le job manuel GitLab
+essais. Reconstruire sans cette option après les tests. Le job automatique GitLab
 **pwa-prototype** effectue les essais puis reconstruit sans protocole de test.
 Il livre `dist/pwa/` et `resultats-pwa.json`, sans école ni secret local.
 Il ne publie pas le site automatiquement et n'interrompt pas Hugo/Django.
@@ -229,7 +229,7 @@ actif pour préserver la même origine lors des reprises. École de 120 élèves
 six classes, jusqu’à 550 JPEG synthétiques distincts de 107 Kio : toutes les
 données sont fictives.
 Résultats : `dist/qualification-pwa.json`, hors du bundle distribuable.
-Le job manuel **pwa-qualification** publie ce rapport, y compris en cas d'échec,
+Le job automatique **pwa-qualification** publie ce rapport, y compris en cas d'échec,
 et ne publie pas le bundle de test. `PWA_CHROMIUM` sélectionne un exécutable.
 
 Le protocole `test-metrics` et les pauses avant/après activation ne sont
@@ -276,3 +276,26 @@ est ignorée. Le secours ne marque pas un export de l'état actuel.
 La feuille [ESSAIS-APPAREILS.md](ESSAIS-APPAREILS.md) permet les retours #PWA9
 sans en faire une campagne bloquante. Le prompt du chantier Hugo et publications
 est dans [AUDIT-SITE-PUBLICATIONS.md](AUDIT-SITE-PUBLICATIONS.md).
+
+## #PWA8a : CI systématique et téléchargements repris
+
+`pwa-prototype` et `pwa-qualification` s'exécutent dans chaque pipeline accepté
+par les règles globales (branches et merge requests), en parallèle des autres
+vérifications. Leurs échecs font échouer le pipeline. `pwa-publication` reste
+manuelle sur main, avec une dépendance au prototype réussi. Le contrôle du
+statut exact du job dans le projet destinataire reste conservé.
+
+Le cache CI `.cache/pwa/runtime-0.28.3/` est partagé par version. La deuxième
+construction utilise ce runtime et les wheels de la première, sans nouveau
+téléchargement Pyodide ou pip. Même sans cache GitLab, les deux constructions
+d'un job réutilisent ses fichiers. Trois téléchargements au maximum sont
+simultanés ; une erreur réseau temporaire est reprise jusqu'à quatre essais
+(attentes de 1, 2 et 4 secondes). Les fichiers téléchargés sont remplacés
+atomiquement, leur longueur est contrôlée lorsqu'elle est fournie et les
+wheels WASM restent vérifiées avec les SHA du lock Pyodide. Une erreur de
+certificat ou un HTTP permanent comme 404 échoue sans reprise ; TLS n'est
+jamais désactivé. Une indisponibilité durable reste un échec explicite de CI.
+
+Tests : `python3 -m unittest discover -s scripts -p test_construire_pwa.py`.
+Les suites runtime/HTMX ne sont pas relancées pour cette correction du
+constructeur : le bundle de distribution reste identique à #PWA7–8.

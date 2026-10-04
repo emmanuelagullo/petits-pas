@@ -49,8 +49,8 @@ déployée n'est annoncée avant la première publication réussie.
 
 ## Publier une version
 
-1. Après application du patch sur `main`, ouvrir son pipeline et lancer
-   **pwa-prototype** avec le bouton ▶.
+1. Après un push sur `main`, ouvrir son pipeline : **pwa-prototype** et
+   **pwa-qualification** démarrent automatiquement.
 2. Attendre sa réussite, puis lancer **pwa-publication** dans ce même pipeline.
 3. Suivre le pipeline lié du projet PWA et son job **pages**. Le job source
    attend le résultat du pipeline destinataire (`strategy: depend`).
@@ -77,8 +77,9 @@ republier cette ancienne version, pas un retour automatique des données.
 
 Les publications sont sérialisées par `resource_group: pwa-pages`. Un échec
 avant la réussite du job Pages laisse la publication précédente en place.
-Les jobs PWA restent facultatifs : une pipeline générale verte ne garantit
-pas que la PWA a été testée ou publiée.
+Les deux jobs de test PWA sont automatiques et leurs échecs font échouer le
+pipeline. Seule la publication reste facultative : une CI verte ne signifie
+pas que le nouveau bundle a été publié.
 
 ## Après publication
 
@@ -128,7 +129,7 @@ PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
 ```
 
 Pour basculer sans données à conserver : appliquer le patch sur `main`, désactiver
-le domaine unique dans le projet Pages, puis lancer `pwa-prototype` et
+le domaine unique dans le projet Pages, attendre `pwa-prototype`, puis lancer
 `pwa-publication` dans le nouveau pipeline. Ouvrir l'adresse avec le `/` final.
 Aucune modification du fichier CI du projet Pages n'est nécessaire.
 
@@ -139,3 +140,12 @@ Les 8 tests de publication, 18 tests du paquet autonome, la syntaxe, les YAML
 et la construction Hugo passent. La suite Django complète et la qualification
 550 photos ne sont pas relancées : les règles métier et le protocole de
 persistance ne changent pas. La publication réelle reste à lancer sur GitLab.
+
+## #PWA8a : échec du prototype et publication
+
+L'ancienne configuration `allow_failure: true` rendait le bouton de publication
+activable après un échec du prototype. Le projet Pages refusait déjà de publier
+ce pipeline, en vérifiant son job exact. Le prototype est désormais automatique
+avec `allow_failure: false` : sa dépendance CI devient bloquante en cas d'échec.
+Le contrôle du projet destinataire reste une deuxième vérification indépendante.
+Aucun changement du fichier CI du projet Pages n'est nécessaire.
