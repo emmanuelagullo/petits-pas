@@ -1,40 +1,41 @@
 +++
-title = "Utiliser le mode autonome local"
-description = "Installer le programme autonome et protéger ses données locales."
+title = "Sur cet appareil"
+description = "Démarrer, sauvegarder et retrouver votre école dans le navigateur ou le programme."
 +++
 
-En mode hébergé, on ouvre Petits Pas dans un navigateur et l’école est
-conservée sur un serveur distant ; la démonstration publique est un exemple
-de ce fonctionnement, avec des données fictives et temporaires. Le mode
-autonome local installe le programme et les données sur un seul poste, sans
-connexion au serveur distant. L’interface s’ouvre dans une fenêtre dédiée.
-Django fonctionne uniquement sur ce poste pendant l’utilisation ; les données
-de l’école sont conservées séparément du programme.
+Plusieurs personnes peuvent se relayer sur cet appareil avec leur compte
+personnel. Les données restent ici ; les appareils ne se synchronisent pas.
 
-- [Choisir un téléchargement pour Windows ou Ubuntu]({{< relref "/guide/local/telecharger-programme.md" >}}).
-- [Installer ou mettre à jour le programme]({{< relref "/guide/local/installer-programme.md" >}}).
-- [Télécharger une sauvegarde du paquet]({{< relref "/guide/local/sauvegarder-paquet.md" >}}).
-- [Vérifier et restaurer une sauvegarde]({{< relref "/guide/local/restaurer-paquet.md" >}}).
+- **Dans le navigateur de cet appareil** : [ouvrir et démarrer]({{< relref "/guide/local/essayer-navigateur" >}}).
+- **Avec le programme à télécharger** : [choisir une version]({{< relref "/guide/local/telecharger-programme" >}}),
+  puis [installer et mettre à jour]({{< relref "/guide/local/installer-programme" >}}).
 
-Un [prototype dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
-permet aussi des essais hors ligne, avec sauvegardes compatibles et impression
-PDF. Il reste réservé aux données fictives et n’est pas une installation de
-production.
+Après création de l’école et du premier compte, [préparer la classe]({{< relref "/guide/eleves-classes/creer-activer-classe" >}}),
+affecter son responsable et [ajouter les élèves]({{< relref "/guide/eleves-classes/ajouter-eleves" >}}).
+Les fiches pédagogiques du Guide s’appliquent aux deux options.
 
-## Où se trouvent les sauvegardes ?
+## Conserver et retrouver le travail
 
-Une direction voit la même page **Gérer l’école** dans les deux modes. Seule
-l’installation locale affiche le bouton **Sauvegardes locales** : elle peut
-exporter et restaurer son paquet depuis l’application. En mode hébergé,
-l’hébergeur ou la DSI assure la sauvegarde et la reprise de l’instance ; les
-utilisateurs n’ont donc pas de bouton pour restaurer la base partagée.
+- [Télécharger une sauvegarde et garder une copie hors appareil]({{< relref "/guide/local/sauvegarder-paquet" >}}).
+- [Transférer ou restaurer l’école]({{< relref "/guide/local/restaurer-paquet" >}}).
+- [Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}}).
+- [Une difficulté au démarrage ?]({{< relref "/guide/demarrage-aide" >}})
 
+Le ZIP est commun aux deux options, avec une version compatible. Restaurer
+remplace toute l’école locale, comptes et médias compris ; ce n’est pas une
+fusion. Après transfert, continuez les saisies sur une seule copie.
+
+Dans le navigateur, les carnets passent par la fenêtre d’impression ; plusieurs
+carnets forment un document commun. Le programme peut générer des PDF séparés.
+Consultez les [fiches des carnets]({{< relref "/guide/carnets/" >}}).
+
+Les essais actuels utilisent des données fictives. Avant des données réelles,
+préparer avec l’école la [protection des données]({{< relref "/proteger-donnees/" >}}).
+Le stockage protégé du navigateur et les copies de récupération ne remplacent
+pas une sauvegarde conservée ailleurs.
+
+## Avec le service de l’école
+
+Les sauvegardes et la reprise du service sont assurées par la personne chargée
+ de son exploitation. La direction n’y dispose pas de restauration de la base partagée.
 {{< comparaison-modes >}}
-
-La [fiche de sauvegarde]({{< relref "/guide/local/sauvegarder-paquet.md" >}})
-montre également l’écran de téléchargement et de restauration du mode local.
-
-Ce mode ne synchronise pas les données entre ordinateurs. Le programme et sa
-distribution restent en développement ; l’usage de données réelles demande
-une qualification préalable. Pour travailler à plusieurs sur une même école,
-consultez la [présentation du profil hébergé]({{< relref "/dsi/" >}}).

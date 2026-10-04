@@ -1,27 +1,28 @@
 +++
-title = "Essayer le prototype dans le navigateur"
-description = "Tester les sauvegardes et l’impression sans serveur applicatif."
+title = "Essayer le application dans le navigateur"
+description = "Ouvrir Petits Pas, conserver son école et préparer les impressions."
 fiche = true
 categorie = "local"
 publics = ["direction"]
 intentions = ["PWA", "hors ligne", "navigateur", "transfert", "PDF"]
-prerequis = "Une installation d’essai vous a été fournie ; utilisez uniquement des données fictives."
-depart = "Page d’accueil du prototype dans Chromium"
+prerequis = "Un navigateur compatible est nécessaire ; utilisez uniquement des données fictives pour les essais."
+depart = "Page d’accueil de Petits Pas dans le navigateur"
 statut = "partiel"
 +++
 
-Ce prototype conserve l’école dans le navigateur de cet appareil. Il peut
-fonctionner hors ligne après le premier téléchargement. Il ne remplace pas
-encore le programme Windows ou Linux : utilisez **uniquement des données
+Petits Pas conserve l’école dans le navigateur de cet appareil. Il peut
+fonctionner hors ligne après le premier téléchargement. Utilisez **uniquement des données
 fictives**. Les tablettes et les grands carnets restent à vérifier.
 
-## Ouvrir une installation d'essai
+## Ouvrir et préparer l’école
 
 L'adresse d'essai est [Petits Pas dans le navigateur](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/).
-Elle est disponible après publication du prototype.
+Conservez cette adresse pour retrouver les données de ce navigateur.
 
-Ouvrez l'adresse HTTPS fournie par la personne qui prépare l'essai, dans
-Chromium, puis attendez le premier chargement. Conservez cette adresse pour
+Ouvrez cette adresse dans un navigateur compatible, puis attendez le premier chargement.
+Sur une installation vide, **Installer Petits Pas** permet de créer l’école
+et le premier compte personnel. Connectez-vous, créez la classe, affectez son
+responsable puis ajoutez des élèves fictifs. Conservez cette adresse pour
 les prochaines ouvertures. Chaque appareil garde sa propre école ; pour
 transférer les données vers un autre appareil, utilisez une sauvegarde ZIP.
 Une école créée lors d'un essai local sur l'ordinateur doit également être
@@ -57,7 +58,7 @@ Vérifiez les détails, puis choisissez **Annuler** ou **Confirmer la
 restauration**. La confirmation remplace les données présentes sur cet appareil.
 Reconnectez-vous avec un compte de la sauvegarde importée.
 
-Dans ce prototype, le contenu d’une sauvegarde est limité à 64 Mio après
+Dans le navigateur, le contenu d’une sauvegarde est limité à 64 Mio après
 décompression et son envoi à 70 Mio. Les données de travail sont également
 limitées à 64 Mio avant compression. Le bandeau affiche le volume du dernier
 état enregistré. À partir de 52 Mio, il conseille de télécharger une sauvegarde et de terminer

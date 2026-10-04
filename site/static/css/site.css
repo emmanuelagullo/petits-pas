@@ -135,3 +135,11 @@ h2 { font-family: Georgia, serif; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Repères de parcours : la couleur accompagne toujours un titre explicite. */
+.parcours { padding: 1.25rem; margin: 1.5rem 0; border: 1px solid var(--line); border-left: .3rem solid #285242; border-radius: .6rem; }
+.parcours-service { background: #f1f6f3; }
+.parcours-appareil { background: #f2f4f8; border-left-color: #405775; }
+.parcours h2 { margin-top: 0; }
+.parcours h2 span { margin-right: .35rem; }
+.parcours p:last-child { margin-bottom: 0; }

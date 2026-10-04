@@ -1,16 +1,18 @@
 +++
-title = "Pour les DSI et les hébergeurs"
+title = "Institutions et hébergement"
 description = "Architecture, maîtrise des données et possibilités d'auto-hébergement."
 +++
 
 Petits Pas est une application Django dont l'interface web s'appuie sur HTMX.
-Deux modes d’utilisation existent : le mode hébergé, accessible à plusieurs
-personnes par navigateur, et le mode autonome local sur un seul poste, sans
-serveur distant. Les profils ci-dessous précisent leurs usages et leurs données.
+Deux façons de travailler existent : le mode hébergé, accessible à plusieurs
+personnes par navigateur, et l’utilisation sur un appareil, dans le navigateur ou avec le programme téléchargé. Plusieurs comptes peuvent s’y relayer. Les profils ci-dessous précisent leurs usages et leurs données.
 
 Le projet ne propose pas encore un service prêt à recevoir des données réelles.
 Cette page distingue donc l'architecture déjà exercée des garanties qui restent
 à établir avant un pilote ou une production.
+
+Pour choisir un parcours, consulter [Démarrer]({{< relref "/demarrer/" >}}).
+La [protection des données]({{< relref "/proteger-donnees/" >}}) concerne les deux façons de travailler.
 
 ## Choisir un profil
 
@@ -29,6 +31,11 @@ environnement persistant.
 ## Mode hébergé
 
 ### Architecture persistante
+
+Un profil PostgreSQL avec médias privés sur un système de fichiers persistant
+est aussi documenté dans `DEPLOIEMENT.org` et exercé en CI. Il exige une
+sauvegarde coordonnée de la base et des médias ; S3 n’est pas obligatoire.
+
 
 Le profil hébergé persistant utilise un serveur d’application Python,
 PostgreSQL, un stockage objet privé compatible S3 et une terminaison HTTPS
@@ -203,3 +210,11 @@ Les adoptions et parcours existants restent conservés lors du retrait d’une
 permission. La démonstration fictive ouvre seulement la permission supérieure
 pour permettre les essais ; ce réglage n’est pas une recommandation pour une
 école réelle.
+
+## Application dans le navigateur
+
+Django/Pyodide fonctionne dans un Worker ; les données restent dans OPFS/IndexedDB
+sur l’appareil. ZIP et droits locaux sont communs au programme autonome. La limite
+actuelle est de 64 Mio avant compression, avec base et médias encore en mémoire.
+Voir le [parcours navigateur]({{< relref "/guide/local/essayer-navigateur" >}})
+et les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}}).

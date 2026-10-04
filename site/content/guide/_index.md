@@ -63,18 +63,16 @@ introuvable selon le contexte. Les fiches de diagnostic expliquent notamment
 pourquoi une personne ne voit pas une classe, peut prévisualiser mais pas
 générer un carnet, ou ne peut pas terminer la dernière affectation responsable.
 
-### [Utiliser le mode autonome local]({{< relref "/guide/local/" >}})
+## Selon votre façon de travailler
 
-Le mode hébergé, comme la démonstration en ligne, s’ouvre dans un navigateur
-et partage un serveur distant entre plusieurs utilisateurs. Le mode autonome
-local s’installe sur un seul poste : les données et le programme y restent
-et aucun serveur distant n’est nécessaire. Les sauvegardes se gèrent alors
-depuis l’application locale.
+- [Avec le service de votre école]({{< relref "/guide/service/" >}}) :
+  invitation, connexion et accès à votre classe depuis plusieurs appareils.
+- [Sur cet appareil]({{< relref "/guide/local/" >}}) : navigateur ou programme
+  téléchargé, démarrage, sauvegardes, transfert et récupération.
 
-- installer ou mettre à jour le programme autonome sous Ubuntu ou Windows ;
-- trouver les téléchargements des versions publiques ;
-- retrouver une version précédente sans toucher aux données de l’école ;
-- télécharger une sauvegarde complète et restaurer un paquet local.
+Les gestes pédagogiques sont communs. Les fiches précisent les différences
+lorsqu’elles concernent l’impression, les mises à jour ou les sauvegardes.
+Pour choisir, commencer par [Démarrer]({{< relref "/demarrer/" >}}).
 
 Les principes communs ne sont pas répétés dans chaque parcours : la
 [présentation des rôles]({{< relref "/roles/" >}}) donne la vue synthétique et

@@ -3,6 +3,14 @@ title = "Essayer Petits Pas"
 description = "Une démonstration publique avec des données entièrement fictives."
 +++
 
+Utilisez uniquement des données fictives, dans les deux façons d’essayer.
+
+{{< parcours mode="service" titre="Dans la démonstration en ligne" >}}
+Une école fictive partagée entre les visiteurs et régulièrement réinitialisée.
+**Cette démonstration peut prendre quelques minutes à démarrer. Un écran noir
+peut apparaître pendant le chargement : c’est normal pour cette démonstration.
+Patientez jusqu’à l’ouverture de Petits Pas.**
+
 La démonstration permet d'explorer librement les parcours enseignant et
 direction de Petits Pas. Elle est partagée par toutes les personnes qui la
 visitent : vous pouvez donc voir leurs essais, comme elles peuvent voir les
@@ -13,7 +21,7 @@ donne une vue rapide des fonctions et de leurs limites. Les [fiches de l'équipe
 fictive]({{< relref "/roles/equipe/" >}}) présentent ensuite chaque compte et
 son périmètre.
 
-{{< acces-demonstration >}}
+
 
 ## Avant de commencer
 
@@ -25,21 +33,37 @@ visiteurs tant que la démonstration reste active.
 Le service gratuit s'arrête après **quinze minutes sans aucune visite ni
 requête, de quiconque**. Les modifications sont alors effacées. La visite
 suivante recrée le jeu de données fictives ; ce redémarrage peut prendre
-environ une minute.
+quelques minutes.
 
 Cette remise à zéro dépend donc de l'inactivité de l'ensemble des visiteurs :
 elle ne doit jamais être utilisée comme une mesure de confidentialité ou
 d'effacement à la demande.
 
-## Trois environnements, trois usages
+{{< /parcours >}}
 
-- La **démonstration publique** est jetable, partagée et réservée à la
-  découverte avec des données fictives.
-- Un **atelier pédagogique** est un espace persistant mais toujours fictif,
-  destiné à recueillir des retours dans la durée.
-- Une **instance de production** est déployée et administrée pour une école ou
-  une collectivité, avec les garanties organisationnelles et techniques
-  adaptées aux données réelles.
+{{< parcours mode="appareil" titre="Sur cet appareil" >}}
+### Dans le navigateur de cet appareil
+
+[Ouvrir Petits Pas](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/)
+et suivre la [fiche navigateur]({{< relref "/guide/local/essayer-navigateur" >}}).
+
+### Avec le programme à télécharger
+
+[Télécharger une version publiée]({{< relref "/guide/local/telecharger-programme" >}})
+puis [installer le programme]({{< relref "/guide/local/installer-programme" >}}).
+
+Ces deux options créent actuellement une école locale à remplir avec des données
+fictives. Le ZIP de l’école commune et l’espace d’essai séparé ne sont pas encore
+proposés. **Si une école existe déjà sur cet appareil, ne restaurez pas un ZIP
+pour essayer : il remplacerait ses données.** Utilisez un autre profil de
+navigateur ou faites préparer une installation distincte du programme.
+
+[Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}}).
+{{< /parcours >}}
+
+Pour préparer votre utilisation, revenez à [Démarrer]({{< relref "/demarrer/" >}}).
+
+{{< acces-demonstration >}}
 
 ## Essayer les contenus complets du cycle 1
 

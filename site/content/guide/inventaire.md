@@ -208,9 +208,22 @@ Voir [relier deux compétences]({{< relref "/guide/eleves-classes/relier-compete
 
 ## Prototype dans le navigateur
 
-Le [prototype PWA]({{< relref "/guide/local/essayer-navigateur.md" >}}) propose
+Le [application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}}) propose
 l’export/import du ZIP autonome, la vérification avant confirmation, une
 impression PDF par le navigateur et des mises à jour avec état de récupération.
 Il reste **partiel**, réservé aux données fictives : limites de volume,
-mise en page groupée et appareils d’école restent à qualifier. Les procédures du
+mise en page groupée et fonctionnement à vérifier sur votre appareil. Les procédures du
 programme autonome et du mode hébergé restent leurs références respectives.
+
+## Démarrage et conservation des données
+
+Les [deux parcours]({{< relref "/demarrer/" >}}) distinguent l’accès au service
+de l’école de l’utilisation sur cet appareil. Les comptes et droits restent
+individuels dans les deux cas. ZIP et restauration sont communs aux usages locaux ;
+l’impression navigateur produit un document groupé, tandis que le programme et
+le service peuvent générer un ZIP de PDF séparés.
+
+Le formulaire initial avec première classe, l’école fictive téléchargeable,
+l’espace d’essai distinct et l’ouverture temporaire d’un ZIP avant restauration
+ne sont pas encore disponibles. Les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}})
+recueillent les retours sans constituer une campagne préalable obligatoire.
