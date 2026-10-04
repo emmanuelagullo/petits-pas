@@ -12,7 +12,9 @@ statut = "disponible"
 
 ## Vérifier, confirmer, redémarrer
 
-Cette procédure n’existe que dans le mode autonome local : la direction ne
+Les étapes ci-dessous concernent le programme autonome. Le [prototype navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
+utilise le même ZIP avec une confirmation et une reconnexion, sans ce redémarrage.
+La direction ne
 peut pas remplacer depuis son navigateur la base d’une installation hébergée
 partagée. Voir la [comparaison des deux modes]({{< relref "/guide/local/" >}}).
 

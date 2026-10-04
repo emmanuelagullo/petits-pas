@@ -65,6 +65,9 @@
 </header>
 {% endif %}
 <main>
+  {% if rappel_sauvegarde_local and not generation_pdf %}
+  <aside class="encadre sans-impression"><a href="{% url 'sauvegardes_locales' %}">Pensez à télécharger une sauvegarde</a> et à en garder une copie hors de cet appareil.</aside>
+  {% endif %}
   {% if messages %}
   <ul class="messages">
     {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}

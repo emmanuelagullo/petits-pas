@@ -2,6 +2,7 @@ import {load, save} from './storage.js';
 const BASE = new URL('./', import.meta.url).pathname;
 let python, bridge, config, fatal = false, initialized = false;
 let queue = Promise.resolve();
+function progress(text) { self.postMessage({kind: 'progress', text}); }
 function call(name, ...args) {
   const method = bridge[name];
   try { return method(...args); } finally { method.destroy(); }
@@ -24,10 +25,13 @@ async function process(message) {
     if (initialized) throw new Error('Runtime déjà initialisé');
     config = await (await fetch('./config.json')).json();
     const started = performance.now();
+    progress("Lecture des données conservées sur cet appareil…");
     const restored = await load(config.version, message.kind === 'recovery');
     if (message.kind === 'recovery' && !restored) throw new Error("Aucune donnée locale à exporter.");
+    progress('Chargement du moteur Python…');
     const {loadPyodide} = await import('./runtime/pyodide.mjs');
     python = await loadPyodide({indexURL: new URL('./runtime/', location.href).href});
+    progress("Préparation des bibliothèques…");
     await python.loadPackage(['sqlite3', 'pillow', 'pyyaml', 'micropip', 'hashlib']);
     // hashlib a pu être importé par Pyodide avant le chargement de _hashlib.
     python.runPython('import hashlib, importlib; importlib.reload(hashlib)');
@@ -45,7 +49,9 @@ async function process(message) {
       const proxy = call('snapshot');
       try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
     }
+    progress('Ouverture de l’école et vérification de la base…');
     call('initialize', location.origin, config.version, BASE);
+    progress('Enregistrement de l’état initial…');
     const durability = await persist('', false, true);
     initialized = true;
     return {durationMs: performance.now() - started, restored: !!restored, durability};

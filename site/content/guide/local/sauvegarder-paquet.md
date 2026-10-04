@@ -12,13 +12,13 @@ statut = "disponible"
 
 ## Télécharger et conserver
 
-La commande ci-dessous n’apparaît que dans le mode autonome local, pour un
-compte de direction. En mode hébergé, l’hébergeur ou la DSI gère la sauvegarde
+La commande apparaît dans le programme autonome et dans le prototype navigateur,
+pour un compte de direction. En mode hébergé, l’hébergeur ou la DSI gère la sauvegarde
 de la base partagée et des médias : la page **Gérer l’école** n’affiche pas
 **Sauvegardes locales**. La [comparaison des interfaces]({{< relref "/guide/local/" >}})
 montre cette différence.
 
-{{< capture-guide src="captures/guide/local/sauvegardes.png" alt="Page Sauvegardes locales d’une école fictive, avec les commandes de téléchargement et de vérification du ZIP" caption="Les sauvegardes locales sont réservées au programme autonome et à la direction." >}}
+{{< capture-guide src="captures/guide/local/sauvegardes.png" alt="Page Sauvegardes locales d’une école fictive, avec les commandes de téléchargement et de vérification du ZIP" caption="Les sauvegardes locales sont réservées à la direction dans les modes locaux." >}}
 
 Dans **Gérer l’école**, ouvrez **Sauvegardes locales** et cliquez sur
 **Télécharger une sauvegarde**. Enregistrez le fichier ZIP dans un emplacement
@@ -30,6 +30,16 @@ Vérifiez que le téléchargement est terminé et que le fichier peut être retr
 avant de compter sur cette copie. Répétez l’opération selon les besoins de
 l’école, notamment avant une mise à jour du programme. Le téléchargement
 ne supprime pas le paquet en cours.
+
+La page indique la date du dernier ZIP préparé sur cet appareil. La direction
+reçoit un rappel si aucun export n’a été enregistré ou après sept jours.
+Cette date ne prouve pas que le fichier a été conservé : gardez une copie hors
+de l’appareil, selon l’organisation choisie par l’école.
+
+Le ZIP permet aussi un transfert entre programme autonome et navigateur,
+avec une version compatible. Continuez ensuite les saisies sur une seule copie :
+les appareils ne se synchronisent pas. Voir le [prototype navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
+pour ses limites et son parcours de restauration.
 
 Pour [restaurer une archive]({{< relref "/guide/local/restaurer-paquet.md" >}}), revenez dans la même page.
 Les installations avec serveur disposent d’une autre procédure de sauvegarde,

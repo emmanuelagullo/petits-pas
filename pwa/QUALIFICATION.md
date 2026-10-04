@@ -173,3 +173,27 @@ modification ; une persistance SQLite par pages n'est pas acquise ici.
 
 Bundle testé : `pwa-prototype.c940947442f0addd`. Rapport reproductible :
 `dist/qualification-pwa.json`, généré par `scripts/qualifier-pwa.cjs`.
+
+## #PWA7–8 — usage et sauvegardes (4 octobre 2026)
+
+Les suites Chromium passent : 26 contrôles à la racine, 27 sous
+`/petits-pas-pwa/`. Elles couvrent : coque à
+390 pixels sans débordement, manifeste et PNG 192/512 accessibles, branche
+`beforeinstallprompt` exercée par un événement simulé avec refus, navigateur
+sans Web Locks refusé sans initialiser Django, version visible, export/date
+retrouvée après redémarrage, import natif, photos, droits, impression, hors ligne,
+interruption/quota injectés, mise à jour/migration SQL et récupération.
+Il ne s'agit pas d'une installation réellement effectuée par un OS mobile.
+
+20 tests du paquet local, 8 tests de publication et 6 tests Django ciblant les
+sauvegardes locales passent ; aucun changement de migration. Hugo est construit.
+La suite Django complète, le scénario 550 photos et les arrêts SIGKILL ne sont
+pas relancés pour ce changement d'interface/suivi d'export. La mémoire totale
+reste inconnue sur tablettes. L'algorithme de persistance reste celui de #PWA6 ;
+le suivi local ajoute un fichier optionnel au manifeste interne, couvert par
+la réouverture réelle après export, sans changer le format ZIP public.
+
+La limite 64 Mio est maintenue et expliquée dans ESSAIS-APPAREILS.md.
+Les retours terrain #PWA9 ne constituent pas un jalon bloquant pour poursuivre
+ou publier le prototype ; ses limites restent annoncées, sans prétendre
+valider toutes les plateformes ou un usage de production par ces seuls essais.

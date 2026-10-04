@@ -23,6 +23,7 @@ _attente = None
 _preparation = None
 _verrou_attente = threading.Lock()
 RESULTAT = "resultat-restauration.json"
+SUIVI_SAUVEGARDE = "suivi-sauvegarde.json"
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,28 @@ def creer_sauvegarde(paquet, destination):
                     "files": empreintes,
                 }),
             )
+
+
+def noter_export(paquet):
+    """Un ZIP préparé n'est pas la preuve d'une copie conservée hors appareil."""
+    instant = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    temporaire = paquet / (SUIVI_SAUVEGARDE + ".tmp")
+    temporaire.write_text(json.dumps({"prepare_le": instant}), encoding="utf-8")
+    temporaire.replace(paquet / SUIVI_SAUVEGARDE)
+
+
+def suivi_export(paquet, maintenant=None):
+    """Information propre à cet appareil, absente des ZIP de transfert."""
+    maintenant = maintenant or datetime.now(timezone.utc)
+    try:
+        valeur = json.loads((paquet / SUIVI_SAUVEGARDE).read_text(encoding="utf-8"))["prepare_le"]
+        instant = datetime.fromisoformat(valeur)
+        if instant.tzinfo is None or instant > maintenant:
+            raise ValueError("Date invalide")
+    except (OSError, ValueError, KeyError, TypeError):
+        return {"dernier_export_local": None, "rappel_sauvegarde_local": True}
+    return {"dernier_export_local": instant,
+            "rappel_sauvegarde_local": (maintenant - instant).total_seconds() >= 7 * 86400}
 
 
 def preparer_restauration(source, parent, nom_paquet="paquet-autonome", *,

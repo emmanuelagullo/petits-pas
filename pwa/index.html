@@ -1,13 +1,28 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Petits Pas — prototype PWA</title><link rel="manifest" href="manifest.webmanifest">
-<style>body{margin:0;font:16px system-ui}header{padding:12px;background:#fff2c9}#status{padding:8px}iframe{border:0;width:100%;height:calc(100vh - 100px)}button{margin:6px}</style>
+<meta name="theme-color" content="#fff2c9"><link rel="apple-touch-icon" href="icon-192.png">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;font:16px system-ui;color:#234}body{display:flex;flex-direction:column;height:100dvh}
+header{padding:10px;background:#fff2c9;flex:none;max-height:45dvh;overflow:auto}#status{padding:8px;flex:none}iframe{border:0;width:100%;flex:1;min-height:0}button{margin:4px;min-height:44px;padding:6px 10px;font:inherit}summary{cursor:pointer;padding:8px 0}p{margin:8px 0}#version,#network{font-size:.85rem}#failure{padding:12px}#failure pre{white-space:pre-wrap;overflow-wrap:anywhere}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #345}
+</style>
 </head><body><header><strong>Prototype PWA — données fictives uniquement.</strong>
-<span id="volume">Stockage expérimental limité à 64 Mio avant compression.</span> Sauvegardes compatibles avec le programme autonome.
+<span id="version"></span> <span id="network"></span>
+<button id="install" hidden>Installer Petits Pas</button>
+<button id="backup" disabled>Sauvegardes / transfert</button>
+<details id="tools"><summary>Installation, stockage et mises à jour</summary>
+<p id="installation">Vous pouvez utiliser cette page directement. Pour ajouter une icône : dans Chrome ou Edge, cherchez « Installer » dans le menu du navigateur ; sur iPad, ouvrez dans Safari puis Partager → Sur l’écran d’accueil. L’installation dépend du navigateur ; les appareils Apple restent à vérifier.</p>
+<p>Le premier chargement demande Internet. Attendez l’ouverture de l’application avant de fermer la page. Revenez à la même adresse et au même profil de navigateur ; les données ne sont pas partagées entre appareils.</p>
+<p id="volume">Stockage expérimental limité à 64 Mio avant compression.</p>
+<p>Cette limite protège la mémoire du prototype : la base et les photos sont chargées en mémoire. Ce n’est pas la capacité du disque. Les ZIP sont compatibles avec le programme autonome.</p>
+<p id="storage">Vérification de la protection du stockage…</p>
 <button id="persist">Protéger le stockage local</button>
 <button id="check-update">Vérifier les mises à jour</button>
 <button id="update" hidden>Appliquer la mise à jour</button>
-<button id="recovery">Exporter l’état de récupération</button></header>
-<div id="status" role="status">Préparation de Petits Pas…</div>
+<button id="recovery">Exporter l’état de récupération</button>
+<p>La protection du stockage ne remplace pas une sauvegarde extérieure à l’appareil. Ne supprimez pas les données du site pour mettre à jour l’application.</p>
+</details></header>
+<div id="status" role="status" aria-live="polite">Préparation de Petits Pas…</div>
+<section id="failure" hidden><h1>Petits Pas n’a pas pu démarrer</h1><p id="failure-help">Fermez les autres onglets de Petits Pas, puis réessayez. Au premier lancement, une connexion Internet est nécessaire. Ne supprimez pas les données du site.</p><button id="retry">Réessayer</button><button id="rescue">Récupérer un ZIP</button><details><summary>Détails à transmettre pour obtenir de l’aide</summary><pre id="diagnostic"></pre></details></section>
 <iframe id="app" title="Application Petits Pas" hidden></iframe>
 <script type="module" src="shell.js"></script></body></html>

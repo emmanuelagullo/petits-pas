@@ -3,6 +3,11 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l’école</a></p>
 <h1>Sauvegardes locales</h1>
+<p>{% if dernier_export_local %}Dernier ZIP préparé sur cet appareil : <strong>{{ dernier_export_local|date:"d/m/Y à H:i" }}</strong>.{% else %}Aucun ZIP préparé n’a été enregistré sur cet appareil.{% endif %}
+Vérifiez que le téléchargement est terminé et conservez une copie hors de cet appareil. Cette date ne confirme pas que le fichier a été conservé.</p>
+<details><summary>Sauvegarder ou transférer vers un autre appareil</summary>
+<p>Le même ZIP s’utilise dans le navigateur et dans le programme Windows ou Linux, avec une version compatible. Il contient aussi les comptes : reconnectez-vous avec un compte de la sauvegarde.</p>
+<p>Pour transférer, exportez ici puis restaurez sur l’autre appareil. Continuez ensuite les saisies sur un seul appareil : les copies ne se synchronisent pas et une restauration remplace les données présentes.</p></details>
 {% if resultat %}
 <section class="encadre">
   <h2>Restauration terminée</h2>
