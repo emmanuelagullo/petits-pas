@@ -5,9 +5,20 @@ Ce document présente les modifications significatives apportées à Petits Pas.
 Le dépôt source et les versions publiées sont disponibles à l’adresse :
 [[https://gitlab.inria.fr/petits-pas/petits-pas][gitlab.inria.fr/petits-pas/petits-pas]].
 
-* Unreleased
+* À venir
 
 ** Added
+
+- Les publications PWA et programmes relient désormais version, commit,
+  construction et empreintes des fichiers. Les notes de ce journal sont
+  reprises dans la release GitHub et dans l’aide du navigateur. La publication
+  reste manuelle ; un tag ne publie rien automatiquement.
+- La PWA peut être publiée depuis main ou un tag commun aux deux forges,
+  après réussite des parcours et de la qualification CI. Le bundle distribué
+  est aussi ouvert et rouvert hors ligne sans les outils de test.
+- La publication des programmes en CLI vise GitHub uniquement et vérifie
+  les artefacts exacts et le contenu du brouillon avant publication.
+
 
 - Site public : #SP5 ouvre un ZIP compatible dans une copie de vérification
   distincte, avec ses comptes et une nouvelle connexion. Retour sans restauration,

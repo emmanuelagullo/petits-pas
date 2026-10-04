@@ -90,7 +90,7 @@ class PublicationTests(unittest.TestCase):
             ({"id": 12, "path_with_namespace": publication.SOURCE, "default_branch": "main"}, {}),
             ({"sha": commit, "ref": "main"}, {}),
             ([{"name": "autre-job-fictif"}], {"X-Next-Page": "2"}),
-            ([{"id": 34, "name": "pwa-prototype", "status": "success", "commit": {"id": commit}, "pipeline": {"id": 56}}], {}),
+            ([{"id": 34, "name": "pwa-prototype", "status": "success", "commit": {"id": commit}, "pipeline": {"id": 56}}, {"id": 35, "name": "pwa-qualification", "status": "success", "commit": {"id": commit}, "pipeline": {"id": 56}}], {}),
         ]
         with patch.object(publication, "json_request", side_effect=responses) as request:
             job, url = publication.select_job("https://forge-fictive.example/api/v4", "12", "56", commit)
@@ -109,6 +109,71 @@ class PublicationTests(unittest.TestCase):
             ]
             with self.subTest(status=status, sha=sha), patch.object(publication, "json_request", side_effect=responses), self.assertRaisesRegex(ValueError, "n'a pas réussi"):
                 publication.select_job("https://forge-fictive.example/api/v4", "12", "56", commit)
+
+    def test_qualification_failed_or_missing_is_refused(self):
+        commit = 'b' * 40
+        prototype = {'id':34,'name':'pwa-prototype','status':'success','commit':{'id':commit},'pipeline':{'id':56}}
+        for status in [None, 'failed', 'running']:
+            jobs=[prototype.copy()]
+            if status:jobs.append({'id':35,'name':'pwa-qualification','status':status,'commit':{'id':commit},'pipeline':{'id':56}})
+            responses=[({'id':12,'path_with_namespace':publication.SOURCE,'default_branch':'main'},{}),({'sha':commit,'ref':'main'},{}),(jobs,{})]
+            with self.subTest(status=status), patch.object(publication,'json_request',side_effect=responses), self.assertRaises(ValueError):
+                publication.select_job('https://fictif/api/v4','12','56',commit)
+
+    def test_tag_common_to_both_forges(self):
+        commit='b'*40
+        jobs=[{'id':i,'name':name,'status':'success','commit':{'id':commit},'pipeline':{'id':56}} for i,name in [(34,'pwa-prototype'),(35,'pwa-qualification')]]
+        for github_sha in [commit,'c'*40]:
+            responses=[({'id':12,'path_with_namespace':publication.SOURCE,'default_branch':'main'},{}),({'sha':commit,'ref':'0.8'},{}),({'commit':{'id':commit}},{}),({'sha':github_sha},{}),(jobs,{})]
+            with patch.object(publication,'json_request',side_effect=responses):
+                if github_sha==commit:
+                    job,_=publication.select_job('https://fictif/api/v4','12','56',commit,'0.8','0.8')
+                    self.assertEqual(job['qualification']['id'],35)
+                else:
+                    with self.assertRaises(ValueError):publication.select_job('https://fictif/api/v4','12','56',commit,'0.8','0.8')
+
+    def test_preparer_publication_complete_avec_manifestes_et_qualification(self):
+        import os, shutil
+        from publication import manifest
+        commit='b'*40
+        self.config.update(commit=commit, tag=None, application_version='dev.bbbbbbbb')
+        self.write_config()
+        base=Path(self.temp.name)
+        metadata=base/'metadata';metadata.mkdir()
+        (metadata/'pwa-config.json').write_bytes((self.root/'config.json').read_bytes())
+        for name in ['resultats-pwa.json','resultats-pwa-sous-chemin.json','resultats-distribution-pwa.json']:
+            (metadata/name).write_text(json.dumps([{'test':'fictif réussi'}]))
+        (metadata/'notes-version.md').write_text('Notes fictives')
+        env={'CI_COMMIT_SHA':commit,'CI_PIPELINE_ID':'56','CI_JOB_ID':'34'}
+        with patch.dict(os.environ,env,clear=True):
+            record=manifest('navigateur','navigateur',list(metadata.iterdir()))
+        (metadata/'publication-pwa-candidat.json').write_text(json.dumps(record))
+        archive=base/'candidate.zip'
+        with ZipFile(archive,'w') as zipped:
+            for file in self.root.iterdir():zipped.write(file,'dist/pwa/'+file.name)
+            for file in metadata.iterdir():
+                name=file.name if file.name.startswith('resultats-pwa') else 'dist/'+file.name
+                zipped.write(file,name)
+        qualification=base/'qualification.zip'
+        job={'id':34,'qualification':{'id':35}}
+        for status in ['passed','failed']:
+            with ZipFile(qualification,'w') as zipped:zipped.writestr('dist/qualification-pwa.json',json.dumps({'status':status}))
+            destination=base/status
+            def download(url,path):shutil.copyfile(qualification if '/jobs/35/' in url else archive,path)
+            env={'PWA_SOURCE_PROJECT':publication.SOURCE,'CI_API_V4_URL':'https://fictif/api/v4','PWA_SOURCE_PROJECT_ID':'12','PWA_SOURCE_PIPELINE_ID':'56','PWA_SOURCE_SHA':commit}
+            old=os.getcwd();os.chdir(base)
+            try:
+                with patch.dict(os.environ,env,clear=True), patch.object(publication,'select_job',return_value=(job,'https://fictif/jobs/34/artifacts')), patch.object(publication,'download',side_effect=download), patch('sys.argv',['preparer','--destination',str(destination),'--pages-url','https://pwa-fictive.example/']):
+                    if status=='passed':
+                        publication.main()
+                        report=json.loads((destination/'publication.json').read_text())
+                        self.assertEqual(report['qualification_job_id'],35)
+                        self.assertEqual(report['application_version'],'dev.bbbbbbbb')
+                        self.assertTrue((destination/'publication/resultats-pwa-sous-chemin.json').exists())
+                    else:
+                        with self.assertRaises(ValueError):publication.main()
+                        self.assertFalse(destination.exists())
+            finally:os.chdir(old)
 
 
 if __name__ == "__main__":

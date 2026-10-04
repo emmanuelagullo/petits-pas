@@ -66,7 +66,7 @@ async function process(message) {
       try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
     }
     progress('Ouverture de l’école et vérification de la base…');
-    call('initialize', location.origin, config.version, BASE, ESSAI, APERCU);
+    call('initialize', location.origin, config.application_version || config.version, BASE, ESSAI, APERCU);
     progress('Enregistrement de l’état initial…');
     const durability = await persist('', false, true);
     initialized = true;

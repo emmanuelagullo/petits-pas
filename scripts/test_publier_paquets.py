@@ -1,146 +1,106 @@
-"""Vérifie les chemins de publication sans accès aux forges ni publication réelle."""
-
+"""Promotion GitHub exacte, sans accès aux forges ni publication réelle."""
+import importlib.util
 import io
-import os
-import shutil
-import subprocess
-import tarfile
+import json
+from pathlib import Path
 import tempfile
 import unittest
-import zipfile
-from pathlib import Path
+from unittest.mock import patch
+from zipfile import ZipFile
 
-SCRIPT = Path(__file__).with_name("publier-paquets.sh")
-SHA = "a" * 40
-
+spec=importlib.util.spec_from_file_location('publisher',Path(__file__).with_name('publier-paquets.py'))
+publisher=importlib.util.module_from_spec(spec);spec.loader.exec_module(publisher)
+SHA='a'*40
 
 class PublicationTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.base = Path(self.temp.name)
-        self.bin = self.base / "bin"
-        self.bin.mkdir()
-        for name in ("python3", "cut", "mktemp", "rm", "realpath", "cp", "cat"):
-            (self.bin / name).symlink_to(shutil.which(name))
-        self.linux = self.base / "PetitsPas-linux.tar.gz"
-        with tarfile.open(self.linux, "w:gz") as archive:
-            contenu = b"programme fictif"
-            entree = tarfile.TarInfo("PetitsPas/PetitsPas")
-            entree.size = len(contenu)
-            archive.addfile(entree, io.BytesIO(contenu))
-        self.windows = self.base / "PetitsPas-windows.zip"
-        with zipfile.ZipFile(self.windows, "w") as archive:
-            archive.writestr("PetitsPas/PetitsPas.exe", b"programme fictif")
-        self.setup = self.base / "PetitsPas-Setup-0.7-x64.exe"
-        self.setup.write_bytes(b"MZsetup fictif")
-        self.journal = self.base / "appels"
-        self.creer_commande("git", '''#!/bin/sh
-if [ "$1" = rev-parse ]; then echo "$FAKE_SHA"; else printf '%s\\t%s\\n' "$FAKE_SHA" "$4"; fi
-''')
+    def run_info(self):
+        return {'conclusion':'success','status':'completed','path':publisher.WORKFLOW,
+                'head_branch':'0.8','head_sha':SHA,'event':'push','run_attempt':1}
 
-    def creer_commande(self, nom, code):
-        chemin = self.bin / nom
-        chemin.write_text(code)
-        chemin.chmod(0o755)
+    def test_run_exact_tag_et_workflow(self):
+        self.assertEqual(publisher.verify_run(self.run_info(),'0.8'),SHA)
+        for key,value in [('conclusion','failure'),('head_branch','main'),('path','autre.yml'),('status','in_progress')]:
+            run=self.run_info();run[key]=value
+            with self.assertRaises(ValueError):publisher.verify_run(run,'0.8')
 
-    def activer_gh(self):
-        self.creer_commande("gh", '''#!/bin/sh
-printf 'gh %s\\n' "$*" >> "$FAKE_LOG"
-if [ "$1" = run ] && [ "$2" = view ]; then
-  printf '{"conclusion":"success","headSha":"%s","workflowName":"Paquets autonomes Linux et Windows (prototype)"}\\n' "$FAKE_SHA"
-elif [ "$1" = run ] && [ "$2" = download ]; then
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-      --name) nom=$2; shift 2 ;;
-      --dir) dossier=$2; shift 2 ;;
-      *) shift ;;
-    esac
-  done
-  /bin/mkdir -p "$dossier"
-  case "$nom" in
-    PetitsPas-linux) cp "$FAKE_LINUX" "$dossier/" ;;
-    PetitsPas-windows) cp "$FAKE_WINDOWS" "$dossier/" ;;
-    PetitsPas-Setup-windows) cp "$FAKE_SETUP" "$dossier/" ;;
-  esac
-fi
-''')
+    def test_tags_concordants_et_tag_annote(self):
+        lines='b'*40+'\trefs/tags/0.8\n'+SHA+'\trefs/tags/0.8^{}\n'
+        with patch.object(publisher.subprocess,'check_output',return_value=lines) as request:
+            publisher.verify_tags('0.8',SHA);self.assertEqual(request.call_count,2)
+        with patch.object(publisher.subprocess,'check_output',return_value='b'*40+'\trefs/tags/0.8\n'):
+            with self.assertRaises(ValueError):publisher.verify_tags('0.8',SHA)
 
-    def activer_glab(self):
-        self.creer_commande("glab", '''#!/bin/sh
-printf 'glab %s\\n' "$*" >> "$FAKE_LOG"
-''')
+    def test_chemins_et_doublons_refuses(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);archive=root/'artefact.zip'
+            for name in ['../fichier','sous/fichier','a\\b']:
+                with ZipFile(archive,'w') as z:z.writestr(name,b'fictif')
+                with self.assertRaises(ValueError):publisher.unpack(archive,root)
+            with ZipFile(archive,'w') as z:z.writestr('fichier',b'fictif')
+            publisher.unpack(archive,root)
+            with ZipFile(archive,'w') as z:z.writestr('fichier',b'altere')
+            with self.assertRaises(ValueError):publisher.unpack(archive,root)
 
-    def lancer(self, *arguments):
-        env = dict(os.environ, PATH=str(self.bin), FAKE_SHA=SHA,
-                   FAKE_LOG=str(self.journal), FAKE_LINUX=str(self.linux),
-                   FAKE_WINDOWS=str(self.windows), FAKE_SETUP=str(self.setup))
-        return subprocess.run(["/bin/bash", str(SCRIPT), "123", "0.7", *arguments],
-                              env=env, text=True, capture_output=True)
+    def test_artefact_expire_ou_ambigu_avant_publication(self):
+        for artifacts in [[{'name':'PetitsPas-linux','expired':True}],
+                          [{'name':'PetitsPas-linux','expired':False}]*2, []]:
+            with tempfile.TemporaryDirectory() as temp, patch.object(publisher,'verify_tags'), patch.object(publisher,'api',side_effect=[self.run_info(),{'artifacts':artifacts}]), patch.object(publisher,'gh') as gh:
+                with self.assertRaises(ValueError):publisher.prepare('123','0.8',Path(temp))
+                gh.assert_not_called()
 
-    def test_gh_seul_publie_les_archives_et_explique_gitlab(self):
-        self.activer_gh()
-        resultat = self.lancer()
-        self.assertEqual(resultat.returncode, 0, resultat.stderr)
-        appels = self.journal.read_text()
-        self.assertIn("gh release create", appels)
-        self.assertIn("gh release edit", appels)
-        self.assertIn("/-/releases/new", resultat.stdout)
-        self.assertIn("PetitsPas-windows.zip", resultat.stdout)
-        self.assertIn("PetitsPas-Setup-", resultat.stdout)
-        self.assertIn("PetitsPas-Setup-", appels)
+    def test_promotion_selects_exact_ids_and_verifies_manifests(self):
+        import os
+        from publication import manifest, sha256
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source=root/'source';source.mkdir();destination=root/'destination';destination.mkdir()
+            for name in ['PetitsPas-linux.tar.gz','PetitsPas-windows.zip','PetitsPas-Setup-0.8-x64.exe','notes-version.md']:
+                (source/name).write_bytes(b'fictif '+name.encode())
+            artifacts=[];blobs={}
+            for job,target,names in [('linux','linux-ubuntu24.04-x86_64',['PetitsPas-linux.tar.gz','notes-version.md']),('windows','windows-x64',['PetitsPas-windows.zip','PetitsPas-Setup-0.8-x64.exe','notes-version.md'])]:
+                with patch.dict(os.environ,{'GITHUB_SHA':SHA,'GITHUB_REF_TYPE':'tag','GITHUB_REF_NAME':'0.8','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','GITHUB_JOB':job},clear=True):
+                    record=manifest('programme',target,[source/n for n in names])
+                (source/('publication-'+job+'.json')).write_text(json.dumps(record))
+            for id,name,names in [(1,'PetitsPas-linux',['PetitsPas-linux.tar.gz','publication-linux.json','notes-version.md']),(2,'PetitsPas-windows',['PetitsPas-windows.zip','publication-windows.json','notes-version.md']),(3,'PetitsPas-Setup-windows',['PetitsPas-Setup-0.8-x64.exe'])]:
+                blob=io.BytesIO()
+                with ZipFile(blob,'w') as z:
+                    for filename in names:z.writestr(filename,(source/filename).read_bytes())
+                blobs[id]=blob.getvalue();artifacts.append({'id':id,'name':name,'expired':False})
+            downloaded=[]
+            def gh(*args,**kwargs):
+                id=int(args[1].split('/artifacts/')[1].split('/')[0]);downloaded.append(id)
+                kwargs['stdout'].write(blobs[id])
+            with patch.object(publisher,'verify_tags'),patch.object(publisher,'api',side_effect=[self.run_info(),{'artifacts':artifacts},self.run_info()]),patch.object(publisher,'gh',side_effect=gh):
+                files,commit=publisher.prepare('123','0.8',destination)
+            self.assertEqual(downloaded,[1,2,3]);self.assertEqual(commit,SHA)
+            self.assertIn('SHA256SUMS',{p.name for p in files})
+            # Un autre fichier après construction est refusé avant toute release.
+            destination2=root/'altered';destination2.mkdir()
+            with ZipFile(io.BytesIO(blobs[1])) as z:
+                blob=io.BytesIO()
+                with ZipFile(blob,'w') as output:
+                    for name in z.namelist():output.writestr(name,b'altere' if name=='PetitsPas-linux.tar.gz' else z.read(name))
+            blobs[1]=blob.getvalue()
+            with patch.object(publisher,'verify_tags'),patch.object(publisher,'api',side_effect=[self.run_info(),{'artifacts':artifacts}]),patch.object(publisher,'gh',side_effect=gh):
+                with self.assertRaises(ValueError):publisher.prepare('123','0.8',destination2)
 
-    def test_glab_seul_publie_avec_archives_et_sha_fournis(self):
-        self.activer_glab()
-        resultat = self.lancer(str(self.linux), str(self.setup), str(self.windows), SHA)
-        self.assertEqual(resultat.returncode, 0, resultat.stderr)
-        self.assertIn("glab release create", self.journal.read_text())
-        self.assertIn("PetitsPas-Setup-", self.journal.read_text())
-        self.assertIn("/releases/new", resultat.stdout)
-
-    def test_deux_cli_publient_les_memes_archives_sur_les_deux_forges(self):
-        self.activer_gh()
-        self.activer_glab()
-        resultat = self.lancer()
-        self.assertEqual(resultat.returncode, 0, resultat.stderr)
-        appels = self.journal.read_text().splitlines()
-        self.assertLess(
-            next(i for i, appel in enumerate(appels) if appel.startswith("gh release create")),
-            next(i for i, appel in enumerate(appels) if appel.startswith("glab release create")),
-        )
-        self.assertTrue(appels[-1].startswith("gh release edit"))
-
-    def test_sha_manuel_incorrect_refuse_la_publication(self):
-        self.activer_glab()
-        resultat = self.lancer(str(self.linux), str(self.setup), str(self.windows), "b" * 40)
-        self.assertNotEqual(resultat.returncode, 0)
-        self.assertIn("le tag local pointe", resultat.stderr.lower())
-        self.assertFalse(self.journal.exists())
-
-    def test_setup_invalide_refuse_la_publication(self):
-        self.activer_gh()
-        self.setup.write_bytes(b"pas un executable")
-        resultat = self.lancer()
-        self.assertNotEqual(resultat.returncode, 0)
-        self.assertIn("Setup Windows incomplet", resultat.stderr)
-        self.assertNotIn("release create", self.journal.read_text())
-
-    def test_setup_d_une_autre_version_refuse_la_publication(self):
-        self.activer_gh()
-        autre = self.setup.with_name("PetitsPas-Setup-0.6-dev-aabbccdd-x64.exe")
-        self.setup.rename(autre)
-        resultat = self.lancer(str(self.linux), str(autre), str(self.windows), SHA)
-        self.assertNotEqual(resultat.returncode, 0)
-        self.assertIn("Noms attendus", resultat.stderr)
-        self.assertNotIn("release create", self.journal.read_text())
-
-    def test_sans_cli_ne_publie_pas(self):
-        resultat = self.lancer()
-        self.assertNotEqual(resultat.returncode, 0)
-        self.assertIn("ni gh ni glab", resultat.stderr)
-        self.assertIn("/-/releases/new", resultat.stdout)
-        self.assertFalse(self.journal.exists())
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_brouillon_verifie_avant_publication(self):
+        import shutil
+        import subprocess
+        for altered in [False,True]:
+            with tempfile.TemporaryDirectory() as temp:
+                root=Path(temp);file=root/'programme.zip';file.write_bytes(b'fictif')
+                notes=root/'notes-version.md';notes.write_text('Notes fictives')
+                def prepare(run,tag,folder):
+                    shutil.copyfile(notes,folder/notes.name)
+                    return [file],SHA
+                commands=[]
+                def gh(*args,**kwargs):
+                    commands.append(args)
+                    if args[:2]==('release','download'):
+                        folder=Path(args[args.index('--dir')+1]);(folder/file.name).write_bytes(b'altere' if altered else b'fictif')
+                with patch.object(publisher,'prepare',side_effect=prepare),patch.object(publisher,'gh',side_effect=gh),patch.object(publisher.subprocess,'run',return_value=subprocess.CompletedProcess([],1)),patch('sys.argv',['publier','123','0.8']):
+                    if altered:
+                        with self.assertRaises(ValueError):publisher.main()
+                    else:publisher.main()
+                self.assertEqual(any(command[:2]==('release','edit') for command in commands),not altered)
+                self.assertTrue(any(command[:2]==('release','create') and '--draft' in command for command in commands))

@@ -1,0 +1,8 @@
+# Dernière observation publique conservée ; le catalogue CI peut la compléter.
+verified_at: '2026-10-05'
+versions:
+  - version: '0.7'
+    date: '2026-09-27'
+    notes: https://github.com/emmanuelagullo/petits-pas/releases/tag/0.7
+    windows: https://github.com/emmanuelagullo/petits-pas/releases/download/0.7/PetitsPas-Setup-0.7-x64.exe
+    linux: https://github.com/emmanuelagullo/petits-pas/releases/download/0.7/PetitsPas-linux.tar.gz

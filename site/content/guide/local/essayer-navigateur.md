@@ -103,3 +103,11 @@ Effacer le profil du navigateur ou les données du site peut supprimer
 l’école et son état de récupération. Le bouton **Protéger le stockage local**
 ne remplace jamais une sauvegarde externe. N’utilisez pas un profil partagé
 avec des personnes qui ne doivent pas accéder aux données de l’école.
+
+## Retrouver les nouveautés de votre version
+
+La version est affichée en haut de Petits Pas. Ouvrez **Installation, stockage
+et mises à jour**, puis **Voir les nouveautés**. Ces notes accompagnent la
+version chargée ; elles ne changent pas seulement parce qu’une nouvelle
+version du code a été préparée. La publication dans le navigateur et celle
+des programmes à télécharger peuvent avoir lieu à des dates différentes.

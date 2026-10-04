@@ -27,6 +27,12 @@ class VersionApplicationTests(unittest.TestCase):
         ):
             self.assertEqual(version.version_application(), "0.8")
 
+    def test_gitlab_sans_git(self):
+        with patch.dict(os.environ, {"CI_COMMIT_SHA": SHA, "CI_COMMIT_TAG": "0.8"}, clear=True):
+            self.assertEqual(version.version_application(), "0.8")
+        with patch.dict(os.environ, {"CI_COMMIT_SHA": SHA}, clear=True):
+            self.assertEqual(version.version_application(), "dev.aaaaaaaa")
+
     def test_construction_sur_branche_ne_devient_pas_release(self):
         with patch.dict(os.environ, {"GITHUB_SHA": SHA, "GITHUB_REF_TYPE": "branch"}, clear=True):
             self.assertEqual(version.version_application(), "dev.aaaaaaaa")

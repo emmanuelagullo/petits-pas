@@ -6,7 +6,7 @@ stages:
 
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "petits-pas/petits-pas" && $PWA_SOURCE_REF == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "petits-pas/petits-pas" && ($PWA_SOURCE_REF == "main" || $PWA_SOURCE_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/)'
     - when: never
 
 default:
@@ -27,8 +27,10 @@ pages:
       assert re.fullmatch(r'[a-f0-9]{40}', commit)
       url = (os.environ['CI_API_V4_URL'] + '/projects/petits-pas%2Fpetits-pas'
              + '/repository/files/scripts%2Fpreparer-publication-pwa.py/raw?ref=' + commit)
-      with urllib.request.urlopen(url, timeout=60) as source:
-          Path('preparer-publication-pwa.py').write_bytes(source.read())
+      for filename in ['preparer-publication-pwa.py', 'publication.py']:
+          source_url = url.replace('preparer-publication-pwa.py', filename)
+          with urllib.request.urlopen(source_url, timeout=60) as source:
+              Path(filename).write_bytes(source.read())
       PY
     - python3 preparer-publication-pwa.py --destination public --pages-url "$CI_PAGES_URL"
   pages:

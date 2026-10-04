@@ -1,0 +1,7 @@
+{{ $catalogue := .Site.Data.publications_generees | default .Site.Data.publications }}
+{{ with $catalogue }}
+<p>Versions publiées observées le {{ .verified_at | time.Format "02/01/2006" }}. Pour les publications plus récentes, consultez <a href="https://github.com/emmanuelagullo/petits-pas/releases">les versions sur GitHub</a>.</p>
+<table><thead><tr><th>Version</th><th>Programme Windows</th><th>Programme Linux</th><th>Nouveautés</th></tr></thead><tbody>
+{{ range .versions }}<tr><td>{{ .version }}</td><td>{{ with .windows }}<a href="{{ . }}">Télécharger l’installateur</a>{{ else }}—{{ end }}</td><td>{{ with .linux }}<a href="{{ . }}">Télécharger l’archive</a>{{ else }}—{{ end }}</td><td><a href="{{ .notes }}">Lire les notes</a></td></tr>{{ end }}
+</tbody></table>
+{{ end }}

@@ -8,6 +8,7 @@ stages:
 
 workflow:
   rules:
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
@@ -252,7 +253,10 @@ captures-demonstration:
   script:
     - test ! -e carnet.sqlite3
     - python3 -m unittest discover -s scripts -p test_publier_paquets.py
+    - python3 -m unittest discover -s scripts -p test_manifestes_publication.py
+    - python3 -m unittest discover -s scripts -p test_publications_site.py
     - sh scripts/preparer-site.sh
+    - python3 scripts/preparer-publications-site.py
     - python3 scripts/construire-ecole-fictive.py --destination site/static/essais/ecole-fictive.zip
     - python3 scripts/verifier-guide-pratique.py
     - |
@@ -279,6 +283,7 @@ captures-demonstration:
     paths:
       - site/static/captures
       - site/static/essais
+      - site/data/publications_generees.json
       - .ci-captures-demonstration.log
       - .ci-captures-local.log
     expire_in: 1 week
@@ -377,7 +382,9 @@ pwa-prototype:
     - python3 -m unittest discover -s scripts -p test_apercu_local.py
     - python3 -m unittest discover -s scripts -p test_publication_pwa.py
     - python3 scripts/construire-pwa.py --runtime .cache/pwa/runtime-0.28.3 --wheels dist/pwa/wheels
-    - python3 -c 'import json; assert not json.load(open("dist/pwa/config.json"))["testMode"]'
+    - node scripts/verifier-distribution-pwa.cjs
+    - cp dist/pwa/config.json dist/pwa-config.json
+    - python3 scripts/manifeste-publication.py --mode navigateur --target navigateur --destination dist/publication-pwa-candidat.json dist/pwa-config.json resultats-pwa.json resultats-pwa-sous-chemin.json dist/resultats-distribution-pwa.json
   artifacts:
     when: on_success
     expire_in: 30 days
@@ -385,6 +392,10 @@ pwa-prototype:
       - dist/pwa/
       - resultats-pwa.json
       - resultats-pwa-sous-chemin.json
+      - dist/resultats-distribution-pwa.json
+      - dist/pwa-config.json
+      - dist/publication-pwa-candidat.json
+      - dist/notes-version.md
 
 # Qualification Linux automatique : aucune école réelle ni bundle de test livré.
 pwa-qualification:
@@ -405,6 +416,8 @@ pwa-publication:
   needs:
     - job: pwa-prototype
       artifacts: false
+    - job: pwa-qualification
+      artifacts: false
   inherit:
     default: false
     variables: false
@@ -414,7 +427,10 @@ pwa-publication:
     PWA_SOURCE_PIPELINE_ID: "$CI_PIPELINE_ID"
     PWA_SOURCE_SHA: "$CI_COMMIT_SHA"
     PWA_SOURCE_REF: "$CI_COMMIT_REF_NAME"
+    PWA_SOURCE_TAG: "$CI_COMMIT_TAG"
   rules:
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/'
+      when: manual
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
       when: manual
   allow_failure: true

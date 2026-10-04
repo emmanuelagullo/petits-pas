@@ -48,13 +48,13 @@ def version_application():
     if getattr(sys, "frozen", False):
         fichier = Path(sys._MEIPASS) / "version-application.txt"
         return fichier.read_text(encoding="utf-8").strip()
-    commit = os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GITHUB_SHA") or git("rev-parse", "HEAD")
-    tag_ci = os.environ.get("GITHUB_REF_NAME") if os.environ.get("GITHUB_REF_TYPE") == "tag" else None
+    commit = os.environ.get("CI_COMMIT_SHA") or os.environ.get("RENDER_GIT_COMMIT") or os.environ.get("GITHUB_SHA") or git("rev-parse", "HEAD")
+    tag_ci = os.environ.get("CI_COMMIT_TAG") or (os.environ.get("GITHUB_REF_NAME") if os.environ.get("GITHUB_REF_TYPE") == "tag" else None)
     if tag_ci:
         if not TAG.fullmatch(tag_ci):
             raise ValueError(f"Tag de version invalide : {tag_ci}")
         return tag_ci
-    if os.environ.get("GITHUB_REF_TYPE") == "branch":
+    if os.environ.get("CI_COMMIT_SHA") or os.environ.get("GITHUB_REF_TYPE") == "branch":
         return version_pour_commit(commit, {})
     if os.environ.get("RENDER_GIT_COMMIT"):
         return version_pour_commit(commit, tags_distants())

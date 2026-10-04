@@ -283,48 +283,54 @@ et Windows et une CI verte sur le commit à publier, créer **un seul tag Git lo
 sur ce commit, puis le pousser vers les deux dépôts (remplacer le SHA d'exemple) :
 
 ```sh
-git tag -a 0.7 SHA_DU_COMMIT_VALIDE -m 'Petits Pas 0.7'
-git push inria 0.7
-git push github 0.7
+git tag -a 0.8 SHA_DU_COMMIT_VALIDE -m 'Petits Pas 0.8'
+git push inria 0.8
+git push github 0.8
 ```
 
 Le push du tag GitHub lance une nouvelle exécution du workflow des paquets :
 attendre qu'elle soit verte et utiliser **son numéro** pour publier le setup
-Windows `PetitsPas-Setup-0.7-x64.exe` et les archives. Le script refuse un
-setup `0.7-dev.*` provenant du push sur `main` :
+Windows `PetitsPas-Setup-0.8-x64.exe` et les archives. Le contrôle du manifeste refuse un
+setup `dev.*` provenant du push sur `main` :
 
 ```sh
 bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
 ```
 
-Le script détecte `gh` et `glab`. Avec `gh` seul, il récupère les archives
-GitHub Actions, vérifie le commit de l’exécution et les tags sur les deux
-forges, puis publie une préversion GitHub contenant le setup Windows recommandé,
-l'archive Linux et l'archive technique Windows. Il indique
-ensuite comment créer la release GitLab depuis son interface, avec trois liens
-vers les mêmes fichiers GitHub. Avec les deux CLI, il publie aussi les fichiers
-dans le registre de paquets GitLab et crée les deux releases.
+Cette commande publie uniquement sur **GitHub**, avec `gh` authentifié
+(`gh auth login`). Elle exige une construction réussie du tag et les mêmes
+tags sur les deux forges. Elle sélectionne les identifiants exacts des
+artefacts, contrôle leurs manifestes et empreintes, puis vérifie les fichiers
+chargés dans un brouillon avant de le rendre public. Elle ne reconstruit rien
+et ne remplace pas une release existante. Une erreur de chargement laisse le
+brouillon à examiner ; ne pas le publier sans vérification. Aucune release
+GitLab n'est créée. Les artefacts candidats sont conservés 30 jours ; après
+expiration, reconstruire le tag et choisir la nouvelle exécution.
 
-Sans `gh`, mais avec `glab`, télécharger manuellement les trois fichiers de la
-même exécution GitHub Actions (après extraction de leurs ZIP enveloppes),
-vérifier son SHA dans GitHub Actions puis lancer :
+Avant le commit de préparation de version, renommer la rubrique **À venir**
+de `CHANGELOG.org` en **0.8 — YYYY-MM-DD** (exemple), puis ouvrir une nouvelle
+rubrique **À venir**. Écrire les nouveautés, corrections, limites et précautions
+de mise à jour dans cette rubrique versionnée. Les constructions du tag
+exigent ses notes et les reprennent dans la release et la PWA. Le tag vient
+après ce commit ; aucune note n'est récupérée depuis un `main` plus récent.
+Les manifestes et `SHA256SUMS` restent joints aux fichiers de la release.
+Les releases conservent pour l'instant le statut de préversion ; la commande
+ne les marque pas automatiquement comme dernière release stable.
 
-```sh
-bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG \
-  /chemin/PetitsPas-linux.tar.gz /chemin/PetitsPas-Setup-0.7-x64.exe \
-  /chemin/PetitsPas-windows.zip SHA_DU_COMMIT
-```
+Pour la PWA, conserver GitLab Pages et son adresse. Après réussite de
+`pwa-prototype` **et** `pwa-qualification`, lancer manuellement
+`pwa-publication` dans le pipeline de `main` ou du tag. Les fichiers servis
+proviennent de ce pipeline précis ; aucun bundle de qualification n'est
+publié. Les identités sont disponibles dans `publication.json`, les rapports
+sous `publication/`. Une release GitHub et une publication PWA sont deux
+décisions distinctes : un même tag n'implique pas leur disponibilité simultanée.
+Voir [la procédure PWA](pwa/PUBLICATION.md).
 
-Le script vérifie que le SHA fourni correspond aux tags, mais ne peut pas
-contrôler automatiquement l’exécution GitHub sans `gh`. Sans aucun des deux
-CLI, il ne publie rien et donne les étapes pour les deux interfaces web.
-L’authentification et les droits de publication restent nécessaires sur les
-forges utilisées (`gh auth login`, éventuellement
-`glab auth login --hostname gitlab.inria.fr`).
-Si une étape distante échoue, vérifier les releases déjà créées avant toute
-nouvelle tentative : le script ne remplace pas une release existante.
-Une release GitHub, même marquée « pre-release », requiert un tag ; les
-artefacts Actions permettent de tester sans tag.
+Après publication des programmes, relancer la construction du site avec ses
+captures pour actualiser le catalogue public. Le job lit uniquement les
+releases et fichiers publics GitHub ; un échec de lecture conserve le
+catalogue connu. Le site ne présente pas les artefacts Actions comme des
+versions publiées.
 
 Pour les utilisateurs, le point d’entrée du site public est la
 [fiche de téléchargement](https://petits-pas.gitlabpages.inria.fr/petits-pas/guide/local/telecharger-programme/) :
