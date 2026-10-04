@@ -5,6 +5,7 @@ from pathlib import Path
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
+from .double_facteur import politique_deployeur_depuis_environnement
 from .version import version_application
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -255,6 +256,13 @@ ANYMAIL = {
 # préfixant l'en-tête (blocage contournable). À vérifier avec la procédure de
 # DEPLOIEMENT.org.
 PROXYS_DE_CONFIANCE = max(0, int(os.environ.get("CARNET_PROXYS_NB", "0")))
+# Politique de 2FA du déployeur : obligatoire jusqu'à un rang de fonction,
+# désactivée à partir d'un rang (voir AUDIT-AUTHENTIFICATION-INVITATIONS.org,
+# § 6.7). Lue et validée ici ; l'exigence n'est pas encore appliquée.
+(
+    DOUBLE_FACTEUR_OBLIGATOIRE_JUSQU_AU_RANG,
+    DOUBLE_FACTEUR_DESACTIVE_A_PARTIR_DU_RANG,
+) = politique_deployeur_depuis_environnement(os.environ, mode_local=MODE_LOCAL)
 AXES_CLIENT_IP_CALLABLE = "carnet.reseau.adresse_client"
 
 # --------------------------------------------------------------------------

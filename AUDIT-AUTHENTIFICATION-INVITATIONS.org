@@ -290,7 +290,7 @@ documentation de déploiement.
 | #C5 UX mot de passe                | Fait                                                            |
 | #C6 Anti-bruteforce et audit       | Fait (=django-axes=, seuils par déploiement, inactif en =MODE_LOCAL=) |
 | #C7 Bascule vers =LoginView=       | Abandonné, documenté au Jalon 6 ; remplacé par la conservation de l'identifiant après échec |
-| #C8 2FA                            | Conception arrêtée (#C8a, § 6.7) ; implémentation à venir (#C8b à #C8e), rien de livré côté application |
+| #C8 2FA                            | Conception arrêtée (#C8a) ; politique et exigence effective calculées (#C8b), sans effet visible ; TOTP et application à venir (#C8c à #C8e), § 6.7 |
 | #C9 Cosmétique (invitations expirées) | Fait (=marquer_invitations_expirees=, à planifier)           |
 | #C10 Changement de mot de passe connecté | Fait (§ 6.5), hors feuille de route initiale          |
 | #C11 Adresse IP derrière un proxy  | Fait (§ 6.6), hors feuille de route initiale                   |
@@ -413,9 +413,12 @@ fictive par défaut.
 
 ** 6.7 Conception du 2FA hiérarchique (#C8a, 4 octobre 2026)
 
-État : décisions arrêtées avec Emmanuel, *aucune n'est encore implémentée*.
-Les variables d'environnement citées ci-dessous n'existent pas encore et ne
-figurent donc ni dans =DEPLOIEMENT.org= ni dans =.env.example=.
+État : décisions arrêtées avec Emmanuel. =#C8a= les consigne ; =#C8b= implémente
+la politique (variables du déployeur, politique de l'école, rangs, exigence
+effective), *sans qu'aucun second facteur ne soit encore demandé* : l'exigence
+est calculée, pas appliquée. Les variables du déployeur sont documentées dans
+=DEPLOIEMENT.org= et =.env.example= avec cette réserve. Le reste (délai de
+grâce, TOTP, codes de secours, réinitialisation, écrans) n'existe pas encore.
 
 *** Périmètre et échelle
 
@@ -511,12 +514,34 @@ l'intervention est celle du déployeur, par commande. Une réinitialisation
 n'annule jamais l'obligation : la personne se réinscrit à sa connexion
 suivante.
 
+*** Précisions de l'implémentation (#C8b)
+
+- Rang d'un compte dans une école : direction (responsabilité active), puis le
+  type d'affectation de classe le plus haut, sinon « sans fonction ». Il suit
+  l'accès réellement accordé : une affectation sur une classe encore en
+  préparation, ou une pré-attribution d'invitation, ne donne pas encore de rang.
+- Variables du déployeur : =CARNET_2FA_OBLIGATOIRE= et =CARNET_2FA_DESACTIVE_POUR=,
+  à valeurs nommées. Une valeur non reconnue ou incohérente empêche le
+  démarrage (=ImproperlyConfigured=), pour qu'une faute de frappe ne supprime
+  pas une obligation sans bruit ; absentes, elles ne changent rien.
+  =CARNET_MODE_LOCAL= impose l'indisponibilité.
+- Politique de l'école : =PolitiqueDoubleFacteurEcole= (une ligne par école,
+  contraintes en base sur les bornes et sur n < m), révision attendue,
+  journal =securite.double_facteur_ecole=, réservée à la direction active
+  (opération =ADMINISTRER_ECOLE=). L'enregistrement refuse une intention
+  contraire au déployeur (rendre obligatoire ce qu'il désactive, désactiver ce
+  qu'il impose) mais accepte une valeur moins stricte que lui, qui reste sans
+  effet : une valeur héritée n'est ainsi pas recopiée comme un choix propre.
+- Si le déployeur change ensuite ses curseurs, le niveau supérieur l'emporte :
+  la politique effective écarte la part incompatible de celle de l'école et le
+  signale par un avertissement, sans rien modifier en base.
+
 *** Sous-étapes
 
 | Étape | Contenu                                                                 |
 |-------+-------------------------------------------------------------------------|
-| #C8a  | Conception (ce paragraphe), sans code                                   |
-| #C8b  | Modèle de politique, exigence effective, tests, sans TOTP               |
+| #C8a  | Conception (ce paragraphe), sans code. Fait                             |
+| #C8b  | Modèle de politique, exigence effective, tests, sans TOTP. Fait         |
 | #C8c  | Inscription TOTP, vérification à la connexion, clé chiffrée, délai de grâce |
 | #C8d  | Codes de secours et réinitialisation hiérarchique                       |
 | #C8e  | Écrans de la direction, diagnostic, =.env.example=, =DEPLOIEMENT.org=     |

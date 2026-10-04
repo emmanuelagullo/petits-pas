@@ -3,6 +3,7 @@ import datetime
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.functional import cached_property
 
@@ -106,6 +107,33 @@ class ParametresCarnet(models.Model):
 
     def __str__(self):
         return f"Paramètres du carnet — {self.ecole}"
+
+
+class PolitiqueDoubleFacteurEcole(models.Model):
+    """Curseurs de 2FA posés par l'école, sous ceux du déployeur.
+
+    Les valeurs par défaut (0 et 6) n'ajoutent rien à la politique du
+    déployeur. Le résultat effectif se lit avec suivi.double_facteur.
+    """
+
+    ecole = models.OneToOneField(Ecole, on_delete=models.PROTECT, related_name="politique_double_facteur")
+    # Les rangs vont de 1 (direction) à 5 (personne sans fonction).
+    obligatoire_jusqu_au_rang = models.PositiveSmallIntegerField(default=0)
+    desactive_a_partir_du_rang = models.PositiveSmallIntegerField(default=6)
+    revision = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=Q(obligatoire_jusqu_au_rang__gte=0, obligatoire_jusqu_au_rang__lte=5),
+                name="double_facteur_ecole_obligatoire_entre_0_et_5"),
+            models.CheckConstraint(
+                condition=Q(desactive_a_partir_du_rang__gte=1, desactive_a_partir_du_rang__lte=6),
+                name="double_facteur_ecole_desactive_entre_1_et_6"),
+            models.CheckConstraint(
+                condition=Q(obligatoire_jusqu_au_rang__lt=models.F("desactive_a_partir_du_rang")),
+                name="double_facteur_ecole_obligatoire_avant_desactive"),
+        ]
 
 
 class Classe(models.Model):

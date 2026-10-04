@@ -115,6 +115,9 @@ démarrage ne constitue pas un contrôle des sauvegardes.
 - =CARNET_PROXYS_NB= : nombre de reverse-proxys de confiance devant
   l’application (0 par défaut) ; voir « Adresse IP des clients derrière un
   reverse-proxy » ;
+- =CARNET_2FA_OBLIGATOIRE= et =CARNET_2FA_DESACTIVE_POUR= : politique de 2FA du
+  déployeur, sans effet avant =#C8c= ; voir « Authentification à deux facteurs :
+  politique du déployeur » ;
 - =CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE= (=5/h= par défaut) et
   =CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE= (=10/h= par défaut) : plafonds
   des demandes de réinitialisation (par adresse IP) et des changements de mot
@@ -255,6 +258,30 @@ sur l’adresse directe.
    elle doit afficher cette adresse, et non celle d’un proxy ;
 3. refaire l’essai en ajoutant à la requête un en-tête =X-Forwarded-For=
    forgé : l’adresse forgée ne doit jamais apparaître dans le journal.
+
+* Authentification à deux facteurs : politique du déployeur
+
+*Pas encore appliquée.* Les deux variables ci-dessous sont lues et validées au
+démarrage, et la politique effective est calculée (=AUDIT-AUTHENTIFICATION-INVITATIONS.org=,
+§ 6.7), mais aucune vérification de second facteur n'existe encore : les régler
+ne change rien pour les utilisateurs avant la livraison de =#C8c=.
+
+Le déployeur est le niveau le plus haut de la hiérarchie : les écoles ne
+peuvent ni baisser une obligation qu'il pose, ni rouvrir ce qu'il désactive.
+
+- =CARNET_2FA_OBLIGATOIRE= : le 2FA sera exigé jusqu'à cette fonction incluse,
+  dans l'ordre =direction=, =responsable= (de classe), =associe= (enseignant
+  associé), =contributeur=, =sans_fonction= (alias =tous=). Absente ou =aucun= :
+  aucune obligation.
+- =CARNET_2FA_DESACTIVE_POUR= : le 2FA sera retiré à partir de cette fonction
+  et pour les suivantes. Absente ou =jamais= : jamais désactivé.
+- Entre les deux, il est optionnel. Une même fonction ne peut pas être à la
+  fois obligatoire et désactivée.
+- Une valeur non reconnue (par exemple une faute de frappe) *empêche le
+  démarrage* avec un message explicite : mieux vaut s'en apercevoir que de
+  perdre une obligation sans bruit. Absentes, les variables ne changent rien.
+- Avec =CARNET_MODE_LOCAL=oui=, la fonction est indisponible quelles que soient
+  ces variables.
 
 * Points d’attention pour un déploiement déjà en service
 
