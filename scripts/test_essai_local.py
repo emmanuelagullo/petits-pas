@@ -16,7 +16,7 @@ local = importlib.util.module_from_spec(spec); spec.loader.exec_module(local)
 class EssaiTests(unittest.TestCase):
     def test_chemin_essai_ignore_le_paquet_personnalise(self):
         with tempfile.TemporaryDirectory() as dossier:
-            root = Path(dossier); defaut = root / "application/paquet-autonome"
+            root = Path(dossier).resolve(); defaut = root / "application/paquet-autonome"
             habituel = root / "ecole-personnelle"
             self.assertEqual(local.choisir_paquet(habituel, defaut), habituel)
             self.assertEqual(local.choisir_paquet(habituel, defaut, True), root / "application/essai-fictif")
@@ -24,7 +24,7 @@ class EssaiTests(unittest.TestCase):
 
     def test_lien_symbolique_ou_chemin_identique_refuse(self):
         with tempfile.TemporaryDirectory() as dossier:
-            root = Path(dossier); defaut = root / "paquet-autonome"; essai = root / "essai-fictif"
+            root = Path(dossier).resolve(); defaut = root / "paquet-autonome"; essai = root / "essai-fictif"
             with self.assertRaises(ValueError): local.choisir_paquet(essai, defaut, True)
             try:
                 essai.symlink_to(defaut, target_is_directory=True)
@@ -34,7 +34,7 @@ class EssaiTests(unittest.TestCase):
 
     def test_zip_installe_seulement_dans_un_dossier_vierge(self):
         with tempfile.TemporaryDirectory() as dossier:
-            root = Path(dossier); paquet = root / "source"; paquet.mkdir(); (paquet / "media").mkdir()
+            root = Path(dossier).resolve(); paquet = root / "source"; paquet.mkdir(); (paquet / "media").mkdir()
             (paquet / "secret-key").write_text("cle-fictive")
             with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as db, db:
                 db.execute("CREATE TABLE django_migrations (app TEXT, name TEXT)")
