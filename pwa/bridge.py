@@ -66,7 +66,7 @@ def restore(snapshot):
         for name in archive.namelist():
             if name == "manifest.json":
                 continue
-            if name not in {"carnet.sqlite3", "secret-key"} and not name.startswith("media/"):
+            if name not in {"carnet.sqlite3", "secret-key", "suivi-sauvegarde.json"} and not name.startswith("media/"):
                 raise ValueError("Instantané local invalide")
             parts = Path(name).parts
             if name.startswith("/") or ".." in parts or "\\" in name:
@@ -79,7 +79,7 @@ def restore(snapshot):
 def restore_file(name, content):
     """Fichiers vérifiés par OPFS ; pas de migration dans le Worker de secours."""
     parts = Path(name).parts
-    if (name not in {"carnet.sqlite3", "secret-key"}
+    if (name not in {"carnet.sqlite3", "secret-key", "suivi-sauvegarde.json"}
             and not name.startswith("media/")) or name.startswith("/") or ".." in parts or "\\" in name:
         raise ValueError("Chemin local invalide")
     target = DATA / name
@@ -121,6 +121,9 @@ def inventory(force_scan=False):
             source.backup(target)
     files = {**MEDIA_INDEX, "carnet.sqlite3": describe(copy),
              "secret-key": describe(DATA / "secret-key")}
+    suivi = DATA / "suivi-sauvegarde.json"
+    if suivi.exists():
+        files[suivi.name] = describe(suivi)
     from suivi.paquet_local import FORMAT, VERSION
     # Même sérialisation et longueur de date que l'export public. Compter le
     # manifeste, y compris les noms Unicode échappés, dans la limite d'import.

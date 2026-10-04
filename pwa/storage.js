@@ -55,7 +55,7 @@ async function checked(dir, entry) {
   return bytes;
 }
 function validName(name) {
-  return (['carnet.sqlite3', 'secret-key'].includes(name) || name.startsWith('media/'))
+  return (['carnet.sqlite3', 'secret-key', 'suivi-sauvegarde.json'].includes(name) || name.startsWith('media/'))
     && !name.includes('\\') && name.split('/').every(part => part && !['.', '..'].includes(part));
 }
 async function manifest(dir, entry) {

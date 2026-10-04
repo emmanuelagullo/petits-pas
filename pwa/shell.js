@@ -1,14 +1,76 @@
 const BASE = new URL('./', import.meta.url).pathname;
 const status = document.querySelector('#status');
 const frame = document.querySelector('#app');
-let worker, registration, ready = false;
+let worker, registration, ready = false, installPrompt;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+function showNetwork() {
+  document.querySelector('#network').textContent = navigator.onLine ? 'Réseau disponible' : 'Hors ligne';
+}
+showNetwork();
+window.addEventListener('online', showNetwork);
+window.addEventListener('offline', showNetwork);
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault(); installPrompt = event;
+  document.querySelector('#install').hidden = standalone();
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null; document.querySelector('#install').hidden = true;
+  document.querySelector('#installation').textContent = 'Petits Pas est installé. Retrouvez-le depuis son icône.';
+});
+document.querySelector('#install').onclick = async () => {
+  if (!installPrompt) return;
+  try {
+    await installPrompt.prompt(); await installPrompt.userChoice;
+    installPrompt = null; document.querySelector('#install').hidden = true;
+  } catch {status.textContent = 'Installation indisponible. Utilisez le menu du navigateur ou cette page.';}
+};
+if (standalone()) document.querySelector('#installation').textContent = 'Petits Pas est ouvert depuis son icône.';
+document.querySelector('#retry').onclick = () => location.reload();
+document.querySelector('#rescue').onclick = () => document.querySelector('#recovery').click();
+document.querySelector('#backup').onclick = () => {if (ready) frame.src = BASE + 'app/gestion/sauvegardes-locales/';};
+async function showStorage() {
+  try {
+    const protectedStorage = await navigator.storage.persisted();
+    document.querySelector('#storage').textContent = protectedStorage
+      ? 'Protection contre l’effacement automatique accordée. Une sauvegarde externe reste nécessaire.'
+      : 'Protection contre l’effacement automatique non accordée. Gardez des sauvegardes hors de cet appareil.';
+  } catch {document.querySelector('#storage').textContent = 'Protection du stockage impossible à vérifier.';}
+}
+void showStorage();
+function controlled() {
+  if (navigator.serviceWorker.controller?.scriptURL === new URL('./sw.js', location.href).href) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => finish(new Error('Installation trop longue. Vérifiez la connexion puis réessayez.')), 120000);
+    function finish(error) {
+      clearTimeout(timer); navigator.serviceWorker.removeEventListener('controllerchange', check);
+      registration.removeEventListener('updatefound', watch);
+      error ? reject(error) : resolve();
+    }
+    function check() {
+      if (navigator.serviceWorker.controller?.scriptURL === new URL('./sw.js', location.href).href) finish();
+    }
+    function watch() {
+      const installing = registration.installing;
+      installing?.addEventListener('statechange', () => {
+        if (installing.state === 'redundant' && !registration.active) finish(new Error('Téléchargement incomplet. Vérifiez la connexion puis réessayez.'));
+        check();
+      });
+    }
+    navigator.serviceWorker.addEventListener('controllerchange', check);
+    registration.addEventListener('updatefound', watch); watch(); check();
+  });
+}
 function showVolume(durability) {
   if (!durability?.bytes) return;
   const mib = durability.bytes / 1024**2;
   document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 64 Mio (avant compression).`
     + (mib >= 52 ? ' Limite proche : téléchargez une sauvegarde et terminez cet essai.' : '');
 }
-function showUpdate() { document.querySelector('#update').hidden = !registration?.waiting; }
+function showUpdate() {
+  const available = !!(registration?.active && registration?.waiting);
+  document.querySelector('#update').hidden = !available;
+  if (available) document.querySelector('#tools').open = true;
+}
 function rpc(message) {
   return new Promise((resolve, reject) => {
     const channel = new MessageChannel();
@@ -20,7 +82,7 @@ function rpc(message) {
     worker.postMessage(message, [channel.port2, ...(message.request?.body?.buffer ? [message.request.body.buffer] : [])]);
   });
 }
-navigator.serviceWorker.addEventListener('message', async event => {
+navigator.serviceWorker?.addEventListener('message', async event => {
   if (event.source === navigator.serviceWorker.controller && event.data?.kind === 'owner') {
     event.ports[0]?.postMessage(!!worker); return;
   }
@@ -30,6 +92,7 @@ navigator.serviceWorker.addEventListener('message', async event => {
   try {
     const value = await rpc(event.data);
     showVolume(value.durability);
+    if (value.durability?.bytes >= 52 * 1024**2) document.querySelector('#tools').open = true;
     status.textContent = value.result.status >= 400
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
       : 'État enregistré sur cet appareil.';
@@ -40,8 +103,10 @@ navigator.serviceWorker.addEventListener('message', async event => {
   } finally { port.close(); }
 });
 document.querySelector('#persist').onclick = async () => {
-  const granted = await navigator.storage.persist();
-  status.textContent = granted ? 'Stockage protégé contre l’éviction automatique ; sauvegarde externe toujours nécessaire.' : 'Protection non accordée. Utilisez uniquement des données fictives.';
+  try {
+    await navigator.storage.persist(); await showStorage();
+    status.textContent = document.querySelector('#storage').textContent;
+  } catch {status.textContent = 'Protection impossible à demander. Conservez une sauvegarde hors de cet appareil.';}
 };
 document.querySelector('#check-update').onclick = async () => {
   try {
@@ -83,21 +148,26 @@ document.querySelector('#recovery').onclick = async event => {
 };
 
 try {
-  if (!navigator.locks || !navigator.storage.getDirectory) throw new Error('Navigateur incompatible : Web Locks et OPFS requis.');
+  if (!window.isSecureContext || !navigator.serviceWorker || !navigator.locks || !navigator.storage?.getDirectory) throw new Error('Navigateur incompatible : Web Locks et OPFS requis.');
   await navigator.locks.request('petits-pas-pwa-prototype' + (BASE === '/' ? '' : '-' + BASE), {ifAvailable: true}, async lock => {
     if (!lock) throw new Error('Petits Pas est déjà ouvert dans un autre onglet. Revenez à cet onglet.');
+    status.textContent = 'Téléchargement et vérification de l’application pour le mode hors ligne…';
     registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'});
     showUpdate();
     registration.addEventListener('updatefound', () => {
       registration.installing?.addEventListener('statechange', showUpdate);
     });
-    await navigator.serviceWorker.ready;
-    if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, {once: true}));
+    await controlled();
     worker = new Worker('./worker.js', {type: 'module'});
+    worker.addEventListener('message', event => {
+      if (event.data?.kind === 'progress') status.textContent = event.data.text;
+    });
     const initial = await rpc({kind: 'init'});
     ready = true;
     showVolume(initial.durability);
     const config = await (await fetch('./config.json')).json();
+    document.querySelector('#version').textContent = 'Version ' + config.version;
+    document.querySelector('#backup').disabled = false;
     if (config.testMode) {
       window.pwaTest = rpc;
       worker.addEventListener('message', event => {
@@ -111,5 +181,9 @@ try {
   });
 } catch (error) {
   worker?.terminate(); worker = null; ready = false; frame.hidden = true;
-  status.textContent = String(error.message);
+  status.textContent = String(error.message).includes('déjà ouvert') ? String(error.message) : 'Démarrage interrompu.';
+  document.querySelector('#failure').hidden = false;
+  document.querySelector('#tools').open = true;
+  document.querySelector('#diagnostic').textContent = String(error.message);
+  if (String(error.message).includes('incompatible')) document.querySelector('#failure-help').textContent = 'Ce navigateur ne fournit pas toutes les fonctions nécessaires. Essayez Chrome ou Edge récent. Le programme Windows ou Linux est une autre possibilité.';
 }

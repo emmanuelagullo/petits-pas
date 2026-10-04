@@ -328,6 +328,8 @@ def sauvegardes_locales(request):
             fichier = tempfile.TemporaryFile(dir=paquet.parent)
             try:
                 creer_sauvegarde(paquet, fichier)
+                from .paquet_local import noter_export
+                noter_export(paquet)
                 fichier.seek(0)
                 return FileResponse(
                     fichier, as_attachment=True,

@@ -27,12 +27,29 @@ transférer les données vers un autre appareil, utilisez une sauvegarde ZIP.
 Une école créée lors d'un essai local sur l'ordinateur doit également être
 transférée par un ZIP pour être retrouvée à cette nouvelle adresse.
 
+## Installer et retrouver Petits Pas
+
+Si **Installer Petits Pas** apparaît, il propose l’ajout d’une icône. Sinon,
+ouvrez **Installation, stockage et mises à jour** pour voir les instructions
+pour votre navigateur. Vous pouvez aussi continuer dans cet onglet.
+Le premier chargement affiche les étapes de préparation ; attendez que l’école
+s’ouvre. La version reste visible. Sur petit écran, les outils se replient pour
+laisser de la place à l’application. Une difficulté de démarrage propose
+**Réessayer** et la récupération, sans effacer les données.
+Les installations Windows, Android et iPad sont à observer au fil des essais.
+
 ## Sauvegarder et transférer
 
-Avec un compte de direction, ouvrez **Gérer l’école → Sauvegardes locales**,
+Avec un compte de direction, ouvrez **Sauvegardes / transfert** ou **Gérer l’école → Sauvegardes locales**,
 puis **Télécharger une sauvegarde**. Le ZIP contient l’école, les comptes,
 les carnets, les photos et la clé locale. Conservez-le dans un lieu protégé.
 Il peut être restauré dans le programme autonome avec une version compatible.
+
+La page indique le dernier ZIP préparé sur cet appareil. Un rappel apparaît
+pour la direction si aucun export n’a été enregistré ou après sept jours.
+Vérifiez le téléchargement et gardez une copie hors de l’appareil : cette date
+ne confirme pas que le fichier a été conservé. Après un transfert, continuez
+les saisies sur une seule copie : les appareils ne se synchronisent pas.
 
 Pour importer un ZIP issu du programme autonome, choisissez-le dans
 **Restaurer une sauvegarde**, puis cliquez sur **Vérifier la sauvegarde**.

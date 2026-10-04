@@ -37,10 +37,12 @@ const report = [];
 function pass(test, data = {}) { report.push({test, ...data}); console.log('OK', test, JSON.stringify(data)); }
 async function boot(page, url) {
   await page.goto(url);
-  await page.waitForFunction(() => !!window.pwaTest || /TypeError|PythonError|Error:/.test(document.querySelector('#status').textContent), null, {timeout: 120000});
+  await page.waitForFunction(() => !!window.pwaTest || !document.querySelector('#failure').hidden || /TypeError|PythonError|Error:/.test(document.querySelector('#status').textContent), null, {timeout: 120000});
   const status = await page.locator('#status').innerText();
+  assert(await page.locator('#failure').isHidden(), await page.locator('#diagnostic').innerText());
   assert(!/Error/.test(status), status);
   await page.frameLocator('#app').locator('h1').waitFor({timeout: 60000});
+  await page.locator('#tools').evaluate(node => {node.open = true;});
 }
 async function python(page, code, failpoint) {
   const value = await page.evaluate(args => window.pwaTest({kind: 'test-python', ...args}), {code, failpoint});
@@ -83,6 +85,34 @@ async function login(page) {
     pass('Portée du Service Worker limitée au sous-chemin, site Hugo accessible sans contrôle PWA');
   }
   pass('Django, migrations, pont SW/WSGI et installation', {coldMs: Math.round(performance.now() - started)});
+  const manifest = await page.evaluate(async () => (await fetch('./manifest.webmanifest')).json());
+  assert.equal(manifest.start_url, './'); assert.equal(manifest.scope, './');
+  assert.deepEqual(manifest.icons.map(icon => icon.sizes), ['192x192', '512x512']);
+  for (const icon of manifest.icons) assert.equal(await page.evaluate(async src => (await fetch(src)).status, icon.src), 200);
+  await page.evaluate(() => {
+    const event = new Event('beforeinstallprompt', {cancelable: true});
+    event.prompt = async () => {window.installRequested = true;};
+    event.userChoice = Promise.resolve({outcome: 'dismissed'});
+    window.dispatchEvent(event);
+  });
+  await page.getByRole('button', {name: 'Installer Petits Pas', exact: true}).click();
+  assert.equal(await page.evaluate(() => window.installRequested), true);
+  await page.setViewportSize({width: 390, height: 844});
+  await page.locator('#tools').evaluate(node => {node.open = false;});
+  assert((await page.locator('#app').boundingBox()).height > 400);
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.setViewportSize({width: 1280, height: 720});
+  await page.locator('#tools').evaluate(node => {node.open = true;});
+  assert.match(await page.locator('#version').innerText(), /pwa-prototype/);
+  pass('Manifeste et icônes PNG, installation proposée ou refusée, coque mobile sans débordement et version visible');
+  const unsupported = await browser.newContext();
+  await unsupported.addInitScript(() => Object.defineProperty(navigator, 'locks', {value: undefined}));
+  const refused = await unsupported.newPage(); await refused.goto(url);
+  await refused.getByRole('heading', {name: 'Petits Pas n’a pas pu démarrer'}).waitFor();
+  assert.match(await refused.locator('#failure-help').innerText(), /Chrome ou Edge/);
+  assert.equal(await refused.locator('#app').isHidden(), true);
+  await unsupported.close();
+  pass('Navigateur sans Web Locks refusé avec aide et sans lancer Django');
   let frame = page.frameLocator('#app');
   for (const [name, value] of Object.entries({ecole_nom: 'École fictive PWA', commune: 'Commune fictive', first_name: 'Nadia', last_name: 'Fictive', username: 'direction-fictive', password1: 'Test-fictif-PWA-2026!', password2: 'Test-fictif-PWA-2026!'})) {
     await frame.locator(`[name="${name}"]`).fill(value);
@@ -161,7 +191,8 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
     code:"from suivi.models import Ecole; Ecole.objects.update(commune='Commune fictive modifiée')"}));
   assert.equal(sqlOnly.durability.writtenFiles, 1, 'Une écriture SQL a recopié les médias');
   pass('Lecture du média sans écriture OPFS ; modification SQL sans recopie des médias');
-  await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+  await page.getByRole('button', {name: 'Sauvegardes / transfert'}).click();
+  await page.frameLocator('#app').getByRole('heading', {name: 'Sauvegardes locales', exact: true}).waitFor();
   const downloadReady = page.waitForEvent('download');
   await page.frameLocator('#app').getByRole('button', {name: 'Télécharger une sauvegarde', exact: true}).click();
   const download = await downloadReady;
@@ -169,6 +200,14 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
   const {execFileSync} = require('node:child_process');
   execFileSync('python3', ['-c', "import sys,zipfile,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); m=json.loads(z.read('manifest.json')); assert m['format']=='petits-pas-paquet'; assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items()); assert any(n.startswith('media/') for n in m['files'])", archivePath]);
   pass('Export ZIP commun au mode autonome, manifeste et photos vérifiés');
+  await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+  await frame.getByText(/Dernier ZIP préparé sur cet appareil/).waitFor();
+  await boot(page, url); await login(page);
+  await python(page, "from suivi.models import Ecole, Trace");
+  await page.getByRole('button', {name: 'Sauvegardes / transfert'}).click();
+  await frame.getByText(/Dernier ZIP préparé sur cet appareil/).waitFor();
+  assert.equal(await python(page, "from suivi.paquet_local import suivi_export; suivi_export(__import__('pathlib').Path('/data'))['rappel_sauvegarde_local']"), false);
+  pass('Date du ZIP préparé affichée, rappel commun levé sans prétendre confirmer son enregistrement');
   const transfer = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'petits-pas-transfert-'));
   execFileSync('python3', ['-c', `
 from pathlib import Path

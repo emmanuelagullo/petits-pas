@@ -22,6 +22,9 @@ from suivi.paquet_local import (
     confirmer_restauration,
     creer_sauvegarde,
     lire_resultat,
+    noter_export,
+    suivi_export,
+    SUIVI_SAUVEGARDE,
     preparer_restauration,
     preparation_en_attente,
     retenir_preparation,
@@ -36,6 +39,36 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_suivi_export_recent_ancien_absent_ou_altere(self):
+        from datetime import timedelta
+        with tempfile.TemporaryDirectory() as temp:
+            paquet = Path(temp)
+            self.assertTrue(suivi_export(paquet)["rappel_sauvegarde_local"])
+            noter_export(paquet)
+            recent = suivi_export(paquet)
+            self.assertFalse(recent["rappel_sauvegarde_local"])
+            self.assertTrue(suivi_export(paquet, recent["dernier_export_local"] + timedelta(days=8))["rappel_sauvegarde_local"])
+            for content in ['invalide', '{"prepare_le": null}', '{"prepare_le": "2099-01-01T00:00:00+00:00"}']:
+                (paquet / SUIVI_SAUVEGARDE).write_text(content)
+                self.assertIsNone(suivi_export(paquet)["dernier_export_local"])
+
+    def test_suivi_export_absent_du_zip_et_de_la_restauration(self):
+        with tempfile.TemporaryDirectory() as temp:
+            paquet = Path(temp) / 'paquet'
+            paquet.mkdir()
+            (paquet / 'media').mkdir()
+            (paquet / 'secret-key').write_text('cle-entierement-fictive')
+            with sqlite3.connect(paquet / 'carnet.sqlite3') as db:
+                db.execute('CREATE TABLE django_migrations (id INTEGER PRIMARY KEY, app TEXT, name TEXT, applied TEXT)')
+            noter_export(paquet)
+            output = BytesIO()
+            creer_sauvegarde(paquet, output)
+            with ZipFile(output) as archive:
+                self.assertNotIn(SUIVI_SAUVEGARDE, archive.namelist())
+            output.seek(0)
+            etape = preparer_restauration(output, Path(temp))
+            self.assertIsNone(suivi_export(etape.etape)["dernier_export_local"])
+
     def test_progression_windows_reste_visible_pendant_la_copie_et_la_migration(self):
         fermeture = Event()
         fenetre = MagicMock()

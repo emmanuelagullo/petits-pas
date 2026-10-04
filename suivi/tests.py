@@ -206,7 +206,7 @@ class SauvegardesLocalesAccesTests(TestCase):
 
     @override_settings(MODE_LOCAL=True)
     def test_export_reste_disponible_avant_confirmation(self):
-        with patch("suivi.views.preparation_en_attente", return_value=object()), patch(
+        with patch("suivi.paquet_local.noter_export"), patch("suivi.views.preparation_en_attente", return_value=object()), patch(
             "suivi.views.creer_sauvegarde",
             side_effect=lambda paquet, fichier: fichier.write(b"ZIP"),
         ):
@@ -221,6 +221,24 @@ class SauvegardesLocalesAccesTests(TestCase):
                 # connexion PostgreSQL pendant la transaction du TestCase.
                 if reponse.file_to_stream is not None:
                     reponse.file_to_stream.close()
+
+    @override_settings(MODE_LOCAL=True)
+    def test_direction_recoit_un_rappel_sans_export_local(self):
+        with patch("suivi.paquet_local.suivi_export", return_value={
+            "dernier_export_local": None, "rappel_sauvegarde_local": True,
+        }):
+            reponse = self.client.get(reverse("sauvegardes_locales"))
+            self.assertContains(reponse, "Pensez à télécharger une sauvegarde")
+            self.assertContains(reponse, "Aucun ZIP préparé")
+
+    @override_settings(MODE_LOCAL=True)
+    def test_echec_export_ne_note_pas_de_zip_prepare(self):
+        with patch("suivi.views.creer_sauvegarde", side_effect=ValueError("fictif")), patch(
+            "suivi.paquet_local.noter_export"
+        ) as noter:
+            with self.assertRaisesMessage(ValueError, "fictif"):
+                self.client.post(reverse("sauvegardes_locales"), {"action": "sauvegarder"})
+            noter.assert_not_called()
 
     def test_page_absente_en_mode_serveur(self):
         self.assertEqual(self.client.get(reverse("sauvegardes_locales")).status_code, 404)

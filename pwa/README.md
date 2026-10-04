@@ -1,4 +1,4 @@
-# #PWA1 à #PWA6 : prototype navigateur
+# #PWA1 à #PWA8 : prototype navigateur
 
 Expérience réservée aux **données fictives**. Aucun profil serveur ou programme
 autonome n'est remplacé. Le prototype propose l'import/export commun,
@@ -245,3 +245,34 @@ Ils exportent et réimportent aussi un ZIP de 550 photos par le parcours commun.
 Après restauration et confirmation OPFS/IndexedDB, la copie du paquet remplacé
 en mémoire est libérée ; le secours OPFS reste conservé. Les résultats et
 limites de la livraison sont consignés dans `QUALIFICATION.md`.
+
+## Installation et usage quotidien (#PWA7)
+
+La coque propose **Installer Petits Pas** lorsque le navigateur émet une offre
+d'installation ; si elle est absente, l'aide décrit le menu Chrome/Edge et
+Safari. Un refus n'empêche pas l'usage dans un onglet. Le manifeste garde le
+préfixe de publication, un identifiant relatif stable et des PNG 192/512 ; une
+icône Apple est déclarée. L'installation effective sur chaque OS reste à observer.
+Les étapes de préparation sont annoncées, sans pourcentage artificiel ; version,
+réseau indicatif, stockage protégé/non protégé et erreurs sont accessibles.
+Le délai d'installation est borné, son échec ne laisse plus une attente infinie.
+Une erreur propose de réessayer ou récupérer, sans effacer les données.
+
+## Suivi commun des exports (#PWA8)
+
+**Sauvegardes / transfert** ouvre le parcours commun, dont les droits de direction
+restent vérifiés par Django. Le programme autonome et la PWA affichent la date du
+**ZIP préparé**, pas celle d'un fichier effectivement conservé. Sans export ou
+après sept jours, la direction reçoit un rappel discret. Aucun rappel n'est
+ajouté au profil hébergé ni aux impressions.
+
+`suivi.paquet_local.noter_export/suivi_export` enregistrent et lisent
+`suivi-sauvegarde.json`, sans modèle ou migration SQL. Ce suivi est absent des
+ZIP publics ; une restauration remet donc le rappel. En PWA ce fichier rejoint
+le manifeste interne et son activation atomique après export ; ancien stockage
+et anciens ZIP sans suivi restent lisibles. Une date absente, altérée ou future
+est ignorée. Le secours ne marque pas un export de l'état actuel.
+
+La feuille [ESSAIS-APPAREILS.md](ESSAIS-APPAREILS.md) permet les retours #PWA9
+sans en faire une campagne bloquante. Le prompt du chantier Hugo et publications
+est dans [AUDIT-SITE-PUBLICATIONS.md](AUDIT-SITE-PUBLICATIONS.md).

@@ -1,3 +1,4 @@
+from pathlib import Path
 from django.conf import settings
 from django.utils import timezone
 from comptes.models import AffectationClasse
@@ -45,7 +46,12 @@ def session_ecole(request):
                 affectations_recentes.append(affectation)
             else:
                 affectations_passees.append(affectation)
+    sauvegarde = {}
+    if direction and settings.MODE_LOCAL:
+        from .paquet_local import suivi_export
+        sauvegarde = suivi_export(Path(settings.DATABASES["default"]["NAME"]).parent)
     return {
+        **sauvegarde,
         "ecole": ecole,
         "role": "direction" if direction else ("enseignant" if ecole else None),
         "est_direction": direction,
