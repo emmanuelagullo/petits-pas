@@ -9,6 +9,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Site public : #SP3b sépare les champs communs école/compte des champs du
+  démarrage local ; la commande d’initialisation hébergée n’exige plus l’année
+  scolaire et le référentiel propres au formulaire local.
 - Site public : #SP3a transmet le référent HTTPS du navigateur au Django local
   pour éviter les refus CSRF des actions HTMX ; les contrôles restent actifs et
   la CI couvre HTTPS. Le bouton de démonstration est rattaché à son mode en ligne.
