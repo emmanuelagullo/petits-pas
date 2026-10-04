@@ -12,8 +12,6 @@ ainsi que les scénarios documentaires jusqu’à #G8.
 Les statuts employés sont :
 
 - **disponible** : le parcours peut être accompli dans l’interface ;
-- **partiel** : une étape ou une variante importante reste à expliquer ou à
-  compléter ;
 - **interne** : la règle ou le service existe, sans parcours utilisateur ;
 - **absent** : aucune fonction correspondante n’est actuellement proposée.
 
@@ -206,13 +204,14 @@ Voir [ajouter ou reprendre une compétence]({{< relref "/guide/eleves-classes/aj
 
 Voir [relier deux compétences]({{< relref "/guide/eleves-classes/relier-competences" >}}).
 
-## Prototype dans le navigateur
+## Dans le navigateur
 
-Le [application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}}) propose
+L’[application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}}) propose
 l’export/import du ZIP autonome, la vérification avant confirmation, une
 impression PDF par le navigateur et des mises à jour avec état de récupération.
-Il reste **partiel**, réservé aux données fictives : limites de volume,
-mise en page groupée et fonctionnement à vérifier sur votre appareil. Les procédures du
+Le parcours est **disponible**, actuellement réservé aux données fictives.
+Ses limites sont indiquées dans la fiche : volume de données, impression groupée
+et fonctionnement à vérifier sur votre appareil. Les procédures du
 programme autonome et du mode hébergé restent leurs références respectives.
 
 ## Démarrage et conservation des données

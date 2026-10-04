@@ -7,7 +7,7 @@ publics = ["direction"]
 intentions = ["télécharger", "version", "Linux", "Windows", "logiciel autonome"]
 prerequis = "Disposer d’un ordinateur sous Ubuntu ou Windows ; utiliser des données fictives pour les essais."
 depart = "Versions publiées de Petits Pas sur GitHub"
-statut = "partiel"
+statut = "disponible"
 +++
 
 ## Choisir un téléchargement

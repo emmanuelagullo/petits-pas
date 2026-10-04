@@ -26,5 +26,4 @@ publics:
 
 statuts:
   disponible: Disponible
-  partiel: Partiellement disponible
   absent: Non disponible dans l’interface

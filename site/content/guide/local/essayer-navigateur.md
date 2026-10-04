@@ -1,5 +1,5 @@
 +++
-title = "Essayer le application dans le navigateur"
+title = "Essayer l’application dans le navigateur"
 description = "Ouvrir Petits Pas, conserver son école et préparer les impressions."
 fiche = true
 categorie = "local"
@@ -7,7 +7,7 @@ publics = ["direction"]
 intentions = ["PWA", "hors ligne", "navigateur", "transfert", "PDF"]
 prerequis = "Un navigateur compatible est nécessaire ; utilisez uniquement des données fictives pour les essais."
 depart = "Page d’accueil de Petits Pas dans le navigateur"
-statut = "partiel"
+statut = "disponible"
 +++
 
 Petits Pas conserve l’école dans le navigateur de cet appareil. Il peut

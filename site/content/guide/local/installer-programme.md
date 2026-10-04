@@ -7,7 +7,7 @@ publics = ["direction"]
 intentions = ["installer", "mettre à jour", "Ubuntu", "Windows", "revenir à une version"]
 prerequis = "Disposer d’un ordinateur compatible et d’une version de test adaptée à son système."
 depart = "Fichier d’installation téléchargé sur l’ordinateur"
-statut = "partiel"
+statut = "disponible"
 +++
 
 ## Sur Windows : installer et ouvrir
