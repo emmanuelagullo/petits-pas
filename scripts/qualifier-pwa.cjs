@@ -101,7 +101,12 @@ async function integrity(photos, name) {
   report.coldMs = await boot(); report.browser = browser.version();
   const frame = page.frameLocator('#app');
   for (const [name, text] of Object.entries({ecole_nom:'École fictive qualification', commune:'Commune fictive', first_name:'Nadia', last_name:'Fictive', username:'direction-fictive', password1:'Test-fictif-PWA-2026!', password2:'Test-fictif-PWA-2026!'})) await frame.locator(`[name="${name}"]`).fill(text);
-  await frame.getByRole('button', {name:'Créer l’école et mon compte'}).click();
+  // Garder le banc sur son école sans classe ; compatible avec les anciens bundles.
+  if (await frame.locator('[name="preparer_classe"]').count()) {
+    await frame.locator('[name="preparer_classe"]').uncheck();
+    await frame.locator('[name="annee_scolaire"]').fill('2026-2027');
+  }
+  await frame.getByRole('button', {name: /Créer (l’école et mon compte|et commencer)/}).click();
   await frame.getByRole('heading', {name:"Gérer l'école", exact:true}).waitFor();
   await rpc(`
 import io, random

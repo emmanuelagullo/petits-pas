@@ -5,14 +5,11 @@
 <h1>Créer une classe</h1>
 <form method="post" class="encadre" id="creer-classe">
   {% csrf_token %}
-  <label for="nom">Nom de la classe
-    <span class="aide">Celui que les collègues utilisent entre elles : « PS-MS de Nadia », « Les coccinelles ».</span>
-  </label>
-  <input type="text" id="nom" name="nom" value="{{ nom|default:'' }}" autofocus required>
-  <label for="annee_scolaire">Année scolaire
-    <span class="aide">Au format 2027-2028.</span>
-  </label>
-  <input type="text" id="annee_scolaire" name="annee_scolaire" value="{{ annee_scolaire|default:'' }}" pattern="[0-9]{4}-[0-9]{4}" placeholder="2027-2028" required>
+  {% for champ in formulaire %}
+  <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>{{ champ }}
+  {% if champ.help_text %}<p class="aide">{{ champ.help_text }}</p>{% endif %}
+  {{ champ.errors }}
+  {% endfor %}
   <div class="actions"><button class="bouton" type="submit">Créer et ajouter les enfants</button></div>
 </form>
 {% endblock %}

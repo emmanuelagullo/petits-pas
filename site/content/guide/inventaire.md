@@ -223,7 +223,8 @@ individuels dans les deux cas. ZIP et restauration sont communs aux usages locau
 l’impression navigateur produit un document groupé, tandis que le programme et
 le service peuvent générer un ZIP de PDF séparés.
 
-Le formulaire initial avec première classe, l’école fictive téléchargeable,
+Le formulaire initial avec première classe est livré dans le code actuel ; sa
+disponibilité dépend de la version effectivement publiée. L’école fictive téléchargeable,
 l’espace d’essai distinct et l’ouverture temporaire d’un ZIP avant restauration
 ne sont pas encore disponibles. Les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}})
 recueillent les retours sans constituer une campagne préalable obligatoire.

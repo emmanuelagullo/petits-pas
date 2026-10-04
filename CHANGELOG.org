@@ -9,6 +9,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Site public : #SP3 prépare école, compte, référentiel annuel et première classe
+  dans le même formulaire local. La première classe est proposée par défaut,
+  active et attribuée au compte responsable ; option école seule conservée.
+  Validations de classe, affectation et adoption réutilisées ; aucune migration.
+  Le navigateur et le programme partagent ce parcours, à publier séparément.
+
 - Répartition des observations par compétence dans la saisie pour toute
   la classe, avec comptage groupé des réussites et apprentissages en cours.
 - Illustrations facultatives des compétences et photo de couverture avec
