@@ -58,7 +58,7 @@ class PaquetLocalTests(unittest.TestCase):
             paquet.mkdir()
             (paquet / 'media').mkdir()
             (paquet / 'secret-key').write_text('cle-entierement-fictive')
-            with sqlite3.connect(paquet / 'carnet.sqlite3') as db:
+            with closing(sqlite3.connect(paquet / 'carnet.sqlite3')) as db, db:
                 db.execute('CREATE TABLE django_migrations (id INTEGER PRIMARY KEY, app TEXT, name TEXT, applied TEXT)')
             noter_export(paquet)
             output = BytesIO()

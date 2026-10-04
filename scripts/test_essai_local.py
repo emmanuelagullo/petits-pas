@@ -1,6 +1,7 @@
 """Isolation des essais et refus de remplacer un paquet existant."""
 import importlib.util
 from io import BytesIO
+from contextlib import closing
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -35,7 +36,7 @@ class EssaiTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as dossier:
             root = Path(dossier); paquet = root / "source"; paquet.mkdir(); (paquet / "media").mkdir()
             (paquet / "secret-key").write_text("cle-fictive")
-            with sqlite3.connect(paquet / "carnet.sqlite3") as db:
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as db, db:
                 db.execute("CREATE TABLE django_migrations (app TEXT, name TEXT)")
                 db.execute("CREATE TABLE preuve (nom TEXT)"); db.execute("INSERT INTO preuve VALUES ('fictif')")
             zip = BytesIO(); creer_sauvegarde(paquet, zip)
