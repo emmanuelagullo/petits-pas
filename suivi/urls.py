@@ -30,7 +30,9 @@ urlpatterns = [
     path("", views.accueil, name="accueil"),
     path("connexion/", views.connexion, name="connexion"),
     path("installation/", views.installation_locale, name="installation_locale"),
+    path("connexion/verification/", views.connexion_verification, name="connexion_verification"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
+    path("mon-compte/double-facteur/", views.double_facteur, name="double_facteur"),
     path("mon-compte/", views.mon_compte, name="mon_compte"),
     path(
         "mon-compte/mot-de-passe/",

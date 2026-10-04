@@ -96,3 +96,37 @@ def politique_deployeur_depuis_environnement(environnement, *, mode_local=False)
             f"{VARIABLE_OBLIGATOIRE} et {VARIABLE_DESACTIVE} sont incohérentes : {erreur}"
         ) from erreur
     return obligatoire, desactive
+
+
+DELAI_GRACE_PAR_DEFAUT = 14
+DELAI_GRACE_MAXIMAL = 90
+VARIABLE_DELAI_GRACE = "CARNET_2FA_DELAI_GRACE_JOURS"
+VARIABLE_CLE = "CARNET_2FA_CLE"
+
+
+def lire_delai_grace(environnement):
+    """Délai de grâce, en jours, avant blocage d'un compte devenu soumis à
+    l'obligation. 0 : application immédiate."""
+    brut = (environnement.get(VARIABLE_DELAI_GRACE) or "").strip()
+    if not brut:
+        return DELAI_GRACE_PAR_DEFAUT
+    try:
+        jours = int(brut)
+    except ValueError:
+        jours = -1
+    if not 0 <= jours <= DELAI_GRACE_MAXIMAL:
+        raise ImproperlyConfigured(
+            f"{VARIABLE_DELAI_GRACE}={brut!r} doit être un nombre entier de "
+            f"jours compris entre 0 et {DELAI_GRACE_MAXIMAL}."
+        )
+    return jours
+
+
+def lire_cles(environnement):
+    """Clés de chiffrement des secrets TOTP, séparées par des virgules.
+
+    La première chiffre, toutes déchiffrent : on peut ainsi faire tourner la
+    clé sans réinscrire personne. Une clé dédiée, jamais dérivée de
+    CARNET_SECRET_KEY dont la rotation casserait tous les comptes.
+    """
+    return [c.strip() for c in (environnement.get(VARIABLE_CLE) or "").split(",") if c.strip()]

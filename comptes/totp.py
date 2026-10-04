@@ -1,0 +1,157 @@
+"""TOTP (RFC 6238) : clé chiffrée en base, vérification sans rejeu, QR.
+
+django-otp ne sert qu'au calcul (django_otp.oath) : la clé étant chiffrée,
+son modèle de dispositif ne convient pas. Les importations de cryptography,
+qrcode et django_otp sont paresseuses : sans requirements-2fa.txt, ce module
+s'importe quand même et la fonction reste simplement indisponible.
+"""
+import base64
+import logging
+import secrets
+from io import BytesIO
+from urllib.parse import quote
+
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.utils import timezone
+
+from .models import DoubleFacteurCompte
+
+logger = logging.getLogger(__name__)
+
+PAS = 30
+CHIFFRES = 6
+# Plus ou moins un pas : absorbe une dérive d'horloge raisonnable.
+TOLERANCE = 1
+OCTETS_CLE = 20
+
+
+def _fernet():
+    from cryptography.fernet import Fernet, MultiFernet
+
+    return MultiFernet([Fernet(cle) for cle in settings.DOUBLE_FACTEUR_CLES])
+
+
+def chiffrer(cle):
+    return _fernet().encrypt(cle).decode()
+
+
+def dechiffrer(jeton):
+    return _fernet().decrypt(jeton.encode())
+
+
+def cle_en_base32(cle):
+    return base64.b32encode(cle).decode().rstrip("=")
+
+
+def uri_otpauth(utilisateur, cle):
+    emetteur = settings.DOUBLE_FACTEUR_EMETTEUR
+    libelle = quote(f"{emetteur}:{utilisateur.get_username()}")
+    return (
+        f"otpauth://totp/{libelle}?secret={cle_en_base32(cle)}"
+        f"&issuer={quote(emetteur)}&algorithm=SHA1&digits={CHIFFRES}&period={PAS}"
+    )
+
+
+def qr_svg(uri):
+    """QR code en SVG, sans Pillow ; la déclaration XML est retirée pour
+    pouvoir l'inclure directement dans une page HTML."""
+    import qrcode
+    import qrcode.image.svg
+
+    image = qrcode.make(uri, image_factory=qrcode.image.svg.SvgPathImage, box_size=10)
+    sortie = BytesIO()
+    image.save(sortie)
+    svg = sortie.getvalue().decode()
+    return svg[svg.index("<svg"):]
+
+
+def _normaliser(code):
+    chiffres = "".join(str(code).split())
+    if len(chiffres) != CHIFFRES or not chiffres.isascii() or not chiffres.isdigit():
+        return None
+    return int(chiffres)
+
+
+def _verifier_verrouille(compte, code, instant):
+    """Vérifie un code sur une ligne déjà verrouillée ; refuse un pas déjà utilisé."""
+    from cryptography.fernet import InvalidToken
+    from django_otp.oath import TOTP
+
+    jeton = _normaliser(code)
+    if jeton is None or not compte.cle_chiffree:
+        return False
+    try:
+        cle = dechiffrer(compte.cle_chiffree)
+    except InvalidToken:
+        logger.error(
+            "Clé 2FA illisible pour le compte %s : la clé de chiffrement a-t-elle changé ?",
+            compte.utilisateur_id,
+        )
+        return False
+    totp = TOTP(cle, step=PAS, digits=CHIFFRES)
+    if instant is not None:
+        totp.time = instant
+    if not totp.verify(jeton, tolerance=TOLERANCE, min_t=compte.dernier_pas + 1):
+        return False
+    compte.dernier_pas = totp.t()
+    return True
+
+
+def est_inscrit(utilisateur):
+    return DoubleFacteurCompte.objects.filter(
+        utilisateur=utilisateur, confirme_le__isnull=False
+    ).exclude(cle_chiffree="").exists()
+
+
+def commencer_inscription(utilisateur):
+    """Génère (ou reprend) la clé d'une inscription non confirmée.
+
+    Une même clé est reprise tant qu'elle n'est pas confirmée : recharger la
+    page ne change pas le code à scanner.
+    """
+    with transaction.atomic():
+        DoubleFacteurCompte.objects.get_or_create(utilisateur=utilisateur)
+        compte = DoubleFacteurCompte.objects.select_for_update().get(utilisateur=utilisateur)
+        if compte.inscrit:
+            raise ValidationError("Le second facteur est déjà configuré pour ce compte.")
+        if not compte.cle_chiffree:
+            compte.cle_chiffree = chiffrer(secrets.token_bytes(OCTETS_CLE))
+            compte.save(update_fields=["cle_chiffree"])
+    return compte
+
+
+def cle_en_cours(compte):
+    """Clé d'une inscription non confirmée, pour l'afficher une seule fois."""
+    if compte.inscrit:
+        raise ValidationError("La clé d'un compte déjà inscrit ne s'affiche plus.")
+    return dechiffrer(compte.cle_chiffree)
+
+
+def verifier_code(utilisateur, code, *, instant=None):
+    """Vérifie un code d'un compte inscrit ; chaque pas ne sert qu'une fois."""
+    with transaction.atomic():
+        compte = DoubleFacteurCompte.objects.select_for_update().filter(
+            utilisateur=utilisateur, confirme_le__isnull=False).first()
+        if compte is None or not _verifier_verrouille(compte, code, instant):
+            return False
+        compte.save(update_fields=["dernier_pas"])
+        return True
+
+
+def confirmer_inscription(utilisateur, code, *, instant=None):
+    """Confirme l'inscription par un premier code valide ; retire l'échéance."""
+    with transaction.atomic():
+        compte = DoubleFacteurCompte.objects.select_for_update().filter(
+            utilisateur=utilisateur, confirme_le__isnull=True).exclude(cle_chiffree="").first()
+        if compte is None or not _verifier_verrouille(compte, code, instant):
+            return False
+        compte.confirme_le = timezone.now()
+        compte.echeance_le = None
+        compte.save(update_fields=["dernier_pas", "confirme_le", "echeance_le"])
+        return True
+
+
+def retirer(utilisateur):
+    DoubleFacteurCompte.objects.filter(utilisateur=utilisateur).delete()

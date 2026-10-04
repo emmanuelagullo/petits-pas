@@ -13,6 +13,11 @@
 <h2>Mot de passe</h2>
 <p><a href="{% url 'changer_mot_de_passe' %}">Changer mon mot de passe</a></p>
 
+{% if double_facteur_propose %}
+<h2>Authentification à deux facteurs</h2>
+<p>{% if double_facteur_inscrit %}Un second facteur est configuré sur votre compte.{% else %}Un code temporaire, généré par une application sur votre téléphone, s'ajoute à votre mot de passe.{% endif %} <a href="{% url 'double_facteur' %}">{% if double_facteur_inscrit %}Gérer{% else %}Configurer{% endif %}</a></p>
+{% endif %}
+
 <h2>Mes affectations</h2>
 {% if affectations %}
 <ul class="liste">

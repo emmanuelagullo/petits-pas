@@ -2,6 +2,7 @@ from functools import wraps
 from io import StringIO
 import tempfile
 import logging
+import time
 import mimetypes
 from pathlib import Path
 import re
@@ -22,6 +23,7 @@ from django.contrib.auth import views as auth_views
 from django.contrib.messages.views import SuccessMessageMixin
 from django_ratelimit.core import is_ratelimited
 from carnet.reseau import adresse_client, cle_ip
+from comptes import totp
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -54,6 +56,11 @@ from comptes.models import (
 )
 from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
 
+from .acces_double_facteur import (
+    DELAI_ATTENTE_SECONDES, SESSION_ATTENTE, SESSION_VERIFIE,
+    verification_requise_a_la_connexion,
+)
+from .double_facteur import Exigence, exigence_double_facteur
 from .autorisations import (
     ACCEDER_APPLICATION,
     ADMINISTRER_ECOLE,
@@ -216,6 +223,32 @@ def _tracer_echec_connexion(request, nom_utilisateur):
     )
 
 
+def _suite_connexion(request, utilisateur, nom_utilisateur):
+    """Après une connexion réussie (second facteur compris) : choix de la page
+    d'arrivée, ou refus si le compte n'a encore aucune fonction."""
+    ecole = ecole_courante(request)
+    if ecole and autorise(utilisateur, ACCEDER_APPLICATION, ecole=ecole):
+        if (settings.MODE_LOCAL and est_direction(utilisateur, ecole)
+                and lire_resultat(Path(settings.DATABASES["default"]["NAME"]).parent)):
+            request.session.pop("suivant", None)
+            return redirect("sauvegardes_locales")
+        return redirect(request.session.pop("suivant", None) or "accueil")
+    membre_sans_fonction = appartenances_actives(utilisateur).exists()
+    logout(request)
+    if membre_sans_fonction:
+        messages.warning(
+            request,
+            "Votre compte existe, mais aucune fonction ne vous a "
+            "encore été attribuée dans une classe. Contactez la "
+            "direction de votre école.",
+        )
+    else:
+        messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+    return render(
+        request, "suivi/connexion.html", {"nom_utilisateur": nom_utilisateur}
+    )
+
+
 def connexion(request):
     if settings.MODE_LOCAL and not Ecole.objects.exists() and not Utilisateur.objects.exists():
         return redirect("installation_locale")
@@ -229,36 +262,123 @@ def connexion(request):
             password=request.POST.get("mot_de_passe", ""),
         )
         if utilisateur:
+            if verification_requise_a_la_connexion(utilisateur):
+                # Aucune session n'est ouverte avant le second facteur.
+                request.session[SESSION_ATTENTE] = {
+                    "pk": utilisateur.pk,
+                    "backend": utilisateur.backend,
+                    "jusqua": time.time() + DELAI_ATTENTE_SECONDES,
+                }
+                return redirect("connexion_verification")
             login(request, utilisateur)
-            ecole = ecole_courante(request)
-            if ecole and autorise(
-                utilisateur, ACCEDER_APPLICATION, ecole=ecole
-            ):
-                if (settings.MODE_LOCAL and est_direction(utilisateur, ecole)
-                        and lire_resultat(Path(settings.DATABASES["default"]["NAME"]).parent)):
-                    request.session.pop("suivant", None)
-                    return redirect("sauvegardes_locales")
-                return redirect(request.session.pop("suivant", None) or "accueil")
-            membre_sans_fonction = appartenances_actives(utilisateur).exists()
-            logout(request)
-            if membre_sans_fonction:
-                messages.warning(
-                    request,
-                    "Votre compte existe, mais aucune fonction ne vous a "
-                    "encore été attribuée dans une classe. Contactez la "
-                    "direction de votre école.",
-                )
-            else:
-                messages.error(
-                    request, "Nom d'utilisateur ou mot de passe incorrect."
-                )
-        else:
-            _tracer_echec_connexion(request, nom_utilisateur)
-            messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
+            return _suite_connexion(request, utilisateur, nom_utilisateur)
+        _tracer_echec_connexion(request, nom_utilisateur)
+        messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
         return render(
             request, "suivi/connexion.html", {"nom_utilisateur": nom_utilisateur}
         )
+    request.session.pop(SESSION_ATTENTE, None)
     return render(request, "suivi/connexion.html")
+
+
+def _compte_en_attente(request):
+    attente = request.session.get(SESSION_ATTENTE)
+    if not attente or attente.get("jusqua", 0) < time.time():
+        request.session.pop(SESSION_ATTENTE, None)
+        return None, None
+    utilisateur = Utilisateur.objects.filter(pk=attente["pk"], is_active=True).first()
+    return utilisateur, attente
+
+
+def _cle_compte_double_facteur(groupe, request):
+    return f"compte-{request.session[SESSION_ATTENTE]['pk']}"
+
+
+def _trop_de_tentatives_double_facteur(request):
+    """Plafonne les saisies de code, par compte puis par adresse : elles ne
+    passent pas par authenticate(), donc django-axes ne les voit pas."""
+    return is_ratelimited(
+        request, group="double_facteur_compte", key=_cle_compte_double_facteur,
+        rate=settings.RATELIMIT_DOUBLE_FACTEUR, method="POST", increment=True,
+    ) | is_ratelimited(
+        request, group="double_facteur_ip", key=cle_ip,
+        rate=settings.RATELIMIT_DOUBLE_FACTEUR_IP, method="POST", increment=True,
+    )
+
+
+@never_cache
+def connexion_verification(request):
+    utilisateur, attente = _compte_en_attente(request)
+    if utilisateur is None:
+        return redirect("connexion")
+    if request.method == "POST":
+        if _trop_de_tentatives_double_facteur(request):
+            request.session.pop(SESSION_ATTENTE, None)
+            return render(request, "suivi/connexion_verification.html",
+                          {"trop_de_tentatives": True}, status=429)
+        if totp.verifier_code(utilisateur, request.POST.get("code", "")):
+            request.session.pop(SESSION_ATTENTE, None)
+            login(request, utilisateur, backend=attente["backend"])
+            request.session[SESSION_VERIFIE] = True
+            return _suite_connexion(request, utilisateur, utilisateur.get_username())
+        logger.warning(
+            "Échec du second facteur pour le compte %s depuis %s",
+            utilisateur.pk, adresse_client(request) or "?",
+        )
+        messages.error(request, "Code incorrect ou expiré.")
+    return render(request, "suivi/connexion_verification.html")
+
+
+@never_cache
+@acces_requis
+def double_facteur(request):
+    """Inscription au second facteur, état et retrait volontaire."""
+    if not settings.DOUBLE_FACTEUR_DISPONIBLE:
+        raise Http404
+    exigence = exigence_double_facteur(request.user)
+    inscrit = totp.est_inscrit(request.user)
+    if exigence == Exigence.DESACTIVEE and not inscrit:
+        raise Http404
+    contexte = {"inscrit": inscrit, "obligatoire": exigence == Exigence.OBLIGATOIRE}
+    if request.method == "POST":
+        if _trop_de_tentatives_double_facteur_connecte(request):
+            return render(request, "suivi/double_facteur.html",
+                          {**contexte, "trop_de_tentatives": True}, status=429)
+        code = request.POST.get("code", "")
+        if inscrit and request.POST.get("action") == "retirer":
+            if exigence == Exigence.OBLIGATOIRE:
+                messages.error(request, "Le second facteur est obligatoire pour votre fonction.")
+            elif totp.verifier_code(request.user, code):
+                totp.retirer(request.user)
+                request.session.pop(SESSION_VERIFIE, None)
+                messages.success(request, "Le second facteur a été retiré.")
+                return redirect("mon_compte")
+            else:
+                messages.error(request, "Code incorrect ou expiré.")
+        elif not inscrit:
+            if totp.confirmer_inscription(request.user, code):
+                request.session[SESSION_VERIFIE] = True
+                messages.success(request, "Le second facteur est configuré.")
+                return redirect("mon_compte")
+            messages.error(request, "Code incorrect ou expiré. Vérifiez l'heure de votre téléphone.")
+    if not inscrit:
+        compte = totp.commencer_inscription(request.user)
+        cle = totp.cle_en_cours(compte)
+        contexte.update({
+            "qr_svg": totp.qr_svg(totp.uri_otpauth(request.user, cle)),
+            "cle_saisie": " ".join(totp.cle_en_base32(cle)[i:i + 4] for i in range(0, 32, 4)),
+        })
+    return render(request, "suivi/double_facteur.html", contexte)
+
+
+def _trop_de_tentatives_double_facteur_connecte(request):
+    return is_ratelimited(
+        request, group="double_facteur_compte", key=lambda g, r: f"compte-{r.user.pk}",
+        rate=settings.RATELIMIT_DOUBLE_FACTEUR, method="POST", increment=True,
+    ) | is_ratelimited(
+        request, group="double_facteur_ip", key=cle_ip,
+        rate=settings.RATELIMIT_DOUBLE_FACTEUR_IP, method="POST", increment=True,
+    )
 
 
 @never_cache
@@ -456,10 +576,18 @@ def mon_compte(request):
         .select_related("classe", "classe__ecole")
         .order_by("-classe__annee_scolaire", "classe__ecole__nom", "classe__nom")
     )
+    double_facteur_propose = False
+    if settings.DOUBLE_FACTEUR_DISPONIBLE:
+        double_facteur_propose = (
+            totp.est_inscrit(request.user)
+            or exigence_double_facteur(request.user) != Exigence.DESACTIVEE
+        )
     return render(
         request,
         "suivi/mon_compte.html",
-        {"formulaire": formulaire, "affectations": affectations},
+        {"formulaire": formulaire, "affectations": affectations,
+         "double_facteur_propose": double_facteur_propose,
+         "double_facteur_inscrit": double_facteur_propose and totp.est_inscrit(request.user)},
     )
 
 

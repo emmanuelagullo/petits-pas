@@ -272,10 +272,10 @@ documentation de déploiement.
 - Cache partagé pour les compteurs de limitation de fréquence : non
   configurable aujourd'hui (§ 6.4), à traiter seulement si un hébergeur
   impose plusieurs workers.
-- 2FA (§ 6.7) : compatibilité de =django-otp= avec la version de Django
-  verrouillée, et manière de chiffrer la clé du dispositif, à vérifier avant
-  =#C8c=. Sort de la clé d'une personne dont la fonction devient désactivée
-  (conservée inactive ou supprimée), à fixer à l'implémentation.
+- 2FA (§ 6.7) : sans =#C8d=, une personne qui perd son téléphone n'a aucun
+  recours hors intervention sur la base : ne pas rendre le 2FA obligatoire en
+  production avant. Sort de la clé d'une personne dont la fonction devient
+  désactivée : elle est conservée, inactive (le code n'est plus demandé).
 
 * 6. Bilan (28-29 septembre 2026)
 
@@ -290,7 +290,7 @@ documentation de déploiement.
 | #C5 UX mot de passe                | Fait                                                            |
 | #C6 Anti-bruteforce et audit       | Fait (=django-axes=, seuils par déploiement, inactif en =MODE_LOCAL=) |
 | #C7 Bascule vers =LoginView=       | Abandonné, documenté au Jalon 6 ; remplacé par la conservation de l'identifiant après échec |
-| #C8 2FA                            | Conception arrêtée (#C8a) ; politique et exigence effective calculées (#C8b), sans effet visible ; TOTP et application à venir (#C8c à #C8e), § 6.7 |
+| #C8 2FA                            | Conception arrêtée (#C8a) ; politique et exigence effective (#C8b) ; TOTP, second facteur à la connexion, échéance d'inscription (#C8c, facultatif et absent par défaut) ; codes de secours, réinitialisation et écrans de la direction à venir (#C8d, #C8e), § 6.7 |
 | #C9 Cosmétique (invitations expirées) | Fait (=marquer_invitations_expirees=, à planifier)           |
 | #C10 Changement de mot de passe connecté | Fait (§ 6.5), hors feuille de route initiale          |
 | #C11 Adresse IP derrière un proxy  | Fait (§ 6.6), hors feuille de route initiale                   |
@@ -415,10 +415,9 @@ fictive par défaut.
 
 État : décisions arrêtées avec Emmanuel. =#C8a= les consigne ; =#C8b= implémente
 la politique (variables du déployeur, politique de l'école, rangs, exigence
-effective), *sans qu'aucun second facteur ne soit encore demandé* : l'exigence
-est calculée, pas appliquée. Les variables du déployeur sont documentées dans
-=DEPLOIEMENT.org= et =.env.example= avec cette réserve. Le reste (délai de
-grâce, TOTP, codes de secours, réinitialisation, écrans) n'existe pas encore.
+effective) ; =#C8c= l'applique : second facteur TOTP à la connexion, échéance
+d'inscription, inscription et retrait volontaire. Les codes de secours, la
+réinitialisation et les écrans de la direction n'existent pas encore.
 
 *** Périmètre et échelle
 
@@ -536,12 +535,38 @@ suivante.
   la politique effective écarte la part incompatible de celle de l'école et le
   signale par un avertissement, sans rien modifier en base.
 
+*** Précisions de l'implémentation (#C8c)
+
+- Fonction facultative : elle n'existe que si =requirements-2fa.txt= est
+  installé, =CARNET_2FA_CLE= renseignée et hors =CARNET_MODE_LOCAL=. Sinon la
+  politique du déployeur est neutre (désactivée pour tous) et rien ne change.
+  Demander le 2FA sans ses dépendances, ou l'obligation sans clé, empêche le
+  démarrage ; une obligation posée par une école est refusée si la fonction est
+  indisponible.
+- =django-otp= ne sert qu'au calcul des codes (=django_otp.oath=), sans ses
+  modèles ni son middleware : la clé étant chiffrée, son modèle de dispositif ne
+  convient pas. Le stockage est propre à l'application (=DoubleFacteurCompte=,
+  clé chiffrée avec Fernet, dernier pas accepté, échéance).
+- Un compte inscrit n'obtient *aucune session* avant son second facteur : la
+  connexion s'arrête avant =login()= (attente de 5 minutes en session), et un
+  middleware ferme toute session née sans second facteur. Une fonction
+  désactivée ne demande plus de code.
+- Saisies de code plafonnées par compte et par adresse (=django-ratelimit=,
+  adresse =carnet.reseau.adresse_client=), comme l'ancien mot de passe en
+  =#C10= ; =django-axes= ne les voit pas.
+- Échéance : posée au premier constat de l'obligation (délai de grâce du
+  déployeur), effacée si l'obligation cesse, immédiate pour un compte créé par
+  invitation. Passée l'échéance, un compte non inscrit ne peut plus que
+  configurer son second facteur ou se déconnecter.
+- L'exigence est recalculée au plus toutes les 60 secondes par session : un
+  changement de politique peut mettre jusqu'à une minute à s'appliquer.
+
 *** Sous-étapes
 
 | Étape | Contenu                                                                 |
 |-------+-------------------------------------------------------------------------|
 | #C8a  | Conception (ce paragraphe), sans code. Fait                             |
 | #C8b  | Modèle de politique, exigence effective, tests, sans TOTP. Fait         |
-| #C8c  | Inscription TOTP, vérification à la connexion, clé chiffrée, délai de grâce |
+| #C8c  | Inscription TOTP, vérification à la connexion, clé chiffrée, délai de grâce. Fait |
 | #C8d  | Codes de secours et réinitialisation hiérarchique                       |
 | #C8e  | Écrans de la direction, diagnostic, =.env.example=, =DEPLOIEMENT.org=     |

@@ -353,3 +353,28 @@ class AnomalieGouvernance(models.Model):
 
     class Meta:
         ordering = ["-ouverte_le"]
+
+
+class DoubleFacteurCompte(models.Model):
+    """État 2FA d'un compte : clé TOTP chiffrée et échéance d'inscription.
+
+    La ligne existe dès qu'une inscription commence (clé générée, pas encore
+    confirmée) ou qu'une échéance d'obligation est posée. Le compte n'est
+    protégé qu'une fois la clé confirmée par un premier code valide.
+    """
+
+    utilisateur = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="double_facteur"
+    )
+    # Clé secrète chiffrée (Fernet) ; jamais en clair en base.
+    cle_chiffree = models.TextField(blank=True)
+    confirme_le = models.DateTimeField(null=True, blank=True)
+    # Dernier pas de 30 s accepté : un code déjà utilisé ne peut pas être rejoué.
+    dernier_pas = models.BigIntegerField(default=0)
+    # Au-delà, un compte soumis à l'obligation et non inscrit est bloqué.
+    echeance_le = models.DateTimeField(null=True, blank=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def inscrit(self):
+        return bool(self.cle_chiffree) and self.confirme_le is not None

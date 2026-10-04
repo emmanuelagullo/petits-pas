@@ -1,4 +1,5 @@
 """Politique de 2FA de l'école : lecture et enregistrement par la direction."""
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 
@@ -45,6 +46,8 @@ def enregistrer_politique_ecole(*, utilisateur, ecole, obligatoire_jusqu_au_rang
                                 desactive_a_partir_du_rang, revision_attendue):
     if not autorise(utilisateur, ADMINISTRER_ECOLE, ecole):
         raise PermissionDenied
+    if not settings.DOUBLE_FACTEUR_DISPONIBLE:
+        raise ValidationError("L'authentification à deux facteurs n'est pas disponible sur ce déploiement.")
     if type(revision_attendue) is not int or revision_attendue < 0:
         raise ValidationError("La révision attendue doit être un entier positif ou nul.")
     try:
