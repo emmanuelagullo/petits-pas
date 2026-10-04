@@ -7,109 +7,135 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+* 0.8 — 2026-10-05
+
+Cette version rassemble les changements depuis 0.7. Sa publication reste
+manuelle : les fichiers disponibles sur GitHub et la version affichée dans
+l’application du navigateur font foi.
+
 ** Added
 
-- Les publications PWA et programmes relient désormais version, commit,
-  construction et empreintes des fichiers. Les notes de ce journal sont
-  reprises dans la release GitHub et dans l’aide du navigateur. La publication
-  reste manuelle ; un tag ne publie rien automatiquement.
-- La PWA peut être publiée depuis main ou un tag commun aux deux forges,
-  après réussite des parcours et de la qualification CI. Le bundle distribué
-  est aussi ouvert et rouvert hors ligne sans les outils de test.
-- La publication des programmes en CLI vise GitHub uniquement et vérifie
-  les artefacts exacts et le contenu du brouillon avant publication.
-
-
-- Site public : #SP5 ouvre un ZIP compatible dans une copie de vérification
-  distincte, avec ses comptes et une nouvelle connexion. Retour sans restauration,
-  export puis restauration confirmée pour adopter la copie ; fiche pratique ajoutée.
-- Site public : #SP3b sépare les champs communs école/compte des champs du
-  démarrage local ; la commande d’initialisation hébergée n’exige plus l’année
-  scolaire et le référentiel propres au formulaire local.
-- Site public : #SP3a transmet le référent HTTPS du navigateur au Django local
-  pour éviter les refus CSRF des actions HTMX ; les contrôles restent actifs et
-  la CI couvre HTTPS. Le bouton de démonstration est rattaché à son mode en ligne.
-- Site public : #SP4 génère un ZIP public de l’école fictive commune et sépare
-  les essais des données habituelles. Navigateur : stockage et récupération
-  distincts ; programme : dossier dédié et redémarrage entre les espaces.
-  Les essais sont conservés, sans restauration du paquet habituel au retour.
-  Les publications précédentes restent inchangées jusqu’à une nouvelle livraison.
-
-- Site public : #SP3 prépare école, compte, référentiel annuel et première classe
-  dans le même formulaire local. La première classe est proposée par défaut,
-  active et attribuée au compte responsable ; option école seule conservée.
-  Validations de classe, affectation et adoption réutilisées ; aucune migration.
-  Le navigateur et le programme partagent ce parcours, à publier séparément.
-
-- Répartition des observations par compétence dans la saisie pour toute
-  la classe, avec comptage groupé des réussites et apprentissages en cours.
-- Illustrations facultatives des compétences et photo de couverture avec
-  héritage référentiel, école et classe ; formulations proposées adaptées
-  ou masquées par élément, avec conservation de leur provenance.
-- Traces communes d'une classe avec sélection explicite des élèves,
-  personnalisation individuelle sans duplication initiale de la photo,
-  aperçu des commentaires et retour vers la fiche d'origine.
-- Changement de mot de passe en libre-service pour un compte connecté,
-  depuis « Mon compte » : ancien mot de passe exigé, tentatives plafonnées
-  par compte (=CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE=), autres sessions
-  invalidées.
-- Variable =CARNET_PROXYS_NB= : adresse IP du client lue derrière N
-  reverse-proxys de confiance, pour le blocage après échecs de connexion, le
-  plafond du mot de passe oublié et les journaux (0 par défaut, comportement
-  inchangé). Procédure de vérification et prérequis pour un hébergeur ou une
-  DSI dans =DEPLOIEMENT.org=.
-- Le diagnostic de déploiement avertit, sans jamais échouer, d'une adresse IP
-  non résolue derrière un proxy et d'un expéditeur de courriel fictif.
+- Utilisation dans le navigateur, après un premier téléchargement, avec
+  données conservées sur cet appareil et fonctionnement hors ligne. ZIP de
+  sauvegarde commun avec le programme téléchargé, impression par le navigateur,
+  mises à jour et accès aux copies de récupération. La publication navigateur
+  reste réservée aux données fictives.
+- Premier démarrage local : préparer l’école, le compte personnel, le
+  référentiel et la première classe dans un même formulaire. La classe est
+  proposée par défaut et attribuée au compte créé ; l’option école seule reste
+  disponible. Le même parcours sert au navigateur et au programme.
+- Une école fictive commune pour les essais en ligne, dans le navigateur et
+  avec le programme. Les essais sur cet appareil ont leur propre espace,
+  conservé entre les utilisations, distinct de l’école habituelle.
+- Ouverture d’un ZIP compatible dans une copie séparée pour le vérifier avant
+  restauration. Nouvelle connexion avec les comptes de cette copie ; retour
+  à l’école habituelle sans la remplacer, ou export de la copie vérifiée.
+- Version affichée, aide au démarrage, accès aux sauvegardes et rappel après
+  sept jours sans ZIP préparé dans les modes locaux. La date d’un ZIP préparé
+  ne prouve pas qu’une copie a été gardée hors de l’appareil.
+- Référentiels versionnés et choix annuels pour l’école et la classe :
+  consultation des sources, adaptation des libellés, compétences masquées,
+  ajouts locaux, correspondances expliquées et aperçu des mises à jour.
+  Masquer conserve le parcours antérieur ; une correspondance ou un changement
+  de base ne transfère aucune réussite.
+- Contenus cycle 1 à relire : objectifs officiels 2026.1, édition étayée 2026.2
+  et tableaux Chat d’école avec provenance et conditions d’usage. Trois classes
+  fictives permettent de les essayer ; les notices précisent leur couverture.
+- Traces communes à plusieurs élèves d’une même classe, personnalisation
+  individuelle, illustrations et formulations facultatives avec choix du
+  référentiel, de l’école et de la classe. La saisie pour toute la classe
+  affiche la répartition des observations par compétence.
+- Changement de mot de passe depuis « Mon compte », avec contrôle du mot de
+  passe actuel et invalidation des autres sessions.
+- Second facteur par code temporaire, dix codes de secours à usage unique
+  et réinitialisation en cas de perte du téléphone. Fonction facultative du
+  déploiement hébergé, avec dépendances et clé de chiffrement à configurer ;
+  politique par déployeur et école, délai d’inscription et tentatives limitées.
 
 ** Changed
 
-- Site public : #SP7 rapproche les comptes fictifs des actions d’essai dans
-  les deux modes, conserve l’avertissement de chargement de la démonstration
-  et met les parcours par mode en tête du Guide. Le démarrage, les sauvegardes
-  et l’inventaire distinguent les fonctions livrées des versions publiées.
+- Site public organisé autour de Démarrer, Essayer et du Guide pratique :
+  service de l’école ou utilisation sur cet appareil, avec navigateur et
+  programme téléchargé. Comptes fictifs près des actions, avertissement du
+  démarrage parfois long de la démonstration, protection des données et
+  informations pour les institutions accessibles depuis les parcours.
+- Consultation et recherche des référentiels simplifiées ; opérations avancées
+  séparées, conséquences expliquées, autorisations et confirmation par mot de
+  passe pour les changements majeurs après saisies.
+- Persistance du navigateur dans OPFS et IndexedDB, sans préparer un ZIP à
+  chaque consultation. Installation proposée selon le navigateur ; l’onglet
+  reste utilisable sans installation.
+- Publication manuelle des programmes sur GitHub et du navigateur sur GitLab
+  Pages, avec version, commit, construction, manifestes et empreintes des
+  fichiers. Un tag commun identifie le code ; il ne publie rien automatiquement.
+  Le site liste les téléchargements effectivement publiés, pas les artefacts CI.
+- Contrôles PWA automatiques et bloquants en CI ; publication manuelle depuis
+  le pipeline validé. Notes de cette version reprises dans la release GitHub
+  et dans l’aide du navigateur.
+- Adresse du client configurable derrière des proxys de confiance pour les
+  limites de connexion et les journaux ; diagnostic de déploiement enrichi.
 
+** Fixed
 
-- Conception de l'authentification à deux facteurs documentée dans
-  =AUDIT-AUTHENTIFICATION-INVITATIONS.org= (§ 6.7) : politique hiérarchique
-  déployeur puis école, obligatoire jusqu'à un rang ou désactivée à partir
-  d'un rang. Le 2FA lui-même n'est pas encore disponible.
-- Politique de 2FA calculée sans effet visible : variables
-  =CARNET_2FA_OBLIGATOIRE= et =CARNET_2FA_DESACTIVE_POUR= du déployeur
-  (validées au démarrage), politique de l'école en base avec révision et
-  journal, rang de chaque compte par école et exigence effective
-  (obligatoire, optionnelle ou désactivée). Aucun second facteur n'est encore
-  demandé : voir =DEPLOIEMENT.org=.
-- Authentification à deux facteurs par code temporaire (TOTP), facultative :
-  absente tant que =requirements-2fa.txt= n'est pas installé et que
-  =CARNET_2FA_CLE= est vide. Clé secrète chiffrée en base, code à la connexion
-  sans session ouverte avant le second facteur, un code ne servant qu'une
-  fois, saisies plafonnées par compte et par adresse, inscription et retrait
-  depuis « Mon compte », délai de grâce (=CARNET_2FA_DELAI_GRACE_JOURS=) avant
-  blocage d'un compte soumis à l'obligation. Les codes de secours et la
-  réinitialisation arrivent avec =#C8d= : ne pas rendre le 2FA obligatoire en
-  production avant. Voir =DEPLOIEMENT.org=.
-- Second facteur : dix codes de secours à usage unique (empreintes seules,
-  affichés une fois, régénérables avec un code actuel, journalisés à l'usage),
-  et réinitialisation en cas de téléphone perdu : par la direction pour les
-  rangs inférieurs de son école (écran d'équipe), par le déployeur pour tous
-  (commande =reinitialiser_double_facteur=). Une réinitialisation ne lève
-  jamais l'obligation : la personne se réinscrit à sa connexion suivante.
+- Actions HTTPS du navigateur local : transmission du référent attendu pour
+  les contrôles CSRF, sans désactiver ces contrôles.
+- Initialisation hébergée indépendante des champs de première classe du
+  formulaire local.
+- Gestion des fichiers SQLite et des chemins Windows dans les essais,
+  et correction de la construction PowerShell de l’école fictive.
+- Fréquence des demandes de réinitialisation de mot de passe limitée ;
+  identifiant conservé après un refus de connexion.
+- Modifications collectives des traces réservées au responsable de classe,
+  avec consultation conservée pour les enseignants associés.
+
+** Mise à jour et récupération
+
+- Avant toute mise à jour, conserver une sauvegarde indépendante de l’appareil :
+  ZIP complet dans les modes locaux ; base, médias et configuration nécessaire
+  à la reprise pour un service hébergé. Les copies internes de récupération
+  ne remplacent pas cette sauvegarde.
+- Depuis 0.7, le schéma des référentiels évolue. Vérifier la mise à jour et les
+  carnets sur une copie, avec les médias, avant de poursuivre le travail.
+  Une ancienne version peut ne plus lire une base migrée : garder le programme
+  précédent et la sauvegarde d’avant mise à jour pour un retour.
+- Pour le navigateur, conserver la même adresse et le même profil ; préparer
+  un ZIP avant d’appliquer la mise à jour proposée. Ne pas effacer les données
+  du site pour actualiser l’application.
+- Restaurer remplace toute l’école locale, comptes et médias compris, sans
+  fusion. Vérifier d’abord le ZIP dans une copie lorsque cela est possible ;
+  après un transfert, poursuivre les saisies sur une seule copie.
+
+** Limites connues
+
+- Pas de synchronisation entre appareils dans les modes locaux. Plusieurs
+  personnes peuvent se relayer avec leurs comptes sur le même appareil.
+- Navigateur : limite actuelle de 64 Mio avant compression pour la base et les
+  médias, encore chargés en mémoire. Ce n’est pas une limite du stockage OPFS.
+  Impression groupée via la fenêtre du navigateur ; le programme et le service
+  peuvent produire des PDF séparés.
+- Les bancs CI et les essais documentés ne valident pas toutes les tablettes.
+  La fiche « Vérifier sur votre appareil » aide à essayer et à transmettre un
+  retour ; elle ne constitue pas une campagne préalable obligatoire.
+- Programmes publiés pour Windows et Linux ; pas de programme macOS dans cette
+  version. Consulter la fiche de téléchargement pour les systèmes testés et
+  les dépendances. L’utilisation dans le navigateur reste une autre option.
+- Logiciel ouvert, données privées : le mode local ne dispense pas de préparer
+  leur protection avec l’école. La démonstration partagée et la publication
+  navigateur actuelle utilisent uniquement des données fictives.
+
+* 0.5 à 0.7 — notes regroupées
+
+Ces notes étaient déjà présentes dans le journal du tag 0.7 ; elles ne sont
+pas annoncées comme des nouveautés de 0.8.
+
+** Changed
+
 - Envoi de courriel désormais facultatif : SMTP fonctionne sans
   =django-anymail=, disponible comme extension, et le mode sans courriel doit
   être choisi explicitement pour un déploiement persistant.
 
 ** Fixed
 
-- Demande de réinitialisation de mot de passe limitée en fréquence par
-  adresse IP (=django-ratelimit=), pour éviter le bombardement d'e-mails
-  vers une adresse qu'on ne possède pas.
-- Actions de création et modification des traces communes masquées pour
-  les enseignants associés, qui conservent leur accès en consultation.
-- Commande =marquer_invitations_expirees=, à planifier périodiquement, pour
-  refléter en base l'expiration des invitations plutôt que de la recalculer
-  uniquement à l'affichage.
-- Identifiant conservé après un échec de connexion (jamais le mot de
-  passe), focus reporté sur le mot de passe : plus besoin de tout retaper.
 - Message de connexion distinct pour un compte valide mais sans fonction
   attribuée, plutôt que le message générique « mot de passe incorrect ».
 - Diagnostic enrichi de `verifier_envoi_email` : détection des domaines
@@ -123,9 +149,6 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
-- Anti-bruteforce à la connexion (=django-axes=) : blocage temporaire après
-  plusieurs échecs, seuils différenciés selon le déploiement et surchargeables,
-  page de blocage dédiée, trace de chaque échec dans les journaux.
 - Pré-attribution d'une fonction dès l'invitation : la direction choisit
   une classe et une fonction, appliquées automatiquement à l'acceptation.
   Visible dans les listes d'équipe et de collaborateurs avec un badge
