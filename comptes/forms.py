@@ -5,16 +5,11 @@ from django.core.exceptions import ValidationError
 from .models import Utilisateur
 
 
-class InstallationLocaleForm(UserCreationForm):
-    """Première école et première identité, uniquement dans un paquet vide."""
+class InitialisationEcoleForm(UserCreationForm):
+    """École et première identité : champs communs aux deux initialisations."""
 
     ecole_nom = forms.CharField(label="Nom de l’école", max_length=200)
     commune = forms.CharField(label="Commune", max_length=200, required=False)
-
-    preparer_classe = forms.BooleanField(label="Préparer aussi ma première classe", initial=True, required=False)
-    referentiel = forms.ChoiceField(label="Référentiel de départ", initial="trame")
-    annee_scolaire = forms.CharField(label="Année scolaire", max_length=9)
-    classe_nom = forms.CharField(label="Nom de la classe", max_length=100, required=False)
 
     class Meta(UserCreationForm.Meta):
         model = Utilisateur
@@ -27,18 +22,10 @@ class InstallationLocaleForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from suivi.forms import ClasseForm
-        from suivi.services.installation_locale import REFERENTIELS_DEPART
-        classe = ClasseForm()
-        self.fields["referentiel"].choices = [(cle, titre) for cle, titre, _ in REFERENTIELS_DEPART]
-        self.fields["annee_scolaire"] = classe.fields["annee_scolaire"]
-        self.fields["classe_nom"] = classe.fields["nom"]
-        self.fields["classe_nom"].required = False
         self.order_fields(
             [
                 "ecole_nom", "commune", "first_name", "last_name",
                 "username", "password1", "password2",
-                "annee_scolaire", "referentiel", "preparer_classe", "classe_nom",
             ]
         )
         self.fields["first_name"].required = True
@@ -51,6 +38,30 @@ class InstallationLocaleForm(UserCreationForm):
         if not nom:
             raise ValidationError("Indiquez le nom de l’école.")
         return nom
+
+
+class InstallationLocaleForm(InitialisationEcoleForm):
+    """Préparer aussi le référentiel annuel et, si souhaité, la première classe."""
+
+    preparer_classe = forms.BooleanField(label="Préparer aussi ma première classe", initial=True, required=False)
+    referentiel = forms.ChoiceField(label="Référentiel de départ", initial="trame")
+    annee_scolaire = forms.CharField(label="Année scolaire", max_length=9)
+    classe_nom = forms.CharField(label="Nom de la classe", max_length=100, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from suivi.forms import ClasseForm
+        from suivi.services.installation_locale import REFERENTIELS_DEPART
+        classe = ClasseForm()
+        self.fields["referentiel"].choices = [(cle, titre) for cle, titre, _ in REFERENTIELS_DEPART]
+        self.fields["annee_scolaire"] = classe.fields["annee_scolaire"]
+        self.fields["classe_nom"] = classe.fields["nom"]
+        self.fields["classe_nom"].required = False
+        self.order_fields([
+            "ecole_nom", "commune", "first_name", "last_name",
+            "username", "password1", "password2",
+            "annee_scolaire", "referentiel", "preparer_classe", "classe_nom",
+        ])
 
     def clean(self):
         donnees = super().clean()

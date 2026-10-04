@@ -225,6 +225,7 @@ class InitialisationEcoleServeurTests(TestCase):
         self.assertTrue(utilisateur.check_password("MotDePasseFictif!2026"))
         self.assertFalse(utilisateur.is_staff)
         self.assertTrue(ecole.domaines.exists())
+        self.assertFalse(Classe.objects.exists())
         self.assertTrue(ResponsabiliteEcole.objects.filter(
             appartenance__utilisateur=utilisateur,
             appartenance__ecole=ecole,

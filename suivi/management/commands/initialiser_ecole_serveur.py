@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from comptes.forms import InstallationLocaleForm
+from comptes.forms import InitialisationEcoleForm
 from comptes.models import AppartenanceEcole, ResponsabiliteEcole
 from suivi.models import Ecole
 
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         confirmation = getpass("Confirmer le mot de passe : ")
         if mot_de_passe != confirmation:
             raise CommandError("Les deux mots de passe diffèrent.")
-        formulaire = InstallationLocaleForm({
+        formulaire = InitialisationEcoleForm({
             "ecole_nom": options["ecole"],
             "commune": options["commune"],
             "first_name": options["prenom"],
