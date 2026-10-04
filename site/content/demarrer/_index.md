@@ -41,9 +41,16 @@ Les essais actuels utilisent uniquement des données fictives.
 
 [Choisir le téléchargement Windows ou Linux]({{< relref "/guide/local/telecharger-programme" >}}),
 puis [installer et ouvrir le programme]({{< relref "/guide/local/installer-programme" >}}).
-Au premier démarrage, créer l’école et le premier compte personnel. Ce compte
-permet de gérer l’école dans l’application ; il n’attribue aucune fonction officielle.
-Créer ensuite la classe, affecter son responsable et ajouter les élèves.
+Au premier démarrage, créer l’école et le premier compte personnel. Si l’écran
+propose **Préparer aussi ma première classe**, cette option cochée prépare la
+classe et vous en attribue la responsabilité. Choisissez le référentiel de départ,
+qui sera proposé pour l’école et adopté par cette classe. Après validation,
+ajoutez les élèves. Vous pouvez décocher l’option pour préparer seulement l’école.
+Ce compte permet de gérer l’école dans l’application, sans attribuer une fonction officielle.
+
+Ce démarrage simplifié est présent dans le code actuel ; il sera disponible dans
+les publications qui l’intègrent. La version 0.7 crée d’abord l’école : préparez
+ensuite la classe et affectez son responsable avec les fiches du Guide.
 
 Dans les deux options, suivre le [parcours sur cet appareil]({{< relref "/guide/local/" >}}).
 [Vous souhaitez d’abord essayer ?]({{< relref "/demonstration/" >}})

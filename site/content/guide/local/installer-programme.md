@@ -25,7 +25,13 @@ statut = "partiel"
    le nom **Petits Pas**.
 3. Ouvrez **Petits Pas** depuis le menu Démarrer. Lors du premier démarrage,
    l’écran **Installer Petits Pas** permet de créer l’école et son premier
-   compte. Conservez les identifiants choisis.
+   compte. Conservez les identifiants choisis. Les nouvelles versions issues du
+   démarrage simplifié proposent **Préparer aussi ma première classe**, coché :
+   nom, année et référentiel permettent d’ouvrir directement l’ajout des élèves.
+   Vous recevez les droits de direction et de responsable de cette classe dans
+   l’application. Décochez pour créer seulement l’école. La release 0.7 ne
+   comporte pas encore cette option ; créez la classe après connexion et
+   affectez son responsable.
 
 Si Petits Pas ne s’ouvre pas, un message indique où trouver le diagnostic.
 Notez ce message et transmettez-le à la personne qui accompagne votre essai.

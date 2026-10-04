@@ -55,6 +55,7 @@ from comptes.models import (
     Utilisateur,
 )
 from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
+from .forms import ClasseForm
 
 from .acces_double_facteur import (
     DELAI_ATTENTE_SECONDES, SESSION_ATTENTE, SESSION_VERIFIE,
@@ -394,31 +395,48 @@ def installation_locale(request):
 
     formulaire = InstallationLocaleForm(request.POST or None)
     if request.method == "POST" and formulaire.is_valid():
-        with transaction.atomic():
-            if Ecole.objects.exists() or Utilisateur.objects.exists():
-                return HttpResponseForbidden("Ce paquet a déjà été initialisé.")
-            ecole = Ecole.objects.create(
-                nom=formulaire.cleaned_data["ecole_nom"],
-                commune=formulaire.cleaned_data["commune"].strip(),
-            )
-            utilisateur = formulaire.save()
-            appartenance = AppartenanceEcole.objects.create(
-                utilisateur=utilisateur, ecole=ecole
-            )
-            ResponsabiliteEcole.objects.create(
-                appartenance=appartenance, type=ResponsabiliteEcole.DIRECTION
-            )
-            call_command(
-                "charger_referentiel",
-                settings.BASE_DIR / "referentiel" / "trame-cycle1.yaml",
-                ecole=ecole.pk,
-                stdout=StringIO(),
-            )
-            from .services.reprise_referentiels import preparer_nouvelle_ecole
-            preparer_nouvelle_ecole(ecole)
+        try:
+            with transaction.atomic():
+                if Ecole.objects.exists() or Utilisateur.objects.exists():
+                    return HttpResponseForbidden("Ce paquet a déjà été initialisé.")
+                ecole = Ecole.objects.create(
+                    nom=formulaire.cleaned_data["ecole_nom"],
+                    commune=formulaire.cleaned_data["commune"].strip(),
+                )
+                utilisateur = formulaire.save()
+                appartenance = AppartenanceEcole.objects.create(
+                    utilisateur=utilisateur, ecole=ecole
+                )
+                ResponsabiliteEcole.objects.create(
+                    appartenance=appartenance, type=ResponsabiliteEcole.DIRECTION
+                )
+                call_command(
+                    "charger_referentiel",
+                    settings.BASE_DIR / "referentiel" / "trame-cycle1.yaml",
+                    ecole=ecole.pk,
+                    stdout=StringIO(),
+                )
+                from .services.reprise_referentiels import preparer_nouvelle_ecole
+                preparer_nouvelle_ecole(ecole)
+                from .services.installation_locale import preparer_referentiel, preparer_premiere_classe
+                version = preparer_referentiel(utilisateur=utilisateur, ecole=ecole,
+                    annee=formulaire.cleaned_data["annee_scolaire"], choix=formulaire.cleaned_data["referentiel"])
+                classe = None
+                if formulaire.cleaned_data["preparer_classe"]:
+                    classe = Classe.objects.create(ecole=ecole,
+                        nom=formulaire.cleaned_data["classe_nom"],
+                        annee_scolaire=formulaire.cleaned_data["annee_scolaire"])
+                    preparer_premiere_classe(utilisateur=utilisateur, appartenance=appartenance,
+                                             classe=classe, version=version)
+        except ValidationError as erreur:
+            formulaire.add_error(None, erreur)
+            return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
         login(request, utilisateur, backend="django.contrib.auth.backends.ModelBackend")
         request.session["ecole_id"] = ecole.pk
         request.session.pop("suivant", None)
+        if classe:
+            messages.success(request, "École et classe créées. Vous pouvez ajouter les élèves.")
+            return redirect("importer_eleves", pk=classe.pk)
         messages.success(request, "École créée. Vous pouvez maintenant préparer une classe.")
         return redirect("gestion")
     return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
@@ -2497,38 +2515,13 @@ def parametres_carnet(request):
 @direction_requise
 def creer_classe(request):
     ecole = ecole_courante(request)
-    if request.method == "POST":
-        nom = request.POST.get("nom", "").strip()
-        annee_scolaire = request.POST.get("annee_scolaire", "").strip()
-        correspondance = re.fullmatch(r"(\d{4})-(\d{4})", annee_scolaire)
-        annee_valide = (
-            correspondance
-            and int(correspondance.group(2)) == int(correspondance.group(1)) + 1
-        )
-        if nom and annee_valide:
-            classe, creee = Classe.objects.get_or_create(
-                ecole=ecole,
-                nom=nom,
-                annee_scolaire=annee_scolaire,
-            )
-            if not creee:
-                messages.error(request, "Cette classe existe déjà pour cette année.")
-                return render(
-                    request,
-                    "suivi/creer_classe.html",
-                    {"nom": nom, "annee_scolaire": annee_scolaire},
-                )
+    formulaire = ClasseForm(request.POST or None)
+    if request.method == "POST" and formulaire.is_valid():
+        classe, creee = Classe.objects.get_or_create(ecole=ecole, **formulaire.cleaned_data)
+        if creee:
             return redirect("importer_eleves", pk=classe.pk)
-        messages.error(
-            request,
-            "Donnez un nom et une année scolaire au format 2027-2028.",
-        )
-        return render(
-            request,
-            "suivi/creer_classe.html",
-            {"nom": nom, "annee_scolaire": annee_scolaire},
-        )
-    return render(request, "suivi/creer_classe.html")
+        formulaire.add_error("nom", "Cette classe existe déjà pour cette année.")
+    return render(request, "suivi/creer_classe.html", {"formulaire": formulaire})
 
 
 @direction_requise

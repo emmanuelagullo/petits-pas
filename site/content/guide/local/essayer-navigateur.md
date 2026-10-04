@@ -21,8 +21,14 @@ Conservez cette adresse pour retrouver les données de ce navigateur.
 
 Ouvrez cette adresse dans un navigateur compatible, puis attendez le premier chargement.
 Sur une installation vide, **Installer Petits Pas** permet de créer l’école
-et le premier compte personnel. Connectez-vous, créez la classe, affectez son
-responsable puis ajoutez des élèves fictifs. Conservez cette adresse pour
+et le premier compte personnel. Selon la version publiée, le formulaire propose
+**Préparer aussi ma première classe**, coché par défaut. Indiquez son nom,
+l’année scolaire et le référentiel ; vous deviendrez responsable de cette classe
+et pourrez directement ajouter les élèves fictifs. Le référentiel est proposé
+pour l’école et adopté par la classe. Décochez l’option pour préparer seulement
+l’école. Si cette option est absente, connectez-vous, créez la classe puis
+ affectez son responsable. Une CI réussie ne signifie pas que cette nouvelle
+version a été publiée. Conservez cette adresse pour
 les prochaines ouvertures. Chaque appareil garde sa propre école ; pour
 transférer les données vers un autre appareil, utilisez une sauvegarde ZIP.
 Une école créée lors d'un essai local sur l'ordinateur doit également être

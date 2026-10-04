@@ -50,10 +50,25 @@ python scripts/lancer-local.py --paquet /chemin/vers/mon-paquet
 ```
 
 Sur un paquet neuf, la fenêtre ouvre **Installer Petits Pas** : elle crée
-l'école, un premier compte personnel de direction et la trame pédagogique
-provisoire. La même fenêtre propose ensuite la connexion ordinaire. Sur un
+l'école, un premier compte personnel de direction et le référentiel choisi
+(la trame provisoire est proposée par défaut). La session est ouverte après validation. Sur un
 paquet déjà initialisé, elle ouvre directement la connexion et ne modifie ni
-les comptes ni le référentiel. Le formulaire est inaccessible dans les
+les comptes ni le référentiel.
+
+Le formulaire propose désormais **Préparer aussi ma première classe**, coché
+par défaut : nom, année scolaire et référentiel de départ. La personne reçoit
+la direction et une affectation responsable ; la classe est activée et sa base
+adoptée avant l’ouverture de l’ajout des élèves. Décocher conserve l’installation
+école seule. Le défaut de référentiel est annuel pour l’école ; les autres bases
+fournies ne sont pas restreintes. Une configuration applicative déjà explicite
+est préservée et refuse ce raccourci d’initialisation.
+
+Ce parcours partage `ClasseForm`, les services de choix/adoption et d’affectation,
+et la transaction d’installation entre navigateur et programme ; il n’est pas
+ajouté à l’initialisation serveur. Les publications antérieures, dont 0.7, gardent
+leur ancien écran jusqu’à une nouvelle construction et publication.
+
+Le formulaire est inaccessible dans les
 déploiements serveur ou dès qu'une école ou un compte existe dans la base.
 
 La commande facultative `--creer-ecole "Mon école" --commune "Ma commune"`

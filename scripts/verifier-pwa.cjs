@@ -117,9 +117,20 @@ async function login(page) {
   for (const [name, value] of Object.entries({ecole_nom: 'École fictive PWA', commune: 'Commune fictive', first_name: 'Nadia', last_name: 'Fictive', username: 'direction-fictive', password1: 'Test-fictif-PWA-2026!', password2: 'Test-fictif-PWA-2026!'})) {
     await frame.locator(`[name="${name}"]`).fill(value);
   }
-  await frame.getByRole('button', {name: 'Créer l’école et mon compte'}).click();
-  await frame.getByRole('heading', {name: "Gérer l'école", exact: true}).waitFor({timeout: 30000});
-  pass('Formulaire installation, CSRF et session virtuelle');
+  const demarrageCourt = !!(await frame.locator('[name="preparer_classe"]').count());
+  if (demarrageCourt) {
+    assert(await frame.locator('[name="preparer_classe"]').isChecked());
+    await frame.locator('[name="annee_scolaire"]').fill('2026-2027');
+    await frame.locator('[name="classe_nom"]').fill('Classe fictive');
+  }
+  await frame.getByRole('button', {name: /Créer (l’école et mon compte|et commencer)/}).click();
+  await frame.getByRole('heading', {name: demarrageCourt ? /Ajouter/ : "Gérer l'école", exact: !demarrageCourt}).waitFor({timeout: 30000});
+  if (demarrageCourt) {
+    assert.equal(await python(page, "from suivi.models import Classe; Classe.objects.get().etat"), 'active');
+    assert.equal(await python(page, "from comptes.models import AffectationClasse; AffectationClasse.objects.get().type"), 'responsable');
+    assert.equal(await python(page, "from suivi.models import AdoptionReferentiel, ChoixEcoleAnnuel; AdoptionReferentiel.objects.get(courante=True).version_id == ChoixEcoleAnnuel.objects.get().version_proposee_id"), true);
+  }
+  pass('Formulaire installation, première classe si proposée, CSRF et session virtuelle');
   if (process.env.PWA_OLD_BUNDLE) {
     serverRoot = root;
     const expected = JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).version;
@@ -144,10 +155,11 @@ import json
 from suivi.models import Ecole, Classe, Eleve, Scolarite, Competence
 from comptes.models import Utilisateur, AppartenanceEcole, AffectationClasse
 ecole = Ecole.objects.get()
-classe = Classe.objects.create(ecole=ecole, nom='Classe fictive', annee_scolaire='2026-2027')
+classe, creee = Classe.objects.get_or_create(ecole=ecole, nom='Classe fictive', annee_scolaire='2026-2027')
 appartenance = AppartenanceEcole.objects.get(utilisateur__username='direction-fictive')
-AffectationClasse.objects.create(appartenance=appartenance, classe=classe, type='responsable')
-classe.activer()
+if creee:
+    AffectationClasse.objects.create(appartenance=appartenance, classe=classe, type='responsable')
+    classe.activer()
 eleve = Eleve.objects.create(ecole=ecole, prenom='Ana', nom='Fictive')
 Scolarite.objects.create(eleve=eleve, classe=classe, annee_scolaire='2026-2027', niveau='MS')
 competence = Competence.objects.filter(domaine__ecole=ecole).first()

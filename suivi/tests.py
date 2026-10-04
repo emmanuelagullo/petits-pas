@@ -71,6 +71,8 @@ from .autorisations import peut_terminer_affectation
 class InstallationLocaleTests(TestCase):
     def donnees(self, mot_de_passe="UnMotDePasseLocal!2026"):
         return {
+            "annee_scolaire": "2026-2027",
+            "referentiel": "trame",
             "ecole_nom": "École des Lucioles",
             "commune": "Bordeaux",
             "username": "direction-locale",
@@ -126,6 +128,74 @@ class InstallationLocaleTests(TestCase):
     def test_erreur_de_referentiel_annule_ecole_et_compte(self, _commande):
         with self.assertRaises(RuntimeError):
             self.client.post(reverse("installation_locale"), self.donnees())
+        self.assertFalse(Ecole.objects.exists())
+        self.assertFalse(get_user_model().objects.exists())
+
+    @override_settings(MODE_LOCAL=True)
+    def test_classe_preparee_active_et_compte_responsable(self):
+        donnees = {**self.donnees(), "preparer_classe": "on", "classe_nom": "Les Lucioles"}
+        reponse = self.client.post(reverse("installation_locale"), donnees)
+        classe = Classe.objects.get()
+        self.assertRedirects(reponse, reverse("importer_eleves", args=[classe.pk]))
+        self.assertEqual(classe.etat, Classe.ACTIVE)
+        self.assertTrue(AffectationClasse.objects.filter(classe=classe,
+            type=AffectationClasse.RESPONSABLE).exists())
+        from suivi.models import AdoptionReferentiel, ChoixEcoleAnnuel
+        adoption = AdoptionReferentiel.objects.get(classe=classe, courante=True)
+        self.assertEqual(ChoixEcoleAnnuel.objects.get().version_proposee_id, adoption.version_id)
+        self.assertTrue(adoption.usages.exists())
+
+    @override_settings(MODE_LOCAL=True)
+    def test_classe_incomplete_ne_cree_rien(self):
+        for changements in [{"preparer_classe": "on"}, {"annee_scolaire": "2026-2028"},
+                            {"referentiel": "inconnu"}]:
+            reponse = self.client.post(reverse("installation_locale"), {**self.donnees(), **changements})
+            self.assertEqual(reponse.status_code, 200)
+            self.assertFalse(Ecole.objects.exists())
+            self.assertFalse(get_user_model().objects.exists())
+
+    @override_settings(MODE_LOCAL=True)
+    def test_base_source_choisie_sans_restreindre_les_autres(self):
+        reponse = self.client.post(reverse("installation_locale"),
+            {**self.donnees(), "referentiel": "etaye", "preparer_classe": "on", "classe_nom": "Les Lucioles"})
+        classe = Classe.objects.get()
+        self.assertRedirects(reponse, reverse("importer_eleves", args=[classe.pk]))
+        from suivi.models import AdoptionReferentiel, ChoixEcoleAnnuel
+        from suivi.services.choix_bases_referentiels import choix_bases
+        adoption = AdoptionReferentiel.objects.get(classe=classe, courante=True)
+        self.assertEqual(adoption.version.numero, "2026.2")
+        self.assertFalse(ChoixEcoleAnnuel.objects.get().restreindre)
+        self.assertEqual(len(choix_bases(classe.ecole, classe.annee_scolaire).versions), 3)
+
+    @override_settings(MODE_LOCAL=True, MODE_PWA=True)
+    def test_navigateur_utilise_le_meme_demarrage(self):
+        reponse = self.client.post(reverse("installation_locale"),
+            {**self.donnees(), "preparer_classe": "on", "classe_nom": "Les Lucioles"})
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(Classe.objects.get().etat, Classe.ACTIVE)
+
+    @override_settings(MODE_LOCAL=True)
+    def test_choix_applicatif_existant_est_preserve(self):
+        from suivi.models import ChoixApplicationAnnuel
+        configuration = ChoixApplicationAnnuel.objects.create(annee_scolaire="2026-2027", configure=True)
+        reponse = self.client.post(reverse("installation_locale"), self.donnees())
+        self.assertContains(reponse, "Des choix de référentiel existent déjà")
+        self.assertFalse(Ecole.objects.exists())
+        self.assertFalse(get_user_model().objects.exists())
+        configuration.refresh_from_db()
+        self.assertTrue(configuration.configure)
+
+    @override_settings(MODE_LOCAL=True)
+    def test_option_premiere_classe_cochee_sur_formulaire_vide(self):
+        reponse = self.client.get(reverse("installation_locale"))
+        self.assertTrue(reponse.context["formulaire"]["preparer_classe"].value())
+
+    @override_settings(MODE_LOCAL=True)
+    @patch("suivi.views.Classe.objects.create", side_effect=ValidationError("Classe refusée"))
+    def test_erreur_classe_annule_toute_installation(self, _classe):
+        reponse = self.client.post(reverse("installation_locale"),
+            {**self.donnees(), "preparer_classe": "on", "classe_nom": "Les Lucioles"})
+        self.assertEqual(reponse.status_code, 200)
         self.assertFalse(Ecole.objects.exists())
         self.assertFalse(get_user_model().objects.exists())
 

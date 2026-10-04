@@ -1,19 +1,33 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Installer Petits Pas sur cet ordinateur{% endblock %}
+{% block titre %}Installer Petits Pas sur cet appareil{% endblock %}
 {% block contenu %}
 <h1>Bienvenue dans Petits Pas</h1>
-<p class="sous-titre">Créez votre école et votre compte personnel pour commencer sur cet ordinateur.</p>
-<p class="aide">Les données restent dans le paquet autonome de cette installation. La trame pédagogique provisoire sera ajoutée à l’école.</p>
+<p class="sous-titre">Créez votre école et votre compte personnel pour commencer sur cet appareil.</p>
+<p class="aide">Les données restent sur cet appareil. Plusieurs personnes pourront utiliser leur compte personnel ; les autres appareils ne se synchronisent pas.</p>
 <form method="post" class="encadre formulaire-compte">
   {% csrf_token %}
   {% if formulaire.non_field_errors %}<div class="messages erreur">{{ formulaire.non_field_errors }}</div>{% endif %}
   {% for champ in formulaire %}
+  {% if champ.name == "preparer_classe" %}
+  <label for="{{ champ.id_for_label }}">{{ champ }} {{ champ.label }}</label>
+  {% else %}
   <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
   {{ champ }}
+  {% endif %}
   {% if champ.help_text %}<p class="aide">{{ champ.help_text|safe }}</p>{% endif %}
   {% if champ.errors %}<div class="erreurs">{{ champ.errors }}</div>{% endif %}
   {% endfor %}
-  <p class="aide">Ce premier compte reçoit la fonction de direction pour configurer l’école. Conservez son mot de passe : l’envoi d’e-mails est désactivé en mode local.</p>
-  <div class="actions"><button class="bouton" type="submit">Créer l’école et mon compte</button></div>
+  <p class="aide">Le référentiel sera proposé par défaut pour l’école et utilisé par la première classe si vous la préparez. Vous pourrez ensuite ajouter des classes et des collègues.</p>
+  <p><a href="https://petits-pas.gitlabpages.inria.fr/petits-pas/referentiels/cycle1/" target="_blank" rel="noopener">Consulter les descriptions et les sources des référentiels</a></p>
+  <p class="aide">Ce premier compte permet de gérer l’école dans Petits Pas, sans attribuer une fonction officielle. Si vous préparez la classe, vous en serez aussi responsable dans l’application. Conservez son mot de passe : l’envoi d’e-mails est désactivé en mode local.</p>
+  <div class="actions"><button class="bouton" type="submit">Créer et commencer</button></div>
 </form>
+<script>
+(function () {
+  const option = document.getElementById('id_preparer_classe');
+  const nom = document.getElementById('id_classe_nom');
+  function afficher() { nom.disabled = !option.checked; nom.required = option.checked; }
+  option.addEventListener('change', afficher); afficher();
+})();
+</script>
 {% endblock %}
