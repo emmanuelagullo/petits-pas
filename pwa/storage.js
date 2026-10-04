@@ -1,11 +1,12 @@
 // Fichiers et manifestes immuables OPFS + pointeur transactionnel IndexedDB.
 // Aucun accès concurrent : le propriétaire détient un Web Lock dans la coque.
 const BASE = new URL('./', import.meta.url).pathname;
-const SUFFIX = BASE === '/' ? '' : '-' + encodeURIComponent(BASE);
-const DB = 'petits-pas-pwa-prototype-v1' + SUFFIX;
+const PREFIXE = BASE === '/' ? '' : '-' + encodeURIComponent(BASE);
+let SUFFIX = PREFIXE;
+export function configurerEspace(essai) { SUFFIX = PREFIXE + (essai ? '-essai' : ''); }
 async function database() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB, 1);
+    const request = indexedDB.open('petits-pas-pwa-prototype-v1' + SUFFIX, 1);
     request.onupgradeneeded = () => request.result.createObjectStore('state');
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);

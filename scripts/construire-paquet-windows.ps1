@@ -29,6 +29,8 @@ if (!$env:PETITS_PAS_PANGO_BIN -or !(Test-Path (Join-Path $env:PETITS_PAS_PANGO_
 }
 try {
     $env:PATH = "$env:PETITS_PAS_PANGO_BIN;$ancienPath"
+    & $python scripts/construire-ecole-fictive.py
+    if ($LASTEXITCODE -ne 0) { throw 'Construction de l’école fictive impossible.' }
     & $python -m PyInstaller --noconfirm --clean scripts/PetitsPas.spec
 } finally {
     $env:PATH = $ancienPath

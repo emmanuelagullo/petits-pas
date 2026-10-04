@@ -29,6 +29,7 @@ urlpatterns = [
     path("health/", views.health, name="health"),
     path("", views.accueil, name="accueil"),
     path("connexion/", views.connexion, name="connexion"),
+    path("essai-local/", views.choisir_espace_local, name="choisir_espace_local"),
     path("installation/", views.installation_locale, name="installation_locale"),
     path("connexion/verification/", views.connexion_verification, name="connexion_verification"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),

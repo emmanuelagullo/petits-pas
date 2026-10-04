@@ -9,6 +9,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Site public : #SP4 génère un ZIP public de l’école fictive commune et sépare
+  les essais des données habituelles. Navigateur : stockage et récupération
+  distincts ; programme : dossier dédié et redémarrage entre les espaces.
+  Les essais sont conservés, sans restauration du paquet habituel au retour.
+  Les publications précédentes restent inchangées jusqu’à une nouvelle livraison.
+
 - Site public : #SP3 prépare école, compte, référentiel annuel et première classe
   dans le même formulaire local. La première classe est proposée par défaut,
   active et attribuée au compte responsable ; option école seule conservée.

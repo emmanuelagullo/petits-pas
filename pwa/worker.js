@@ -1,4 +1,5 @@
-import {load, save} from './storage.js';
+import {load, save, configurerEspace} from './storage.js';
+let ESSAI = false;
 const BASE = new URL('./', import.meta.url).pathname;
 let python, bridge, config, fatal = false, initialized = false;
 let queue = Promise.resolve();
@@ -23,6 +24,8 @@ async function process(message) {
   if (fatal) throw new Error('Enregistrement interrompu. Fermez puis rouvrez le prototype pour retrouver le dernier état confirmé.');
   if (['init', 'recovery'].includes(message.kind)) {
     if (initialized) throw new Error('Runtime déjà initialisé');
+    ESSAI = message.essai === true;
+    configurerEspace(ESSAI);
     config = await (await fetch('./config.json')).json();
     const started = performance.now();
     progress("Lecture des données conservées sur cet appareil…");
@@ -45,12 +48,21 @@ async function process(message) {
     if (restored?.files) {
       for (const [name, entry] of Object.entries(restored.files)) call('restore_file', name, await restored.read(entry));
     } else if (restored) call('restore', restored);
+    else if (ESSAI && message.kind === 'init') {
+      const reponse = await fetch('./ecole-fictive.zip');
+      if (!reponse.ok) throw new Error("École fictive indisponible dans cette version.");
+      const archive = new Uint8Array(await reponse.arrayBuffer());
+      const attendu = config.assets.find(asset => asset.url === '/ecole-fictive.zip')?.sha256;
+      const somme = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', archive)), b => b.toString(16).padStart(2, '0')).join('');
+      if (!attendu || somme !== attendu) throw new Error("ZIP fictif altéré : ouverture refusée.");
+      call('restore_demo', archive);
+    }
     if (message.kind === 'recovery') {
       const proxy = call('snapshot');
       try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
     }
     progress('Ouverture de l’école et vérification de la base…');
-    call('initialize', location.origin, config.version, BASE);
+    call('initialize', location.origin, config.version, BASE, ESSAI);
     progress('Enregistrement de l’état initial…');
     const durability = await persist('', false, true);
     initialized = true;

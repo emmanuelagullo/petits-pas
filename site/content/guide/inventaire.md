@@ -224,7 +224,8 @@ l’impression navigateur produit un document groupé, tandis que le programme e
 le service peuvent générer un ZIP de PDF séparés.
 
 Le formulaire initial avec première classe est livré dans le code actuel ; sa
-disponibilité dépend de la version effectivement publiée. L’école fictive téléchargeable,
-l’espace d’essai distinct et l’ouverture temporaire d’un ZIP avant restauration
-ne sont pas encore disponibles. Les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}})
+disponibilité dépend de la version effectivement publiée. L’école fictive téléchargeable
+et l’espace d’essai distinct sont livrés dans le code, à publier avec le site,
+la PWA et les programmes. Les versions précédentes ne les proposent pas.
+L’ouverture temporaire d’un ZIP avant restauration n’est pas encore disponible. Les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}})
 recueillent les retours sans constituer une campagne préalable obligatoire.

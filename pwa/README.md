@@ -299,3 +299,25 @@ jamais désactivé. Une indisponibilité durable reste un échec explicite de CI
 Tests : `python3 -m unittest discover -s scripts -p test_construire_pwa.py`.
 Les suites runtime/HTMX ne sont pas relancées pour cette correction du
 constructeur : le bundle de distribution reste identique à #PWA7–8.
+
+## #SP4 : école fictive dans un espace distinct
+
+Le constructeur requiert désormais les dépendances Python du dépôt pour produire
+le ZIP fictif (en CI, `requirements.lock`). La génération utilise une base
+temporaire sans tables axes, compatible avec le profil local. Le bundle contient
+`ecole-fictive.zip`, sa notice et `essai.html`, tous contrôlés par les empreintes
+du Service Worker et du préparateur de publication.
+
+Le mode d’essai est transmis par la coque dans les messages init/secours. Le
+Worker configure le suffixe OPFS/IndexedDB avant toute lecture. Les noms
+habituels restent inchangés ; le verrou commun impose un seul espace ouvert.
+Le ZIP commun est validé avant son installation, seulement si l’espace d’essai
+est vierge. Retour, relance, secours et mise à jour conservent leur espace ;
+aucune restauration n’est effectuée pour revenir à l’école habituelle.
+
+L’entrée `essai.html` n’existe pas dans les anciens bundles : un ancien Service
+Worker ne transforme donc pas silencieusement ce lien en ouverture habituelle.
+Publier puis appliquer la mise à jour pour rendre le bouton disponible. Cette
+séparation protège du mélange involontaire des essais et du travail ; elle ne
+protège pas contre les autres contenus de la même origine ou la suppression du
+profil. Utiliser uniquement des données fictives dans les essais.

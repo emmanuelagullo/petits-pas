@@ -6,6 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import shutil
+import sys
 import subprocess
 import urllib.request
 import urllib.error
@@ -111,6 +112,9 @@ def main():
         "--dest", str(wheels), "-r", str(ROOT / "pwa/requirements.txt"),
         *(["--no-index", "--find-links", str(args.wheels.resolve())] if args.wheels else []),
     ], check=True)
+    subprocess.run([sys.executable, str(ROOT / "scripts/construire-ecole-fictive.py")], check=True)
+    shutil.copyfile(ROOT / "referentiel/demo/ecole-fictive.zip", output / "ecole-fictive.zip")
+    shutil.copyfile(ROOT / "referentiel/demo/ecole-fictive.json", output / "ecole-fictive.json")
     with ZipFile(output / "application.zip", "w", ZIP_DEFLATED) as archive:
         for folder in ["carnet", "comptes", "suivi", "referentiel", "pwa"]:
             for path in sorted((ROOT / folder).rglob("*")):
@@ -124,7 +128,7 @@ def main():
                 entry = ZipInfo(path.relative_to(ROOT).as_posix(), (2026, 1, 1, 0, 0, 0))
                 entry.compress_type = ZIP_DEFLATED
                 archive.writestr(entry, path.read_bytes())
-    for name in ["index.html", "shell.js", "worker.js", "storage.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
+    for name in ["index.html", "essai.html", "shell.js", "worker.js", "storage.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
         shutil.copyfile(ROOT / "pwa" / name, output / name)
     for folder in [ROOT / "referentiel/static", ROOT / "suivi/static"]:
         shutil.copytree(folder, output / "static", dirs_exist_ok=True)

@@ -383,6 +383,20 @@ def _trop_de_tentatives_double_facteur_connecte(request):
 
 
 @never_cache
+def choisir_espace_local(request):
+    if not settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False):
+        raise Http404
+    import json
+    try:
+        identifiants = json.loads((settings.BASE_DIR / "referentiel/demo/ecole-fictive.json").read_text())["identifiants"]
+    except (OSError, ValueError, KeyError):
+        identifiants = None
+    return render(request, "suivi/choisir_espace_local.html",
+                  {"destination": "habituel" if settings.ESPACE_ESSAI else "essai",
+                   "identifiants": identifiants})
+
+
+@never_cache
 def installation_locale(request):
     if not settings.MODE_LOCAL:
         raise Http404

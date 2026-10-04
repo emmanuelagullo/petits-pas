@@ -39,7 +39,7 @@ async function boot(page, url) {
   await page.goto(url);
   await page.waitForFunction(() => !!window.pwaTest || !document.querySelector('#failure').hidden || /TypeError|PythonError|Error:/.test(document.querySelector('#status').textContent), null, {timeout: 120000});
   const status = await page.locator('#status').innerText();
-  assert(await page.locator('#failure').isHidden(), await page.locator('#diagnostic').innerText());
+  assert(await page.locator('#failure').isHidden(), await page.locator('#diagnostic').textContent());
   assert(!/Error/.test(status), status);
   await page.frameLocator('#app').locator('h1').waitFor({timeout: 60000});
   await page.locator('#tools').evaluate(node => {node.open = true;});
@@ -398,6 +398,35 @@ with tempfile.TemporaryDirectory() as dossier:
 `, await rescued.path()]);
   pass('Base incompatible refusée au démarrage sans création vide, récupération disponible sans connexion');
 
+  // Le même navigateur possède deux écoles distinctes ; revenir ne restaure aucun ZIP.
+  await reopened.close();
+  let espace = await context.newPage(); currentPage = espace;
+  await boot(espace, url + '?essai=oui');
+  assert.equal(await python(espace, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'Ma Belle École');
+  assert.equal(await python(espace, "from django.conf import settings; settings.ESPACE_ESSAI"), true);
+  await python(espace, "from suivi.models import Ecole; Ecole.objects.update(nom='Essai modifié fictif')");
+  await espace.close();
+  espace = await context.newPage(); currentPage = espace;
+  await boot(espace, url + '?essai=oui');
+  assert.equal(await python(espace, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'Essai modifié fictif');
+  const retour = await espace.locator('#changer-espace').getAttribute('href');
+  assert.equal(retour, base);
+  await espace.close();
+  espace = await context.newPage(); currentPage = espace;
+  // L'espace habituel avait été volontairement rendu incompatible par le test précédent.
+  await espace.goto(url);
+  await espace.getByRole('heading', {name: 'Petits Pas n’a pas pu démarrer'}).waitFor({timeout:120000});
+  const archiveHabituelle = await Promise.all([espace.waitForEvent('download'), espace.locator('#recovery').click()]);
+  const cheminHabituel = await archiveHabituelle[0].path();
+  execFileSync('python3', ['-c', `
+import sys,sqlite3,tempfile,zipfile
+with tempfile.TemporaryDirectory() as folder:
+    with zipfile.ZipFile(sys.argv[1]) as archive: archive.extract('carnet.sqlite3',folder)
+    with sqlite3.connect(folder+'/carnet.sqlite3') as db:
+        assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='École fictive PWA'
+`, cheminHabituel]);
+  pass('École fictive isolée, essais persistants et récupération de l’école habituelle indépendante');
+
   assert(!network.some(route => route.startsWith('/app/') || route.startsWith(base + 'app/')), 'Une requête métier est sortie vers le serveur statique');
   pass('Aucune requête métier sur le réseau');
   fs.writeFileSync(path.join(root, 'resultats-tests.json'), JSON.stringify(report, null, 2));
@@ -405,6 +434,7 @@ with tempfile.TemporaryDirectory() as dossier:
   console.error(error);
   if (currentPage) {
     console.error('STATUS', await currentPage.locator('#status').innerText());
+    console.error('DIAGNOSTIC', await currentPage.locator('#diagnostic').textContent());
     for (const frame of currentPage.frames()) console.error('FRAME', frame.url(), (await frame.locator('body').innerText().catch(() => '')).slice(0, 4000));
   }
   process.exitCode = 1;

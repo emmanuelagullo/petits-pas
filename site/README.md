@@ -102,3 +102,16 @@ Distinguer le service de l’école de l’utilisation sur cet appareil ; cette
 dernière permet plusieurs comptes, dans le navigateur ou le programme. Ne pas
 présenter les fonctions prévues (école fictive ZIP, espace d’essai, ouverture
 temporaire avant restauration, premier démarrage simplifié) comme livrées.
+
+## École fictive commune (#SP4)
+
+Avant une construction locale complète du site, avec les dépendances Python :
+
+```sh
+python3 scripts/construire-ecole-fictive.py --destination site/static/essais/ecole-fictive.zip
+```
+
+Le script utilise une base temporaire et le même scénario que Render ; il ne
+lit jamais la base du développeur. Le job de captures transmet le ZIP et sa
+notice à Hugo, avec les captures. Ces fichiers générés sont ignorés par Git.
+La page Essayer distingue les versions publiées des nouvelles fonctions locales.
