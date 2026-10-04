@@ -63,6 +63,13 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   projets partageant une origine.
   Les jobs `pwa-prototype` et `pwa-qualification` sont automatiques et leurs
   échecs font échouer la CI ; la publication seule reste manuelle.
+  `scripts/publication.py` partage identité, notes et manifestes de candidats.
+  Les notes restent dans `CHANGELOG.org` : À venir sur main, rubrique du tag
+  pour une version numérotée. Les binaires se publient en CLI sur GitHub
+  uniquement ; la PWA sur GitLab Pages, depuis le même pipeline que ses
+  contrôles réussis. Ne pas confondre tag, construction et publication ni
+  mettre les paramètres d’exploitation d’une école dans un manifeste.
+  Le catalogue Hugo ne lit que les releases publiques, pas les artefacts CI.
   `pwa/ESSAIS-APPAREILS.md` recueille les retours terrain sans bloquer les
   évolutions. `pwa/AUDIT-SITE-PUBLICATIONS.md` prépare le chantier Hugo.
   Le suivi du ZIP préparé est commun à PWA/autonome dans `suivi/paquet_local.py` ;

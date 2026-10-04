@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Petits Pas — prototype PWA</title><link rel="manifest" href="manifest.webmanifest">
+<title>Petits Pas dans votre navigateur</title><link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#fff2c9"><link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:16px system-ui;color:#234}body{display:flex;flex-direction:column;height:100dvh}
@@ -13,7 +13,7 @@ header{padding:10px;background:#fff2c9;flex:none;max-height:45dvh;overflow:auto}
 <button id="backup" disabled>Sauvegardes / transfert</button>
 <button id="apercu" disabled>Vérifier un ZIP sans remplacer mon école</button>
 <a id="reprendre-apercu" href="apercu.html" hidden>Revenir à la copie de vérification</a>
-<details id="tools"><summary>Installation, stockage et mises à jour</summary>
+<details id="tools"><summary>Installation, stockage et mises à jour</summary><p><a id="nouveautes" href="nouveautes.html" target="_blank" rel="noopener">Voir les nouveautés</a> · <small id="details-version"></small></p>
 <p id="installation">Vous pouvez utiliser cette page directement. Pour ajouter une icône : dans Chrome ou Edge, cherchez « Installer » dans le menu du navigateur ; sur iPad, ouvrez dans Safari puis Partager → Sur l’écran d’accueil. L’installation dépend du navigateur ; les appareils Apple restent à vérifier.</p>
 <p>Le premier chargement demande Internet. Attendez l’ouverture de l’application avant de fermer la page. Revenez à la même adresse et au même profil de navigateur ; les données ne sont pas partagées entre appareils.</p>
 <p id="volume">Stockage expérimental limité à 64 Mio avant compression.</p>

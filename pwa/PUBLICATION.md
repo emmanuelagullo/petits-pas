@@ -1,7 +1,7 @@
 # #PWA6a : publication à la demande sur GitLab Pages
 
 Le job manuel **pwa-publication** publie le bundle du job **pwa-prototype**
-réussi dans le **même pipeline** de `main`. Il ne reconstruit pas l'application
+réussi dans le **même pipeline** de `main` ou d’un tag numérique commun aux deux forges. La qualification doit aussi réussir. Il ne reconstruit pas l'application
 et ne publie pas le bundle de `pwa-qualification`. Les données des essais ne
 sont pas incluses. Cette publication statique reste destinée aux données fictives.
 
@@ -49,19 +49,25 @@ déployée n'est annoncée avant la première publication réussie.
 
 ## Publier une version
 
-1. Après un push sur `main`, ouvrir son pipeline : **pwa-prototype** et
+1. Après un push sur `main` ou du tag numérique, ouvrir son pipeline : **pwa-prototype** et
    **pwa-qualification** démarrent automatiquement.
-2. Attendre sa réussite, puis lancer **pwa-publication** dans ce même pipeline.
+2. Attendre la réussite des deux jobs, puis lancer **pwa-publication** dans ce même pipeline.
 3. Suivre le pipeline lié du projet PWA et son job **pages**. Le job source
    attend le résultat du pipeline destinataire (`strategy: depend`).
 4. Ouvrir l'adresse indiquée dans **Deploy → Pages** du projet PWA, ou dans
    l'environnement **prototype-pwa**. La transmettre aux personnes qui testent.
 
+Les tags numériques doivent pointer sur le même commit sur GitHub et GitLab.
+Le journal `CHANGELOG.org` doit contenir une rubrique correspondant au tag avant
+sa construction. Sur `main`, les notes À venir sont embarquées au commit exact.
+La version applicative (tag ou `dev.<commit>`) est affichée ; l’identité du
+bundle reste accessible dans l’aide et conserve son rôle dans les caches.
+
 Le job récupère le numéro exact du job réussi, pas « le dernier artefact de
 main ». Il vérifie projet, commit et pipeline, refuse `testMode: true`,
 contrôle chaque SHA-256 et le contenu complet du bundle, puis prépare `public/`.
-Un rapport `publication-pwa.json` relie l'adresse, la version, le commit, le
-pipeline et le job de construction. Ce rapport est un artefact technique,
+Un rapport `publication-pwa.json`, également servi sous `publication.json`, relie l'adresse, la version, le commit, le
+pipeline et les jobs de construction et qualification. Les manifestes et rapports sont servis sous `publication/`. Ce rapport est un artefact technique,
 pas un fichier contenant les données d'une école.
 
 Les API de pipeline et de téléchargement d'artefacts du projet public sont
@@ -71,7 +77,7 @@ téléchargement échouera et il faudra revoir cette configuration. Les autres
 variables du pipeline source ne sont pas transférées.
 
 Les artefacts de `pwa-prototype` expirent après 30 jours. S'ils ne sont plus
-disponibles, relancer ce job avant de publier. Choisir normalement le pipeline
+disponibles, relancer le prototype et, si nécessaire, la qualification avant de publier. Choisir normalement le pipeline
 du `main` courant ; lancer un ancien pipeline est une demande explicite de
 republier cette ancienne version, pas un retour automatique des données.
 
@@ -80,6 +86,17 @@ avant la réussite du job Pages laisse la publication précédente en place.
 Les deux jobs de test PWA sont automatiques et leurs échecs font échouer le
 pipeline. Seule la publication reste facultative : une CI verte ne signifie
 pas que le nouveau bundle a été publié.
+
+## Mise à jour du projet Pages existant
+
+Le fichier inclus `pages.yml` reste sur `main` du dépôt applicatif. Il prend
+maintenant en charge les tags et télécharge aussi le validateur commun
+`publication.py` au commit demandé. Aucun secret d’exploitation n’est ajouté.
+Une ancienne construction dépourvue de manifeste n’est plus publiable :
+reconstruire avec les scripts actuels. Pour revenir à un ancien code, intégrer
+les outils de construction nécessaires dans un nouveau commit candidat ; ne
+pas falsifier l’identité d’un artefact ancien. Conserver une copie du bundle
+publié hors des artefacts CI si une reprise exacte est nécessaire.
 
 ## Après publication
 
@@ -149,3 +166,17 @@ ce pipeline, en vérifiant son job exact. Le prototype est désormais automatiqu
 avec `allow_failure: false` : sa dépendance CI devient bloquante en cas d'échec.
 Le contrôle du projet destinataire reste une deuxième vérification indépendante.
 Aucun changement du fichier CI du projet Pages n'est nécessaire.
+
+## #SP6 : contrôles et récupération
+
+La promotion vérifie les deux jobs du même commit, les empreintes du candidat,
+les rapports racine/HTTPS et le démarrage du bundle final, puis le rapport
+de qualification. Elle ne dépend pas de la réussite d’un déploiement d’école.
+Les essais terrain restent non bloquants.
+
+Mettre à jour le logiciel et restaurer une école sont distincts. Avant toute
+mise à jour, conserver un ZIP hors appareil. Un ancien logiciel peut ne pas
+lire des données migrées ; le republier ne restaure pas l’école. Vérifier un
+ZIP dans une copie indépendante avant son adoption confirmée. La récupération
+peut contenir un état antérieur aux dernières saisies. Ne pas effacer les
+données du navigateur pour actualiser les ressources.

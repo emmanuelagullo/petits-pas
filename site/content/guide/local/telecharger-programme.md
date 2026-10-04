@@ -10,11 +10,14 @@ depart = "Versions publiées de Petits Pas sur GitHub"
 statut = "disponible"
 +++
 
+## Versions à télécharger
+
+{{< publications >}}
+
 ## Choisir un téléchargement
 
 Ouvrez les [versions de Petits Pas](https://github.com/emmanuelagullo/petits-pas/releases)
-avec la personne qui organise votre essai. La version **0.7** et les versions
-suivantes proposent un installateur Windows. Repérez le fichier adapté à votre
+avec la personne qui organise votre essai. Choisissez une version qui propose un installateur Windows. Repérez le fichier adapté à votre
 ordinateur :
 
 | Votre ordinateur | Fichier à choisir | Que faire ensuite ? |
@@ -42,3 +45,7 @@ Le numéro de la version installée est visible dans Petits Pas. Un fichier
 transmis pour un essai avant publication peut porter une mention « dev » :
 elle aide la personne qui organise l’essai à reconnaître exactement ce
 programme.
+
+Les notes de chaque version présentent les nouveautés, corrections et précautions
+de mise à jour. Une construction réussie dans Actions peut encore attendre sa
+publication : choisissez les fichiers joints à une release.

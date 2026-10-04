@@ -117,7 +117,8 @@ async function login(page) {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.setViewportSize({width: 1280, height: 720});
   await page.locator('#tools').evaluate(node => {node.open = true;});
-  assert.match(await page.locator('#version').innerText(), /pwa-prototype/);
+  const visibleConfig = JSON.parse(fs.readFileSync(path.join(serverRoot, 'config.json')));
+  assert.equal(await page.locator('#version').innerText(), 'Version ' + (visibleConfig.application_version || visibleConfig.version));
   pass('Manifeste et icônes PNG, installation proposée ou refusée, coque mobile sans débordement et version visible');
   const unsupported = await browser.newContext();
   await unsupported.addInitScript(() => Object.defineProperty(navigator, 'locks', {value: undefined}));
@@ -170,7 +171,7 @@ async function login(page) {
     await page.close(); await activated;
     page = await context.newPage(); currentPage = page;
     await boot(page, url); await login(page); frame = page.frameLocator('#app');
-    assert.equal(await python(page, "import os; os.environ['CARNET_VERSION']"), expected);
+    assert.equal(await python(page, "import os; os.environ['CARNET_VERSION']"), JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).application_version || expected);
     assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
     pass('Passage réel de l’ancien bundle ZIP au stockage incrémental après fermeture, base conservée');
   }
@@ -448,7 +449,7 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   await reopened.waitForFunction(() => !!window.pwaTest, null, {timeout: 120000});
   await reopened.frameLocator('#app').locator('h1').waitFor();
   assert.equal(await python(reopened, "from suivi.models import Trace; Trace.objects.get().photo.name"), media.photo);
-  assert.equal(await python(reopened, "import os; os.environ['CARNET_VERSION']"), config.version);
+  assert.equal(await python(reopened, "import os; os.environ['CARNET_VERSION']"), config.application_version || config.version);
   const preserved = await reopened.evaluate(() => new Promise((resolve, reject) => {
     const request = indexedDB.open('petits-pas-pwa-prototype-v1' + (location.pathname === '/' ? '' : '-' + encodeURIComponent(location.pathname)));
     request.onsuccess = () => {const db=request.result; const get=db.transaction('state').objectStore('state').get('active'); get.onsuccess=()=>{resolve(get.result.recovery.version); db.close();}; get.onerror=()=>reject(get.error);};

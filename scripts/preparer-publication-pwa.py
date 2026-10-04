@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZipFile
 
+from publication import TAG, verify
+
 SOURCE = "petits-pas/petits-pas"
 MAX_BYTES = 256 * 1024**2
 MAX_FILES = 5000
@@ -92,20 +94,30 @@ def json_request(url):
         return json.load(response), response.headers
 
 
-def select_job(api, project, pipeline_id, commit):
+def select_job(api, project, pipeline_id, commit, ref="main", tag=None):
     """Ne jamais prendre le dernier artefact de main à la place de ce pipeline."""
     info, _ = json_request(api + "/projects/" + urllib.parse.quote(SOURCE, safe=""))
     if str(info["id"]) != project or info["path_with_namespace"] != SOURCE:
         raise ValueError("Projet source inattendu.")
     base = api + "/projects/" + project
     pipeline, _ = json_request(base + "/pipelines/" + pipeline_id)
-    if pipeline["sha"] != commit or pipeline["ref"] != info["default_branch"]:
+    if tag:
+        if not TAG.fullmatch(tag) or ref != tag:
+            raise ValueError("Tag PWA invalide.")
+        gitlab_tag, _ = json_request(base + "/repository/tags/" + urllib.parse.quote(tag, safe=""))
+        github_tag, _ = json_request("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + urllib.parse.quote(tag, safe=""))
+        if gitlab_tag['commit']['id'] != commit or github_tag['sha'] != commit:
+            raise ValueError("Tag absent ou différent entre les forges.")
+    elif ref != info['default_branch']:
+        raise ValueError("Branche PWA inattendue.")
+    if pipeline["sha"] != commit or pipeline["ref"] != ref:
         raise ValueError("Commit ou branche du pipeline inattendu.")
-    page, matches = "1", []
+    page, matches, qualifications = "1", [], []
     while page:
         jobs, headers = json_request(base + "/pipelines/" + pipeline_id
             + "/jobs?include_retried=false&per_page=100&page=" + page)
         matches.extend(job for job in jobs if job["name"] == "pwa-prototype")
+        qualifications.extend(job for job in jobs if job["name"] == "pwa-qualification")
         page = headers.get("X-Next-Page", "")
     if len(matches) != 1:
         raise ValueError("Job pwa-prototype introuvable ou ambigu dans ce pipeline.")
@@ -113,6 +125,12 @@ def select_job(api, project, pipeline_id, commit):
     if (job["status"] != "success" or job["commit"]["id"] != commit
             or str(job["pipeline"]["id"]) != pipeline_id):
         raise ValueError("pwa-prototype n'a pas réussi pour ce commit : publication refusée.")
+    if len(qualifications) != 1:
+        raise ValueError("Qualification PWA absente ou ambiguë.")
+    qualification = qualifications[0]
+    if qualification['status'] != 'success' or qualification['commit']['id'] != commit or str(qualification['pipeline']['id']) != pipeline_id:
+        raise ValueError("pwa-qualification n'a pas réussi pour ce commit.")
+    job['qualification'] = qualification
     return job, base + "/jobs/" + str(job["id"]) + "/artifacts"
 
 
@@ -140,17 +158,61 @@ def main():
     if (os.environ["PWA_SOURCE_PROJECT"] != SOURCE or not project.isdecimal()
             or not pipeline.isdecimal() or not re.fullmatch(r"[a-f0-9]{40}", commit)):
         raise ValueError("Référence source invalide.")
-    job, url = select_job(os.environ["CI_API_V4_URL"], project, pipeline, commit)
+    ref = os.environ.get('PWA_SOURCE_REF', 'main')
+    tag = os.environ.get('PWA_SOURCE_TAG') or None
+    job, url = select_job(os.environ["CI_API_V4_URL"], project, pipeline, commit, ref, tag)
     with tempfile.TemporaryDirectory(prefix="publication-pwa-") as temp:
         parent = Path(temp)
         archive = parent / "artefact.zip"
         download(url, archive)
         root, config, report_hash = extract_bundle(archive, parent)
+        # Les métadonnées du candidat sont hors du bundle pour éviter l'auto-hachage.
+        with ZipFile(archive) as zipped:
+            for name in ['dist/publication-pwa-candidat.json', 'dist/pwa-config.json',
+                         'dist/resultats-distribution-pwa.json', 'dist/notes-version.md',
+                         'resultats-pwa.json', 'resultats-pwa-sous-chemin.json']:
+                info = zipped.getinfo(name)
+                if info.file_size > 10 * 1024**2:
+                    raise ValueError('Rapport trop volumineux.')
+                (parent / Path(name).name).write_bytes(zipped.read(info))
+        candidate = json.loads((parent / 'publication-pwa-candidat.json').read_text())
+        expected = {'pwa-config.json', 'resultats-distribution-pwa.json', 'notes-version.md',
+                    'resultats-pwa.json', 'resultats-pwa-sous-chemin.json'}
+        if verify(candidate, parent, commit, tag, 'navigateur', 'navigateur') != expected:
+            raise ValueError('Fichiers du candidat PWA inattendus.')
+        if candidate.get('tag') != tag or candidate.get('application_version') != config.get('application_version'):
+            raise ValueError('Version du candidat différente du bundle.')
+        if candidate['ci']['provider'] != 'gitlab' or str(candidate['ci']['run']) != pipeline or str(candidate['ci']['job']) != str(job['id']):
+            raise ValueError('Candidat issu d’un autre job.')
+        if (parent / 'pwa-config.json').read_bytes() != (root / 'config.json').read_bytes() or config.get('commit') != commit or config.get('tag') != tag:
+            raise ValueError('Identité du bundle différente du candidat.')
+        for name in ['resultats-pwa.json', 'resultats-pwa-sous-chemin.json', 'resultats-distribution-pwa.json']:
+            checks = json.loads((parent / name).read_text())
+            if not isinstance(checks, list) or not checks or any(not check.get('test') for check in checks):
+                raise ValueError('Rapport de contrôle absent ou invalide.')
+        qualification_archive = parent / 'qualification.zip'
+        qualification_url = url.replace('/jobs/' + str(job['id']) + '/', '/jobs/' + str(job['qualification']['id']) + '/')
+        download(qualification_url, qualification_archive)
+        with ZipFile(qualification_archive) as zipped:
+            info = zipped.getinfo('dist/qualification-pwa.json')
+            if info.file_size > 10 * 1024**2:
+                raise ValueError('Qualification trop volumineuse.')
+            qualification = zipped.read(info)
+        if json.loads(qualification).get('status') != 'passed':
+            raise ValueError('Rapport de qualification en échec.')
+        # Publier les rapports à côté des ressources, sans les incorporer au cache.
         shutil.copytree(root, args.destination)
+        reports = args.destination / 'publication'; reports.mkdir()
+        for name in ['publication-pwa-candidat.json', *sorted(expected)]:
+            shutil.copyfile(parent / name, reports / name)
+        (reports / 'qualification-pwa.json').write_bytes(qualification)
+        qualification_hash = hashlib.sha256(qualification).hexdigest()
     record = {"source_project": SOURCE, "pipeline_id": pipeline, "job_id": job["id"],
-        "commit": commit, "version": config["version"], "tests_sha256": report_hash,
+        "commit": commit, "tag": tag, "application_version": config["application_version"], "version": config["version"],
+        "qualification_job_id": job["qualification"]["id"], "qualification_sha256": qualification_hash, "tests_sha256": report_hash,
         "url": args.pages_url, "prepared_at": datetime.now(timezone.utc).isoformat()}
     Path("publication-pwa.json").write_text(json.dumps(record, indent=2) + "\n")
+    (args.destination / 'publication.json').write_text(json.dumps(record, indent=2) + '\n')
     print("Bundle vérifié et prêt pour Pages :", config["version"], args.pages_url)
 
 

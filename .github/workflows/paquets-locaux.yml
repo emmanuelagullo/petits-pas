@@ -14,6 +14,7 @@ on:
       - suivi/**
       - referentiel/**
       - site/data/demonstration.yaml
+      - CHANGELOG.org
 
 permissions:
   contents: read
@@ -34,11 +35,18 @@ jobs:
           update: true
           install: mingw-w64-ucrt-x86_64-pango
       - name: Tester les données autonomes
+        shell: pwsh
         run: |
           python -m unittest discover -s scripts -p test_paquet_local.py
+          if ($LASTEXITCODE -ne 0) { throw "Échec des tests paquet_local" }
           python -m unittest discover -s scripts -p test_essai_local.py
+          if ($LASTEXITCODE -ne 0) { throw "Échec des tests essai_local" }
           python -m unittest discover -s scripts -p test_ecole_fictive.py
+          if ($LASTEXITCODE -ne 0) { throw "Échec des tests ecole_fictive" }
           python -m unittest discover -s scripts -p test_apercu_local.py
+          if ($LASTEXITCODE -ne 0) { throw "Échec des tests apercu_local" }
+          python -m unittest discover -s scripts -p test_manifestes_publication.py
+          if ($LASTEXITCODE -ne 0) { throw "Échec des tests de publication" }
       - name: Construire et contrôler
         shell: pwsh
         env:
@@ -97,18 +105,27 @@ jobs:
           $desinstallation = Start-Process -FilePath $uninstall -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
           if ($desinstallation.ExitCode -ne 0) { throw "Désinstallation du setup Windows impossible (code $($desinstallation.ExitCode))." }
           if (Test-Path $exe) { throw 'Le programme est encore présent après désinstallation.' }
+      - name: Préparer le manifeste Windows
+        shell: pwsh
+        run: |
+          $version = (Get-Content version-application.txt -Raw).Trim()
+          python scripts/manifeste-publication.py --mode programme --target windows-x64 --destination dist/publication-windows.json dist/PetitsPas-windows.zip "dist/PetitsPas-Setup-$version-x64.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'Manifeste Windows invalide.' }
       - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-windows
-          path: dist/PetitsPas-windows.zip
+          path: |
+            dist/PetitsPas-windows.zip
+            dist/publication-windows.json
+            dist/notes-version.md
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
       - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-Setup-windows
           path: dist/PetitsPas-Setup-*-x64.exe
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30
 
   linux:
     runs-on: ubuntu-24.04
@@ -128,10 +145,16 @@ jobs:
           /usr/bin/python3 -m unittest discover -s scripts -p test_essai_local.py
           /usr/bin/python3 -m unittest discover -s scripts -p test_ecole_fictive.py
           /usr/bin/python3 -m unittest discover -s scripts -p test_apercu_local.py
+          /usr/bin/python3 -m unittest discover -s scripts -p test_manifestes_publication.py
           PATH="/usr/bin:$PATH" bash scripts/construire-paquet-linux.sh
+      - name: Préparer le manifeste Linux
+        run: /usr/bin/python3 scripts/manifeste-publication.py --mode programme --target linux-ubuntu24.04-x86_64 --destination dist/publication-linux.json dist/PetitsPas-linux.tar.gz
       - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-linux
-          path: dist/PetitsPas-linux.tar.gz
+          path: |
+            dist/PetitsPas-linux.tar.gz
+            dist/publication-linux.json
+            dist/notes-version.md
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 30

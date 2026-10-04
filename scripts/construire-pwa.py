@@ -3,6 +3,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
+import html
 import json
 from pathlib import Path
 import shutil
@@ -15,6 +16,8 @@ import ssl
 import tempfile
 import time
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
+
+from publication import identity, release_notes
 
 ROOT = Path(__file__).resolve().parent.parent
 PYODIDE = "0.28.3"
@@ -132,7 +135,12 @@ def main():
         shutil.copyfile(ROOT / "pwa" / name, output / name)
     for folder in [ROOT / "referentiel/static", ROOT / "suivi/static"]:
         shutil.copytree(folder, output / "static", dirs_exist_ok=True)
+    source = identity()
+    notes = release_notes(source['tag'])
+    (output / "notes-version.md").write_text(notes, encoding='utf-8')
+    (output / "nouveautes.html").write_text('<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nouveautés de Petits Pas</title><style>body{font:1rem system-ui;max-width:52rem;margin:2rem auto;padding:0 1rem;color:#234}pre{white-space:pre-wrap;font:inherit;line-height:1.6}</style><h1>Nouveautés de Petits Pas</h1><p>Version ' + html.escape(source['application_version']) + '</p><pre>' + html.escape(notes) + '</pre></html>', encoding='utf-8')
     build = hashlib.sha256()
+    build.update(json.dumps(source, sort_keys=True).encode())
     # Une version de test ne doit jamais partager le cache de la distribution.
     build.update(b"test=1" if args.test else b"test=0")
     for path in sorted(output.rglob("*")):
@@ -144,7 +152,7 @@ def main():
     assets = [{"url": "/" + path.relative_to(output).as_posix(),
                "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
               for path in sorted(output.rglob("*")) if path.is_file() and path.name != "config.json"]
-    config = {"version": version, "pyodide": PYODIDE, "testMode": args.test,
+    config = {**source, "version": version, "pyodide": PYODIDE, "testMode": args.test,
               "wheels": sorted(path.name for path in wheels.glob("*.whl")), "assets": assets}
     (output / "config.json").write_text(json.dumps(config, indent=2) + "\n")
     print(f"Prototype construit : {output} ({version}, {sum(p.stat().st_size for p in output.rglob('*') if p.is_file()) / 1024**2:.1f} Mio non compressés)")

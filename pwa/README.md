@@ -343,3 +343,12 @@ La copie utilise ses comptes et les sessions du ZIP sont effacées avant ouvertu
 L’impression, les modifications et l’export restent possibles avec les droits
 habituels. Le retour ne restaure rien ; l’adoption passe par un export et la
 restauration explicitement confirmée dans l’espace habituel.
+
+## Versions et publication (#SP6)
+
+La version applicative (tag commun ou `dev.<commit>`) est distincte de
+l’empreinte technique du bundle, conservée pour les caches. Les nouveautés
+embarquées sont celles de `CHANGELOG.org` au commit construit. La publication
+reste manuelle après réussite du prototype et de la qualification CI ;
+voir [PUBLICATION.md](PUBLICATION.md). Les programmes restent publiés sur
+GitHub par la commande CLI, indépendamment de GitLab Pages.

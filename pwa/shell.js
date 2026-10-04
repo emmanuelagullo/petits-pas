@@ -186,7 +186,9 @@ try {
     ready = true;
     showVolume(initial.durability);
     const config = await (await fetch('./config.json')).json();
-    document.querySelector('#version').textContent = 'Version ' + config.version;
+    document.querySelector('#version').textContent = 'Version ' + (config.application_version || config.version);
+    document.querySelector('#details-version').textContent = config.version + ' — ' + (config.commit || '');
+    document.querySelector('#nouveautes').href = './nouveautes.html';
     document.querySelector('#backup').disabled = false;
     if (config.testMode) {
       window.pwaTest = rpc;

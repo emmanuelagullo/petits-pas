@@ -115,3 +115,14 @@ Le script utilise une base temporaire et le même scénario que Render ; il ne
 lit jamais la base du développeur. Le job de captures transmet le ZIP et sa
 notice à Hugo, avec les captures. Ces fichiers générés sont ignorés par Git.
 La page Essayer distingue les versions publiées des nouvelles fonctions locales.
+
+## Versions proposées au téléchargement (#SP6)
+
+`site/data/publications.yaml` conserve les dernières versions publiées connues.
+Le job de captures lit les releases GitHub publiques avec
+`scripts/preparer-publications-site.py` et transmet le catalogue généré aux
+constructions Hugo. Les artefacts CI, brouillons et téléchargements absents
+restent exclus. Une lecture indisponible conserve le catalogue connu ;
+la date affichée précise l’observation. Après une release GitHub, relancer
+les captures et la construction du site pour actualiser la liste. La PWA
+garde son lien stable ; sa version et ses notes se lisent dans son aide.

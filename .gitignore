@@ -30,3 +30,6 @@ site/.hugo_build.lock
 # École fictive générée, jamais une base utilisateur.
 referentiel/demo/
 site/static/essais/
+
+# Catalogue de releases publiques observé en CI, hors sources.
+/site/data/publications_generees.json
