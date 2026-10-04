@@ -378,3 +378,21 @@ class DoubleFacteurCompte(models.Model):
     @property
     def inscrit(self):
         return bool(self.cle_chiffree) and self.confirme_le is not None
+
+
+class CodeSecoursDoubleFacteur(models.Model):
+    """Code de secours à usage unique, conservé sous forme d'empreinte seule."""
+
+    utilisateur = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="codes_secours"
+    )
+    empreinte = models.CharField(max_length=64)
+    utilise_le = models.DateTimeField(null=True, blank=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["utilisateur", "empreinte"],
+                name="code_secours_unique_par_compte"),
+        ]

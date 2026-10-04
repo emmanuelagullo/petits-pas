@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 
 from . import totp
-from .models import DoubleFacteurCompte
+from .models import CodeSecoursDoubleFacteur, DoubleFacteurCompte
 
 DEPENDANCES = all(find_spec(n) is not None for n in ("cryptography", "qrcode", "django_otp"))
 
@@ -160,3 +160,94 @@ class Totp(TestCase):
         totp.retirer(self.utilisateur)
         self.assertFalse(totp.est_inscrit(self.utilisateur))
         self.assertFalse(DoubleFacteurCompte.objects.exists())
+
+    # --- Codes de secours -------------------------------------------------
+
+    def test_dix_codes_distincts_au_bon_format(self):
+        self._inscrit()
+        codes = totp.generer_codes_secours(self.utilisateur)
+        self.assertEqual(len(codes), 10)
+        self.assertEqual(len(set(codes)), 10)
+        for code in codes:
+            self.assertRegex(code, r"^[A-HJ-NP-Z2-9]{4}(-[A-HJ-NP-Z2-9]{4}){3}$")
+        self.assertEqual(totp.codes_secours_restants(self.utilisateur), 10)
+
+    def test_seules_les_empreintes_sont_conservees(self):
+        self._inscrit()
+        codes = totp.generer_codes_secours(self.utilisateur)
+        stocke = " ".join(CodeSecoursDoubleFacteur.objects.values_list("empreinte", flat=True))
+        for code in codes:
+            self.assertNotIn(code.replace("-", ""), stocke)
+            self.assertNotIn(code, stocke)
+        self.assertTrue(all(len(e) == 64 for e in CodeSecoursDoubleFacteur.objects.values_list("empreinte", flat=True)))
+
+    def test_un_code_de_secours_ne_sert_qu_une_fois(self):
+        self._inscrit()
+        code = totp.generer_codes_secours(self.utilisateur)[0]
+        self.assertTrue(totp.utiliser_code_secours(self.utilisateur, code))
+        self.assertFalse(totp.utiliser_code_secours(self.utilisateur, code))
+        self.assertEqual(totp.codes_secours_restants(self.utilisateur), 9)
+
+    def test_la_saisie_est_tolerante_sur_la_casse_les_espaces_et_les_tirets(self):
+        self._inscrit()
+        codes = totp.generer_codes_secours(self.utilisateur)
+        brut = codes[0].replace("-", "").lower()
+        self.assertTrue(totp.utiliser_code_secours(self.utilisateur, f" {brut[:8]} {brut[8:]} "))
+        self.assertTrue(totp.utiliser_code_secours(self.utilisateur, codes[1].replace("-", " ")))
+
+    def test_codes_invalides_refuses(self):
+        self._inscrit()
+        code = totp.generer_codes_secours(self.utilisateur)[0]
+        for saisie in ("", None, "123456", code[:-1], code + "A", "I" * 16, "0" * 16, "AAAA-AAAA-AAAA-AAAA"):
+            with self.subTest(saisie):
+                self.assertFalse(totp.utiliser_code_secours(self.utilisateur, saisie))
+        self.assertEqual(totp.codes_secours_restants(self.utilisateur), 10)
+
+    def test_les_codes_d_un_compte_ne_servent_pas_a_un_autre(self):
+        self._inscrit()
+        code = totp.generer_codes_secours(self.utilisateur)[0]
+        autre = get_user_model().objects.create_user("autre", password="x" * 14)
+        compte = totp.commencer_inscription(autre)
+        DoubleFacteurCompte.objects.filter(pk=compte.pk).update(confirme_le=compte.cree_le)
+        self.assertFalse(totp.utiliser_code_secours(autre, code))
+        self.assertTrue(totp.utiliser_code_secours(self.utilisateur, code))
+
+    def test_regenerer_invalide_les_anciens_codes(self):
+        self._inscrit()
+        anciens = totp.generer_codes_secours(self.utilisateur)
+        nouveaux = totp.generer_codes_secours(self.utilisateur)
+        self.assertFalse(set(anciens) & set(nouveaux))
+        self.assertFalse(totp.utiliser_code_secours(self.utilisateur, anciens[0]))
+        self.assertTrue(totp.utiliser_code_secours(self.utilisateur, nouveaux[0]))
+        self.assertEqual(CodeSecoursDoubleFacteur.objects.filter(utilisateur=self.utilisateur).count(), 10)
+
+    def test_pas_de_codes_sans_second_facteur_confirme(self):
+        with self.assertRaises(ValidationError):
+            totp.generer_codes_secours(self.utilisateur)
+        totp.commencer_inscription(self.utilisateur)
+        with self.assertRaises(ValidationError):
+            totp.generer_codes_secours(self.utilisateur)
+
+    def test_un_code_n_est_pas_utilisable_sans_inscription(self):
+        self._inscrit()
+        code = totp.generer_codes_secours(self.utilisateur)[0]
+        DoubleFacteurCompte.objects.filter(utilisateur=self.utilisateur).update(confirme_le=None)
+        self.assertFalse(totp.utiliser_code_secours(self.utilisateur, code))
+
+    def test_retirer_supprime_aussi_les_codes(self):
+        self._inscrit()
+        totp.generer_codes_secours(self.utilisateur)
+        totp.retirer(self.utilisateur)
+        self.assertFalse(CodeSecoursDoubleFacteur.objects.exists())
+
+    def test_reinitialiser_efface_cle_et_codes_mais_garde_la_ligne(self):
+        self._inscrit()
+        totp.generer_codes_secours(self.utilisateur)
+        DoubleFacteurCompte.objects.filter(utilisateur=self.utilisateur).update(dernier_pas=99)
+        totp.reinitialiser(self.utilisateur)
+        compte = DoubleFacteurCompte.objects.get(utilisateur=self.utilisateur)
+        self.assertEqual((compte.cle_chiffree, compte.confirme_le, compte.dernier_pas), ("", None, 0))
+        self.assertFalse(totp.est_inscrit(self.utilisateur))
+        self.assertFalse(CodeSecoursDoubleFacteur.objects.exists())
+        # Une nouvelle inscription repart d'une clé neuve.
+        self.assertTrue(totp.cle_en_cours(totp.commencer_inscription(self.utilisateur)))

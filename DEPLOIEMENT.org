@@ -262,13 +262,12 @@ sur l’adresse directe.
 
 * Authentification à deux facteurs (2FA)
 
-*Série #C8 en cours de livraison.* Le second facteur par code temporaire (TOTP)
-est en place ; les codes de secours et la réinitialisation par la direction ou
-par commande (=#C8d=), puis les écrans de la direction pour la politique de
-l'école (=#C8e=), ne le sont pas encore. *Tant que =#C8d= n'est pas livré, ne
-rendez pas le 2FA obligatoire en production* : une personne qui perd son
-téléphone n'a aucun autre recours qu'une intervention directe sur la base
-(supprimer sa ligne =DoubleFacteurCompte= depuis =manage.py shell=).
+*Série #C8 en cours de livraison.* Le second facteur par code temporaire
+(TOTP), les codes de secours et la réinitialisation sont en place. Reste
+=#C8e= : l'écran de la direction pour fixer la politique de son école (en
+attendant, seul le déployeur la fixe, par les variables ci-dessous). Avant de
+rendre le 2FA obligatoire, vérifiez que quelqu'un sait réinitialiser un compte
+(voir « Perte du téléphone » plus bas).
 
 *Activation.* La fonction est absente tant que trois conditions ne sont pas
 réunies ; absente, elle ne change rien pour personne :
@@ -322,6 +321,24 @@ compteur en mémoire de processus, non partagé entre workers (comme pour
 =CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE=, plus haut). L'adresse
 retenue est celle de =CARNET_PROXYS_NB=. Une personne qui réinitialise son mot
 de passe garde son second facteur : le code reste demandé à la connexion.
+
+*Perte du téléphone.* Trois recours, du plus simple au plus lourd :
+1. un des dix *codes de secours* remis à l'inscription (à usage unique, à
+   conserver en lieu sûr) ; la personne en génère de nouveaux ensuite depuis
+   « Mon compte » ;
+2. la *direction* de l'école réinitialise le second facteur d'un membre de
+   rang inférieur depuis l'écran d'équipe (jamais celui d'une direction) ;
+3. le *déployeur*, pour tout compte, y compris une direction :
+   #+begin_src shell
+   python manage.py reinitialiser_double_facteur --utilisateur nom.du.compte \
+       --operateur compte.technique --motif "téléphone perdu"
+   #+end_src
+   L'opérateur est un compte technique actif (=is_staff=). L'opération est
+   journalisée dans chaque école du compte.
+Une réinitialisation efface la clé et les codes, *jamais l'obligation* : si
+elle s'applique encore, la personne doit se réinscrire dès sa connexion
+suivante, sans nouveau délai de grâce. Elle ne ferme pas les sessions déjà
+ouvertes du compte.
 
 * Points d’attention pour un déploiement déjà en service
 

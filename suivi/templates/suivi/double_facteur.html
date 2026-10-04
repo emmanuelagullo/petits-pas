@@ -7,10 +7,31 @@
   <p>Trop de tentatives. Réessayez plus tard.</p>
   <p><a href="{% url 'mon_compte' %}">Retour à mon compte</a></p>
 </div>
+{% elif codes_secours %}
+{% if inscription_terminee %}<p class="sous-titre">Le second facteur est configuré.</p>{% endif %}
+<div class="encadre">
+  <h2>Vos codes de secours</h2>
+  <p>Si vous perdez votre téléphone, chacun de ces codes permet de vous connecter <strong>une seule fois</strong>. Notez-les maintenant dans un endroit sûr : ils ne seront <strong>plus jamais affichés</strong>. Les générer de nouveau invalide ceux-ci.</p>
+  <ul class="codes-secours">
+    {% for code in codes_secours %}<li><code>{{ code }}</code></li>{% endfor %}
+  </ul>
+</div>
+<p><a class="bouton" href="{% url 'mon_compte' %}">J'ai noté mes codes</a></p>
 {% elif inscrit %}
 <p>Un second facteur est configuré : une application d'authentification fournit un code à chaque connexion.</p>
+<div class="encadre">
+  <h2>Codes de secours</h2>
+  <p>{% if codes_restants %}Il vous reste {{ codes_restants }} code{{ codes_restants|pluralize }} de secours.{% else %}Vous n'avez plus aucun code de secours.{% endif %}</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="regenerer_codes">
+    <label for="code_regeneration">Pour en générer de nouveaux (les anciens seront invalidés), saisissez un code actuel de l'application</label>
+    <input type="text" id="code_regeneration" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" required>
+    <div class="actions"><button class="bouton" type="submit">Générer de nouveaux codes</button></div>
+  </form>
+</div>
 {% if obligatoire %}
-<p class="aide">Il est obligatoire pour votre fonction : vous ne pouvez pas le retirer.</p>
+<p class="aide">Le second facteur est obligatoire pour votre fonction : vous ne pouvez pas le retirer.</p>
 {% else %}
 <form method="post" class="encadre">
   {% csrf_token %}

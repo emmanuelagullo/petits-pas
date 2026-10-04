@@ -50,6 +50,7 @@ from django.views.decorators.http import require_safe
 from comptes.models import (
     AffectationClasse,
     AppartenanceEcole,
+    DoubleFacteurCompte,
     Invitation,
     ResponsabiliteEcole,
     Utilisateur,
@@ -62,6 +63,9 @@ from .acces_double_facteur import (
     verification_requise_a_la_connexion,
 )
 from .double_facteur import Exigence, exigence_double_facteur
+from .services.double_facteur import (
+    journaliser_securite_compte, refus_reinitialisation, reinitialiser_par_la_direction,
+)
 from .autorisations import (
     ACCEDER_APPLICATION,
     ADMINISTRER_ECOLE,
@@ -317,10 +321,23 @@ def connexion_verification(request):
             request.session.pop(SESSION_ATTENTE, None)
             return render(request, "suivi/connexion_verification.html",
                           {"trop_de_tentatives": True}, status=429)
-        if totp.verifier_code(utilisateur, request.POST.get("code", "")):
+        saisie = request.POST.get("code", "")
+        secours = False
+        verifie = totp.verifier_code(utilisateur, saisie)
+        if not verifie and totp.normaliser_code_secours(saisie):
+            verifie = secours = totp.utiliser_code_secours(utilisateur, saisie)
+        if verifie:
             request.session.pop(SESSION_ATTENTE, None)
             login(request, utilisateur, backend=attente["backend"])
             request.session[SESSION_VERIFIE] = True
+            if secours:
+                journaliser_securite_compte(utilisateur, utilisateur, "securite.code_secours_utilise")
+                restants = totp.codes_secours_restants(utilisateur)
+                messages.warning(
+                    request,
+                    f"Un code de secours a été utilisé. Il vous en reste {restants}."
+                    + (" Générez-en de nouveaux depuis « Mon compte »." if restants <= 2 else ""),
+                )
             return _suite_connexion(request, utilisateur, utilisateur.get_username())
         logger.warning(
             "Échec du second facteur pour le compte %s depuis %s",
@@ -341,12 +358,21 @@ def double_facteur(request):
     if exigence == Exigence.DESACTIVEE and not inscrit:
         raise Http404
     contexte = {"inscrit": inscrit, "obligatoire": exigence == Exigence.OBLIGATOIRE}
+    if inscrit:
+        contexte["codes_restants"] = totp.codes_secours_restants(request.user)
     if request.method == "POST":
         if _trop_de_tentatives_double_facteur_connecte(request):
             return render(request, "suivi/double_facteur.html",
                           {**contexte, "trop_de_tentatives": True}, status=429)
         code = request.POST.get("code", "")
-        if inscrit and request.POST.get("action") == "retirer":
+        if inscrit and request.POST.get("action") == "regenerer_codes":
+            if totp.verifier_code(request.user, code):
+                codes = totp.generer_codes_secours(request.user)
+                journaliser_securite_compte(request.user, request.user, "securite.codes_secours_regeneres")
+                return render(request, "suivi/double_facteur.html",
+                              {**contexte, "codes_secours": codes, "codes_restants": len(codes)})
+            messages.error(request, "Code incorrect ou expiré.")
+        elif inscrit and request.POST.get("action") == "retirer":
             if exigence == Exigence.OBLIGATOIRE:
                 messages.error(request, "Le second facteur est obligatoire pour votre fonction.")
             elif totp.verifier_code(request.user, code):
@@ -359,8 +385,12 @@ def double_facteur(request):
         elif not inscrit:
             if totp.confirmer_inscription(request.user, code):
                 request.session[SESSION_VERIFIE] = True
-                messages.success(request, "Le second facteur est configuré.")
-                return redirect("mon_compte")
+                codes = totp.generer_codes_secours(request.user)
+                # Affichés une seule fois, dans cette réponse : jamais conservés en clair.
+                return render(request, "suivi/double_facteur.html",
+                              {"inscrit": True, "obligatoire": exigence == Exigence.OBLIGATOIRE,
+                               "codes_secours": codes, "codes_restants": len(codes),
+                               "inscription_terminee": True})
             messages.error(request, "Code incorrect ou expiré. Vérifiez l'heure de votre téléphone.")
     if not inscrit:
         compte = totp.commencer_inscription(request.user)
@@ -2271,6 +2301,16 @@ def equipe_ecole(request):
                         "l’envoi de l’e-mail a échoué. Copiez le lien "
                         "affiché ci-dessous et transmettez-le vous-même.",
                     )
+            elif action == "reinitialiser_double_facteur":
+                membre = get_object_or_404(
+                    AppartenanceEcole, pk=request.POST.get("appartenance"), ecole=ecole)
+                reinitialiser_par_la_direction(
+                    acteur=request.user, cible=membre.utilisateur, ecole=ecole)
+                messages.success(
+                    request,
+                    "Le second facteur de cette personne a été réinitialisé. Elle devra "
+                    "le configurer de nouveau à sa prochaine connexion.",
+                )
             elif action == "revoquer_invitation":
                 revoquer_invitation(
                     utilisateur=request.user,
@@ -2366,6 +2406,16 @@ def equipe_ecole(request):
         )
     )
     aujourd_hui = timezone.localdate()
+    if settings.DOUBLE_FACTEUR_DISPONIBLE:
+        inscrits = set(DoubleFacteurCompte.objects.filter(
+            utilisateur__in=[a.utilisateur_id for a in appartenances],
+            confirme_le__isnull=False).values_list("utilisateur_id", flat=True))
+        for appartenance in appartenances:
+            appartenance.double_facteur_reinitialisable = (
+                appartenance.utilisateur_id in inscrits
+                and appartenance.est_active(aujourd_hui)
+                and refus_reinitialisation(request.user, appartenance.utilisateur, ecole) is None
+            )
     membres_affectables = [
         appartenance
         for appartenance in appartenances
