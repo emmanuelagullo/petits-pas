@@ -115,9 +115,10 @@ démarrage ne constitue pas un contrôle des sauvegardes.
 - =CARNET_PROXYS_NB= : nombre de reverse-proxys de confiance devant
   l’application (0 par défaut) ; voir « Adresse IP des clients derrière un
   reverse-proxy » ;
-- =CARNET_2FA_OBLIGATOIRE= et =CARNET_2FA_DESACTIVE_POUR= : politique de 2FA du
-  déployeur, sans effet avant =#C8c= ; voir « Authentification à deux facteurs :
-  politique du déployeur » ;
+- =CARNET_2FA_CLE=, =CARNET_2FA_OBLIGATOIRE=, =CARNET_2FA_DESACTIVE_POUR=,
+  =CARNET_2FA_DELAI_GRACE_JOURS=, =CARNET_RATELIMIT_DOUBLE_FACTEUR= et
+  =CARNET_RATELIMIT_DOUBLE_FACTEUR_IP= : voir « Authentification à deux
+  facteurs (2FA) » ;
 - =CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE= (=5/h= par défaut) et
   =CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE= (=10/h= par défaut) : plafonds
   des demandes de réinitialisation (par adresse IP) et des changements de mot
@@ -259,29 +260,68 @@ sur l’adresse directe.
 3. refaire l’essai en ajoutant à la requête un en-tête =X-Forwarded-For=
    forgé : l’adresse forgée ne doit jamais apparaître dans le journal.
 
-* Authentification à deux facteurs : politique du déployeur
+* Authentification à deux facteurs (2FA)
 
-*Pas encore appliquée.* Les deux variables ci-dessous sont lues et validées au
-démarrage, et la politique effective est calculée (=AUDIT-AUTHENTIFICATION-INVITATIONS.org=,
-§ 6.7), mais aucune vérification de second facteur n'existe encore : les régler
-ne change rien pour les utilisateurs avant la livraison de =#C8c=.
+*Série #C8 en cours de livraison.* Le second facteur par code temporaire (TOTP)
+est en place ; les codes de secours et la réinitialisation par la direction ou
+par commande (=#C8d=), puis les écrans de la direction pour la politique de
+l'école (=#C8e=), ne le sont pas encore. *Tant que =#C8d= n'est pas livré, ne
+rendez pas le 2FA obligatoire en production* : une personne qui perd son
+téléphone n'a aucun autre recours qu'une intervention directe sur la base
+(supprimer sa ligne =DoubleFacteurCompte= depuis =manage.py shell=).
 
-Le déployeur est le niveau le plus haut de la hiérarchie : les écoles ne
-peuvent ni baisser une obligation qu'il pose, ni rouvrir ce qu'il désactive.
+*Activation.* La fonction est absente tant que trois conditions ne sont pas
+réunies ; absente, elle ne change rien pour personne :
+1. installer les dépendances facultatives : =pip install -r requirements-2fa.txt= ;
+2. renseigner =CARNET_2FA_CLE= (voir ci-dessous) ;
+3. ne pas être en =CARNET_MODE_LOCAL=oui= (fonction indisponible dans ce mode).
+Demander le 2FA (=CARNET_2FA_CLE= ou =CARNET_2FA_OBLIGATOIRE=) sans ses
+dépendances, ou rendre le 2FA obligatoire sans clé, *empêche le démarrage*
+avec un message explicite, comme pour un backend Anymail sans son paquet.
 
-- =CARNET_2FA_OBLIGATOIRE= : le 2FA sera exigé jusqu'à cette fonction incluse,
+*Clé de chiffrement.* Le secret de chaque compte est chiffré en base (Fernet)
+avec une clé propre au déploiement, jamais dérivée de =CARNET_SECRET_KEY= :
+#+begin_src shell
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+#+end_src
+La valeur va dans =CARNET_2FA_CLE=, et dans votre gestionnaire de secrets :
+*perdue ou remplacée sans précaution, elle rend illisibles tous les secrets
+déjà enregistrés* (plus personne ne peut se connecter avec un second facteur).
+Pour la faire tourner, ajoutez la nouvelle clé *en premier* et gardez
+l'ancienne à la suite, séparées par une virgule : la première chiffre, toutes
+déchiffrent. Retirez l'ancienne quand plus rien n'en dépend.
+
+*Politique du déployeur.* Le déployeur est le niveau le plus haut de la
+hiérarchie : les écoles ne peuvent ni baisser une obligation qu'il pose, ni
+rouvrir ce qu'il désactive.
+- =CARNET_2FA_OBLIGATOIRE= : le 2FA est exigé jusqu'à cette fonction incluse,
   dans l'ordre =direction=, =responsable= (de classe), =associe= (enseignant
   associé), =contributeur=, =sans_fonction= (alias =tous=). Absente ou =aucun= :
   aucune obligation.
-- =CARNET_2FA_DESACTIVE_POUR= : le 2FA sera retiré à partir de cette fonction
+- =CARNET_2FA_DESACTIVE_POUR= : le 2FA est retiré à partir de cette fonction
   et pour les suivantes. Absente ou =jamais= : jamais désactivé.
 - Entre les deux, il est optionnel. Une même fonction ne peut pas être à la
   fois obligatoire et désactivée.
 - Une valeur non reconnue (par exemple une faute de frappe) *empêche le
   démarrage* avec un message explicite : mieux vaut s'en apercevoir que de
-  perdre une obligation sans bruit. Absentes, les variables ne changent rien.
-- Avec =CARNET_MODE_LOCAL=oui=, la fonction est indisponible quelles que soient
-  ces variables.
+  perdre une obligation sans bruit.
+- =CARNET_2FA_DELAI_GRACE_JOURS= (14 par défaut, de 0 à 90) : délai laissé à une
+  personne devenue soumise à l'obligation pour s'inscrire, compté à partir du
+  premier accès où l'obligation est constatée, avec un rappel à l'écran. Passé
+  ce délai, elle ne peut plus que configurer son second facteur ou se
+  déconnecter. 0 : application immédiate. Un compte créé par invitation et déjà
+  soumis à l'obligation s'inscrit dès sa première connexion, sans délai.
+
+*Au quotidien.* Une personne inscrite ne reçoit aucune session sans avoir
+saisi son code (tolérance d'un pas de 30 secondes, un code ne sert qu'une
+fois) ; si l'horloge de son téléphone dérive de plus d'une minute, ses codes
+sont refusés. Les saisies de code sont plafonnées par compte et par adresse :
+=CARNET_RATELIMIT_DOUBLE_FACTEUR= (=5/15m= par défaut) et
+=CARNET_RATELIMIT_DOUBLE_FACTEUR_IP= (=30/15m=), avec les limites habituelles du
+compteur en mémoire de processus, non partagé entre workers (comme pour
+=CARNET_RATELIMIT_MOT_DE_PASSE_OUBLIE=, plus haut). L'adresse
+retenue est celle de =CARNET_PROXYS_NB=. Une personne qui réinitialise son mot
+de passe garde son second facteur : le code reste demandé à la connexion.
 
 * Points d’attention pour un déploiement déjà en service
 

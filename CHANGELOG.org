@@ -41,6 +41,15 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   journal, rang de chaque compte par école et exigence effective
   (obligatoire, optionnelle ou désactivée). Aucun second facteur n'est encore
   demandé : voir =DEPLOIEMENT.org=.
+- Authentification à deux facteurs par code temporaire (TOTP), facultative :
+  absente tant que =requirements-2fa.txt= n'est pas installé et que
+  =CARNET_2FA_CLE= est vide. Clé secrète chiffrée en base, code à la connexion
+  sans session ouverte avant le second facteur, un code ne servant qu'une
+  fois, saisies plafonnées par compte et par adresse, inscription et retrait
+  depuis « Mon compte », délai de grâce (=CARNET_2FA_DELAI_GRACE_JOURS=) avant
+  blocage d'un compte soumis à l'obligation. Les codes de secours et la
+  réinitialisation arrivent avec =#C8d= : ne pas rendre le 2FA obligatoire en
+  production avant. Voir =DEPLOIEMENT.org=.
 - Envoi de courriel désormais facultatif : SMTP fonctionne sans
   =django-anymail=, disponible comme extension, et le mode sans courriel doit
   être choisi explicitement pour un déploiement persistant.

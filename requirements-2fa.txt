@@ -1,0 +1,7 @@
+# Extension facultative pour l'authentification à deux facteurs (TOTP).
+# django-otp ne sert qu'au calcul des codes (django_otp.oath) ; cryptography
+# chiffre la clé secrète en base ; qrcode dessine le code à scanner.
+# Absente, la fonction reste indisponible : rien ne change pour les comptes.
+django-otp>=1.5,<2
+cryptography>=42
+qrcode>=7.4,<9

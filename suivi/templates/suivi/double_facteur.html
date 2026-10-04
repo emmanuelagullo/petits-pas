@@ -1,0 +1,40 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Authentification à deux facteurs{% endblock %}
+{% block contenu %}
+<h1>Authentification à deux facteurs</h1>
+{% if trop_de_tentatives %}
+<div class="encadre">
+  <p>Trop de tentatives. Réessayez plus tard.</p>
+  <p><a href="{% url 'mon_compte' %}">Retour à mon compte</a></p>
+</div>
+{% elif inscrit %}
+<p>Un second facteur est configuré : une application d'authentification fournit un code à chaque connexion.</p>
+{% if obligatoire %}
+<p class="aide">Il est obligatoire pour votre fonction : vous ne pouvez pas le retirer.</p>
+{% else %}
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="retirer">
+  <label for="code">Pour le retirer, saisissez un code actuel</label>
+  <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" required>
+  <div class="actions"><button class="bouton" type="submit">Retirer le second facteur</button></div>
+</form>
+{% endif %}
+<p><a href="{% url 'mon_compte' %}">Retour à mon compte</a></p>
+{% else %}
+<p class="sous-titre">Scannez ce code avec une application d'authentification (par exemple FreeOTP, Aegis ou Google Authenticator), puis saisissez le code qu'elle affiche.</p>
+<div class="encadre">
+  <div class="qr-double-facteur" role="img" aria-label="Code à scanner pour configurer le second facteur">{{ qr_svg|safe }}</div>
+  <p class="aide">Impossible de scanner ? Saisissez cette clé dans l'application : <code>{{ cle_saisie }}</code></p>
+</div>
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <label for="code">Code affiché par l'application</label>
+  <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" autofocus required>
+  <div class="actions">
+    <button class="bouton" type="submit">Activer</button>
+    <a href="{% url 'mon_compte' %}">Plus tard</a>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

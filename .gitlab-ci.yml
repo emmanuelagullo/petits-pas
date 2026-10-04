@@ -60,6 +60,7 @@ test:
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
@@ -86,6 +87,8 @@ test:
           --requirement requirements.txt \
           "Django>=5.2,<5.3"
       fi
+    # Extension facultative du 2FA : installée ici pour que ses tests s'exécutent.
+    - python3 -m pip install --requirement requirements-2fa.txt
     - python3 -m pip check
     - |
       python3 - <<'PY'
@@ -120,6 +123,7 @@ deploiement-ephemere:
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
@@ -217,6 +221,7 @@ deploiement-persistant-local:
         - "carnet/**/*"
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
@@ -324,6 +329,7 @@ pages:
         - "carnet/**/*"
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"

@@ -52,6 +52,10 @@ class PolitiqueEffective:
 
 
 def politique_deployeur():
+    if not settings.DOUBLE_FACTEUR_DISPONIBLE:
+        # Sans dépendances, sans clé de chiffrement ou en mode local, la
+        # fonction n'existe pas : elle est désactivée pour tout le monde.
+        return PolitiqueEffective(0, DIRECTION)
     return PolitiqueEffective(
         settings.DOUBLE_FACTEUR_OBLIGATOIRE_JUSQU_AU_RANG,
         settings.DOUBLE_FACTEUR_DESACTIVE_A_PARTIR_DU_RANG,

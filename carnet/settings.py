@@ -5,7 +5,11 @@ from pathlib import Path
 
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
-from .double_facteur import politique_deployeur_depuis_environnement
+from .double_facteur import (
+    lire_cles,
+    lire_delai_grace,
+    politique_deployeur_depuis_environnement,
+)
 from .version import version_application
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -58,6 +62,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "suivi.acces_double_facteur.DoubleFacteurMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 if ANTIBRUTEFORCE_ACTIF:
@@ -263,6 +268,46 @@ PROXYS_DE_CONFIANCE = max(0, int(os.environ.get("CARNET_PROXYS_NB", "0")))
     DOUBLE_FACTEUR_OBLIGATOIRE_JUSQU_AU_RANG,
     DOUBLE_FACTEUR_DESACTIVE_A_PARTIR_DU_RANG,
 ) = politique_deployeur_depuis_environnement(os.environ, mode_local=MODE_LOCAL)
+DOUBLE_FACTEUR_DELAI_GRACE_JOURS = lire_delai_grace(os.environ)
+DOUBLE_FACTEUR_CLES = lire_cles(os.environ)
+DOUBLE_FACTEUR_EMETTEUR = "Petits Pas"
+# Dépendances facultatives (requirements-2fa.txt) : sans elles, ou sans clé de
+# chiffrement, ou en mode local, la fonction est indisponible et rien ne
+# change pour personne.
+DOUBLE_FACTEUR_DEPENDANCES = all(
+    find_spec(nom) is not None for nom in ("cryptography", "qrcode", "django_otp")
+)
+DOUBLE_FACTEUR_DISPONIBLE = (
+    not MODE_LOCAL and DOUBLE_FACTEUR_DEPENDANCES and bool(DOUBLE_FACTEUR_CLES)
+)
+if not MODE_LOCAL and (DOUBLE_FACTEUR_CLES or DOUBLE_FACTEUR_OBLIGATOIRE_JUSQU_AU_RANG > 0):
+    # Comme pour Anymail : une demande explicite que rien ne peut satisfaire
+    # empêche le démarrage plutôt que de laisser croire qu'elle s'applique.
+    if not DOUBLE_FACTEUR_DEPENDANCES:
+        raise ImproperlyConfigured(
+            "Le 2FA est demandé (CARNET_2FA_CLE ou CARNET_2FA_OBLIGATOIRE) mais "
+            "ses dépendances ne sont pas installées. Installez requirements-2fa.txt."
+        )
+    if not DOUBLE_FACTEUR_CLES:
+        raise ImproperlyConfigured(
+            "CARNET_2FA_OBLIGATOIRE exige une clé de chiffrement : renseignez "
+            "CARNET_2FA_CLE (voir DEPLOIEMENT.org)."
+        )
+    from cryptography.fernet import Fernet
+
+    for _cle in DOUBLE_FACTEUR_CLES:
+        try:
+            Fernet(_cle)
+        except (ValueError, TypeError) as erreur:
+            raise ImproperlyConfigured(
+                "CARNET_2FA_CLE contient une clé invalide : elle doit être une "
+                "clé Fernet (32 octets en base64 URL-safe)."
+            ) from erreur
+# Durée pendant laquelle l'exigence d'un compte est conservée en session
+# avant d'être recalculée (secondes).
+DOUBLE_FACTEUR_CACHE_SECONDES = 60
+RATELIMIT_DOUBLE_FACTEUR = os.environ.get("CARNET_RATELIMIT_DOUBLE_FACTEUR", "5/15m")
+RATELIMIT_DOUBLE_FACTEUR_IP = os.environ.get("CARNET_RATELIMIT_DOUBLE_FACTEUR_IP", "30/15m")
 AXES_CLIENT_IP_CALLABLE = "carnet.reseau.adresse_client"
 
 # --------------------------------------------------------------------------

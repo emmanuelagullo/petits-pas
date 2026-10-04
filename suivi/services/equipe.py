@@ -18,6 +18,7 @@ from comptes.models import (
     ResponsabiliteEcole,
     Utilisateur,
 )
+from suivi.acces_double_facteur import poser_echeance_si_besoin
 from suivi.audit import journaliser
 from suivi.autorisations import (
     ADMINISTRER_ECOLE,
@@ -197,6 +198,9 @@ def creer_compte_et_accepter_invitation(
     _accepter_invitation_verrouillee(
         utilisateur=utilisateur, invitation=invitation
     )
+    # Compte neuf déjà soumis à l'obligation : inscription dès la première
+    # connexion, sans délai de grâce.
+    poser_echeance_si_besoin(utilisateur, delai_de_grace=False)
     return utilisateur
 
 

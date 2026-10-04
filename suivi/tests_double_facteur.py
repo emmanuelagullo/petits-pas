@@ -101,6 +101,7 @@ class Combinaison(SimpleTestCase):
         self.assertEqual(politique.exigence_pour_rang(SANS_FONCTION), Exigence.DESACTIVEE)
 
 
+@override_settings(DOUBLE_FACTEUR_DISPONIBLE=True)
 class BaseEcoles(TestCase):
     def setUp(self):
         self.aujourdhui = timezone.localdate()
@@ -386,3 +387,18 @@ class ServicePolitiqueEcole(BaseEcoles):
         self.enregistrer()
         self.assertEqual(exigence_double_facteur(self.responsable_b), Exigence.OPTIONNELLE)
         self.assertFalse(PolitiqueDoubleFacteurEcole.objects.filter(ecole=self.ecole_b).exists())
+
+
+class FonctionIndisponible(BaseEcoles):
+    @override_settings(DOUBLE_FACTEUR_DISPONIBLE=False, **{OBLIGATOIRE_DEPLOYEUR: DIRECTION})
+    def test_sans_dependances_ni_cle_tout_est_desactive_meme_si_configure(self):
+        for utilisateur in (self.direction, self.responsable, self.sans_fonction):
+            self.assertEqual(exigence_double_facteur(utilisateur), Exigence.DESACTIVEE)
+
+    @override_settings(DOUBLE_FACTEUR_DISPONIBLE=False)
+    def test_la_direction_ne_peut_pas_poser_de_politique_si_indisponible(self):
+        with self.assertRaises(ValidationError):
+            enregistrer_politique_ecole(
+                utilisateur=self.direction, ecole=self.ecole_a, obligatoire_jusqu_au_rang=1,
+                desactive_a_partir_du_rang=6, revision_attendue=0)
+        self.assertFalse(PolitiqueDoubleFacteurEcole.objects.exists())
