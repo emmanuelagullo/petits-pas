@@ -76,7 +76,7 @@ installateur. Les outils Linux de gestion des versions sont décrits dans la
 
 ## Avant tout usage réel
 
-Ces versions sont encore des prototypes de test. Faites vos essais avec des
-données fictives ; l’usage de données réelles demande une qualification
-préalable. Le programme autonome ne synchronise pas l’école entre plusieurs
+Faites vos essais avec des données fictives. Avant d’utiliser des données
+réelles, préparez avec l’école la [protection des données]({{< relref "/proteger-donnees/" >}})
+et vérifiez le fonctionnement sur votre appareil. Le programme autonome ne synchronise pas l’école entre plusieurs
 ordinateurs.

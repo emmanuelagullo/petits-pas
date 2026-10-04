@@ -1,6 +1,6 @@
 {{ define "main" }}
   <article class="page shell prose">
-    <p class="eyebrow">Petits Pas</p>
+    <p class="eyebrow">{{ if eq .Section "demarrer" }}Démarrer · Préparer son utilisation{{ else if eq .Section "demonstration" }}Essayer · Données fictives{{ else }}Petits Pas{{ end }}</p>
     <h1>{{ .Title }}</h1>
     {{ with .Description }}<p class="lede">{{ . }}</p>{{ end }}
     {{ .Content }}

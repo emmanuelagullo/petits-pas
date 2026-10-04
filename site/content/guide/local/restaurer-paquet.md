@@ -1,5 +1,5 @@
 +++
-title = "Restaurer une sauvegarde du paquet local"
+title = "Restaurer ou transférer l’école sur cet appareil"
 description = "Vérifier un ZIP, confirmer son contenu et redémarrer sur les données restaurées."
 fiche = true
 categorie = "local"
@@ -10,13 +10,33 @@ depart = "Gérer l’école → Sauvegardes locales → Restaurer une sauvegarde
 statut = "disponible"
 +++
 
-## Vérifier, confirmer, redémarrer
+## Ce qui sera remplacé
 
-Les étapes ci-dessous concernent le programme autonome. Le [prototype navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
+La restauration remplace toute l’école présente sur cet appareil, y compris
+les comptes, classes, observations et médias. Les saisies faites après la date
+du ZIP ne sont pas fusionnées. Téléchargez d’abord un ZIP de l’état actuel et
+conservez-le hors appareil. Après restauration, utilisez un compte du ZIP importé.
+
+Pour un transfert, ouvrez une installation distincte avec une version compatible.
+Après vérification, poursuivez les saisies sur une seule copie. Il n’existe pas
+encore de parcours permettant de consulter le ZIP dans un espace temporaire
+avant de l’activer.
+
+### Dans le navigateur
+
+Choisissez le ZIP dans **Restaurer une sauvegarde**, cliquez sur **Vérifier la
+sauvegarde**, puis lisez les détails. **Annuler** conserve l’école actuelle ;
+**Confirmer la restauration** la remplace. Reconnectez-vous avec un compte importé.
+L’état de récupération peut être ancien et reste sur le même appareil : il ne
+remplace pas votre copie externe. Voir la [récupération navigateur]({{< relref "/guide/local/essayer-navigateur" >}}).
+
+## Avec le programme : vérifier, confirmer, redémarrer
+
+Les étapes ci-dessous concernent le programme autonome. Le [application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
 utilise le même ZIP avec une confirmation et une reconnexion, sans ce redémarrage.
 La direction ne
 peut pas remplacer depuis son navigateur la base d’une installation hébergée
-partagée. Voir la [comparaison des deux modes]({{< relref "/guide/local/" >}}).
+partagée. Voir la [comparaison des façons de travailler]({{< relref "/guide/local/" >}}).
 
 1. Sélectionnez l’archive ZIP et cliquez sur **Vérifier la sauvegarde**.
    L’application présente sa date et le nombre de médias après vérification.

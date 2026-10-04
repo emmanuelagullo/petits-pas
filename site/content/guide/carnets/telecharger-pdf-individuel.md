@@ -10,6 +10,15 @@ depart = "Prévisualisation du carnet → Télécharger le PDF"
 statut = "disponible"
 +++
 
+## Dans le navigateur de cet appareil
+
+Ouvrez **Préparer l’impression / PDF**, puis **Imprimer / enregistrer en PDF**.
+La fenêtre du navigateur permet de choisir l’imprimante ou d’enregistrer un PDF
+si cette option est proposée. Contrôlez la pagination ; elle peut différer du
+PDF généré par le programme ou le service de l’école.
+
+## Avec le service de l’école ou le programme téléchargé
+
 ## Étapes
 
 1. Vérifier le contenu, le nombre de colonnes, le regroupement et les éléments

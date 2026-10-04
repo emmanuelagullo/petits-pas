@@ -10,6 +10,15 @@ depart = "Accueil → classe → Préparer les carnets PDF"
 statut = "disponible"
 +++
 
+## Dans le navigateur de cet appareil
+
+Sélectionnez les enfants dans la préparation des carnets, puis préparez
+l’impression. Leurs carnets sont réunis dans **un seul document** : utilisez
+**Imprimer / enregistrer en PDF**. Ce parcours ne produit pas un ZIP de PDF
+séparés. Vérifiez images et pagination avant transmission.
+
+## Avec le service de l’école ou le programme téléchargé
+
 ## Étapes
 
 1. Ouvrir la classe et sélectionner **Préparer les carnets PDF**.

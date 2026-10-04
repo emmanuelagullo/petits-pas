@@ -15,8 +15,8 @@ categories:
     label: Comprendre un refus
     description: Actions absentes, accès refusés et contraintes de gouvernance.
   local:
-    label: Utiliser le mode autonome local
-    description: Installation locale, sauvegardes et restauration du paquet autonome.
+    label: Sur cet appareil
+    description: Navigateur ou programme téléchargé, sauvegardes et restauration.
 
 publics:
   responsable: Responsable de classe

@@ -89,3 +89,16 @@ Modifier uniquement les originaux sous `referentiel/` ; la page publique
 `content/referentiels/cycle1.md` les présente et propose un parcours d’essai.
 L’édition Chat d’école, sa notice et son registre sont copiés de la même façon
 dans `static/referentiels/chatdecole/`, depuis `referentiel/chatdecole/`.
+
+## Parcours de démarrage (#SP1–2)
+
+Les entrées principales partent des intentions : Démarrer, Essayer, Guide
+pratique, Le projet, Contribuer. Institutions et hébergement et Protéger les
+données sont accessibles depuis les parcours et le pied de page. Les anciennes
+adresses restent conservées. Le shortcode `parcours` factorise les encadrés :
+le titre explicite accompagne toujours la couleur et le symbole décoratif.
+
+Distinguer le service de l’école de l’utilisation sur cet appareil ; cette
+dernière permet plusieurs comptes, dans le navigateur ou le programme. Ne pas
+présenter les fonctions prévues (école fictive ZIP, espace d’essai, ouverture
+temporaire avant restauration, premier démarrage simplifié) comme livrées.

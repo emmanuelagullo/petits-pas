@@ -12,7 +12,7 @@ statut = "disponible"
 
 ## Télécharger et conserver
 
-La commande apparaît dans le programme autonome et dans le prototype navigateur,
+La commande apparaît dans le programme autonome et dans le application dans le navigateur,
 pour un compte de direction. En mode hébergé, l’hébergeur ou la DSI gère la sauvegarde
 de la base partagée et des médias : la page **Gérer l’école** n’affiche pas
 **Sauvegardes locales**. La [comparaison des interfaces]({{< relref "/guide/local/" >}})
@@ -38,9 +38,9 @@ de l’appareil, selon l’organisation choisie par l’école.
 
 Le ZIP permet aussi un transfert entre programme autonome et navigateur,
 avec une version compatible. Continuez ensuite les saisies sur une seule copie :
-les appareils ne se synchronisent pas. Voir le [prototype navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
+les appareils ne se synchronisent pas. Voir le [application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}})
 pour ses limites et son parcours de restauration.
 
 Pour [restaurer une archive]({{< relref "/guide/local/restaurer-paquet.md" >}}), revenez dans la même page.
 Les installations avec serveur disposent d’une autre procédure de sauvegarde,
-décrite dans la [rubrique DSI]({{< relref "/dsi/" >}}).
+décrite dans la [rubrique Institutions et hébergement]({{< relref "/dsi/" >}}).

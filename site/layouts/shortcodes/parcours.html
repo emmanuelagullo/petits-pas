@@ -1,0 +1,6 @@
+{{ $mode := .Get "mode" }}
+{{ $icone := "▣" }}{{ if eq $mode "service" }}{{ $icone = "↔" }}{{ end }}
+<section class="parcours parcours-{{ $mode }}">
+  <h2><span aria-hidden="true">{{ $icone }}</span> {{ .Get "titre" }}</h2>
+  {{ .Inner | .Page.RenderString }}
+</section>

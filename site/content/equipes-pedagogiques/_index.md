@@ -12,12 +12,11 @@ La présentation [« Qui peut faire quoi ? »]({{< relref "/roles/" >}}) expliqu
 en quelques minutes les différences entre direction, responsables, enseignants
 associés et contributeurs.
 
-Le mode autonome local peut aussi être installé sur un seul poste, sans serveur
-distant, pour un usage non collaboratif. Les données restent sur ce poste :
-la [fiche de téléchargement]({{< relref "/guide/local/telecharger-programme.md" >}})
-indique où obtenir le programme, et le [guide du mode local]({{< relref "/guide/local/" >}})
-décrit l’installation et les sauvegardes. Le mode hébergé reste adapté au
-travail partagé entre postes.
+Pour choisir comment utiliser Petits Pas, commencer par [Démarrer]({{< relref "/demarrer/" >}}).
+Avec le service de l’école, les mêmes données sont accessibles depuis plusieurs
+appareils. Sur cet appareil, plusieurs personnes peuvent se relayer avec leur
+compte, dans le navigateur ou le programme téléchargé ; les autres appareils
+ne se synchronisent pas.
 
 ## De l'observation au carnet
 
