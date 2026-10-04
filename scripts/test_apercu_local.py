@@ -1,7 +1,7 @@
 """Validation, connexion propre et retour au paquet habituel pour les copies ZIP."""
 import importlib.util
 from io import BytesIO
-from contextlib import closing
+from contextlib import ExitStack, closing
 from pathlib import Path
 import sqlite3
 import tempfile
@@ -29,8 +29,9 @@ class ApercuTests(unittest.TestCase):
         return paquet, archive
 
     def test_copie_validee_independante_sessions_effacees_retour_arguments(self):
-        with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder); paquet, archive = self.archive(root)
+        with tempfile.TemporaryDirectory() as folder, ExitStack() as nettoyage:
+            nettoyage.callback(apercu_local.annuler)
+            root = Path(folder).resolve(); paquet, archive = self.archive(root)
             original = (paquet / "carnet.sqlite3").read_bytes()
             copie = apercu_local.preparer(archive, root, migrations_connues={('suivi', 'fictive')})
             with closing(sqlite3.connect(copie.etape / "carnet.sqlite3")) as db:
@@ -46,7 +47,7 @@ class ApercuTests(unittest.TestCase):
 
     def test_refus_migration_inconnue_et_zip_altere(self):
         with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder); paquet, archive = self.archive(root)
+            root = Path(folder).resolve(); paquet, archive = self.archive(root)
             with self.assertRaises(ValueError): apercu_local.preparer(archive, root, migrations_connues=set())
             self.assertIsNone(apercu_local.preparation())
             with self.assertRaises(Exception): apercu_local.preparer(BytesIO(b"zip-invalide"), root)
@@ -55,7 +56,7 @@ class ApercuTests(unittest.TestCase):
     def test_ouverture_exige_copie_et_detachement_la_conserve(self):
         with self.assertRaises(ValueError): apercu_local.demander_ouverture()
         with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder); _, archive = self.archive(root)
+            root = Path(folder).resolve(); _, archive = self.archive(root)
             copie = apercu_local.preparer(archive, root)
             apercu_local.demander_ouverture(); self.assertTrue(apercu_local.ouverture_demandee())
             self.assertEqual(apercu_local.detacher(), copie)
