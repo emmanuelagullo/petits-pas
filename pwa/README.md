@@ -321,3 +321,12 @@ Publier puis appliquer la mise à jour pour rendre le bouton disponible. Cette
 séparation protège du mélange involontaire des essais et du travail ; elle ne
 protège pas contre les autres contenus de la même origine ou la suppression du
 profil. Utiliser uniquement des données fictives dans les essais.
+
+## #SP3a : référent HTTPS et protection CSRF
+
+Le Service Worker transmet `Request.referrer` lorsqu’il n’est pas exposé dans
+`Request.headers`, sans fabriquer de valeur si le navigateur l’a supprimée.
+Les contrôles CSRF de Django restent actifs. Le banc sous `/petits-pas-pwa/`
+utilise désormais HTTPS (`PWA_TEST_HTTPS=oui`, OpenSSL requis) avec un certificat
+éphémère réservé aux essais. Il couvre les formulaires et actions HTMX, et
+vérifie le refus des requêtes sans jeton ou avec un référent absent ou étranger.

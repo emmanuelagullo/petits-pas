@@ -360,7 +360,7 @@ pwa-prototype:
     CARNET_ANTIBRUTEFORCE: "non"
   before_script:
     - apt-get update
-    - apt-get install --yes --no-install-recommends nodejs npm poppler-utils libpango-1.0-0 libpangoft2-1.0-0
+    - apt-get install --yes --no-install-recommends nodejs npm poppler-utils openssl libpango-1.0-0 libpangoft2-1.0-0
     - python3 -m pip install --requirement requirements.lock
     - npm install --prefix pwa --ignore-scripts
     - node pwa/node_modules/playwright/cli.js install --with-deps chromium
@@ -369,7 +369,7 @@ pwa-prototype:
     - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-0.28.3
     - node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa.json
-    - PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
+    - PWA_TEST_HTTPS=oui PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa-sous-chemin.json
     - python3 -m unittest discover -s scripts -p test_paquet_local.py
     - python3 -m unittest discover -s scripts -p test_essai_local.py

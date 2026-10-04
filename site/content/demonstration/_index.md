@@ -5,7 +5,7 @@ description = "Une démonstration publique avec des données entièrement fictiv
 
 Utilisez uniquement des données fictives, dans les deux façons d’essayer.
 
-{{< parcours mode="service" titre="Dans la démonstration en ligne" >}}
+{{< parcours mode="service" titre="Dans la démonstration en ligne" demonstration="oui" >}}
 Une école fictive partagée entre les visiteurs et régulièrement réinitialisée.
 **Cette démonstration peut prendre quelques minutes à démarrer. Un écran noir
 peut apparaître pendant le chargement : c’est normal pour cette démonstration.
@@ -73,6 +73,11 @@ ses données.** Les comptes sont ceux de [l’équipe fictive]({{< relref "/role
 {{< /parcours >}}
 
 Pour préparer votre utilisation, revenez à [Démarrer]({{< relref "/demarrer/" >}}).
+
+## Comptes de l’école fictive
+
+Ces comptes servent dans la démonstration en ligne et dans les espaces d’essai
+qui proposent l’école fictive commune.
 
 {{< acces-demonstration >}}
 

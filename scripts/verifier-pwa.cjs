@@ -3,6 +3,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const http = require('node:http');
+const https = require('node:https');
+const os = require('node:os');
+const {execFileSync} = require('node:child_process');
 const assert = require('node:assert/strict');
 const {createRequire} = require('node:module');
 const root = path.resolve(__dirname, '../dist/pwa');
@@ -14,7 +17,15 @@ const base = process.env.PWA_BASE_PATH || '/';
 const network = [];
 let published = null;
 let serverRoot = process.env.PWA_OLD_BUNDLE ? path.resolve(process.env.PWA_OLD_BUNDLE) : root;
-const server = http.createServer((req, res) => {
+const tls = process.env.PWA_TEST_HTTPS === 'oui';
+let certificat;
+if (tls) {
+  certificat = fs.mkdtempSync(path.join(os.tmpdir(), 'petits-pas-tls-fictif-'));
+  execFileSync('openssl', ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1',
+    '-subj', '/CN=localhost', '-keyout', path.join(certificat, 'key.pem'),
+    '-out', path.join(certificat, 'cert.pem')], {stdio: 'ignore'});
+}
+const serve = (req, res) => {
   const pathname = new URL(req.url, 'http://localhost').pathname;
   network.push(pathname);
   if (pathname === '/petits-pas/temoin.html') {res.setHeader('Content-Type', 'text/html'); res.end('<h1>Site Hugo fictif</h1>'); return;}
@@ -30,7 +41,9 @@ const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', types[path.extname(file)] || 'application/octet-stream');
     res.end(fs.readFileSync(file));
   } catch {res.writeHead(404).end('Ressource absente');}
-});
+};
+const server = tls ? https.createServer({key: fs.readFileSync(path.join(certificat, 'key.pem')),
+  cert: fs.readFileSync(path.join(certificat, 'cert.pem'))}, serve) : http.createServer(serve);
 let browser;
 let currentPage;
 const report = [];
@@ -63,11 +76,12 @@ async function login(page) {
 (async () => {
   assert(JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).testMode, 'Reconstruire avec --test');
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const url = `http://127.0.0.1:${server.address().port}${base}`;
+  const url = `${tls ? 'https' : 'http'}://127.0.0.1:${server.address().port}${base}`;
   browser = await playwright.chromium.launch({headless: true,
     ...(process.env.PWA_CHROMIUM ? {executablePath: process.env.PWA_CHROMIUM} : {}),
-    args: ['--no-sandbox', '--disable-dev-shm-usage']});
-  const context = await browser.newContext({acceptDownloads: true});
+    // Certificat éphémère de ce seul serveur de test ; aucun réglage livré.
+    args: ['--no-sandbox', '--disable-dev-shm-usage', ...(tls ? ['--ignore-certificate-errors'] : [])]});
+  const context = await browser.newContext({acceptDownloads: true, ignoreHTTPSErrors: tls});
   let page = await context.newPage();
   currentPage = page;
   page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') console.error('CONSOLE', message.text()); });
@@ -114,6 +128,17 @@ async function login(page) {
   await unsupported.close();
   pass('Navigateur sans Web Locks refusé avec aide et sans lancer Django');
   let frame = page.frameLocator('#app');
+  const csrf = await frame.locator('[name="csrfmiddlewaretoken"]').inputValue();
+  const refus = [{headers: [['Referer', url]], raison: 'jeton absent'}];
+  if (tls) refus.push(
+    {headers: [['X-CSRFToken', csrf]], raison: 'référent absent'},
+    {headers: [['X-CSRFToken', csrf], ['Referer', 'https://autre-origine.example/']], raison: 'référent étranger'});
+  for (const essai of refus) {
+    const response = await page.evaluate(args => window.pwaTest({kind: 'http', request: {
+      url: args.url + 'app/installation/', method: 'POST', headers: args.headers, body: ''}}), {url, headers: essai.headers});
+    assert.equal(response.result.status, 403, essai.raison);
+  }
+  pass(tls ? 'HTTPS : jeton absent et référents absent ou étranger refusés par CSRF' : 'Jeton CSRF absent refusé');
   for (const [name, value] of Object.entries({ecole_nom: 'École fictive PWA', commune: 'Commune fictive', first_name: 'Nadia', last_name: 'Fictive', username: 'direction-fictive', password1: 'Test-fictif-PWA-2026!', password2: 'Test-fictif-PWA-2026!'})) {
     await frame.locator(`[name="${name}"]`).fill(value);
   }
@@ -438,4 +463,7 @@ with tempfile.TemporaryDirectory() as folder:
     for (const frame of currentPage.frames()) console.error('FRAME', frame.url(), (await frame.locator('body').innerText().catch(() => '')).slice(0, 4000));
   }
   process.exitCode = 1;
-}).finally(async () => {if(browser) await browser.close(); server.close();});
+}).finally(async () => {
+  if(browser) await browser.close(); server.close();
+  if(certificat) fs.rmSync(certificat, {recursive: true, force: true});
+});
