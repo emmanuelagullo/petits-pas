@@ -9,7 +9,7 @@
             data-statut="{{ obs.statut|default:'' }}"
             aria-label="{{ competence.libelle }} — {% if obs %}{{ obs.get_statut_display }}{% else %}pas encore observé{% endif %}">
       <span class="marqueur" aria-hidden="true">{% if obs.statut == 'reussi' %}✓{% elif obs.statut == 'en_cours' %}◐{% endif %}</span>
-      {% icone_liste competence eleve.classe %}
+      {% icone_liste competence classe %}
       <span class="libelle">{{ competence.libelle }}</span>
       {% if obs %}<span class="date">{{ obs.date_observation|date:"j M" }}</span>{% endif %}
     </button>
@@ -17,7 +17,7 @@
   {% else %}
   <span class="bascule" role="group" aria-label="{{ competence.libelle }} — {% if obs %}{{ obs.get_statut_display }}{% else %}pas encore observé{% endif %}">
     <span class="marqueur" aria-hidden="true">{% if obs.statut == 'reussi' %}✓{% elif obs.statut == 'en_cours' %}◐{% endif %}</span>
-    {% icone_liste competence eleve.classe %}<span class="libelle">{{ competence.libelle }}</span>
+    {% icone_liste competence classe %}<span class="libelle">{{ competence.libelle }}</span>
   </span>
   {% endif %}
   <a class="trace-lien {% if obs.a_un_commentaire or obs.a_une_photo %}pleine{% endif %}"
