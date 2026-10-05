@@ -260,6 +260,9 @@ class Eleve(models.Model):
         return self.prenom
 
     def scolarite_courante(self):
+        scolarites = getattr(self, "_scolarites_pour_lecture", None)
+        if scolarites is not None:
+            return scolarites[0] if scolarites else None
         return self.scolarites.select_related("classe").order_by("-annee_scolaire").first()
 
     @property
