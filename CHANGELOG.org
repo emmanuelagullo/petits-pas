@@ -18,6 +18,14 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Performance : précharger les scolarités dans les listes d’élèves, mutualiser
+  les lectures des regroupements annuels de carnet, éviter les contrôles de
+  téléchargement sans photo et précharger les relations des traces. Réutiliser
+  les affectations pour proposer les remplaçants ; contrôler une seule fois
+  la classe d’une sélection partagée, en conservant les vérifications de chaque
+  enfant et les écritures individuelles. Bilan mesuré et protocole fictif dans
+  =AUDIT-PERFORMANCE.md= ; droits et règles annuelles inchangés.
+
 - Suivi individuel et contributions : réutiliser la classe et son adoption
   pour toutes les compétences affichées, afin d’éviter des centaines de
   requêtes répétées avec les grands référentiels.
