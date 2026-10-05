@@ -31,7 +31,8 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   étendre automatiquement aux restrictions de stockage ou à l'évolution des
   référentiels. Distinguer un choix proposé par défaut d'une interdiction.
 - Normalisation, compression, variantes PDF et futurs quotas de médias : lire
-  =POLITIQUE-MEDIAS.org=. Le profil ordinaire reste simple et les quotas sont
+  =POLITIQUE-MEDIAS.org=, puis =RECETTE-MEDIAS.org= pour le protocole et la
+  référence mesurée. Le profil ordinaire reste simple et les quotas sont
   désactivés par défaut. Le traitement dans le navigateur est une optimisation ;
   la validation du serveur reste obligatoire. Ne jamais recomprimer
   silencieusement les médias existants après un changement de politique.

@@ -1,0 +1,51 @@
+#+title: Référence mesurée des images et PDF
+
+* Portée
+
+Cette référence mesure les fichiers bruts synthétiques de #J1 avant toute
+normalisation Petits Pas. Elle sert de point de comparaison aux futurs profils
+=Économe=, =Équilibré= et =Qualité élevée=. Elle ne constitue ni un seuil de
+production ni une validation visuelle pédagogique.
+
+Commande :
+
+#+begin_src sh
+python3 scripts/recetter-medias-pdf.py
+scripts/analyser-pdf.sh .recette-medias/pdf/quinze-photos.pdf
+#+end_src
+
+Environnement de la mesure initiale : Python 3.12.14, Pillow 12.3.0,
+WeasyPrint 68.1. Les images et PDF sont générés sous =.recette-medias/= et ne
+sont pas versionnés.
+
+* Résultats initiaux
+
+| Scénario | Entrées images | PDF | Pages | Durée |
+|----------+----------------:|----:|------:|------:|
+| Sans photo | 0 | 29 351 octets | 22 | 0,210 s |
+| Une photo | 3 454 982 octets | 1 196 574 octets | 22 | 0,281 s |
+| Cinq photos | 17 201 603 octets | 5 867 989 octets | 22 | 0,430 s |
+| Quinze photos | 51 564 772 octets | 17 529 528 octets | 22 | 0,987 s |
+| Couverture et cinq photos | 25 383 938 octets | 8 216 980 octets | 22 | 0,579 s |
+
+Ces durées sont indicatives et ne se comparent que sur une même machine. Les
+tailles sont reproductibles avec les versions indiquées.
+
+* Lecture
+
+- Les quinze JPEG bruts produisent quinze objets PDF d'environ 1,14 Mio chacun.
+- Les images de 2 048 × 1 536 pixels sont incorporées à environ 768 ppp dans
+  cette mise en page, et les portraits à environ 1 024 ppp : bien au-delà de
+  ce qui est utile pour la taille d'affichage du carnet.
+- La couverture brute ajoute environ 2,35 Mio au PDF à cinq photos. Un profil
+  de couverture peut préserver davantage de définition que les traces, mais
+  le fichier brut ne doit pas être incorporé tel quel.
+- Le poids croît presque linéairement avec les photos distinctes. La
+  normalisation à l'import et la variante PDF doivent être mesurées avant de
+  conclure qu'un quota de classe est nécessaire.
+
+La prochaine comparaison conservera exactement ces scénarios et ajoutera les
+variantes produites par chaque profil. Le choix du profil =Équilibré= sera
+validé sur le poids, la lisibilité des productions fictives et le temps de
+traitement côté client et côté serveur.
+

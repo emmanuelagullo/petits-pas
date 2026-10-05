@@ -23,6 +23,7 @@ site/.hugo_build.lock
 .env.*
 !.env.example
 /notes-locales/
+/.recette-medias/
 
 /site/static/referentiels/cycle1/
 /site/static/referentiels/chatdecole/
