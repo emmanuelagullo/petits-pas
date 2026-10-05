@@ -401,6 +401,15 @@ explicitement placés dans `site/content/` sont publiés. Le contrôle préalabl
 vérifie les métadonnées des fiches pratiques, leurs liens internes et la
 cohérence entre les captures utilisées et les scénarios fictifs déclarés.
 
+## Audit de performance
+
+[AUDIT-PERFORMANCE.md](AUDIT-PERFORMANCE.md) présente les mesures locales,
+leurs limites et les corrections ciblées. Le protocole
+`scripts/auditer-performance.py` utilise une base temporaire et des données
+fictives, indépendamment des paramètres d’exploitation ; il compare les
+petites classes, 30 élèves et les grands référentiels. Les tests ciblés
+`suivi.tests_performance` vérifient la croissance des requêtes SQL.
+
 ## Licence
 
 Le code de Petits Pas est distribué sous licence
