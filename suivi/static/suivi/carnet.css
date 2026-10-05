@@ -286,6 +286,11 @@ h2 {
 .gerer-affectation { position: relative; flex: none; }
 .gerer-affectation .panneau-action { min-width: 25rem; }
 .gerer-affectation form + form { margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px solid var(--trait); }
+.actions-gestion-ecole {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--trait);
+}
 .danger-discret { background: var(--surface); color: #8a2f24; border-color: #b86a60; }
 .ajout-contextuel { padding: 0.75rem 1rem; }
 .ajout-contextuel > summary { cursor: pointer; color: var(--lien); }
