@@ -85,7 +85,23 @@ Les paramètres techniques sont regroupés derrière des intentions :
 | Qualité élevée | Détails fins ou impression plus exigeante |
 
 Chaque profil possède deux déclinaisons : =trace= et =couverture=. Les mesures
-de #J1 détermineront leurs dimensions, qualités et objectifs de poids. Un
+de #J1 ont conduit aux premières valeurs du profil =Équilibré= :
+
+| Usage | Dimension maximale | Qualité de départ | Objectif indicatif |
+|-------+--------------------:|------------------:|-------------------:|
+| Trace principale | 1 600 px | 85 | 1 000 000 octets |
+| Trace pour le PDF | 600 px | 80 | 180 000 octets |
+| Couverture principale | 2 400 px | 88 | 1 800 000 octets |
+| Couverture pour le PDF | 1 800 px | 85 | 1 000 000 octets |
+
+La qualité peut diminuer progressivement jusqu'à un plancher lorsque
+l'objectif n'est pas atteint. Celui-ci reste indicatif : au plancher, Petits
+Pas conserve l'image même si elle est plus lourde. Le fichier brut est limité
+à 25 Mio et l'image décodée à 40 millions de pixels. Ces deux protections sont
+identiques pour les traces et les couvertures.
+
+Ces valeurs sont centralisées dans =suivi/services/medias.py= et restent à
+valider visuellement sur des productions fictives représentatives. Un
 déploiement peut limiter les profils disponibles ; l'école et la classe
 choisissent ensuite un défaut parmi les possibilités restantes.
 

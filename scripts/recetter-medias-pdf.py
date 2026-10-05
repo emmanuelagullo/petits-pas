@@ -2,18 +2,24 @@
 """Produit des PDF synthétiques reproductibles pour mesurer la phase 4."""
 
 import argparse
+from dataclasses import asdict
 import importlib.metadata
 import importlib.util
 import json
 import logging
 import platform
+import sys
 import time
 from pathlib import Path
 
 from weasyprint import CSS, HTML
 
-
 RACINE = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(RACINE))
+
+from suivi.services.medias import POLITIQUE_EQUILIBREE, normaliser_image
+
+
 GENERATEUR_PATH = Path(__file__).with_name("generer-images-recette.py")
 SPEC = importlib.util.spec_from_file_location("generer_images_recette", GENERATEUR_PATH)
 GENERATEUR = importlib.util.module_from_spec(SPEC)
@@ -56,6 +62,46 @@ def scenarios(images_dir):
     }
 
 
+def _normaliser_images(images_dir, destination):
+    destination.mkdir(parents=True, exist_ok=True)
+    debut = time.perf_counter()
+    fichiers = []
+    for source in sorted(images_dir.glob("trace-*.jpg")):
+        if source.name == "trace-tres-grande.jpg":
+            continue
+        resultat = normaliser_image(source.read_bytes(), variante="pdf")
+        cible = destination / source.name
+        cible.write_bytes(resultat.contenu)
+        fichiers.append({
+            "fichier": source.name,
+            "octets_source": source.stat().st_size,
+            "octets_normalises": len(resultat.contenu),
+            "largeur": resultat.largeur,
+            "hauteur": resultat.hauteur,
+            "qualite": resultat.qualite,
+            "objectif_atteint": resultat.objectif_atteint,
+        })
+    couverture = images_dir / "couverture-ecole-classe.jpg"
+    resultat = normaliser_image(
+        couverture.read_bytes(), famille="couverture", variante="pdf"
+    )
+    cible = destination / couverture.name
+    cible.write_bytes(resultat.contenu)
+    fichiers.append({
+        "fichier": couverture.name,
+        "octets_source": couverture.stat().st_size,
+        "octets_normalises": len(resultat.contenu),
+        "largeur": resultat.largeur,
+        "hauteur": resultat.hauteur,
+        "qualite": resultat.qualite,
+        "objectif_atteint": resultat.objectif_atteint,
+    })
+    return {
+        "secondes": round(time.perf_counter() - debut, 3),
+        "fichiers": fichiers,
+    }
+
+
 def _uri(chemin):
     return Path(chemin).resolve().as_uri()
 
@@ -90,7 +136,18 @@ def recetter(destination, pages=22, configurations=None):
     pdf_dir = destination / "pdf"
     pdf_dir.mkdir(parents=True, exist_ok=True)
     manifeste = GENERATEUR.generer(images_dir)
-    configurations = configurations or scenarios(images_dir)
+    mesure_normalisation = None
+    if configurations is None:
+        configurations = {
+            f"brut-{nom}": configuration
+            for nom, configuration in scenarios(images_dir).items()
+        }
+        images_normalisees = destination / "images-equilibrees-pdf"
+        mesure_normalisation = _normaliser_images(images_dir, images_normalisees)
+        configurations.update({
+            f"equilibre-{nom}": configuration
+            for nom, configuration in scenarios(images_normalisees).items()
+        })
     resultats = []
 
     for nom, configuration in configurations.items():
@@ -139,6 +196,8 @@ def recetter(destination, pages=22, configurations=None):
         },
         "manifeste_images": "images/manifest.json",
         "images_generees": len(manifeste["images"]),
+        "profil_equilibre": asdict(POLITIQUE_EQUILIBREE),
+        "normalisation": mesure_normalisation,
         "resultats": resultats,
     }
     (destination / "rapport.json").write_text(

@@ -67,3 +67,21 @@ class GenerateurImagesRecette(TestCase):
                 self.assertTrue(pdf.read_bytes().startswith(b"%PDF-"))
                 self.assertEqual(pdf.stat().st_size, resultat["octets_pdf"])
             self.assertTrue((destination / "rapport.json").is_file())
+
+    def test_compare_les_pdf_bruts_et_equilibres(self):
+        with TemporaryDirectory() as temporaire:
+            rapport = RECETTE.recetter(temporaire, pages=1)
+            resultats = {r["scenario"]: r for r in rapport["resultats"]}
+
+            self.assertIn("brut-quinze-photos", resultats)
+            self.assertIn("equilibre-quinze-photos", resultats)
+            self.assertLess(
+                resultats["equilibre-quinze-photos"]["octets_pdf"],
+                resultats["brut-quinze-photos"]["octets_pdf"],
+            )
+            self.assertEqual(
+                rapport["profil_equilibre"]["trace_pdf"]["dimension_maximale"],
+                600,
+            )
+            self.assertGreater(rapport["normalisation"]["secondes"], 0)
+            self.assertEqual(len(rapport["normalisation"]["fichiers"]), 16)
