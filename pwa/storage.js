@@ -80,7 +80,8 @@ export async function load(version, recovery = false) {
   const dir = await directory();
   const tree = await manifest(dir, current);
   // Le Worker lit une photo à la fois : aucun ZIP intermédiaire à l'ouverture.
-  if (tree) return {files: tree.files, read: entry => checked(dir, entry)};
+  if (tree) return {files: tree.files, read: entry => checked(dir, entry),
+    file: async entry => (await dir.getFileHandle(entry.file)).getFile()};
   return checked(dir, current);
 }
 async function write(dir, bytes, suffix, failpoint) {
@@ -153,4 +154,12 @@ export async function save(inventory, read, version, failpoint = '', preserve = 
   // Une erreur de nettoyage après commit ne doit pas annoncer une saisie perdue.
   await clean(dir, [active, active.previous, recovery]).catch(() => {});
   return {bytes, hash: saved.hash, changed: true, writtenBytes, writtenFiles};
+}
+
+// Après confirmation seulement : les File désignent des blobs qui ne seront
+// jamais modifiés. Le manifeste actif/précédent/secours gouverne leur nettoyage.
+export async function confirmedMedia() {
+  const dir = await directory();
+  const tree = await manifest(dir, await state());
+  return {files: tree?.files || {}, file: async entry => (await dir.getFileHandle(entry.file)).getFile()};
 }

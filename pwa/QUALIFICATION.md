@@ -213,3 +213,85 @@ reste `pwa-prototype.e138e60d4cf2458f`, identique à #PWA7–8. Les scénarios
 navigateur ne sont donc pas relancés. Les règles YAML et l'application du patch
 sont vérifiées ; le comportement réel du planificateur GitLab et la qualité
 réseau du runner restent à confirmer par le nouveau pipeline.
+
+## #PWA11 : médias hors des buffers MEMFS — 6 octobre 2026
+
+Base de travail : main `2ef1e9d37009afd5b31ceea89df7f37a7cdd9ad6`.
+Runtime Pyodide 0.28.3, Chromium 138.0.7204.0/Linux x86_64, Playwright 1.62.1.
+Même scénario de 120 élèves fictifs, six classes et JPEG synthétiques distincts
+de 107 Kio. Aucun appareil d'école ni donnée réelle. Le banc conserve la limite
+64 Mio et le format ZIP public. Choix et audit des interfaces dans
+[MEDIA-OPFS.md](MEDIA-OPFS.md).
+
+### Mémoire et consultations
+
+| Photos | Médias (Mio) | Médias résidents MEMFS (Mio) | WASM alloué (Mio) | Tas JS utilisé Worker (Mio) | Backing stores JS Worker (Mio) | PSS Chromium total (Mio) | Lecture médiane (ms) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 0 | 0 | 71.88 | 13.67 | 112.65 | 456.17 | 145 |
+| 30 | 3.14 | 0 | 71.88 | 14.08 | 113.84 | 457.58 | 141 |
+| 90 | 9.41 | 0 | 71.88 | 13.86 | 118.67 | 461.14 | 133 |
+| 140 | 14.63 | 0 | 71.88 | 14.75 | 115.91 | 455.52 | 153 |
+| 300 | 31.35 | 0 | 71.88 | 15.83 | 116.06 | 456.49 | 163 |
+| 550 | 57.48 | 0 | 71.88 | 15.58 | 117.84 | 453.23 | 154 |
+
+Cinq lectures Worker/WSGI par palier, sans rendre tout le carnet. Aucune de ces
+30 lectures n'écrit de blob/manifeste ni de pointeur. Les inventaires médians
+restent entre 8 et 11 ms. Les nouvelles photos sont d'abord écrites dans MEMFS
+pendant la requête ; les relevés sont pris **après** leur confirmation et
+remplacement par les `File` OPFS. Ils ne mesurent pas le pic de cette écriture.
+
+À la reprise des 550 photos, avant toute lecture Python de leur contenu :
+**0 octet média résident**, 49.88 Mio WASM, 17.61 Mio de tas JS utilisé,
+94.47 Mio de backing stores et 413.86 Mio de PSS pour tous les processus du
+navigateur. Le compteur de lecture WORKERFS est nul à ce point : les SHA-256
+ont été vérifiés en JS, une photo à la fois, et n'ont pas été passés à Python.
+La reprise prend 7.86 s dans ce banc, runtime et ouverture compris.
+
+Le ZIP commun de 550 photos fait **57.59 Mio**. Après export, réimportation et
+confirmation réels : médias résidents nuls, mais **172.63 Mio WASM**, 19.60 Mio
+de tas JS utilisé, 213.94 Mio de backing stores et **653.95 Mio PSS**. Le gain
+sur les médias confirmés ne supprime donc pas les copies complètes des ZIP,
+du multipart et de la décompression. Les 64 Mio restent inchangés.
+
+`Runtime.getHeapUsage` est interrogé sur la cible CDP du **Worker**, pas sur la
+coque. WASM et backing stores peuvent compter les mêmes octets ; ces colonnes
+ne s'additionnent pas. La PSS somme les processus descendants du Chromium
+propre au banc, sans Node ni serveur HTTP. Le banc résout maintenant les PID
+hôte par `/proc/self/stat` lorsque `spawn` retourne des PID d'un espace de noms,
+et refuse une somme partielle : cette correction rend ici la PSS disponible.
+Les relevés sont des points de contrôle, pas des pics continus ni une garantie
+sur tablette. Variations de GC et cache navigateur restent possibles.
+
+### Preuve, cohérence et compatibilité
+
+- Lecture Python, seek et Pillow `load()` sur un média confirmé OPFS.
+- Création, modification `r+b`, troncature, ajout, renommage et suppression ;
+  retour à zéro contenu média résident après chaque confirmation.
+- Réponse média par la vue Django et refus des fonctions suspendues ; aucune
+  route statique publique vers les blobs.
+- 31 contrôles à la racine et 32 en HTTPS sous `/petits-pas-pwa/`, y compris
+  espaces essai/aperçu, droits, CSRF, impression, export, restauration,
+  annulation, fermeture et hors ligne, migration de version et secours.
+- 10 contrôles du banc de volume : dépassement réel des 64 Mio, quota Chromium
+  réellement contraint, SIGKILL avant/après activation avec remplacement et
+  suppression de photo et changement SQL simultanés. Chaque reprise vérifie
+  les SHA-256, `quick_check` et `foreign_key_check` ; nettoyage exact de l'union
+  actif/précédent/secours, et aucune requête métier sur le serveur statique.
+- ZIP de 550 photos accepté par le validateur autonome puis réimporté par le
+  formulaire commun. Le format interne reste 2 et n'exige aucune conversion
+  des installations #PWA6–#PWA10 ; les instantanés ZIP plus anciens conservent
+  leur convertisseur. Leur migration depuis un ancien bundle n'est pas
+  relancée ici ; leur première ouverture conserve les copies MEMFS temporaires.
+- 20 tests du paquet autonome, 6 tests du constructeur et 18 tests Django
+  ciblés installation/sauvegardes passent. Absence de migration, Hugo et syntaxe sont vérifiés pour la
+  livraison ; aucun profil serveur/autonome ni modèle n'est modifié.
+
+Bundle testé : `pwa-prototype.bbde00ed5d4a11f8`. Rapports générés par
+`scripts/verifier-pwa.cjs` et `scripts/qualifier-pwa.cjs`. La CI distante, les
+autres moteurs, les coupures électriques et les appareils d'école ne sont pas
+exécutés ; leurs retours restent non bloquants. La suite Django complète n'est
+pas relancée pour cette adaptation du seul profil navigateur.
+
+La preuve permet de livrer #PWA11 sans nouvelle architecture de cache ni Worker
+supplémentaire. La prochaine augmentation de capacité exige d'abord de réduire
+les copies ZIP et les décompressions MEMFS, avec de nouvelles mesures.

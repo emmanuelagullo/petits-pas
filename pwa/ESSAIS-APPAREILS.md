@@ -30,13 +30,14 @@ de courant avec des données à conserver.
 ## Pourquoi 64 Mio ?
 
 C'est un plafond applicatif du prototype, pas la taille maximale de SQLite,
-OPFS ou du disque. Pyodide charge encore base et médias dans MEMFS ; sauvegarde,
-restauration, ZIP et transport HTTP créent des buffers temporaires. Les 550
+OPFS ou du disque. SQLite reste dans MEMFS ; les médias confirmés sont lus dans
+OPFS à la demande depuis #PWA11. Sauvegarde, restauration, ZIP et transport HTTP
+créent encore des buffers temporaires complets. Les 550
 photos fictives déjà qualifiées approchent ce plafond ; le tas WASM ne mesure
 pas toute la mémoire du navigateur. Un simple changement de constante n'est
 pas une solution pour une grosse école.
 
 Si les usages demandent davantage, mesurer avec le banc disponible puis réduire
-les copies et, si nécessaire, sortir les médias de MEMFS ou changer le stockage
-SQLite. Garder export, import et reprise cohérents. Ce travail n'exige pas une
+les copies des transferts et, si nécessaire, changer le stockage SQLite.
+Garder export, import et reprise cohérents. Ce travail n'exige pas une
 campagne préalable en école ; les retours sur appareils guideront l'ajustement.

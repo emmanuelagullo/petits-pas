@@ -70,7 +70,11 @@ limitées à 64 Mio avant compression. Le bandeau affiche le volume du dernier
 état enregistré. À partir de 52 Mio, il conseille de télécharger une sauvegarde et de terminer
 l’essai. Une erreur de stockage impose de fermer puis rouvrir l’application
 pour retrouver le dernier état enregistré. Les consultations sans modification
-ne réécrivent plus les photos. Une nouvelle connexion peut être nécessaire
+ne réécrivent plus les photos. Depuis #PWA11, les photos enregistrées sont lues
+à la demande, ce qui évite de toutes les garder en mémoire. Les sauvegardes et
+restaurations utilisent encore des copies temporaires complètes ; la limite
+reste donc la même. Vérifiez la version affichée dans l’aide.
+Une nouvelle connexion peut être nécessaire
 après 12 heures ; elle est toujours nécessaire après fermeture puis réouverture.
 
 ## Imprimer ou enregistrer un PDF

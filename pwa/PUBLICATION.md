@@ -169,6 +169,14 @@ Aucun changement du fichier CI du projet Pages n'est nécessaire.
 
 ## #SP6 : contrôles et récupération
 
+#PWA11 ajoute `lazy_media.js` au bundle et à ses empreintes. Aucun changement
+de projet Pages, de chemin, d'en-têtes COOP/COEP ou de format interne n'est
+requis. Publier le bundle complet contrôlé par les mêmes jobs ; anciens ZIP et
+manifestes sont repris. Les transferts ZIP restent limités à 64 Mio décompressés.
+Cette évolution n'autorise pas les données réelles et ne valide pas tous les
+navigateurs par les seuls essais Chromium. Voir `MEDIA-OPFS.md` et les mesures
+`QUALIFICATION.md`.
+
 La promotion vérifie les deux jobs du même commit, les empreintes du candidat,
 les rapports racine/HTTPS et le démarrage du bundle final, puis le rapport
 de qualification. Elle ne dépend pas de la réussite d’un déploiement d’école.

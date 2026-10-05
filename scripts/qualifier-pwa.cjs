@@ -56,16 +56,49 @@ async function rpc(code, failpoint = '') {
   return page.evaluate(args => window.pwaTest({kind:'test-python', ...args}), {code, failpoint});
 }
 async function value(code) {return (await rpc(code)).result;}
+async function workerHeap() {
+  // CDP mesure le Worker, pas le tas de la coque. Ces compteurs ne s'additionnent
+  // pas au tas WASM ni à la PSS ; les backing stores peuvent se recouvrir.
+  const session = await browser.newBrowserCDPSession();
+  let attached;
+  try {
+    const {targetInfos} = await session.send('Target.getTargets');
+    const target = targetInfos.find(info => info.type === 'worker' && info.url.endsWith('/worker.js'));
+    if (!target) return null;
+    attached = (await session.send('Target.attachToTarget', {targetId:target.targetId, flatten:false})).sessionId;
+    const result = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Mesure CDP Worker expirée')), 10000);
+      session.on('Target.receivedMessageFromTarget', event => {
+        if (event.sessionId !== attached) return;
+        const message = JSON.parse(event.message);
+        if (message.id !== 1) return;
+        clearTimeout(timer);
+        if (message.error) reject(new Error(message.error.message)); else resolve(message.result);
+      });
+    });
+    await session.send('Target.sendMessageToTarget', {sessionId:attached,
+      message:JSON.stringify({id:1, method:'Runtime.getHeapUsage'})});
+    return await result;
+  } finally {
+    if (attached) await session.send('Target.detachFromTarget', {sessionId:attached}).catch(()=>{});
+    await session.detach();
+  }
+}
 function browserPss() {
   const parents = new Map();
   for (const entry of fs.readdirSync('/proc').filter(name => /^\d+$/.test(name))) {
     try {const stat = fs.readFileSync(`/proc/${entry}/stat`, 'utf8'); parents.set(Number(entry), Number(stat.slice(stat.lastIndexOf(')') + 2).split(' ')[1]));} catch {}
   }
-  const children = new Set([processBrowser.pid]);
+  // /proc peut montrer les PID de l'hôte alors que spawn renvoie ceux d'un
+  // espace de noms. Aux points de mesure, Chromium est notre seul enfant vivant.
+  const ownPid = Number(fs.readFileSync('/proc/self/stat', 'utf8').split(' ')[0]);
+  const roots = [...parents].filter(([, parent]) => parent === ownPid).map(([pid]) => pid);
+  if (roots.length !== 1) return null;
+  const children = new Set(roots);
   for (let previous = -1; previous !== children.size;) {previous = children.size; for (const [pid, parent] of parents) if (children.has(parent)) children.add(pid);}
-  let bytes = 0;
-  for (const pid of children) {try {const match = fs.readFileSync(`/proc/${pid}/smaps_rollup`, 'utf8').match(/^Pss:\s+(\d+) kB/m); if (match) bytes += Number(match[1]) * 1024;} catch {}}
-  return bytes || null;
+  let bytes = 0, measured = 0;
+  for (const pid of children) {try {const match = fs.readFileSync(`/proc/${pid}/smaps_rollup`, 'utf8').match(/^Pss:\s+(\d+) kB/m); if (match) {bytes += Number(match[1]) * 1024; measured++;}} catch {}}
+  return measured === children.size ? bytes : null;
 }
 async function sample(photos, mutation) {
   const reads = [];
@@ -84,8 +117,11 @@ async function sample(photos, mutation) {
     medianInventoryMs: reads.map(r=>r.snapshotMs).sort((a,b)=>a-b)[2],
     readWrittenBytes: reads.map(r=>r.writtenBytes),
     stateBytes: reads[4].bytes, mutationPersistMs: mutation?.durability.persistMs || null,
-    browserPssBytes: browserPss(), originUsageBytes:storage.usage, originQuotaBytes:storage.quota};
+    browserPssBytes: browserPss(), workerJsHeap:await workerHeap(),
+    originUsageBytes:storage.usage, originQuotaBytes:storage.quota};
   assert(reads.every(r => !r.changed && r.writtenBytes === 0), 'Une lecture pure a réécrit OPFS');
+  assert.equal(metrics.residentMediaBytes, 0, 'Les médias confirmés restent en MEMFS');
+  assert.equal(metrics.lazyMediaFiles, photos);
   report.samples.push(row); console.log('MESURE', JSON.stringify(row));
 }
 async function integrity(photos, name) {
@@ -176,10 +212,20 @@ with tempfile.TemporaryDirectory() as folder:
   await frame.locator('[name="nom_utilisateur"]').waitFor();
   await integrity(550,'École fictive qualification');
   report.afterTransfer = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
+  report.afterTransfer.workerJsHeap = await workerHeap();
+  report.afterTransfer.browserPssBytes = browserPss();
   pass('ZIP de 550 photos validé par le paquet autonome, réimporté et confirmé dans la PWA');
   await assert.rejects(rpc('ajouter_photos(650)'), /64 Mio/);
   await assert.rejects(rpc('Trace.objects.count()'), /Enregistrement interrompu/);
   killBrowser(); report.restartMs = await boot();
+  // Mesurer avant toute lecture Python des photos et sans l'historique des
+  // allocations des imports/écritures du runtime précédent.
+  report.afterMediaRestart = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
+  report.afterMediaRestart.workerJsHeap = await workerHeap();
+  report.afterMediaRestart.browserPssBytes = browserPss();
+  assert.equal(report.afterMediaRestart.residentMediaBytes, 0);
+  assert.equal(report.afterMediaRestart.lazyMediaFiles, 550);
+  pass('PWA11 : reprise de 550 photos sans contenu média résident dans MEMFS');
   await integrity(550, 'École fictive qualification');
   pass('Limite réelle de 64 Mio dépassée : runtime bloqué, reprise à 550 photos et intégrité SQLite');
   // Quota imposé par Chromium, sans injection d'une exception dans l'application.

@@ -98,6 +98,14 @@ def describe(path):
     return {"hash": hashlib.sha256(content).hexdigest(), "size": len(content)}
 
 
+def restore_media_index(encoded):
+    """Empreintes déjà vérifiées par OPFS ; ne pas recopier les photos en Python."""
+    global MEDIA_INDEX, FULL_MEDIA_SCAN
+    MEDIA_INDEX = {name: {"hash": entry["hash"], "size": entry["size"]}
+                   for name, entry in json.loads(encoded).items() if name.startswith("media/")}
+    FULL_MEDIA_SCAN = False
+
+
 def inventory_apercu():
     from suivi.apercu_local import preparation
     copie = preparation()

@@ -1,8 +1,9 @@
-import {load, save, configurerEspace} from './storage.js';
+import {load, save, configurerEspace, confirmedMedia} from './storage.js';
+import {mediaFiles} from './lazy_media.js';
 let ESSAI = false;
 let APERCU = false;
 const BASE = new URL('./', import.meta.url).pathname;
-let python, bridge, config, fatal = false, initialized = false;
+let python, bridge, config, media, fatal = false, initialized = false;
 let queue = Promise.resolve();
 function progress(text) { self.postMessage({kind: 'progress', text}); }
 function call(name, ...args) {
@@ -17,6 +18,12 @@ async function persist(failpoint = '', preserve = false, force = false, scan = f
     const proxy = call('file_bytes', name);
     try {return proxy.toJs();} finally {proxy.destroy();}
   }, config.version, failpoint, preserve, force);
+  // Retirer les buffers des seuls médias nouveaux/modifiés après activation.
+  const confirmed = await confirmedMedia();
+  for (const [name, entry] of Object.entries(confirmed.files)) {
+    if (name.startsWith('media/') && !media.isBound('/data/' + name, entry.hash))
+      media.bind('/data/' + name, await confirmed.file(entry), entry.hash);
+  }
   // Le secours durable reste dans OPFS ; libérer la copie MEMFS remplacée.
   call('release_previous_package');
   return {...result, snapshotMs, persistMs: performance.now() - started};
@@ -48,8 +55,16 @@ async function process(message) {
     python.unpackArchive(app, 'zip', {extractDir: '/application'});
     python.runPython("import sys; sys.path.insert(0, '/application')");
     bridge = python.pyimport('pwa.bridge');
+    media = mediaFiles(python.FS);
     if (restored?.files) {
-      for (const [name, entry] of Object.entries(restored.files)) call('restore_file', name, await restored.read(entry));
+      for (const [name, entry] of Object.entries(restored.files)) {
+        if (name.startsWith('media/')) {
+          // Vérification transitoire, une photo à la fois ; aucune copie MEMFS.
+          await restored.read(entry);
+          media.bind('/data/' + name, await restored.file(entry), entry.hash);
+        } else call('restore_file', name, await restored.read(entry));
+      }
+      call('restore_media_index', JSON.stringify(restored.files));
     } else if (restored) call('restore', restored);
     else if (APERCU) throw new Error("Aucun ZIP à vérifier dans cet espace. Revenez à l’école habituelle pour ouvrir une copie.");
     else if (ESSAI && message.kind === 'init') {
@@ -79,7 +94,7 @@ async function process(message) {
   }
   if (!initialized) throw new Error('Runtime indisponible');
   if (message.kind === 'test-metrics' && config.testMode) {
-    return {result: {...JSON.parse(call('metrics')), wasmHeapBytes: python._module?.HEAP8?.byteLength || null}};
+    return {result: {...JSON.parse(call('metrics')), ...media.metrics(), wasmHeapBytes: python._module?.HEAP8?.byteLength || null}};
   }
   let result;
   if (message.kind === 'checkpoint') {

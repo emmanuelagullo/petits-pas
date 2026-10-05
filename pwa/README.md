@@ -1,4 +1,4 @@
-# #PWA1 à #PWA8 : prototype navigateur
+# #PWA1 à #PWA11 : prototype navigateur
 
 Expérience réservée aux **données fictives**. Aucun profil serveur ou programme
 autonome n'est remplacé. Le prototype propose l'import/export commun,
@@ -63,8 +63,9 @@ profil ou du JavaScript exécuté sur la même origine.
 
 Limites du prototype : envoi HTTP/multipart ≤ 70 Mio, contenu ZIP décompressé
 ≤ 64 Mio, ≤ 5 000 entrées. L'état de travail est limité à 64 Mio avant
-compression, manifeste ZIP public compris. Les médias restent
-aussi en mémoire ; cette borne technique ne qualifie pas la RAM d'une tablette.
+compression, manifeste ZIP public compris. Les médias confirmés sont lus dans
+OPFS à la demande ; SQLite, les écritures en cours et les transferts ZIP utilisent
+encore la mémoire. Cette borne technique ne qualifie pas la RAM d'une tablette.
 La coque avertit dès 52 Mio. L'espace OPFS réel comprend aussi l'état précédent,
 le secours et les ressources, et peut dépasser 64 Mio. Un quota navigateur plus
 faible reste possible. Un import dépassant la persistance bloque le runtime,
@@ -198,6 +199,44 @@ coupure électrique. #PWA6 sauvegarde les fichiers modifiés après chaque
 réponse et active leur manifeste commun, sans ZIP intermédiaire.
 Web Lock et file exclusive du Worker sont indispensables ; seuls eux
 justifient `DJANGO_ALLOW_ASYNC_UNSAFE` dans ce profil Pyodide.
+
+## #PWA11 : médias lus à la demande
+
+`lazy_media.js` conserve les répertoires et métadonnées MEMFS, mais remplace le
+contenu des fichiers confirmés par les `File` des blobs OPFS immuables. Les
+lectures synchrones sont déléguées à WORKERFS par tranches, sans cache maison.
+Les chemins Python, Pillow, Django, les renommages de restauration et le format
+ZIP commun restent utilisables. Ce n'est pas un montage OPFS en écriture.
+
+Un média nouveau reste dans MEMFS pendant sa requête. Une modification en place
+copie seulement le fichier concerné ; une troncature à zéro évite cette copie.
+Après l'activation OPFS/IndexedDB, le Worker remplace ces buffers par des `File`.
+Il refuse cette substitution si le média est encore ouvert : fermer les fichiers
+dans les traitements Python. Les blobs actifs ne sont jamais modifiés en place.
+Les droits passent toujours par Django ; aucun URL public OPFS n'est ajouté.
+
+La réouverture vérifie chaque SHA-256 en JS, une photo à la fois, puis installe
+ses métadonnées et son `File`, sans recopier les photos en Python. L'inventaire
+réutilise les empreintes vérifiées. Le manifeste interne reste au format 2 ;
+les anciens ZIP internes et publics sont repris par les parcours existants.
+Leur première conversion et les restaurations décompressent encore dans MEMFS,
+puis libèrent les médias après confirmation. Actif/précédent/secours et nettoyage
+restent régis par le même pointeur transactionnel.
+
+**Les ZIP ne sont pas encore transférés progressivement.** L'export écrit un ZIP
+temporaire MEMFS, le pont WSGI assemble sa réponse, puis la copie vers JS est
+transférée. L'import conserve le multipart et un répertoire de décompression
+MEMFS jusqu'à confirmation/annulation ; la copie à vérifier suit le même principe.
+Le secours utilise encore `BytesIO`. Ces allocations justifient le maintien des
+64 Mio de contenu, 70 Mio d'envoi et 5 000 entrées, avec alerte à 52 Mio. Les
+ressources du runtime ne sont pas comprises dans ces 64 Mio de paquet.
+
+Le module dépend des opérations de nœuds MEMFS/WORKERFS du runtime **Pyodide
+0.28.3 épinglé**. Sa disponibilité est contrôlée au démarrage ; ne pas annoncer
+une compatibilité universelle et requalifier lors d'un changement de runtime.
+Voir [MEDIA-OPFS.md](MEDIA-OPFS.md) pour l'audit des interfaces, la décision et
+les limites, et [QUALIFICATION.md](QUALIFICATION.md) pour les mesures. Les essais
+terrain restent non bloquants.
 
 Les versions Pyodide/Django/wheels et la maintenance de sécurité doivent être
 requalifiées avant production. Synchronisation, sauvegarde automatique hors
