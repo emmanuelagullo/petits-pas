@@ -30,6 +30,11 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   Ces règles concernent les images et les phrases proposées : ne pas les
   étendre automatiquement aux restrictions de stockage ou à l'évolution des
   référentiels. Distinguer un choix proposé par défaut d'une interdiction.
+- Normalisation, compression, variantes PDF et futurs quotas de médias : lire
+  =POLITIQUE-MEDIAS.org=. Le profil ordinaire reste simple et les quotas sont
+  désactivés par défaut. Le traitement dans le navigateur est une optimisation ;
+  la validation du serveur reste obligatoire. Ne jamais recomprimer
+  silencieusement les médias existants après un changement de politique.
 - Évolution des référentiels : `AUDIT-REFERENTIELS.org` fixe le périmètre et
   les jalons ; `MODELE-REFERENTIELS.org` les règles retenues,
   `DIAGNOSTIC-REFERENTIELS.org` la reprise et la lecture annuelle,

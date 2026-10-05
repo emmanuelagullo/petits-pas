@@ -1,0 +1,158 @@
+#+title: Politique des images et des médias privés
+
+* Objet
+
+Ce document fixe le contrat préparatoire de la phase 4. Les valeurs chiffrées
+restent à calibrer avec la recette reproductible ; les règles fonctionnelles
+doivent rester stables lorsque ces valeurs évolueront.
+
+L'objectif ordinaire est volontairement simple : profil =Équilibré=,
+optimisation automatique, aucun quota bloquant. Une équipe pédagogique ne
+choisit ni une qualité JPEG ni une résolution à chaque ajout.
+
+* Parcours ordinaire
+
+Lorsqu'une personne ajoute une image :
+
+1. le navigateur refuse un fichier dépassant la limite brute de sécurité ;
+2. il corrige l'orientation, redimensionne et encode avant l'envoi lorsqu'il
+   sait le faire ;
+3. le serveur ne fait jamais confiance à ce résultat : il décode l'image,
+   contrôle son format et son nombre de pixels, retire les métadonnées et
+   normalise à nouveau si nécessaire ;
+4. Petits Pas conserve une version principale normalisée et produit les
+   variantes nécessaires aux usages, notamment au PDF.
+
+La préparation dans le navigateur réduit le transfert et la charge du serveur.
+La validation du serveur reste la garantie de sécurité et couvre un navigateur
+ancien, une erreur JavaScript ou une requête forgée.
+
+Le texte destiné à l'équipe doit expliquer l'effet, pas l'algorithme :
+
+#+begin_quote
+La photo sera automatiquement allégée avant son enregistrement, sans modifier
+l'original présent sur votre appareil.
+#+end_quote
+
+* Deux familles d'images
+
+** Traces d'apprentissage
+
+Les photos de traces sont potentiellement nombreuses. Leur profil privilégie
+un poids modéré tout en conservant les détails utiles d'une production
+d'enfant. La même image d'une trace commune n'est pas dupliquée pour chaque
+élève.
+
+** Présentation de l'école ou de la classe
+
+Une photo de couverture d'école ou de classe est unique, affichée plus grand et
+peut être destinée à une impression. Son profil peut donc conserver une
+dimension ou une qualité légèrement supérieure à celui des traces.
+
+Ce relâchement ne concerne pas les protections contre les fichiers dangereux :
+limite brute, formats décodables et nombre maximal de pixels restent communs.
+Les icônes officielles fournies avec Petits Pas restent des fichiers statiques
+publics et ne consomment pas le stockage privé d'une école.
+
+* Limites, objectifs et quotas
+
+Il faut distinguer :
+
+- la limite brute avant traitement, au-delà de laquelle l'import est refusé ;
+- la limite de pixels décodés, qui protège la mémoire et le temps de calcul ;
+- le profil de normalisation, qui fixe dimension, format et qualité ;
+- un objectif de poids, approché sans descendre sous une qualité acceptable ;
+- un éventuel quota de stockage, qui porte sur l'ensemble des médias.
+
+Une taille cible n'est pas une promesse exacte : selon son contenu, une image
+peut rester légèrement plus lourde afin de ne pas dégrader excessivement la
+production photographiée.
+
+Les quotas sont facultatifs et désactivés par défaut. Petits Pas doit d'abord
+mesurer le volume total, par année et par classe. Si l'usage ne s'équilibre pas,
+un hébergeur pourra activer successivement des avertissements puis, en dernier
+recours, une limite bloquante. L'interface de répartition entre classes
+n'apparaît que lorsqu'un quota d'école est effectivement configuré.
+
+* Profils lisibles
+
+Les paramètres techniques sont regroupés derrière des intentions :
+
+| Profil | Usage |
+|--------+-------|
+| Économe | Hébergement contraint ou connexion lente |
+| Équilibré | Défaut recommandé |
+| Qualité élevée | Détails fins ou impression plus exigeante |
+
+Chaque profil possède deux déclinaisons : =trace= et =couverture=. Les mesures
+de #J1 détermineront leurs dimensions, qualités et objectifs de poids. Un
+déploiement peut limiter les profils disponibles ; l'école et la classe
+choisissent ensuite un défaut parmi les possibilités restantes.
+
+* Politique effective et interface progressive
+
+Les niveaux sont : déploiement, école, classe. La classe est administrée par
+ses responsables ; il n'existe pas de politique concurrente par titulaire.
+
+- une valeur absente au niveau du déploiement signifie aucune contrainte
+  fonctionnelle supplémentaire ;
+- une valeur absente à l'école ou dans la classe signifie hériter ;
+- une limite effective est la plus contraignante des limites applicables ;
+- une préférence locale reste enregistrée séparément de sa valeur effective ;
+- l'origine d'une contrainte et la raison d'un ajustement doivent être
+  affichables clairement.
+
+L'enseignant voit seulement la préparation, sa progression et les erreurs
+utiles. La direction voit l'espace utilisé et, seulement si nécessaire, les
+quotas. Les détails techniques relèvent de l'écran avancé ou du diagnostic de
+déploiement.
+
+* Changement de politique et recompression
+
+Un changement de politique s'applique par défaut aux nouveaux imports. Il ne
+réécrit jamais silencieusement les médias existants.
+
+Les variantes dérivées, dont la variante PDF, peuvent être régénérées sans
+perte depuis la version principale normalisée. Une réduction de la version
+principale existante est une opération distincte et irréversible :
+
+1. afficher le périmètre, le volume actuel et l'économie estimée ;
+2. proposer d'abord une simulation sans écriture ;
+3. exiger une confirmation explicite ;
+4. traiter par lots reprenables et journaliser la version de politique ;
+5. ne jamais promettre qu'un assouplissement ultérieur restaurera les détails
+   déjà supprimés.
+
+Les recompressions successives d'une même version JPEG doivent être évitées.
+Les variantes sont toujours recréées depuis la version principale. Une
+recompression de celle-ci n'est lancée que pour réduire des médias anciens ou
+répondre à une contrainte nouvellement activée.
+
+* Mesures de #J1
+
+La recette synthétique couvre au minimum :
+
+- aucune photo, puis 1, 5 et 15 photos de traces distinctes ;
+- portrait, paysage, orientation EXIF et détails fins ;
+- image transparente et fichier invalide ;
+- image très grande pour exercer les protections ;
+- couverture d'école ou de classe ;
+- répétition d'une même illustration afin d'observer sa mutualisation PDF.
+
+Elle relève les tailles d'entrée, le nombre de pages, les images incorporées,
+le poids et le temps de génération des PDF. Elle n'utilise aucune photographie
+réelle et ne fixe pas à elle seule la qualité visuelle acceptable : cette
+dernière sera validée avec l'équipe pédagogique sur des productions fictives
+représentatives.
+
+La recette se lance sans écrire dans le dépôt :
+
+#+begin_src sh
+python3 scripts/recetter-medias-pdf.py
+scripts/analyser-pdf.sh .recette-medias/pdf/quinze-photos.pdf
+#+end_src
+
+Le premier script produit =.recette-medias/rapport.json= et les PDF des cinq
+scénarios. Le répertoire entier est ignoré par Git. Les durées dépendent de la
+machine ; elles servent à comparer deux politiques exécutées dans le même
+environnement.
