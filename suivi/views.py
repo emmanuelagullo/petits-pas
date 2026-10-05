@@ -57,6 +57,7 @@ from comptes.models import (
 )
 from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
 from .forms import ClasseForm
+from .lectures_eleves import avec_scolarites_pour_lecture
 
 from .acces_double_facteur import (
     DELAI_ATTENTE_SECONDES, SESSION_ATTENTE, SESSION_VERIFIE,
@@ -957,7 +958,7 @@ def classe_detail(request, pk):
     classe = charger_classe_autorisee(
         request.user, pk, VOIR_LISTE_ELEVES, ecole=ecole
     )
-    eleves = list(classe.eleves)
+    eleves = list(avec_scolarites_pour_lecture(classe.eleves))
     suivi_complet = autorise(request.user, VOIR_SUIVI, classe, ecole=ecole)
     peut_generer = autorise(request.user, GENERER_CARNET, classe, ecole=ecole)
     peut_gerer_eleves = autorise(
@@ -1133,7 +1134,8 @@ def saisie_competence(request, pk, competence_pk):
     saisissable = competence_saisissable(classe, competence)
     etats = {o.eleve_id: projeter_etat_classe(o)
              for o in observations_classe(classe).filter(competence=competence).prefetch_related("traces")}
-    eleves = list(classe.eleves.annotate(derniere_annee=Max("scolarites__annee_scolaire")))
+    eleves = list(avec_scolarites_pour_lecture(
+        classe.eleves.annotate(derniere_annee=Max("scolarites__annee_scolaire"))))
     for eleve in eleves:
         eleve.peut_saisir_dans_classe = eleve.derniere_annee == classe.annee_scolaire
     lignes = [(e, etats.get(e.pk)) for e in eleves]
@@ -1349,7 +1351,7 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
                                     competence=competence, supprime_le__isnull=True)
         if not (autorise(request.user, MODIFIER_ETAT, classe) or commune.auteur_id == request.user.pk):
             raise Http404
-    eleves = list(classe.eleves)
+    eleves = list(avec_scolarites_pour_lecture(classe.eleves))
     selection_ids = set(commune.attributions.filter(supprime_le__isnull=True).values_list(
         "observation__eleve_id", flat=True
     )) if commune else set()
@@ -2044,7 +2046,7 @@ def preparer_edition(request, pk):
     classe = charger_classe_autorisee(
         request.user, pk, GENERER_CARNET, ecole=ecole
     )
-    eleves = list(classe.eleves)
+    eleves = list(avec_scolarites_pour_lecture(classe.eleves))
     parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
 
     if request.method == "POST":
