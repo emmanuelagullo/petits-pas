@@ -2435,6 +2435,16 @@ def equipe_ecole(request):
         for appartenance in appartenances
         if appartenance.est_active(aujourd_hui)
     ]
+    # Les affectations ont été préchargées ci-dessus. Le test d'occupation
+    # reprend exactement les dates et l'état du filtre de remplacement,
+    # sans remplacer les contrôles de fin d'affectation ou de gouvernance.
+    classes_occupees = {
+        membre.pk: {a.classe_id for a in membre.affectations_classes.all()
+                    if a.etat == AffectationClasse.ACTIVE
+                    and a.date_debut <= aujourd_hui
+                    and (a.date_fin is None or a.date_fin >= aujourd_hui)}
+        for membre in membres_affectables
+    }
     for appartenance in appartenances:
         for affectation in appartenance.affectations_classes.all():
             affectation.est_active_aujourdhui = affectation.est_active(aujourd_hui)
@@ -2449,13 +2459,7 @@ def equipe_ecole(request):
                     candidat
                     for candidat in membres_affectables
                     if candidat.utilisateur_id != appartenance.utilisateur_id
-                    and not candidat.affectations_classes.filter(
-                        classe=affectation.classe,
-                        etat=AffectationClasse.ACTIVE,
-                        date_debut__lte=aujourd_hui,
-                    )
-                    .filter(Q(date_fin__isnull=True) | Q(date_fin__gte=aujourd_hui))
-                    .exists()
+                    and affectation.classe_id not in classes_occupees[candidat.pk]
                 ]
     preattributions = list(
         AffectationClasse.objects.filter(
