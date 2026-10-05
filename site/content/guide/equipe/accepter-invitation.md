@@ -31,6 +31,10 @@ La page confirme que le compte est activé et membre de l’école. Revenir ensu
 fonction dans une classe, cette appartenance seule n’ouvre pas l’application
 pédagogique.
 
+Si l’hébergeur ou la direction de l’école exige un
+[second facteur]({{< relref "/guide/equipe/second-facteur/" >}}) pour cette
+fonction, il est à configurer dès la première connexion.
+
 ## Limites et refus
 
 - L’adresse associée au compte existant doit correspondre à celle de

@@ -22,6 +22,20 @@ Ce même message peut apparaître lorsque l’identité est correcte mais ne pos
 plus d’appartenance, de responsabilité ou d’affectation donnant accès à
 l’application. La direction doit alors vérifier le rattachement et les périodes.
 
+## Le code de vérification est refusé
+
+Cela concerne les personnes qui ont configuré un
+[second facteur]({{< relref "/guide/equipe/second-facteur/" >}}).
+
+1. Attendre que l’application affiche un **nouveau** code : chacun ne sert
+   qu’une fois.
+2. Vérifier que l’heure du téléphone est réglée **automatiquement**.
+3. Après plusieurs essais manqués, la page demande de patienter ; ressaisir
+   alors le mot de passe depuis la page de connexion.
+4. Sans téléphone, saisir un **code de secours** à la place.
+5. Sans téléphone ni code de secours, demander à la direction de réinitialiser
+   le second facteur. Pour la direction elle-même, s’adresser à l’hébergeur.
+
 ## « Cette invitation n’est plus utilisable »
 
 Le lien a expiré, a été révoqué, a déjà servi ou ne contient pas le bon jeton.
