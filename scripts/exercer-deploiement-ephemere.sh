@@ -5,6 +5,7 @@ set -euo pipefail
 : "${DATABASE_URL:?DATABASE_URL est obligatoire}"
 : "${CARNET_S3_BUCKET:?CARNET_S3_BUCKET est obligatoire}"
 : "${CARNET_S3_ENDPOINT_URL:?CARNET_S3_ENDPOINT_URL est obligatoire}"
+: "${CARNET_2FA_CLE:?CARNET_2FA_CLE est obligatoire (clé de test) pour exercer le second facteur}"
 
 if [[ "${CARNET_ENVIRONNEMENT_EPHEMERE:-}" != "oui" ]]; then
     echo "Refus : définissez CARNET_ENVIRONNEMENT_EPHEMERE=oui." >&2
@@ -149,5 +150,14 @@ if [[ ${#paquets[@]} -ne 1 ]]; then
     exit 1
 fi
 scripts/exercer-reprise-local.sh "${paquets[0]}"
+
+# Second facteur, de bout en bout, sur l'application démarrée ci-dessus et sa
+# base PostgreSQL. Le compte de direction créé plus haut sert de support ; il
+# n'a plus de second facteur à l'arrivée.
+python3 manage.py diagnostiquer_deploiement \
+    | grep --fixed-strings "Authentification à deux facteurs : disponible"
+python3 scripts/exercer-double-facteur.py \
+    --utilisateur "direction-ecole-ephemere-ci" \
+    --mot-de-passe "direction-ci"
 
 echo "Déploiement éphémère complet validé."

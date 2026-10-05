@@ -276,8 +276,10 @@ documentation de déploiement.
   du compte : elle efface la clé et les codes, pas les sessions (à traiter si
   le besoin apparaît). Sort de la clé d'une personne dont la fonction devient
   désactivée : elle est conservée, inactive (le code n'est plus demandé). Le
-  déploiement éphémère de la CI n'exerce pas le 2FA (il n'installe pas
-  =requirements-2fa.txt= et n'a pas de clé) : seul le job =test= le couvre.
+  job de CI =deploiement-ephemere= exerce le 2FA de bout en bout
+  (=scripts/exercer-double-facteur.py=, voir § 6.7) ; les autres jobs de
+  déploiement n'installent pas =requirements-2fa.txt= : la fonction y est
+  absente, ce qui est voulu.
 
 * 6. Bilan (28-29 septembre 2026)
 
@@ -605,6 +607,21 @@ suivante.
   pourquoi, politique du déployeur, nombre de clés, rotation en cours) et
   signale les obligations d'école sans effet : informations et avertissements,
   jamais une erreur.
+
+*** Exercice en déploiement (CI)
+
+Le job =deploiement-ephemere= installe =requirements-2fa.txt=, fournit une clé
+de test (=CARNET_2FA_CLE=) et, une fois l'application démarrée sur PostgreSQL,
+lance =scripts/exercer-double-facteur.py= : inscription, connexion en deux
+étapes sans session avant le second facteur, refus du rejeu, code de secours
+(usage unique, prévenant), plafond de saisies conservé par le processus du
+serveur, contrôle en base (clé jamais en clair, codes en empreintes) et
+réinitialisation par commande. Le code TOTP y est recalculé avec la seule
+bibliothèque standard, sans rien importer de l'application. Le plafond de la
+CI est relevé à =12/15m= pour laisser passer le scénario, qui vérifie ensuite
+qu'il est atteint. Ce scénario ne remplace pas les tests unitaires : il couvre
+ce qu'ils ne voient pas (processus réel, cookies sécurisés derrière un proxy,
+verrous de ligne de PostgreSQL).
 
 *** Sous-étapes
 
