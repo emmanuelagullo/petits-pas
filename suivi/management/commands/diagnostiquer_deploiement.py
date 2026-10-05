@@ -4,6 +4,7 @@ from pathlib import Path
 from django.apps import apps
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
+from django.db import Error as ErreurBase
 from django.urls import Resolver404, resolve
 
 
@@ -37,6 +38,57 @@ class Command(BaseCommand):
             action="store_true",
             help="Exige PostgreSQL et des médias privés sur un disque persistant.",
         )
+
+    def _afficher_double_facteur(self):
+        """État du 2FA. Information et avertissements seulement : ce point ne
+        fait jamais échouer le diagnostic d'un profil existant."""
+        from carnet.double_facteur import NOMS_RANGS
+
+        nom_du_rang = {rang: nom for nom, rang in NOMS_RANGS.items()}
+
+        if settings.MODE_LOCAL:
+            etat = "indisponible (mode local)"
+        elif settings.DOUBLE_FACTEUR_DISPONIBLE:
+            etat = "disponible"
+        elif not settings.DOUBLE_FACTEUR_DEPENDANCES:
+            etat = "absent (dépendances de requirements-2fa.txt non installées)"
+        else:
+            etat = "absent (CARNET_2FA_CLE non renseignée)"
+        self.stdout.write(f"- Authentification à deux facteurs : {etat}")
+        if not settings.DOUBLE_FACTEUR_DISPONIBLE:
+            try:
+                modele = apps.get_model("suivi", "PolitiqueDoubleFacteurEcole")
+                sans_effet = modele.objects.filter(obligatoire_jusqu_au_rang__gt=0).count()
+            except ErreurBase:
+                return
+            if sans_effet:
+                self.stdout.write(self.style.WARNING(
+                    f"  {sans_effet} école(s) ont posé une obligation de second facteur "
+                    "qui est sans effet tant que la fonction est indisponible."
+                ))
+            return
+        obligatoire = settings.DOUBLE_FACTEUR_OBLIGATOIRE_JUSQU_AU_RANG
+        desactive = settings.DOUBLE_FACTEUR_DESACTIVE_A_PARTIR_DU_RANG
+        if obligatoire:
+            self.stdout.write(
+                f"  Obligatoire jusqu'au rang {obligatoire} ({nom_du_rang[obligatoire]}), "
+                f"délai de grâce {settings.DOUBLE_FACTEUR_DELAI_GRACE_JOURS} jour(s)"
+            )
+        else:
+            self.stdout.write("  Aucune obligation posée par le déployeur (facultatif, les écoles peuvent l'exiger)")
+        if desactive <= 5:
+            self.stdout.write(f"  Retiré à partir du rang {desactive} ({nom_du_rang[desactive]})")
+        self.stdout.write(f"  Clés de chiffrement : {len(settings.DOUBLE_FACTEUR_CLES)}")
+        if len(settings.DOUBLE_FACTEUR_CLES) > 1:
+            self.stdout.write(self.style.WARNING(
+                "  Plusieurs clés : une rotation est en cours. Retirez l'ancienne de "
+                "CARNET_2FA_CLE quand plus aucun secret n'en dépend."
+            ))
+        if settings.PROXYS_DE_CONFIANCE == 0 and not settings.DEBUG:
+            self.stdout.write(self.style.WARNING(
+                "  Les plafonds de saisie des codes sont par adresse : derrière un "
+                "reverse-proxy, voir CARNET_PROXYS_NB dans DEPLOIEMENT.org."
+            ))
 
     def handle(self, *args, **options):
         moteur = settings.DATABASES["default"]["ENGINE"]
@@ -193,6 +245,8 @@ class Command(BaseCommand):
                         "dans DEPLOIEMENT.org."
                     )
                 )
+
+        self._afficher_double_facteur()
 
         erreurs = []
 

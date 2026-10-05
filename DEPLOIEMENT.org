@@ -262,12 +262,23 @@ sur l’adresse directe.
 
 * Authentification à deux facteurs (2FA)
 
-*Série #C8 en cours de livraison.* Le second facteur par code temporaire
-(TOTP), les codes de secours et la réinitialisation sont en place. Reste
-=#C8e= : l'écran de la direction pour fixer la politique de son école (en
-attendant, seul le déployeur la fixe, par les variables ci-dessous). Avant de
-rendre le 2FA obligatoire, vérifiez que quelqu'un sait réinitialiser un compte
-(voir « Perte du téléphone » plus bas).
+Le second facteur par code temporaire (TOTP), les codes de secours, la
+réinitialisation et l'écran de la direction pour la politique de son école sont
+en place. Avant de rendre le 2FA obligatoire, vérifiez que quelqu'un sait
+réinitialiser un compte (voir « Perte du téléphone » plus bas).
+
+*Qui décide de quoi.* Deux niveaux, le déployeur puis l'école. Le déployeur
+fixe le cadre par les variables ci-dessous ; la direction de chaque école peut
+l'*exiger pour davantage de fonctions* ou le *retirer à certaines* là où rien
+n'est obligatoire, depuis « Gérer l'école », « Second facteur ». Elle ne peut
+jamais assouplir une obligation du déployeur ni rouvrir ce qu'il désactive.
+Sans variable posée par le déployeur, le 2FA est facultatif et chaque école
+choisit pour elle-même.
+
+*Vérifier la configuration.* =python manage.py diagnostiquer_deploiement= décrit
+l'état du 2FA : disponible ou absent (et pourquoi), politique du déployeur,
+nombre de clés, rotation en cours, obligations d'école restées sans effet. Ce
+sont des informations et des avertissements, jamais des erreurs.
 
 *Activation.* La fonction est absente tant que trois conditions ne sont pas
 réunies ; absente, elle ne change rien pour personne :

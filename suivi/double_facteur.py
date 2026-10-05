@@ -17,7 +17,7 @@ from django.utils import timezone
 from carnet.double_facteur import (
     ASSOCIE, CONTRIBUTEUR, DIRECTION, RESPONSABLE, SANS_FONCTION,
 )
-from comptes.models import AffectationClasse
+from comptes.models import AffectationClasse, AppartenanceEcole, DoubleFacteurCompte
 
 from .autorisations import (
     affectations_actives, appartenances_actives, responsabilites_direction_actives,
@@ -152,3 +152,30 @@ def exigence_double_facteur(utilisateur, date=None):
     if Exigence.OPTIONNELLE in exigences:
         return Exigence.OPTIONNELLE
     return Exigence.DESACTIVEE
+
+
+def apercu_ecole(ecole, date=None):
+    """Combien de membres la politique effective de l'école soumet-elle à
+    l'obligation, et combien sont déjà inscrits ?
+
+    Réutilise le calcul de rang de chaque compte (une seule source de vérité) :
+    quelques requêtes par membre, acceptable pour un écran de réglage rarement
+    ouvert. Ne compte que la politique de cette école, pas celles des autres
+    écoles d'un compte rattaché à plusieurs.
+    """
+    politique = politique_ecole(ecole)
+    utilisateurs = [
+        a.utilisateur for a in AppartenanceEcole.objects.filter(
+            ecole=ecole, utilisateur__is_active=True
+        ).select_related("utilisateur")
+    ]
+    inscrits = set(DoubleFacteurCompte.objects.filter(
+        utilisateur__in=utilisateurs, confirme_le__isnull=False
+    ).exclude(cle_chiffree="").values_list("utilisateur_id", flat=True))
+    concernes = deja_inscrits = 0
+    for utilisateur in dict.fromkeys(utilisateurs):
+        rang = rangs_par_ecole(utilisateur, date).get(ecole.pk)
+        if rang is not None and politique.exigence_pour_rang(rang) == Exigence.OBLIGATOIRE:
+            concernes += 1
+            deja_inscrits += utilisateur.pk in inscrits
+    return {"politique": politique, "concernes": concernes, "deja_inscrits": deja_inscrits}
