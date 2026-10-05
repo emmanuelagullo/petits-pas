@@ -24,6 +24,8 @@ def journaliser(acteur, action, objet, anciennes=None, nouvelles=None):
         ecole = objet.scolarite.classe.ecole
     elif hasattr(objet, "eleve"):
         ecole = objet.eleve.ecole
+    elif getattr(objet, "appartenance", None) is not None:
+        ecole = objet.appartenance.ecole
     else:
         raise ValueError("La ressource auditée n'est rattachée à aucune école.")
     return EvenementAudit.objects.create(

@@ -502,3 +502,31 @@ Trancher les décisions ouvertes, puis dériver :
 - les scénarios de tests d'autorisation ;
 - les services métier requis ;
 - enfin seulement, le schéma Django et le plan d'implémentation.
+
+
+* Droits de gestion à plusieurs (parcours accessible)
+
+Plusieurs comptes personnels peuvent exercer la responsabilité de direction
+pour une même école. Équipe pédagogique permet de l'accorder à un membre actif
+ou de la retirer, après confirmation du mot de passe de l'acteur. La personne
+invitée doit d'abord accepter son invitation. Chaque attribution/retrait est
+journalisé ; les fonctions pédagogiques ne sont ni accordées ni retirées par
+cette opération. Tous ces comptes ont les mêmes droits de gestion.
+
+Une fin facultative permet un remplacement temporaire. Pour retirer une
+responsabilité, la couverture par les autres responsabilités et appartenances
+doit rester continue à partir d'aujourd'hui et sans fin prévue. Les changements
+d'état ou de dates des comptes, appartenances et responsabilités existants via
+=save()= utilisent ce même contrôle, sous verrou d'école. Les écritures SQL,
+=QuerySet.update()= et migrations historiques ne passent pas par ces contrôles :
+l'exploitation doit vérifier la gouvernance après une intervention directe.
+Les créations directes de modèles restent destinées à l'initialisation ; les
+attributions courantes passent par le service. Aucun garde-fou ne prouve que
+la personne restante pourra effectivement se connecter.
+
+L'écran et =diagnostiquer_deploiement= signalent les configurations anciennes
+dont la couverture est incomplète.
+Les sessions en base du compte promu sont fermées lorsque le second facteur
+est disponible ; une obligation de direction s'applique sans nouveau délai
+de grâce. La récupération du second facteur de la direction reste réservée au
+déployeur. Aucun nouveau niveau de délégation n'est introduit.

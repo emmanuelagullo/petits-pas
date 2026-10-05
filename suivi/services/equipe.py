@@ -18,7 +18,7 @@ from comptes.models import (
     ResponsabiliteEcole,
     Utilisateur,
 )
-from suivi.acces_double_facteur import poser_echeance_si_besoin
+from suivi.acces_double_facteur import fermer_sessions_compte, poser_echeance_si_besoin
 from suivi.audit import journaliser
 from suivi.autorisations import (
     ADMINISTRER_ECOLE,
@@ -397,57 +397,57 @@ def suspendre_affectation_urgence(*, utilisateur, affectation, motif):
 
 
 @transaction.atomic
-def attribuer_direction(*, utilisateur, appartenance):
-    appartenance = AppartenanceEcole.objects.select_for_update().get(
-        pk=appartenance.pk
-    )
+def attribuer_direction(*, utilisateur, appartenance, date_fin=None, motif=""):
+    # Même verrou pour attribution, retrait et changements de compte/membre.
+    Ecole.objects.select_for_update().get(pk=appartenance.ecole_id)
+    appartenance = AppartenanceEcole.objects.select_for_update().get(pk=appartenance.pk)
+    utilisateur = Utilisateur.objects.get(pk=utilisateur.pk)
     _exiger_direction(utilisateur, appartenance.ecole)
     if not appartenance.est_active():
         raise ValidationError("L'appartenance à l'école n'est pas active.")
+    if date_fin is not None and date_fin < timezone.localdate():
+        raise ValidationError("La date de fin ne peut pas être passée.")
+    if appartenance.date_fin and (date_fin is None or date_fin > appartenance.date_fin):
+        raise ValidationError("La fin des droits doit respecter la fin de l'appartenance à l'école.")
     responsabilite = ResponsabiliteEcole.objects.create(
-        appartenance=appartenance,
-        attribue_par=utilisateur,
+        appartenance=appartenance, attribue_par=utilisateur,
+        date_fin=date_fin, motif=motif.strip(),
     )
-    journaliser(utilisateur, "direction.attribuee", responsabilite)
+    poser_echeance_si_besoin(appartenance.utilisateur, delai_de_grace=False)
+    if settings.DOUBLE_FACTEUR_DISPONIBLE:
+        fermer_sessions_compte(appartenance.utilisateur)
+    journaliser(utilisateur, "direction.attribuee", responsabilite, nouvelles={
+        "utilisateur_id": appartenance.utilisateur_id,
+        "date_fin": date_fin.isoformat() if date_fin else None,
+        "motif": motif.strip(),
+    })
     return responsabilite
 
 
 @transaction.atomic
-def terminer_direction(*, utilisateur, responsabilite):
+def terminer_direction(*, utilisateur, responsabilite, motif=""):
+    from suivi.continuite_direction import verifier_continuite_direction
+
     ecole_id = responsabilite.appartenance.ecole_id
     Ecole.objects.select_for_update().get(pk=ecole_id)
     responsabilite = ResponsabiliteEcole.objects.select_for_update().select_related(
         "appartenance__ecole"
     ).get(pk=responsabilite.pk)
-    ecole = responsabilite.appartenance.ecole
-    _exiger_direction(utilisateur, ecole)
-    aujourd_hui = timezone.localdate()
-    actives = list(
-        ResponsabiliteEcole.objects.select_for_update()
-        .a_la_date(aujourd_hui)
-        .filter(
-            appartenance__ecole=ecole,
-            appartenance__etat=AppartenanceEcole.ACTIVE,
-            appartenance__date_debut__lte=aujourd_hui,
-            appartenance__utilisateur__is_active=True,
-            appartenance__ecole__etat="active",
-            type=ResponsabiliteEcole.DIRECTION,
-        )
-        .filter(
-            models.Q(appartenance__date_fin__isnull=True)
-            | models.Q(appartenance__date_fin__gte=aujourd_hui)
-        )
-    )
-    if not any(active.pk != responsabilite.pk for active in actives):
-        raise ValidationError("La dernière direction active ne peut pas être retirée.")
+    utilisateur = Utilisateur.objects.get(pk=utilisateur.pk)
+    _exiger_direction(utilisateur, responsabilite.appartenance.ecole)
+    if not responsabilite.est_active():
+        raise ValidationError("Ces droits de gestion ne sont plus actifs.")
+    verifier_continuite_direction(ecole_id, exclure=responsabilite.pk)
     responsabilite.etat = ResponsabiliteEcole.TERMINEE
-    responsabilite.date_fin = aujourd_hui
+    responsabilite.date_fin = timezone.localdate()
     responsabilite.termine_par = utilisateur
     responsabilite.termine_le = timezone.now()
-    responsabilite.save(
-        update_fields=["etat", "date_fin", "termine_par", "termine_le"]
-    )
-    journaliser(utilisateur, "direction.terminee", responsabilite)
+    responsabilite.motif = motif.strip()
+    responsabilite.save(update_fields=["etat", "date_fin", "termine_par", "termine_le", "motif"])
+    journaliser(utilisateur, "direction.terminee", responsabilite, nouvelles={
+        "utilisateur_id": responsabilite.appartenance.utilisateur_id,
+        "motif": motif.strip(),
+    })
     return responsabilite
 
 

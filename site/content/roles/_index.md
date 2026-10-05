@@ -50,6 +50,7 @@ de la saisie d'un commentaire.
 
 ## Quelques situations importantes
 
+- Plusieurs personnes peuvent [partager les droits de gestion de l’école]({{< relref "/guide/equipe/gerer-droits-ecole/" >}}), avec leurs comptes personnels et sans accès pédagogique automatique.
 - Deux responsables peuvent partager une classe et y disposer des mêmes droits.
 - Une personne peut être responsable de plusieurs classes sans devenir membre
   de la direction.

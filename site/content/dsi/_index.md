@@ -14,6 +14,11 @@ Cette page distingue donc l'architecture déjà exercée des garanties qui reste
 Pour choisir un parcours, consulter [Démarrer]({{< relref "/demarrer/" >}}).
 La [protection des données]({{< relref "/proteger-donnees/" >}}) concerne les deux façons de travailler.
 
+Plusieurs personnes peuvent recevoir les [droits de gestion de l’école]({{< relref "/guide/equipe/gerer-droits-ecole/" >}})
+avec leurs comptes personnels. Les passations conservent une relève sans
+interruption ni fin prévue. Les accès pédagogiques restent liés aux classes ;
+la récupération du second facteur d’une direction relève de l’hébergeur.
+
 ## Choisir un profil
 
 | Profil | Où sont les données ? | Données admises | Finalité |

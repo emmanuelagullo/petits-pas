@@ -72,7 +72,14 @@ def poser_echeance_si_besoin(utilisateur, *, delai_de_grace=True):
     if not disponible() or exigence_double_facteur(utilisateur) != Exigence.OBLIGATOIRE:
         return
     compte, _ = DoubleFacteurCompte.objects.get_or_create(utilisateur=utilisateur)
-    if compte.inscrit or compte.echeance_le is not None:
+    if compte.inscrit:
+        return
+    if compte.echeance_le is not None:
+        # Une promotion ou récupération sans grâce ne conserve pas le délai
+        # qui avait été accordé pour une fonction précédente.
+        if not delai_de_grace and compte.echeance_le > timezone.now():
+            compte.echeance_le = timezone.now()
+            compte.save(update_fields=["echeance_le"])
         return
     jours = settings.DOUBLE_FACTEUR_DELAI_GRACE_JOURS if delai_de_grace else 0
     compte.echeance_le = timezone.now() + timedelta(days=jours)
@@ -128,3 +135,16 @@ class DoubleFacteurMiddleware:
                 )
                 return redirect("double_facteur")
         return None
+
+
+def fermer_sessions_compte(utilisateur):
+    """Une promotion sensible exige une nouvelle connexion (sessions DB).
+
+    Le déploiement utilise les sessions Django en base. La suppression évite
+    qu'une exigence mise en cache avant la promotion garde un délai de grâce.
+    """
+    from django.contrib.sessions.models import Session
+
+    for session in Session.objects.filter(expire_date__gt=timezone.now()).iterator():
+        if session.get_decoded().get("_auth_user_id") == str(utilisateur.pk):
+            session.delete()

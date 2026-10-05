@@ -56,7 +56,8 @@ from comptes.models import (
     Utilisateur,
 )
 from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
-from .forms import ClasseForm
+from .forms import ClasseForm, DroitsGestionForm
+from .confirmations_referentiels import verifier_confirmation
 from .lectures_eleves import avec_scolarites_pour_lecture
 
 from .acces_double_facteur import (
@@ -151,6 +152,8 @@ from .services.equipe import (
     accepter_invitation,
     activer_classe,
     attribuer_affectation,
+    attribuer_direction,
+    terminer_direction,
     creer_compte_et_accepter_invitation,
     envoyer_email_invitation,
     invitation_est_utilisable,
@@ -2259,7 +2262,33 @@ def equipe_ecole(request):
     if request.method == "POST":
         action = request.POST.get("action")
         try:
-            if action == "inviter":
+            if action in {"accorder_gestion", "retirer_gestion"}:
+                formulaire = DroitsGestionForm(request.POST)
+                if not formulaire.is_valid():
+                    raise ValidationError([message for erreurs in formulaire.errors.values() for message in erreurs])
+                # Réutiliser la confirmation sensible : même authentification
+                # et protection contre les essais que les changements de base.
+                verifier_confirmation(request)
+                if action == "accorder_gestion":
+                    membre = get_object_or_404(AppartenanceEcole,
+                        pk=request.POST.get("appartenance"), ecole=ecole)
+                    attribuer_direction(utilisateur=request.user, appartenance=membre,
+                        date_fin=formulaire.cleaned_data["date_fin"], motif=formulaire.cleaned_data["motif"])
+                    messages.success(request, "Droits de gestion accordés.")
+                else:
+                    responsabilite = get_object_or_404(ResponsabiliteEcole,
+                        pk=request.POST.get("responsabilite"), appartenance__ecole=ecole)
+                    terminer_direction(utilisateur=request.user, responsabilite=responsabilite,
+                        motif=formulaire.cleaned_data["motif"])
+                    messages.success(request, "Droits de gestion retirés. Les fonctions de classe sont conservées.")
+                # Recalcul immédiat pour l'acteur s'il a retiré ses propres droits.
+                request.session.pop("double_facteur_exigence", None)
+                if not est_direction(request.user, ecole):
+                    if not autorise(request.user, ACCEDER_APPLICATION, ecole=ecole):
+                        logout(request)
+                        return redirect("connexion")
+                    return redirect("accueil")
+            elif action == "inviter":
                 invitation, jeton = inviter(
                     utilisateur=request.user,
                     ecole=ecole,
@@ -2430,6 +2459,19 @@ def equipe_ecole(request):
                 and appartenance.est_active(aujourd_hui)
                 and refus_reinitialisation(request.user, appartenance.utilisateur, ecole) is None
             )
+    directions_gestion = []
+    for appartenance in appartenances:
+        appartenance.directions_actives = [r for r in appartenance.responsabilites.all()
+            if r.type == ResponsabiliteEcole.DIRECTION and r.est_active(aujourd_hui)]
+        directions_gestion.extend(appartenance.directions_actives)
+    membres_gestion = [a for a in appartenances
+        if a.est_active(aujourd_hui) and not a.directions_actives]
+    avertissement_continuite = ""
+    from .continuite_direction import verifier_continuite_direction
+    try:
+        verifier_continuite_direction(ecole.pk)
+    except ValidationError as erreur:
+        avertissement_continuite = " ".join(erreur.messages)
     membres_affectables = [
         appartenance
         for appartenance in appartenances
@@ -2592,6 +2634,9 @@ def equipe_ecole(request):
         request,
         "suivi/equipe.html",
         {
+            "directions_gestion": directions_gestion,
+            "membres_gestion": membres_gestion,
+            "avertissement_continuite": avertissement_continuite,
             "appartenances": personnes_visibles,
             "membres_affectables": membres_affectables,
             "invitations": invitations,

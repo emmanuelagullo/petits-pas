@@ -90,6 +90,22 @@ class Command(BaseCommand):
                 "reverse-proxy, voir CARNET_PROXYS_NB dans DEPLOIEMENT.org."
             ))
 
+    def _afficher_gouvernance(self):
+        from django.core.exceptions import ValidationError
+        from suivi.continuite_direction import verifier_continuite_direction
+        from suivi.models import Ecole
+
+        try:
+            for ecole in Ecole.objects.filter(etat=Ecole.ACTIVE).order_by("pk"):
+                try:
+                    verifier_continuite_direction(ecole.pk)
+                except ValidationError:
+                    self.stdout.write(self.style.WARNING(
+                        f"- Gestion de l'école {ecole.pk} : relève absente ou droits avec fin prévue."))
+        except ErreurBase:
+            # Diagnostic utilisable avant migrations, comme pour le 2FA.
+            return
+
     def handle(self, *args, **options):
         moteur = settings.DATABASES["default"]["ENGINE"]
         stockage = settings.STORAGES["default"]["BACKEND"]
@@ -247,6 +263,7 @@ class Command(BaseCommand):
                 )
 
         self._afficher_double_facteur()
+        self._afficher_gouvernance()
 
         erreurs = []
 

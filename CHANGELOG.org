@@ -9,6 +9,14 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Droits de gestion de l’école : plusieurs personnes peuvent les recevoir avec
+  leurs comptes personnels depuis Équipe pédagogique. Attribution et retrait
+  confirmés par mot de passe et journalisés ; fin facultative pour un remplacement.
+  La passation conserve les fonctions de classe et exige une relève sans
+  interruption ni fin prévue. Contrôle des changements de compte/appartenance
+  via les modèles, avertissement des anciennes échéances et application du
+  second facteur dès la promotion.
+
 - Second facteur : la direction fixe la politique de son école depuis « Gérer
   l’école », en l’exigeant pour davantage de fonctions ou en le retirant à
   certaines, sous le cadre posé par l’hébergeur (jamais en deçà d’une
