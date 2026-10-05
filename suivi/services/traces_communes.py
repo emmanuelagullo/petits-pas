@@ -37,8 +37,11 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
     if not debut <= date_observation <= fin:
         raise ValidationError("La date doit appartenir à l'année scolaire de la classe.")
     selection = _scolarites(classe, ids)
-    if not autorise(utilisateur, MODIFIER_ETAT, classe) or any(
-        not autorise(utilisateur, CONTRIBUER, sc.classe) for sc in selection
+    # _scolarites a vérifié chaque enfant dans cette classe et cette année.
+    # CONTRIBUER porte sur la classe : le même contrôle suffit pour toute la
+    # sélection, sans cache des droits ni suppression de ce contrôle.
+    if not autorise(utilisateur, MODIFIER_ETAT, classe) or not autorise(
+        utilisateur, CONTRIBUER, classe
     ):
         raise PermissionDenied
     if commune is not None:
@@ -72,7 +75,7 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
             setattr(commune, champ, valeurs[champ])
     commune.dernier_editeur = utilisateur
     commune.save()
-    anciennes = list(commune.attributions.filter(supprime_le__isnull=True))
+    anciennes = list(commune.attributions.filter(supprime_le__isnull=True).select_related("observation"))
     for trace in anciennes:
         if trace.observation.eleve_id not in communes_ids:
             trace.supprime_le = timezone.now()
