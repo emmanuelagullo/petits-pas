@@ -314,6 +314,11 @@ de mise à jour dans cette rubrique versionnée. Les constructions du tag
 exigent ses notes et les reprennent dans la release et la PWA. Le tag vient
 après ce commit ; aucune note n'est récupérée depuis un `main` plus récent.
 Les manifestes et `SHA256SUMS` restent joints aux fichiers de la release.
+Les notes sont vérifiées dans chaque artefact avant comparaison. Seule une
+différence CRLF/LF est tolérée ; si elle existe dans une ancienne construction,
+`notes-version.md` conserve l’original Linux et `notes-version-windows.md`
+conserve l’original Windows correspondant à l’entrée `notes-version.md` du
+manifeste Windows. Aucune empreinte ni aucun binaire candidat n’est modifié.
 Les releases conservent pour l'instant le statut de préversion ; la commande
 ne les marque pas automatiquement comme dernière release stable.
 
