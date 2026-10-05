@@ -69,6 +69,10 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   projets partageant une origine.
   Les jobs `pwa-prototype` et `pwa-qualification` sont automatiques et leurs
   échecs font échouer la CI ; la publication seule reste manuelle.
+  `pwa/MEDIA-OPFS.md` décrit #PWA11 : lectures WORKERFS sur blobs immuables,
+  écritures transitoires MEMFS et copies ZIP restantes. `lazy_media.js` dépend
+  des nœuds Emscripten du runtime épinglé ; requalifier avant de le changer.
+  Ne pas écrire en place dans les blobs confirmés ni contourner les vues médias.
   `scripts/publication.py` partage identité, notes et manifestes de candidats.
   Les notes restent dans `CHANGELOG.org` : À venir sur main, rubrique du tag
   pour une version numérotée. Les binaires se publient en CLI sur GitHub

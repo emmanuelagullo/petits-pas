@@ -32,6 +32,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Navigateur (#PWA11) : lire les médias confirmés à la demande depuis les blobs
+  OPFS, sans conserver leur contenu dans MEMFS. Écritures temporaires puis
+  activation commune base/médias inchangée ; droits Django, ZIP et reprise
+  conservés. Limite de 64 Mio maintenue : les transferts et restaurations ZIP
+  font encore des copies complètes. Audit et mesures dans =pwa/MEDIA-OPFS.md=
+  et =pwa/QUALIFICATION.md=.
+
 - Performance : précharger les scolarités dans les listes d’élèves, mutualiser
   les lectures des regroupements annuels de carnet, éviter les contrôles de
   téléchargement sans photo et précharger les relations des traces. Réutiliser

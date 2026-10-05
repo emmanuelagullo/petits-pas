@@ -131,7 +131,7 @@ def main():
                 entry = ZipInfo(path.relative_to(ROOT).as_posix(), (2026, 1, 1, 0, 0, 0))
                 entry.compress_type = ZIP_DEFLATED
                 archive.writestr(entry, path.read_bytes())
-    for name in ["index.html", "essai.html", "apercu.html", "shell.js", "worker.js", "storage.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
+    for name in ["index.html", "essai.html", "apercu.html", "shell.js", "worker.js", "storage.js", "lazy_media.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
         shutil.copyfile(ROOT / "pwa" / name, output / name)
     for folder in [ROOT / "referentiel/static", ROOT / "suivi/static"]:
         shutil.copytree(folder, output / "static", dirs_exist_ok=True)

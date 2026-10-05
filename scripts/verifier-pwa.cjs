@@ -229,6 +229,48 @@ json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.comm
     code:"from suivi.models import Ecole; Ecole.objects.update(commune='Commune fictive modifiée')"}));
   assert.equal(sqlOnly.durability.writtenFiles, 1, 'Une écriture SQL a recopié les médias');
   pass('Lecture du média sans écriture OPFS ; modification SQL sans recopie des médias');
+  // Preuve ciblée #PWA11 : accès fichier Python/Pillow, puis écriture en place.
+  await python(page, `
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from PIL import Image
+with default_storage.open(Trace.objects.get().photo.name, 'rb') as source:
+    with Image.open(source) as image:
+        image.load()
+        assert image.width > 0
+    source.seek(0)
+    original_media = source.read()
+proof_name = default_storage.save('preuve-pwa11-fictive.png', ContentFile(original_media))
+`);
+  let lazyMetrics = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
+  assert.equal(lazyMetrics.residentMediaBytes, 0);
+  assert.equal(lazyMetrics.lazyMediaFiles, 2);
+  await python(page, `
+with default_storage.open(proof_name, 'r+b') as cible:
+    cible.seek(0, 2)
+    cible.write(b'PWA11-fictif')
+with default_storage.open(proof_name, 'rb') as cible:
+    assert cible.read() == original_media + b'PWA11-fictif'
+`);
+  lazyMetrics = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
+  assert.equal(lazyMetrics.residentMediaBytes, 0);
+  assert(lazyMetrics.mediaMaterializedBytes > 0);
+  await python(page, `
+from pathlib import Path
+p = Path('/data/media') / proof_name
+p.write_bytes(original_media)  # O_TRUNC sans recopier l'ancien fichier
+with p.open('ab') as cible:
+    cible.write(b'append-fictif')
+q = p.with_name('preuve-renommee-fictive.png')
+p.rename(q)
+assert q.read_bytes() == original_media + b'append-fictif'
+q.unlink()
+assert not p.exists() and not q.exists()
+`);
+  lazyMetrics = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
+  assert.equal(lazyMetrics.residentMediaBytes, 0);
+  assert.equal(lazyMetrics.lazyMediaFiles, 1);
+  pass('PWA11 : Pillow sur File OPFS, création, modification, troncature, ajout, renommage et suppression sans médias résidents');
   await page.getByRole('button', {name: 'Sauvegardes / transfert'}).click();
   await page.frameLocator('#app').getByRole('heading', {name: 'Sauvegardes locales', exact: true}).waitFor();
   const downloadReady = page.waitForEvent('download');
@@ -388,7 +430,11 @@ with tempfile.TemporaryDirectory() as dossier:
     return responses.map(r => r.status);
   }, `${base}app/eleve/${ids.eleve}/carnet.pdf`);
   assert([403,404].includes(denied[0])); assert.equal(denied[1], 403); assert.equal(denied[2], 403);
-  await python(page, "ResponsabiliteEcole.objects.update(etat='active'); AffectationClasse.objects.update(type='responsable')");
+  await python(page, "AffectationClasse.objects.update(etat='suspendue')");
+  const deniedMedia = await page.evaluate(async route => window.pwaTest({kind:'http',
+    request:{url:location.origin+route,method:'GET',headers:[],body:''}}), `${base}app/media/trace/${media.id}/`);
+  assert([403,404].includes(deniedMedia.result.status));
+  await python(page, "ResponsabiliteEcole.objects.update(etat='active'); AffectationClasse.objects.update(type='responsable',etat='active')");
   pass('Contributeur sans direction : impression du carnet et exports réservés refusés');
 
 
