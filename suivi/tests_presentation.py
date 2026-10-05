@@ -7,6 +7,8 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.test import override_settings
 from django.urls import reverse
 from PIL import Image
@@ -160,6 +162,32 @@ class ParcoursPresentation(Base):
             ecole=self.ecole, classe=self.classe, competence=self.competence, mode="desactiver"))
         for url in urls:
             self.assertNotContains(self.client.get(url), 'class="icone-liste"')
+
+    def test_listes_eleve_ne_rechargent_pas_la_classe_par_competence(self):
+        from .services.reprise_referentiels import reprendre
+
+        Competence.objects.bulk_create([
+            Competence(domaine=self.competence.domaine, code=f"GRAND-{i}",
+                       libelle=f"Apprentissage fictif {i}", icone="livre")
+            for i in range(40)
+        ])
+        self.client.force_login(self.enseignant)
+        urls = [reverse("saisie_eleve", args=[self.eleve.pk]),
+                reverse("contribuer_eleve", args=[self.eleve.pk])]
+        # Vérifier aussi le parcours annuel : son adoption doit être réutilisée.
+        for annuel in (False, True):
+            if annuel:
+                reprendre(self.ecole.pk)
+            for url in urls:
+                with self.subTest(annuel=annuel, url=url):
+                    with CaptureQueriesContext(connection) as requetes:
+                        page = self.client.get(url)
+                    self.assertContains(page, "Apprentissage fictif 39")
+                    self.assertEqual(sum(len(lignes) for _, lignes in page.context["domaines"]), 41)
+                    self.assertContains(page, 'class="icone-liste"', count=40)
+                    # Une quarantaine de lignes ne doit pas entraîner plus de
+                    # cent lectures de scolarité/école/adoption comme auparavant.
+                    self.assertLess(len(requetes), 80)
 
     def test_heritage_ignore_modifications_image_et_aides_repliees(self):
         reglage = enregistrer_reglage(self.direction, ReglagePresentation(

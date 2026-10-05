@@ -18,6 +18,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Suivi individuel et contributions : réutiliser la classe et son adoption
+  pour toutes les compétences affichées, afin d’éviter des centaines de
+  requêtes répétées avec les grands référentiels.
+
 - Publication des programmes : comparer les notes Linux et Windows après
   vérification de chaque manifeste, en tolérant uniquement les fins de ligne
   CRLF/LF. Les originaux restent conservés avec leurs empreintes. Les nouvelles

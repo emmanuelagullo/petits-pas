@@ -1074,7 +1074,8 @@ def saisie_eleve(request, pk):
         visibles = set(etats)
         etats = {o.competence_id: projeter_etat_classe(o)
                  for o in observations_classe(courante.classe).filter(eleve=eleve, competence_id__in=visibles)}
-    for d in _arbre(ecole, niveaux, classe=courante.classe if courante else None):
+    classe = courante.classe if courante else None
+    for d in _arbre(ecole, niveaux, classe=classe):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if lignes:
             domaines.append((d, lignes))
@@ -1082,7 +1083,7 @@ def saisie_eleve(request, pk):
     return render(
         request,
         "suivi/saisie_eleve.html",
-        {"eleve": eleve, "domaines": domaines, "filtre": filtre,
+        {"eleve": eleve, "classe": classe, "domaines": domaines, "filtre": filtre,
          "responsable": autorise(request.user, MODIFIER_ETAT, eleve) and not (courante and classe_historique(courante.classe))},
     )
 
@@ -1098,11 +1099,12 @@ def contribuer_eleve(request, pk):
         actifs_seulement=True,
     )
     courante = eleve.scolarite_courante()
-    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=courante.classe if courante else None) if d.visibles]
+    classe = courante.classe if courante else None
+    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=classe) if d.visibles]
     return render(
         request,
         "suivi/contribuer_eleve.html",
-        {"eleve": eleve, "domaines": domaines},
+        {"eleve": eleve, "classe": classe, "domaines": domaines},
     )
 
 
@@ -1284,7 +1286,8 @@ def basculer(request, eleve_pk, competence_pk):
     return render(
         request,
         gabarit,
-        {"eleve": eleve, "competence": competence, "obs": obs, "responsable": True},
+        {"eleve": eleve, "classe": scolarite.classe if scolarite else None,
+         "competence": competence, "obs": obs, "responsable": True},
     )
 
 
