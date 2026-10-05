@@ -154,6 +154,34 @@ fichiers d'images pour retrouver les traces et la présentation des carnets.
 Les parcours d'utilisation sont décrits dans le
 [Guide pratique]({{< relref "/guide/carnets/personnaliser-presentation/" >}}).
 
+### Authentification à deux facteurs
+
+Un second facteur par code temporaire (six chiffres, trente secondes) peut
+s'ajouter au mot de passe. Il est **facultatif et absent par défaut** : il
+n'existe que si l'hébergeur installe une extension de dépendances
+(`requirements-2fa.txt`) et renseigne une clé de chiffrement. Sans cela, rien ne
+change pour personne. Le programme installé sur un seul poste ne le propose pas.
+
+L'hébergeur fixe un cadre pour toutes ses écoles : le 2FA peut être rendu
+obligatoire jusqu'à une fonction donnée, ou retiré à partir d'une fonction. Dans
+ce cadre, la direction de chaque école peut l'exiger pour davantage de
+fonctions, jamais pour moins ; une obligation reçue ne peut pas être abaissée.
+
+La clé secrète de chaque personne est chiffrée en base avec une clé propre au
+déploiement. **Perdue ou remplacée sans précaution, cette clé rend illisibles
+tous les secrets enregistrés** : elle doit être conservée avec les autres
+secrets d'exploitation, et peut être renouvelée sans réinscrire personne en
+gardant l'ancienne à la suite de la nouvelle. En cas de téléphone perdu, trois
+recours existent : dix codes de secours à usage unique remis à chaque personne,
+la réinitialisation par la direction de l'école pour les fonctions inférieures
+à la sienne, et une commande d'exploitation pour tout compte, direction
+comprise.
+
+Le détail des variables, de la clé et de la procédure figure dans la
+[documentation de déploiement](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/DEPLOIEMENT.org).
+Les parcours pour les équipes et la direction sont dans le
+[guide pratique]({{< relref "/guide/equipe/second-facteur/" >}}).
+
 ### Garanties restant à consolider
 
 Avant tout usage avec des données réelles, il reste notamment à consolider :
@@ -163,6 +191,9 @@ Avant tout usage avec des données réelles, il reste notamment à consolider :
 - la revue systématique de la couverture des autorisations et de leur
   journalisation, y compris face aux requêtes forgées et aux accès
   inter-écoles ;
+- pour le second facteur : la fermeture des sessions déjà ouvertes lors d'une
+  réinitialisation, et un changement de téléphone en autonomie lorsque le second
+  facteur est obligatoire ;
 - les politiques de conservation, d'effacement et d'export ;
 - la revue de sécurité, l'accessibilité et les conditions d'exploitation ;
 - la répartition documentée des responsabilités entre école, collectivité et
