@@ -4,7 +4,7 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.utils import timezone
@@ -72,11 +72,14 @@ class RelationTemporelle(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
-        return super().save(*args, **kwargs)
+        return _enregistrer_avec_continuite(self, super().save, args, kwargs)
 
 
 class Utilisateur(AbstractUser):
     """Identité individuelle Petits Pas, indépendante de toute école."""
+
+    def save(self, *args, **kwargs):
+        return _enregistrer_avec_continuite(self, super().save, args, kwargs)
 
     class Meta:
         constraints = [
@@ -396,3 +399,56 @@ class CodeSecoursDoubleFacteur(models.Model):
                 fields=["utilisateur", "empreinte"],
                 name="code_secours_unique_par_compte"),
         ]
+
+
+def _enregistrer_avec_continuite(instance, enregistrer, args, kwargs):
+    """Protéger les changements existants ; ne pas bloquer l'initialisation.
+
+    Les migrations historiques et QuerySet.update n'appellent pas ce helper.
+    Une intervention SQL doit vérifier explicitement la gouvernance.
+    """
+    nom = instance._meta.model_name
+    champs = {
+        "utilisateur": {"is_active"},
+        "appartenanceecole": {"etat", "date_debut", "date_fin", "utilisateur_id", "ecole_id"},
+        "responsabiliteecole": {"etat", "date_debut", "date_fin", "type", "appartenance_id"},
+    }.get(nom)
+    if instance._state.adding or champs is None:
+        return enregistrer(*args, **kwargs)
+    update_fields = kwargs.get("update_fields")
+    if update_fields is not None:
+        champs = {c for c in champs if c in update_fields or c.removesuffix("_id") in update_fields}
+    if not champs:
+        return enregistrer(*args, **kwargs)
+    from suivi.models import Ecole
+    from suivi.continuite_direction import verifier_continuite_direction
+
+    with transaction.atomic():
+        ancien = type(instance).objects.get(pk=instance.pk)
+        if not any(getattr(ancien, c) != getattr(instance, c) for c in champs):
+            return enregistrer(*args, **kwargs)
+        relations = ResponsabiliteEcole.objects.filter(etat="active", type="direction")
+        if nom == "utilisateur":
+            relations = relations.filter(appartenance__utilisateur_id=instance.pk)
+        elif nom == "appartenanceecole":
+            relations = relations.filter(appartenance_id=instance.pk)
+            if instance.ecole_id != ancien.ecole_id or instance.utilisateur_id != ancien.utilisateur_id:
+                if relations.exists():
+                    raise ValidationError("Terminez d'abord les responsabilités avant de changer l'appartenance.")
+        else:
+            relations = relations.filter(pk=instance.pk)
+            if instance.appartenance_id != ancien.appartenance_id and relations.exists():
+                raise ValidationError("Une responsabilité doit être terminée avant de changer de personne.")
+        # Inclure les appartenances même sans responsabilité : une attribution
+        # concurrente doit prendre le même verrou que la désactivation.
+        if nom == "utilisateur":
+            ecoles = list(AppartenanceEcole.objects.filter(utilisateur_id=instance.pk)
+                .values_list("ecole_id", flat=True))
+        elif nom == "appartenanceecole":
+            ecoles = [ancien.ecole_id, instance.ecole_id]
+        else:
+            ecoles = list(relations.values_list("appartenance__ecole_id", flat=True))
+        for ecole in Ecole.objects.select_for_update().filter(pk__in=set(ecoles)).order_by("pk"):
+            if ecole.etat == Ecole.ACTIVE and relations.filter(appartenance__ecole=ecole).exists():
+                verifier_continuite_direction(ecole.pk, modification=instance)
+        return enregistrer(*args, **kwargs)

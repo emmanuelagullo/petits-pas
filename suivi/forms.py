@@ -15,3 +15,9 @@ class ClasseForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["annee_scolaire"].initial = annee_scolaire_pour(timezone.localdate())
+
+
+class DroitsGestionForm(forms.Form):
+    date_fin = forms.DateField(required=False, label="Fin éventuelle",
+        widget=forms.DateInput(attrs={"type": "date"}))
+    motif = forms.CharField(required=False, max_length=500, label="Motif")

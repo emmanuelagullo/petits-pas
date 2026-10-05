@@ -267,6 +267,8 @@ class ExigenceEffective(BaseEcoles):
         self.assertEqual(self.exigence(isole), Exigence.OPTIONNELLE)
 
     def test_compte_inactif_ou_anonyme_n_est_pas_soumis(self):
+        # Le changement de compte conserve désormais une relève de gestion.
+        ResponsabiliteEcole.objects.create(appartenance=self.responsable_a)
         self.direction.is_active = False
         self.direction.save()
         self.assertEqual(self.exigence(self.direction), Exigence.DESACTIVEE)

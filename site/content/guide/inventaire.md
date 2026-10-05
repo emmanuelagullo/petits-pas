@@ -106,7 +106,7 @@ Les statuts employés sont :
 | Suspendre une affectation en urgence | Disponible | Motif obligatoire ; une anomalie peut être ouverte. |
 | Choisir pour quelles fonctions le second facteur est exigé ou retiré | Selon l’installation | Direction, dans le cadre fixé par l’hébergeur. Voir la [fiche]({{< relref "/guide/equipe/second-facteur-ecole/" >}}). |
 | Réinitialiser le second facteur d’une personne qui a perdu son téléphone | Selon l’installation | Direction, pour les personnes n’exerçant pas la direction ; les autres relèvent de l’hébergeur. |
-| Attribuer ou retirer une responsabilité de direction | Interne | Services présents, sans interface publique. |
+| Accorder ou retirer les droits de gestion de l’école | Disponible | Plusieurs comptes personnels ; mot de passe et continuité contrôlés. Voir la [fiche]({{< relref "/guide/equipe/gerer-droits-ecole/" >}}). |
 
 ## Utiliser Petits Pas sur cet appareil
 
@@ -169,7 +169,7 @@ dimensions et budget total.
 
 Le guide ne présente pas comme disponibles les parcours que l’interface ne
 propose pas encore : choix entre plusieurs écoles, renommage et archivage d’une
-classe, ou attribution d’une responsabilité de direction. La création d’une
+classe. La création d’une
 trace vide reste techniquement acceptée et est signalée dans la fiche
 concernée. Les opérations d’exploitation restent séparées des gestes
 quotidiens.

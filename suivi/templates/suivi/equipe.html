@@ -31,6 +31,43 @@
 </div>
 {% endif %}
 
+<section class="encadre" id="gestion-ecole">
+  <h2>Personnes autorisées à gérer l’école</h2>
+  <p>Ces droits permettent de gérer l’équipe, les classes, les élèves et les réglages de l’école. Les observations et les carnets demandent une fonction dans la classe concernée.</p>
+  {% if avertissement_continuite %}<p role="alert">{{ avertissement_continuite }}</p>{% endif %}
+  {% for responsabilite in directions_gestion %}
+  <div>
+    <p><strong>{{ responsabilite.appartenance.utilisateur.get_full_name|default:responsabilite.appartenance.utilisateur.username }}</strong> · depuis le {{ responsabilite.date_debut }}{% if responsabilite.date_fin %} · jusqu’au {{ responsabilite.date_fin }} inclus{% else %} · sans fin prévue{% endif %}{% if responsabilite.appartenance.date_fin %} · appartenance jusqu’au {{ responsabilite.appartenance.date_fin }} inclus{% endif %}{% if responsabilite.attribue_par %} · accordés par {{ responsabilite.attribue_par.get_full_name|default:responsabilite.attribue_par.username }}{% endif %}</p>
+    {% if responsabilite.motif %}<p>{{ responsabilite.motif }}</p>{% endif %}
+    <details><summary>Retirer les droits de gestion à cette personne</summary>
+      <p>Ses fonctions dans les classes seront conservées. L’école doit garder une personne autorisée à la gérer sans interruption ni fin prévue.</p>
+      <form method="post">{% csrf_token %}<input type="hidden" name="action" value="retirer_gestion"><input type="hidden" name="responsabilite" value="{{ responsabilite.pk }}"><input type="hidden" name="vue" value="{{ vue_equipe }}">
+        <label>Motif <input name="motif" maxlength="500"></label>
+        <label>Votre mot de passe <input type="password" name="mot_de_passe" autocomplete="current-password" required></label>
+        <button type="submit" class="bouton">Retirer les droits de gestion</button>
+      </form>
+    </details>
+  </div>
+  {% empty %}<p>Aucune personne actuellement autorisée.</p>{% endfor %}
+  <details><summary>Accorder les droits de gestion</summary>
+    <p>Pour une nouvelle personne, utilisez d’abord « Inviter une personne » et attendez qu’elle accepte l’invitation. Pour une passation, accordez les droits avant de retirer ceux de la personne précédente.</p>
+    {% if membres_gestion %}
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="accorder_gestion"><input type="hidden" name="vue" value="{{ vue_equipe }}">
+      <label>Personne <select name="appartenance" required>{% for membre in membres_gestion %}<option value="{{ membre.pk }}">{{ membre.utilisateur.get_full_name|default:membre.utilisateur.username }}</option>{% endfor %}</select></label>
+      <label>Fin éventuelle <input type="date" name="date_fin"></label>
+      <label>Motif <input name="motif" maxlength="500"></label>
+      <label>Votre mot de passe <input type="password" name="mot_de_passe" autocomplete="current-password" required></label>
+      <button type="submit" class="bouton">Accorder les droits de gestion</button>
+    </form>
+    {% else %}<p>Aucun autre membre actif à sélectionner.</p>{% endif %}
+  </details>
+  <details><summary>Aide pour les droits de gestion</summary>
+    <p>Chaque personne utilise son compte personnel. Les attributions et retraits sont enregistrés avec leur auteur et leur date. Vérifiez les droits à chaque départ et au moins une fois par an. Une date de fin retire automatiquement les droits après cette date.</p>
+    <p>La politique de second facteur s’applique dès l’attribution. Si elle est obligatoire, la personne devra le configurer pour continuer. La perte du second facteur d’une personne de direction relève de l’hébergeur.</p>
+    <p>Pour une aide aux observations seulement, attribuez une fonction dans la classe plutôt que les droits de gestion de l’école.</p>
+  </details>
+</section>
+
 {% if anomalies %}
 <aside class="alerte-gouvernance" id="gouvernance">
   <strong>{{ anomalies|length }} anomalie{{ anomalies|length|pluralize }} à traiter</strong>
@@ -88,7 +125,7 @@
 <section class="carte-equipe" id="membre-{{ appartenance.utilisateur.username|slugify }}">
   <header class="carte-equipe-entete">
     <div><h2>{{ appartenance.utilisateur.get_full_name|default:appartenance.utilisateur.username }}</h2><p>{{ appartenance.utilisateur.email }}{% if appartenance.date_fin %} · membre jusqu’au {{ appartenance.date_fin }}{% else %} · membre depuis le {{ appartenance.date_debut }}{% endif %} · {{ appartenance.get_etat_display }}</p></div>
-    {% for responsabilite in appartenance.responsabilites.all %}<span class="pastille">{{ responsabilite.get_type_display }}</span>{% endfor %}
+    {% for responsabilite in appartenance.directions_actives %}<span class="pastille">{{ responsabilite.get_type_display }}</span>{% endfor %}
   </header>
 
   <div class="lignes-equipe">

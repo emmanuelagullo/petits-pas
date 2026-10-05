@@ -401,6 +401,16 @@ explicitement placés dans `site/content/` sont publiés. Le contrôle préalabl
 vérifie les métadonnées des fiches pratiques, leurs liens internes et la
 cohérence entre les captures utilisées et les scénarios fictifs déclarés.
 
+## Gestion de l’école à plusieurs
+
+Équipe pédagogique permet d’accorder ou retirer les droits de gestion de
+l’école à plusieurs comptes personnels, avec confirmation par mot de passe.
+Une fin facultative couvre les remplacements temporaires ; une passation doit
+conserver une relève sans interruption ni fin prévue. Les fonctions de classe
+restent distinctes. Voir la fiche du Guide pratique « Partager les droits de
+gestion de l’école » et `POLITIQUE-AUTORISATION.org` pour les limites des
+interventions techniques.
+
 ## Audit de performance
 
 [AUDIT-PERFORMANCE.md](AUDIT-PERFORMANCE.md) présente les mesures locales,

@@ -46,7 +46,7 @@ préparation.
   décision sur les états ni la génération finale ; **Contributeur** n’ouvre que
   la contribution ciblée.
 - La fonction de direction est une responsabilité d’école distincte ; elle ne
-  s’attribue pas avec ce formulaire.
+  s’attribue pas avec ce formulaire. Voir [Partager les droits de gestion de l’école]({{< relref "/guide/equipe/gerer-droits-ecole/" >}}).
 - Une date de fin rend automatiquement l’affectation inactive après cette date,
   sans effacer ses contributions historiques.
 
