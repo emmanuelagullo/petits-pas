@@ -164,12 +164,19 @@ deploiement-ephemere:
     CARNET_CSRF_ORIGINS: "https://localhost:8000,https://127.0.0.1:8000"
     CARNET_ENVIRONNEMENT_EPHEMERE: "oui"
     CARNET_EMAIL_DESACTIVE: "oui"
+    # Second facteur exercé par le scénario : clé de test, jamais utilisée ailleurs.
+    # Le plafond de saisies est relevé pour laisser passer le scénario, qui
+    # vérifie ensuite qu'il finit bien par être atteint.
+    CARNET_2FA_CLE: "qHjrMI_lFyq-A73Di6uTntYS6PGAENbfH_aASf086Kk="
+    CARNET_RATELIMIT_DOUBLE_FACTEUR: "12/15m"
   before_script:
     - apt-get update
     - apt-get install --yes --no-install-recommends curl git libpango-1.0-0 libpangoft2-1.0-0 postgresql-client
     - python3 -m pip install --requirement requirements.lock
+    - python3 -m pip install --requirement requirements-2fa.txt
     - python3 -m pip check
   script:
+    - python3 -m unittest discover -s scripts -p test_exercer_double_facteur.py
     - scripts/exercer-deploiement-ephemere.sh
 
 deploiement-persistant-local:

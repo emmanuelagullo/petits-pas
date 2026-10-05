@@ -1,6 +1,8 @@
 """Second facteur à la connexion, échéance d'inscription et inscription (#C8c)."""
+import importlib.util
 import time
 from datetime import timedelta
+from pathlib import Path
 from importlib.util import find_spec
 from unittest import skipUnless
 
@@ -360,6 +362,27 @@ class InscriptionEtRetrait(BaseAcces):
         reponse = self.client.post(reverse("double_facteur"), {"code": "000000"})
         self.assertContains(reponse, "Code incorrect ou expiré")
         self.assertFalse(totp.est_inscrit(self.enseignant))
+
+    def test_le_scenario_de_deploiement_reconnait_les_vraies_pages(self):
+        """Le scénario de CI lit la page d'inscription et celle des codes de
+        secours par expressions régulières : elles ne doivent pas dériver."""
+        racine = Path(__file__).resolve().parent.parent
+        spec = importlib.util.spec_from_file_location(
+            "exercer_double_facteur", racine / "scripts" / "exercer-double-facteur.py")
+        scenario = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(scenario)
+        page = self.client.get(reverse("double_facteur")).content.decode()
+        cle = scenario.CLE_SAISIE.search(page)
+        self.assertIsNotNone(cle)
+        compte = DoubleFacteurCompte.objects.get(utilisateur=self.enseignant)
+        cle_attendue = totp.cle_en_base32(totp.cle_en_cours(compte))
+        self.assertEqual(cle.group(1).replace(" ", ""), cle_attendue)
+        self.assertIsNotNone(scenario.JETON_CSRF.search(page))
+        # Le code recalculé par le scénario (bibliothèque standard seule) est
+        # accepté par l'application : mêmes algorithme, pas et chiffres.
+        reponse = self.client.post(reverse("double_facteur"), {
+            "code": scenario.code_totp(cle_attendue, time.time())})
+        self.assertEqual(len(scenario.CODES_SECOURS.findall(reponse.content.decode())), 10)
 
     def test_la_cle_n_apparait_jamais_dans_la_reponse_une_fois_inscrit(self):
         cle = self.lire_cle(self.client.get(reverse("double_facteur")))
