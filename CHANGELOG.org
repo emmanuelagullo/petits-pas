@@ -9,6 +9,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Added
 
+- Phase 4 #J1 : contrat simple de traitement des images, avec optimisation
+  automatique, profil de couverture légèrement moins contraint, quotas
+  facultatifs et recompression rétroactive toujours explicite.
+
 - Droits de gestion de l’école : plusieurs personnes peuvent les recevoir avec
   leurs comptes personnels depuis Équipe pédagogique. Attribution et retrait
   confirmés par mot de passe et journalisés ; fin facultative pour un remplacement.
