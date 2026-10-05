@@ -1793,6 +1793,15 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     else:
         scolarites_bilans = scolarites_visibles
     domaines = []
+    # Une lecture commune pour tous les domaines et acquisitions. Les titres
+    # annuels conservent les niveaux réellement inscrits, y compris hors des
+    # scolarités dont les traces sont visibles dans ce carnet.
+    scolarites_par_annee = ({s.annee_scolaire: s for s in eleve.scolarites.all()}
+                           if regroupement == "annuel" else {})
+    bilans_regroupement = (list(Bilan.objects.filter(
+        scolarite__eleve=eleve, scolarite__in=scolarites_bilans,
+        supprime_le__isnull=True).select_related("scolarite").order_by("date_bilan"))
+        if regroupement == "bilan" else [])
     for d in _arbre(ecole, classe=classe_presentation, inclure_ids=etats):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if mode == "reussites":
@@ -1810,7 +1819,8 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
                 (
                     d,
                     _regrouper_lignes(
-                        eleve, lignes, regroupement, scolarites_bilans
+                        eleve, lignes, regroupement, scolarites_bilans,
+                        scolarites_par_annee=scolarites_par_annee, bilans=bilans_regroupement,
                     ),
                 )
             )
@@ -1860,20 +1870,19 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     }
 
 
-def _regrouper_lignes(eleve, lignes, regroupement, scolarites=None):
+def _regrouper_lignes(eleve, lignes, regroupement, scolarites=None, *,
+                     scolarites_par_annee=None, bilans=None):
     if regroupement == "aucun":
         return [(None, lignes)]
 
-    filtre_bilans = Bilan.objects.filter(
-        scolarite__eleve=eleve, supprime_le__isnull=True
-    )
-    if scolarites is not None:
-        filtre_bilans = filtre_bilans.filter(scolarite__in=scolarites)
-    bilans = list(
-        filtre_bilans
-        .select_related("scolarite")
-        .order_by("date_bilan")
-    )
+    if regroupement == "annuel" and scolarites_par_annee is None:
+        scolarites_par_annee = {s.annee_scolaire: s for s in eleve.scolarites.all()}
+    if regroupement == "bilan" and bilans is None:
+        filtre_bilans = Bilan.objects.filter(
+            scolarite__eleve=eleve, supprime_le__isnull=True)
+        if scolarites is not None:
+            filtre_bilans = filtre_bilans.filter(scolarite__in=scolarites)
+        bilans = list(filtre_bilans.select_related("scolarite").order_by("date_bilan"))
     groupes = OrderedDict()
     for competence, observation in lignes:
         if observation is None:
@@ -1884,7 +1893,7 @@ def _regrouper_lignes(eleve, lignes, regroupement, scolarites=None):
             titre = date_format(observation.date_observation, "F Y").capitalize()
         elif regroupement == "annuel":
             annee = annee_scolaire_pour(observation.date_observation)
-            scolarite = eleve.scolarites.filter(annee_scolaire=annee).first()
+            scolarite = scolarites_par_annee.get(annee)
             titre = (
                 f"{scolarite.get_niveau_display()} — {annee}"
                 if scolarite
