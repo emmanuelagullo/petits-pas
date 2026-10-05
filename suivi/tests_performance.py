@@ -193,3 +193,38 @@ class TracesAvecPhotoPerformance(Base):
             page = self.client.get(url)
         self.assertLessEqual(lectures_classe(requetes), nombre)
         self.assertContains(page, "Télécharger la photo originale", count=21)
+
+
+class EnregistrementPartagePerformance(Base):
+    def test_cout_par_enfant_limite_aux_attributions(self):
+        from .models import Observation
+        from .services.traces_communes import enregistrer_commune
+        eleves = [self.eleve]
+        for i in range(29):
+            eleve = Eleve.objects.create(ecole=self.ecole, prenom=f"Fictif {i}")
+            Scolarite.objects.create(eleve=eleve, classe=self.classe,
+                annee_scolaire=self.classe.annee_scolaire, niveau="PS")
+            eleves.append(eleve)
+        Observation.objects.bulk_create([Observation(eleve=e, competence=self.competence, statut="reussi") for e in eleves])
+        mesures = []
+        for nombre in [5, 30]:
+            with CaptureQueriesContext(connection) as requetes:
+                commune = enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                    competence=self.competence, ids=[e.pk for e in eleves[:nombre]],
+                    valeurs={"commentaire":"<prénom> essaie une activité fictive."})
+            mesures.append(len(requetes))
+            self.assertEqual(commune.attributions.count(), nombre)
+            self.assertTrue(commune.attributions.filter(commentaire="Lou essaie une activité fictive.").exists())
+        self.assertLessEqual(mesures[1], mesures[0] + 4 * 25)
+        self.assertEqual(set(Observation.objects.values_list("statut", flat=True)), {"reussi"})
+
+    def test_selection_hors_classe_refusee_avant_ecriture(self):
+        from django.core.exceptions import ValidationError
+        from .models import TraceCommune
+        from .services.traces_communes import enregistrer_commune
+        autre = Eleve.objects.create(ecole=self.ecole, prenom="Autre classe fictive")
+        with self.assertRaises(ValidationError):
+            enregistrer_commune(utilisateur=self.enseignant, classe=self.classe,
+                competence=self.competence, ids=[self.eleve.pk, autre.pk],
+                valeurs={"commentaire":"Texte fictif"})
+        self.assertFalse(TraceCommune.objects.exists())
