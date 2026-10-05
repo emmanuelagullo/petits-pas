@@ -118,6 +118,61 @@ class TracesSansPhotoPerformance(Base):
         self.assertNotContains(page, "Télécharger la photo originale")
 
 
+class EquipePerformance(Base):
+    def ajouter_responsables(self, debut, fin):
+        from django.contrib.auth import get_user_model
+        from comptes.models import AffectationClasse, AppartenanceEcole
+        for i in range(debut, fin):
+            membre = AppartenanceEcole.objects.create(ecole=self.ecole,
+                utilisateur=get_user_model().objects.create_user(username=f"equipe-fictive-{i}"))
+            classe = Classe.objects.create(ecole=self.ecole, nom=f"Classe fictive {i}")
+            AffectationClasse.objects.create(appartenance=membre, classe=classe, type="responsable")
+            classe.activer()
+
+    def test_croissance_lineaire_des_requetes_de_replacement(self):
+        self.client.force_login(self.direction)
+        url = reverse("equipe_ecole")
+        self.ajouter_responsables(0, 5)
+        self.client.get(url)
+        with CaptureQueriesContext(connection) as requetes:
+            self.client.get(url)
+        nombre = len(requetes)
+        self.ajouter_responsables(5, 30)
+        with CaptureQueriesContext(connection) as requetes:
+            page = self.client.get(url)
+        # Les contrôles de fin d'affectation restent individuels ; seule la
+        # recherche des remplaçants cesse de multiplier les allers-retours.
+        self.assertLessEqual(len(requetes), nombre + 8 * 25)
+        self.assertContains(page, "equipe-fictive-29")
+
+    def test_remplacants_conservent_les_limites_de_dates_et_etats(self):
+        from datetime import timedelta
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        from comptes.models import AffectationClasse, AppartenanceEcole
+        aujourd_hui = timezone.localdate()
+        candidats = {}
+        for nom, debut, fin, etat in [
+            ("future", aujourd_hui + timedelta(days=1), None, "active"),
+            ("finie", aujourd_hui - timedelta(days=2), aujourd_hui - timedelta(days=1), "active"),
+            ("fin-aujourdhui", aujourd_hui - timedelta(days=1), aujourd_hui, "active"),
+            ("suspendue", aujourd_hui, None, "suspendue"),
+        ]:
+            membre = AppartenanceEcole.objects.create(ecole=self.ecole,
+                utilisateur=get_user_model().objects.create_user(username=nom))
+            candidats[nom] = membre.pk
+            AffectationClasse.objects.create(appartenance=membre, classe=self.classe,
+                type="contributeur", date_debut=debut, date_fin=fin, etat=etat)
+        self.client.force_login(self.direction)
+        page = self.client.get(reverse("equipe_ecole"))
+        responsable = next(a for m in page.context['appartenances']
+            if m.pk == self.appartenance_enseignant.pk for a in m.affectations_classes.all())
+        remplacants = {m.pk for m in responsable.remplacants}
+        self.assertTrue({candidats['future'], candidats['finie'], candidats['suspendue']} <= remplacants)
+        self.assertNotIn(candidats['fin-aujourdhui'], remplacants)
+        self.assertNotIn(self.appartenance_enseignant.pk, remplacants)
+
+
 class TracesAvecPhotoPerformance(Base):
     def test_relations_des_traces_chargees_ensemble_sans_eluder_les_droits(self):
         from .models import Observation, Trace
