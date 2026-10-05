@@ -1673,7 +1673,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
         obs.traces.filter(
             scolarite=scolarite_courante,
             supprime_le__isnull=True,
-        ).select_related("scolarite")
+        ).select_related("scolarite__classe__ecole", "commune", "origine_commune")
         if obs
         else Trace.objects.none()
     )
@@ -1684,7 +1684,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
         trace_conservee.peut_modifier = (
             responsable or trace_conservee.auteur_id == request.user.pk
         )
-        trace_conservee.peut_telecharger_original = autorise(
+        trace_conservee.peut_telecharger_original = bool(trace_conservee.photo) and autorise(
             request.user,
             TELECHARGER_MEDIA_ORIGINAL,
             trace_conservee,

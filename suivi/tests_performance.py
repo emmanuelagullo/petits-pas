@@ -96,3 +96,45 @@ class RegroupementCarnetPerformance(Base):
             page = self.client.get(url, {"regroupement": "annuel"})
         self.assertLessEqual(len(requetes), nombre)
         self.assertContains(page, "Acquisition fictive 29")
+
+
+class TracesSansPhotoPerformance(Base):
+    def test_liste_sans_photos_ne_multiplie_pas_les_controles_de_medias(self):
+        from .models import Observation, Trace
+        observation = Observation.objects.create(eleve=self.eleve, competence=self.competence)
+        Trace.objects.create(observation=observation, scolarite=self.scolarite, commentaire="Trace fictive")
+        self.client.force_login(self.enseignant)
+        url = reverse("trace", args=[self.eleve.pk, self.competence.pk])
+        self.client.get(url)
+        with CaptureQueriesContext(connection) as requetes:
+            self.client.get(url)
+        nombre = len(requetes)
+        Trace.objects.bulk_create([Trace(observation=observation, scolarite=self.scolarite,
+            commentaire=f"Texte fictif {i}") for i in range(30)])
+        with CaptureQueriesContext(connection) as requetes:
+            page = self.client.get(url)
+        self.assertLessEqual(len(requetes), nombre)
+        self.assertContains(page, "Texte fictif 29")
+        self.assertNotContains(page, "Télécharger la photo originale")
+
+
+class TracesAvecPhotoPerformance(Base):
+    def test_relations_des_traces_chargees_ensemble_sans_eluder_les_droits(self):
+        from .models import Observation, Trace
+        observation = Observation.objects.create(eleve=self.eleve, competence=self.competence)
+        Trace.objects.create(observation=observation, scolarite=self.scolarite, photo="photo-fictive.png")
+        self.client.force_login(self.enseignant)
+        url = reverse("trace", args=[self.eleve.pk, self.competence.pk])
+        self.client.get(url)
+        def lectures_classe(requetes):
+            return sum(q['sql'].startswith('SELECT "suivi_classe".') for q in requetes)
+        with CaptureQueriesContext(connection) as requetes:
+            page = self.client.get(url)
+        nombre = lectures_classe(requetes)
+        self.assertContains(page, "Télécharger la photo originale")
+        Trace.objects.bulk_create([Trace(observation=observation, scolarite=self.scolarite,
+            photo="photo-fictive.png") for _ in range(20)])
+        with CaptureQueriesContext(connection) as requetes:
+            page = self.client.get(url)
+        self.assertLessEqual(lectures_classe(requetes), nombre)
+        self.assertContains(page, "Télécharger la photo originale", count=21)
