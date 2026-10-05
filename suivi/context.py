@@ -61,6 +61,7 @@ def session_ecole(request):
         "version_application": settings.VERSION_APPLICATION,
         "email_disponible": settings.EMAIL_DISPONIBLE,
         "mode_local": settings.MODE_LOCAL,
+        "double_facteur_disponible": settings.DOUBLE_FACTEUR_DISPONIBLE,
         "espace_essai": settings.ESPACE_ESSAI,
         "espace_apercu": settings.ESPACE_APERCU,
         "double_facteur_jours_restants": getattr(request, "double_facteur_jours_restants", None),

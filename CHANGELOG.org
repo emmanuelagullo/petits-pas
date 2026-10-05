@@ -7,6 +7,15 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+** Added
+
+- Second facteur : la direction fixe la politique de son école depuis « Gérer
+  l’école », en l’exigeant pour davantage de fonctions ou en le retirant à
+  certaines, sous le cadre posé par l’hébergeur (jamais en deçà d’une
+  obligation, jamais au-delà d’un retrait). L’écran indique combien de
+  personnes sont concernées, et =diagnostiquer_deploiement= décrit l’état du
+  2FA.
+
 ** Fixed
 
 - Publication des programmes : comparer les notes Linux et Windows après

@@ -11,6 +11,7 @@
   <a class="bouton discret" href="{% url 'referentiels_ecole' %}">Référentiels de l’école</a>
   <a class="bouton discret" href="{% url 'presentation_ecole' %}">Icônes, couverture et formulations</a>
   <a class="bouton discret" href="{% url 'equipe_ecole' %}">Équipe pédagogique</a>
+  {% if double_facteur_disponible %}<a class="bouton discret" href="{% url 'double_facteur_ecole' %}">Second facteur</a>{% endif %}
   {% if mode_local %}<a class="bouton discret" href="{% url 'sauvegardes_locales' %}">Sauvegardes locales</a>{% endif %}
 </div>
 
