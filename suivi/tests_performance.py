@@ -62,3 +62,37 @@ class ListesElevesPerformance(Base):
             page = self.client.get(url)
         self.assertLessEqual(len(requetes), nombre)
         self.assertContains(page, "Fictif 28")
+
+
+class RegroupementCarnetPerformance(Base):
+    def test_une_lecture_par_regroupement_et_pas_par_acquisition(self):
+        from datetime import date
+        from .models import Bilan, Observation
+        from .views import _regrouper_lignes
+        observation = Observation.objects.create(eleve=self.eleve, competence=self.competence,
+            date_observation=date(2026, 10, 1))
+        Bilan.objects.create(scolarite=self.scolarite, date_bilan=date(2026, 12, 1), texte="Bilan fictif")
+        for mode, titre, budget in [("annuel", "Petite section — 2026-2027", 1),
+                                     ("mensuel", "Octobre 2026", 0),
+                                     ("bilan", "Mes acquisitions — décembre 2026", 1)]:
+            with self.subTest(mode=mode), self.assertNumQueries(budget):
+                groupes = _regrouper_lignes(self.eleve, [(self.competence, observation)] * 30, mode)
+                self.assertEqual(groupes[0][0], titre)
+                self.assertEqual(len(groupes[0][1]), 30)
+
+    def test_budget_du_carnet_annuel_independant_des_acquisitions(self):
+        from .models import Competence, Observation
+        self.client.force_login(self.enseignant)
+        Observation.objects.create(eleve=self.eleve, competence=self.competence)
+        url = reverse("carnet", args=[self.eleve.pk])
+        self.client.get(url, {"regroupement": "annuel"})
+        with CaptureQueriesContext(connection) as requetes:
+            self.client.get(url, {"regroupement": "annuel"})
+        nombre = len(requetes)
+        for i in range(30):
+            competence = Competence.objects.create(domaine=self.competence.domaine, code=f"F{i}", libelle=f"Acquisition fictive {i}")
+            Observation.objects.create(eleve=self.eleve, competence=competence)
+        with CaptureQueriesContext(connection) as requetes:
+            page = self.client.get(url, {"regroupement": "annuel"})
+        self.assertLessEqual(len(requetes), nombre)
+        self.assertContains(page, "Acquisition fictive 29")
