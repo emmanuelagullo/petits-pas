@@ -137,7 +137,7 @@ def main():
         shutil.copytree(folder, output / "static", dirs_exist_ok=True)
     source = identity()
     notes = release_notes(source['tag'])
-    (output / "notes-version.md").write_text(notes, encoding='utf-8')
+    (output / "notes-version.md").write_bytes(notes.encode("utf-8"))
     (output / "nouveautes.html").write_text('<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nouveautés de Petits Pas</title><style>body{font:1rem system-ui;max-width:52rem;margin:2rem auto;padding:0 1rem;color:#234}pre{white-space:pre-wrap;font:inherit;line-height:1.6}</style><h1>Nouveautés de Petits Pas</h1><p>Version ' + html.escape(source['application_version']) + '</p><pre>' + html.escape(notes) + '</pre></html>', encoding='utf-8')
     build = hashlib.sha256()
     build.update(json.dumps(source, sort_keys=True).encode())

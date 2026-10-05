@@ -54,7 +54,7 @@ class PublicationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);source=root/'source';source.mkdir();destination=root/'destination';destination.mkdir()
             for name in ['PetitsPas-linux.tar.gz','PetitsPas-windows.zip','PetitsPas-Setup-0.8-x64.exe','notes-version.md']:
-                (source/name).write_bytes(b'fictif '+name.encode())
+                (source/name).write_bytes('École fictive\nDeuxième ligne.\n'.encode('utf-8') if name=='notes-version.md' else b'fictif '+name.encode())
             artifacts=[];blobs={}
             for job,target,names in [('linux','linux-ubuntu24.04-x86_64',['PetitsPas-linux.tar.gz','notes-version.md']),('windows','windows-x64',['PetitsPas-windows.zip','PetitsPas-Setup-0.8-x64.exe','notes-version.md'])]:
                 with patch.dict(os.environ,{'GITHUB_SHA':SHA,'GITHUB_REF_TYPE':'tag','GITHUB_REF_NAME':'0.8','GITHUB_RUN_ID':'123','GITHUB_RUN_ATTEMPT':'1','GITHUB_JOB':job},clear=True):
@@ -73,6 +73,38 @@ class PublicationTests(unittest.TestCase):
                 files,commit=publisher.prepare('123','0.8',destination)
             self.assertEqual(downloaded,[1,2,3]);self.assertEqual(commit,SHA)
             self.assertIn('SHA256SUMS',{p.name for p in files})
+            # Les notes sont vérifiées avec les octets de chaque plate-forme.
+            # CRLF seul est accepté ; une modification réelle ou une empreinte
+            # incorrecte doit rester bloquante.
+            import hashlib
+            original_windows = blobs[2]
+            for variant in ['crlf', 'contenu', 'empreinte']:
+                notes = (source/'notes-version.md').read_bytes().replace(b'\n', b'\r\n')
+                if variant == 'contenu':
+                    notes += b'Ajout divergent.\r\n'
+                record = json.loads((source/'publication-windows.json').read_text())
+                if variant != 'empreinte':
+                    for entry in record['files']:
+                        if entry['name'] == 'notes-version.md':
+                            entry.update(size=len(notes), sha256=hashlib.sha256(notes).hexdigest())
+                blob = io.BytesIO()
+                with ZipFile(io.BytesIO(original_windows)) as old, ZipFile(blob,'w') as output:
+                    for name in old.namelist():
+                        value = notes if name=='notes-version.md' else json.dumps(record).encode() if name=='publication-windows.json' else old.read(name)
+                        output.writestr(name,value)
+                blobs[2] = blob.getvalue()
+                destination3 = root/variant;destination3.mkdir()
+                with patch.object(publisher,'verify_tags'), patch.object(publisher,'api',side_effect=[self.run_info(),{'artifacts':artifacts},self.run_info()]), patch.object(publisher,'gh',side_effect=gh):
+                    if variant == 'crlf':
+                        files,_ = publisher.prepare('123','0.8',destination3)
+                        self.assertEqual((destination3/'notes-version.md').read_bytes(),(source/'notes-version.md').read_bytes())
+                        self.assertEqual((destination3/'notes-version-windows.md').read_bytes(),notes)
+                        self.assertIn('notes-version-windows.md',{p.name for p in files})
+                        self.assertIn(sha256(destination3/'notes-version-windows.md'),(destination3/'SHA256SUMS').read_text())
+                        self.assertEqual(json.loads((destination3/'publication-windows.json').read_text()),record)
+                    else:
+                        with self.assertRaises(ValueError):publisher.prepare('123','0.8',destination3)
+            blobs[2] = original_windows
             # Un autre fichier après construction est refusé avant toute release.
             destination2=root/'altered';destination2.mkdir()
             with ZipFile(io.BytesIO(blobs[1])) as z:

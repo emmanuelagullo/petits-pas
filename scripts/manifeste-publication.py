@@ -13,6 +13,6 @@ parser.add_argument('files', nargs='+', type=Path)
 args = parser.parse_args()
 record = manifest(args.mode, args.target, args.files)
 notes = args.destination.parent / 'notes-version.md'
-notes.write_text(release_notes(record['tag']), encoding='utf-8')
+notes.write_bytes(release_notes(record['tag']).encode('utf-8'))
 record['files'].append(describe(notes))
 args.destination.write_text(json.dumps(record, indent=2) + '\n', encoding='utf-8')
