@@ -15,6 +15,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   déterministe fournit uniquement des images fictives pour les mesures de poids
   et de qualité des PDF.
 
+- Phase 4 #J2 : moteur isolé de normalisation des images privées. Il corrige
+  l'orientation, retire les métadonnées, limite les dimensions et les pixels,
+  transforme JPEG, PNG ou WebP en JPEG et prépare une variante PDF distincte.
+  La recette compare les PDF bruts au profil équilibré ; son branchement aux
+  imports de l'application reste un jalon séparé.
+
 - Droits de gestion de l’école : plusieurs personnes peuvent les recevoir avec
   leurs comptes personnels depuis Équipe pédagogique. Attribution et retrait
   confirmés par mot de passe et journalisés ; fin facultative pour un remplacement.

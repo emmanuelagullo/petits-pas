@@ -2,16 +2,16 @@
 
 * Portée
 
-Cette référence mesure les fichiers bruts synthétiques de #J1 avant toute
-normalisation Petits Pas. Elle sert de point de comparaison aux futurs profils
-=Économe=, =Équilibré= et =Qualité élevée=. Elle ne constitue ni un seuil de
-production ni une validation visuelle pédagogique.
+Cette référence compare les fichiers bruts synthétiques de #J1 à leurs
+variantes PDF produites par le profil =Équilibré= de #J2. Elle servira aussi
+de point de comparaison aux profils =Économe= et =Qualité élevée=. Elle ne
+constitue ni un seuil de production ni une validation visuelle pédagogique.
 
 Commande :
 
 #+begin_src sh
 python3 scripts/recetter-medias-pdf.py
-scripts/analyser-pdf.sh .recette-medias/pdf/quinze-photos.pdf
+scripts/analyser-pdf.sh .recette-medias/pdf/equilibre-quinze-photos.pdf
 #+end_src
 
 Environnement de la mesure initiale : Python 3.12.14, Pillow 12.3.0,
@@ -44,8 +44,31 @@ tailles sont reproductibles avec les versions indiquées.
   normalisation à l'import et la variante PDF doivent être mesurées avant de
   conclure qu'un quota de classe est nécessaire.
 
-La prochaine comparaison conservera exactement ces scénarios et ajoutera les
-variantes produites par chaque profil. Le choix du profil =Équilibré= sera
-validé sur le poids, la lisibilité des productions fictives et le temps de
-traitement côté client et côté serveur.
+* Première calibration du profil Équilibré
 
+Mesure #J2 sur la même machine et avec les mêmes versions que la référence :
+
+| Scénario | PDF brut | PDF équilibré | Réduction |
+|----------+---------:|--------------:|----------:|
+| Sans photo | 29 351 octets | 29 350 octets | — |
+| Une photo | 1 196 574 octets | 178 845 octets | 85 % |
+| Cinq photos | 5 867 979 octets | 767 752 octets | 87 % |
+| Quinze photos | 17 529 524 octets | 2 244 936 octets | 87 % |
+| Couverture et cinq photos | 8 216 973 octets | 1 753 328 octets | 79 % |
+
+La préparation des quinze traces et de la couverture a pris 1,560 seconde.
+Les traces PDF mesurent 600 × 450 ou 450 × 600 pixels et pèsent entre 143 et
+150 Ko. Elles sont incorporées entre 225 et 300 ppp dans la mise en page de
+recette. La couverture PDF mesure 1 800 × 1 200 pixels et pèse 985 Ko. Tous les
+objectifs indicatifs ont été atteints sur ce jeu volontairement riche en
+détails.
+
+Cette calibration rend plausible un carnet de plusieurs photos compatible
+avec un envoi par courriel, sans justifier à ce stade un quota bloquant. La
+lisibilité des détails devra néanmoins être validée avec l'équipe pédagogique
+avant de considérer les dimensions comme définitives. Le temps de préparation
+dans le navigateur n'est pas encore mesuré.
+
+Le rapport JSON contient les paramètres exacts du profil, le poids et les
+dimensions de chaque variante, la qualité finalement employée, le temps de
+normalisation et les mesures des dix PDF bruts ou équilibrés.
