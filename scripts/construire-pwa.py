@@ -126,7 +126,7 @@ def main():
     wheels = output / "wheels"
     wheels.mkdir(exist_ok=True)
     subprocess.run([
-        "python3", "-m", "pip", "download", "--only-binary=:all:", "--no-deps",
+        sys.executable, "-m", "pip", "download", "--only-binary=:all:", "--no-deps",
         "--dest", str(wheels), "-r", str(ROOT / "pwa/requirements.txt"),
         *(["--no-index", "--find-links", str(args.wheels.resolve())] if args.wheels else []),
     ], check=True)

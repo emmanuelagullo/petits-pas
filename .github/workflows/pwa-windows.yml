@@ -1,0 +1,92 @@
+name: PWA Windows — Chromium, Chrome et Edge
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    tags: ['[0-9]*']
+    paths:
+      - .github/workflows/pwa-windows.yml
+      - pwa/**
+      - scripts/**
+      - carnet/**
+      - comptes/**
+      - suivi/**
+      - referentiel/**
+      - requirements.lock
+      - site/data/demonstration.yaml
+      - trame-cycle1.yaml
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pwa:
+    runs-on: windows-2025
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, chrome, msedge]
+    defaults:
+      run:
+        shell: bash
+    env:
+      PWA_PYTHON: python
+      PWA_PDF_PYTHON: oui
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Installer les dépendances et le navigateur
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements.lock pypdf==6.1.0
+          npm install --prefix pwa --ignore-scripts
+          pwa/node_modules/.bin/playwright install '${{ matrix.browser }}'
+          if [ '${{ matrix.browser }}' != chromium ]; then
+            echo 'PWA_BROWSER_CHANNEL=${{ matrix.browser }}' >> "$GITHUB_ENV"
+          fi
+          # OpenSSL fourni par Git for Windows, certificat du serveur fictif.
+          echo 'C:\Program Files\Git\usr\bin' >> "$GITHUB_PATH"
+      - name: Construire et tester les contrats de transfert
+        run: |
+          set -euo pipefail
+          python scripts/construire-pwa.py --test
+          node scripts/test_transport_pwa.cjs
+      - name: Parcours complets à la racine
+        run: |
+          set -euo pipefail
+          node scripts/verifier-pwa.cjs
+          cp dist/pwa/resultats-tests.json dist/resultats-windows-racine.json
+      - name: Parcours complets HTTPS sous le préfixe publié
+        env:
+          PWA_TEST_HTTPS: oui
+          PWA_BASE_PATH: /petits-pas-pwa/
+        run: |
+          set -euo pipefail
+          node scripts/verifier-pwa.cjs
+          cp dist/pwa/resultats-tests.json dist/resultats-windows-https.json
+      - name: Bundle distribué, sans hooks, et reprise hors ligne
+        run: |
+          set -euo pipefail
+          python scripts/construire-pwa.py --runtime dist/pwa/runtime --wheels dist/pwa/wheels
+          node scripts/verifier-distribution-pwa.cjs
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: PWA-Windows-${{ matrix.browser }}
+          path: |
+            dist/resultats-windows-*.json
+            dist/resultats-distribution-pwa.json
+            dist/pwa/config.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -415,3 +415,12 @@ Le banc crée l'école et un média fictifs dans l'ancien runtime, ferme l'ongle
 active la nouvelle version et vérifie connexion, base et média avant les
 parcours courants. Les modèles d'images #J2 de main sont conservés ; les photos
 nouvelles sont uniques depuis #J2d, sans recomprimer les anciens médias.
+
+
+### Vérification Windows sur GitHub
+
+Le workflow **PWA Windows — Chromium, Chrome et Edge** vérifie les parcours
+complets et le bundle distribué sur trois navigateurs Windows. Il se lance
+automatiquement sur main pour les changements concernés, ou depuis Actions
+avec **Run workflow**. Consulter les trois résultats et leurs artefacts avant
+de déclarer cette version vérifiée sous Windows ; voir QUALIFICATION.md.
