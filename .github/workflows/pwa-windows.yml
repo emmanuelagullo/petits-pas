@@ -71,8 +71,11 @@ jobs:
         env:
           PWA_TEST_HTTPS: oui
           PWA_BASE_PATH: /petits-pas-pwa/
+          # Préfixe URL : ne pas le convertir en chemin de fichier Windows.
+          MSYS2_ENV_CONV_EXCL: PWA_BASE_PATH
         run: |
           set -euo pipefail
+          node -e "require('node:assert/strict').equal(process.env.PWA_BASE_PATH, '/petits-pas-pwa/')"
           node scripts/verifier-pwa.cjs
           cp dist/pwa/resultats-tests.json dist/resultats-windows-https.json
       - name: Bundle distribué, sans hooks, et reprise hors ligne
