@@ -328,9 +328,10 @@ assert not p.exists() and not q.exists()
   const previewPath = await previewDownload[0].path();
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
+from contextlib import closing
 with tempfile.TemporaryDirectory() as folder:
     with zipfile.ZipFile(sys.argv[1]) as archive: archive.extract('carnet.sqlite3',folder)
-    with sqlite3.connect(folder+'/carnet.sqlite3') as db:
+    with closing(sqlite3.connect(folder+'/carnet.sqlite3')) as db, db:
         assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='Copie fictive vérifiée'
 `, previewPath]);
   const premiereInstallation = await browser.newContext({acceptDownloads: true, ignoreHTTPSErrors: tls});
@@ -369,16 +370,17 @@ with tempfile.TemporaryDirectory() as folder:
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 from pathlib import Path
 import sqlite3, sys
+from contextlib import closing
 from suivi.paquet_local import preparer_restauration, appliquer_restauration, creer_sauvegarde
 parent = Path(sys.argv[2]); paquet = parent / 'paquet-autonome'; paquet.mkdir()
 with open(sys.argv[1], 'rb') as source:
     preparation = preparer_restauration(source, parent, paquet.name)
 appliquer_restauration(paquet, preparation)
-with sqlite3.connect(paquet/'carnet.sqlite3') as db:
+with closing(sqlite3.connect(paquet/'carnet.sqlite3')) as db, db:
     assert db.execute('SELECT commentaire FROM suivi_trace').fetchone()[0] == 'Réalisation entièrement fictive.'
     db.execute("UPDATE suivi_ecole SET nom='École fictive transférée'")
 with (parent/'depuis-local.zip').open('wb') as sortie: creer_sauvegarde(paquet, sortie)
-with sqlite3.connect(paquet/'carnet.sqlite3') as db:
+with closing(sqlite3.connect(paquet/'carnet.sqlite3')) as db, db:
     db.execute("INSERT INTO django_migrations(app,name,applied) VALUES ('suivi','9999_inconnue','2026-10-02')")
 with (parent/'version-future.zip').open('wb') as sortie: creer_sauvegarde(paquet, sortie)
 `, archivePath, transfer]);
@@ -415,11 +417,12 @@ with (parent/'version-future.zip').open('wb') as sortie: creer_sauvegarde(paquet
   const recovery = await recoveryDownload;
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
+from contextlib import closing
 from pathlib import Path
 from suivi.paquet_local import preparer_restauration
 with tempfile.TemporaryDirectory() as dossier:
     with open(sys.argv[1],'rb') as source: p=preparer_restauration(source,Path(dossier))
-    with sqlite3.connect(p.etape/'carnet.sqlite3') as db:
+    with closing(sqlite3.connect(p.etape/'carnet.sqlite3')) as db, db:
         assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='École fictive transférée'
 `, await recovery.path()]);
   pass('État avant remplacement exportable et compatible avec le paquet autonome');
@@ -488,7 +491,7 @@ with tempfile.TemporaryDirectory() as dossier:
   await assert.rejects(python(page, "Ecole.objects.update(nom='Quota fictif')", 'quota'));
   await boot(page, url);
   assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
-  assert.equal(await python(page, "import sqlite3; db=sqlite3.connect('/data/carnet.sqlite3'); str((db.execute('PRAGMA quick_check').fetchone(), db.execute('PRAGMA foreign_key_check').fetchall()))"), "(('ok',), [])");
+  assert.equal(await python(page, "import sqlite3; db=sqlite3.connect('/data/carnet.sqlite3'); checks=str((db.execute('PRAGMA quick_check').fetchone(), db.execute('PRAGMA foreign_key_check').fetchall())); db.close(); checks"), "(('ok',), [])");
   pass('Quota simulé et intégrité SQLite après reprise');
   await page.close();
   const reopened = await context.newPage(); currentPage = reopened;
@@ -539,11 +542,12 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   const rescued = await rescueDownload;
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,tempfile,sqlite3
+from contextlib import closing
 from pathlib import Path
 from suivi.paquet_local import preparer_restauration
 with tempfile.TemporaryDirectory() as dossier:
     with open(sys.argv[1],'rb') as source: p=preparer_restauration(source,Path(dossier))
-    with sqlite3.connect(p.etape/'carnet.sqlite3') as db:
+    with closing(sqlite3.connect(p.etape/'carnet.sqlite3')) as db, db:
         assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='École fictive PWA'
         assert not db.execute("SELECT 1 FROM django_migrations WHERE name='9999_inconnue'").fetchone()
 `, await rescued.path()]);
@@ -587,9 +591,10 @@ with tempfile.TemporaryDirectory() as dossier:
   const cheminHabituel = await archiveHabituelle[0].path();
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
+from contextlib import closing
 with tempfile.TemporaryDirectory() as folder:
     with zipfile.ZipFile(sys.argv[1]) as archive: archive.extract('carnet.sqlite3',folder)
-    with sqlite3.connect(folder+'/carnet.sqlite3') as db:
+    with closing(sqlite3.connect(folder+'/carnet.sqlite3')) as db, db:
         assert db.execute('SELECT nom FROM suivi_ecole').fetchone()[0]=='École fictive PWA'
 `, cheminHabituel]);
   pass('École fictive isolée, essais persistants et récupération de l’école habituelle indépendante');
