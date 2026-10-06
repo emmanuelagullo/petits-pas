@@ -17,7 +17,7 @@ from .models import Competence, ParametresCarnet, ReglagePresentation
 from .referentiels import arbre_competences, competence_classe
 from .presentation import catalogue_icones, illustration_effective, propositions
 from .services.presentation import enregistrer_formulation, enregistrer_reglage, verifier_droit
-from .services.medias_django import preparer_variantes
+from .services.medias_django import preparer_image
 from .views import acces_requis, _supprimer_media_apres_validation
 
 
@@ -55,7 +55,6 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
     filtres = {"ecole": ecole, "classe": classe, "competence": competence}
     reglage = ReglagePresentation.objects.filter(**filtres).first() or ReglagePresentation(**filtres)
     ancien_nom = reglage.photo.name if reglage.photo else ""
-    ancien_nom_pdf = reglage.photo_pdf.name if reglage.photo_pdf else ""
     form = IllustrationForm(instance=reglage)
     erreur = None
     if request.method == "POST":
@@ -67,18 +66,12 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
                     nouveau_reglage = form.save(commit=False)
                     if request.FILES.get("photo"):
                         famille = "trace" if competence else "couverture"
-                        nouveau_reglage.photo, nouveau_reglage.photo_pdf = preparer_variantes(
+                        nouveau_reglage.photo = preparer_image(
                             request.FILES["photo"], famille=famille
                         )
-                    elif not nouveau_reglage.photo:
-                        nouveau_reglage.photo_pdf = None
                     enregistrer_reglage(request.user, nouveau_reglage)
                     if ancien_nom and ancien_nom != (reglage.photo.name if reglage.photo else ""):
                         _supprimer_media_apres_validation(ancien_nom)
-                    if ancien_nom_pdf and ancien_nom_pdf != (
-                        reglage.photo_pdf.name if reglage.photo_pdf else ""
-                    ):
-                        _supprimer_media_apres_validation(ancien_nom_pdf)
                 else:
                     raise ValidationError("Vérifiez le choix d'illustration.")
             elif action in {"formulation", "ajouter_formulation"} and competence:

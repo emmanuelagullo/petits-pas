@@ -32,10 +32,8 @@ class RegleImage:
 class PolitiqueImages:
     limite_brute_octets: int
     limite_pixels: int
-    trace_principale: RegleImage
-    trace_pdf: RegleImage
-    couverture_principale: RegleImage
-    couverture_pdf: RegleImage
+    trace: RegleImage
+    couverture: RegleImage
 
 
 @dataclass(frozen=True)
@@ -50,21 +48,15 @@ class ImageNormalisee:
     type_mime: str = "image/jpeg"
 
 
-@dataclass(frozen=True)
-class VariantesImage:
-    principale: ImageNormalisee
-    pdf: ImageNormalisee
-
-
-POLITIQUE_EQUILIBREE = PolitiqueImages(
+POLITIQUE_ECONOME = PolitiqueImages(
     # Limite identique pour les traces et couvertures : le relâchement de la
     # couverture porte sur la qualité utile, pas sur la protection du serveur.
     limite_brute_octets=25 * MIO,
     limite_pixels=40_000_000,
-    trace_principale=RegleImage(1600, 85, 72, 1_000_000),
-    trace_pdf=RegleImage(600, 80, 70, 180_000),
-    couverture_principale=RegleImage(2400, 88, 75, 1_800_000),
-    couverture_pdf=RegleImage(1800, 85, 72, 1_000_000),
+    # Une seule image est conservée. L'objectif n'est pas une limite dure :
+    # les détails sont préservés lorsque le plancher est atteint.
+    trace=RegleImage(600, 80, 70, 100_000),
+    couverture=RegleImage(800, 82, 72, 200_000),
 )
 
 
@@ -89,12 +81,10 @@ def _lire_borne(source, limite):
     return contenu
 
 
-def _regle(politique, famille, variante):
+def _regle(politique, famille):
     if famille not in {"trace", "couverture"}:
         raise ValueError(f"Famille d’image inconnue : {famille}")
-    if variante not in {"principale", "pdf"}:
-        raise ValueError(f"Variante d’image inconnue : {variante}")
-    return getattr(politique, f"{famille}_{variante}")
+    return getattr(politique, famille)
 
 
 def _aplatir_sur_blanc(image):
@@ -131,14 +121,13 @@ def _encoder(image, regle):
     return dernier, derniere_qualite
 
 
-def normaliser_image(source, *, famille="trace", variante="principale",
-                     politique=POLITIQUE_EQUILIBREE):
+def normaliser_image(source, *, famille="trace", politique=POLITIQUE_ECONOME):
     """Décode, oriente, nettoie et redimensionne une image privée.
 
     Le poids cible guide la qualité JPEG sans être une limite destructrice :
     si la qualité minimale est atteinte, l'image est conservée telle quelle.
     """
-    regle = _regle(politique, famille, variante)
+    regle = _regle(politique, famille)
     contenu = _lire_borne(source, politique.limite_brute_octets)
     try:
         with warnings.catch_warnings():
@@ -174,23 +163,4 @@ def normaliser_image(source, *, famille="trace", variante="principale",
         hauteur=image.height,
         qualite=qualite,
         objectif_atteint=len(sortie) <= regle.objectif_octets,
-    )
-
-
-def normaliser_variantes(source, *, famille="trace",
-                         politique=POLITIQUE_EQUILIBREE):
-    """Produit les deux variantes depuis le même fichier reçu.
-
-    La variante PDF repart du fichier reçu, et jamais d'un JPEG déjà
-    normalisé. Cela évite une seconde perte de qualité et fonctionne aussi
-    avec les fichiers téléversés qui ne peuvent être lus qu'une fois.
-    """
-    contenu = _lire_borne(source, politique.limite_brute_octets)
-    return VariantesImage(
-        principale=normaliser_image(
-            contenu, famille=famille, variante="principale", politique=politique
-        ),
-        pdf=normaliser_image(
-            contenu, famille=famille, variante="pdf", politique=politique
-        ),
     )

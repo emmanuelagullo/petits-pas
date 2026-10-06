@@ -46,8 +46,8 @@ Pour illustrer la compétence sans raconter une activité datée, consulter
   annuler plutôt que la conserver sans contenu.
 - Le fichier choisi doit être une image JPEG, PNG ou WebP de 25 Mio maximum.
   Petits Pas corrige son orientation, retire ses métadonnées et conserve une
-  version principale ainsi qu’une variante adaptée aux PDF. Le fichier brut
-  n’est pas conservé.
+  seule image allégée, utilisée aussi dans le PDF. Le fichier brut n’est pas
+  conservé.
 - La photographie est servie par une route protégée ; son adresse de stockage
   n’est pas publique.
 - Pour limiter les données personnelles, photographier le travail plutôt que

@@ -6,7 +6,7 @@ Ce document fixe le contrat préparatoire de la phase 4. Les valeurs chiffrées
 restent à calibrer avec la recette reproductible ; les règles fonctionnelles
 doivent rester stables lorsque ces valeurs évolueront.
 
-L'objectif ordinaire est volontairement simple : profil =Équilibré=,
+L'objectif ordinaire est volontairement simple : profil =Économe=,
 optimisation automatique, aucun quota bloquant. Une équipe pédagogique ne
 choisit ni une qualité JPEG ni une résolution à chaque ajout.
 
@@ -20,8 +20,8 @@ Lorsqu'une personne ajoute une image :
 3. le serveur ne fait jamais confiance à ce résultat : il décode l'image,
    contrôle son format et son nombre de pixels, retire les métadonnées et
    normalise à nouveau si nécessaire ;
-4. Petits Pas conserve une version principale normalisée et produit les
-   variantes nécessaires aux usages, notamment au PDF.
+4. Petits Pas conserve une seule version normalisée, utilisée dans
+   l'application comme dans le PDF. Le fichier reçu n'est pas conservé.
 
 La préparation dans le navigateur réduit le transfert et la charge du serveur.
 La validation du serveur reste la garantie de sécurité et couvre un navigateur
@@ -80,19 +80,20 @@ Les paramètres techniques sont regroupés derrière des intentions :
 
 | Profil | Usage |
 |--------+-------|
-| Économe | Hébergement contraint ou connexion lente |
-| Équilibré | Défaut recommandé |
+| Très économe | Connexion ou stockage très contraint |
+| Économe | Défaut recommandé, adapté au courriel |
+| Équilibré | Davantage de détails |
 | Qualité élevée | Détails fins ou impression plus exigeante |
 
-Chaque profil possède deux déclinaisons : =trace= et =couverture=. Les mesures
-de #J1 ont conduit aux premières valeurs du profil =Équilibré= :
+Le profil de stockage et le choix d'export PDF sont deux politiques distinctes.
+Un export ne crée jamais une copie permanente supplémentaire de chaque photo.
+Chaque profil de stockage possède deux déclinaisons : =trace= et =couverture=.
+Les mesures de #J1 et #J2 ont conduit aux premières valeurs du profil =Économe= :
 
 | Usage | Dimension maximale | Qualité de départ | Objectif indicatif |
 |-------+--------------------:|------------------:|-------------------:|
-| Trace principale | 1 600 px | 85 | 1 000 000 octets |
-| Trace pour le PDF | 600 px | 80 | 180 000 octets |
-| Couverture principale | 2 400 px | 88 | 1 800 000 octets |
-| Couverture pour le PDF | 1 800 px | 85 | 1 000 000 octets |
+| Trace, fichier unique | 600 px | 80 | 100 000 octets |
+| Couverture, fichier unique | 800 px | 82 | 200 000 octets |
 
 La qualité peut diminuer progressivement jusqu'à un plancher lorsque
 l'objectif n'est pas atteint. Celui-ci reste indicatif : au plancher, Petits
@@ -128,9 +129,7 @@ déploiement.
 Un changement de politique s'applique par défaut aux nouveaux imports. Il ne
 réécrit jamais silencieusement les médias existants.
 
-Les variantes dérivées, dont la variante PDF, peuvent être régénérées sans
-perte depuis la version principale normalisée. Une réduction de la version
-principale existante est une opération distincte et irréversible :
+Une réduction de l'image normalisée existante est une opération irréversible :
 
 1. afficher le périmètre, le volume actuel et l'économie estimée ;
 2. proposer d'abord une simulation sans écriture ;
@@ -139,10 +138,9 @@ principale existante est une opération distincte et irréversible :
 5. ne jamais promettre qu'un assouplissement ultérieur restaurera les détails
    déjà supprimés.
 
-Les recompressions successives d'une même version JPEG doivent être évitées.
-Les variantes sont toujours recréées depuis la version principale. Une
-recompression de celle-ci n'est lancée que pour réduire des médias anciens ou
-répondre à une contrainte nouvellement activée.
+Les recompressions successives d'un même JPEG doivent être évitées. Une
+recompression n'est lancée que pour réduire des médias anciens ou répondre à
+une contrainte nouvellement activée, après simulation et confirmation.
 
 * Mesures de #J1
 
@@ -169,29 +167,40 @@ scripts/analyser-pdf.sh .recette-medias/pdf/quinze-photos.pdf
 #+end_src
 
 Le premier script produit =.recette-medias/rapport.json= et les cinq scénarios
-en version brute puis équilibrée. Le répertoire entier est ignoré par Git. Les
+en version brute puis économe. Le répertoire entier est ignoré par Git. Les
 durées dépendent de la machine ; elles servent à comparer deux politiques
 exécutées dans le même environnement.
 
 * Mise en œuvre de #J2
 
 Les nouveaux imports de traces individuelles, de traces communes et d'images
-de présentation appliquent le profil =Équilibré=. Le navigateur prépare la
-version principale avant l'envoi lorsqu'il dispose des API nécessaires. Cette
+de présentation appliquent le profil =Économe=. Le navigateur prépare l'image
+avant l'envoi lorsqu'il dispose des API nécessaires. Cette
 préparation ne remplace jamais le contrôle serveur.
 
-Le serveur produit toujours deux JPEG depuis le fichier reçu :
+Le serveur produit un seul JPEG depuis le fichier reçu. Il sert aux écrans, au
+téléchargement et au carnet PDF. Le fichier brut n'est pas conservé. Une trace
+commune partage le même objet entre les élèves. Lors d'un remplacement, l'ancien
+objet n'est supprimé qu'après la validation de la transaction et seulement s'il
+n'est plus référencé. Une suppression logique le conserve pour permettre la
+restauration. Les médias antérieurs à #J2 restent utilisables et ne sont jamais
+recompressés silencieusement.
 
-- une version principale normalisée, utilisée dans les écrans et proposée au
-  téléchargement ;
-- une variante PDF, incorporée au carnet à la place de la version principale.
+* Scénario de qualification du stockage
 
-Le fichier brut n'est pas conservé. Les deux noms sont enregistrés en base et
-restent privés. Une trace commune partage les mêmes deux objets entre les
-élèves. Lors d'un remplacement, chaque ancien objet n'est supprimé qu'après la
-validation de la transaction et seulement s'il n'est plus référencé. Une
-suppression logique conserve les deux variantes pour permettre la restauration.
+Une enveloppe de 10 Go pour toutes les données actives d'une installation,
+dont environ 6 Go de médias pour 150 élèves sur trois années, sert de cas
+d'étude reproductible. Ce n'est ni un quota ni une recommandation du logiciel :
+chaque hébergeur ou DSI adapte sa politique à ses moyens et à ses obligations.
 
-Les médias antérieurs à #J2 restent utilisables sans migration destructive :
-en l'absence de variante PDF, le carnet emploie la version existante. Ils ne
-sont jamais recompressés silencieusement.
+La commande suivante mesure les objets privés référencés sans fixer de seuil
+ni bloquer les imports :
+
+#+begin_src sh
+python3 manage.py diagnostiquer_stockage
+python3 manage.py diagnostiquer_stockage --json
+#+end_src
+
+Elle mesure aussi la base lorsque le moteur le permet. Le code, l'environnement
+Python, les journaux et les temporaires restent du ressort de l'hébergeur et
+sont explicitement exclus de son total.

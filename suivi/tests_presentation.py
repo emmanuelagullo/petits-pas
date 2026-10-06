@@ -278,7 +278,7 @@ class ParcoursPresentation(Base):
             self.assertEqual(page.status_code, 302)
             reglage = ReglagePresentation.objects.get(ecole=self.ecole)
             self.assertTrue(reglage.photo.name.endswith(".jpg"))
-            self.assertIn("presentation/pdf/", reglage.photo_pdf.name)
+            self.assertLessEqual(reglage.photo.width, 800)
             self.client.force_login(self.enseignant)
             self.assertEqual(self.client.get(reverse("media_presentation", args=[reglage.pk])).status_code, 200)
             page = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"contenu": "tout"})

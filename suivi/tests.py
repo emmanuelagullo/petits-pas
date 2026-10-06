@@ -466,7 +466,7 @@ class Base(TestCase):
 
 
 class TracesCommunes(Base):
-    def test_import_collectif_partage_les_deux_variantes_sans_dupliquer(self):
+    def test_import_collectif_partage_l_image_sans_la_dupliquer(self):
         from PIL import Image
         from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -491,16 +491,11 @@ class TracesCommunes(Base):
             self.assertEqual(reponse.status_code, 302)
             commune = TraceCommune.objects.get()
             self.assertTrue(default_storage.exists(commune.photo.name))
-            self.assertTrue(default_storage.exists(commune.photo_pdf.name))
             self.assertEqual(
                 set(commune.attributions.values_list("photo", flat=True)),
                 {commune.photo.name},
             )
-            self.assertEqual(
-                set(commune.attributions.values_list("photo_pdf", flat=True)),
-                {commune.photo_pdf.name},
-            )
-            self.assertEqual(len(list(Path(dossier).rglob("*.jpg"))), 2)
+            self.assertEqual(len(list(Path(dossier).rglob("*.jpg"))), 1)
 
     def test_associe_consulte_sans_boutons_de_modification_collective(self):
         from .services.traces_communes import enregistrer_commune
@@ -685,12 +680,11 @@ class TracesCommunes(Base):
             with TemporaryDirectory() as copies:
                 destination = Path(copies) / "sauvegarde"
                 manifeste = sauvegarder(default_storage, destination)
-                self.assertEqual(len(manifeste["objects"]), 3)
+                self.assertEqual(len(manifeste["objects"]), 2)
                 with TemporaryDirectory() as cible, override_settings(MEDIA_ROOT=cible):
                     restaurer(default_storage, destination)
                     self.assertTrue(default_storage.exists(nom_commun))
                     self.assertTrue(default_storage.exists(trace.photo.name))
-                    self.assertTrue(default_storage.exists(trace.photo_pdf.name))
                     call_command("verifier_reprise_restauree", stdout=StringIO())
 
     def test_retrait_collectif_conserve_la_version_personnelle(self):
@@ -1539,25 +1533,6 @@ class Carnet(Base):
         self.assertNotIn("/media/traces/", rendu)
         self.assertEqual(noms_media, ["traces/photo école.jpg"])
 
-    @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
-    def test_le_pdf_prefere_la_variante_privee(self, generer_pdf):
-        observation = Observation.objects.create(
-            eleve=self.eleve, competence=self.competence, statut=Observation.REUSSI,
-        )
-        self.creer_trace(
-            observation,
-            photo="traces/principale.jpg",
-            photo_pdf="traces/pdf/variante.jpg",
-        )
-        self.entrer()
-
-        self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]))
-
-        rendu, _base_url, _feuille_style, noms_media = generer_pdf.call_args.args
-        self.assertIn("petits-pas-media:traces%2Fpdf%2Fvariante.jpg", rendu)
-        self.assertNotIn("petits-pas-media:traces%2Fprincipale.jpg", rendu)
-        self.assertEqual(noms_media, ["traces/pdf/variante.jpg"])
-
     def test_le_pdf_d_un_eleve_d_une_autre_ecole_est_introuvable(self):
         autre = Ecole.objects.create(nom="Ailleurs")
         autre_classe = Classe.objects.create(ecole=autre, nom="MS")
@@ -1831,7 +1806,7 @@ class HistoriqueTraces(Base):
         self.assertContains(page, "Première trace")
         self.assertContains(page, "Deuxième trace")
 
-    def test_import_normalise_principale_et_variante_pdf(self):
+    def test_import_normalise_une_image_unique(self):
         from PIL import Image
         from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -1854,15 +1829,11 @@ class HistoriqueTraces(Base):
             self.assertEqual(reponse.status_code, 302)
             trace = Trace.objects.get()
             self.assertTrue(trace.photo.name.endswith(".jpg"))
-            self.assertIn("traces/pdf/", trace.photo_pdf.name)
             with default_storage.open(trace.photo.name, "rb") as fichier:
-                with Image.open(fichier) as image:
-                    self.assertEqual(image.size, (1600, 1067))
-                    self.assertEqual(image.getexif(), {})
-            with default_storage.open(trace.photo_pdf.name, "rb") as fichier:
                 with Image.open(fichier) as image:
                     self.assertEqual(image.size, (600, 400))
                     self.assertEqual(image.getexif(), {})
+            self.assertEqual(len(list(Path(dossier).rglob("*.jpg"))), 1)
 
     def test_image_invalide_est_expliquee_sans_creer_de_trace(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
@@ -1899,11 +1870,10 @@ class HistoriqueTraces(Base):
         self.assertEqual(reponse.status_code, 302)
         trace = Trace.objects.get()
         self.assertTrue(default_storage.exists(trace.photo.name))
-        self.assertTrue(default_storage.exists(trace.photo_pdf.name))
         with self.assertRaises(NotImplementedError):
             default_storage.path(trace.photo.name)
 
-    def test_remplacement_supprime_principale_et_variante_devenues_inutiles(self):
+    def test_remplacement_supprime_l_image_devenue_inutile(self):
         from PIL import Image
         from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -1918,7 +1888,7 @@ class HistoriqueTraces(Base):
                 "visible_carnet": "on", "photo": photo("blue"),
             })
             trace = Trace.objects.get()
-            anciens = (trace.photo.name, trace.photo_pdf.name)
+            ancien = trace.photo.name
             with self.captureOnCommitCallbacks(execute=True):
                 self.client.post(reverse("modifier_trace", args=[
                     self.eleve.pk, self.competence.pk, trace.pk,
@@ -1927,11 +1897,9 @@ class HistoriqueTraces(Base):
                     "visible_carnet": "on", "photo": photo("red"),
                 })
             trace.refresh_from_db()
-            self.assertNotIn(trace.photo.name, anciens)
-            self.assertNotIn(trace.photo_pdf.name, anciens)
-            self.assertFalse(any(default_storage.exists(nom) for nom in anciens))
+            self.assertNotEqual(trace.photo.name, ancien)
+            self.assertFalse(default_storage.exists(ancien))
             self.assertTrue(default_storage.exists(trace.photo.name))
-            self.assertTrue(default_storage.exists(trace.photo_pdf.name))
 
     def test_une_formulation_proposee_est_personnalisee_et_reste_modifiable(self):
         FormulationProposee.objects.create(

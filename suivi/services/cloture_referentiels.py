@@ -28,16 +28,12 @@ def clore(*, utilisateur, classe):
 
     def conserver(image):
         resultat = {"provenance": image.provenance, "icone": "", "photo": "",
-                    "ressource_id": None, "photo_pdf": ""}
+                    "ressource_id": None}
         if image.photo:
             ressource, _ = RessourceReferentiel.objects.get_or_create(
                 annuel=adoption.annuel,
                 fichier=image.photo,
-                defaults={"fichier_pdf": image.photo_pdf or None},
             )
-            if image.photo_pdf and not ressource.fichier_pdf:
-                ressource.fichier_pdf = image.photo_pdf
-                ressource.save(update_fields=["fichier_pdf"])
         elif image.statique:
             chemin = finders.find(image.statique)
             if not chemin:
@@ -50,7 +46,6 @@ def clore(*, utilisateur, classe):
         ressources.append(ressource.pk)
         resultat.update(
             photo=ressource.fichier.name,
-            photo_pdf=ressource.fichier_pdf.name if ressource.fichier_pdf else "",
             ressource_id=ressource.pk,
         )
         return resultat

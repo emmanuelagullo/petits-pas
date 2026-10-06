@@ -12,7 +12,6 @@ CHAMPS_TRACE = (
     "date_observation",
     "commentaire",
     "photo",
-    "photo_pdf",
     "visible_carnet",
     "supprime_le",
 )

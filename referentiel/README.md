@@ -36,6 +36,16 @@ aucune ressource tierce. Ils sont versionnés dans Git et inclus dans le paquet
 autonome. L'association de quelques compétences sert d'exemple ; le catalogue
 n'a pas vocation à illustrer intégralement la trame.
 
+Ces illustrations sont publiques, versionnées dans Git et servies comme
+fichiers statiques Django. Elles ne doivent jamais être copiées dans le
+stockage privé d'une école. Les noms restent portables, les SVG sont autonomes
+et sans script ni ressource distante ; une image matricielle est optimisée,
+sans EXIF, limitée à 1 600 px et 500 ko. La CI vérifie le catalogue avec :
+
+```sh
+python3 scripts/valider-illustrations-statiques.py
+```
+
 La migration ne réimporte pas automatiquement le référentiel d'une école
 existante. Les équipes peuvent choisir les icônes depuis l'interface. La commande ci-dessous
 est réservée aux écoles qui n'ont pas encore été préparées aux référentiels

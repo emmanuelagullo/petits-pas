@@ -109,6 +109,7 @@ test:
       PY
   script:
     - python3 manage.py collectstatic --noinput
+    - python3 scripts/valider-illustrations-statiques.py
     - python3 manage.py test
     - python3 manage.py makemigrations --check --dry-run
     - bash -n start-atelier.sh start-persistent.sh start-render.sh scripts/*.sh
