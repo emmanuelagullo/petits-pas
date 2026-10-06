@@ -1,10 +1,10 @@
 +++
 title = "Décider du second facteur dans l’école et aider une personne qui l’a perdu"
-description = "Choisir pour quelles fonctions le second facteur est exigé ou retiré, et réinitialiser celui d’une personne qui n’a plus son téléphone."
+description = "Choisir pour quelles fonctions le second facteur est exigé ou retiré, et réinitialiser celui d’une personne qui n’a plus son générateur de codes."
 fiche = true
 categorie = "equipe"
 publics = ["direction"]
-intentions = ["second facteur", "deux facteurs", "obligatoire", "exiger", "politique de l’école", "réinitialiser", "téléphone perdu", "code de secours", "sécurité", "équipe"]
+intentions = ["second facteur", "deux facteurs", "obligatoire", "exiger", "politique de l’école", "réinitialiser", "téléphone perdu", "appareil perdu", "jeton", "code de secours", "sécurité", "équipe"]
 prerequis = "Vous exercez la direction de l’école ; l’hébergeur a activé le second facteur (sinon la rubrique « Second facteur » n’apparaît pas dans Gérer l’école)."
 depart = "Gérer l’école → Second facteur ; Gérer l’école → Équipe pédagogique → Personnes"
 statut = "disponible"
@@ -12,9 +12,11 @@ statut = "disponible"
 
 ## À quoi cela sert
 
-Le **second facteur** est un code à six chiffres, affiché par une application sur
-le téléphone de chaque personne, qui s’ajoute au mot de passe. Les personnes
-concernées le configurent elles-mêmes, à partir de leur page **Mon compte**
+Le **second facteur** est un code à six chiffres, qui change toutes les trente
+secondes et s’ajoute au mot de passe. Chaque personne le produit avec un
+**générateur de codes** : de préférence un appareil distinct de son poste de
+travail (un téléphone, un petit jeton matériel), à défaut un logiciel sur ce
+poste. Aucun matériel n’est imposé. Les personnes concernées le configurent elles-mêmes, à partir de leur page **Mon compte**
 (voir la [fiche destinée à toute l’équipe]({{< relref "/guide/equipe/second-facteur/" >}})).
 
 Deux niveaux décident de qui doit l’utiliser :
@@ -59,17 +61,21 @@ voient un bandeau les invitant à le faire.
 
 ## Avant d’exiger le second facteur
 
-- Prévenir l’équipe à l’avance : chacun doit disposer d’un téléphone et, si
-  possible, d’une application d’authentification.
+- Prévenir l’équipe à l’avance : chacun doit disposer d’un moyen de produire les
+  codes, de préférence un appareil distinct de son poste de travail.
+- Penser aux personnes qui ne souhaitent pas utiliser leur téléphone personnel :
+  un générateur de codes matériel, ou à défaut un logiciel sur le poste de
+  travail, conviennent aussi. Le logiciel sur un poste partagé est à éviter.
 - Rappeler de **noter les codes de secours** au moment de la configuration : ils
-  évitent de solliciter la direction à chaque perte de téléphone.
+  évitent de solliciter la direction à chaque perte de l’appareil qui produit les
+  codes.
 - S’assurer que la direction est **joignable** : c’est elle qui réinitialise le
   second facteur des autres personnes (voir ci-dessous).
 
 ## Réinitialiser le second facteur d’une personne
 
-À faire quand une personne n’a plus son téléphone **et** n’a plus ses codes de
-secours.
+À faire quand une personne n’a plus son générateur de codes (téléphone perdu,
+jeton cassé, poste changé) **et** n’a plus ses codes de secours.
 
 1. Ouvrir **Gérer l’école**, puis **Équipe pédagogique**, puis la vue
    **Personnes**.
@@ -98,5 +104,5 @@ l’école.
 - La réinitialisation **ne lève jamais l’obligation**.
 - Les sessions que la personne aurait déjà ouvertes sur un autre appareil ne sont
   pas fermées par cette opération.
-- Une personne qui doit changer de téléphone alors que le second facteur lui est
+- Une personne qui doit changer d’appareil alors que le second facteur lui est
   imposé passe par la même réinitialisation.

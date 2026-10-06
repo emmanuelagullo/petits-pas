@@ -21,7 +21,7 @@ Les statuts employés sont :
 | Créer mon compte depuis une invitation | Personne invitée | Disponible | Le mot de passe doit satisfaire les contrôles de sécurité affichés. |
 | Rattacher mon compte existant à une école | Personne invitée | Disponible | L’adresse du compte doit correspondre à l’invitation. |
 | Réinitialiser mon mot de passe | Toute personne disposant d’un compte | Selon l’installation | Nécessite l’envoi de courriel ; la réponse ne révèle pas si l’adresse est connue. |
-| Ajouter un code de vérification à mon mot de passe (second facteur) | Toute personne autorisée | Selon l’installation | Nécessite que l’hébergeur ait activé la fonction ; code à six chiffres d’une application sur téléphone. Voir la [fiche]({{< relref "/guide/equipe/second-facteur/" >}}). |
+| Ajouter un code de vérification à mon mot de passe (second facteur) | Toute personne autorisée | Selon l’installation | Nécessite que l’hébergeur ait activé la fonction ; code à six chiffres produit de préférence par un appareil distinct (téléphone, jeton), à défaut par un logiciel du poste. Voir la [fiche]({{< relref "/guide/equipe/second-facteur/" >}}). |
 | Me connecter avec un code de secours | Personne ayant configuré le second facteur | Selon l’installation | Dix codes à usage unique, remis une seule fois à la configuration ; régénérables. |
 | Réutiliser un lien accepté, révoqué ou expiré | — | Refusé | Une nouvelle invitation doit être créée. |
 | Choisir entre plusieurs écoles | Personne rattachée à plusieurs écoles | Absent | Le contexte d’école est actuellement choisi automatiquement. |
@@ -105,7 +105,7 @@ Les statuts employés sont :
 | Terminer une affectation | Disponible | Le dernier responsable doit d’abord être remplacé. |
 | Suspendre une affectation en urgence | Disponible | Motif obligatoire ; une anomalie peut être ouverte. |
 | Choisir pour quelles fonctions le second facteur est exigé ou retiré | Selon l’installation | Direction, dans le cadre fixé par l’hébergeur. Voir la [fiche]({{< relref "/guide/equipe/second-facteur-ecole/" >}}). |
-| Réinitialiser le second facteur d’une personne qui a perdu son téléphone | Selon l’installation | Direction, pour les personnes n’exerçant pas la direction ; les autres relèvent de l’hébergeur. |
+| Réinitialiser le second facteur d’une personne qui a perdu son générateur de codes | Selon l’installation | Direction, pour les personnes n’exerçant pas la direction ; les autres relèvent de l’hébergeur. |
 | Accorder ou retirer les droits de gestion de l’école | Disponible | Plusieurs comptes personnels ; mot de passe et continuité contrôlés. Voir la [fiche]({{< relref "/guide/equipe/gerer-droits-ecole/" >}}). |
 
 ## Utiliser Petits Pas sur cet appareil
