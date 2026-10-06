@@ -2,6 +2,16 @@
 
 from getpass import getpass
 from io import StringIO
+import secrets
+from urllib.parse import urlsplit
+
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -15,7 +25,7 @@ from suivi.models import Ecole
 
 
 class Command(BaseCommand):
-    help = "Crée une première école et un compte personnel de direction sur un serveur vide."
+    help = "Crée une première école et un compte personnel de direction sur un serveur persistant."
 
     def add_arguments(self, parser):
         parser.add_argument("--ecole", required=True)
@@ -23,18 +33,50 @@ class Command(BaseCommand):
         parser.add_argument("--prenom", required=True)
         parser.add_argument("--nom", required=True)
         parser.add_argument("--utilisateur", required=True)
+        parser.add_argument("--ajouter-ecole", action="store_true",
+                            help="Autorise une nouvelle école dans une base déjà initialisée.")
+        parser.add_argument("--email", help="Envoie un lien pour choisir le premier mot de passe.")
+        parser.add_argument("--url", help="Origine HTTPS du site, nécessaire avec --email.")
 
     def handle(self, *args, **options):
         if (settings.MODE_LOCAL or settings.ENVIRONNEMENT_EPHEMERE
                 or settings.ENVIRONNEMENT_ATELIER):
             raise CommandError("Cette commande exige un serveur persistant ordinaire.")
-        if Ecole.objects.exists() or get_user_model().objects.exists():
+        if not options["ajouter_ecole"] and (Ecole.objects.exists() or get_user_model().objects.exists()):
             raise CommandError("École ou compte déjà présent : aucune modification.")
 
-        mot_de_passe = getpass("Mot de passe du premier compte : ")
-        confirmation = getpass("Confirmer le mot de passe : ")
-        if mot_de_passe != confirmation:
-            raise CommandError("Les deux mots de passe diffèrent.")
+        email = (options["email"] or "").strip().casefold()
+        if options["email"] is not None and not email:
+            raise CommandError("Adresse électronique obligatoire avec --email.")
+        if email:
+            try:
+                validate_email(email)
+            except ValidationError:
+                raise CommandError("Adresse électronique invalide.") from None
+            origine = urlsplit(options["url"] or "")
+            if (origine.scheme != "https" or not origine.hostname or origine.username
+                    or origine.password or origine.path not in ("", "/")
+                    or origine.query or origine.fragment):
+                raise CommandError("--url doit être une origine HTTPS sans chemin ni identifiants.")
+            if (not settings.EMAIL_DISPONIBLE or settings.EMAIL_BACKEND in (
+                    "django.core.mail.backends.console.EmailBackend",
+                    "django.core.mail.backends.filebased.EmailBackend",
+                    "django.core.mail.backends.dummy.EmailBackend")):
+                raise CommandError("Courrier désactivé : aucune modification.")
+            if get_user_model().objects.filter(email__iexact=email).exists():
+                raise CommandError("Adresse déjà utilisée : aucune modification.")
+            # Hash utilisable pour le parcours Mot de passe oublié ; valeur jamais transmise.
+            mot_de_passe = confirmation = secrets.token_urlsafe(48)
+        else:
+            if options["url"]:
+                raise CommandError("--url exige --email.")
+            mot_de_passe = getpass("Mot de passe du premier compte : ")
+            confirmation = getpass("Confirmer le mot de passe : ")
+            if mot_de_passe != confirmation:
+                raise CommandError("Les deux mots de passe diffèrent.")
+        if Ecole.objects.filter(nom__iexact=options["ecole"].strip(),
+                                commune__iexact=options["commune"].strip()).exists():
+            raise CommandError("École de même nom et commune déjà présente : aucune modification.")
         formulaire = InitialisationEcoleForm({
             "ecole_nom": options["ecole"],
             "commune": options["commune"],
@@ -52,13 +94,15 @@ class Command(BaseCommand):
             raise CommandError(f"Initialisation refusée : {details}")
 
         with transaction.atomic():
-            if Ecole.objects.exists() or get_user_model().objects.exists():
+            if not options["ajouter_ecole"] and (Ecole.objects.exists() or get_user_model().objects.exists()):
                 raise CommandError("École ou compte déjà présent : aucune modification.")
             ecole = Ecole.objects.create(
                 nom=formulaire.cleaned_data["ecole_nom"],
                 commune=formulaire.cleaned_data["commune"].strip(),
             )
-            utilisateur = formulaire.save()
+            utilisateur = formulaire.save(commit=False)
+            utilisateur.email = email
+            utilisateur.save()
             appartenance = AppartenanceEcole.objects.create(
                 utilisateur=utilisateur, ecole=ecole
             )
@@ -76,3 +120,30 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f"École créée (id {ecole.pk}) ; compte personnel : {utilisateur.username}."
         ))
+
+        if email:
+            lien = options["url"].rstrip("/") + reverse(
+                "mot_de_passe_reinitialiser",
+                kwargs={"uidb64": urlsafe_base64_encode(force_bytes(utilisateur.pk)),
+                        "token": default_token_generator.make_token(utilisateur)},
+            )
+            try:
+                resultat = EmailMessage(
+                    subject="Votre premier compte Petits Pas",
+                    body=(f"Bonjour {utilisateur.get_full_name()},\n\n"
+                          f"Votre compte personnel {utilisateur.username} a été préparé "
+                          f"pour gérer {ecole.nom}.\n"
+                          f"Choisissez votre mot de passe :\n{lien}\n\n"
+                          "Ce lien expire et devient inutilisable après le choix du mot de passe. "
+                          "Si nécessaire, utilisez Mot de passe oublié sur la page de connexion.\n"
+                          "Vous pourrez ensuite inviter les membres de l'équipe.\n"),
+                    to=[email],
+                ).send(fail_silently=False)
+                if resultat != 1:
+                    raise RuntimeError("envoi non confirmé")
+            except Exception:
+                raise CommandError(
+                    "École et compte créés, mais envoi non confirmé. Ne pas recréer : "
+                    "utiliser Mot de passe oublié sur le site, puis vérifier la réception."
+                ) from None
+            self.stdout.write("Courriel accepté par le backend ; réception à vérifier avec le destinataire.")
