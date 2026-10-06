@@ -224,10 +224,10 @@ trace = Trace.objects.get()
 json.dumps({'id': trace.pk, 'photo': trace.photo.name, 'commentaire': trace.commentaire})
 `));
   assert.equal(media.commentaire, 'Réalisation entièrement fictive.');
-  assert(media.photo.endsWith('.png'));
-  const photoResponse = await page.evaluate(async route => {const r=await fetch(route);return {status:r.status,bytes:(await r.arrayBuffer()).byteLength};}, `${base}app/media/trace/${media.id}/`);
-  assert.equal(photoResponse.status, 200); assert(photoResponse.bytes > 20);
-  pass('Upload multipart Pillow et média autorisé local');
+  assert(media.photo.endsWith('.jpg'), 'La photo normalisée doit être enregistrée en JPEG');
+  const photoResponse = await page.evaluate(async route => {const r=await fetch(route);return {status:r.status,type:r.headers.get('content-type'),bytes:(await r.arrayBuffer()).byteLength};}, `${base}app/media/trace/${media.id}/`);
+  assert.equal(photoResponse.status, 200); assert.equal(photoResponse.type, 'image/jpeg'); assert(photoResponse.bytes > 20);
+  pass('Upload multipart, normalisation JPEG et média autorisé local');
   const pureRead = await page.evaluate(async route => window.pwaTest({kind:'http',
     request:{url:location.origin+route,method:'GET',headers:[],body:''}}), `${base}app/media/trace/${media.id}/`);
   assert.equal(pureRead.result.status, 200);
