@@ -24,7 +24,7 @@ la récupération du second facteur d’une direction relève de l’hébergeur.
 | Profil | Où sont les données ? | Données admises | Finalité |
 | --- | --- | --- | --- |
 | [Démonstration publique]({{< relref "/demonstration/" >}}) | Sur un serveur distant, effacées lors de son arrêt | Fictives uniquement, visibles par les visiteurs | Découvrir librement l'interface |
-| [Navigateur sur cet appareil](#application-dans-le-navigateur) | Base et médias dans le stockage local du navigateur | Versions maintenues depuis #PWA13 : production dans le périmètre Chromium/Linux ; préparer la protection des données avec l’école | Usage sur cet appareil, sans synchronisation entre appareils |
+| [Navigateur sur cet appareil](#application-dans-le-navigateur) | Base et médias dans le stockage local du navigateur | Versions maintenues depuis #PWA13 : production sur ordinateur, qualifiée sous Chromium/Linux et Chromium, Chrome et Edge/Windows ; préparer la protection des données avec l’école | Usage sur cet appareil, sans synchronisation entre appareils |
 | [Programme sur cet appareil](#mode-autonome-local) | SQLite, médias et clé dans un paquet persistant sur le poste | Préparer la protection des données avec l’école ; les essais sur appareil recueillent les retours | Usage sur un poste, sans partage entre ordinateurs |
 | Atelier pédagogique hébergé | PostgreSQL et stockage S3 persistants sur un serveur distant | Fictives uniquement | Recueillir des retours dans la durée |
 | Pilote ou production hébergés | PostgreSQL et stockage S3 persistants sur un serveur distant | Réelles, seulement après validation des garanties nécessaires | Usage partagé d'une école ou d'une collectivité |

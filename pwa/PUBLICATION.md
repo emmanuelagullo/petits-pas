@@ -200,3 +200,20 @@ compatibles avec le projet Pages existant ; aucun changement de ses réglages
 n’est requis. Une publication ancienne garde son statut et son aide. Pour
 annoncer la nouvelle version aux utilisateurs, publier le nouveau bundle
 contrôlé puis vérifier sa version affichée. Les retours terrain restent non bloquants.
+
+
+## Release 0.9
+
+Les contrôles sur main sont verts sur GitLab et sur les trois navigateurs
+Windows de GitHub Actions (retour du mainteneur, 6 octobre 2026). Le tag commun
+`0.9` est créé sur le commit contenant les notes 0.9 et poussé sur les deux
+forges. Attendre ses nouveaux contrôles, puis lancer **pwa-publication** dans
+le pipeline GitLab **du tag 0.9**. Ne pas promouvoir le bundle dev de main à sa
+place : version affichée, notes et manifeste doivent correspondre au tag.
+Le projet Pages existant et son adresse restent inchangés. Vérifier ensuite
+la version **0.9** affichée et son `publication.json`. Les utilisateurs déjà
+installés peuvent choisir **Vérifier les mises à jour** après avoir gardé un
+ZIP hors appareil ; aucun effacement du stockage n'est nécessaire.
+
+Les binaires autonomes issus du même tag suivent séparément la publication
+GitHub décrite dans le dépôt : publier la PWA ne publie pas ces archives.

@@ -14,7 +14,7 @@ Ce parcours concerne **Sur cet appareil**, dans une version qui propose le bouto
 Les anciennes publications, dont le programme 0.7, ne le proposent pas.
 Le service de l’école ne permet pas d’ouvrir ou de remplacer sa base de cette façon.
 Le statut dépend de la version publiée : les versions maintenues depuis #PWA13
-visent la production sur ordinateur Chromium/Linux ; les essais utilisent des données fictives.
+visent la production sur ordinateur avec un navigateur compatible ; les essais utilisent des données fictives.
 
 ## Ouvrir pour vérifier
 
