@@ -21,7 +21,7 @@ class PublicationTests(unittest.TestCase):
         names = ["index.html", "worker.js", "storage.js", "sw.js", "application.zip"]
         for name in names:
             (self.root / name).write_bytes(b"contenu fictif")
-        self.config = {"testMode": False, "version": "pwa-prototype." + "a" * 16,
+        self.config = {"testMode": False, "version": "pwa." + "a" * 16,
             "assets": [{"url": "/" + name, "sha256": publication.sha256(self.root / name)} for name in names]}
         self.write_config()
 
@@ -46,6 +46,23 @@ class PublicationTests(unittest.TestCase):
         self.assertEqual({f.name for f in root.iterdir()}, {f.name for f in self.root.iterdir()})
         self.assertFalse((destination / "notes-non-publiees.txt").exists())
         self.assertEqual(len(report), 64)
+
+    def test_current_and_historical_bundle_versions(self):
+        for prefix in ("pwa.", "pwa-prototype."):
+            with self.subTest(prefix=prefix):
+                self.config["version"] = prefix + "a" * 16
+                self.write_config()
+                publication.validate_bundle(self.root)
+
+    def test_invalid_bundle_versions_are_refused(self):
+        for version in ("pwa.", "pwa." + "a" * 15,
+                        "pwa." + "g" * 16, "pwa." + "a" * 17,
+                        "other." + "a" * 16, "pwa." + "a" * 16 + "\n"):
+            with self.subTest(version=version):
+                self.config["version"] = version
+                self.write_config()
+                with self.assertRaisesRegex(ValueError, "Version du bundle invalide"):
+                    publication.validate_bundle(self.root)
 
     def test_test_bundle_is_refused(self):
         self.config["testMode"] = True
