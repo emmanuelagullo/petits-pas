@@ -562,7 +562,6 @@ class ReglagePresentation(models.Model):
     mode = models.CharField(max_length=12, choices=MODES, default=HERITER)
     icone = models.CharField(max_length=80, blank=True)
     photo = models.ImageField(upload_to="presentation/%Y/%m/", blank=True, null=True)
-    photo_pdf = models.ImageField(upload_to="presentation/pdf/%Y/%m/", blank=True, null=True)
     dernier_editeur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, blank=True, null=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
@@ -717,7 +716,6 @@ class TraceCommune(models.Model):
     date_observation = models.DateField(default=timezone.localdate)
     commentaire = models.TextField(blank=True)
     photo = models.ImageField(upload_to="traces/%Y/%m/", blank=True, null=True)
-    photo_pdf = models.ImageField(upload_to="traces/pdf/%Y/%m/", blank=True, null=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     dernier_editeur = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
@@ -742,7 +740,6 @@ class Trace(models.Model):
     date_observation = models.DateField(default=timezone.localdate)
     commentaire = models.TextField(blank=True)
     photo = models.ImageField(upload_to="traces/%Y/%m/", blank=True, null=True)
-    photo_pdf = models.ImageField(upload_to="traces/pdf/%Y/%m/", blank=True, null=True)
     commune = models.ForeignKey(
         TraceCommune, on_delete=models.PROTECT, related_name="attributions",
         blank=True, null=True,
@@ -1008,7 +1005,6 @@ class RessourceReferentiel(models.Model):
     """Référence privée à un fichier encore nécessaire à une présentation annuelle."""
     annuel = models.ForeignKey(ReferentielAnnuel, on_delete=models.PROTECT, related_name="ressources")
     fichier = models.FileField(upload_to="referentiels/%Y/%m/")
-    fichier_pdf = models.FileField(upload_to="referentiels/pdf/%Y/%m/", blank=True, null=True)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["annuel", "fichier"], name="ressource_annuelle_fichier_unique")]

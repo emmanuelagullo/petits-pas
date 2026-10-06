@@ -5,7 +5,7 @@ from PIL import Image
 
 from .services.medias import (
     ImagePriveeInvalide,
-    POLITIQUE_EQUILIBREE,
+    POLITIQUE_ECONOME,
     PolitiqueImages,
     normaliser_image,
 )
@@ -28,7 +28,7 @@ class NormalisationImagesPrivees(TestCase):
     def test_trace_corrige_orientation_limite_dimensions_et_supprime_exif(self):
         resultat = normaliser_image(image_test((1200, 1800), orientation=6))
 
-        self.assertEqual((resultat.largeur, resultat.hauteur), (1600, 1067))
+        self.assertEqual((resultat.largeur, resultat.hauteur), (600, 400))
         self.assertEqual(resultat.format, "JPEG")
         with Image.open(BytesIO(resultat.contenu)) as image:
             self.assertEqual(image.format, "JPEG")
@@ -41,16 +41,14 @@ class NormalisationImagesPrivees(TestCase):
         trace = normaliser_image(source, famille="trace")
         couverture = normaliser_image(source, famille="couverture")
 
-        self.assertEqual((trace.largeur, trace.hauteur), (1600, 1067))
-        self.assertEqual((couverture.largeur, couverture.hauteur), (2400, 1600))
+        self.assertEqual((trace.largeur, trace.hauteur), (600, 400))
+        self.assertEqual((couverture.largeur, couverture.hauteur), (800, 533))
 
-    def test_variante_pdf_est_plus_petite_et_repart_de_la_source(self):
-        source = image_test((2400, 1600))
-        principale = normaliser_image(source)
-        pdf = normaliser_image(source, variante="pdf")
+    def test_trace_ne_conserve_qu_une_image_adaptee_au_carnet(self):
+        resultat = normaliser_image(image_test((2400, 1600)))
 
-        self.assertEqual((pdf.largeur, pdf.hauteur), (600, 400))
-        self.assertLess(len(pdf.contenu), len(principale.contenu))
+        self.assertEqual((resultat.largeur, resultat.hauteur), (600, 400))
+        self.assertLess(len(resultat.contenu), 150_000)
 
     def test_transparence_est_aplatie_sur_fond_blanc(self):
         resultat = normaliser_image(image_test(format="PNG", transparente=True))
@@ -72,21 +70,17 @@ class NormalisationImagesPrivees(TestCase):
         politique = PolitiqueImages(
             limite_brute_octets=8,
             limite_pixels=100,
-            trace_principale=POLITIQUE_EQUILIBREE.trace_principale,
-            trace_pdf=POLITIQUE_EQUILIBREE.trace_pdf,
-            couverture_principale=POLITIQUE_EQUILIBREE.couverture_principale,
-            couverture_pdf=POLITIQUE_EQUILIBREE.couverture_pdf,
+            trace=POLITIQUE_ECONOME.trace,
+            couverture=POLITIQUE_ECONOME.couverture,
         )
         with self.assertRaisesRegex(ImagePriveeInvalide, "volumineuse"):
             normaliser_image(b"012345678", politique=politique)
 
         politique = PolitiqueImages(
-            limite_brute_octets=POLITIQUE_EQUILIBREE.limite_brute_octets,
+            limite_brute_octets=POLITIQUE_ECONOME.limite_brute_octets,
             limite_pixels=100,
-            trace_principale=POLITIQUE_EQUILIBREE.trace_principale,
-            trace_pdf=POLITIQUE_EQUILIBREE.trace_pdf,
-            couverture_principale=POLITIQUE_EQUILIBREE.couverture_principale,
-            couverture_pdf=POLITIQUE_EQUILIBREE.couverture_pdf,
+            trace=POLITIQUE_ECONOME.trace,
+            couverture=POLITIQUE_ECONOME.couverture,
         )
         with self.assertRaisesRegex(ImagePriveeInvalide, "trop de pixels"):
             normaliser_image(image_test((20, 20)), politique=politique)
@@ -99,5 +93,3 @@ class NormalisationImagesPrivees(TestCase):
     def test_parametres_inconnus_sont_des_erreurs_de_programmation(self):
         with self.assertRaises(ValueError):
             normaliser_image(image_test(), famille="inconnue")
-        with self.assertRaises(ValueError):
-            normaliser_image(image_test(), variante="inconnue")

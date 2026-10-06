@@ -70,7 +70,7 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         raise ValidationError(
             f"Des versions personnelles existent pour {noms} : retirez-les avant de réassocier ces élèves."
         )
-    for champ in ("date_observation", "commentaire", "photo", "photo_pdf"):
+    for champ in ("date_observation", "commentaire", "photo"):
         if champ in valeurs:
             setattr(commune, champ, valeurs[champ])
     commune.dernier_editeur = utilisateur
@@ -92,7 +92,6 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         trace.date_observation = commune.date_observation
         trace.commentaire = personnaliser_texte(commune.commentaire, sc.eleve.prenom)
         trace.photo = commune.photo.name if commune.photo else None
-        trace.photo_pdf = commune.photo_pdf.name if commune.photo_pdf else None
         trace.supprime_le = None
         trace.supprime_par = None
         trace.dernier_editeur = utilisateur

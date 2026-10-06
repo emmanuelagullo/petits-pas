@@ -144,7 +144,7 @@ from .services.pedagogie import (
     supprimer_trace_logiquement,
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
-from .services.medias_django import preparer_variantes
+from .services.medias_django import preparer_image
 from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
 from .correspondances_referentiels import correspondances_classe
 from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe, observations_classe, projeter_etat_classe, classe_historique, competence_saisissable
@@ -1374,27 +1374,20 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
             date_observation = datetime.strptime(date_observation, "%Y-%m-%d").date()
             ids = {int(pk) for pk in request.POST.getlist("eleves")}
             photo = commune.photo if commune else None
-            photo_pdf = commune.photo_pdf if commune else None
             if request.POST.get("retirer_photo"):
                 photo = None
-                photo_pdf = None
             if request.FILES.get("photo"):
-                photo, photo_pdf = preparer_variantes(request.FILES["photo"])
+                photo = preparer_image(request.FILES["photo"])
             ancien_nom = commune.photo.name if commune and commune.photo else ""
-            ancien_nom_pdf = commune.photo_pdf.name if commune and commune.photo_pdf else ""
             with transaction.atomic():
                 commune_enregistree = enregistrer_commune(utilisateur=request.user, classe=classe,
                                    competence=competence, ids=ids,
                                    valeurs={"commentaire": commentaire,
                                             "date_observation": date_observation,
-                                            "photo": photo,
-                                            "photo_pdf": photo_pdf}, commune=commune)
+                                            "photo": photo}, commune=commune)
                 nouveau_nom = commune_enregistree.photo.name if commune_enregistree.photo else ""
-                nouveau_nom_pdf = commune_enregistree.photo_pdf.name if commune_enregistree.photo_pdf else ""
                 if ancien_nom and ancien_nom != nouveau_nom:
                     _supprimer_media_apres_validation(ancien_nom)
-                if ancien_nom_pdf and ancien_nom_pdf != nouveau_nom_pdf:
-                    _supprimer_media_apres_validation(ancien_nom_pdf)
             messages.success(request, "Trace commune enregistrée.")
             if retour_url:
                 return redirect(retour_url)
@@ -1530,10 +1523,10 @@ def _supprimer_media_apres_validation(nom):
         return
 
     def supprimer():
-        if (Trace.objects.filter(Q(photo=nom) | Q(photo_pdf=nom)).exists()
-                or TraceCommune.objects.filter(Q(photo=nom) | Q(photo_pdf=nom)).exists()
-                or ReglagePresentation.objects.filter(Q(photo=nom) | Q(photo_pdf=nom)).exists()
-                or RessourceReferentiel.objects.filter(Q(fichier=nom) | Q(fichier_pdf=nom)).exists()):
+        if (Trace.objects.filter(photo=nom).exists()
+                or TraceCommune.objects.filter(photo=nom).exists()
+                or ReglagePresentation.objects.filter(photo=nom).exists()
+                or RessourceReferentiel.objects.filter(fichier=nom).exists()):
             return
         try:
             default_storage.delete(nom)
@@ -1653,23 +1646,17 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
         ancien_nom_photo = (
             trace_obj.photo.name if trace_obj and trace_obj.photo else ""
         )
-        ancien_nom_photo_pdf = (
-            trace_obj.photo_pdf.name if trace_obj and trace_obj.photo_pdf else ""
-        )
         valeurs = {
             "commentaire": request.POST.get("commentaire", "").strip(),
             "visible_carnet": request.POST.get("visible_carnet") == "on",
         }
         photo = trace_obj.photo if trace_obj else None
-        photo_pdf = trace_obj.photo_pdf if trace_obj else None
         if request.POST.get("retirer_photo"):
             photo = None
-            photo_pdf = None
         try:
             if request.FILES.get("photo"):
-                photo, photo_pdf = preparer_variantes(request.FILES["photo"])
+                photo = preparer_image(request.FILES["photo"])
             valeurs["photo"] = photo
-            valeurs["photo_pdf"] = photo_pdf
             date = request.POST.get("date_observation")
             if date:
                 valeurs["date_observation"] = date
@@ -1683,11 +1670,8 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
                     valeurs=valeurs,
                 )
                 nouveau_nom_photo = trace_obj.photo.name if trace_obj.photo else ""
-                nouveau_nom_photo_pdf = trace_obj.photo_pdf.name if trace_obj.photo_pdf else ""
                 if ancien_nom_photo and ancien_nom_photo != nouveau_nom_photo:
                     _supprimer_media_apres_validation(ancien_nom_photo)
-                if ancien_nom_photo_pdf and ancien_nom_photo_pdf != nouveau_nom_photo_pdf:
-                    _supprimer_media_apres_validation(ancien_nom_photo_pdf)
             messages.success(request, f"Trace enregistrée pour {eleve.prenom}.")
             return redirect("trace", eleve_pk=eleve.pk, competence_pk=competence.pk)
         except (ValueError, ValidationError) as exc:
@@ -2025,17 +2009,15 @@ def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
     noms_media = []
     couverture = contexte["illustration_couverture"]
     if couverture.photo:
-        photo_pdf = couverture.photo_pdf or couverture.photo
-        contexte["url_photo_couverture_pdf"] = _url_media_pdf(photo_pdf)
-        noms_media.append(photo_pdf)
+        contexte["url_photo_couverture_pdf"] = _url_media_pdf(couverture.photo)
+        noms_media.append(couverture.photo)
     for _domaine, groupes in contexte["domaines"]:
         for _titre, lignes in groupes:
             for _competence, observation in lignes:
                 image = _competence.illustration
                 if image.photo:
-                    photo_pdf = image.photo_pdf or image.photo
-                    _competence.url_icone_pdf = _url_media_pdf(photo_pdf)
-                    noms_media.append(photo_pdf)
+                    _competence.url_icone_pdf = _url_media_pdf(image.photo)
+                    noms_media.append(image.photo)
                 elif image.statique:
                     fichier = finders.find(image.statique)
                     if not fichier:
@@ -2044,10 +2026,8 @@ def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
                 if observation:
                     for trace_obj in observation.traces_carnet:
                         if trace_obj.photo:
-                            photo_pdf = (trace_obj.photo_pdf.name if trace_obj.photo_pdf
-                                         else trace_obj.photo.name)
-                            trace_obj.url_photo_pdf = _url_media_pdf(photo_pdf)
-                            noms_media.append(photo_pdf)
+                            trace_obj.url_photo_pdf = _url_media_pdf(trace_obj.photo.name)
+                            noms_media.append(trace_obj.photo.name)
     html = render_to_string(
         "suivi/carnet.html",
         {**contexte, "generation_pdf": True},

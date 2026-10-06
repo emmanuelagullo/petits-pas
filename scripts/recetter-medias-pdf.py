@@ -17,7 +17,7 @@ from weasyprint import CSS, HTML
 RACINE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(RACINE))
 
-from suivi.services.medias import POLITIQUE_EQUILIBREE, normaliser_image
+from suivi.services.medias import POLITIQUE_ECONOME, normaliser_image
 
 
 GENERATEUR_PATH = Path(__file__).with_name("generer-images-recette.py")
@@ -69,7 +69,7 @@ def _normaliser_images(images_dir, destination):
     for source in sorted(images_dir.glob("trace-*.jpg")):
         if source.name == "trace-tres-grande.jpg":
             continue
-        resultat = normaliser_image(source.read_bytes(), variante="pdf")
+        resultat = normaliser_image(source.read_bytes())
         cible = destination / source.name
         cible.write_bytes(resultat.contenu)
         fichiers.append({
@@ -82,9 +82,7 @@ def _normaliser_images(images_dir, destination):
             "objectif_atteint": resultat.objectif_atteint,
         })
     couverture = images_dir / "couverture-ecole-classe.jpg"
-    resultat = normaliser_image(
-        couverture.read_bytes(), famille="couverture", variante="pdf"
-    )
+    resultat = normaliser_image(couverture.read_bytes(), famille="couverture")
     cible = destination / couverture.name
     cible.write_bytes(resultat.contenu)
     fichiers.append({
@@ -142,10 +140,10 @@ def recetter(destination, pages=22, configurations=None):
             f"brut-{nom}": configuration
             for nom, configuration in scenarios(images_dir).items()
         }
-        images_normalisees = destination / "images-equilibrees-pdf"
+        images_normalisees = destination / "images-economes"
         mesure_normalisation = _normaliser_images(images_dir, images_normalisees)
         configurations.update({
-            f"equilibre-{nom}": configuration
+            f"econome-{nom}": configuration
             for nom, configuration in scenarios(images_normalisees).items()
         })
     resultats = []
@@ -182,6 +180,22 @@ def recetter(destination, pages=22, configurations=None):
             }
         )
 
+    qualification_stockage = None
+    if mesure_normalisation:
+        traces = [f for f in mesure_normalisation["fichiers"] if f["fichier"].startswith("trace-")]
+        moyenne = round(sum(f["octets_normalises"] for f in traces) / len(traces))
+        budget_medias = 6_000_000_000
+        eleves = 150
+        annees = 3
+        qualification_stockage = {
+            "nature": "illustration, ni quota ni recommandation",
+            "donnees_actives_octets": 10_000_000_000,
+            "budget_medias_octets": budget_medias,
+            "eleves": eleves,
+            "annees": annees,
+            "trace_moyenne_octets": moyenne,
+            "traces_par_eleve_et_par_an": budget_medias // moyenne // eleves // annees,
+        }
     rapport = {
         "format": "petits-pas-recette-pdf",
         "version": 1,
@@ -196,8 +210,9 @@ def recetter(destination, pages=22, configurations=None):
         },
         "manifeste_images": "images/manifest.json",
         "images_generees": len(manifeste["images"]),
-        "profil_equilibre": asdict(POLITIQUE_EQUILIBREE),
+        "profil_econome": asdict(POLITIQUE_ECONOME),
         "normalisation": mesure_normalisation,
+        "qualification_stockage": qualification_stockage,
         "resultats": resultats,
     }
     (destination / "rapport.json").write_text(

@@ -2,16 +2,16 @@
 
 * Portée
 
-Cette référence compare les fichiers bruts synthétiques de #J1 à leurs
-variantes PDF produites par le profil =Équilibré= de #J2. Elle servira aussi
-de point de comparaison aux profils =Économe= et =Qualité élevée=. Elle ne
+Cette référence compare les fichiers bruts synthétiques de #J1 aux fichiers
+uniques produits par le profil =Économe= de #J2. Elle servira aussi de point de
+comparaison aux autres profils de stockage et d'export. Elle ne
 constitue ni un seuil de production ni une validation visuelle pédagogique.
 
 Commande :
 
 #+begin_src sh
 python3 scripts/recetter-medias-pdf.py
-scripts/analyser-pdf.sh .recette-medias/pdf/equilibre-quinze-photos.pdf
+scripts/analyser-pdf.sh .recette-medias/pdf/econome-quinze-photos.pdf
 #+end_src
 
 Environnement de la mesure initiale : Python 3.12.14, Pillow 12.3.0,
@@ -41,27 +41,27 @@ tailles sont reproductibles avec les versions indiquées.
   de couverture peut préserver davantage de définition que les traces, mais
   le fichier brut ne doit pas être incorporé tel quel.
 - Le poids croît presque linéairement avec les photos distinctes. La
-  normalisation à l'import et la variante PDF doivent être mesurées avant de
+  normalisation à l'import doit être mesurée avant de
   conclure qu'un quota de classe est nécessaire.
 
-* Première calibration du profil Équilibré
+* Première calibration du profil Économe
 
 Mesure #J2 sur la même machine et avec les mêmes versions que la référence :
 
-| Scénario | PDF brut | PDF équilibré | Réduction |
+| Scénario | PDF brut | PDF économe | Réduction |
 |----------+---------:|--------------:|----------:|
-| Sans photo | 29 351 octets | 29 350 octets | — |
-| Une photo | 1 196 574 octets | 178 845 octets | 85 % |
-| Cinq photos | 5 867 979 octets | 767 752 octets | 87 % |
-| Quinze photos | 17 529 524 octets | 2 244 936 octets | 87 % |
-| Couverture et cinq photos | 8 216 973 octets | 1 753 328 octets | 79 % |
+| Sans photo | 29 353 octets | 29 353 octets | — |
+| Une photo | 1 196 577 octets | 149 752 octets | 87 % |
+| Cinq photos | 5 867 991 octets | 622 966 octets | 89 % |
+| Quinze photos | 17 529 529 octets | 1 809 991 octets | 90 % |
+| Couverture et cinq photos | 8 216 986 octets | 823 470 octets | 90 % |
 
-La préparation des quinze traces et de la couverture a pris 1,560 seconde.
-Les traces PDF mesurent 600 × 450 ou 450 × 600 pixels et pèsent entre 143 et
-150 Ko. Elles sont incorporées entre 225 et 300 ppp dans la mise en page de
-recette. La couverture PDF mesure 1 800 × 1 200 pixels et pèse 985 Ko. Tous les
-objectifs indicatifs ont été atteints sur ce jeu volontairement riche en
-détails.
+Les traces mesurent 600 × 450 ou 450 × 600 pixels et pèsent entre 115 et
+121 Ko. Elles sont incorporées entre 225 et 300 ppp dans la mise en page de
+recette. La couverture mesure 800 × 533 pixels et pèse 200 Ko. Sur ce jeu
+volontairement très riche en détails, le plancher de qualité est atteint avant
+la cible de 100 Ko : Petits Pas accepte le léger dépassement plutôt que de
+dégrader davantage l'image.
 
 Cette calibration rend plausible un carnet de plusieurs photos compatible
 avec un envoi par courriel, sans justifier à ce stade un quota bloquant. La
@@ -69,6 +69,18 @@ lisibilité des détails devra néanmoins être validée avec l'équipe pédagog
 avant de considérer les dimensions comme définitives. Le temps de préparation
 dans le navigateur n'est pas encore mesuré.
 
-Le rapport JSON contient les paramètres exacts du profil, le poids et les
-dimensions de chaque variante, la qualité finalement employée, le temps de
-normalisation et les mesures des dix PDF bruts ou équilibrés.
+Dans le template réel, une trace est affichée sur environ 72 × 54 mm en paysage
+ou 41 × 54 mm en portrait. Les 600 pixels correspondent donc à environ 210 à
+280 ppp. Le rapport JSON contient les paramètres exacts du profil, le poids et
+les dimensions de chaque image, la qualité finalement employée, le temps de
+normalisation et les mesures des dix PDF bruts ou économes.
+
+Une enveloppe fictive de 10 Go de données actives, dont 6 Go de médias pour
+150 élèves sur trois années, sert uniquement à rendre les projections concrètes.
+Elle ne constitue pas une politique par défaut pour les hébergeurs.
+
+Avec les images volontairement difficiles de la recette, la moyenne est
+d'environ 118 Ko par trace normalisée. Le rapport JSON projette donc un peu plus
+de 110 traces par élève et par an dans les seuls 6 Go illustratifs. Cette valeur
+n'est pas une promesse de capacité : elle sert à comparer les politiques sur le
+même jeu stable.

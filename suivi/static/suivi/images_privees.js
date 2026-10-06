@@ -4,8 +4,8 @@
   const MIO = 1024 * 1024;
   const LIMITE_BRUTE = 25 * MIO;
   const REGLES = {
-    trace: { dimension: 1600, qualite: 0.9 },
-    couverture: { dimension: 2400, qualite: 0.92 },
+    trace: { dimension: 600, qualite: 0.8, qualiteMinimale: 0.7, objectif: 100000 },
+    couverture: { dimension: 800, qualite: 0.82, qualiteMinimale: 0.72, objectif: 200000 },
   };
 
   function annoncer(champ, texte, erreur = false) {
@@ -41,13 +41,17 @@
     contexte.fillRect(0, 0, largeur, hauteur);
     contexte.drawImage(image, 0, 0, largeur, hauteur);
     image.close();
-    const blob = await new Promise((resolve, reject) => {
+    const produire = (qualite) => new Promise((resolve, reject) => {
       toile.toBlob(
         (resultat) => resultat ? resolve(resultat) : reject(new Error("Encodage impossible")),
-        "image/jpeg",
-        regle.qualite,
+        "image/jpeg", qualite,
       );
     });
+    let blob;
+    for (let qualite = regle.qualite; qualite >= regle.qualiteMinimale; qualite -= 0.02) {
+      blob = await produire(Math.max(qualite, regle.qualiteMinimale));
+      if (blob.size <= regle.objectif) break;
+    }
     return new File([blob], `${fichier.name.replace(/\.[^.]*$/, "") || "image"}.jpg`, {
       type: "image/jpeg",
       lastModified: Date.now(),

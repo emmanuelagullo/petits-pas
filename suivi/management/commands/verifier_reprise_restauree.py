@@ -10,10 +10,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         references = set()
         for modele, champs in (
-            (Trace, ("photo", "photo_pdf")),
-            (TraceCommune, ("photo", "photo_pdf")),
-            (ReglagePresentation, ("photo", "photo_pdf")),
-            (RessourceReferentiel, ("fichier", "fichier_pdf")),
+            (Trace, ("photo",)),
+            (TraceCommune, ("photo",)),
+            (ReglagePresentation, ("photo",)),
+            (RessourceReferentiel, ("fichier",)),
         ):
             for champ in champs:
                 references.update(

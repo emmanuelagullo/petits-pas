@@ -17,13 +17,20 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 - Phase 4 #J2 : moteur isolé de normalisation des images privées. Il corrige
   l'orientation, retire les métadonnées, limite les dimensions et les pixels,
-  transforme JPEG, PNG ou WebP en JPEG et prépare une variante PDF distincte.
+  transforme JPEG, PNG ou WebP en un JPEG unique adapté au carnet.
   Les imports de traces individuelles ou communes et de couvertures utilisent
   ce traitement, avec une préparation préalable dans les navigateurs qui la
-  prennent en charge. La version principale et sa variante PDF restent dans
-  le stockage privé, suivent ensemble remplacements, sauvegardes et reprises,
-  et les PDF préfèrent systématiquement la variante adaptée. La recette compare
-  les PDF bruts au profil équilibré.
+  prennent en charge. Cette image unique reste dans le stockage privé, suit
+  les remplacements, sauvegardes et reprises, et sert aussi aux PDF. La recette
+  compare les PDF bruts au profil économe.
+
+- Phase 4 #J3–#J4 : le catalogue d'illustrations publiques est validé en CI.
+  La recette relie désormais les dimensions réelles du template, le poids des
+  PDF et un scénario illustratif de 10 Go, sans en faire un quota par défaut.
+
+- Phase 4 #J5 : =diagnostiquer_stockage= mesure les objets privés référencés
+  sans les compter plusieurs fois, ainsi que la base lorsque c'est possible.
+  La commande n'applique ni avertissement ni quota.
 
 - Droits de gestion de l’école : plusieurs personnes peuvent les recevoir avec
   leurs comptes personnels depuis Équipe pédagogique. Attribution et retrait
