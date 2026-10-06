@@ -7,6 +7,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- #PWA13 : version navigateur maintenue pour le périmètre Chromium/Linux,
+  contrôle OPFS avant ouverture, transferts bornés à quinze minutes avec arrêt
+  du moteur si le résultat reste incertain. Runtime Pyodide 314.0.7/Python 3.14,
+  décodeurs JPEG/PNG/WebP et qualification des images #J2. Les plafonds de
+  256 Mio / 5 000 entrées restent explicites ; ZIP et données existantes repris.
+  Publication manuelle après CI, entretien des dépendances et limites documentés.
+
 ** Added
 
 - Phase 4 #J1 : contrat simple de traitement des images, avec optimisation

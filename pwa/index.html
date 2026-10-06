@@ -6,7 +6,7 @@
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:16px system-ui;color:#234}body{display:flex;flex-direction:column;height:100dvh}
 header{padding:10px;background:#fff2c9;flex:none;max-height:45dvh;overflow:auto}#status{padding:8px;flex:none}iframe{border:0;width:100%;flex:1;min-height:0}button{margin:4px;min-height:44px;padding:6px 10px;font:inherit}summary{cursor:pointer;padding:8px 0}p{margin:8px 0}#version,#network{font-size:.85rem}#failure{padding:12px}#failure pre{white-space:pre-wrap;overflow-wrap:anywhere}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #345}
 </style>
-</head><body><header><strong>Petits Pas — essais avec des données fictives uniquement.</strong>
+</head><body><header><strong>Petits Pas — sur cet appareil.</strong>
 <p id="espace"></p><p id="comptes-essai" hidden></p><a id="changer-espace" href="essai.html">Essayer avec l’école fictive</a>
 <span id="version"></span> <span id="network"></span>
 <button id="install" hidden>Installer Petits Pas</button>
@@ -14,10 +14,11 @@ header{padding:10px;background:#fff2c9;flex:none;max-height:45dvh;overflow:auto}
 <button id="apercu" disabled>Vérifier un ZIP sans remplacer mon école</button>
 <a id="reprendre-apercu" href="apercu.html" hidden>Revenir à la copie de vérification</a>
 <details id="tools"><summary>Installation, stockage et mises à jour</summary><p><a id="nouveautes" href="nouveautes.html" target="_blank" rel="noopener">Voir les nouveautés</a> · <small id="details-version"></small></p>
-<p id="installation">Vous pouvez utiliser cette page directement. Pour ajouter une icône : dans Chrome ou Edge, cherchez « Installer » dans le menu du navigateur ; sur iPad, ouvrez dans Safari puis Partager → Sur l’écran d’accueil. L’installation dépend du navigateur ; les appareils Apple restent à vérifier.</p>
+<p>Périmètre vérifié : Chromium sur ordinateur Linux. Les autres systèmes et navigateurs restent à qualifier ; utilisez des données fictives pour les essayer.</p>
+<p id="installation">Vous pouvez utiliser cette page directement. Pour ajouter une icône : dans Chrome ou Edge, cherchez « Installer » dans le menu du navigateur ; les autres navigateurs et appareils restent à qualifier. L’installation est facultative.</p>
 <p>Le premier chargement demande Internet. Attendez l’ouverture de l’application avant de fermer la page. Revenez à la même adresse et au même profil de navigateur ; les données ne sont pas partagées entre appareils.</p>
-<p id="volume">Stockage expérimental limité à 64 Mio avant compression.</p>
-<p>Cette limite protège la mémoire du prototype : la base et les photos sont chargées en mémoire. Ce n’est pas la capacité du disque. Les ZIP sont compatibles avec le programme autonome.</p>
+<p id="volume">Données limitées à 256 Mio avant compression, 5 000 fichiers ; base et fichier individuel limités à 64 Mio.</p>
+<p>Les médias sont conservés sur disque et lus à la demande. La base et les images en cours de traitement utilisent encore la mémoire. Le quota du navigateur et la place disponible peuvent limiter le stockage davantage. Les ZIP sont compatibles avec le programme autonome.</p>
 <p id="storage">Vérification de la protection du stockage…</p>
 <button id="persist">Protéger le stockage local</button>
 <button id="check-update">Vérifier les mises à jour</button>

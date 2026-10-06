@@ -1,6 +1,6 @@
 {
-  "name": "Petits Pas — prototype fictif",
-  "short_name": "Petits Pas test",
+  "name": "Petits Pas sur cet appareil",
+  "short_name": "Petits Pas",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

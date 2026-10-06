@@ -491,8 +491,9 @@ avant de recharger la coque par `apercu.html`. Le choix est explicite dans les
 messages au Worker, y compris le secours. Sans copie enregistrée, cet espace
 refuse de créer une école vide. Une nouvelle ouverture de ZIP remplace la
 précédente copie de vérification du navigateur ; le commit est transactionnel.
-Les trois espaces partagent l’origine et le quota. La PWA publiée reste réservée
-aux données fictives.
+Les trois espaces partagent l’origine et le quota. Les versions navigateur maintenues depuis #PWA13 visent la production dans
+le périmètre déclaré par `pwa/PRODUCTION.md`. Vérifier la version effectivement
+publiée ; les anciennes versions conservent leur aide et leurs limites.
 
 Pour adopter une copie, exporter son ZIP, revenir au paquet habituel et suivre
 la restauration commune avec confirmation. Aucune promotion implicite, fusion

@@ -132,7 +132,7 @@ def normaliser_image(source, *, famille="trace", politique=POLITIQUE_ECONOME):
     try:
         with warnings.catch_warnings():
             warnings.simplefilter("error", Image.DecompressionBombWarning)
-            with Image.open(BytesIO(contenu)) as ouverte:
+            with Image.open(BytesIO(contenu), formats=sorted(FORMATS_ACCEPTES)) as ouverte:
                 if ouverte.format not in FORMATS_ACCEPTES:
                     raise ImagePriveeInvalide(
                         "Choisissez une image JPEG, PNG ou WebP."

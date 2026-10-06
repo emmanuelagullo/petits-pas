@@ -58,7 +58,7 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   l'ordre des compétences entre saisies, réglages et carnets ; réutiliser cette
   logique plutôt que créer des tris concurrents.
 
-- Prototype navigateur : `pwa/README.md` décrit l'architecture et les parcours ;
+- Application navigateur : `pwa/README.md` décrit l'architecture et les parcours ;
   `pwa/QUALIFICATION.md` consigne les essais et leurs limites. Les commandes
   `scripts/verifier-pwa.cjs` et `scripts/qualifier-pwa.cjs` n'emploient que des
   profils fictifs. Ne jamais distribuer un bundle construit avec `--test`.
@@ -85,8 +85,9 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   évolutions. `pwa/AUDIT-SITE-PUBLICATIONS.md` prépare le chantier Hugo.
   Le suivi du ZIP préparé est commun à PWA/autonome dans `suivi/paquet_local.py` ;
   ne pas le présenter comme une preuve de copie conservée.
+  Lire `pwa/PRODUCTION.md` pour le périmètre de production et la maintenance.
   Conserver les sauvegardes communes dans `suivi/paquet_local.py` et distinguer
-  les essais du prototype de la qualification sur appareils d'école.
+  les bancs automatisés de la qualification sur appareils d'école.
 
 ## Travail dans le dépôt
 

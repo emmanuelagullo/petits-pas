@@ -1,4 +1,4 @@
-# Profil expérimental, distinct du lock serveur. CPython 3.13 / Pyodide 0.28.3.
+# Profil navigateur, distinct du lock serveur. CPython 3.14 / Pyodide 314.0.7.
 Django==6.1.1
 asgiref==3.12.1
 sqlparse==0.6.0

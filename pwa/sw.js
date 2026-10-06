@@ -27,23 +27,28 @@ async function local(request) {
   for (const client of owners) {
     if (await hasRuntime(client)) { if (owner) throw new Error('Plusieurs propriétaires'); owner = client; }
   }
-  if (!owner) return new Response('Ouvrez le prototype depuis sa page d’accueil.', {status: 503});
+  if (!owner) return new Response('Ouvrez Petits Pas depuis sa page d’accueil.', {status: 503});
   const channel = new MessageChannel();
   const progressive = request.method === 'POST' && request.headers.get('content-type')?.startsWith('multipart/form-data');
   const upload = progressive ? new MessageChannel() : null;
   const raw = progressive || request.method === 'GET' || request.method === 'HEAD' ? new ArrayBuffer(0) : await request.arrayBuffer();
-  if (raw.byteLength > 70 * 1024**2) return new Response('Envoi trop volumineux pour ce prototype (70 Mio).', {status: 413});
+  if (raw.byteLength > 70 * 1024**2) return new Response('Envoi trop volumineux (70 Mio).', {status: 413});
   const body = new Uint8Array(raw);
+  let uploadReader;
+  const stopUpload = () => {
+    uploadReader?.cancel().catch(() => {});
+    upload.port1.close();
+  };
   if (upload) {
     // Une tranche est envoyée seulement après consommation de la précédente.
-    const reader = request.body.getReader();
+    const reader = uploadReader = request.body.getReader();
     let pending = null, offset = 0;
     upload.port1.onmessage = async event => {
       try {
         if (event.data.error) throw new Error(event.data.error);
         if (!pending || offset === pending.length) {
           const item = await reader.read();
-          if (item.done) {upload.port1.postMessage({done:true}); upload.port1.close(); return;}
+          if (item.done) {upload.port1.postMessage({done:true}); reader.releaseLock(); uploadReader = null; upload.port1.close(); return;}
           pending = item.value; offset = 0;
         }
         const bytes = pending.slice(offset, offset + 1024**2); offset += bytes.length;
@@ -60,9 +65,9 @@ async function local(request) {
     headers.push(['Referer', request.referrer]);
   }
   return new Promise(resolve => {
-    const timeout = setTimeout(() => { channel.port1.close(); resolve(new Response('Délai dépassé ; résultat incertain.', {status: 503})); }, 120000);
+    const timeout = setTimeout(() => { if (upload) stopUpload(); channel.port1.close(); resolve(new Response('Transport interrompu ; résultat incertain. Fermez puis rouvrez Petits Pas.', {status: 503})); }, 16 * 60 * 1000);
     channel.port1.onmessage = event => {
-      clearTimeout(timeout); channel.port1.close();
+      clearTimeout(timeout); if (upload) stopUpload(); channel.port1.close();
       const r = event.data;
       if (!r.ok) { resolve(new Response(r.error, {status: 507})); return; }
       let content = r.body;
@@ -100,7 +105,7 @@ self.addEventListener('fetch', event => {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
       const response = await cache.match(url.pathname === BASE ? BASE + 'index.html' : url.pathname);
-      return response || new Response('Ressource absente du prototype hors ligne.', {status: 404});
+      return response || new Response('Ressource absente de Petits Pas hors ligne.', {status: 404});
     })());
   }
 });

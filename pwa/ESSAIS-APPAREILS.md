@@ -1,7 +1,7 @@
 # Retours sur postes et tablettes (#PWA9)
 
 Cette feuille aide à recueillir les retours. Elle n'est pas un jalon bloquant
-pour poursuivre le prototype, publier ses évolutions ou démarrer des essais.
+pour faire évoluer l’application, publier ses évolutions ou démarrer des essais.
 Les tests automatiques restent exécutés en CI. Utiliser des données fictives.
 
 Noter appareil, système, navigateur/version, adresse PWA, version affichée,
@@ -27,17 +27,15 @@ sur Windows, Android ou iPad. Relever les difficultés au fil de l'usage, sans
 annoncer ces plateformes comme toutes validées. Ne pas provoquer de coupure
 de courant avec des données à conserver.
 
-## Pourquoi 64 Mio ?
+## Limites de la version maintenue
 
-C'est un plafond applicatif du prototype, pas la taille maximale de SQLite,
-OPFS ou du disque. SQLite reste dans MEMFS ; les médias confirmés sont lus dans
-OPFS à la demande depuis #PWA11. Sauvegarde, restauration, ZIP et transport HTTP
-créent encore des buffers temporaires complets. Les 550
-photos fictives déjà qualifiées approchent ce plafond ; le tas WASM ne mesure
-pas toute la mémoire du navigateur. Un simple changement de constante n'est
-pas une solution pour une grosse école.
+Depuis #PWA12 : 256 Mio décompressés, 5 000 entrées et 64 Mio pour la base ou
+un fichier. Les médias et les ZIP restent sur OPFS ; SQLite et les images
+traitées utilisent encore la mémoire. Ces bornes ne sont pas la capacité du
+disque ni une garantie sur tablette. Le banc a transféré 2 300 photos/241 Mio ;
+la PSS totale est distincte du tas WASM. Voir QUALIFICATION.md et PRODUCTION.md.
 
-Si les usages demandent davantage, mesurer avec le banc disponible puis réduire
-les copies des transferts et, si nécessaire, changer le stockage SQLite.
-Garder export, import et reprise cohérents. Ce travail n'exige pas une
-campagne préalable en école ; les retours sur appareils guideront l'ajustement.
+Un transfert peut prendre plusieurs minutes ; garder la page ouverte. Après
+15 minutes sans réponse, le moteur est arrêté : rouvrir pour vérifier le dernier
+état confirmé et ne pas répéter automatiquement une saisie. Les retours terrain
+ne conditionnent pas la publication sur le périmètre qualifié.

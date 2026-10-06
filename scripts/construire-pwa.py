@@ -20,7 +20,7 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from publication import identity, release_notes
 
 ROOT = Path(__file__).resolve().parent.parent
-PYODIDE = "0.28.3"
+PYODIDE = "314.0.7"
 BASE = f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE}/full/"
 
 
@@ -59,6 +59,19 @@ def telecharger(url, target, empreinte=None, tentatives=4):
                 temporaire.unlink(missing_ok=True)
 
 
+def verifier_runtime(lock):
+    info = lock.get("info", {})
+    if info.get("abi_version") != "2026_0" or info.get("python") != "3.14.2":
+        raise ValueError(f"Cache runtime incompatible avec Pyodide {PYODIDE} : utiliser un dossier propre à cette version.")
+
+
+def nettoyer_runtime(runtime, fichiers):
+    # Une reconstruction ne doit pas distribuer les anciens codecs/stdlibs.
+    for fichier in runtime.iterdir():
+        if fichier.is_file() and fichier.name not in fichiers:
+            fichier.unlink()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sortie", type=Path, default=ROOT / "dist/pwa")
@@ -90,6 +103,7 @@ def main():
 
     download("pyodide-lock.json")
     lock = json.loads((runtime / "pyodide-lock.json").read_text())
+    verifier_runtime(lock)
     selected = set()
     def select(name):
         if name in selected:
@@ -97,10 +111,10 @@ def main():
         selected.add(name)
         for dependency in lock["packages"][name]["depends"]:
             select(dependency)
-    for name in ["sqlite3", "pillow", "pyyaml", "micropip", "hashlib"]:
+    for name in ["pillow", "pyyaml", "micropip", "pycryptodome"]:
         select(name)
     packages = [lock["packages"][name] for name in sorted(selected)]
-    names = ["pyodide.mjs", "pyodide.asm.js", "pyodide.asm.wasm", "python_stdlib.zip"]
+    names = ["pyodide.mjs", "pyodide.asm.mjs", "pyodide.asm.wasm", "python_stdlib.zip"]
     names += [package["file_name"] for package in packages]
     empreintes = {p["file_name"]: p["sha256"] for p in packages}
     with ThreadPoolExecutor(max_workers=3) as pool:
@@ -108,6 +122,7 @@ def main():
     for package in packages:
         if hashlib.sha256((runtime / package["file_name"]).read_bytes()).hexdigest() != package["sha256"]:
             raise RuntimeError("Wheel WASM altérée : " + package["file_name"])
+    nettoyer_runtime(runtime, set(names) | {"pyodide-lock.json"})
     wheels = output / "wheels"
     wheels.mkdir(exist_ok=True)
     subprocess.run([
@@ -124,14 +139,14 @@ def main():
                 if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
                     continue
                 if (folder == "pwa" and "templates" not in path.relative_to(ROOT / folder).parts
-                        and path.name not in {"bridge.py", "settings.py", "urls.py", "views.py", "media_storage.py", "transfers.py", "limits.py"}):
+                        and path.name not in {"bridge.py", "settings.py", "urls.py", "views.py", "media_storage.py", "transfers.py", "limits.py", "crypto.py"}):
                     continue
                 if path.name.startswith("tests") or path.suffix not in {".py", ".html", ".yaml", ".css", ".js", ".svg", ".png", ".jpg", ".json"}:
                     continue
                 entry = ZipInfo(path.relative_to(ROOT).as_posix(), (2026, 1, 1, 0, 0, 0))
                 entry.compress_type = ZIP_DEFLATED
                 archive.writestr(entry, path.read_bytes())
-    for name in ["index.html", "essai.html", "apercu.html", "shell.js", "worker.js", "storage.js", "lazy_media.js", "transfers.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
+    for name in ["index.html", "essai.html", "apercu.html", "shell.js", "worker.js", "storage.js", "lazy_media.js", "transfers.js", "transport.js", "capabilities.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
         shutil.copyfile(ROOT / "pwa" / name, output / name)
     for folder in [ROOT / "referentiel/static", ROOT / "suivi/static"]:
         shutil.copytree(folder, output / "static", dirs_exist_ok=True)
@@ -147,15 +162,17 @@ def main():
         if path.is_file() and path.name not in {"sw.js", "config.json"}:
             build.update(path.relative_to(output).as_posix().encode())
             build.update(path.read_bytes())
-    version = "pwa-prototype." + build.hexdigest()[:16]
+    version = "pwa." + build.hexdigest()[:16]
     (output / "sw.js").write_text((ROOT / "pwa/sw.js").read_text().replace("__BUILD__", version))
     assets = [{"url": "/" + path.relative_to(output).as_posix(),
                "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
               for path in sorted(output.rglob("*")) if path.is_file() and path.name != "config.json"]
     config = {**source, "version": version, "pyodide": PYODIDE, "testMode": args.test,
+              "python": lock["info"]["python"],
+              "runtime_packages": {name: lock["packages"][name]["version"] for name in sorted(selected)},
               "wheels": sorted(path.name for path in wheels.glob("*.whl")), "assets": assets}
     (output / "config.json").write_text(json.dumps(config, indent=2) + "\n")
-    print(f"Prototype construit : {output} ({version}, {sum(p.stat().st_size for p in output.rglob('*') if p.is_file()) / 1024**2:.1f} Mio non compressés)")
+    print(f"Application navigateur construite : {output} ({version}, {sum(p.stat().st_size for p in output.rglob('*') if p.is_file()) / 1024**2:.1f} Mio non compressés)")
 
 
 if __name__ == "__main__":

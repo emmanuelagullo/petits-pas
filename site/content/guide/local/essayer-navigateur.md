@@ -11,8 +11,11 @@ statut = "disponible"
 +++
 
 Petits Pas conserve l’école dans le navigateur de cet appareil. Il peut
-fonctionner hors ligne après le premier téléchargement. Utilisez **uniquement des données
-fictives**. Les tablettes et les grands carnets restent à vérifier.
+fonctionner hors ligne après le premier téléchargement. Depuis #PWA13, la version
+maintenue vise un usage de production sur ordinateur avec Chromium/Linux.
+Vérifiez la version affichée et ses nouveautés : une ancienne publication reste
+destinée aux essais fictifs. Les autres systèmes, tablettes et moteurs ne sont
+pas encore qualifiés ; utilisez des données fictives pour les essayer.
 
 ## Ouvrir et préparer l’école
 
@@ -24,7 +27,7 @@ Sur une installation vide, **Installer Petits Pas** permet de créer l’école
 et le premier compte personnel. Selon la version publiée, le formulaire propose
 **Préparer aussi ma première classe**, coché par défaut. Indiquez son nom,
 l’année scolaire et le référentiel ; vous deviendrez responsable de cette classe
-et pourrez directement ajouter les élèves fictifs. Le référentiel est proposé
+et pourrez directement ajouter les élèves. Le référentiel est proposé
 pour l’école et adopté par la classe. Décochez l’option pour préparer seulement
 l’école. Si cette option est absente, connectez-vous, créez la classe puis
  affectez son responsable. Une CI réussie ne signifie pas que cette nouvelle
@@ -66,12 +69,16 @@ Reconnectez-vous avec un compte de la sauvegarde importée.
 
 Dans le navigateur, le contenu d’une sauvegarde est limité à 256 Mio après
 décompression, avec au plus 5 000 fichiers et 64 Mio par fichier ou pour la
-base. Le bandeau affiche le volume enregistré et avertit dès 205 Mio. Les
+base. La photo préparée et sa version pour le carnet comptent comme deux
+fichiers. Le bandeau affiche le volume enregistré et avertit dès 205 Mio. Les
 photos enregistrées sont lues à la demande ; depuis #PWA12, les ZIP sont
 également transférés progressivement. Il faut garder assez d’espace libre
 pour les fichiers temporaires et l’état de récupération. Une erreur de stockage
 impose de fermer puis rouvrir l’application pour retrouver le dernier état
 confirmé. Ces limites ne garantissent pas le fonctionnement sur toute tablette.
+Les gros ZIP peuvent prendre plusieurs minutes : gardez la page ouverte.
+Si le délai de quinze minutes est dépassé, le moteur est arrêté. Fermez puis
+rouvrez pour vérifier le dernier état confirmé avant toute nouvelle saisie.
 Vérifiez la version affichée dans l’aide.
 Une nouvelle connexion peut être nécessaire
 après 12 heures ; elle est toujours nécessaire après fermeture puis réouverture.

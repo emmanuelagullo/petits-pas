@@ -1,5 +1,10 @@
 # Prompt pour le prochain chat : site public et publications (#PWA10)
 
+Document historique de préparation du site. Les fonctions publiées et le
+statut courant se lisent dans le Guide ; depuis #PWA13, PRODUCTION.md et
+TRANSFERTS-OPFS.md remplacent les anciennes limites décrites ici.
+
+
 Je travaille sur Petits Pas, une application libre Django/HTMX pour les équipes
 pédagogiques de maternelle. Dépôt de référence public :
 https://gitlab.inria.fr/petits-pas/petits-pas ; miroir :

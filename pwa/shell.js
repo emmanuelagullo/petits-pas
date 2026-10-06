@@ -1,3 +1,4 @@
+import {requestWorker} from './transport.js';
 const ESSAI = new URL(location.href).searchParams.get('essai') === 'oui';
 const APERCU = new URL(location.href).searchParams.get('apercu') === 'oui';
 const WORKER = './worker.js';
@@ -89,18 +90,19 @@ function showUpdate() {
   document.querySelector('#update').hidden = !available;
   if (available) document.querySelector('#tools').open = true;
 }
-function rpc(message) {
-  return new Promise((resolve, reject) => {
-    const channel = new MessageChannel();
-    const timeout = setTimeout(() => { channel.port1.close(); reject(new Error('Délai dépassé. Résultat incertain : ne répétez pas une saisie avant réouverture.')); }, 120000);
-    channel.port1.onmessage = event => {
-      clearTimeout(timeout); channel.port1.close();
-      event.data.ok ? resolve(event.data.value) : reject(new Error(event.data.error));
-    };
-    worker.postMessage(message, [channel.port2, ...(message.request?.body?.buffer ? [message.request.body.buffer] : []),
-      ...(message.request?.inputPort ? [message.request.inputPort] : [])]);
-  });
+function stopRuntime() {
+  worker?.terminate(); worker = null; ready = false;
+  frame.hidden = true;
+  document.querySelector('#backup').disabled = true;
+  document.querySelector('#apercu').disabled = true;
+  document.querySelector('#failure').hidden = false;
+  document.querySelector('#diagnostic').textContent = 'Délai dépassé : le moteur a été arrêté. Rouvrez pour vérifier le dernier état confirmé.';
 }
+function rpc(message) {
+  if (!worker) return Promise.reject(new Error('Moteur arrêté. Fermez puis rouvrez Petits Pas.'));
+  return requestWorker(worker, message, {onTimeout: stopRuntime});
+}
+
 navigator.serviceWorker?.addEventListener('message', async event => {
   if (event.source === navigator.serviceWorker.controller && event.data?.kind === 'release-export') {
     if (worker) await rpc(event.data).catch(()=>{}); return;
@@ -111,6 +113,10 @@ navigator.serviceWorker?.addEventListener('message', async event => {
   if (event.source !== navigator.serviceWorker.controller || event.data?.kind !== 'http' || !event.ports[0]) return;
   const port = event.ports[0];
   status.textContent = 'Enregistrement / lecture en cours…';
+  const started = performance.now();
+  const waiting = setInterval(() => {
+    status.textContent = `Opération en cours depuis ${Math.floor((performance.now() - started) / 1000)} s. Gardez cette page ouverte ; les gros ZIP peuvent prendre plusieurs minutes.`;
+  }, 5000);
   try {
     const value = await rpc(event.data);
     showVolume(value.durability);
@@ -122,8 +128,8 @@ navigator.serviceWorker?.addEventListener('message', async event => {
     if (value.result.ouvrir_apercu) setTimeout(() => location.assign(BASE + 'apercu.html'), 0);
   } catch (error) {
     status.textContent = String(error.message);
-    port.postMessage({ok: false, error: 'Opération interrompue. Fermez puis rouvrez le prototype ; ne répétez pas automatiquement cette saisie.'});
-  } finally { port.close(); }
+    port.postMessage({ok: false, error: 'Opération interrompue. Fermez puis rouvrez Petits Pas ; ne répétez pas automatiquement cette saisie.'});
+  } finally { clearInterval(waiting); port.close(); }
 });
 document.querySelector('#persist').onclick = async () => {
   try {
@@ -156,12 +162,7 @@ document.querySelector('#recovery').onclick = async event => {
   try {
     if (ready && (await fetch(BASE + 'app/pwa/autoriser-recuperation/')).status !== 204) throw new Error('L’export est réservé à la direction de l’école. Connectez-vous avec ce compte.');
     status.textContent = 'Préparation du ZIP de récupération…';
-    const value = await new Promise((resolve, reject) => {
-      const channel = new MessageChannel();
-      const timer = setTimeout(() => {channel.port1.close(); reject(new Error('Export trop long'));}, 120000);
-      channel.port1.onmessage = e => {clearTimeout(timer); channel.port1.close(); e.data.ok ? resolve(e.data.value) : reject(new Error(e.data.error));};
-      recoveryWorker.postMessage({kind: 'recovery', essai: ESSAI, apercu: APERCU}, [channel.port2]);
-    });
+    const value = await requestWorker(recoveryWorker, {kind: 'recovery', essai: ESSAI, apercu: APERCU}, {onTimeout: () => recoveryWorker.terminate()});
     const url = URL.createObjectURL(value.file);
     const link = document.createElement('a'); link.href = url; link.download = 'petits-pas-recuperation.zip'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -200,7 +201,7 @@ try {
         if (event.data?.kind === 'test-checkpoint') window.pwaCheckpoint = event.data.phase;
       });
     }
-    status.textContent = `Prêt en ${(initial.durationMs / 1000).toFixed(1)} s — ${initial.restored ? 'données retrouvées' : 'installation fictive à créer'}.`;
+    status.textContent = `Prêt en ${(initial.durationMs / 1000).toFixed(1)} s — ${initial.restored ? 'données retrouvées' : 'école à installer'}.`;
     frame.hidden = false;
     document.querySelector('#apercu').disabled = false;
     frame.src = BASE + 'app/';

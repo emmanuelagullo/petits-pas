@@ -1,3 +1,4 @@
+import {checkStorage} from './capabilities.js';
 import {load, save, configurerEspace, confirmedMedia, openStagedMedia, clearStagedMedia} from './storage.js';
 import {mediaFiles} from './lazy_media.js';
 import {installIO, beginTransfers, endTransfers, receiveBody, setHandle, closeHandle, releaseExport, transferMetrics} from './transfers.js';
@@ -32,12 +33,13 @@ async function persist(failpoint = '', preserve = false, force = false, scan = f
   return {...result, snapshotMs, persistMs: performance.now() - started};
 }
 async function process(message) {
-  if (fatal) throw new Error('Enregistrement interrompu. Fermez puis rouvrez le prototype pour retrouver le dernier état confirmé.');
+  if (fatal) throw new Error('Enregistrement interrompu. Fermez puis rouvrez Petits Pas pour retrouver le dernier état confirmé.');
   if (['init', 'recovery'].includes(message.kind)) {
     if (initialized) throw new Error('Runtime déjà initialisé');
     ESSAI = message.essai === true;
     APERCU = message.apercu === true;
     if (APERCU) ESSAI = false;
+    await checkStorage();
     configurerEspace(ESSAI, APERCU);
     config = await (await fetch('./config.json')).json();
     const started = performance.now();
@@ -45,18 +47,21 @@ async function process(message) {
     const restored = await load(config.version, message.kind === 'recovery');
     if (message.kind === 'recovery' && !restored) throw new Error("Aucune donnée locale à exporter.");
     progress('Chargement du moteur Python…');
-    const {loadPyodide} = await import('./runtime/pyodide.mjs');
+    const {loadPyodide, version: runtimeVersion} = await import('./runtime/pyodide.mjs');
+    if (runtimeVersion !== config.pyodide) throw new Error('Runtime local incohérent. Republiez le bundle complet ; ne supprimez pas les données du navigateur.');
     python = await loadPyodide({indexURL: new URL('./runtime/', location.href).href});
     progress("Préparation des bibliothèques…");
-    await python.loadPackage(['sqlite3', 'pillow', 'pyyaml', 'micropip', 'hashlib']);
-    // hashlib a pu être importé par Pyodide avant le chargement de _hashlib.
-    python.runPython('import hashlib, importlib; importlib.reload(hashlib)');
+    await python.loadPackage(['pillow', 'pyyaml', 'micropip', 'pycryptodome']);
+
     const micropip = python.pyimport('micropip');
     try { await micropip.install(config.wheels.map(name => new URL('./wheels/' + name, location.href).href)); }
     finally { micropip.destroy(); }
     const app = new Uint8Array(await (await fetch('./application.zip')).arrayBuffer());
     python.unpackArchive(app, 'zip', {extractDir: '/application'});
     python.runPython("import sys; sys.path.insert(0, '/application')");
+    // Limiter aussi ImageField Django aux formats proposés par Petits Pas.
+    python.runPython("from PIL import Image; Image.init(); Image.ID[:] = [name for name in Image.ID if name in ('JPEG', 'PNG', 'WEBP')]");
+    python.runPython('from pwa.crypto import configure; configure()');
     bridge = python.pyimport('pwa.bridge');
     media = mediaFiles(python.FS);
     if (restored?.files) {

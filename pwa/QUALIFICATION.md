@@ -1,4 +1,4 @@
-# Qualification du prototype navigateur
+# Qualification de l’application navigateur
 
 ## #PWA5 : bilan historique du stockage ZIP
 
@@ -384,3 +384,50 @@ du validateur commun, ainsi que l'équivalence du ZIP produit par blocs.
 Voir [TRANSFERTS-OPFS.md](TRANSFERTS-OPFS.md) pour la compatibilité, les limites
 individuelles, la mémoire SQLite/Pillow restante et le statut de diffusion.
 Les retours d'appareils d'école restent non bloquants.
+
+
+## #PWA13 — consolidation, 6 octobre 2026
+
+Référence finale : main `86b90f9` (#J2d, image privée unique). Runtime
+Pyodide 314.0.7 / Python 3.14.2 ; périmètre et maintenance dans
+[PRODUCTION.md](PRODUCTION.md). Les essais précédents sur `7df9623` ont passé
+33 scénarios racine, 34 HTTPS sous `/petits-pas-pwa/`, et 34 lors du passage
+du véritable bundle #PWA12 (0.28.3), avec connexion et empreinte d'un média
+ancien conservées. Les attentes du banc sont adaptées à l'image unique #J2d.
+
+Qualification volumétrique isolée : Chromium 138.0.7204.0, Linux x64, données
+fictives (120 élèves, six classes, 2 300 JPEG, 240,38 Mio de médias). Les onze
+contrôles passent : ZIP autonome commun, réimportation, quotas réels, SIGKILL
+pendant extraction et avant/après activation, intégrité SQLite/empreintes et
+nettoyage respectant les références. Bundle mesuré `pwa.f85d8f9c3daa461b`, avant
+le retrait des anciens fichiers du runtime et son contrôle de version final.
+
+| Photos | Médias (Mio) | Tas WASM (Mio) | JS utilisé (Mio) | Buffers JS (Mio) | PSS navigateur (Mio) | Lecture médiane (ms) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 0 | 89,88 | 11,23 | 131,26 | 554,59 | 261,2 |
+| 550 | 57,48 | 89,88 | 11,57 | 130,17 | 493,67 | 219,9 |
+| 1 000 | 104,51 | 89,88 | 20,33 | 129,13 | 512,01 | 355,1 |
+| 2 300 | 240,38 | 89,88 | 32,12 | 130,01 | 565,35 | 234,2 |
+
+Ces compteurs ne s'additionnent pas ; PSS couvre tous les processus Chromium.
+Zéro octet média résident MEMFS, zéro écriture OPFS pendant les lectures.
+Export ZIP de 240,64 Mio : 33,24 s ; validation autonome : 21,92 s ; confirmation
+d'import : 14,60 s. Maximum PSS pendant transfert : 758,54 Mio (305 mesures).
+Tas WASM après transfert : 89,88 Mio ; après reprise : 62,38 Mio, sans média
+matérialisé. Démarrage : 18,92 s ; reprise : 19,47 s. Ce sont des mesures de
+banc, sans comparaison contrôlée permettant de promettre une accélération
+sur chaque appareil. Le nouveau runtime augmente le socle WASM ; les médias
+et le ZIP ne le font pas croître avec leur volume dans cet essai.
+
+Le transport est testé au-delà de l'ancien délai de deux minutes, puis à
+l'expiration : arrêt du Worker, état incertain signalé et reprise cohérente.
+Les KDF sont comparées au Python natif (PBKDF2 SHA1/SHA256/SHA512 et scrypt),
+sans changement des mots de passe enregistrés. Les tests ciblés Django et
+Python, le contrôle du guide et Hugo passent. Le bundle distribué est vérifié
+sans hooks de test, avec réouverture hors ligne. Les banques et leurs rapports
+restent reproductibles avec les commandes ci-dessus.
+
+Pas d'essai Windows/macOS, Firefox/Safari, tablette, coupure électrique physique
+ou campagne terrain dans cette livraison ; pas de publication distante ni de
+CI distante exécutée ici. Ces limites ne bloquent pas le périmètre Chromium
+Linux déclaré, et les retours d'appareils d'école restent non bloquants.
