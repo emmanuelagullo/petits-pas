@@ -18,8 +18,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 - Phase 4 #J2 : moteur isolé de normalisation des images privées. Il corrige
   l'orientation, retire les métadonnées, limite les dimensions et les pixels,
   transforme JPEG, PNG ou WebP en JPEG et prépare une variante PDF distincte.
-  La recette compare les PDF bruts au profil équilibré ; son branchement aux
-  imports de l'application reste un jalon séparé.
+  Les imports de traces individuelles ou communes et de couvertures utilisent
+  ce traitement, avec une préparation préalable dans les navigateurs qui la
+  prennent en charge. La version principale et sa variante PDF restent dans
+  le stockage privé, suivent ensemble remplacements, sauvegardes et reprises,
+  et les PDF préfèrent systématiquement la variante adaptée. La recette compare
+  les PDF bruts au profil équilibré.
 
 - Droits de gestion de l’école : plusieurs personnes peuvent les recevoir avec
   leurs comptes personnels depuis Équipe pédagogique. Attribution et retrait

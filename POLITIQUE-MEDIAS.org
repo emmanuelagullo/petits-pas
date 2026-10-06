@@ -168,7 +168,30 @@ python3 scripts/recetter-medias-pdf.py
 scripts/analyser-pdf.sh .recette-medias/pdf/quinze-photos.pdf
 #+end_src
 
-Le premier script produit =.recette-medias/rapport.json= et les PDF des cinq
-scénarios. Le répertoire entier est ignoré par Git. Les durées dépendent de la
-machine ; elles servent à comparer deux politiques exécutées dans le même
-environnement.
+Le premier script produit =.recette-medias/rapport.json= et les cinq scénarios
+en version brute puis équilibrée. Le répertoire entier est ignoré par Git. Les
+durées dépendent de la machine ; elles servent à comparer deux politiques
+exécutées dans le même environnement.
+
+* Mise en œuvre de #J2
+
+Les nouveaux imports de traces individuelles, de traces communes et d'images
+de présentation appliquent le profil =Équilibré=. Le navigateur prépare la
+version principale avant l'envoi lorsqu'il dispose des API nécessaires. Cette
+préparation ne remplace jamais le contrôle serveur.
+
+Le serveur produit toujours deux JPEG depuis le fichier reçu :
+
+- une version principale normalisée, utilisée dans les écrans et proposée au
+  téléchargement ;
+- une variante PDF, incorporée au carnet à la place de la version principale.
+
+Le fichier brut n'est pas conservé. Les deux noms sont enregistrés en base et
+restent privés. Une trace commune partage les mêmes deux objets entre les
+élèves. Lors d'un remplacement, chaque ancien objet n'est supprimé qu'après la
+validation de la transaction et seulement s'il n'est plus référencé. Une
+suppression logique conserve les deux variantes pour permettre la restauration.
+
+Les médias antérieurs à #J2 restent utilisables sans migration destructive :
+en l'absence de variante PDF, le carnet emploie la version existante. Ils ne
+sont jamais recompressés silencieusement.

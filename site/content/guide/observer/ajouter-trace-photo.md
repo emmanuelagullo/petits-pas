@@ -18,6 +18,9 @@ statut = "disponible"
    ou remplace le texte sélectionné ; elle reste entièrement modifiable.
 3. Vérifier la date de l’observation.
 4. Ajouter, si utile, une photo du travail.
+   Le navigateur l’allège avant l’envoi lorsqu’il le peut ; sinon Petits Pas
+   le fait lors de l’enregistrement. Le fichier présent sur l’appareil n’est
+   pas modifié.
 5. Si vous êtes responsable, laisser cochée ou décocher l’option **Afficher
    cette trace dans le carnet**.
 6. Sélectionner **Ajouter la trace**.
@@ -41,8 +44,10 @@ Pour illustrer la compétence sans raconter une activité datée, consulter
 - Le formulaire accepte une trace composée d’un texte, d’une photo, ou des
   deux. L’interface ne bloque pas actuellement une trace vide : mieux vaut
   annuler plutôt que la conserver sans contenu.
-- La taille maximale configurée pour une requête contenant une photo est de
-  5 Mio ; un envoi plus volumineux est refusé.
+- Le fichier choisi doit être une image JPEG, PNG ou WebP de 25 Mio maximum.
+  Petits Pas corrige son orientation, retire ses métadonnées et conserve une
+  version principale ainsi qu’une variante adaptée aux PDF. Le fichier brut
+  n’est pas conservé.
 - La photographie est servie par une route protégée ; son adresse de stockage
   n’est pas publique.
 - Pour limiter les données personnelles, photographier le travail plutôt que
