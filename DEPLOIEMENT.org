@@ -618,3 +618,31 @@ explicitement identifiées par l'hébergeur.
   après validation des exigences de sécurité et de conformité applicables.
 
 Seul le dernier profil représente le contrat destiné à l’hébergeur.
+
+** Premier mot de passe choisi par courriel
+
+Avec un backend SMTP configuré, ajouter =--email= et =--url= à
+=initialiser_ecole_serveur= :
+
+#+begin_src sh
+python manage.py initialiser_ecole_serveur \
+  --ecole "École fictive" --commune "Commune fictive" \
+  --prenom Camille --nom Martin --utilisateur camille-martin \
+  --email camille@example.test --url https://ecole.example.test
+#+end_src
+
+Le compte personnel de direction reçoit un lien de choix du mot de passe
+par le mécanisme de récupération existant. Le mot de passe initial aléatoire
+n'est ni affiché ni transmis ; aucun compte technique n'est créé. Le lien
+expire selon =PASSWORD_RESET_TIMEOUT= et devient inutilisable après changement.
+Un envoi accepté ne prouve pas la réception. Si l'envoi échoue, l'école et le
+compte restent créés : utiliser *Mot de passe oublié*, sans recréer l'école.
+
+Sur une base déjà initialisée, =--ajouter-ecole= permet explicitement d'ouvrir
+une nouvelle école indépendante. Les doublons nom/commune, identifiant et
+courriel sont refusés ; le rattachement d'une identité existante ne passe pas
+par cette commande. Sans =--email=, le parcours de mot de passe saisi reste
+inchangé. Vérifier cible, sauvegarde et restauration avant toute création.
+Ne pas lancer deux initialisations simultanément. La direction invite ensuite
+son équipe depuis *Gérer l'école → Équipe pédagogique* ; ses fonctions de classe
+restent attribuées séparément.
