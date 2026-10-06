@@ -38,7 +38,7 @@ def validate_bundle(root):
     config = json.loads((root / "config.json").read_text())
     if config.get("testMode") is not False:
         raise ValueError("Bundle de test ou mode indéterminé : publication refusée.")
-    if not re.fullmatch(r"pwa-prototype\.[a-f0-9]{16}", config.get("version", "")):
+    if not re.fullmatch(r"pwa(?:-prototype)?\.[a-f0-9]{16}", config.get("version", "")):
         raise ValueError("Version du bundle invalide.")
     expected = {"config.json"}
     for asset in config["assets"]:
