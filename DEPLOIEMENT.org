@@ -265,7 +265,7 @@ sur l’adresse directe.
 Le second facteur par code temporaire (TOTP), les codes de secours, la
 réinitialisation et l'écran de la direction pour la politique de son école sont
 en place. Avant de rendre le 2FA obligatoire, vérifiez que quelqu'un sait
-réinitialiser un compte (voir « Perte du téléphone » plus bas).
+réinitialiser un compte (voir « Perte du générateur de codes » plus bas).
 
 *Qui décide de quoi.* Deux niveaux, le déployeur puis l'école. Le déployeur
 fixe le cadre par les variables ci-dessous ; la direction de chaque école peut
@@ -274,6 +274,17 @@ n'est obligatoire, depuis « Gérer l'école », « Second facteur ». Elle ne p
 jamais assouplir une obligation du déployeur ni rouvrir ce qu'il désactive.
 Sans variable posée par le déployeur, le 2FA est facultatif et chaque école
 choisit pour elle-même.
+
+*Quel générateur de codes ?* Les codes sont des codes temporaires standard
+(TOTP, RFC 6238 : six chiffres, pas de trente secondes, SHA-1) ; la clé s'affiche
+sous forme de QR code et en texte. Tout générateur compatible convient : aucun
+téléphone ni matériel n'est imposé. On recommande à chaque personne un *appareil
+distinct* de son poste de travail (téléphone, tablette, jeton matériel
+programmable avec la clé affichée) ; à défaut, une extension de navigateur ou un
+gestionnaire de mots de passe sur le poste protège moins bien (un poste ouvert
+donne accès aux deux facteurs) et est à éviter sur un poste partagé. Avant
+d'imposer le 2FA, prévoir une solution pour les personnes qui ne souhaitent pas
+utiliser leur téléphone personnel.
 
 *Vérifier la configuration.* =python manage.py diagnostiquer_deploiement= décrit
 l'état du 2FA : disponible ou absent (et pourquoi), politique du déployeur,
@@ -324,8 +335,8 @@ rouvrir ce qu'il désactive.
 
 *Au quotidien.* Une personne inscrite ne reçoit aucune session sans avoir
 saisi son code (tolérance d'un pas de 30 secondes, un code ne sert qu'une
-fois) ; si l'horloge de son téléphone dérive de plus d'une minute, ses codes
-sont refusés. Les saisies de code sont plafonnées par compte et par adresse :
+fois) ; si l'horloge de l'appareil qui produit ses codes dérive d'une trentaine
+de secondes ou plus, ses codes peuvent être refusés. Les saisies de code sont plafonnées par compte et par adresse :
 =CARNET_RATELIMIT_DOUBLE_FACTEUR= (=5/15m= par défaut) et
 =CARNET_RATELIMIT_DOUBLE_FACTEUR_IP= (=30/15m=), avec les limites habituelles du
 compteur en mémoire de processus, non partagé entre workers (comme pour
@@ -333,7 +344,7 @@ compteur en mémoire de processus, non partagé entre workers (comme pour
 retenue est celle de =CARNET_PROXYS_NB=. Une personne qui réinitialise son mot
 de passe garde son second facteur : le code reste demandé à la connexion.
 
-*Perte du téléphone.* Trois recours, du plus simple au plus lourd :
+*Perte du générateur de codes.* Trois recours, du plus simple au plus lourd :
 1. un des dix *codes de secours* remis à l'inscription (à usage unique, à
    conserver en lieu sûr) ; la personne en génère de nouveaux ensuite depuis
    « Mon compte » ;
@@ -342,7 +353,7 @@ de passe garde son second facteur : le code reste demandé à la connexion.
 3. le *déployeur*, pour tout compte, y compris une direction :
    #+begin_src shell
    python manage.py reinitialiser_double_facteur --utilisateur nom.du.compte \
-       --operateur compte.technique --motif "téléphone perdu"
+       --operateur compte.technique --motif "générateur de codes perdu"
    #+end_src
    L'opérateur est un compte technique actif (=is_staff=). L'opération est
    journalisée dans chaque école du compte.

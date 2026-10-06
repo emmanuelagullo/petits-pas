@@ -29,11 +29,13 @@ Cela concerne les personnes qui ont configuré un
 
 1. Attendre que l’application affiche un **nouveau** code : chacun ne sert
    qu’une fois.
-2. Vérifier que l’heure du téléphone est réglée **automatiquement**.
+2. Vérifier que l’heure de l’appareil qui produit les codes est réglée
+   **automatiquement**.
 3. Après plusieurs essais manqués, la page demande de patienter ; ressaisir
    alors le mot de passe depuis la page de connexion.
-4. Sans téléphone, saisir un **code de secours** à la place.
-5. Sans téléphone ni code de secours, demander à la direction de réinitialiser
+4. Sans le générateur de codes (téléphone perdu, jeton cassé, poste changé),
+   saisir un **code de secours** à la place.
+5. Sans générateur ni code de secours, demander à la direction de réinitialiser
    le second facteur. Pour la direction elle-même, s’adresser à l’hébergeur.
 
 ## « Cette invitation n’est plus utilisable »
