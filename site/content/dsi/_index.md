@@ -259,8 +259,8 @@ pour permettre les essais ; ce réglage n’est pas une recommandation pour une
 
 Django/Pyodide fonctionne dans un Worker ; les données restent dans OPFS/IndexedDB
 sur l’appareil. ZIP et droits locaux sont communs au programme autonome. La limite
-actuelle est de 64 Mio avant compression. Depuis #PWA11, les médias confirmés
-sont lus à la demande dans OPFS ; SQLite et les transferts ZIP utilisent encore
-la mémoire. Vérifier la version effectivement publiée.
+actuelle est de 256 Mio avant compression. Depuis #PWA11, les médias confirmés
+sont lus à la demande dans OPFS ; depuis #PWA12, les ZIP sont aussi transférés
+progressivement. SQLite et le traitement de chaque image utilisent encore la mémoire. Vérifier la version effectivement publiée.
 Voir le [parcours navigateur]({{< relref "/guide/local/essayer-navigateur" >}})
 et les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}}).

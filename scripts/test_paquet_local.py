@@ -26,6 +26,7 @@ from suivi.paquet_local import (
     suivi_export,
     SUIVI_SAUVEGARDE,
     preparer_restauration,
+    iterer_restauration,
     preparation_en_attente,
     retenir_preparation,
 )
@@ -39,6 +40,65 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_restauration_progressive_interrompue_nettoie_la_preparation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            parent = Path(temp)
+            paquet = parent / "paquet"
+            paquet.mkdir()
+            (paquet / "secret-key").write_text("cle-fictive")
+            (paquet / "media").mkdir()
+            (paquet / "media" / "photo-fictive.bin").write_bytes(b"fictif" * 200000)
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as db:
+                db.execute("CREATE TABLE django_migrations (app TEXT, name TEXT)")
+            source = BytesIO()
+            creer_sauvegarde(paquet, source)
+            alternative = BytesIO()
+            creer_sauvegarde(paquet, alternative, taille_bloc=1024**2)
+            with ZipFile(source) as standard, ZipFile(alternative) as progressive:
+                self.assertEqual(standard.namelist(), progressive.namelist())
+                for name in standard.namelist():
+                    if name != "manifest.json":
+                        self.assertEqual(standard.read(name), progressive.read(name))
+            source.seek(0)
+            work = iterer_restauration(source, parent)
+            opening = next(work)
+            self.assertEqual(opening["phase"], "ouvrir")
+            self.assertTrue(list(parent.glob(".restauration-*")))
+            work.close()
+            self.assertFalse(list(parent.glob(".restauration-*")))
+            self.assertEqual((paquet / "media" / "photo-fictive.bin").stat().st_size, 1200000)
+            source.seek(0)
+            work = iterer_restauration(source, parent)
+            phases = []
+            while True:
+                try:
+                    phases.append(next(work)["phase"])
+                except StopIteration as result:
+                    prepared = result.value
+                    break
+            self.assertEqual(phases, ["ouvrir", "fermer"] * 3)
+            self.assertEqual(prepared.nombre_medias, 1)
+
+    def test_destination_progressive_refuse_deux_noms_pour_le_meme_chemin(self):
+        import hashlib
+        import json
+        from suivi.paquet_local import FORMAT, VERSION
+        content = {"media/a": b"fictif", "media//a": b"fictif", "carnet.sqlite3": b"base-fictive", "secret-key": b"cle-fictive"}
+        source = BytesIO()
+        with ZipFile(source, "w") as archive:
+            for name, data in content.items():
+                archive.writestr(name, data)
+            archive.writestr("manifest.json", json.dumps({"format": FORMAT, "version": VERSION,
+                "files": {name: hashlib.sha256(data).hexdigest() for name, data in content.items()}}))
+        source.seek(0)
+        with tempfile.TemporaryDirectory() as temp:
+            # Une destination OPFS ne crée pas le fichier MEMFS avant le retour
+            # à JS ; l'exclusivité ne doit donc pas dépendre de open('xb').
+            work = iterer_restauration(source, Path(temp), ouvrir_destination=lambda path: BytesIO())
+            with self.assertRaisesRegex(ValueError, "Chemin répété"):
+                list(work)
+            self.assertFalse(list(Path(temp).glob(".restauration-*")))
+
     def test_suivi_export_recent_ancien_absent_ou_altere(self):
         from datetime import timedelta
         with tempfile.TemporaryDirectory() as temp:

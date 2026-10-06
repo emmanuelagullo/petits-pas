@@ -124,14 +124,14 @@ def main():
                 if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
                     continue
                 if (folder == "pwa" and "templates" not in path.relative_to(ROOT / folder).parts
-                        and path.name not in {"bridge.py", "settings.py", "urls.py", "views.py", "media_storage.py"}):
+                        and path.name not in {"bridge.py", "settings.py", "urls.py", "views.py", "media_storage.py", "transfers.py", "limits.py"}):
                     continue
                 if path.name.startswith("tests") or path.suffix not in {".py", ".html", ".yaml", ".css", ".js", ".svg", ".png", ".jpg", ".json"}:
                     continue
                 entry = ZipInfo(path.relative_to(ROOT).as_posix(), (2026, 1, 1, 0, 0, 0))
                 entry.compress_type = ZIP_DEFLATED
                 archive.writestr(entry, path.read_bytes())
-    for name in ["index.html", "essai.html", "apercu.html", "shell.js", "worker.js", "storage.js", "lazy_media.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
+    for name in ["index.html", "essai.html", "apercu.html", "shell.js", "worker.js", "storage.js", "lazy_media.js", "transfers.js", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"]:
         shutil.copyfile(ROOT / "pwa" / name, output / name)
     for folder in [ROOT / "referentiel/static", ROOT / "suivi/static"]:
         shutil.copytree(folder, output / "static", dirs_exist_ok=True)

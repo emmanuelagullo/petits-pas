@@ -51,7 +51,15 @@ function pass(test, data = {}) { report.push({test, ...data}); console.log('OK',
 async function boot(page, url) {
   await page.goto(url);
   await page.waitForFunction(() => !!window.pwaTest || !document.querySelector('#failure').hidden || /TypeError|PythonError|Error:/.test(document.querySelector('#status').textContent), null, {timeout: 120000});
-  const status = await page.locator('#status').innerText();
+  let status = await page.locator('#status').innerText();
+  if (status.includes('déjà ouvert') && page.context().pages().every(other => other === page || !other.url().startsWith(new URL(url).origin + base))) {
+    // CDP peut rendre close/goto avant la libération du verrou de l'ancien
+    // document. Attendre la libération réelle ; ne masquer aucun second onglet.
+    await page.waitForFunction(async () => !(await navigator.locks.query()).held.some(lock => lock.name.startsWith('petits-pas-pwa-prototype')), null, {timeout:5000});
+    await page.goto(url);
+    await page.waitForFunction(() => !!window.pwaTest || !document.querySelector('#failure').hidden, null, {timeout:120000});
+    status = await page.locator('#status').innerText();
+  }
   assert(await page.locator('#failure').isHidden(), await page.locator('#diagnostic').textContent());
   assert(!/Error/.test(status), status);
   await page.frameLocator('#app').locator('h1').waitFor({timeout: 60000});

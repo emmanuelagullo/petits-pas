@@ -39,7 +39,12 @@ async function digest(bytes) {
     b => b.toString(16).padStart(2, '0')).join('');
 }
 // Le format 1 (ZIP) reste lisible pour la mise à jour et le secours.
-const LIMIT = 64 * 1024**2;
+const LIMIT = 256 * 1024**2;
+const temporary = new Map();
+function stagedReferences() {
+  if (!temporary.has(SUFFIX)) temporary.set(SUFFIX, new Set());
+  return temporary.get(SUFFIX);
+}
 async function directory() {
   return (await navigator.storage.getDirectory()).getDirectoryHandle('petits-pas-prototype' + SUFFIX, {create: true});
 }
@@ -66,7 +71,7 @@ async function manifest(dir, entry) {
       || !value.files['carnet.sqlite3'] || !value.files['secret-key']) throw new Error('Manifeste local invalide');
   let size = 0;
   for (const [name, file] of Object.entries(value.files)) {
-    if (!validName(name) || !/^[a-f0-9]{64}$/.test(file.hash) || !Number.isSafeInteger(file.size) || file.size < 0)
+    if (!validName(name) || !/^[a-f0-9]{64}$/.test(file.hash) || !Number.isSafeInteger(file.size) || file.size < 0 || file.size > 64 * 1024**2)
       throw new Error('Fichier local invalide');
     size += file.size;
   }
@@ -107,7 +112,7 @@ async function pause(failpoint, phase) {
   if (failpoint === phase) throw new Error('Interruption simulée ' + phase);
 }
 async function clean(dir, references) {
-  const keep = new Set();
+  const keep = new Set(stagedReferences());
   for (const entry of references.filter(Boolean)) {
     keep.add(entry.file);
     const tree = await manifest(dir, entry);
@@ -117,10 +122,13 @@ async function clean(dir, references) {
     if (!keep.has(name)) await dir.removeEntry(name).catch(() => {});
   }
 }
-export async function save(inventory, read, version, failpoint = '', preserve = false, force = false) {
+export async function save(inventory, read, version, failpoint = '', preserve = false, force = false, staged = null) {
   // L'inventaire compte aussi le manifeste ZIP public pour sa réimportation.
   const {files, bytes} = inventory;
-  if (bytes > LIMIT || Object.keys(files).length + 1 > 5000) throw new Error('Limite expérimentale : état supérieur à 64 Mio ou 5 000 fichiers.');
+  if (bytes > LIMIT || Object.keys(files).length + 1 > 5000) throw new Error('État supérieur à 256 Mio ou 5 000 fichiers.');
+  if (files['carnet.sqlite3']?.size > 64 * 1024**2) throw new Error('Base supérieure à 64 Mio.');
+  if (Object.values(files).some(file => file.size > 64 * 1024**2))
+    throw new Error('Fichier supérieur à 64 Mio.');
   const current = await state();
   const dir = await directory();
   const tree = await manifest(dir, current);
@@ -133,6 +141,9 @@ export async function save(inventory, read, version, failpoint = '', preserve = 
   const next = {}; let writtenBytes = 0, writtenFiles = 0;
   for (const [name, file] of Object.entries(files)) {
     let entry = pool.get(file.hash);
+    const candidate = staged?.(name, file.hash);
+    if (!entry && candidate && stagedReferences().has(candidate.file) && candidate.size === file.size)
+      entry = candidate;
     if (!entry) {
       const content = read(name);
       if (content.length !== file.size || await digest(content) !== file.hash) throw new Error('Fichier modifié pendant la sauvegarde');
@@ -162,4 +173,18 @@ export async function confirmedMedia() {
   const dir = await directory();
   const tree = await manifest(dir, await state());
   return {files: tree?.files || {}, file: async entry => (await dir.getFileHandle(entry.file)).getFile()};
+}
+
+export async function openStagedMedia() {
+  const dir = await directory();
+  const file = crypto.randomUUID() + '.blob';
+  const handle = await (await dir.getFileHandle(file, {create:true})).createSyncAccessHandle();
+  stagedReferences().add(file);
+  return {dir, file, handle};
+}
+export async function clearStagedMedia() {
+  if (!stagedReferences().size) return;
+  stagedReferences().clear();
+  const current = await state();
+  await clean(await directory(), [current, current?.previous, current?.recovery]);
 }

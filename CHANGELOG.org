@@ -32,6 +32,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Navigateur (#PWA12) : transfert des ZIP par blocs sur OPFS, y compris le
+  secours, et extraction des médias vers des blobs immuables sans ZIP complet
+  dans Python/JS. Format commun, contrôle Django et confirmation conservés.
+  Borne totale de 256 Mio, base et fichier individuel de 64 Mio ; limites et
+  qualification dans =pwa/TRANSFERTS-OPFS.md= et =pwa/QUALIFICATION.md=.
+
 - Navigateur (#PWA11) : lire les médias confirmés à la demande depuis les blobs
   OPFS, sans conserver leur contenu dans MEMFS. Écritures temporaires puis
   activation commune base/médias inchangée ; droits Django, ZIP et reprise

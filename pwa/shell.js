@@ -81,8 +81,8 @@ function controlled() {
 function showVolume(durability) {
   if (!durability?.bytes) return;
   const mib = durability.bytes / 1024**2;
-  document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 64 Mio (avant compression).`
-    + (mib >= 52 ? ' Limite proche : téléchargez une sauvegarde et terminez cet essai.' : '');
+  document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 256 Mio (avant compression).`
+    + (mib >= 205 ? ' Limite proche : téléchargez une sauvegarde et prévoyez un transfert.' : '');
 }
 function showUpdate() {
   const available = !!(registration?.active && registration?.waiting);
@@ -97,10 +97,14 @@ function rpc(message) {
       clearTimeout(timeout); channel.port1.close();
       event.data.ok ? resolve(event.data.value) : reject(new Error(event.data.error));
     };
-    worker.postMessage(message, [channel.port2, ...(message.request?.body?.buffer ? [message.request.body.buffer] : [])]);
+    worker.postMessage(message, [channel.port2, ...(message.request?.body?.buffer ? [message.request.body.buffer] : []),
+      ...(message.request?.inputPort ? [message.request.inputPort] : [])]);
   });
 }
 navigator.serviceWorker?.addEventListener('message', async event => {
+  if (event.source === navigator.serviceWorker.controller && event.data?.kind === 'release-export') {
+    if (worker) await rpc(event.data).catch(()=>{}); return;
+  }
   if (event.source === navigator.serviceWorker.controller && event.data?.kind === 'owner') {
     event.ports[0]?.postMessage(!!worker); return;
   }
@@ -110,7 +114,7 @@ navigator.serviceWorker?.addEventListener('message', async event => {
   try {
     const value = await rpc(event.data);
     showVolume(value.durability);
-    if (value.durability?.bytes >= 52 * 1024**2) document.querySelector('#tools').open = true;
+    if (value.durability?.bytes >= 205 * 1024**2) document.querySelector('#tools').open = true;
     status.textContent = value.result.status >= 400
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
       : 'État enregistré sur cet appareil.';
@@ -158,7 +162,7 @@ document.querySelector('#recovery').onclick = async event => {
       channel.port1.onmessage = e => {clearTimeout(timer); channel.port1.close(); e.data.ok ? resolve(e.data.value) : reject(new Error(e.data.error));};
       recoveryWorker.postMessage({kind: 'recovery', essai: ESSAI, apercu: APERCU}, [channel.port2]);
     });
-    const url = URL.createObjectURL(new Blob([value.bytes], {type: 'application/zip'}));
+    const url = URL.createObjectURL(value.file);
     const link = document.createElement('a'); link.href = url; link.download = 'petits-pas-recuperation.zip'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     status.textContent = 'ZIP de récupération téléchargé : il contient l’état conservé avant le dernier remplacement, ou l’état actuel si aucun remplacement n’a eu lieu.';

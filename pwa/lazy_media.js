@@ -16,8 +16,9 @@ export function mediaFiles(FS) {
     node.usedBytes = node.contents.length;
     delete node.pwaBlob;
     delete node.pwaHash;
+    delete node.pwaEntry;
   }
-  function bind(path, blob, hash) {
+  function bind(path, blob, hash, entry = null) {
     FS.mkdirTree(path.slice(0, path.lastIndexOf('/')));
     let node;
     try {node = FS.lookupPath(path).node;}
@@ -27,7 +28,7 @@ export function mediaFiles(FS) {
       node = FS.lookupPath(path).node;
     }
     if (!FS.isFile(node.mode)) throw new Error('Média local non régulier');
-    if (node.pwaHash === hash) return;
+    if (node.pwaHash === hash && !node.pwaEntry) return;
     // Aucun descripteur Python ne doit survivre au point de confirmation.
     if (FS.streams.some(stream => stream?.node === node))
       throw new Error('Média encore ouvert à la confirmation');
@@ -57,9 +58,10 @@ export function mediaFiles(FS) {
     node.usedBytes = blob.size;
     node.pwaBlob = blob;
     node.pwaHash = hash;
+    node.pwaEntry = entry;
   }
   function isBound(path, hash) {
-    try {return FS.lookupPath(path).node.pwaHash === hash;}
+    try {const node = FS.lookupPath(path).node; return node.pwaHash === hash && !node.pwaEntry;}
     catch {return false;}
   }
   function metrics() {
@@ -75,5 +77,8 @@ export function mediaFiles(FS) {
     return {lazyMediaBytes, lazyMediaFiles, residentMediaBytes,
       mediaReadBytes: readBytes, mediaMaterializedBytes: materializedBytes};
   }
-  return {bind, isBound, metrics};
+  return {bind, isBound, metrics, entry(path, hash) {
+    try {const node = FS.lookupPath(path).node; return node.pwaHash === hash ? node.pwaEntry : null;}
+    catch {return null;}
+  }};
 }

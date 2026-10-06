@@ -172,7 +172,8 @@ Aucun changement du fichier CI du projet Pages n'est nécessaire.
 #PWA11 ajoute `lazy_media.js` au bundle et à ses empreintes. Aucun changement
 de projet Pages, de chemin, d'en-têtes COOP/COEP ou de format interne n'est
 requis. Publier le bundle complet contrôlé par les mêmes jobs ; anciens ZIP et
-manifestes sont repris. Les transferts ZIP restent limités à 64 Mio décompressés.
+manifestes sont repris. Depuis #PWA12, les transferts ZIP sont progressifs et limités à 256 Mio
+décompressés, avec base et fichier individuel à 64 Mio. Voir TRANSFERTS-OPFS.md.
 Cette évolution n'autorise pas les données réelles et ne valide pas tous les
 navigateurs par les seuls essais Chromium. Voir `MEDIA-OPFS.md` et les mesures
 `QUALIFICATION.md`.

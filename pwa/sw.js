@@ -29,9 +29,29 @@ async function local(request) {
   }
   if (!owner) return new Response('Ouvrez le prototype depuis sa page d’accueil.', {status: 503});
   const channel = new MessageChannel();
-  const raw = request.method === 'GET' || request.method === 'HEAD' ? new ArrayBuffer(0) : await request.arrayBuffer();
+  const progressive = request.method === 'POST' && request.headers.get('content-type')?.startsWith('multipart/form-data');
+  const upload = progressive ? new MessageChannel() : null;
+  const raw = progressive || request.method === 'GET' || request.method === 'HEAD' ? new ArrayBuffer(0) : await request.arrayBuffer();
   if (raw.byteLength > 70 * 1024**2) return new Response('Envoi trop volumineux pour ce prototype (70 Mio).', {status: 413});
   const body = new Uint8Array(raw);
+  if (upload) {
+    // Une tranche est envoyée seulement après consommation de la précédente.
+    const reader = request.body.getReader();
+    let pending = null, offset = 0;
+    upload.port1.onmessage = async event => {
+      try {
+        if (event.data.error) throw new Error(event.data.error);
+        if (!pending || offset === pending.length) {
+          const item = await reader.read();
+          if (item.done) {upload.port1.postMessage({done:true}); upload.port1.close(); return;}
+          pending = item.value; offset = 0;
+        }
+        const bytes = pending.slice(offset, offset + 1024**2); offset += bytes.length;
+        upload.port1.postMessage({bytes}, [bytes.buffer]);
+      } catch (error) {await reader.cancel().catch(()=>{}); upload.port1.postMessage({error:String(error)}); upload.port1.close();}
+    };
+    upload.port1.start();
+  }
   const headers = [...request.headers];
   // Le référent géré par le navigateur peut être absent de Request.headers.
   // Transmettre sa valeur réelle, sans inventer un référent si la politique
@@ -45,9 +65,22 @@ async function local(request) {
       clearTimeout(timeout); channel.port1.close();
       const r = event.data;
       if (!r.ok) { resolve(new Response(r.error, {status: 507})); return; }
-      resolve(new Response(request.method === 'HEAD' || [204, 304].includes(r.status) ? null : r.body, {status: r.status, headers: r.headers}));
+      let content = r.body;
+      if (r.file) {
+        const reader = r.file.stream().getReader();
+        const release = () => owner.postMessage({kind:'release-export', token:r.token});
+        content = new ReadableStream({
+          async pull(controller) {
+            try {const item = await reader.read(); if (item.done) {controller.close(); release();} else controller.enqueue(item.value);}
+            catch (error) {controller.error(error); release();}
+          },
+          async cancel() {await reader.cancel(); release();},
+        });
+      }
+      resolve(new Response(request.method === 'HEAD' || [204, 304].includes(r.status) ? null : content, {status: r.status, headers: r.headers}));
     };
-    owner.postMessage({kind: 'http', request: {url: request.url, method: request.method, headers, body}}, [channel.port2, raw]);
+    owner.postMessage({kind: 'http', request: {url: request.url, method: request.method, headers, body,
+      ...(upload ? {inputPort:upload.port2} : {})}}, [channel.port2, raw, ...(upload ? [upload.port2] : [])]);
   });
 }
 async function hasRuntime(client) {

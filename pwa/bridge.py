@@ -23,6 +23,7 @@ PREVIOUS_PACKAGE = None
 MEDIA_INDEX = {}
 FULL_MEDIA_SCAN = True
 RESPONSE_BODY = b""
+PENDING_RESPONSE = None
 
 
 def initialize(origin, version, base="/", essai=False, apercu=False):
@@ -94,8 +95,11 @@ def restore_file(name, content):
 
 
 def describe(path):
-    content = path.read_bytes()
-    return {"hash": hashlib.sha256(content).hexdigest(), "size": len(content)}
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        while block := source.read(1024**2):
+            digest.update(block)
+    return {"hash": digest.hexdigest(), "size": path.stat().st_size}
 
 
 def restore_media_index(encoded):
@@ -192,9 +196,41 @@ def validate_migrations(path):
 def snapshot():
     """Même format public que le paquet autonome, base/clé/médias/manifeste."""
     from suivi.paquet_local import creer_sauvegarde
-    output = io.BytesIO()
-    creer_sauvegarde(DATA, output)
-    return output.getvalue()
+    from .transfers import OpfsFile
+    with OpfsFile("export") as output:
+        creer_sauvegarde(DATA, output, taille_bloc=1024**2)
+
+
+def transfer_step():
+    from . import transfers
+    return transfers.etape()
+
+
+def finish_transfer(encoded):
+    global PENDING_RESPONSE
+    request = PENDING_RESPONSE.pwa_request
+    from django.http import HttpResponseRedirect
+    response = HttpResponseRedirect(SCRIPT_NAME + ("/gestion/sauvegardes-locales/"
+        if request.path.endswith("/sauvegardes-locales/") else "/verifier-zip/"))
+    request._messages.update(response)
+    if request.session.modified:
+        request.session.save()
+    for name, morsel in response.cookies.items():
+        if morsel["max-age"] == "0":
+            COOKIES.pop(name, None)
+        else:
+            COOKIES[name] = morsel.value
+    PENDING_RESPONSE.close()
+    PENDING_RESPONSE = None
+    result = json.loads(encoded)
+    result.update(status=302, headers=[["Location", response.url], ["Cache-Control", "no-store"]], job=False)
+    return json.dumps(result)
+
+
+def has_preparation():
+    from suivi import paquet_local, apercu_local
+    return bool(paquet_local.preparation_en_attente() or paquet_local.restauration_en_attente()
+                or apercu_local.preparation())
 
 
 def metrics():
@@ -241,20 +277,24 @@ def response_bytes():
 
 
 def handle(encoded, raw_body=None):
-    global RESPONSE_BODY
+    global RESPONSE_BODY, PENDING_RESPONSE
     request = json.loads(encoded)
     url = urlsplit(request["url"])
     path = url.path.removeprefix(SCRIPT_NAME) or "/"
-    body = bytes(raw_body) if raw_body is not None else base64.b64decode(request["body"])
+    from .transfers import OpfsFile
+    body = None if request.get("opfs_input") else bytes(raw_body) if raw_body is not None else base64.b64decode(request["body"])
+    input_file = OpfsFile("request") if body is None else io.BytesIO(body)
+    input_size = input_file.seek(0, 2) if body is None else len(body)
+    input_file.seek(0)
     environ = {
         "REQUEST_METHOD": request["method"], "PATH_INFO": path,
         "QUERY_STRING": url.query, "SCRIPT_NAME": SCRIPT_NAME,
         "SERVER_NAME": url.hostname, "SERVER_PORT": str(url.port or 443),
         "SERVER_PROTOCOL": "HTTP/1.1", "REMOTE_ADDR": "127.0.0.1",
         "wsgi.version": (1, 0), "wsgi.url_scheme": url.scheme,
-        "wsgi.input": io.BytesIO(body), "wsgi.errors": sys.stderr,
+        "wsgi.input": input_file, "wsgi.errors": sys.stderr,
         "wsgi.multithread": False, "wsgi.multiprocess": False, "wsgi.run_once": False,
-        "CONTENT_LENGTH": str(len(body)),
+        "CONTENT_LENGTH": str(input_size),
         "HTTP_COOKIE": "; ".join(f"{k}={v}" for k, v in COOKIES.items()),
     }
     for key, value in request["headers"]:
@@ -269,10 +309,16 @@ def handle(encoded, raw_body=None):
         response.update(status=int(status.split()[0]), headers=headers)
 
     iterable = APPLICATION(environ, start_response)
+    from . import transfers
+    job = transfers.JOB is not None
+    if job:
+        iterable.pwa_request = transfers.JOB["request"]
+        PENDING_RESPONSE = iterable
     try:
         content = b"".join(iterable)
     finally:
-        if hasattr(iterable, "close"):
+        input_file.close()
+        if not job and hasattr(iterable, "close"):
             iterable.close()
     headers = []
     for key, value in response["headers"]:
@@ -298,5 +344,6 @@ def handle(encoded, raw_body=None):
         content = b""
     RESPONSE_BODY = content
     from suivi.apercu_local import ouverture_demandee
-    response.update(headers=headers, restored=restored, ouvrir_apercu=ouverture_demandee())
+    response.update(headers=headers, restored=restored, ouvrir_apercu=ouverture_demandee(),
+                    job=job, export=bool(getattr(iterable, "pwa_export", False)))
     return json.dumps(response)

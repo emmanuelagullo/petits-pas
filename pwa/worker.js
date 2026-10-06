@@ -1,10 +1,13 @@
-import {load, save, configurerEspace, confirmedMedia} from './storage.js';
+import {load, save, configurerEspace, confirmedMedia, openStagedMedia, clearStagedMedia} from './storage.js';
 import {mediaFiles} from './lazy_media.js';
+import {installIO, beginTransfers, endTransfers, receiveBody, setHandle, closeHandle, releaseExport, transferMetrics} from './transfers.js';
+installIO();
 let ESSAI = false;
 let APERCU = false;
 const BASE = new URL('./', import.meta.url).pathname;
 let python, bridge, config, media, fatal = false, initialized = false;
 let queue = Promise.resolve();
+let pauseTransfer = false;
 function progress(text) { self.postMessage({kind: 'progress', text}); }
 function call(name, ...args) {
   const method = bridge[name];
@@ -17,7 +20,7 @@ async function persist(failpoint = '', preserve = false, force = false, scan = f
   const result = await save(files, name => {
     const proxy = call('file_bytes', name);
     try {return proxy.toJs();} finally {proxy.destroy();}
-  }, config.version, failpoint, preserve, force);
+  }, config.version, failpoint, preserve, force, (name, hash) => media.entry('/data/' + name, hash));
   // Retirer les buffers des seuls médias nouveaux/modifiés après activation.
   const confirmed = await confirmedMedia();
   for (const [name, entry] of Object.entries(confirmed.files)) {
@@ -77,8 +80,9 @@ async function process(message) {
       call('restore_demo', archive);
     }
     if (message.kind === 'recovery') {
-      const proxy = call('snapshot');
-      try { return {bytes: proxy.toJs()}; } finally { proxy.destroy(); }
+      const context = await beginTransfers();
+      try {call('snapshot'); return await endTransfers(context, true);}
+      catch (error) {await endTransfers(context); throw error;}
     }
     progress('Ouverture de l’école et vérification de la base…');
     call('initialize', location.origin, config.application_version || config.version, BASE, ESSAI, APERCU);
@@ -93,10 +97,14 @@ async function process(message) {
     return {durationMs: performance.now() - started, restored: !!restored, durability, apercuDisponible};
   }
   if (!initialized) throw new Error('Runtime indisponible');
-  if (message.kind === 'test-metrics' && config.testMode) {
-    return {result: {...JSON.parse(call('metrics')), ...media.metrics(), wasmHeapBytes: python._module?.HEAP8?.byteLength || null}};
+  if (message.kind === 'release-export') {
+    await releaseExport(message.token); return {};
   }
-  let result;
+  if (message.kind === 'test-pause-transfer' && config.testMode) {pauseTransfer = true; return {};}
+  if (message.kind === 'test-metrics' && config.testMode) {
+    return {result: {...JSON.parse(call('metrics')), ...media.metrics(), ...transferMetrics(), wasmHeapBytes: python._module?.HEAP8?.byteLength || null}};
+  }
+  let result, transferContext;
   if (message.kind === 'checkpoint') {
     try { return {durability: await persist('', false, true)}; }
     catch (error) { fatal = true; throw error; }
@@ -105,20 +113,50 @@ async function process(message) {
     const url = new URL(message.request.url);
     if (url.origin !== location.origin || !url.pathname.startsWith(BASE + 'app/')) throw new Error('Origine ou route refusée');
     try {
-      const {body, ...metadata} = message.request;
+      const {body, inputPort, ...metadata} = message.request;
+      const multipart = metadata.headers.some(([key, value]) => key.toLowerCase() === 'content-type' && value.startsWith('multipart/form-data'));
+      if (inputPort || multipart || (metadata.method === 'POST' && url.pathname.endsWith('/gestion/sauvegardes-locales/')))
+        transferContext = await beginTransfers();
+      if (inputPort) {await receiveBody(inputPort); metadata.opfs_input = true;}
       const bytes = typeof body === 'string' ? Uint8Array.from(atob(body), c => c.charCodeAt(0)) : body;
       result = JSON.parse(call('handle', JSON.stringify(metadata), bytes));
+      if (result.job) {
+        progress('Vérification et préparation du ZIP, fichier par fichier…');
+        let staged;
+        for (;;) {
+          const step = JSON.parse(call('transfer_step'));
+          if (step.phase === 'termine') break;
+          if (step.phase === 'ouvrir') {
+            if (step.media) {staged = await openStagedMedia(); setHandle('media', staged.handle);}
+          } else if (step.media) {
+            closeHandle('media');
+            const file = await (await staged.dir.getFileHandle(staged.file)).getFile();
+            media.bind(step.chemin, file, step.hash, {file:staged.file, hash:step.hash, size:file.size});
+            staged = null;
+            if (pauseTransfer && config.testMode) {
+              pauseTransfer = false;
+              self.postMessage({kind:'test-checkpoint', phase:'transfer-media'});
+              await new Promise(() => {});
+            }
+          }
+        }
+        closeHandle('media');
+        result = JSON.parse(call('finish_transfer', JSON.stringify(result)));
+      }
       const proxy = call('response_bytes');
       try {result.body = proxy.toJs();} finally {proxy.destroy();}
     }
-    catch (error) { fatal = true; throw error; }
+    catch (error) {
+      if (transferContext) await endTransfers(transferContext).catch(()=>{});
+      fatal = true; throw error;
+    }
   } else if (message.kind === 'test-python' && config.testMode) {
     result = python.runPython(message.code);
     if (result?.destroy) { result.destroy(); result = null; }
   } else { throw new Error('Commande refusée'); }
   try {
     const durability = await persist(config.testMode ? (message.failpoint || '') : '', !!result?.restored,
-      false, message.kind === 'test-python');
+      false, message.kind === 'test-python' && message.scan !== false);
     if (result?.ouvrir_apercu) {
       configurerEspace(false, true);
       try {
@@ -130,8 +168,20 @@ async function process(message) {
         call('nettoyer_apercu');
       } finally {configurerEspace(ESSAI, APERCU);}
     }
+    if (!call('has_preparation')) await clearStagedMedia();
+    if (transferContext) {
+      const exported = await endTransfers(transferContext, result.export);
+      if (exported) {
+        Object.assign(result, exported);
+        result.headers = result.headers.filter(([key]) => key.toLowerCase() !== 'content-length');
+        result.headers.push(['Content-Length', String(exported.file.size)]);
+      }
+    }
     return {result, durability};
-  } catch (error) { fatal = true; throw error; }
+  } catch (error) {
+    if (transferContext) await endTransfers(transferContext).catch(()=>{});
+    fatal = true; throw error;
+  }
 }
 self.onmessage = event => {
   const port = event.ports[0];
