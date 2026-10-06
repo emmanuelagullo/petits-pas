@@ -11,7 +11,8 @@ automatique extérieure à l'appareil.
 | Environnement | Garantie de cette livraison |
 | --- | --- |
 | Chromium desktop / Linux, HTTPS ou localhost, profil ordinaire dédié | Bancs racine et HTTPS `/petits-pas-pwa/`, hors ligne, impression Chromium, reprises et transferts volumineux |
-| Chrome / Edge desktop sur d'autres systèmes | Même famille de moteur, mais essais de cette livraison non exécutés sur Windows/macOS ; qualification à étendre avant de les annoncer vérifiés |
+| Chromium, Chrome et Edge desktop / Windows | Bancs GitHub Actions Windows verts le 6 octobre 2026 : racine, HTTPS sous le préfixe publié, droits, médias, ZIP, reprise et bundle distribué hors ligne |
+| macOS | Pas encore qualifié ; la PWA ne dépend pas de Linux |
 | Firefox, Safari, Android, iPad | Pas encore qualifiés pour la production de cette version ; présence des API seule insuffisante |
 | Navigation privée, profil temporaire ou effacé automatiquement | Inadapté à la conservation d'une école |
 

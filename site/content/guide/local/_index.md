@@ -36,7 +36,7 @@ carnets forment un document commun. Le programme peut générer des PDF séparé
 Consultez les [fiches des carnets]({{< relref "/guide/carnets/" >}}).
 
 Depuis #PWA13, les versions navigateur maintenues visent la production sur
-ordinateur Chromium/Linux. Vérifiez la version publiée et ses notes ; les
+ordinateur avec un navigateur compatible. Vérifiez la version publiée et ses notes ; les
 anciennes versions restent destinées aux essais fictifs.
 Avant toute utilisation de données réelles,
 préparer avec l’école la [protection des données]({{< relref "/proteger-donnees/" >}}).

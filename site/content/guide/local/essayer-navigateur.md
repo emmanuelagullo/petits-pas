@@ -12,10 +12,12 @@ statut = "disponible"
 
 Petits Pas conserve l’école dans le navigateur de cet appareil. Il peut
 fonctionner hors ligne après le premier téléchargement. Depuis #PWA13, la version
-maintenue vise un usage de production sur ordinateur avec Chromium/Linux.
+maintenue est destinée à la production sur ordinateur. Un contrôle au démarrage
+vérifie la compatibilité de votre appareil.
 Vérifiez la version affichée et ses nouveautés : une ancienne publication reste
-destinée aux essais fictifs. Les autres systèmes, tablettes et moteurs ne sont
-pas encore qualifiés ; utilisez des données fictives pour les essayer.
+destinée aux essais fictifs. Les parcours sont vérifiés avec Chromium sous Linux, et avec Chromium, Chrome
+et Edge sous Windows. Firefox, Safari, macOS et les tablettes restent à qualifier ;
+utilisez des données fictives pour les essayer.
 
 ## Ouvrir et préparer l’école
 

@@ -454,3 +454,14 @@ pas qualification réussie. Un passage vert documentera la portabilité Windows
 sur ces navigateurs ; il ne vérifie pas les politiques informatiques d'une
 école, l'installation graphique ou les performances de tous les postes.
 Linux est une plateforme de mesure, pas une dépendance de la PWA.
+
+
+### Clôture CI et release 0.9
+
+Le 6 octobre 2026, les deux forges sont vertes selon le retour du mainteneur,
+après correction de la fermeture SQLite et de la conversion du préfixe URL par
+Git Bash. Les trois jobs Windows (Chromium, Chrome et Edge) ont donc réussi
+les parcours racine/HTTPS et le contrôle de distribution. Ce constat complète
+le périmètre Linux mesuré ; il n'attribue pas les mesures PSS Linux à Windows.
+Les versions exactes des navigateurs sont enregistrées dans les artefacts CI.
+La release 0.9 doit encore être construite et promue depuis son pipeline tagué.
