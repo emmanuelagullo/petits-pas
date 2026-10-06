@@ -166,6 +166,16 @@ async function login(page) {
   }
   pass('Formulaire installation, première classe si proposée, CSRF et session virtuelle');
   if (process.env.PWA_OLD_BUNDLE) {
+    const oldHash = await python(page, `
+import io, hashlib
+from PIL import Image
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+buffer = io.BytesIO()
+Image.new('RGB', (10, 12), (30, 80, 110)).save(buffer, 'PNG')
+old_name = default_storage.save('ancienne-realisation-fictive.png', ContentFile(buffer.getvalue()))
+hashlib.sha256(buffer.getvalue()).hexdigest()
+`);
     serverRoot = root;
     const expected = JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).version;
     await page.evaluate(async () => {const r=await navigator.serviceWorker.getRegistration(); await r.update();});
@@ -181,8 +191,17 @@ async function login(page) {
     await boot(page, url); await login(page); frame = page.frameLocator('#app');
     assert.equal(await python(page, "import os; os.environ['CARNET_VERSION']"), JSON.parse(fs.readFileSync(path.join(root, 'config.json'))).application_version || expected);
     assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
-    pass('Passage réel de l’ancien bundle ZIP au stockage incrémental après fermeture, base conservée');
+    assert.equal(await python(page, "from django.core.files.storage import default_storage; import hashlib; source = default_storage.open('ancienne-realisation-fictive.png', 'rb'); old_content = source.read(); source.close(); hashlib.sha256(old_content).hexdigest()"), oldHash);
+    pass('Passage réel de l’ancien runtime au nouveau, connexion et base/média conservés');
   }
+
+  assert.equal(await python(page, "import hashlib; hashlib.pbkdf2_hmac('sha256', b'password', b'salt', 1).hex()"), '120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b');
+  assert.deepEqual(JSON.parse(await python(page, "import json; from PIL import Image; json.dumps(sorted(Image.ID))")), ['JPEG','PNG','WEBP']);
+  const nativeKdf = execFileSync('python3', ['-c', "import hashlib,json; print(json.dumps({name:hashlib.pbkdf2_hmac(name, 'mot-fictif-é'.encode(), b'sel-fictif', 123, 42).hex() for name in ('sha1','sha256','sha512')}))"], {encoding:'utf8'}).trim();
+  assert.deepEqual(JSON.parse(await python(page, "json.dumps({name:hashlib.pbkdf2_hmac(name, 'mot-fictif-é'.encode(), b'sel-fictif', 123, 42).hex() for name in ('sha1','sha256','sha512')})")), JSON.parse(nativeKdf));
+  assert.equal(await python(page, "hashlib.scrypt(b'password', salt=b'NaCl', n=16, r=1, p=1, dklen=32).hex()"), execFileSync('python3', ['-c', "import hashlib; print(hashlib.scrypt(b'password', salt=b'NaCl', n=16, r=1, p=1, dklen=32).hex())"], {encoding:'utf8'}).trim());
+  pass('PBKDF2 SHA-1/256/512 et scrypt compatibles natif, décodeurs privés');
+  const initialMediaCount = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result.lazyMediaFiles;
 
   const ids = JSON.parse(await python(page, `
 import json
@@ -252,7 +271,7 @@ proof_name = default_storage.save('preuve-pwa11-fictive.png', ContentFile(origin
 `);
   let lazyMetrics = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
   assert.equal(lazyMetrics.residentMediaBytes, 0);
-  assert.equal(lazyMetrics.lazyMediaFiles, 2);
+  assert.equal(lazyMetrics.lazyMediaFiles, initialMediaCount + 2);
   await python(page, `
 with default_storage.open(proof_name, 'r+b') as cible:
     cible.seek(0, 2)
@@ -277,7 +296,7 @@ assert not p.exists() and not q.exists()
 `);
   lazyMetrics = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
   assert.equal(lazyMetrics.residentMediaBytes, 0);
-  assert.equal(lazyMetrics.lazyMediaFiles, 1);
+  assert.equal(lazyMetrics.lazyMediaFiles, initialMediaCount + 1);
   pass('PWA11 : Pillow sur File OPFS, création, modification, troncature, ajout, renommage et suppression sans médias résidents');
   await page.getByRole('button', {name: 'Sauvegardes / transfert'}).click();
   await page.frameLocator('#app').getByRole('heading', {name: 'Sauvegardes locales', exact: true}).waitFor();
@@ -285,7 +304,6 @@ assert not p.exists() and not q.exists()
   await page.frameLocator('#app').getByRole('button', {name: 'Télécharger une sauvegarde', exact: true}).click();
   const download = await downloadReady;
   const archivePath = await download.path();
-  const {execFileSync} = require('node:child_process');
   execFileSync('python3', ['-c', "import sys,zipfile,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); m=json.loads(z.read('manifest.json')); assert m['format']=='petits-pas-paquet'; assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items()); assert any(n.startswith('media/') for n in m['files'])", archivePath]);
   pass('Export ZIP commun au mode autonome, manifeste et photos vérifiés');
   await page.frames()[1].goto(url + 'app/verifier-zip/');
@@ -539,6 +557,22 @@ with tempfile.TemporaryDirectory() as dossier:
   espace = await context.newPage(); currentPage = espace;
   await boot(espace, url + '?essai=oui');
   assert.equal(await python(espace, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'Essai modifié fictif');
+  // Même échéance que la coque, accélérée pour exercer son arrêt réel.
+  const uncertain = await espace.evaluate(async () => {
+    const original = window.setTimeout;
+    window.setTimeout = (callback, delay, ...args) => original(callback, delay === 900000 ? 5000 : delay, ...args);
+    try {
+      await window.pwaTest({kind:'test-python', code:"from suivi.models import Ecole; Ecole.objects.update(commune='Modification non activée fictive')", failpoint:'pause-before-activate'});
+      return 'réponse inattendue';
+    } catch (error) {return String(error.message);}
+    finally {window.setTimeout = original;}
+  });
+  assert.match(uncertain, /Résultat incertain/);
+  assert(await espace.locator('#app').isHidden());
+  assert(await espace.locator('#failure').isVisible());
+  await boot(espace, url + '?essai=oui');
+  assert.notEqual(await python(espace, "from suivi.models import Ecole; Ecole.objects.get().commune"), 'Modification non activée fictive');
+  pass('Expiration réelle de la coque : arrêt du Worker, réouverture du dernier état confirmé');
   const retour = await espace.locator('#changer-espace').getAttribute('href');
   assert.equal(retour, base);
   await espace.close();

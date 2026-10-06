@@ -1,12 +1,12 @@
-# #PWA1 à #PWA12 : prototype navigateur
+# Application navigateur — #PWA13
 
-Expérience réservée aux **données fictives**. Aucun profil serveur ou programme
-autonome n'est remplacé. Le prototype propose l'import/export commun,
-l'impression PDF et les mises à jour avec récupération. #PWA6 remplace les
-ZIP de travail par une persistance incrémentale ; appareils d'école et
-production restent à qualifier.
+Petits Pas fonctionne localement dans le navigateur, y compris hors ligne.
+La version maintenue a vocation à la production sur le périmètre déclaré dans
+[PRODUCTION.md](PRODUCTION.md) : garanties, navigateurs, entretien et limites.
+Les démonstrations et bancs utilisent exclusivement des données fictives.
+Les profils serveur et programme autonome restent disponibles.
 
-## Essayer et mettre à jour le premier prototype
+## Construire et mettre à jour
 
 Python 3 avec pip et Internet sont nécessaires à la construction :
 
@@ -162,7 +162,7 @@ déclenche le projet Pages dédié et réutilise l'artefact exact de ce pipeline
 Voir [PUBLICATION.md](PUBLICATION.md) pour sa configuration initiale, le sous-chemin
 et les étapes. Le site Hugo conserve sa publication actuelle.
 
-## Déploiement statique pilote
+## Déploiement statique
 
 Servir le contenu de `dist/pwa` à une **adresse stable**, à la racine ou sous
 `/petits-pas-pwa/`, en
@@ -196,7 +196,9 @@ Ce ne sont pas des mesures sur tablette ou réseau d'école.
 arrêts SIGKILL ; voir [QUALIFICATION.md](QUALIFICATION.md). Il reste à qualifier
 Safari/Firefox/Android, l'installation PWA, l'impression interactive réelle,
 les grands carnets sur appareils d'école, un disque physiquement plein et la
-coupure électrique. #PWA6 sauvegarde les fichiers modifiés après chaque
+coupure électrique pour étendre la qualification ; ces retours ne bloquent pas
+la publication dans le périmètre déclaré par PRODUCTION.md. #PWA6 sauvegarde
+les fichiers modifiés après chaque
 réponse et active leur manifeste commun, sans ZIP intermédiaire.
 Web Lock et file exclusive du Worker sont indispensables ; seuls eux
 justifient `DJANGO_ALLOW_ASYNC_UNSAFE` dans ce profil Pyodide.
@@ -220,8 +222,9 @@ La réouverture vérifie chaque SHA-256 en JS, une photo à la fois, puis instal
 ses métadonnées et son `File`, sans recopier les photos en Python. L'inventaire
 réutilise les empreintes vérifiées. Le manifeste interne reste au format 2 ;
 les anciens ZIP internes et publics sont repris par les parcours existants.
-Leur première conversion et les restaurations décompressent encore dans MEMFS,
-puis libèrent les médias après confirmation. Actif/précédent/secours et nettoyage
+La première conversion des anciens instantanés ZIP décompresse encore dans MEMFS ;
+les restaurations ordinaires passent désormais par les transferts #PWA12.
+Actif/précédent/secours et nettoyage
 restent régis par le même pointeur transactionnel.
 
 **#PWA12 transfère les ZIP progressivement.** L'export et le secours écrivent
@@ -231,16 +234,16 @@ uploadés sont temporaires sur OPFS. Le validateur commun décompresse un média
 SQLite reste MEMFS. Voir [TRANSFERTS-OPFS.md](TRANSFERTS-OPFS.md).
 
 Le module dépend des opérations de nœuds MEMFS/WORKERFS du runtime **Pyodide
-0.28.3 épinglé**. Sa disponibilité est contrôlée au démarrage ; ne pas annoncer
+314.0.7 épinglé**. Sa disponibilité est contrôlée au démarrage ; ne pas annoncer
 une compatibilité universelle et requalifier lors d'un changement de runtime.
 Voir [MEDIA-OPFS.md](MEDIA-OPFS.md) pour l'audit des interfaces, la décision et
 les limites, et [QUALIFICATION.md](QUALIFICATION.md) pour les mesures. Les essais
 terrain restent non bloquants.
 
-Les versions Pyodide/Django/wheels et la maintenance de sécurité doivent être
-requalifiées avant production. Synchronisation, sauvegarde automatique hors
-appareil, chiffrement et travail concurrent restent hors périmètre. Ne pas
-considérer #PWA6 comme une validation de production sur données réelles.
+La maintenance des dépendances et les contrôles avant publication sont décrits
+dans PRODUCTION.md. Synchronisation, sauvegarde automatique hors
+appareil, chiffrement et travail concurrent restent hors périmètre.
+Le périmètre de qualification est explicite dans PRODUCTION.md.
 
 ## Vérifications de livraison #PWA3/#PWA4
 
@@ -320,10 +323,10 @@ est dans [AUDIT-SITE-PUBLICATIONS.md](AUDIT-SITE-PUBLICATIONS.md).
 `pwa-prototype` et `pwa-qualification` s'exécutent dans chaque pipeline accepté
 par les règles globales (branches et merge requests), en parallèle des autres
 vérifications. Leurs échecs font échouer le pipeline. `pwa-publication` reste
-manuelle sur main, avec une dépendance au prototype réussi. Le contrôle du
+manuelle sur main, avec une dépendance aux deux jobs réussis. Le contrôle du
 statut exact du job dans le projet destinataire reste conservé.
 
-Le cache CI `.cache/pwa/runtime-0.28.3/` est partagé par version. La deuxième
+Le cache CI `.cache/pwa/runtime-314.0.7/` est partagé par version. La deuxième
 construction utilise ce runtime et les wheels de la première, sans nouveau
 téléchargement Pyodide ou pip. Même sans cache GitLab, les deux constructions
 d'un job réutilisent ses fichiers. Trois téléchargements au maximum sont
@@ -387,6 +390,28 @@ restauration explicitement confirmée dans l’espace habituel.
 La version applicative (tag commun ou `dev.<commit>`) est distincte de
 l’empreinte technique du bundle, conservée pour les caches. Les nouveautés
 embarquées sont celles de `CHANGELOG.org` au commit construit. La publication
-reste manuelle après réussite du prototype et de la qualification CI ;
+reste manuelle après réussite des deux jobs PWA en CI ;
 voir [PUBLICATION.md](PUBLICATION.md). Les programmes restent publiés sur
 GitHub par la commande CLI, indépendamment de GitLab Pages.
+
+## Version maintenue (#PWA13)
+
+Le runtime courant est Pyodide 314.0.7/Python 3.14.2 ; SQLite et hashlib de base
+sont désormais dans la bibliothèque standard. La dérivation des mots de passe
+reste compatible avec Django natif par PyCryptodome. Les versions WASM sont
+consignées dans config.json. Les transferts attendent jusqu'à quinze minutes,
+avec arrêt du Worker et reprise de l'état confirmé si le résultat est incertain.
+Les noms historiques du verrou, d'IndexedDB et des jobs Pages sont conservés ;
+les nouveaux bundles portent l'identité `pwa.<empreinte>`. Voir PRODUCTION.md.
+
+Pour vérifier une mise à jour depuis un ancien bundle `--test` réellement
+construit (par exemple #PWA12/Pyodide 0.28.3), conserver ce répertoire et lancer :
+
+```sh
+PWA_OLD_BUNDLE=/chemin/bundle-ancien node scripts/verifier-pwa.cjs
+```
+
+Le banc crée l'école et un média fictifs dans l'ancien runtime, ferme l'onglet,
+active la nouvelle version et vérifie connexion, base et média avant les
+parcours courants. Les modèles d'images #J2 de main sont conservés ; les photos
+nouvelles sont uniques depuis #J2d, sans recomprimer les anciens médias.

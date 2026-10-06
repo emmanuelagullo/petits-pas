@@ -3,7 +3,8 @@
 Le job manuel **pwa-publication** publie le bundle du job **pwa-prototype**
 réussi dans le **même pipeline** de `main` ou d’un tag numérique commun aux deux forges. La qualification doit aussi réussir. Il ne reconstruit pas l'application
 et ne publie pas le bundle de `pwa-qualification`. Les données des essais ne
-sont pas incluses. Cette publication statique reste destinée aux données fictives.
+sont pas incluses. Depuis #PWA13, les versions maintenues visent la production sur le périmètre
+décrit dans [PRODUCTION.md](PRODUCTION.md). Les bancs restent fictifs.
 
 ## Configuration initiale, une seule fois
 
@@ -174,8 +175,8 @@ de projet Pages, de chemin, d'en-têtes COOP/COEP ou de format interne n'est
 requis. Publier le bundle complet contrôlé par les mêmes jobs ; anciens ZIP et
 manifestes sont repris. Depuis #PWA12, les transferts ZIP sont progressifs et limités à 256 Mio
 décompressés, avec base et fichier individuel à 64 Mio. Voir TRANSFERTS-OPFS.md.
-Cette évolution n'autorise pas les données réelles et ne valide pas tous les
-navigateurs par les seuls essais Chromium. Voir `MEDIA-OPFS.md` et les mesures
+Le périmètre de production et les navigateurs qualifiés sont décrits dans
+PRODUCTION.md ; la présence des API ne suffit pas à qualifier tous les moteurs. Voir `MEDIA-OPFS.md` et les mesures
 `QUALIFICATION.md`.
 
 La promotion vérifie les deux jobs du même commit, les empreintes du candidat,
@@ -189,3 +190,13 @@ lire des données migrées ; le republier ne restaure pas l’école. Vérifier 
 ZIP dans une copie indépendante avant son adoption confirmée. La récupération
 peut contenir un état antérieur aux dernières saisies. Ne pas effacer les
 données du navigateur pour actualiser les ressources.
+
+## #PWA13 : promotion d’une version maintenue
+
+Avant promotion, appliquer les contrôles de dépendances de PRODUCTION.md et
+attendre les rapports du runtime courant, y compris volume et interruptions.
+Le nom historique `pwa-prototype` et l’environnement `prototype-pwa` restent
+compatibles avec le projet Pages existant ; aucun changement de ses réglages
+n’est requis. Une publication ancienne garde son statut et son aide. Pour
+annoncer la nouvelle version aux utilisateurs, publier le nouveau bundle
+contrôlé puis vérifier sa version affichée. Les retours terrain restent non bloquants.

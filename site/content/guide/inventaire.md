@@ -211,7 +211,9 @@ Voir [relier deux compétences]({{< relref "/guide/eleves-classes/relier-compete
 L’[application dans le navigateur]({{< relref "/guide/local/essayer-navigateur.md" >}}) propose
 l’export/import du ZIP autonome, la vérification avant confirmation, une
 impression PDF par le navigateur et des mises à jour avec état de récupération.
-Le parcours est **disponible**, actuellement réservé aux données fictives.
+Le parcours est **disponible**. Depuis #PWA13, les versions maintenues visent
+la production sur ordinateur Chromium/Linux ; vérifier la version et les notes
+de la publication utilisée. Les anciens bundles restent des essais fictifs.
 Ses limites sont indiquées dans la fiche : volume de données, impression groupée
 et fonctionnement à vérifier sur votre appareil. Les procédures du
 programme autonome et du mode hébergé restent leurs références respectives.

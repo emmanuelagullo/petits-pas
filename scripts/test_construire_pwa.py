@@ -76,5 +76,21 @@ class DownloadTests(unittest.TestCase):
         self.assertEqual(list(self.root.iterdir()), [])
 
 
+class RuntimeTests(unittest.TestCase):
+    def test_cache_precedent_est_refuse_avant_selection_des_codecs(self):
+        with self.assertRaisesRegex(ValueError, "dossier propre"):
+            builder.verifier_runtime({"info": {"abi_version": "2025_0", "python": "3.13.2"}})
+        builder.verifier_runtime({"info": {"abi_version": "2026_0", "python": "3.14.2"}})
+
+    def test_reconstruction_retire_les_wheels_et_openssl_du_runtime_precedent(self):
+        with tempfile.TemporaryDirectory() as folder:
+            runtime = Path(folder)
+            for name in ("pyodide-lock.json", "pyodide.asm.mjs", "pillow-cp314.whl", "pillow-cp313.whl", "libopenssl.zip"):
+                (runtime / name).write_bytes(b"fictif")
+            expected = {"pyodide-lock.json", "pyodide.asm.mjs", "pillow-cp314.whl"}
+            builder.nettoyer_runtime(runtime, expected)
+            self.assertEqual({p.name for p in runtime.iterdir()}, expected)
+
+
 if __name__ == '__main__':
     unittest.main()

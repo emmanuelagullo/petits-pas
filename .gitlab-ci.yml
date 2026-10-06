@@ -364,9 +364,9 @@ pwa-prototype:
     - when: on_success
   allow_failure: false
   cache:
-    key: pwa-pyodide-0.28.3
+    key: pwa-pyodide-314.0.7
     paths:
-      - .cache/pwa/runtime-0.28.3/
+      - .cache/pwa/runtime-314.0.7/
       - .cache/pip/
   variables:
     DATABASE_URL: ""
@@ -380,7 +380,9 @@ pwa-prototype:
   script:
     - python3 -m unittest discover -s scripts -p test_construire_pwa.py
     - python3 -m unittest discover -s scripts -p test_ecole_fictive.py
-    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-0.28.3
+    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-314.0.7
+    - node --test scripts/test_transport_pwa.cjs
+    - python3 -m unittest discover -s scripts -p test_transferts_pwa.py
     - node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa.json
     - PWA_TEST_HTTPS=oui PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
@@ -389,7 +391,7 @@ pwa-prototype:
     - python3 -m unittest discover -s scripts -p test_essai_local.py
     - python3 -m unittest discover -s scripts -p test_apercu_local.py
     - python3 -m unittest discover -s scripts -p test_publication_pwa.py
-    - python3 scripts/construire-pwa.py --runtime .cache/pwa/runtime-0.28.3 --wheels dist/pwa/wheels
+    - python3 scripts/construire-pwa.py --runtime .cache/pwa/runtime-314.0.7 --wheels dist/pwa/wheels
     - node scripts/verifier-distribution-pwa.cjs
     - cp dist/pwa/config.json dist/pwa-config.json
     - python3 scripts/manifeste-publication.py --mode navigateur --target navigateur --destination dist/publication-pwa-candidat.json dist/pwa-config.json resultats-pwa.json resultats-pwa-sous-chemin.json dist/resultats-distribution-pwa.json
@@ -409,7 +411,7 @@ pwa-prototype:
 pwa-qualification:
   extends: pwa-prototype
   script:
-    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-0.28.3
+    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-314.0.7
     - node scripts/qualifier-pwa.cjs
   artifacts:
     when: always

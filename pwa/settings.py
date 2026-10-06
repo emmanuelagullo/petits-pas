@@ -1,4 +1,4 @@
-"""Profil navigateur expérimental, sans modification du profil serveur."""
+"""Profil navigateur, sans modification du profil serveur."""
 from carnet.settings import *  # noqa: F403
 
 MIDDLEWARE = [m for m in MIDDLEWARE if not m.startswith("whitenoise.")]

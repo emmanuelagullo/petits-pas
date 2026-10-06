@@ -1,4 +1,4 @@
-"""Pont WSGI du prototype. Ne lance aucun serveur et garde CSRF/droits Django."""
+"""Pont WSGI local. Ne lance aucun serveur et garde CSRF/droits Django."""
 import base64
 import hashlib
 import io

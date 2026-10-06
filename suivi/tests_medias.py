@@ -87,8 +87,12 @@ class NormalisationImagesPrivees(TestCase):
 
     def test_refuse_un_format_image_non_pris_en_charge(self):
         source = image_test(format="BMP")
-        with self.assertRaisesRegex(ImagePriveeInvalide, "JPEG, PNG ou WebP"):
-            normaliser_image(source)
+        # Le décodeur non autorisé ne doit pas être appelé avant le refus.
+        from unittest.mock import patch
+        with patch("PIL.BmpImagePlugin.BmpImageFile._open", side_effect=AssertionError("Décodeur interdit")) as decoder:
+            with self.assertRaisesRegex(ImagePriveeInvalide, "JPEG, PNG ou WebP"):
+                normaliser_image(source)
+            decoder.assert_not_called()
 
     def test_parametres_inconnus_sont_des_erreurs_de_programmation(self):
         with self.assertRaises(ValueError):

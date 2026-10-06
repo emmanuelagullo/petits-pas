@@ -13,7 +13,8 @@ statut = "disponible"
 Ce parcours concerne **Sur cet appareil**, dans une version qui propose le bouton.
 Les anciennes publications, dont le programme 0.7, ne le proposent pas.
 Le service de l’école ne permet pas d’ouvrir ou de remplacer sa base de cette façon.
-La PWA actuellement publiée reste destinée aux données fictives.
+Le statut dépend de la version publiée : les versions maintenues depuis #PWA13
+visent la production sur ordinateur Chromium/Linux ; les essais utilisent des données fictives.
 
 ## Ouvrir pour vérifier
 

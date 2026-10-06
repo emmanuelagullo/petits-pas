@@ -35,7 +35,9 @@ Dans le navigateur, les carnets passent par la fenêtre d’impression ; plusieu
 carnets forment un document commun. Le programme peut générer des PDF séparés.
 Consultez les [fiches des carnets]({{< relref "/guide/carnets/" >}}).
 
-L’application dans le navigateur est actuellement réservée aux données fictives.
+Depuis #PWA13, les versions navigateur maintenues visent la production sur
+ordinateur Chromium/Linux. Vérifiez la version publiée et ses notes ; les
+anciennes versions restent destinées aux essais fictifs.
 Avant toute utilisation de données réelles,
 préparer avec l’école la [protection des données]({{< relref "/proteger-donnees/" >}}).
 Le stockage protégé du navigateur et les copies de récupération ne remplacent

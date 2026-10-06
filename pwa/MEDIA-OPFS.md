@@ -91,3 +91,11 @@ d'école restent des compatibilités à observer, pas des conditions pour poursu
 L'absence d'une API bloque l'ouverture sans effacer ni recréer une école.
 Le Service Worker, la racine, `/petits-pas-pwa/`, les espaces essai/aperçu,
 l'authentification et les contrôles d'image gardent leurs parcours actuels.
+
+## Requalification #PWA13
+
+L'audit ci-dessus décrit le choix initial avec Pyodide 0.28.3. La version
+maintenue passe à Pyodide 314.0.7 ; les bancs Pillow/Django, mutations de fichiers,
+transferts et interruptions sont relancés. Le choix WORKERFS/MEMFS et le format
+interne restent identiques. Voir PRODUCTION.md et QUALIFICATION.md pour la
+version courante, les dépendances et le périmètre effectivement qualifié.

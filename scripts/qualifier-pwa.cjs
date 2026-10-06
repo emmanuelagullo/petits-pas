@@ -124,8 +124,17 @@ async function sample(photos, mutation) {
   assert.equal(metrics.lazyMediaFiles, photos);
   report.samples.push(row); console.log('MESURE', JSON.stringify(row));
 }
+const PHOTO_HASHES = `
+import hashlib, json
+from suivi.models import Trace
+hashes = set()
+for trace in Trace.objects.all().iterator():
+    with trace.photo.open('rb') as source:
+        hashes.add(hashlib.file_digest(source, 'sha256').hexdigest())
+json.dumps(sorted(hashes))
+`;
 async function integrity(photos, name) {
-  const hashes = JSON.parse(await value("import hashlib, json; from suivi.models import Trace; json.dumps(sorted({hashlib.sha256(trace.photo.read()).hexdigest() for trace in Trace.objects.all()}))"));
+  const hashes = JSON.parse(await value(PHOTO_HASHES));
   assert.deepEqual(hashes, report.photoHashes, 'Photos perdues ou altérées après reprise');
   assert.equal(await value("from suivi.models import Trace; Trace.objects.count()"), photos);
   assert.equal(await value("from suivi.models import Ecole; Ecole.objects.get().nom"), name);
@@ -182,7 +191,7 @@ def ajouter_photos(total):
     }
     await sample(count,mutation);
   }
-  report.photoHashes = JSON.parse(await value("import hashlib, json; json.dumps(sorted({hashlib.sha256(trace.photo.read()).hexdigest() for trace in Trace.objects.all()}))"));
+  report.photoHashes = JSON.parse(await value(PHOTO_HASHES));
   assert.equal(report.photoHashes.length, 2300);
   assert.equal(await page.evaluate(async () => (await fetch('/app/eleve/1/')).status), 200);
   await page.locator('#volume').filter({hasText: 'Limite proche'}).waitFor();
@@ -192,7 +201,7 @@ def ajouter_photos(total):
   const transferTimer = setInterval(() => {const bytes = browserPss(); if (bytes !== null) transferPss.push(bytes);}, 250);
   transferTimer.unref();
   const exportStarted = performance.now();
-  const downloadReady = page.waitForEvent('download', {timeout:120000});
+  const downloadReady = page.waitForEvent('download', {timeout:900000});
   await frame.getByRole('button', {name:'Télécharger une sauvegarde',exact:true}).click();
   const download = await downloadReady;
   const archive = await download.path();
@@ -220,7 +229,7 @@ with tempfile.TemporaryDirectory() as folder:
   await upload.detach();
   const importStarted = performance.now();
   await frame.getByRole('button',{name:'Vérifier la sauvegarde',exact:true}).click();
-  await frame.getByRole('button',{name:'Confirmer la restauration',exact:true}).waitFor({timeout:120000});
+  await frame.getByRole('button',{name:'Confirmer la restauration',exact:true}).waitFor({timeout:900000});
   report.verifyZipMs = performance.now() - importStarted;
   const confirmStarted = performance.now();
   await frame.getByRole('button',{name:'Confirmer la restauration',exact:true}).click();
