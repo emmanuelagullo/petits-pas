@@ -31,6 +31,6 @@
   {% endif %}
 
   <label for="photo">{% if photo_actuelle %}Remplacer par une autre photo{% else %}Ajouter une photo{% endif %}
-    <span class="aide">Une photo du travail, pas du visage de l'enfant, si vous voulez rester tranquille côté RGPD.</span>
+    <span class="aide">Une photo du travail, pas du visage de l'enfant. Elle sera automatiquement allégée avant son enregistrement, sans modifier le fichier sur votre appareil.</span>
   </label>
-  <input type="file" id="photo" name="photo" accept="image/*">
+  <input type="file" id="photo" name="photo" accept="image/jpeg,image/png,image/webp" data-image-privee="trace">

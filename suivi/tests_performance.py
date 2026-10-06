@@ -115,7 +115,7 @@ class TracesSansPhotoPerformance(Base):
             page = self.client.get(url)
         self.assertLessEqual(len(requetes), nombre)
         self.assertContains(page, "Texte fictif 29")
-        self.assertNotContains(page, "Télécharger la photo originale")
+        self.assertNotContains(page, "Télécharger la photo enregistrée")
 
 
 class EquipePerformance(Base):
@@ -186,13 +186,13 @@ class TracesAvecPhotoPerformance(Base):
         with CaptureQueriesContext(connection) as requetes:
             page = self.client.get(url)
         nombre = lectures_classe(requetes)
-        self.assertContains(page, "Télécharger la photo originale")
+        self.assertContains(page, "Télécharger la photo enregistrée")
         Trace.objects.bulk_create([Trace(observation=observation, scolarite=self.scolarite,
             photo="photo-fictive.png") for _ in range(20)])
         with CaptureQueriesContext(connection) as requetes:
             page = self.client.get(url)
         self.assertLessEqual(lectures_classe(requetes), nombre)
-        self.assertContains(page, "Télécharger la photo originale", count=21)
+        self.assertContains(page, "Télécharger la photo enregistrée", count=21)
 
 
 class EnregistrementPartagePerformance(Base):

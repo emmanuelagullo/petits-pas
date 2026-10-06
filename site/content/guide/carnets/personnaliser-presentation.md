@@ -43,7 +43,7 @@ La liste des compétences suit les mêmes domaines et le même ordre que le carn
 
 Avec **Remplacer**, l’icône choisie apparaît à côté du menu. Pour passer d’une photo importée à une icône fournie, cocher aussi **Effacer**. Les champs d’image sont grisés avec les autres choix. On peut revenir à l’image proposée en sélectionnant **Hériter**.
 
-Les images importées doivent être au format JPEG, PNG ou WebP, et ne pas dépasser 5 Mo. Elles restent privées. Pour une photo de groupe, vérifier que sa diffusion dans les carnets convient à toutes les personnes visibles.
+Les images importées doivent être au format JPEG, PNG ou WebP, et ne pas dépasser 25 Mio. Elles restent privées. Petits Pas les allège automatiquement, corrige leur orientation et retire leurs métadonnées ; le fichier présent sur l’appareil n’est pas modifié. La photo de couverture conserve une définition légèrement supérieure à celle d’une trace. Pour une photo de groupe, vérifier que sa diffusion dans les carnets convient à toutes les personnes visibles.
 
 Désactiver la photo de couverture ne retire pas la page de couverture. Une compétence peut très bien ne pas avoir d’image : les illustrations fournies sont facultatives et ne couvrent actuellement que quelques compétences.
 
