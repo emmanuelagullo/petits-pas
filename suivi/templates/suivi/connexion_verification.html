@@ -8,7 +8,7 @@
   <p><a href="{% url 'connexion' %}">Retour à la connexion</a></p>
 </div>
 {% else %}
-<p class="sous-titre">Saisissez le code à 6 chiffres affiché par votre application d'authentification, ou un code de secours si vous n'avez plus votre téléphone.</p>
+<p class="sous-titre">Saisissez le code à 6 chiffres affiché par votre générateur de codes, ou un code de secours si vous ne l'avez plus.</p>
 <form method="post" class="encadre">
   {% csrf_token %}
   <label for="code">Code de vérification</label>

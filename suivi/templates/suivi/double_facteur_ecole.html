@@ -4,7 +4,7 @@
 <h1>Authentification à deux facteurs</h1>
 <p class="sous-titre">{{ ecole.nom }}</p>
 
-<p>Le second facteur ajoute un code temporaire, généré par une application sur le téléphone, au mot de passe. L'hébergeur de l'application fixe un cadre ; l'école peut l'<strong>exiger pour davantage de fonctions</strong>, ou le <strong>retirer à certaines</strong> là où rien n'est obligatoire. Elle ne peut jamais assouplir ce que l'hébergeur impose, ni rouvrir ce qu'il a désactivé.</p>
+<p>Le second facteur ajoute un code temporaire, produit par un générateur de codes, au mot de passe (de préférence un appareil distinct du poste de travail : téléphone, jeton). L'hébergeur de l'application fixe un cadre ; l'école peut l'<strong>exiger pour davantage de fonctions</strong>, ou le <strong>retirer à certaines</strong> là où rien n'est obligatoire. Elle ne peut jamais assouplir ce que l'hébergeur impose, ni rouvrir ce qu'il a désactivé.</p>
 
 {% if deployeur_oblige or deployeur_desactive %}
 <div class="encadre">
@@ -41,7 +41,7 @@
 <div class="encadre">
   <h2>Effet actuel dans l'école</h2>
   <p>{% if apercu.concernes %}{{ apercu.concernes }} personne{% if apercu.concernes > 1 %}s{% endif %} soumise{% if apercu.concernes > 1 %}s{% endif %} à l'obligation, dont {{ apercu.deja_inscrits }} déjà inscrite{% if apercu.deja_inscrits > 1 %}s{% endif %}.{% else %}Personne n'est soumis à l'obligation dans cette école.{% endif %}</p>
-  {% if apercu.concernes %}<p class="aide">Les personnes non inscrites disposent d'un délai de grâce pour configurer leur second facteur, avec un rappel à l'écran, puis ne peuvent plus rien faire d'autre. En cas de téléphone perdu, la direction réinitialise le second facteur depuis l'écran d'équipe.</p>{% endif %}
+  {% if apercu.concernes %}<p class="aide">Les personnes non inscrites disposent d'un délai de grâce pour configurer leur second facteur, avec un rappel à l'écran, puis ne peuvent plus rien faire d'autre. En cas de perte du générateur de codes, la direction réinitialise le second facteur depuis l'écran d'équipe.</p>{% endif %}
   {% for avertissement in effective.avertissements %}<p class="aide" role="note">{{ avertissement }}</p>{% endfor %}
 </div>
 {% endblock %}
