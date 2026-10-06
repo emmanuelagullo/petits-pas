@@ -61,16 +61,23 @@ class LectureEtCloture(Base):
     def test_photo_finale_protegee_du_nettoyage(self):
         with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
             reglage = ReglagePresentation.objects.create(ecole=self.ecole, classe=self.classe,
-                competence=self.competence, mode="remplacer", photo=image_fictive())
+                competence=self.competence, mode="remplacer", photo=image_fictive(),
+                photo_pdf=image_fictive("illustration-pdf.png"))
             nom = reglage.photo.name
+            nom_pdf = reglage.photo_pdf.name
             stockage = reglage.photo.storage
             clore(utilisateur=self.enseignant, classe=self.classe)
             reglage.photo = None
+            reglage.photo_pdf = None
             reglage.mode = "desactiver"
             reglage.save()
             with self.captureOnCommitCallbacks(execute=True):
                 _supprimer_media_apres_validation(nom)
+                _supprimer_media_apres_validation(nom_pdf)
             self.assertTrue(stockage.exists(nom))
+            self.assertTrue(stockage.exists(nom_pdf))
+            ressource = RessourceReferentiel.objects.get(fichier=nom)
+            self.assertEqual(ressource.fichier_pdf.name, nom_pdf)
 
     def test_cloture_refusee_sans_droit(self):
         from comptes.models import Utilisateur
