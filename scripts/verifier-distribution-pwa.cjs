@@ -20,7 +20,7 @@ const server = http.createServer((req,res)=>{
 let browser;
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- browser = await chromium.launch({headless:true,...(process.env.PWA_CHROMIUM ? {executablePath:process.env.PWA_CHROMIUM} : {}),args:['--no-sandbox']});
+ browser = await chromium.launch({headless:true,...(process.env.PWA_BROWSER_CHANNEL ? {channel:process.env.PWA_BROWSER_CHANNEL} : {}),...(process.env.PWA_CHROMIUM ? {executablePath:process.env.PWA_CHROMIUM} : {}),args:['--no-sandbox']});
  const page = await browser.newPage();
  await page.goto('http://127.0.0.1:' + server.address().port + '/');
  await page.frameLocator('#app').locator('[name="ecole_nom"]').waitFor({timeout:180000});
@@ -30,6 +30,6 @@ let browser;
  // Même application après coupure réseau, dans ce profil fictif.
  await page.context().setOffline(true); await page.reload();
  await page.frameLocator('#app').locator('[name="ecole_nom"]').waitFor({timeout:180000});
- fs.writeFileSync(path.resolve(root,'../resultats-distribution-pwa.json'),JSON.stringify([{test:'Distribution : démarrage, version, sans hooks de test, routes locales et réouverture hors ligne',bundle:config.version,commit:config.commit}],null,2)+'\n');
+ fs.writeFileSync(path.resolve(root,'../resultats-distribution-pwa.json'),JSON.stringify([{test:'Distribution : démarrage, version, sans hooks de test, routes locales et réouverture hors ligne',bundle:config.version,commit:config.commit,platform:process.platform,browser:browser.version(),channel:process.env.PWA_BROWSER_CHANNEL || 'chromium'}],null,2)+'\n');
  console.log('OK Distribution PWA : démarrage et réouverture hors ligne.');
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{await browser?.close();server.close();});

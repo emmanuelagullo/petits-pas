@@ -431,3 +431,26 @@ Pas d'essai Windows/macOS, Firefox/Safari, tablette, coupure électrique physiqu
 ou campagne terrain dans cette livraison ; pas de publication distante ni de
 CI distante exécutée ici. Ces limites ne bloquent pas le périmètre Chromium
 Linux déclaré, et les retours d'appareils d'école restent non bloquants.
+
+
+### CI Windows — Chromium, Chrome et Edge
+
+Le workflow GitHub `.github/workflows/pwa-windows.yml` lance sur Windows Server
+2025 trois jobs indépendants : Chromium Playwright, Google Chrome et Microsoft
+Edge. Déclenchement sur les changements concernés de main, les tags, les PR ou
+manuellement. Chaque job exécute le même banc complet à la racine puis en HTTPS
+sous `/petits-pas-pwa/`, reconstruit sans hooks et vérifie la réouverture hors
+ligne. Les rapports JSON indiquent le navigateur réellement lancé, sa version,
+le système et sont conservés en artefacts pendant 30 jours. Aucun échec n'est
+rendu facultatif. Toutes les données sont fictives.
+
+La validation du PDF utilise pypdf sous Windows et conserve les assertions sur
+le contenu ; Linux conserve pdftotext. Le Python natif est choisi explicitement
+pour éviter l'alias Windows python3. Les tests Linux de SIGKILL, quota contraint
+et mesures PSS ne sont pas transplantés en assertions Windows trompeuses.
+
+Ce workflow est fourni avant son premier passage distant : sa présence ne vaut
+pas qualification réussie. Un passage vert documentera la portabilité Windows
+sur ces navigateurs ; il ne vérifie pas les politiques informatiques d'une
+école, l'installation graphique ou les performances de tous les postes.
+Linux est une plateforme de mesure, pas une dépendance de la PWA.

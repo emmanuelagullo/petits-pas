@@ -47,7 +47,7 @@ const server = tls ? https.createServer({key: fs.readFileSync(path.join(certific
 let browser;
 let currentPage;
 const report = [];
-function pass(test, data = {}) { report.push({test, ...data}); console.log('OK', test, JSON.stringify(data)); }
+function pass(test, data = {}) { report.push({test, platform: process.platform, browser: browser?.version(), channel: process.env.PWA_BROWSER_CHANNEL || "chromium", ...data}); console.log('OK', test, JSON.stringify(data)); }
 async function boot(page, url) {
   await page.goto(url);
   await page.waitForFunction(() => !!window.pwaTest || !document.querySelector('#failure').hidden || /TypeError|PythonError|Error:/.test(document.querySelector('#status').textContent), null, {timeout: 120000});
@@ -86,6 +86,7 @@ async function login(page) {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const url = `${tls ? 'https' : 'http'}://127.0.0.1:${server.address().port}${base}`;
   browser = await playwright.chromium.launch({headless: true,
+    ...(process.env.PWA_BROWSER_CHANNEL ? {channel: process.env.PWA_BROWSER_CHANNEL} : {}),
     ...(process.env.PWA_CHROMIUM ? {executablePath: process.env.PWA_CHROMIUM} : {}),
     // Certificat éphémère de ce seul serveur de test ; aucun réglage livré.
     args: ['--no-sandbox', '--disable-dev-shm-usage', ...(tls ? ['--ignore-certificate-errors'] : [])]});
@@ -197,9 +198,9 @@ hashlib.sha256(buffer.getvalue()).hexdigest()
 
   assert.equal(await python(page, "import hashlib; hashlib.pbkdf2_hmac('sha256', b'password', b'salt', 1).hex()"), '120fb6cffcf8b32c43e7225256c4f837a86548c92ccc35480805987cb70be17b');
   assert.deepEqual(JSON.parse(await python(page, "import json; from PIL import Image; json.dumps(sorted(Image.ID))")), ['JPEG','PNG','WEBP']);
-  const nativeKdf = execFileSync('python3', ['-c', "import hashlib,json; print(json.dumps({name:hashlib.pbkdf2_hmac(name, 'mot-fictif-é'.encode(), b'sel-fictif', 123, 42).hex() for name in ('sha1','sha256','sha512')}))"], {encoding:'utf8'}).trim();
+  const nativeKdf = execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', "import hashlib,json; print(json.dumps({name:hashlib.pbkdf2_hmac(name, 'mot-fictif-é'.encode(), b'sel-fictif', 123, 42).hex() for name in ('sha1','sha256','sha512')}))"], {encoding:'utf8'}).trim();
   assert.deepEqual(JSON.parse(await python(page, "json.dumps({name:hashlib.pbkdf2_hmac(name, 'mot-fictif-é'.encode(), b'sel-fictif', 123, 42).hex() for name in ('sha1','sha256','sha512')})")), JSON.parse(nativeKdf));
-  assert.equal(await python(page, "hashlib.scrypt(b'password', salt=b'NaCl', n=16, r=1, p=1, dklen=32).hex()"), execFileSync('python3', ['-c', "import hashlib; print(hashlib.scrypt(b'password', salt=b'NaCl', n=16, r=1, p=1, dklen=32).hex())"], {encoding:'utf8'}).trim());
+  assert.equal(await python(page, "hashlib.scrypt(b'password', salt=b'NaCl', n=16, r=1, p=1, dklen=32).hex()"), execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', "import hashlib; print(hashlib.scrypt(b'password', salt=b'NaCl', n=16, r=1, p=1, dklen=32).hex())"], {encoding:'utf8'}).trim());
   pass('PBKDF2 SHA-1/256/512 et scrypt compatibles natif, décodeurs privés');
   const initialMediaCount = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result.lazyMediaFiles;
 
@@ -304,7 +305,7 @@ assert not p.exists() and not q.exists()
   await page.frameLocator('#app').getByRole('button', {name: 'Télécharger une sauvegarde', exact: true}).click();
   const download = await downloadReady;
   const archivePath = await download.path();
-  execFileSync('python3', ['-c', "import sys,zipfile,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); m=json.loads(z.read('manifest.json')); assert m['format']=='petits-pas-paquet'; assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items()); assert any(n.startswith('media/') for n in m['files'])", archivePath]);
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', "import sys,zipfile,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); m=json.loads(z.read('manifest.json')); assert m['format']=='petits-pas-paquet'; assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items()); assert any(n.startswith('media/') for n in m['files'])", archivePath]);
   pass('Export ZIP commun au mode autonome, manifeste et photos vérifiés');
   await page.frames()[1].goto(url + 'app/verifier-zip/');
   await frame.locator('[name="archive"]').setInputFiles(archivePath);
@@ -325,7 +326,7 @@ assert not p.exists() and not q.exists()
   assert.equal(await frame.getByRole('heading', {name: 'Restaurer une sauvegarde', exact: true}).count(), 0);
   const previewDownload = await Promise.all([page.waitForEvent('download'), frame.getByRole('button', {name:'Télécharger une sauvegarde',exact:true}).click()]);
   const previewPath = await previewDownload[0].path();
-  execFileSync('python3', ['-c', `
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
 with tempfile.TemporaryDirectory() as folder:
     with zipfile.ZipFile(sys.argv[1]) as archive: archive.extract('carnet.sqlite3',folder)
@@ -365,7 +366,7 @@ with tempfile.TemporaryDirectory() as folder:
   assert.equal(await python(page, "from suivi.paquet_local import suivi_export; suivi_export(__import__('pathlib').Path('/data'))['rappel_sauvegarde_local']"), false);
   pass('Date du ZIP préparé affichée, rappel commun levé sans prétendre confirmer son enregistrement');
   const transfer = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'petits-pas-transfert-'));
-  execFileSync('python3', ['-c', `
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 from pathlib import Path
 import sqlite3, sys
 from suivi.paquet_local import preparer_restauration, appliquer_restauration, creer_sauvegarde
@@ -412,7 +413,7 @@ with (parent/'version-future.zip').open('wb') as sortie: creer_sauvegarde(paquet
   const recoveryDownload = page.waitForEvent('download', {timeout: 120000});
   await page.getByRole('button', {name: 'Exporter l’état de récupération'}).click();
   const recovery = await recoveryDownload;
-  execFileSync('python3', ['-c', `
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
 from pathlib import Path
 from suivi.paquet_local import preparer_restauration
@@ -432,7 +433,9 @@ with tempfile.TemporaryDirectory() as dossier:
   assert(await printPage.evaluate(() => window.printCalled));
   const pdf = await printPage.pdf({preferCSSPageSize: true, printBackground: true});
   const pdfPath = path.join(transfer, 'carnet.pdf'); fs.writeFileSync(pdfPath, pdf);
-  const text = execFileSync('pdftotext', [pdfPath, '-'], {encoding: 'utf8'});
+  const text = process.env.PWA_PDF_PYTHON === 'oui'
+    ? execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', "from pypdf import PdfReader; import sys; print('\\n'.join(p.extract_text() for p in PdfReader(sys.argv[1]).pages))", pdfPath], {encoding: 'utf8'})
+    : execFileSync('pdftotext', [pdfPath, '-'], {encoding: 'utf8'});
   assert(text.includes('Ana')); assert(text.includes('Réalisation entièrement fictive.'));
   assert(!text.includes('Le carnet est prêt à imprimer'));
   await printPage.close();
@@ -500,7 +503,7 @@ with tempfile.TemporaryDirectory() as dossier:
   config.assets.find(asset => asset.url === '/sw.js').sha256 = require('node:crypto').createHash('sha256').update(sw).digest('hex');
 
   const migratedApplication = path.join(transfer, 'application-migration-fictive.zip');
-  execFileSync('python3', ['-c', `
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,zipfile
 with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',zipfile.ZIP_DEFLATED) as target:
     for name in original.namelist(): target.writestr(name,original.read(name))
@@ -534,7 +537,7 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   const rescueDownload = reopened.waitForEvent('download', {timeout: 120000});
   await reopened.getByRole('button', {name: 'Exporter l’état de récupération'}).click();
   const rescued = await rescueDownload;
-  execFileSync('python3', ['-c', `
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,tempfile,sqlite3
 from pathlib import Path
 from suivi.paquet_local import preparer_restauration
@@ -582,7 +585,7 @@ with tempfile.TemporaryDirectory() as dossier:
   await espace.getByRole('heading', {name: 'Petits Pas n’a pas pu démarrer'}).waitFor({timeout:120000});
   const archiveHabituelle = await Promise.all([espace.waitForEvent('download'), espace.locator('#recovery').click()]);
   const cheminHabituel = await archiveHabituelle[0].path();
-  execFileSync('python3', ['-c', `
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
 with tempfile.TemporaryDirectory() as folder:
     with zipfile.ZipFile(sys.argv[1]) as archive: archive.extract('carnet.sqlite3',folder)
