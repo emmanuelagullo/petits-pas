@@ -25,6 +25,7 @@ class Illustration:
     photo: str = ""
     reglage_id: int | None = None
     ressource_id: int | None = None
+    photo_pdf: str = ""
 
     @property
     def statique(self):
@@ -66,7 +67,9 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
                         ressource = (RessourceReferentiel.objects.filter(annuel=adoption.annuel,
                                      fichier=reglage["photo"]).first() if reglage["photo"] else None)
                         resultat = Illustration(provenance=provenance, icone=reglage["icone"],
-                            photo=reglage["photo"], ressource_id=ressource.pk if ressource else None)
+                            photo=reglage["photo"], ressource_id=ressource.pk if ressource else None,
+                            photo_pdf=(ressource.fichier_pdf.name if ressource and ressource.fichier_pdf
+                                       else reglage.get("photo_pdf", "")))
             return resultat
     if competence and classe:
         from .referentiels import definition_classe
@@ -89,8 +92,13 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
             continue
         resultat = Illustration(provenance=provenance)
         if reglage.mode == ReglagePresentation.REMPLACER:
-            resultat = Illustration(provenance, reglage.icone,
-                                     reglage.photo.name if reglage.photo else "", reglage.pk)
+            resultat = Illustration(
+                provenance=provenance,
+                icone=reglage.icone,
+                photo=reglage.photo.name if reglage.photo else "",
+                reglage_id=reglage.pk,
+                photo_pdf=reglage.photo_pdf.name if reglage.photo_pdf else "",
+            )
     return resultat
 
 

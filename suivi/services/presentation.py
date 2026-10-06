@@ -23,12 +23,13 @@ def verifier_droit(utilisateur, ecole, classe=None):
 def enregistrer_reglage(utilisateur, reglage):
     verifier_droit(utilisateur, reglage.ecole, reglage.classe)
     precedent = ReglagePresentation.objects.filter(pk=reglage.pk).first() if reglage.pk else None
-    anciennes = instantane(precedent, ("mode", "icone", "photo")) if precedent else {}
+    champs = ("mode", "icone", "photo", "photo_pdf")
+    anciennes = instantane(precedent, champs) if precedent else {}
     reglage.dernier_editeur = utilisateur
     reglage.full_clean()
     reglage.save()
     journaliser(utilisateur, "presentation.reglage", reglage, anciennes,
-               nouvelles=instantane(reglage, ("mode", "icone", "photo")))
+               nouvelles=instantane(reglage, champs))
     return reglage
 
 

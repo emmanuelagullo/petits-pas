@@ -47,7 +47,7 @@ def reprendre(ecole_id):
     source = SourceReferentiel.objects.create(identifiant=identifiant, titre="État initial repris",
                                              provenance="Base existante ; origine source non établie", ecole=ecole)
     version = VersionReferentiel.objects.create(source=source, numero="initial", empreinte=empreinte, contenu=contenu)
-    reglages = lignes(ReglagePresentation.objects.filter(ecole=ecole), "id", "classe_id", "competence_id", "mode", "icone", "photo")
+    reglages = lignes(ReglagePresentation.objects.filter(ecole=ecole), "id", "classe_id", "competence_id", "mode", "icone", "photo", "photo_pdf")
     formulations = lignes(FormulationLocale.objects.filter(ecole=ecole), "id", "classe_id", "competence_id", "origine_id", "origine_locale_id", "mode", "texte")
     classes = list(Classe.objects.filter(ecole=ecole).order_by("pk"))
     annuels = {}
@@ -61,7 +61,10 @@ def reprendre(ecole_id):
                               "avertissement": "Réglages présents à la reprise, pas une présentation historique reconstituée."})
         for reglage in reglages:
             if reglage["photo"]:
-                RessourceReferentiel.objects.get_or_create(annuel=annuels[classe.annee_scolaire], fichier=reglage["photo"])
+                RessourceReferentiel.objects.get_or_create(
+                    annuel=annuels[classe.annee_scolaire], fichier=reglage["photo"],
+                    defaults={"fichier_pdf": reglage.get("photo_pdf") or None},
+                )
         adoption = AdoptionReferentiel.objects.create(classe=classe, annuel=annuels[classe.annee_scolaire],
                                                       version=version, reprise=True)
         for competence in competences:

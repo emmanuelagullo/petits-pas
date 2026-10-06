@@ -16,7 +16,7 @@ from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.cache import cache
 from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage, Storage
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.db import DatabaseError, IntegrityError, transaction
@@ -51,6 +51,7 @@ from .models import (
     Scolarite,
     SousDomaine,
     Trace,
+    TraceCommune,
     annee_scolaire_pour,
     bornes_annee_scolaire,
     statut_annee_scolaire,
@@ -66,6 +67,35 @@ from .services.equipe import (
 )
 from .services.pedagogie import modifier_etat
 from .autorisations import peut_terminer_affectation
+
+
+class StockageSansChemin(Storage):
+    """Double de stockage objet : aucune API de chemin local disponible."""
+
+    def __init__(self, **_options):
+        self.contenus = {}
+
+    def _save(self, name, content):
+        self.contenus[name] = content.read()
+        return name
+
+    def _open(self, name, mode="rb"):
+        return ContentFile(self.contenus[name], name=name)
+
+    def exists(self, name):
+        return name in self.contenus
+
+    def delete(self, name):
+        self.contenus.pop(name, None)
+
+    def size(self, name):
+        return len(self.contenus[name])
+
+    def url(self, name):
+        return f"/prive/{name}"
+
+    def path(self, name):
+        raise NotImplementedError
 
 
 class InstallationLocaleTests(TestCase):
@@ -436,6 +466,42 @@ class Base(TestCase):
 
 
 class TracesCommunes(Base):
+    def test_import_collectif_partage_les_deux_variantes_sans_dupliquer(self):
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        autre = Eleve.objects.create(ecole=self.ecole, prenom="Noé")
+        Scolarite.objects.create(
+            eleve=autre, classe=self.classe,
+            annee_scolaire=self.classe.annee_scolaire, niveau="PS",
+        )
+        contenu = BytesIO()
+        Image.new("RGB", (1800, 1200), "green").save(contenu, "JPEG")
+        photo = SimpleUploadedFile("atelier.jpg", contenu.getvalue(), content_type="image/jpeg")
+        self.client.force_login(self.enseignant)
+        with TemporaryDirectory() as dossier, override_settings(MEDIA_ROOT=dossier):
+            reponse = self.client.post(reverse("ajouter_trace_commune", args=[
+                self.classe.pk, self.competence.pk,
+            ]), {
+                "eleves": [self.eleve.pk, autre.pk],
+                "date_observation": "2026-10-03",
+                "commentaire": "<prenom> participe",
+                "photo": photo,
+            })
+            self.assertEqual(reponse.status_code, 302)
+            commune = TraceCommune.objects.get()
+            self.assertTrue(default_storage.exists(commune.photo.name))
+            self.assertTrue(default_storage.exists(commune.photo_pdf.name))
+            self.assertEqual(
+                set(commune.attributions.values_list("photo", flat=True)),
+                {commune.photo.name},
+            )
+            self.assertEqual(
+                set(commune.attributions.values_list("photo_pdf", flat=True)),
+                {commune.photo_pdf.name},
+            )
+            self.assertEqual(len(list(Path(dossier).rglob("*.jpg"))), 2)
+
     def test_associe_consulte_sans_boutons_de_modification_collective(self):
         from .services.traces_communes import enregistrer_commune
 
@@ -619,11 +685,12 @@ class TracesCommunes(Base):
             with TemporaryDirectory() as copies:
                 destination = Path(copies) / "sauvegarde"
                 manifeste = sauvegarder(default_storage, destination)
-                self.assertEqual(len(manifeste["objects"]), 2)
+                self.assertEqual(len(manifeste["objects"]), 3)
                 with TemporaryDirectory() as cible, override_settings(MEDIA_ROOT=cible):
                     restaurer(default_storage, destination)
                     self.assertTrue(default_storage.exists(nom_commun))
                     self.assertTrue(default_storage.exists(trace.photo.name))
+                    self.assertTrue(default_storage.exists(trace.photo_pdf.name))
                     call_command("verifier_reprise_restauree", stdout=StringIO())
 
     def test_retrait_collectif_conserve_la_version_personnelle(self):
@@ -1472,6 +1539,25 @@ class Carnet(Base):
         self.assertNotIn("/media/traces/", rendu)
         self.assertEqual(noms_media, ["traces/photo école.jpg"])
 
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
+    def test_le_pdf_prefere_la_variante_privee(self, generer_pdf):
+        observation = Observation.objects.create(
+            eleve=self.eleve, competence=self.competence, statut=Observation.REUSSI,
+        )
+        self.creer_trace(
+            observation,
+            photo="traces/principale.jpg",
+            photo_pdf="traces/pdf/variante.jpg",
+        )
+        self.entrer()
+
+        self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]))
+
+        rendu, _base_url, _feuille_style, noms_media = generer_pdf.call_args.args
+        self.assertIn("petits-pas-media:traces%2Fpdf%2Fvariante.jpg", rendu)
+        self.assertNotIn("petits-pas-media:traces%2Fprincipale.jpg", rendu)
+        self.assertEqual(noms_media, ["traces/pdf/variante.jpg"])
+
     def test_le_pdf_d_un_eleve_d_une_autre_ecole_est_introuvable(self):
         autre = Ecole.objects.create(nom="Ailleurs")
         autre_classe = Classe.objects.create(ecole=autre, nom="MS")
@@ -1744,6 +1830,108 @@ class HistoriqueTraces(Base):
         page = self.client.get(self.url)
         self.assertContains(page, "Première trace")
         self.assertContains(page, "Deuxième trace")
+
+    def test_import_normalise_principale_et_variante_pdf(self):
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        contenu = BytesIO()
+        exif = Image.Exif()
+        exif[315] = "Personne fictive"
+        Image.new("RGB", (2400, 1600), "#3c78aa").save(
+            contenu, "JPEG", quality=95, exif=exif
+        )
+        photo = SimpleUploadedFile(
+            "production-source.jpg", contenu.getvalue(), content_type="image/jpeg"
+        )
+        with TemporaryDirectory() as dossier, override_settings(MEDIA_ROOT=dossier):
+            reponse = self.client.post(self.url, {
+                "date_observation": "2026-10-03",
+                "commentaire": "Production fictive",
+                "visible_carnet": "on",
+                "photo": photo,
+            })
+            self.assertEqual(reponse.status_code, 302)
+            trace = Trace.objects.get()
+            self.assertTrue(trace.photo.name.endswith(".jpg"))
+            self.assertIn("traces/pdf/", trace.photo_pdf.name)
+            with default_storage.open(trace.photo.name, "rb") as fichier:
+                with Image.open(fichier) as image:
+                    self.assertEqual(image.size, (1600, 1067))
+                    self.assertEqual(image.getexif(), {})
+            with default_storage.open(trace.photo_pdf.name, "rb") as fichier:
+                with Image.open(fichier) as image:
+                    self.assertEqual(image.size, (600, 400))
+                    self.assertEqual(image.getexif(), {})
+
+    def test_image_invalide_est_expliquee_sans_creer_de_trace(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        photo = SimpleUploadedFile("faux.jpg", b"pas une image", content_type="image/jpeg")
+        reponse = self.client.post(self.url, {
+            "date_observation": "2026-10-03",
+            "commentaire": "Ne doit pas être enregistré",
+            "visible_carnet": "on",
+            "photo": photo,
+        })
+
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, "n’est pas une image")
+        self.assertFalse(Trace.objects.exists())
+
+    @override_settings(STORAGES={
+        "default": {"BACKEND": "suivi.tests.StockageSansChemin"},
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    })
+    def test_import_ne_depend_pas_d_un_chemin_local_de_stockage(self):
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        contenu = BytesIO()
+        Image.new("RGB", (1000, 700), "orange").save(contenu, "JPEG")
+        photo = SimpleUploadedFile("sans-chemin.jpg", contenu.getvalue(), content_type="image/jpeg")
+
+        reponse = self.client.post(self.url, {
+            "date_observation": "2026-10-03", "commentaire": "Stockage objet fictif",
+            "visible_carnet": "on", "photo": photo,
+        })
+
+        self.assertEqual(reponse.status_code, 302)
+        trace = Trace.objects.get()
+        self.assertTrue(default_storage.exists(trace.photo.name))
+        self.assertTrue(default_storage.exists(trace.photo_pdf.name))
+        with self.assertRaises(NotImplementedError):
+            default_storage.path(trace.photo.name)
+
+    def test_remplacement_supprime_principale_et_variante_devenues_inutiles(self):
+        from PIL import Image
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        def photo(couleur):
+            contenu = BytesIO()
+            Image.new("RGB", (1200, 800), couleur).save(contenu, "JPEG")
+            return SimpleUploadedFile("production.jpg", contenu.getvalue(), content_type="image/jpeg")
+
+        with TemporaryDirectory() as dossier, override_settings(MEDIA_ROOT=dossier):
+            self.client.post(self.url, {
+                "date_observation": "2026-10-03", "commentaire": "Avant",
+                "visible_carnet": "on", "photo": photo("blue"),
+            })
+            trace = Trace.objects.get()
+            anciens = (trace.photo.name, trace.photo_pdf.name)
+            with self.captureOnCommitCallbacks(execute=True):
+                self.client.post(reverse("modifier_trace", args=[
+                    self.eleve.pk, self.competence.pk, trace.pk,
+                ]), {
+                    "date_observation": "2026-10-04", "commentaire": "Après",
+                    "visible_carnet": "on", "photo": photo("red"),
+                })
+            trace.refresh_from_db()
+            self.assertNotIn(trace.photo.name, anciens)
+            self.assertNotIn(trace.photo_pdf.name, anciens)
+            self.assertFalse(any(default_storage.exists(nom) for nom in anciens))
+            self.assertTrue(default_storage.exists(trace.photo.name))
+            self.assertTrue(default_storage.exists(trace.photo_pdf.name))
 
     def test_une_formulation_proposee_est_personnalisee_et_reste_modifiable(self):
         FormulationProposee.objects.create(

@@ -198,7 +198,9 @@ SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 CSRF_COOKIE_SAMESITE = "Lax"
 
-# Limite de taille d'une photo de trace (5 Mo).
+# Seuil de mise en mémoire des requêtes et fichiers. La limite fonctionnelle
+# des images privées (25 Mio avant normalisation) est contrôlée par le service
+# médias ; au-delà de ce seuil, Django écrit déjà le téléversement sur disque.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 

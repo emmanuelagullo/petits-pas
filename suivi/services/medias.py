@@ -50,6 +50,12 @@ class ImageNormalisee:
     type_mime: str = "image/jpeg"
 
 
+@dataclass(frozen=True)
+class VariantesImage:
+    principale: ImageNormalisee
+    pdf: ImageNormalisee
+
+
 POLITIQUE_EQUILIBREE = PolitiqueImages(
     # Limite identique pour les traces et couvertures : le relâchement de la
     # couverture porte sur la qualité utile, pas sur la protection du serveur.
@@ -168,4 +174,23 @@ def normaliser_image(source, *, famille="trace", variante="principale",
         hauteur=image.height,
         qualite=qualite,
         objectif_atteint=len(sortie) <= regle.objectif_octets,
+    )
+
+
+def normaliser_variantes(source, *, famille="trace",
+                         politique=POLITIQUE_EQUILIBREE):
+    """Produit les deux variantes depuis le même fichier reçu.
+
+    La variante PDF repart du fichier reçu, et jamais d'un JPEG déjà
+    normalisé. Cela évite une seconde perte de qualité et fonctionne aussi
+    avec les fichiers téléversés qui ne peuvent être lus qu'une fois.
+    """
+    contenu = _lire_borne(source, politique.limite_brute_octets)
+    return VariantesImage(
+        principale=normaliser_image(
+            contenu, famille=famille, variante="principale", politique=politique
+        ),
+        pdf=normaliser_image(
+            contenu, famille=famille, variante="pdf", politique=politique
+        ),
     )

@@ -1,26 +1,26 @@
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 
-from suivi.models import Trace, TraceCommune, ReglagePresentation
+from suivi.models import Trace, TraceCommune, ReglagePresentation, RessourceReferentiel
 
 
 class Command(BaseCommand):
     help = "Vérifie que les médias référencés par la base restaurée existent."
 
     def handle(self, *args, **options):
-        references = set(
-            Trace.objects.exclude(photo="")
-            .exclude(photo__isnull=True)
-            .values_list("photo", flat=True)
-        )
-        references.update(
-            TraceCommune.objects.exclude(photo="").exclude(photo__isnull=True)
-            .values_list("photo", flat=True)
-        )
-        references.update(
-            ReglagePresentation.objects.exclude(photo="").exclude(photo__isnull=True)
-            .values_list("photo", flat=True)
-        )
+        references = set()
+        for modele, champs in (
+            (Trace, ("photo", "photo_pdf")),
+            (TraceCommune, ("photo", "photo_pdf")),
+            (ReglagePresentation, ("photo", "photo_pdf")),
+            (RessourceReferentiel, ("fichier", "fichier_pdf")),
+        ):
+            for champ in champs:
+                references.update(
+                    modele.objects.exclude(**{champ: ""})
+                    .exclude(**{f"{champ}__isnull": True})
+                    .values_list(champ, flat=True)
+                )
         manquants = []
         for nom in references:
             try:

@@ -15,7 +15,7 @@ class IllustrationForm(forms.ModelForm):
         fields = ["mode", "icone", "photo"]
         widgets = {"photo": ImagePriveeInput}
         labels = {"mode": "Quelle image utiliser ?", "photo": "Image importée"}
-        help_texts = {"photo": "JPEG, PNG ou WebP, 5 Mo maximum. Les images importées restent privées."}
+        help_texts = {"photo": "JPEG, PNG ou WebP, 25 Mio maximum. L’image sera allégée et restera privée."}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -24,6 +24,10 @@ class IllustrationForm(forms.ModelForm):
         if self.instance.competence_id is None:
             self.fields.pop("icone")
         self.fields["mode"].widget.attrs["title"] = "Utiliser l'image proposée, choisir votre image ou ne pas afficher d'image."
+        self.fields["photo"].widget.attrs.update({
+            "accept": "image/jpeg,image/png,image/webp",
+            "data-image-privee": "trace" if self.instance.competence_id else "couverture",
+        })
         # Les contrôles sont pilotés en JavaScript ; côté serveur, ignorer
         # également les modifications d'image hors du mode Remplacer.
         if self.is_bound and self.data.get("mode") != ReglagePresentation.REMPLACER:
@@ -34,8 +38,6 @@ class IllustrationForm(forms.ModelForm):
     def clean_photo(self):
         photo = self.cleaned_data.get("photo")
         if photo and hasattr(photo, "content_type"):
-            if photo.size > 5 * 1024 * 1024:
-                raise forms.ValidationError("L'image dépasse 5 Mo.")
             if getattr(photo.image, "format", "") not in {"JPEG", "PNG", "WEBP"}:
                 raise forms.ValidationError("Choisissez une image JPEG, PNG ou WebP.")
         return photo
