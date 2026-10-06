@@ -395,7 +395,7 @@ def double_facteur(request):
                               {"inscrit": True, "obligatoire": exigence == Exigence.OBLIGATOIRE,
                                "codes_secours": codes, "codes_restants": len(codes),
                                "inscription_terminee": True})
-            messages.error(request, "Code incorrect ou expiré. Vérifiez l'heure de votre téléphone.")
+            messages.error(request, "Code incorrect ou expiré. Vérifiez l'heure de l'appareil qui produit les codes.")
     if not inscrit:
         compte = totp.commencer_inscription(request.user)
         cle = totp.cle_en_cours(compte)

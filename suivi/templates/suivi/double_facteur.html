@@ -11,21 +11,21 @@
 {% if inscription_terminee %}<p class="sous-titre">Le second facteur est configuré.</p>{% endif %}
 <div class="encadre">
   <h2>Vos codes de secours</h2>
-  <p>Si vous perdez votre téléphone, chacun de ces codes permet de vous connecter <strong>une seule fois</strong>. Notez-les maintenant dans un endroit sûr : ils ne seront <strong>plus jamais affichés</strong>. Les générer de nouveau invalide ceux-ci.</p>
+  <p>Si vous perdez votre générateur de codes, chacun de ces codes permet de vous connecter <strong>une seule fois</strong>. Notez-les maintenant dans un endroit sûr : ils ne seront <strong>plus jamais affichés</strong>. Les générer de nouveau invalide ceux-ci.</p>
   <ul class="codes-secours">
     {% for code in codes_secours %}<li><code>{{ code }}</code></li>{% endfor %}
   </ul>
 </div>
 <p><a class="bouton" href="{% url 'mon_compte' %}">J'ai noté mes codes</a></p>
 {% elif inscrit %}
-<p>Un second facteur est configuré : une application d'authentification fournit un code à chaque connexion.</p>
+<p>Un second facteur est configuré : votre générateur de codes fournit un code à chaque connexion.</p>
 <div class="encadre">
   <h2>Codes de secours</h2>
   <p>{% if codes_restants %}Il vous reste {{ codes_restants }} code{{ codes_restants|pluralize }} de secours.{% else %}Vous n'avez plus aucun code de secours.{% endif %}</p>
   <form method="post">
     {% csrf_token %}
     <input type="hidden" name="action" value="regenerer_codes">
-    <label for="code_regeneration">Pour en générer de nouveaux (les anciens seront invalidés), saisissez un code actuel de l'application</label>
+    <label for="code_regeneration">Pour en générer de nouveaux (les anciens seront invalidés), saisissez un code actuel de votre générateur</label>
     <input type="text" id="code_regeneration" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" required>
     <div class="actions"><button class="bouton" type="submit">Générer de nouveaux codes</button></div>
   </form>
@@ -43,14 +43,15 @@
 {% endif %}
 <p><a href="{% url 'mon_compte' %}">Retour à mon compte</a></p>
 {% else %}
-<p class="sous-titre">Scannez ce code avec une application d'authentification (par exemple FreeOTP, Aegis ou Google Authenticator), puis saisissez le code qu'elle affiche.</p>
+<p class="sous-titre">Scannez ce code avec votre générateur de codes (par exemple, sur téléphone, FreeOTP, Aegis ou Google Authenticator), puis saisissez le code qu'il affiche.</p>
+<p class="aide">De préférence, utilisez un appareil distinct de ce poste (téléphone, jeton). Un logiciel installé sur ce poste est possible, mais protège moins bien.</p>
 <div class="encadre">
   <div class="qr-double-facteur" role="img" aria-label="Code à scanner pour configurer le second facteur">{{ qr_svg|safe }}</div>
-  <p class="aide">Impossible de scanner ? Saisissez cette clé dans l'application : <code>{{ cle_saisie }}</code></p>
+  <p class="aide">Impossible de scanner ? Saisissez cette clé dans votre générateur : <code>{{ cle_saisie }}</code></p>
 </div>
 <form method="post" class="encadre">
   {% csrf_token %}
-  <label for="code">Code affiché par l'application</label>
+  <label for="code">Code affiché par le générateur</label>
   <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" autofocus required>
   <div class="actions">
     <button class="bouton" type="submit">Activer</button>
