@@ -18,6 +18,53 @@ def contexte(request):
 
 
 @never_cache
+@direction_requise
+def sauvegardes_progressives(request):
+    from suivi.views import sauvegardes_locales
+    from . import transfers
+    if request.method == "POST" and request.POST.get("action") == "sauvegarder":
+        from pathlib import Path
+        from suivi.paquet_local import creer_sauvegarde, noter_export
+        with transfers.OpfsFile("export") as fichier:
+            creer_sauvegarde(Path("/data"), fichier, taille_bloc=1024**2)
+        noter_export(Path("/data"))
+        response = HttpResponse(content_type="application/zip")
+        from django.utils import timezone
+        response["Content-Disposition"] = f'attachment; filename="petits-pas-{timezone.now():%Y%m%d-%H%M%S}.zip"'
+        response.pwa_export = True
+        return response
+    if request.method == "POST" and request.POST.get("action") == "restaurer":
+        from django.conf import settings
+        if settings.ESPACE_APERCU:
+            return sauvegardes_locales(request)
+        try:
+            transfers.commencer(request, "restaurer")
+            return HttpResponse(status=202)
+        except ValueError as error:
+            messages.error(request, str(error))
+            return redirect("sauvegardes_locales")
+    return sauvegardes_locales(request)
+
+
+@never_cache
+def verifier_zip_progressif(request):
+    from django.conf import settings
+    from django.http import Http404
+    from suivi.views import verifier_zip_local
+    from . import transfers
+    if not settings.MODE_LOCAL or settings.ESPACE_APERCU:
+        raise Http404
+    if request.method == "POST" and request.POST.get("action") == "verifier":
+        try:
+            transfers.commencer(request, "apercu")
+            return HttpResponse(status=202)
+        except ValueError as error:
+            messages.error(request, str(error))
+            return redirect("verifier_zip_local")
+    return verifier_zip_local(request)
+
+
+@never_cache
 @acces_requis
 @require_safe
 def carnet_imprimable(request, pk):

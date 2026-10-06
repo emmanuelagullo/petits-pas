@@ -22,5 +22,6 @@ MODE_PWA = True
 ROOT_URLCONF = "pwa.urls"
 TEMPLATES[0]["OPTIONS"]["context_processors"].append("pwa.views.contexte")
 DATA_UPLOAD_MAX_MEMORY_SIZE = 70 * 1024**2
+FILE_UPLOAD_HANDLERS = ["pwa.transfers.OpfsUploadHandler"]
 
 TEMPLATES[0]["DIRS"].insert(0, BASE_DIR / "pwa/templates")

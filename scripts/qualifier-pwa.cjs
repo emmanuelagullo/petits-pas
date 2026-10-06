@@ -52,8 +52,8 @@ async function boot() {
 function killBrowser() {
   if (processBrowser) {try {process.kill(-processBrowser.pid, 'SIGKILL');} catch (error) {if (error.code !== 'ESRCH') throw error;}}
 }
-async function rpc(code, failpoint = '') {
-  return page.evaluate(args => window.pwaTest({kind:'test-python', ...args}), {code, failpoint});
+async function rpc(code, failpoint = '', scan = false) {
+  return page.evaluate(args => window.pwaTest({kind:'test-python', ...args}), {code, failpoint, scan});
 }
 async function value(code) {return (await rpc(code)).result;}
 async function workerHeap() {
@@ -174,17 +174,29 @@ def ajouter_photos(total):
   report.jpegSha256 = await value("import hashlib; hashlib.sha256(photo).hexdigest()");
   pass('École fictive : 120 élèves, six classes, photographie synthétique reproductible');
   await sample(0);
-  for (const count of [30,90,140,300,550]) {const mutation=await rpc(`ajouter_photos(${count})`); await sample(count,mutation);}
+  for (const count of [30,90,140,300,550,1000,1800,2300]) {
+    let mutation;
+    while (await value("Trace.objects.count()") < count) {
+      const current = await value("Trace.objects.count()");
+      mutation = await rpc(`ajouter_photos(${Math.min(count,current+50)})`);
+    }
+    await sample(count,mutation);
+  }
   report.photoHashes = JSON.parse(await value("import hashlib, json; json.dumps(sorted({hashlib.sha256(trace.photo.read()).hexdigest() for trace in Trace.objects.all()}))"));
-  assert.equal(report.photoHashes.length, 550);
+  assert.equal(report.photoHashes.length, 2300);
   assert.equal(await page.evaluate(async () => (await fetch('/app/eleve/1/')).status), 200);
   await page.locator('#volume').filter({hasText: 'Limite proche'}).waitFor();
   pass('Volume confirmé et avertissement visibles à proximité de la limite');
   await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+  const transferPss = [];
+  const transferTimer = setInterval(() => {const bytes = browserPss(); if (bytes !== null) transferPss.push(bytes);}, 250);
+  transferTimer.unref();
+  const exportStarted = performance.now();
   const downloadReady = page.waitForEvent('download', {timeout:120000});
   await frame.getByRole('button', {name:'Télécharger une sauvegarde',exact:true}).click();
   const download = await downloadReady;
   const archive = await download.path();
+  report.exportMs = performance.now() - exportStarted;
   report.exportBytes = fs.statSync(archive).size;
   execFileSync('python3',['-c',`
 import sys,tempfile
@@ -192,8 +204,8 @@ from pathlib import Path
 from suivi.paquet_local import preparer_restauration
 with tempfile.TemporaryDirectory() as folder:
     with open(sys.argv[1],'rb') as source:
-        prepared=preparer_restauration(source,Path(folder),taille_max=64*1024**2,fichiers_max=5000)
-    assert prepared.nombre_medias==550
+        prepared=preparer_restauration(source,Path(folder),taille_max=256*1024**2,fichiers_max=5000)
+    assert prepared.nombre_medias==2300
 `,archive]);
   // Réimportation réelle : le multipart >20 Mio traverse bien le Service Worker.
   // Chromium et le script sont locaux ; CDP sait ouvrir ce chemin directement.
@@ -206,16 +218,55 @@ with tempfile.TemporaryDirectory() as folder:
   assert(input, 'Champ de sauvegarde absent');
   await upload.send('DOM.setFileInputFiles', {backendNodeId:input.backendNodeId, files:[archive]});
   await upload.detach();
+  const importStarted = performance.now();
   await frame.getByRole('button',{name:'Vérifier la sauvegarde',exact:true}).click();
   await frame.getByRole('button',{name:'Confirmer la restauration',exact:true}).waitFor({timeout:120000});
+  report.verifyZipMs = performance.now() - importStarted;
+  const confirmStarted = performance.now();
   await frame.getByRole('button',{name:'Confirmer la restauration',exact:true}).click();
   await frame.locator('[name="nom_utilisateur"]').waitFor();
-  await integrity(550,'École fictive qualification');
+  report.confirmMs = performance.now() - confirmStarted;
+  await integrity(2300,'École fictive qualification');
+  clearInterval(transferTimer);
+  report.transferPeakPssBytes = Math.max(...transferPss);
+  report.transferPssSamples = transferPss.length;
   report.afterTransfer = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;
   report.afterTransfer.workerJsHeap = await workerHeap();
   report.afterTransfer.browserPssBytes = browserPss();
-  pass('ZIP de 550 photos validé par le paquet autonome, réimporté et confirmé dans la PWA');
-  await assert.rejects(rpc('ajouter_photos(650)'), /64 Mio/);
+  assert(report.afterTransfer.maxIoBlockBytes <= 1024**2);
+  assert(report.afterTransfer.maxRequestBlockBytes <= 1024**2);
+  assert.equal(report.afterTransfer.openTransferHandles,0);
+  pass('ZIP de 2300 photos validé par le paquet autonome, réimporté et confirmé dans la PWA');
+  // Arrêt réel pendant la décompression, après le premier blob vérifié,
+  // avant préparation/confirmation : le pointeur actif ne doit pas changer.
+  await frame.locator('[name="nom_utilisateur"]').fill('direction-fictive');
+  await frame.locator('[name="mot_de_passe"]').fill('Test-fictif-PWA-2026!');
+  await frame.getByRole('button',{name:'Entrer',exact:true}).click();
+  await frame.locator('.bandeau .marque').waitFor();
+  await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+  await frame.getByRole('heading',{name:'Sauvegardes locales',exact:true}).waitFor();
+  const acknowledge = frame.getByRole('button',{name:'J’ai pris connaissance du résultat',exact:true});
+  if (await acknowledge.count()) {
+    await acknowledge.click();
+    await frame.getByRole('heading',{name:"Gérer l'école",exact:true}).waitFor();
+    await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
+  }
+  await frame.locator('[name="archive"]').waitFor();
+  const interruptedUpload = await context.newCDPSession(page);
+  await interruptedUpload.send('DOM.enable');
+  const interruptedNodes = await interruptedUpload.send('DOM.getFlattenedDocument',{depth:-1,pierce:true});
+  const interruptedInput = interruptedNodes.nodes.find(node => node.nodeName === 'INPUT'
+    && node.attributes?.some((attribute,index) => attribute === 'name' && node.attributes[index+1] === 'archive'));
+  await interruptedUpload.send('DOM.setFileInputFiles',{backendNodeId:interruptedInput.backendNodeId,files:[archive]});
+  await interruptedUpload.detach();
+  await page.evaluate(() => window.pwaTest({kind:'test-pause-transfer'}));
+  await frame.getByRole('button',{name:'Vérifier la sauvegarde',exact:true}).click();
+  await page.waitForFunction(() => window.pwaCheckpoint === 'transfer-media',null,{timeout:120000});
+  killBrowser(); await boot(); await integrity(2300,'École fictive qualification');
+  pass('SIGKILL au premier média extrait : école confirmée intacte, préparation abandonnée nettoyée');
+  // Le nouveau runtime n'a plus les objets ORM ni la fonction d'injection.
+  await rpc("from suivi.models import Trace");
+  await assert.rejects(rpc("from pathlib import Path; Path('/data/media/depassement-fictif.bin').write_bytes(b'x'*(30*1024**2))", '', true), /256 Mio/);
   await assert.rejects(rpc('Trace.objects.count()'), /Enregistrement interrompu/);
   killBrowser(); report.restartMs = await boot();
   // Mesurer avant toute lecture Python des photos et sans l'historique des
@@ -224,17 +275,17 @@ with tempfile.TemporaryDirectory() as folder:
   report.afterMediaRestart.workerJsHeap = await workerHeap();
   report.afterMediaRestart.browserPssBytes = browserPss();
   assert.equal(report.afterMediaRestart.residentMediaBytes, 0);
-  assert.equal(report.afterMediaRestart.lazyMediaFiles, 550);
-  pass('PWA11 : reprise de 550 photos sans contenu média résident dans MEMFS');
-  await integrity(550, 'École fictive qualification');
-  pass('Limite réelle de 64 Mio dépassée : runtime bloqué, reprise à 550 photos et intégrité SQLite');
+  assert.equal(report.afterMediaRestart.lazyMediaFiles, 2300);
+  pass('PWA11 : reprise de 2300 photos sans contenu média résident dans MEMFS');
+  await integrity(2300, 'École fictive qualification');
+  pass('Limite réelle de 256 Mio dépassée : runtime bloqué, reprise à 2300 photos et intégrité SQLite');
   // Quota imposé par Chromium, sans injection d'une exception dans l'application.
   const cdp = await context.newCDPSession(page);
   const quota = await cdp.send('Storage.getUsageAndQuota', {origin:url.slice(0,-1)});
   await cdp.send('Storage.overrideQuotaForOrigin', {origin:url.slice(0,-1),quotaSize:quota.usage+1024});
   await assert.rejects(rpc("from suivi.models import Ecole; Ecole.objects.update(nom='Quota fictif non confirmé')"), /Quota|quota|espace/i);
   await cdp.send('Storage.overrideQuotaForOrigin', {origin:url.slice(0,-1)});
-  killBrowser(); await boot(); await integrity(550,'École fictive qualification');
+  killBrowser(); await boot(); await integrity(2300,'École fictive qualification');
   pass('Quota Chromium contraint : erreur réelle d’écriture et état précédent retrouvé');
   for (const [phase, expected] of [['before-activate','École fictive qualification'], ['after-activate','École fictive après activation']]) {
     const oldHash = await value("import hashlib; from suivi.models import Trace; hashlib.sha256(Trace.objects.order_by('pk').first().photo.read()).hexdigest()");
@@ -253,7 +304,7 @@ Ecole.objects.update(nom='École fictive après activation')
     await page.waitForFunction(expected => window.pwaCheckpoint === expected, phase, {timeout:120000});
     killBrowser(); await pending; await boot();
     if (phase === 'after-activate') report.photoHashes = report.photoHashes.filter(hash=>hash!==oldHash).concat(nextHash).sort();
-    await integrity(550,expected);
+    await integrity(2300,expected);
     pass(`SIGKILL avant réponse, ${phase} : base et photo remplacée retrouvent ensemble l’état attendu`);
   }
   report.afterRecovery = (await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result;

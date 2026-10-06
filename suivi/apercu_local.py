@@ -24,6 +24,15 @@ def preparer(archive, parent, **limites):
         if _preparation is not None:
             raise ValueError("Une copie est déjà prête : ouvrez-la ou annulez.")
         copie = preparer_restauration(archive, parent, "apercu-zip", **limites)
+        return retenir(copie)
+
+
+def retenir(copie):
+    """Retenir une copie validée, quel que soit son support de décompression."""
+    global _preparation
+    with _verrou:
+        if _preparation is not None:
+            raise ValueError("Une copie est déjà prête : ouvrez-la ou annulez.")
         try:
             # Une copie exige sa propre connexion ; ne réutiliser aucune session
             # de l'école d'origine, même si un navigateur possède son cookie.

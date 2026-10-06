@@ -23,10 +23,10 @@ difficile ou impossible. [Signaler une difficulté]({{< relref "/guide/demarrage
 sans joindre de données d’élèves.
 
 Les bancs automatisés Chromium/Linux ne prouvent pas le fonctionnement sur
- toutes les tablettes. Dans le navigateur, la limite actuelle de **64 Mio avant
+ toutes les tablettes. Dans le navigateur, la limite actuelle de **256 Mio avant
 compression** est une limite de l’application, pas du disque : la base reste
 en mémoire. Depuis #PWA11, les photos enregistrées sont lues à la demande ;
-les transferts demandent encore des copies temporaires complètes. Les
+depuis #PWA12, les transferts ZIP utilisent des fichiers temporaires sur disque. Les
 quotas du navigateur peuvent être atteints plus tôt. Ne provoquez pas de panne
 avec des données à conserver.
 

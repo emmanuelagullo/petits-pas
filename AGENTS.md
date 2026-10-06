@@ -70,7 +70,8 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   Les jobs `pwa-prototype` et `pwa-qualification` sont automatiques et leurs
   échecs font échouer la CI ; la publication seule reste manuelle.
   `pwa/MEDIA-OPFS.md` décrit #PWA11 : lectures WORKERFS sur blobs immuables,
-  écritures transitoires MEMFS et copies ZIP restantes. `lazy_media.js` dépend
+  écritures transitoires MEMFS. `pwa/TRANSFERTS-OPFS.md` décrit #PWA12 :
+  ZIP progressifs et décompression par fichier vers des blobs immuables. `lazy_media.js` dépend
   des nœuds Emscripten du runtime épinglé ; requalifier avant de le changer.
   Ne pas écrire en place dans les blobs confirmés ni contourner les vues médias.
   `scripts/publication.py` partage identité, notes et manifestes de candidats.

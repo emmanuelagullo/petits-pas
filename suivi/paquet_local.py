@@ -12,7 +12,7 @@ from contextlib import closing
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
-from zipfile import ZIP_DEFLATED, ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 
 FORMAT = "petits-pas-paquet"
@@ -42,8 +42,10 @@ def _empreinte(fichier):
     return somme.hexdigest()
 
 
-def creer_sauvegarde(paquet, destination):
+def creer_sauvegarde(paquet, destination, *, taille_bloc=None):
     """Écrire un ZIP cohérent de la base, de la clé et des médias."""
+    if taille_bloc is not None and not 0 < taille_bloc <= 1024**2:
+        raise ValueError("Taille de bloc invalide")
     with tempfile.TemporaryDirectory(prefix=".copie-sqlite-", dir=paquet.parent) as dossier:
         base = Path(dossier) / "carnet.sqlite3"
         with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as origine:
@@ -65,7 +67,14 @@ def creer_sauvegarde(paquet, destination):
             for nom, chemin in fichiers.items():
                 with chemin.open("rb") as source:
                     empreintes[nom] = _empreinte(source)
-                archive.write(chemin, nom)
+                if taille_bloc is None:
+                    archive.write(chemin, nom)
+                else:
+                    # OPFS : amortir les appels synchrones sans charger le fichier.
+                    info = ZipInfo.from_file(chemin, nom)
+                    info.compress_type = ZIP_DEFLATED
+                    with chemin.open("rb") as source, archive.open(info, "w") as sortie:
+                        shutil.copyfileobj(source, sortie, length=taille_bloc)
             archive.writestr(
                 "manifest.json",
                 json.dumps({
@@ -101,6 +110,19 @@ def suivi_export(paquet, maintenant=None):
 def preparer_restauration(source, parent, nom_paquet="paquet-autonome", *,
                          taille_max=TAILLE_MAX, fichiers_max=FICHIERS_MAX,
                          migrations_connues=None):
+    """Parcours synchrone serveur/bureau du même validateur progressif."""
+    travail = iterer_restauration(source, parent, nom_paquet, taille_max=taille_max,
+                                 fichiers_max=fichiers_max, migrations_connues=migrations_connues)
+    while True:
+        try:
+            next(travail)
+        except StopIteration as fin:
+            return fin.value
+
+
+def iterer_restauration(source, parent, nom_paquet="paquet-autonome", *,
+                       taille_max=TAILLE_MAX, fichiers_max=FICHIERS_MAX,
+                       migrations_connues=None, ouvrir_destination=None):
     """Valider le ZIP avant de préparer un nouveau paquet sans toucher à l'ancien."""
     with ZipFile(source) as archive:
         entrees = archive.infolist()
@@ -130,6 +152,7 @@ def preparer_restauration(source, parent, nom_paquet="paquet-autonome", *,
 
         etape = Path(tempfile.mkdtemp(prefix=".restauration-", dir=parent))
         try:
+            cibles = set()
             for entree in entrees:
                 nom = entree.filename
                 if nom == "manifest.json":
@@ -143,14 +166,22 @@ def preparer_restauration(source, parent, nom_paquet="paquet-autonome", *,
                 ):
                     raise ValueError("Chemin invalide dans la sauvegarde.")
                 cible = etape.joinpath(*elements)
+                if cible in cibles:
+                    raise ValueError("Chemin répété dans la sauvegarde.")
+                cibles.add(cible)
                 cible.parent.mkdir(parents=True, exist_ok=True)
                 somme = hashlib.sha256()
-                with archive.open(entree) as entree_zip, cible.open("xb") as sortie:
+                yield {"phase": "ouvrir", "chemin": str(cible), "taille": entree.file_size,
+                       "hash": attendus[nom], "media": nom.startswith("media/")}
+                destination = ouvrir_destination(cible) if ouvrir_destination else cible.open("xb")
+                with archive.open(entree) as entree_zip, destination as sortie:
                     while bloc := entree_zip.read(1024 * 1024):
                         sortie.write(bloc)
                         somme.update(bloc)
                 if somme.hexdigest() != attendus[nom]:
                     raise ValueError(f"Fichier altéré dans la sauvegarde : {nom}")
+                yield {"phase": "fermer", "chemin": str(cible), "taille": entree.file_size,
+                       "hash": somme.hexdigest(), "media": nom.startswith("media/")}
             if not (etape / "secret-key").read_text(encoding="utf-8").strip():
                 raise ValueError("Clé vide dans la sauvegarde.")
             with closing(sqlite3.connect(etape / "carnet.sqlite3")) as connexion:

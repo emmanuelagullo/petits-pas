@@ -64,16 +64,15 @@ Vérifiez les détails, puis choisissez **Annuler** ou **Confirmer la
 restauration**. La confirmation remplace les données présentes sur cet appareil.
 Reconnectez-vous avec un compte de la sauvegarde importée.
 
-Dans le navigateur, le contenu d’une sauvegarde est limité à 64 Mio après
-décompression et son envoi à 70 Mio. Les données de travail sont également
-limitées à 64 Mio avant compression. Le bandeau affiche le volume du dernier
-état enregistré. À partir de 52 Mio, il conseille de télécharger une sauvegarde et de terminer
-l’essai. Une erreur de stockage impose de fermer puis rouvrir l’application
-pour retrouver le dernier état enregistré. Les consultations sans modification
-ne réécrivent plus les photos. Depuis #PWA11, les photos enregistrées sont lues
-à la demande, ce qui évite de toutes les garder en mémoire. Les sauvegardes et
-restaurations utilisent encore des copies temporaires complètes ; la limite
-reste donc la même. Vérifiez la version affichée dans l’aide.
+Dans le navigateur, le contenu d’une sauvegarde est limité à 256 Mio après
+décompression, avec au plus 5 000 fichiers et 64 Mio par fichier ou pour la
+base. Le bandeau affiche le volume enregistré et avertit dès 205 Mio. Les
+photos enregistrées sont lues à la demande ; depuis #PWA12, les ZIP sont
+également transférés progressivement. Il faut garder assez d’espace libre
+pour les fichiers temporaires et l’état de récupération. Une erreur de stockage
+impose de fermer puis rouvrir l’application pour retrouver le dernier état
+confirmé. Ces limites ne garantissent pas le fonctionnement sur toute tablette.
+Vérifiez la version affichée dans l’aide.
 Une nouvelle connexion peut être nécessaire
 après 12 heures ; elle est toujours nécessaire après fermeture puis réouverture.
 

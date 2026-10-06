@@ -48,7 +48,7 @@ le téléchargement préparé ne prouve pas que le fichier a été conservé.
 Dans le navigateur, la copie reste dans un stockage distinct ; une nouvelle
 ouverture de ZIP remplacera cette copie de vérification, après l’avertissement.
 Les trois espaces partagent le profil et le quota : effacer les données du site
-peut effacer toutes leurs données. La limite reste **64 Mio avant compression**.
+peut effacer toutes leurs données. La limite reste **256 Mio avant compression**.
 Avec le programme, chaque ouverture prépare un dossier indépendant, conservé
 après fermeture ; son chemin est indiqué dans les sauvegardes. Vous pouvez
 supprimer ce dossier quand le programme est fermé et que vous avez conservé

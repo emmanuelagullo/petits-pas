@@ -295,3 +295,92 @@ pas relancée pour cette adaptation du seul profil navigateur.
 La preuve permet de livrer #PWA11 sans nouvelle architecture de cache ni Worker
 supplémentaire. La prochaine augmentation de capacité exige d'abord de réduire
 les copies ZIP et les décompressions MEMFS, avec de nouvelles mesures.
+
+## #PWA12 : transferts ZIP progressifs et palier de 256 Mio
+
+Qualification du 6 octobre 2026, Chromium 138.0.7204.0 headless/Linux x86_64,
+bundle `pwa-prototype.b521aa70d6d2dfa1`, main `06c2ea1` avec le patch #PWA12.
+Même école fictive de 120 élèves/six classes et JPEG synthétique que #PWA11.
+Le banc ajoute désormais les photos par lots de 50 via le storage Django ;
+il ne force plus une relecture totale des médias après ses requêtes de lecture.
+Cela rapproche ses mutations du parcours ordinaire et évite de mesurer un
+stress artificiel de vérification de tous les fichiers à chaque appel de test.
+Les tests conservés de mutation directe imposent toujours un inventaire complet.
+
+### Mémoire et consultations
+
+Cinq lectures par palier, pont Worker/WSGI et persistance inclus, sans rendu
+visuel : ce n'est pas une mesure FPS ni une comparaison contrôlée entre versions.
+Les médias confirmés résidents MEMFS sont **zéro à tous les paliers**, et aucune
+consultation pure ne réécrit OPFS. Les compteurs CDP sont ceux du Worker. Backing
+storage et tas WASM se recouvrent ; la PSS des processus Chromium ne s'y ajoute pas.
+
+| Photos | Médias (Mio) | Lecture médiane (ms) | Tas WASM (Mio) | Tas JS utilisé (Mio) | Backing storage JS (Mio) | PSS Chromium (Mio) |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 0.00 | 240 | 71.88 | 13.98 | 115.80 | 538.97 |
+| 550 | 57.48 | 214 | 71.88 | 15.21 | 117.86 | 487.30 |
+| 1000 | 104.51 | 218 | 71.88 | 22.95 | 113.67 | 515.36 |
+| 1800 | 188.13 | 252 | 71.88 | 14.89 | 116.19 | 558.93 |
+| 2300 | 240.38 | 230 | 71.88 | 35.86 | 114.96 | 570.46 |
+
+La base au dernier palier fait 1.57 Mio. Ce scénario ne
+qualifie donc pas une base de 64 Mio ; cette borne préserve le plafond individuel
+accepté auparavant. Un état de 242.21 Mio justifie
+une borne totale de 256 Mio pour ce périmètre mesuré, pas une hausse à 1 Gio.
+Les ressources du runtime restent hors contenu du paquet.
+
+### Export, import et reprise
+
+ZIP commun de 240.64 Mio : export et téléchargement en
+26.3 s, vérification/import en 21.3 s,
+confirmation et retour à la connexion en 9.5 s.
+Ces temps dépendent du processeur/disque : le transfert de 2 300 photos n'est pas
+instantané et le Worker Django reste occupé pendant l'opération. Le prototype
+intermédiaire avec les blocs par défaut de zipfile (8 Kio) exportait ce même
+volume en 82.8 s ; l'option commune de copie par blocs de 1 Mio ramène cette
+mesure à 26.3 s. Les profils natifs gardent leur chemin antérieur.
+Il ne s'agit pas d'un cache maison ni d'un changement de format ZIP.
+
+Après export/import/confirmation : tas WASM 86.25 Mio,
+tas JS utilisé 39.59 Mio, backing storage
+132.55 Mio et PSS
+697.90 Mio. Le ZIP complet n'est plus un buffer WASM/JS.
+Le plus grand bloc IO Python/JS observé fait 203765 octets,
+le bloc de transport 1 Mio ; tous les handles de transfert sont fermés à la fin.
+La PSS échantillonnée toutes les 250 ms pendant export, validation native,
+réimportation et contrôle d'intégrité atteint **809.05 Mio**
+(249 échantillons). Ce maximum observé peut manquer un pic bref ;
+les buffers/cache internes Chromium et le téléchargement peuvent encore coûter
+beaucoup de mémoire totale. Ce n'est pas une qualification de tablette.
+
+Après fermeture brutale et reprise, avant lecture Python des photos : tas WASM
+49.88 Mio, tas JS 21.25 Mio,
+backing storage 92.94 Mio, PSS
+473.25 Mio ; les 2 300 médias restent non résidents MEMFS.
+L'ancienne mesure #PWA11 après ZIP de 550 photos atteignait 172.63 Mio WASM :
+les nouveaux transferts évitent cette amplification, sans prouver que toute la
+mémoire du navigateur soit indépendante du volume de médias.
+
+### Cohérence et contrôles
+
+Le banc `scripts/qualifier-pwa.cjs` passe : ZIP validé par le code autonome,
+réimportation/confirmation, SIGKILL au premier média extrait avant préparation,
+dépassement réel de 256 Mio (retour aux 2 300 photos confirmées), quota imposé
+par Chromium, SIGKILL avant/après activation avec remplacement d'une photo,
+intégrité/relations SQLite et empreintes des photos après chaque reprise.
+Les manifestes/blobs abandonnés sont nettoyés et tous les blobs des états actif,
+précédent et de récupération restent présents. Les temporaires de transfert
+interrompu ont leur nettoyage différé décrit dans TRANSFERTS-OPFS.md.
+Aucune requête métier n'atteint le serveur statique.
+
+Les 31 scénarios racine et 32 scénarios HTTPS sous `/petits-pas-pwa/` passent
+et couvrent aussi droits,
+CSRF, Pillow, copie distincte, migration inconnue, annulation, récupération,
+fermeture, hors ligne et mise à jour. Les 30 tests Python paquet/constructeur/transferts et les 12 tests Django
+aperçu/essai passent. Ils couvrent notamment le contrat IO (segment, seek, fin,
+fermeture, limite avant allocation), l'interruption et les chemins répétés
+du validateur commun, ainsi que l'équivalence du ZIP produit par blocs.
+
+Voir [TRANSFERTS-OPFS.md](TRANSFERTS-OPFS.md) pour la compatibilité, les limites
+individuelles, la mémoire SQLite/Pillow restante et le statut de diffusion.
+Les retours d'appareils d'école restent non bloquants.

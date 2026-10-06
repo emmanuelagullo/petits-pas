@@ -1,4 +1,4 @@
-# #PWA1 à #PWA11 : prototype navigateur
+# #PWA1 à #PWA12 : prototype navigateur
 
 Expérience réservée aux **données fictives**. Aucun profil serveur ou programme
 autonome n'est remplacé. Le prototype propose l'import/export commun,
@@ -55,21 +55,22 @@ suivantes. Il est remplacé au prochain import ou changement de version réussi.
 **Exporter l'état de récupération** produit lui aussi un ZIP autonome. En
 fonctionnement normal, ce bouton vérifie le droit de direction. Après échec du
 démarrage, il reste accessible sans authentification, dans un Worker séparé qui
-ne migre pas et n'écrit rien : c'est un accès de secours pour le propriétaire du
+ne migre pas et ne modifie pas l'état confirmé : c'est un accès de secours pour le propriétaire du
 profil, analogue à la lecture des fichiers du paquet bureau. Ne pas utiliser
 un profil partagé avec des personnes non autorisées. Les autorisations Django
 ne chiffrent pas les données OPFS et ne protègent pas contre un accès direct au
 profil ou du JavaScript exécuté sur la même origine.
 
-Limites du prototype : envoi HTTP/multipart ≤ 70 Mio, contenu ZIP décompressé
-≤ 64 Mio, ≤ 5 000 entrées. L'état de travail est limité à 64 Mio avant
-compression, manifeste ZIP public compris. Les médias confirmés sont lus dans
-OPFS à la demande ; SQLite, les écritures en cours et les transferts ZIP utilisent
-encore la mémoire. Cette borne technique ne qualifie pas la RAM d'une tablette.
-La coque avertit dès 52 Mio. L'espace OPFS réel comprend aussi l'état précédent,
-le secours et les ressources, et peut dépasser 64 Mio. Un quota navigateur plus
-faible reste possible. Un import dépassant la persistance bloque le runtime,
-et l'ancien état reste actif. Ces limites ne sont pas des quotas de production.
+Limites : contenu décompressé et état de travail ≤ 256 Mio, manifeste compris,
+≤ 5 000 entrées ; base et fichier individuel ≤ 64 Mio. Le multipart est reçu
+par blocs sur OPFS (≤ 270 Mio avec son enveloppe) ; les autres requêtes restent
+limitées à 70 Mio. La coque avertit dès 205 Mio. SQLite, sa copie cohérente et
+les images effectivement traitées utilisent encore la mémoire. Le ZIP complet
+et tous les médias extraits ne sont plus matérialisés ensemble dans Python ou JS.
+Voir [TRANSFERTS-OPFS.md](TRANSFERTS-OPFS.md) pour les copies résiduelles,
+la reprise et l'espace disque temporaire. Ces bornes ne qualifient pas la RAM
+d'une tablette ; le quota navigateur peut être inférieur. Une erreur de
+persistance bloque le runtime et l'ancien état reste actif après réouverture.
 
 ## Stockage incrémental (#PWA6)
 
@@ -223,13 +224,11 @@ Leur première conversion et les restaurations décompressent encore dans MEMFS,
 puis libèrent les médias après confirmation. Actif/précédent/secours et nettoyage
 restent régis par le même pointeur transactionnel.
 
-**Les ZIP ne sont pas encore transférés progressivement.** L'export écrit un ZIP
-temporaire MEMFS, le pont WSGI assemble sa réponse, puis la copie vers JS est
-transférée. L'import conserve le multipart et un répertoire de décompression
-MEMFS jusqu'à confirmation/annulation ; la copie à vérifier suit le même principe.
-Le secours utilise encore `BytesIO`. Ces allocations justifient le maintien des
-64 Mio de contenu, 70 Mio d'envoi et 5 000 entrées, avec alerte à 52 Mio. Les
-ressources du runtime ne sont pas comprises dans ces 64 Mio de paquet.
+**#PWA12 transfère les ZIP progressivement.** L'export et le secours écrivent
+sur OPFS ; le téléchargement lit un `File` par flux. Le multipart et les fichiers
+uploadés sont temporaires sur OPFS. Le validateur commun décompresse un média
+à la fois vers un blob immuable, retenu jusqu'à confirmation ou annulation.
+SQLite reste MEMFS. Voir [TRANSFERTS-OPFS.md](TRANSFERTS-OPFS.md).
 
 Le module dépend des opérations de nœuds MEMFS/WORKERFS du runtime **Pyodide
 0.28.3 épinglé**. Sa disponibilité est contrôlée au démarrage ; ne pas annoncer
