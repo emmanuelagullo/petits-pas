@@ -753,9 +753,9 @@ def accepter_invitation_vue(request, selecteur, jeton):
                             "invitation": invitation,
                             "acceptee": True,
                             "fonctions_preattribuees": list(
-                                invitation.affectations_classes.select_related(
-                                    "classe"
-                                )
+                                invitation.affectations_classes.filter(
+                                    etat=AffectationClasse.ACTIVE
+                                ).select_related("classe")
                             ),
                         },
                     )
@@ -785,7 +785,9 @@ def accepter_invitation_vue(request, selecteur, jeton):
                         "invitation": invitation,
                         "acceptee": True,
                         "fonctions_preattribuees": list(
-                            invitation.affectations_classes.select_related("classe")
+                            invitation.affectations_classes.filter(
+                                etat=AffectationClasse.ACTIVE
+                            ).select_related("classe")
                         ),
                     },
                 )
@@ -1013,13 +1015,28 @@ def collaborateurs_classe(request, pk):
     classe = charger_classe_autorisee(
         request.user, pk, VOIR_AFFECTATIONS_CLASSE, ecole=ecole
     )
-    affectations = classe.affectations.select_related(
+    # Une personne qui n'a jamais rejoint l'école (invitation révoquée,
+    # expirée, pré-attribution annulée) n'est pas un collaborateur.
+    affectations = classe.affectations.filter(
+        Q(appartenance__isnull=False)
+        | Q(
+            etat=AffectationClasse.ACTIVE,
+            invitation__etat=Invitation.EN_ATTENTE,
+            invitation__expire_le__gte=timezone.now(),
+        )
+    ).select_related(
         "appartenance__utilisateur", "invitation"
     ).order_by("appartenance__utilisateur__last_name", "invitation__email", "date_debut")
     return render(
         request,
         "suivi/collaborateurs_classe.html",
-        {"classe": classe, "affectations": affectations},
+        {
+            "classe": classe,
+            "affectations": affectations,
+            # L'adresse d'une personne invitée n'est pas un renseignement
+            # destiné à toute la classe : seule la direction la voit.
+            "peut_voir_adresses": autorise(request.user, ADMINISTRER_ECOLE, ecole=ecole),
+        },
     )
 
 
@@ -2522,7 +2539,7 @@ def equipe_ecole(request):
         # référentiel est « gérable », pour permettre à la direction de
         # l'annuler avant même que le compte n'existe.
         affectation.est_active_aujourdhui = False
-        affectation.gerable_aujourdhui = affectation.etat == AffectationClasse.ACTIVE
+        affectation.gerable_aujourdhui = affectation.preattribution_en_cours
         if affectation.gerable_aujourdhui:
             affectation.peut_terminer_directement = peut_terminer_affectation(
                 request.user, affectation, date=aujourd_hui
@@ -2582,6 +2599,11 @@ def equipe_ecole(request):
             )
     for affectation in preattributions:
         preparer_affectation(affectation)
+        # Annulée, révoquée ou expirée : elle ne figure plus parmi les
+        # fonctions présentes, seulement dans l'historique.
+        affectation.est_presente_ou_future = (
+            affectation.est_presente_ou_future and affectation.preattribution_en_cours
+        )
         affectations_par_classe.setdefault(affectation.classe_id, []).append(
             affectation
         )

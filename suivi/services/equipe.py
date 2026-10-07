@@ -81,6 +81,53 @@ def _accepter_invitation_verrouillee(*, utilisateur, invitation):
     return appartenance
 
 
+def terminer_preattributions(invitation, *, acteur=None, motif=""):
+    """Termine les pré-attributions encore actives d'une invitation qui ne sera
+    jamais acceptée (révoquée ou expirée).
+
+    Sans cela elles resteraient actives, et affichées « Invitation en cours »
+    avec l'adresse de la personne, pour toujours. À appeler dans la transaction
+    qui change l'état de l'invitation. Sans acteur (expiration automatique),
+    rien n'est écrit au journal d'audit, qui exige un acteur : l'expiration
+    de l'invitation elle-même n'y figure pas non plus.
+    """
+    aujourd_hui = timezone.localdate()
+    maintenant = timezone.now()
+    terminees = []
+    for affectation in AffectationClasse.objects.select_for_update().filter(
+        invitation=invitation,
+        appartenance__isnull=True,
+        etat__in=[AffectationClasse.ACTIVE, AffectationClasse.SUSPENDUE],
+    ).order_by("pk"):
+        ancien = {
+            "etat": affectation.etat,
+            "date_fin": affectation.date_fin.isoformat() if affectation.date_fin else None,
+        }
+        affectation.etat = AffectationClasse.TERMINEE
+        affectation.date_fin = max(aujourd_hui, affectation.date_debut)
+        affectation.termine_par = acteur
+        affectation.termine_le = maintenant
+        if motif:
+            affectation.motif = f"{affectation.motif} | {motif}" if affectation.motif else motif
+        affectation.save(
+            update_fields=["etat", "date_fin", "termine_par", "termine_le", "motif"]
+        )
+        if acteur is not None:
+            journaliser(
+                acteur,
+                "affectation.terminee",
+                affectation,
+                anciennes=ancien,
+                nouvelles={
+                    "etat": affectation.etat,
+                    "date_fin": affectation.date_fin.isoformat(),
+                    "cause": "invitation_revoquee",
+                },
+            )
+        terminees.append(affectation)
+    return terminees
+
+
 def _exiger_direction(utilisateur, ecole):
     if not autorise(utilisateur, ADMINISTRER_ECOLE, ecole, ecole=ecole):
         raise PermissionDenied
@@ -215,6 +262,11 @@ def revoquer_invitation(*, utilisateur, invitation):
     invitation.revoquee_le = timezone.now()
     invitation.save(update_fields=["etat", "revoquee_par", "revoquee_le"])
     journaliser(utilisateur, "invitation.revoquee", invitation)
+    # Une invitation révoquée ne sera jamais acceptée : ses pré-attributions
+    # n'ont plus lieu d'être.
+    terminer_preattributions(
+        invitation, acteur=utilisateur, motif="Invitation révoquée"
+    )
 
 
 @transaction.atomic

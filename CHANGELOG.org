@@ -69,6 +69,18 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 ** Fixed
 
+- Invitations : révoquer une invitation, ou la laisser expirer, termine
+  désormais les fonctions qui lui avaient été pré-attribuées. Elles restaient
+  actives, affichées « Invitation en cours » avec l’adresse de la personne,
+  même pour une invitation devenue inutilisable. La page d’acceptation ne
+  présente plus une fonction annulée à la personne invitée.
+- Collaborateurs d’une classe : l’adresse électronique d’une personne dont
+  l’invitation est en cours n’est plus visible que de la direction ; les autres
+  collaborateurs voient « personne invitée ». Les pré-attributions révoquées,
+  expirées ou annulées ne figurent plus dans la liste. Les lignes déjà restées
+  actives en base ne sont pas modifiées : elles ne s’affichent simplement plus
+  comme en cours.
+
 - Navigateur (#PWA12) : transfert des ZIP par blocs sur OPFS, y compris le
   secours, et extraction des médias vers des blobs immuables sans ZIP complet
   dans Python/JS. Format commun, contrôle Django et confirmation conservés.
