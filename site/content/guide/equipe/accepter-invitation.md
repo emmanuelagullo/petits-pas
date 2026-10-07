@@ -21,13 +21,18 @@ statut = "disponible"
 ## Si un compte existe déjà
 
 Le formulaire demande le nom d’utilisateur et le mot de passe de ce compte.
-Après authentification, l’école est ajoutée au même compte : aucune seconde
+Sélectionner **Accepter l’invitation**. Après authentification, l’école est ajoutée au même compte : aucune seconde
 identité n’est créée.
 
 ## Résultat attendu
 
-La page confirme que le compte est activé et membre de l’école. Revenir ensuite
-à la connexion. Tant que la direction n’a attribué ni responsabilité d’école ni
+La page confirme que le compte est activé et membre de l’école. Sélectionner **Revenir à la connexion**, puis **Entrer** avec vos identifiants. Les fonctions préparées sont rattachées au compte avec leur état courant,
+leurs dates et leur classe. Le courriel décrit l’état à l’envoi : une fonction
+modifiée, retirée, suspendue ou terminée ne conserve pas ses anciens droits.
+Une fonction future attend sa date de début ; une classe en préparation attend
+son activation. L’écran d’acceptation indique les fonctions conservées.
+
+Tant que la direction n’a attribué ni responsabilité d’école ni
 fonction dans une classe, cette appartenance seule n’ouvre pas l’application
 pédagogique.
 
@@ -48,3 +53,5 @@ fonction, il est à configurer dès la première connexion.
 
 En cas d’oubli, voir
 [Réinitialiser son mot de passe]({{< relref "reinitialiser-mot-de-passe.md" >}}).
+
+Pour une première observation, suivre [Vos premiers pas après une invitation]({{< relref "/guide/service/premiers-pas" >}}).

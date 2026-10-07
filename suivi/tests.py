@@ -4959,9 +4959,9 @@ class PreattributionInvitation(Base):
             },
         )
 
-        self.assertContains(reponse, "vous a déjà attribué")
+        self.assertContains(reponse, "Fonctions conservées à l’acceptation")
         self.assertContains(reponse, "Responsable de classe")
-        self.assertContains(reponse, "vous connecter dès maintenant")
+        self.assertContains(reponse, "L’accès dépend de vos fonctions actuelles")
 
 
 class MarquageInvitationsExpirees(Base):

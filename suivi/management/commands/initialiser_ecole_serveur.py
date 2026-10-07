@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage
+from suivi.courriels_comptes import composer_accueil
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -128,16 +128,8 @@ class Command(BaseCommand):
                         "token": default_token_generator.make_token(utilisateur)},
             )
             try:
-                resultat = EmailMessage(
-                    subject="Votre premier compte Petits Pas",
-                    body=(f"Bonjour {utilisateur.get_full_name()},\n\n"
-                          f"Votre compte personnel {utilisateur.username} a été préparé "
-                          f"pour gérer {ecole.nom}.\n"
-                          f"Choisissez votre mot de passe :\n{lien}\n\n"
-                          "Ce lien expire et devient inutilisable après le choix du mot de passe. "
-                          "Si nécessaire, utilisez Mot de passe oublié sur la page de connexion.\n"
-                          "Vous pourrez ensuite inviter les membres de l'équipe.\n"),
-                    to=[email],
+                resultat = composer_accueil(
+                    ecole=ecole, compte=utilisateur, destinataire=email, lien=lien,
                 ).send(fail_silently=False)
                 if resultat != 1:
                     raise RuntimeError("envoi non confirmé")

@@ -29,6 +29,11 @@ class OuvertureCourrielTests(TestCase):
         self.assertFalse(user.is_superuser)
         self.assertEqual(ResponsabiliteEcole.objects.get().type, ResponsabiliteEcole.DIRECTION)
         self.assertTrue(user.has_usable_password())
+        self.assertIn(user.username, mail.outbox[0].body)
+        self.assertIn(user.email, mail.outbox[0].body)
+        self.assertIn("ne donnent pas automatiquement accès", mail.outbox[0].body)
+        self.assertIn("Activer la classe", mail.outbox[0].body)
+        self.assertEqual(mail.outbox[0].alternatives[0].mimetype, "text/html")
         lien = next(l for l in mail.outbox[0].body.splitlines() if l.startswith('https://'))
         self.assertNotIn(lien, sortie)
         token = lien.rstrip('/').split('/')[-1]
@@ -66,7 +71,7 @@ class OuvertureCourrielTests(TestCase):
             self.ouvrir()
         self.assertFalse(Ecole.objects.exists())
 
-    @patch('suivi.management.commands.initialiser_ecole_serveur.EmailMessage.send', side_effect=OSError)
+    @patch('suivi.courriels_comptes.EmailMultiAlternatives.send', side_effect=OSError)
     def test_echec_envoi_preserve_compte_pour_recuperation(self, _send):
         with self.assertRaisesMessage(CommandError, 'Ne pas recréer'):
             self.ouvrir()

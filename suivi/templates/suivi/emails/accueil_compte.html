@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>{{ sujet }}</title></head>
+<body style="font:16px/1.5 Arial,sans-serif;color:#1f2a33;max-width:40rem;margin:1.5rem auto;padding:1rem;">
+<p>{{ debut|linebreaksbr }}</p>
+<p><a href="{{ lien }}">{{ action }}</a></p>
+{% for paragraphe in paragraphes %}<p>{{ paragraphe|urlize|linebreaksbr }}</p>{% endfor %}
+<p>— Petits Pas</p>
+</body>
+</html>

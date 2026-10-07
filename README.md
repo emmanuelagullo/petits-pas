@@ -502,3 +502,25 @@ Dans un espace habituel sans école ni compte, le ZIP vérifié peut être insta
 directement avec une action explicite, sans créer une école provisoire. La présence
 d’une école ou d’un compte interdit ce raccourci ; la restauration conserve alors
 ses droits de direction et sa confirmation habituels.
+
+## Courriels d’accueil
+
+`suivi/courriels_comptes.py` compose l’ouverture du premier compte de direction
+et l’invitation, avec les mêmes paragraphes en texte et en HTML. La commande
+`initialiser_ecole_serveur --email … --url …` et l’équipe pédagogique réutilisent
+cette composition ; l’origine du service et le transport restent des paramètres
+de déploiement. Une surcouche appelle les outils publics sans recopier les mails.
+
+Les instructions essentielles suivent la version du code émetteur. Les liens
+publics, centralisés dans ce module, renvoient au Guide courant, qui peut être
+plus récent ; chaque mail indique cette limite et la version de l’application.
+Les sources des parcours sont dans `site/content/guide/service/`. Publier le
+Guide complété avant d’envoyer ces nouveaux mails. Aucun service de documentation
+versionnée supplémentaire n’est requis.
+
+Les préattributions affichées dans le mail sont un état à l’envoi. L’acceptation
+rattache les lignes courantes sans réactiver celles terminées ou suspendues ;
+les autorisations vérifient toujours les dates, l’appartenance et la classe.
+Une erreur d’envoi conserve l’invitation ou le compte : les procédures de secours
+existantes restent applicables. Ne jamais consigner le texte brut d’une exception
+de transport, ni les liens d’activation dans un diagnostic.

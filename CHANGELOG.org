@@ -7,6 +7,15 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Courriels d’ouverture et d’invitation : instructions communes texte/HTML,
+  identité et droits distincts de direction/classe, fonctions préparées avec
+  leurs dates, premiers pas par fonction et deux parcours du Guide. La version
+  émettrice est indiquée ; le Guide en ligne reste explicitement évolutif.
+- La confirmation d’acceptation distingue les fonctions accessibles et celles
+  encore futures ou devenues inactives. Les erreurs d’envoi d’invitation ne
+  conservent que le type de l’erreur, jamais son texte susceptible de contenir
+  un lien privé. Un envoi non confirmé reste un échec avec invitation conservée.
+
 * 0.9.1 — 2026-10-06
 
 ** Fixed
