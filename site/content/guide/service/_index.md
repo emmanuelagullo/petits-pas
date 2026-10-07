@@ -17,3 +17,13 @@ La direction ne remplace pas la base partagée depuis son navigateur.
 Pour organiser l’équipe ou créer les classes, suivre les fiches du Guide selon
 vos droits. Pour une nouvelle mise en service, consulter
 [Institutions et hébergement]({{< relref "/dsi/" >}}).
+
+Pour démarrer :
+
+- [Préparer l’école avec le premier compte de direction]({{< relref "/guide/service/preparer-ecole" >}}).
+- [Vos premiers pas après une invitation]({{< relref "/guide/service/premiers-pas" >}}).
+
+Le Guide en ligne suit les évolutions du projet. Votre courriel indique la
+version qui vous invite et donne les étapes essentielles pour cette version.
+Vérifiez aussi la version affichée dans l’application : les publications
+antérieures peuvent proposer des écrans différents.

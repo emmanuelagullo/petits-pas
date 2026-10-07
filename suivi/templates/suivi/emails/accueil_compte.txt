@@ -1,0 +1,9 @@
+{% autoescape off %}{{ debut }}
+
+{{ action }} :
+{{ lien }}
+{% for paragraphe in paragraphes %}
+{{ paragraphe }}
+{% endfor %}
+— Petits Pas
+{% endautoescape %}

@@ -13,7 +13,7 @@
       <form method="post">{% csrf_token %}<input type="hidden" name="action" value="inviter"><input type="hidden" name="vue" value="{{ vue_equipe }}">
         <label>Adresse électronique <input type="email" name="email" required></label>
         {% if classes_affectables %}
-        <p class="aide">Optionnel : pré-attribuer déjà une fonction, appliquée dès que le compte sera créé.</p>
+        <p class="aide">Optionnel : préparer une fonction pour l’acceptation de l’invitation. L’accès dépendra de ses dates et de l’activation de la classe.</p>
         <label>Classe <select name="classe_preattribuee"><option value="">— Aucune —</option>{% for classe in classes_affectables %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}</select></label>
         <label>Fonction <select name="type_preattribuee">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
         {% endif %}

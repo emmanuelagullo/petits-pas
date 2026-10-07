@@ -13,7 +13,8 @@ statut = "disponible"
 ## Étapes
 
 1. Ouvrir **Inviter une personne**, puis saisir son adresse électronique.
-2. Sélectionner **Créer l’invitation**.
+2. Si la classe existe, choisir éventuellement **Classe** et **Fonction** pour
+   préparer une fonction avant l’acceptation, puis sélectionner **Créer l’invitation**.
 3. Vérifier le message : il indique si le courriel a été envoyé, si son envoi
    a échoué ou si cette installation fonctionne sans courriel.
 4. Si nécessaire, copier le lien affiché à cet instant et le transmettre par
@@ -44,7 +45,11 @@ Le lien ne permettra alors plus de rejoindre l’école.
   affiché reste utilisable.
 - Une invitation expirée, révoquée ou acceptée ne peut pas être réutilisée ; il
   faut en créer une nouvelle si nécessaire.
-- L’invitation crée une appartenance à l’école, mais aucun droit pédagogique.
-  Une fonction de classe doit ensuite être attribuée séparément.
+- Sans fonction préparée, l’invitation crée uniquement une appartenance.
+  Attribuer ensuite une fonction pour ouvrir un accès. Avec une fonction
+  préparée, les droits dépendent de son état et de ses dates à l’acceptation,
+  et de l’activation de la classe. L’invitation ne donne pas la direction.
+- Le mail présente les fonctions à l’envoi, avec la classe, l’année et les dates.
+  Des changements ultérieurs ne réécrivent pas ce mail.
 
 Voir [Créer ou rattacher son compte invité]({{< relref "accepter-invitation.md" >}}).

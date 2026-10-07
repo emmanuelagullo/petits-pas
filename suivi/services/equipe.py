@@ -7,7 +7,6 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import EmailMultiAlternatives
 from django.db import models, transaction
-from django.template.loader import render_to_string
 from django.utils import timezone
 
 from comptes.models import (
@@ -31,6 +30,7 @@ from suivi.autorisations import (
     peut_terminer_affectation,
 )
 from suivi.models import Classe, Ecole
+from suivi.courriels_comptes import composer_accueil
 
 
 logger = logging.getLogger(__name__)
@@ -180,32 +180,24 @@ def envoyer_email_invitation(*, utilisateur, invitation, lien):
     if not settings.EMAIL_DISPONIBLE:
         return False
 
-    contexte = {
-        "ecole": invitation.ecole,
-        "lien": lien,
-        "expire_le": invitation.expire_le,
-    }
-    corps_texte = render_to_string("suivi/emails/invitation.txt", contexte)
-    corps_html = render_to_string("suivi/emails/invitation.html", contexte)
-    message = EmailMultiAlternatives(
-        subject=f"Invitation à rejoindre {invitation.ecole.nom} sur Petits Pas",
-        body=corps_texte,
-        to=[invitation.email],
+    message = composer_accueil(
+        ecole=invitation.ecole, invitation=invitation,
+        lien=lien, destinataire=invitation.email,
     )
-    message.attach_alternative(corps_html, "text/html")
     try:
-        message.send(fail_silently=False)
+        if message.send(fail_silently=False) != 1:
+            raise RuntimeError("envoi non confirmé")
     except Exception as erreur:
         logger.warning(
             "Échec de l'envoi de l'e-mail d'invitation %s : %s",
             invitation.pk,
-            erreur,
+            type(erreur).__name__,
         )
         journaliser(
             utilisateur,
             "invitation.email_echec",
             invitation,
-            nouvelles={"erreur": str(erreur)},
+            nouvelles={"erreur": type(erreur).__name__},
         )
         return False
     return True

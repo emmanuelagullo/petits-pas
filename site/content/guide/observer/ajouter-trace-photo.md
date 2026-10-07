@@ -6,13 +6,15 @@ categorie = "observer"
 publics = ["responsable", "associe", "contributeur"]
 intentions = ["observation", "trace", "commentaire", "photo", "date", "contribution"]
 prerequis = "Vous contribuez actuellement dans la classe. Pour un contributeur, l’élève doit être actif dans cette classe."
-depart = "Fiche de l’élève ou page Contribuer → bouton + d’une compétence"
+depart = "Fiche de l’élève → +, ou Ajouter une contribution pour… → compétence"
 statut = "disponible"
 +++
 
 ## Étapes
 
-1. Ouvrir l’élève, puis sélectionner le bouton **+** à droite de la compétence.
+1. Ouvrir l’élève. Pour un responsable ou un enseignant associé, sélectionner
+   **+** à droite de la compétence. Pour un contributeur, la page **Ajouter une
+   contribution pour…** s’ouvre : sélectionner directement la compétence.
 2. Écrire librement le commentaire. Si des phrases sont proposées, en choisir
    une dans le menu puis **Insérer la proposition**. Elle est ajoutée au curseur
    ou remplace le texte sélectionné ; elle reste entièrement modifiable.

@@ -754,8 +754,8 @@ def accepter_invitation_vue(request, selecteur, jeton):
                             "acceptee": True,
                             "fonctions_preattribuees": list(
                                 invitation.affectations_classes.filter(
-                                    etat=AffectationClasse.ACTIVE
-                                ).select_related("classe")
+                                    appartenance__utilisateur=utilisateur, etat=AffectationClasse.ACTIVE,
+                                ).select_related("classe", "appartenance")
                             ),
                         },
                     )
@@ -786,8 +786,8 @@ def accepter_invitation_vue(request, selecteur, jeton):
                         "acceptee": True,
                         "fonctions_preattribuees": list(
                             invitation.affectations_classes.filter(
-                                etat=AffectationClasse.ACTIVE
-                            ).select_related("classe")
+                                appartenance__isnull=False, etat=AffectationClasse.ACTIVE,
+                            ).select_related("classe", "appartenance")
                         ),
                     },
                 )

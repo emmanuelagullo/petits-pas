@@ -4,7 +4,9 @@
 <h1>Rejoindre {{ invitation.ecole.nom }}</h1>
 {% if acceptee %}
 {% if fonctions_preattribuees %}
-<p>Votre compte est activé et membre de l'école. La direction vous a déjà attribué {{ fonctions_preattribuees|length }} fonction{{ fonctions_preattribuees|length|pluralize }} : {% for f in fonctions_preattribuees %}{{ f.get_type_display }} de {{ f.classe.libelle_avec_annee }}{% if not forloop.last %}, {% endif %}{% endfor %}. Vous pouvez vous connecter dès maintenant.</p>
+<p>Votre compte est activé et membre de l'école. Fonctions conservées à l’acceptation :</p>
+<ul>{% for f in fonctions_preattribuees %}<li>{{ f.get_type_display }} de {{ f.classe.libelle_avec_annee }} · du {{ f.date_debut|date:"d/m/Y" }}{% if f.date_fin %} au {{ f.date_fin|date:"d/m/Y" }} inclus{% endif %} · {% if f.est_active %}accessible maintenant{% else %}pas encore accessible ou plus active : vérifiez avec la direction{% endif %}.</li>{% endfor %}</ul>
+<p>Vous pouvez rejoindre la page de connexion. L’accès dépend de vos fonctions actuelles et de l’activation des classes.</p>
 {% else %}
 <p>Votre compte est activé et maintenant membre de l'école. La direction peut à présent vous attribuer une fonction dans une classe.</p>
 {% endif %}
