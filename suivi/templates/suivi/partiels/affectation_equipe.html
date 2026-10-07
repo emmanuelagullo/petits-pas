@@ -6,10 +6,11 @@
       <strong>{{ affectation.classe.libelle_avec_annee }}</strong>{% if affectation.classe_historique %} <span class="pastille pastille-annee annee-{{ affectation.classe.statut_annee }}">{{ affectation.classe.libelle_statut_annee }}</span>{% endif %}
     {% endif %}
     <span>
-      {% if affectation.en_attente %}<span class="pastille pastille-attente">Invitation en cours</span> · {% endif %}
+      {% if affectation.preattribution_en_cours %}<span class="pastille pastille-attente">Invitation en cours</span> · {% elif affectation.en_attente %}<span class="pastille pastille-attente">Pré-attribution annulée</span> · {% endif %}
       {% if vue == "classes" and not affectation.en_attente %}{{ affectation.appartenance.utilisateur.email }} · {% endif %}
       {{ affectation.get_type_display }} ·
-      {% if affectation.en_attente %}en attente de la création du compte
+      {% if affectation.preattribution_en_cours %}en attente de la création du compte
+      {% elif affectation.en_attente %}annulée{% if affectation.date_fin %} le {{ affectation.date_fin }}{% endif %}
       {% elif affectation.classe_historique and affectation.est_active_aujourdhui %}accès historique en cours depuis le {{ affectation.date_debut }}
       {% elif affectation.est_future %}à partir du {{ affectation.date_debut }}
       {% elif affectation.est_active_aujourdhui %}en cours depuis le {{ affectation.date_debut }}

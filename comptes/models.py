@@ -226,6 +226,22 @@ class AffectationClasse(RelationTemporelle):
         est rattachée à une invitation, pas encore à une appartenance."""
         return self.appartenance_id is None
 
+    @property
+    def preattribution_en_cours(self):
+        """Pré-attribution encore susceptible de devenir une affectation réelle :
+        rattachée à une invitation toujours valable (ni acceptée, ni révoquée,
+        ni expirée, même si la commande de marquage n'est pas encore passée) et
+        non annulée. Une pré-attribution qui ne l'est plus n'a plus rien à
+        afficher comme « en cours »."""
+        invitation = self.invitation
+        return bool(
+            self.appartenance_id is None
+            and self.etat == self.ACTIVE
+            and invitation is not None
+            and invitation.etat == Invitation.EN_ATTENTE
+            and invitation.expire_le >= timezone.now()
+        )
+
     def clean(self):
         super().clean()
         if (

@@ -324,6 +324,20 @@ d'ajout après coup sur une invitation déjà en attente), absente de la
 vue « personnes », et =remplacer_responsable()= non étendu aux
 invitations.
 
+Correction ultérieure : la pré-attribution suit le sort de son invitation.
+Révoquer une invitation (=revoquer_invitation=) ou la laisser expirer
+(=marquer_invitations_expirees=) *termine* ses pré-attributions encore
+actives ; la révocation le consigne au journal d'audit (=affectation.terminee=),
+l'expiration automatique n'y écrit rien faute d'acteur. Une pré-attribution
+n'est « en cours » (=AffectationClasse.preattribution_en_cours=) que si elle
+est active et que son invitation est en attente et non échue, même si la
+commande d'expiration n'est pas encore passée. Les lignes restées actives
+avant cette correction ne sont pas modifiées en base : elles ne s'affichent
+simplement plus comme « Invitation en cours ». La page Collaborateurs ne liste
+que les pré-attributions en cours et réserve l'adresse de la personne invitée à
+la direction ; la page d'acceptation ne présente que les fonctions encore
+attribuées.
+
 ** 6.3 Captcha ou autre frein aux automatismes ?
 
 Revue des surfaces exposées sans authentification :

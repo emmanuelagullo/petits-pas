@@ -7,7 +7,7 @@
 {% for affectation in affectations %}
   <li class="entree">
     <span class="principal">
-      {% if affectation.en_attente %}<span class="pastille pastille-attente">Invitation en cours</span> {{ affectation.invitation.email }}
+      {% if affectation.en_attente %}<span class="pastille pastille-attente">Invitation en cours</span> {% if peut_voir_adresses %}{{ affectation.invitation.email }}{% else %}personne invitée{% endif %}
       {% else %}{{ affectation.appartenance.utilisateur.get_full_name|default:affectation.appartenance.utilisateur.username }}
       {% endif %}
     </span>
