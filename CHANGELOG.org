@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Commande =tester_courriel_accueil= : aperçu par mail des cinq scénarios
+  d’accueil, y compris pour une adresse déjà connue, sans accès à la base ni
+  création de compte, invitation, droits ou lien secret.
+
 - Courriels d’ouverture et d’invitation : instructions communes texte/HTML,
   identité et droits distincts de direction/classe, fonctions préparées avec
   leurs dates, premiers pas par fonction et deux parcours du Guide. La version

@@ -1,7 +1,9 @@
-{% autoescape off %}{{ debut }}
+{% autoescape off %}{% if mode_test %}TEST — Aperçu avec une école et un compte fictifs. Aucun compte, invitation ou droit n’a été créé. Le lien d’activation est désactivé ; les liens du Guide restent consultables.
+
+{% endif %}{{ debut }}
 
 {{ action }} :
-{{ lien }}
+{% if mode_test %}(Lien désactivé pour ce test.){% else %}{{ lien }}{% endif %}
 {% for paragraphe in paragraphes %}
 {{ paragraphe }}
 {% endfor %}

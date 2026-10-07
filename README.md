@@ -524,3 +524,24 @@ les autorisations vérifient toujours les dates, l’appartenance et la classe.
 Une erreur d’envoi conserve l’invitation ou le compte : les procédures de secours
 existantes restent applicables. Ne jamais consigner le texte brut d’une exception
 de transport, ni les liens d’activation dans un diagnostic.
+
+Pour vérifier la réception et lire les vrais textes d’accueil sans créer de
+compte ou d’invitation, envoyer un aperçu à une adresse personnelle autorisée :
+
+```sh
+python manage.py tester_courriel_accueil votre-adresse --scenario direction
+python manage.py tester_courriel_accueil votre-adresse --scenario sans-fonction
+python manage.py tester_courriel_accueil votre-adresse --scenario responsable
+python manage.py tester_courriel_accueil votre-adresse --scenario associe
+python manage.py tester_courriel_accueil votre-adresse --scenario contributeur
+```
+
+L’adresse peut déjà être connue de l’application : la commande ne consulte ni
+ne modifie la base. Chaque message est marqué **TEST**, présente une école et
+une identité fictives, et désactive le lien d’activation. Les liens du Guide
+restent consultables ; la connexion fictive `example.invalid` ne mène pas au
+service. Les textes et le format texte/HTML sont ceux de la composition publique.
+Le scénario `direction` est proposé par défaut. La création d’une classe seule
+ne déclenche pas de mail : les trois derniers scénarios montrent une invitation
+avec une fonction de classe préparée. Les essais vérifient l’envoi et le rendu,
+pas l’acceptation d’une vraie invitation. Aucun lien secret n’est généré.

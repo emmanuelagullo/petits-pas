@@ -39,7 +39,8 @@ PREMIERS_PAS = {
 }
 
 
-def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None):
+def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None,
+                     preattributions=None, mode_test=False):
     """Construit texte et HTML depuis les mêmes paragraphes, sans envoyer."""
     origine = urlsplit(lien)
     connexion = f"{origine.scheme}://{origine.netloc}" + reverse("connexion")
@@ -101,9 +102,11 @@ def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None)
             "invitation à la direction. Ne communiquez pas votre mot de passe.",
         ]
         aujourd_hui = timezone.localdate()
-        fonctions = list(invitation.affectations_classes.filter(
-            appartenance__isnull=True, etat=AffectationClasse.ACTIVE,
-        ).select_related("classe").order_by("classe__annee_scolaire", "classe__nom", "pk"))
+        fonctions = list(preattributions) if preattributions is not None else list(
+            invitation.affectations_classes.filter(
+                appartenance__isnull=True, etat=AffectationClasse.ACTIVE,
+            ).select_related("classe").order_by("classe__annee_scolaire", "classe__nom", "pk")
+        )
         fonctions = [f for f in fonctions if not f.date_fin or f.date_fin >= aujourd_hui]
         if fonctions:
             lignes = ["Fonctions préparées au moment de cet envoi :"]
@@ -145,9 +148,9 @@ def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None)
         "suivez les étapes de ce courriel et demandez conseil à la direction.",
     ])
     contexte = {"debut": debut, "action": action, "lien": lien,
-                "paragraphes": paragraphes, "sujet": sujet}
+                "paragraphes": paragraphes, "sujet": sujet, "mode_test": mode_test}
     message = EmailMultiAlternatives(
-        subject=sujet, to=[destinataire],
+        subject=("[TEST] " if mode_test else "") + sujet, to=[destinataire],
         body=render_to_string("suivi/emails/accueil_compte.txt", contexte),
     )
     message.attach_alternative(
