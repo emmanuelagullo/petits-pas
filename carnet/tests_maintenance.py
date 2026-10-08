@@ -31,3 +31,23 @@ class AnnonceTests(SimpleTestCase):
         from suivi.acces_double_facteur import DoubleFacteurMiddleware
         request = SimpleNamespace(resolver_match=SimpleNamespace(url_name='maintenance_annonce'))
         self.assertIsNone(DoubleFacteurMiddleware(Mock()).process_view(request, Mock(), (), {}))
+
+    @override_settings(ROOT_URLCONF='pwa.urls')
+    def test_template_pwa_sans_route_maintenance(self):
+        from django.template.loader import render_to_string
+        html=render_to_string('suivi/base.html',{'mode_pwa':True,'mode_local':True})
+        self.assertNotRegex(html,r'suivi/maintenance\.')
+        self.assertNotIn('annonce-maintenance',html)
+
+    def test_template_local_et_pdf_sans_polling(self):
+        from django.template.loader import render_to_string
+        for contexte in ({'mode_local':True},{'generation_pdf':True}):
+            html=render_to_string('suivi/base.html',contexte)
+            self.assertNotRegex(html,r'suivi/maintenance\.')
+            self.assertNotIn('annonce-maintenance',html)
+
+    def test_template_serveur_conserve_annonce(self):
+        from django.template.loader import render_to_string
+        html=render_to_string('suivi/base.html',{})
+        self.assertRegex(html,r'suivi/maintenance\.')
+        self.assertIn('/maintenance-annonce/',html)

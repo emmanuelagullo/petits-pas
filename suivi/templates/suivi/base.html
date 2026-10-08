@@ -7,13 +7,15 @@
 {% if not generation_pdf %}
 <link rel="stylesheet" href="{% static 'suivi/carnet.css' %}">
 <script src="{% static 'suivi/htmx.min.js' %}" defer></script>
+{% if not mode_local and not mode_pwa %}
 <script src="{% static 'suivi/maintenance.js' %}" defer></script>
+{% endif %}
 <script src="{% static 'suivi/mot_de_passe.js' %}" defer></script>
 <script src="{% static 'suivi/images_privees.js' %}" defer></script>
 {% endif %}
 </head>
 <body>
-{% if not generation_pdf %}
+{% if not generation_pdf and not mode_local and not mode_pwa %}
 <aside id="annonce-maintenance" class="encadre sans-impression" hidden data-url="{% url 'maintenance_annonce' %}">
   Une maintenance interrompra temporairement l’accès à Petits Pas
   <span id="delai-maintenance"></span>.
