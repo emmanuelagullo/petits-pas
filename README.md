@@ -413,6 +413,10 @@ avec `python manage.py importer_ecole_zip` : vérification seule puis confirmati
 de l'empreinte, direction explicite, classes en préparation et nouveaux
 identifiants. Aucun remplacement ni fusion ; destination sur disque local et
 schéma métier à jour pour cette première version. Voir `IMPORT-ECOLE.org`.
+Avec `--creer-direction --email ADRESSE --url ORIGINE_HTTPS`, la personne reçoit
+après import le lien de choix de son mot de passe et les premiers pas adaptés
+aux classes transférées. `renvoyer_accueil_import` reprend seulement l'envoi
+en cas d'échec, sans recréer l'école ni modifier le mot de passe.
 
 ## Site public
 
@@ -558,6 +562,7 @@ compte ou d’invitation, envoyer un aperçu à une adresse personnelle autoris�
 
 ```sh
 python manage.py tester_courriel_accueil votre-adresse --scenario direction
+python manage.py tester_courriel_accueil votre-adresse --scenario direction-import
 python manage.py tester_courriel_accueil votre-adresse --scenario sans-fonction
 python manage.py tester_courriel_accueil votre-adresse --scenario responsable
 python manage.py tester_courriel_accueil votre-adresse --scenario associe

@@ -17,6 +17,7 @@ GUIDE = "https://petits-pas.gitlabpages.inria.fr/petits-pas/guide/"
 PARCOURS = {
     "direction": "service/preparer-ecole/",
     "invitation": "service/premiers-pas/",
+    "import": "service/importer-zip/",
 }
 PREMIERS_PAS = {
     AffectationClasse.RESPONSABLE: (
@@ -40,7 +41,7 @@ PREMIERS_PAS = {
 
 
 def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None,
-                     preattributions=None, mode_test=False):
+                     preattributions=None, mode_test=False, apres_import=False):
     """Construit texte et HTML depuis les mêmes paragraphes, sans envoyer."""
     origine = urlsplit(lien)
     connexion = f"{origine.scheme}://{origine.netloc}" + reverse("connexion")
@@ -83,6 +84,31 @@ def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None,
             "membre après son acceptation.",
         ]
         parcours = "direction"
+        if apres_import:
+            sujet = "Votre compte Petits Pas après le transfert de l’école"
+            debut += (
+                " L’école a été créée sur ce service à partir d’une copie ZIP. "
+                "Les mots de passe et les droits de la copie locale ne sont pas repris."
+            )
+            paragraphes[3:] = [
+                "3. Les classes, élèves et données transférés sont déjà présents. "
+                "Les classes non archivées sont en préparation. Les noms des auteurs "
+                "restent dans l’historique, avec des comptes inactifs ; ils ne "
+                "donnent pas accès au service. Ne recréez pas les classes ni les élèves transférés.",
+                "4. Dans Équipe pédagogique → Inviter une personne, invitez les "
+                "collègues. Attribuez ensuite un Responsable de classe à chaque "
+                "classe dans Équipe pédagogique → Ajouter une personne à cette "
+                "classe → Attribuer ; attendez son acceptation si vous avez préparé "
+                "sa fonction dans une invitation. Revenez à Gérer l’école → Activer "
+                "la classe et confirmez. Pour votre propre classe, attribuez-vous "
+                "explicitement la fonction Responsable de classe.",
+                "5. Le responsable vérifie l’effectif et le référentiel de sa classe "
+                "avant de reprendre les saisies. Les classes closes restent closes. "
+                "Les copies locale et serveur évoluent indépendamment : aucune "
+                "saisie ultérieure dans la copie locale n’est synchronisée ici. "
+                "Les nouveaux choix de bases suivent les règles du service.",
+            ]
+            parcours = "import"
     else:
         sujet = f"Invitation à rejoindre {ecole.nom} sur Petits Pas"
         debut = f"Bonjour,\n\n{ecole.nom} vous invite à rejoindre Petits Pas avec l’adresse {destinataire}."

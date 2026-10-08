@@ -13,6 +13,7 @@ from suivi.models import Classe, Ecole, annee_scolaire_pour
 
 SCENARIOS = {
     "direction": None,
+    "direction-import": None,
     "sans-fonction": None,
     "responsable": AffectationClasse.RESPONSABLE,
     "associe": AffectationClasse.ENSEIGNANT_ASSOCIE,
@@ -56,8 +57,9 @@ class Command(BaseCommand):
         message = composer_accueil(
             ecole=ecole, destinataire=adresse,
             lien="https://example.invalid/activation-desactivee/",
-            compte=compte if options["scenario"] == "direction" else None,
+            compte=compte if options["scenario"] in ("direction", "direction-import") else None,
             invitation=invitation, preattributions=fonctions, mode_test=True,
+            apres_import=options["scenario"] == "direction-import",
         )
         try:
             resultat = message.send(fail_silently=False)
