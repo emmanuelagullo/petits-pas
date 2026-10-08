@@ -19,8 +19,34 @@ statut = "disponible"
    d’une autre personne.
 
 Ce même message peut apparaître lorsque l’identité est correcte mais ne possède
-plus d’appartenance, de responsabilité ou d’affectation donnant accès à
-l’application. La direction doit alors vérifier le rattachement et les périodes.
+plus aucune appartenance à une école. La direction doit alors vérifier le
+rattachement et les périodes.
+
+## « Aucune fonction ne vous a encore été attribuée »
+
+Le message complet est : « Votre compte existe, mais aucune fonction ne vous a
+encore été attribuée dans une classe. Contactez la direction de votre école. »
+Le mot de passe est bon et la personne est bien membre de l’école, mais elle n’a
+ni responsabilité d’école ni fonction dans une classe : l’application pédagogique
+reste fermée. Demander à la direction de lui
+[attribuer une fonction]({{< relref "/guide/equipe/attribuer-fonction.md" >}}).
+Pour une personne que l’on invite, la fonction peut être
+[préparée dès l’invitation]({{< relref "/guide/equipe/inviter-membre.md" >}}).
+
+## « Trop de tentatives de connexion »
+
+Après plusieurs essais manqués avec le même identifiant depuis la même adresse
+(cinq par défaut), la page bloque cet identifiant pendant quelques minutes (quinze
+par défaut) depuis cette adresse. Les autres identifiants ne sont pas touchés.
+
+1. Attendre la fin du blocage plutôt que réessayer au hasard.
+2. Si le mot de passe est oublié, demander une réinitialisation : voir
+   [Réinitialiser son mot de passe]({{< relref "/guide/equipe/reinitialiser-mot-de-passe.md" >}}).
+3. Si l’installation n’envoie pas de courriels, la page invite à contacter la
+   direction de l’école.
+
+Plusieurs personnes derrière une même adresse (par exemple un établissement)
+n’en sont pas affectées tant qu’elles utilisent des identifiants différents.
 
 ## Le code de vérification est refusé
 

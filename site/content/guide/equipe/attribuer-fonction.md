@@ -54,5 +54,6 @@ Voir la [présentation des rôles]({{< relref "/roles/" >}}) et les
 [situations illustrées]({{< relref "/roles/situations/" >}}).
 
 Avant l’acceptation, vous pouvez aussi préparer une fonction dans **Inviter une personne**,
-avec **Classe** et **Fonction**. Elle ne permet pas d’activer la classe avant
+avec **Classe** et **Fonction** (voir
+[Inviter un nouveau membre]({{< relref "inviter-membre.md" >}})). Elle ne permet pas d’activer la classe avant
 que la personne ait accepté et que sa fonction responsable soit active.

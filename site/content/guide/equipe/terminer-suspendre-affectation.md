@@ -20,6 +20,13 @@ L’état devient terminé et la date de fin prend la date du jour. Les droits
 cessent, tandis que l’identité, l’affectation et les contributions historiques
 restent conservées.
 
+## Annuler une fonction préparée
+
+Une fonction préparée dans une invitation en cours (pastille **Invitation en
+cours**) n’a encore ouvert aucun droit. Pour y renoncer : **Gérer**, puis
+**Annuler la pré-attribution**. Si l’invitation est révoquée ou expire sans avoir
+été acceptée, ses fonctions préparées sont annulées automatiquement.
+
 ## Suspension d’urgence
 
 1. Ouvrir **Gérer** sur l’affectation concernée.

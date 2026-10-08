@@ -21,7 +21,10 @@ et l’état de l’affectation.
 ## Limites
 
 - Cette vue informe ; elle ne permet pas de modifier les affectations.
-- Les coordonnées électroniques ne sont pas affichées aux collaborateurs.
+- Les coordonnées électroniques ne sont pas affichées aux collaborateurs. Une
+  personne dont l’invitation est en cours apparaît avec la pastille **Invitation
+  en cours** ; seule la direction voit son adresse, les autres lisent « personne
+  invitée ». Une invitation révoquée ou expirée n’y figure plus.
 - Une personne sans affectation active ne peut pas ouvrir cette liste.
 - La direction utilise **Équipe pédagogique** pour la vue complète de l’école,
   les coordonnées, invitations et actions de gouvernance.
