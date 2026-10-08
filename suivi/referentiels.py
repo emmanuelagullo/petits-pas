@@ -203,6 +203,23 @@ def observations_classe(classe):
             date_lecture=Case(*[When(pk=e["observation_id"], then=Value(date.fromisoformat(e["date_observation"])))
                                for e in etats if e["connu"] and e["date_observation"]],
                               default=Value(None), output_field=DateField()))
+    # Une projection de classe ne transporte aucune scolarité d'une autre
+    # année. Conserver le degré de connaissance de l'état visible au moment de
+    # l'extraction, jusqu'à sa première modification dans la copie locale.
+    from django.conf import settings
+    export = adoption.etat_final.get("export_classe", {}) if settings.MODE_LOCAL else {}
+    if export:
+        from django.utils.dateparse import parse_datetime
+        instantane = parse_datetime(export["instantane_le"])
+        etats = EtatAnnuelObservation.objects.filter(
+            observation_id=OuterRef("pk"), annee_scolaire=classe.annee_scolaire)
+        return queryset.annotate(
+            statut_lecture=Case(When(modifie_le__lte=instantane, then=Subquery(etats.values("statut")[:1])),
+                                default=F("statut"), output_field=CharField()),
+            connu_lecture=Case(When(modifie_le__lte=instantane, then=Subquery(etats.values("connu")[:1])),
+                               default=Value(True), output_field=BooleanField()),
+            date_lecture=Case(When(modifie_le__lte=instantane, then=Subquery(etats.values("date_observation")[:1])),
+                              default=F("date_observation"), output_field=DateField()))
     annuels = EtatAnnuelObservation.objects.filter(observation_id=OuterRef("pk"), annee_scolaire=classe.annee_scolaire, connu=True)
     plus_recent = Scolarite.objects.filter(eleve_id=OuterRef("eleve_id"), annee_scolaire__gt=classe.annee_scolaire)
     return queryset.annotate(autre_annee=Exists(plus_recent),

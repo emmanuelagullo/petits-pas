@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Export indépendant d’une classe/année par son responsable, commun au service,
+  au programme et à la PWA : rubrique discrète « Transférer cette classe »,
+  autorisation serveur séparée =CARNET_EXPORT_CLASSES=, projection selon les
+  droits existants et ZIP progressif. Aucun remplacement de la sauvegarde,
+  aucune fusion ni synchronisation.
+
 - Export complet d'une école du service vers le ZIP local commun : permission
   explicite par école ou pour toutes via ~CARNET_EXPORT_ECOLES=*~,
   préparation hors requête, téléchargement privé reprenable,

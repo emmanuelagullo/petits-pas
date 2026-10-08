@@ -307,6 +307,51 @@ assert not p.exists() and not q.exists()
   const archivePath = await download.path();
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', "import sys,zipfile,json,hashlib; z=zipfile.ZipFile(sys.argv[1]); m=json.loads(z.read('manifest.json')); assert m['format']=='petits-pas-paquet'; assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items()); assert any(n.startswith('media/') for n in m['files'])", archivePath]);
   pass('Export ZIP commun au mode autonome, manifeste et photos vérifiés');
+  // Extraction de classe dans le vrai runtime, avec un autre périmètre privé.
+  await python(page, "from suivi.models import Classe,Ecole; Classe.objects.create(ecole=Ecole.objects.get(),nom='Autre classe privée fictive',annee_scolaire='2026-2027')");
+  await page.frames()[1].goto(url + `app/classe/${ids.classe}/export/`);
+  await frame.locator('[name="mot_de_passe"]').fill('Test-fictif-PWA-2026!');
+  await frame.locator('[name="mot_de_passe_local"]').fill('Copie!Classe2026');
+  await frame.locator('[name="confirmation_locale"]').fill('Copie!Classe2026');
+  await frame.locator('[name="confirme"]').check();
+  const classReady = page.waitForEvent('download', {timeout:120000});
+  await frame.getByRole('button', {name:'Créer la copie de cette classe',exact:true}).click();
+  const classDownload = await classReady;
+  const classPath = await classDownload.path();
+  execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
+import sys,zipfile,json,hashlib,sqlite3,tempfile,pathlib
+with zipfile.ZipFile(sys.argv[1]) as z, tempfile.TemporaryDirectory() as temp:
+    m=json.loads(z.read('manifest.json'))
+    assert m['export_classe']['perimetre']=='classe_annee'
+    assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items())
+    p=pathlib.Path(temp)/'carnet.sqlite3'; p.write_bytes(z.read('carnet.sqlite3'))
+    with sqlite3.connect(p) as db:
+        assert db.execute('select count(*) from suivi_classe').fetchone()[0]==1
+        assert not db.execute('pragma foreign_key_check').fetchall()
+        assert db.execute('select count(*) from suivi_exportclasse').fetchone()[0]==0
+`, classPath]);
+  assert.equal((await page.evaluate(() => window.pwaTest({kind:'test-metrics'}))).result.residentMediaBytes, 0);
+  assert.equal(await python(page, 'from suivi.models import Classe; Classe.objects.count()'), 2);
+  const classContext = await browser.newContext({acceptDownloads:true, ignoreHTTPSErrors:tls});
+  try {
+    const classPage = await classContext.newPage();
+    await boot(classPage, url);
+    await classPage.frames()[1].goto(url + 'app/verifier-zip/');
+    const copiedClass = classPage.frameLocator('#app');
+    await copiedClass.locator('[name="archive"]').setInputFiles(classPath);
+    await copiedClass.getByRole('button', {name:'Vérifier le ZIP pour ouvrir une copie',exact:true}).click();
+    await copiedClass.getByRole('button', {name:'Utiliser ce ZIP comme école sur cet appareil',exact:true}).click();
+    await copiedClass.locator('[name="nom_utilisateur"]').fill('direction-fictive');
+    await copiedClass.locator('[name="mot_de_passe"]').fill('Copie!Classe2026');
+    await copiedClass.getByRole('button', {name:'Entrer',exact:true}).click();
+    await copiedClass.locator('.bandeau .marque').waitFor({timeout:30000});
+    assert.equal(await python(classPage, 'from suivi.models import Classe; Classe.objects.count()'), 1);
+    assert.equal(await python(classPage, 'from comptes.models import Utilisateur; Utilisateur.objects.get().check_password("Test-fictif-PWA-2026!")'), false);
+    const mediaName = await python(classPage, 'from suivi.models import Trace; Trace.objects.exclude(photo="").first().photo.name');
+    assert.equal(await python(classPage, `from django.core.files.storage import default_storage; default_storage.exists(${JSON.stringify(mediaName)})`), true);
+  } finally {await classContext.close();}
+  await python(page, "from suivi.models import Classe; Classe.objects.filter(nom='Autre classe privée fictive').delete()");
+  pass('Export de classe PWA progressif : un seul périmètre, médias non résidents, ZIP natif et nouvelle installation locale');
   await page.frames()[1].goto(url + 'app/verifier-zip/');
   await frame.locator('[name="archive"]').setInputFiles(archivePath);
   await frame.getByRole('button', {name: 'Vérifier le ZIP pour ouvrir une copie', exact: true}).click();

@@ -265,21 +265,23 @@ class ExportEcoleTests(TransactionTestCase):
 
 class ConfigurationExportTests(SimpleTestCase):
     def test_variable_environnement(self):
-        for valeur, attendu in ((None, "frozenset()"), ("", "frozenset()"),
-                                (" * ", "'*'"), (" 1, 2 ", "frozenset({1, 2})")):
-            with self.subTest(valeur=valeur):
-                env = os.environ.copy()
-                env.pop("CARNET_EXPORT_ECOLES", None)
-                if valeur is not None:
-                    env["CARNET_EXPORT_ECOLES"] = valeur
-                resultat = subprocess.run([sys.executable, "-c",
-                    "from carnet.settings import EXPORT_ECOLES; print(repr(EXPORT_ECOLES))"],
-                    env=env, capture_output=True, text=True, check=True)
-                self.assertEqual(resultat.stdout.strip(), attendu)
-        for valeur in ("*,1", "1,*", "**", "toutes"):
-            with self.subTest(valeur=valeur):
-                resultat = subprocess.run([sys.executable, "-c", "import carnet.settings"],
-                    env={**os.environ, "CARNET_EXPORT_ECOLES": valeur},
-                    capture_output=True, text=True)
-                self.assertNotEqual(resultat.returncode, 0)
-                self.assertIn("ImproperlyConfigured", resultat.stderr)
+        for variable, reglage in (("CARNET_EXPORT_ECOLES", "EXPORT_ECOLES"),
+                                 ("CARNET_EXPORT_CLASSES", "EXPORT_CLASSES")):
+            for valeur, attendu in ((None, "frozenset()"), ("", "frozenset()"),
+                                    (" * ", "'*'"), (" 1, 2 ", "frozenset({1, 2})")):
+                with self.subTest(valeur=valeur):
+                    env = os.environ.copy()
+                    env.pop(variable, None)
+                    if valeur is not None:
+                        env[variable] = valeur
+                    resultat = subprocess.run([sys.executable, "-c",
+                        f"from carnet.settings import {reglage}; print(repr({reglage}))"],
+                        env=env, capture_output=True, text=True, check=True)
+                    self.assertEqual(resultat.stdout.strip(), attendu)
+            for valeur in ("*,1", "1,*", "**", "toutes"):
+                with self.subTest(valeur=valeur):
+                    resultat = subprocess.run([sys.executable, "-c", "import carnet.settings"],
+                        env={**os.environ, variable: valeur},
+                        capture_output=True, text=True)
+                    self.assertNotEqual(resultat.returncode, 0)
+                    self.assertIn("ImproperlyConfigured", resultat.stderr)

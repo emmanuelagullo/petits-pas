@@ -95,6 +95,10 @@ privé, une expiration de 24 heures et un téléchargement authentifié avec rep
 HTTP. Les sauvegardes du service conservent leurs propres procédures. Le ZIP
 ne contient pas les secrets de connexion du serveur. La configuration et les
 limites figurent dans `EXPORT-ECOLE.org` et `DEPLOIEMENT.org` du dépôt.
+L’extraction d’une seule classe par son responsable dispose d’une autorisation
+indépendante (`CARNET_EXPORT_CLASSES`), limitée à ses données consultables.
+Le même format est disponible sur poste, sans remplacer la sauvegarde complète ;
+voir la [fiche]({{< relref "/guide/eleves-classes/exporter-classe/" >}}).
 La PWA conserve ses plafonds qualifiés. Aucun import, remplacement ou fusion
 sur le service partagé n’est ajouté.
 

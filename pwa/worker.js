@@ -120,7 +120,7 @@ async function process(message) {
     try {
       const {body, inputPort, ...metadata} = message.request;
       const multipart = metadata.headers.some(([key, value]) => key.toLowerCase() === 'content-type' && value.startsWith('multipart/form-data'));
-      if (inputPort || multipart || (metadata.method === 'POST' && url.pathname.endsWith('/gestion/sauvegardes-locales/')))
+      if (inputPort || multipart || (metadata.method === 'POST' && (url.pathname.endsWith('/gestion/sauvegardes-locales/') || /\/classe\/\d+\/export\/$/.test(url.pathname))))
         transferContext = await beginTransfers();
       if (inputPort) {await receiveBody(inputPort); metadata.opfs_input = true;}
       const bytes = typeof body === 'string' ? Uint8Array.from(atob(body), c => c.charCodeAt(0)) : body;

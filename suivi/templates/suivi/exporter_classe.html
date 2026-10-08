@@ -1,0 +1,39 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Exporter cette classe{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
+<h1>Exporter cette classe</h1>
+<p>Créer une copie indépendante de <strong>{{ classe.libelle_avec_annee }}</strong> pour l’utiliser dans une nouvelle installation Petits Pas. Les modifications des deux copies ne seront pas synchronisées.</p>
+<p>La copie contient les enfants non archivés de cette classe, son référentiel, les états lisibles pour cette année, les bilans et les traces non supprimés. Les autres classes et années ne sont pas incluses. Les traces partagées deviennent des traces individuelles. Pour un enfant désormais scolarisé ailleurs, les traces et bilans sont inclus seulement si vous pouvez encore les consulter. Un média n’est inclus que si vous pouvez déjà le télécharger.</p>
+<p class="encadre">Conservez ce ZIP sur un appareil protégé. Dans la copie, vous aurez la responsabilité de la classe et la direction de la petite école locale, qui ne contient que cette classe. Ces droits concernent uniquement la copie.</p>
+{% if formulaire.errors %}<div class="encadre">{{ formulaire.non_field_errors }}</div>{% endif %}
+{% if export %}
+  {% if expire %}<p>Le délai de téléchargement est terminé. Vous pouvez demander une nouvelle copie.</p>
+  {% elif export.etat == "pret" %}
+    <h2>La copie est prête</h2>
+    <p>État au {{ export.instantane_le|date:"d/m/Y à H:i" }} · {{ export.taille_zip|filesizeformat }} · disponible jusqu’au {{ export.expire_le|date:"d/m/Y à H:i" }}.</p>
+    <p>{% if export.compatible_pwa %}Le volume respecte les limites actuelles du navigateur et du programme Windows/Linux.{% else %}Le volume dépasse les limites actuelles du navigateur. Utilisez le programme Windows/Linux.{% endif %}</p>
+    <p>Connectez-vous dans la copie avec <strong>{{ export.identifiant_local }}</strong> et le nouveau mot de passe choisi. Les autres identités n’ont aucun accès local.</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="action" value="telecharger">
+      <label for="mot-de-passe-telechargement">Votre mot de passe sur ce service</label>
+      <input id="mot-de-passe-telechargement" name="mot_de_passe" type="password" autocomplete="current-password" required>
+      <button type="submit">Télécharger le ZIP</button>
+    </form>
+    <p class="aide">Le téléchargement peut être repris tant que la copie reste disponible et que votre autorisation est conservée.</p>
+  {% elif export.etat == "echec" %}<p class="encadre">{{ export.erreur }}</p>
+  {% else %}<p role="status">Votre demande est {% if export.etat == "attente" %}en attente{% else %}en préparation{% endif %}. Vous pouvez revenir plus tard.</p>
+    <p><a href="{% url 'exporter_classe' classe.pk %}">Actualiser</a></p>
+  {% endif %}
+{% endif %}
+{% if not actif %}
+  <p>Dans la copie, votre identifiant sera <strong>{{ request.user.username }}</strong>. Choisissez un mot de passe distinct de celui {% if mode_local %}de cette installation{% else %}du service{% endif %}. Les sessions et secrets de connexion ne sont pas transférés.</p>
+  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="preparer">
+    {{ formulaire.as_p }}
+    <button type="submit">Créer la copie de cette classe</button>
+  </form>
+{% endif %}
+<details><summary>Comment utiliser cette copie ?</summary>
+<p>Dans l’application locale, ouvrez « Vérifier un ZIP sans remplacer mon école ». Sur un appareil vide, « Utiliser ce ZIP comme école sur cet appareil » permet de l’installer. Le ZIP doit provenir d’une version compatible de Petits Pas. Il ne permet pas de fusionner cette classe avec une école existante.</p>
+{% if mode_local %}<p>Cette extraction de classe ne remplace pas la sauvegarde complète de votre installation. Elle ne renouvelle pas son rappel de sauvegarde.</p>{% endif %}
+</details>
+{% endblock %}

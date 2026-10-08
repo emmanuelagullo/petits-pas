@@ -17,6 +17,8 @@ La direction ne remplace pas la base partagée depuis son navigateur.
 Si le service l’autorise et si la version installée le propose, la direction
 peut [exporter une copie complète de l’école]({{< relref "/guide/service/exporter-ecole/" >}})
 pour l’ouvrir dans un mode local. Il n’y a pas de synchronisation.
+Le responsable peut aussi [extraire sa classe]({{< relref "/guide/eleves-classes/exporter-classe/" >}})
+si le service l’autorise séparément.
 Pour organiser l’équipe ou créer les classes, suivre les fiches du Guide selon
 vos droits. Pour une nouvelle mise en service, consulter
 [Institutions et hébergement]({{< relref "/dsi/" >}}).
