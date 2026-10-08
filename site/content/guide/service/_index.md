@@ -19,6 +19,8 @@ peut [exporter une copie complète de l’école]({{< relref "/guide/service/exp
 pour l’ouvrir dans un mode local. Il n’y a pas de synchronisation.
 Le responsable peut aussi [extraire sa classe]({{< relref "/guide/eleves-classes/exporter-classe/" >}})
 si le service l’autorise séparément.
+Pour rejoindre le service depuis une copie locale, convenir du
+[transfert avec l'exploitant]({{< relref "/guide/service/importer-zip/" >}}).
 Pour organiser l’équipe ou créer les classes, suivre les fiches du Guide selon
 vos droits. Pour une nouvelle mise en service, consulter
 [Institutions et hébergement]({{< relref "/dsi/" >}}).

@@ -394,7 +394,7 @@ est séparée des requêtes web ; le téléchargement authentifié permet la rep
 HTTP. Les sessions et secrets de connexion du serveur sont exclus ; la direction
 choisit un mot de passe propre à la copie. Les autres identités sont conservées
 pour l’historique avec accès désactivé. Les sauvegardes automatiques restent
-distinctes. Aucun import sur le service ni synchronisation n’est ajouté.
+distinctes. Aucune synchronisation n’est ajoutée.
 Voir `EXPORT-ECOLE.org` pour le contrat et le traitement périodique obligatoire.
 
 ## Exporter une classe
@@ -406,7 +406,13 @@ les droits de lecture dans la source. En local, il est produit directement ;
 sur serveur, `CARNET_EXPORT_CLASSES` l'autorise indépendamment de l'export
 d'école (vide : désactivé ; `*` : toutes les écoles ; `1,2` : écoles indiquées).
 Le traitement périodique existant prépare aussi ces ZIP. Il n'y a ni fusion,
-ni synchronisation, ni import serveur. Voir `EXPORT-CLASSE.org`.
+ni synchronisation. Voir `EXPORT-CLASSE.org`.
+
+L'exploitant peut importer un ZIP local vers une **nouvelle école serveur**
+avec `python manage.py importer_ecole_zip` : vérification seule puis confirmation
+de l'empreinte, direction explicite, classes en préparation et nouveaux
+identifiants. Aucun remplacement ni fusion ; destination sur disque local et
+schéma métier à jour pour cette première version. Voir `IMPORT-ECOLE.org`.
 
 ## Site public
 

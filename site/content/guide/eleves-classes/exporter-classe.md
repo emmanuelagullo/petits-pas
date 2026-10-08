@@ -53,7 +53,9 @@ source. Les autres personnes référencées n’ont pas accès à la copie.
 
 Les deux copies évolueront indépendamment, sans synchronisation. Ce ZIP ne
 permet pas de fusionner la classe dans une école existante. Pour un transfert
-définitif, convenez avec l’équipe du moment où les saisies cessent dans l’ancien
+vers une nouvelle école du service, contacter l'exploitant : voir le
+[parcours d'import]({{< relref "/guide/service/importer-zip/" >}}).
+Pour un transfert définitif, convenez avec l’équipe du moment où les saisies cessent dans l’ancien
 emplacement.
 
 Cette extraction ne remplace pas la sauvegarde complète de l’installation

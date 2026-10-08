@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Import d'un ZIP local vers une nouvelle école du service, par commande
+  d'exploitation : vérification préalable, empreinte confirmée, direction
+  choisie explicitement, identifiants et médias distincts. Comptes historiques
+  inactifs, classes en préparation, secrets et droits locaux exclus ; aucune
+  fusion ni remplacement. Destination sur disque local pour cette première étape.
+
 - Export indépendant d’une classe/année par son responsable, commun au service,
   au programme et à la PWA : rubrique discrète « Transférer cette classe »,
   autorisation serveur séparée =CARNET_EXPORT_CLASSES=, projection selon les
@@ -18,7 +24,7 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   préparation hors requête, téléchargement privé reprenable,
   expiration et nettoyage. Compte de direction avec mot de passe local distinct,
   autres identités historiques sans accès ; secrets et sessions serveur exclus.
-  La PWA conserve ses plafonds qualifiés ; aucun import serveur ni fusion ajouté.
+  La PWA conserve ses plafonds qualifiés ; aucune fusion ajoutée.
 
 - Commande =tester_courriel_accueil= : aperçu par mail des cinq scénarios
   d’accueil, y compris pour une adresse déjà connue, sans accès à la base ni
