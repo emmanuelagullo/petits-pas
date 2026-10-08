@@ -1,5 +1,8 @@
 """Écoles fictives : projection, autorisations, secrets, reprise et échecs."""
 import json
+import os
+import subprocess
+import sys
 import sqlite3
 import tempfile
 from datetime import timedelta
@@ -11,12 +14,12 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.management import call_command
-from django.test import Client, TransactionTestCase, override_settings
+from django.test import Client, SimpleTestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from comptes.models import AppartenanceEcole, ResponsabiliteEcole, Utilisateur, DoubleFacteurCompte, Invitation
-from .exports_ecole import dossier, produire, selections, verifier_couverture
+from .exports_ecole import autorise_export, dossier, produire, selections, verifier_couverture
 from .models import (Classe, Ecole, Eleve, Competence, Scolarite, Observation, Trace, ExportEcole,
                      TraceCommune, ReferentielAnnuel, UsageCompetence, ChoixEcoleAnnuel,
                      ChoixApplicationAnnuel)
@@ -148,6 +151,20 @@ class ExportEcoleTests(TransactionTestCase):
         self.client.force_login(self.prof)
         self.assertEqual(self.client.get(url).status_code, 404)
 
+    def test_joker_conserve_les_droits_et_couvre_les_nouvelles_ecoles(self):
+        with override_settings(EXPORT_ECOLES="*"):
+            self.assertTrue(autorise_export(self.direction, self.ecole))
+            self.assertFalse(autorise_export(self.direction, self.autre))
+            self.assertFalse(autorise_export(self.prof, self.ecole))
+            nouvelle = Ecole.objects.create(nom="Nouvelle école fictive")
+            appartenance = AppartenanceEcole.objects.create(utilisateur=self.direction, ecole=nouvelle)
+            fonction = ResponsabiliteEcole.objects.create(appartenance=appartenance)
+            self.assertTrue(autorise_export(self.direction, nouvelle))
+            with override_settings(MODE_LOCAL=True):
+                self.assertFalse(autorise_export(self.direction, nouvelle))
+            fonction.delete()
+            self.assertFalse(autorise_export(self.direction, nouvelle))
+
     def test_preparation_confirmee_et_une_seule_demande(self):
         donnees = {"action": "preparer", "mot_de_passe": "Serveur!Fictif2026",
             "mot_de_passe_local": "Copie!Fictive2026", "confirmation_locale": "Copie!Fictive2026", "confirme": "on"}
@@ -244,3 +261,25 @@ class ExportEcoleTests(TransactionTestCase):
             with self.assertRaisesMessage(ValidationError, "Espace temporaire"):
                 produire(export)
         self.assertFalse(dossier(export).exists())
+
+
+class ConfigurationExportTests(SimpleTestCase):
+    def test_variable_environnement(self):
+        for valeur, attendu in ((None, "frozenset()"), ("", "frozenset()"),
+                                (" * ", "'*'"), (" 1, 2 ", "frozenset({1, 2})")):
+            with self.subTest(valeur=valeur):
+                env = os.environ.copy()
+                env.pop("CARNET_EXPORT_ECOLES", None)
+                if valeur is not None:
+                    env["CARNET_EXPORT_ECOLES"] = valeur
+                resultat = subprocess.run([sys.executable, "-c",
+                    "from carnet.settings import EXPORT_ECOLES; print(repr(EXPORT_ECOLES))"],
+                    env=env, capture_output=True, text=True, check=True)
+                self.assertEqual(resultat.stdout.strip(), attendu)
+        for valeur in ("*,1", "1,*", "**", "toutes"):
+            with self.subTest(valeur=valeur):
+                resultat = subprocess.run([sys.executable, "-c", "import carnet.settings"],
+                    env={**os.environ, "CARNET_EXPORT_ECOLES": valeur},
+                    capture_output=True, text=True)
+                self.assertNotEqual(resultat.returncode, 0)
+                self.assertIn("ImproperlyConfigured", resultat.stderr)

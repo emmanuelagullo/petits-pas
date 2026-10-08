@@ -8,7 +8,8 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 * À venir
 
 - Export complet d'une école du service vers le ZIP local commun : permission
-  explicite par école, préparation hors requête, téléchargement privé reprenable,
+  explicite par école ou pour toutes via ~CARNET_EXPORT_ECOLES=*~,
+  préparation hors requête, téléchargement privé reprenable,
   expiration et nettoyage. Compte de direction avec mot de passe local distinct,
   autres identités historiques sans accès ; secrets et sessions serveur exclus.
   La PWA conserve ses plafonds qualifiés ; aucun import serveur ni fusion ajouté.
