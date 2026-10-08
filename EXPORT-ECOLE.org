@@ -21,6 +21,10 @@ CARNET_EXPORT_ROOT=/chemin/prive/exports-ecoles
 #+end_example
 
 La liste contient des identifiants d'écoles, pas des identifiants d'utilisateurs.
+~CARNET_EXPORT_ECOLES=*~ autorise toutes les écoles, y compris celles créées
+ensuite. Une valeur absente ou vide désactive les exports. Le joker doit être
+utilisé seul : =*,1= est refusé au démarrage. Recharger les processus web et
+utiliser le même environnement pour le traitement après toute modification.
 La permission reste subordonnée à une direction active à chaque action.
 Les chemins relatifs, et les dossiers sous MEDIA_ROOT ou STATIC_ROOT, sont
 refusés. L'exploitant doit aussi exclure le dossier de toute publication HTTP.

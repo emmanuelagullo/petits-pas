@@ -30,7 +30,7 @@ from .sauvegardes_medias import _nom_valide
 
 
 def autorise_export(utilisateur, ecole):
-    return bool(not settings.MODE_LOCAL and ecole and ecole.pk in settings.EXPORT_ECOLES
+    return bool(not settings.MODE_LOCAL and ecole and (settings.EXPORT_ECOLES == "*" or ecole.pk in settings.EXPORT_ECOLES)
                 and est_direction(utilisateur, ecole))
 
 
