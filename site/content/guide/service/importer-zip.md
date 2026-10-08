@@ -35,6 +35,8 @@ Pour un nouveau compte, l’exploitant peut vous envoyer un courriel avec le lie
 connectez-vous avec le nom d’utilisateur indiqué. Si le lien a expiré, utilisez
 **Mot de passe oublié ?** sur la page de connexion avec votre adresse ;
 l’exploitant peut aussi renvoyer le courriel sans refaire le transfert.
+Si le transfert a été interrompu, l’exploitant dispose d’un diagnostic pour
+vérifier s’il a réussi avant de le relancer.
 Si vous avez déjà choisi votre mot de passe, connectez-vous directement.
 Un compte serveur déjà existant conserve ses identifiants.
 

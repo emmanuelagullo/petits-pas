@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Récupération des imports interrompus : journal privé durable, verrou système
+  libéré après arrêt brutal, diagnostic sans suppression et nettoyage explicite
+  du seul préfixe abandonné sans audit ni référence fichier/JSON. Les imports
+  validés restent protégés ; indication de l'accueil audité sans réimport.
+
 - Après un import, ouverture de la nouvelle direction par courriel avec le
   vrai lien Django de choix du mot de passe et les instructions adaptées aux
   classes déjà transférées. Envoi après commit ; commande de renvoi sans

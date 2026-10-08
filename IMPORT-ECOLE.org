@@ -176,14 +176,51 @@ d'écriture. Cette coordination ne remplace pas celle des autres commandes
 d'administration : éviter les créations simultanées d'une même école.
 
 Un SIGKILL ou une perte de courant peut laisser le répertoire temporaire et
-un dossier médias orphelin, même si SQL a annulé la transaction. Ne jamais
-supprimer globalement =media/imports/= : les imports réussis l'utilisent.
-Après avoir vérifié qu'aucun import ne tourne, comparer un préfixe suspect
-aux FileField, aux instantanés JSON et aux audits =ecole.import_zip= ; ne
-supprimer que le préfixe sans référence ni audit de succès. En cas d'incertitude
-sur le commit, examiner la base avant toute nouvelle tentative. Le ZIP initial
-reste intact. Les copies présentes dans les sauvegardes suivent la rétention
-de l'hébergeur. Le nettoyage n'efface pas les supports de façon sécurisée.
+un dossier médias orphelin, même si SQL a annulé la transaction. Chaque import
+confirmé écrit désormais un journal privé =media/imports/<UUID>.json=,
+synchronisé avant la création des médias. Il ne contient que l'identifiant,
+l'état technique et l'empreinte du ZIP, aucun nom, adresse ou secret. Le succès
+se déduit exclusivement de l'audit SQL =ecole.import_zip=, créé dans la même
+transaction que l'école. Aucun marqueur disque après commit n'est nécessaire.
+
+Diagnostic sans suppression :
+#+begin_src sh
+python manage.py recuperer_imports_ecoles
+#+end_src
+Un import =importe= est conservé, même si son journal indique encore
+=commence=. L'identifiant d'école et l'état d'envoi audité sont affichés.
+=non_confirme= ne signifie pas que le destinataire n'a rien reçu : un arrêt
+peut survenir après acceptation SMTP avant audit. Consulter le compte et les
+audits puis utiliser =renvoyer_accueil_import= si nécessaire, jamais réimporter.
+Pour une direction existante ou créée sans courriel, aucun accueil n'est
+nécessaire ; le diagnostic ne déclenche aucun envoi.
+
+Pour un import =abandonne= uniquement :
+#+begin_src sh
+python manage.py recuperer_imports_ecoles --nettoyer UUID_AFFICHE \
+ --operateur administration-technique
+#+end_src
+La commande revérifie l'absence d'audit de succès et de référence dans tous
+les FileField et JSONField des modèles installés, y compris les clés des JSON.
+Une référence, un journal invalide ou un lien symbolique bloque le nettoyage.
+Seul ce dossier UUID est supprimé ; le journal devient =nettoye= et demeure
+privé. Puis recommencer la vérification et la confirmation du ZIP initial.
+Il n'y a pas de reprise au milieu d'une copie et aucun compte, droit ou école
+n'est supprimé par la récupération.
+
+Un verrou système commun non bloquant =media/imports/.verrou= protège l'import
+et le diagnostic/nettoyage. Il est libéré par le noyau après un arrêt brutal.
+Ne jamais supprimer ce fichier, déplacer le dossier pendant l'opération ou
+exécuter ces commandes sous une transaction englobante. Cette coordination
+exige un serveur Unix avec =flock= et un disque local commun ; elle ne couvre
+pas une ancienne version de la commande, un autre serveur avec un autre disque
+ou des écritures manuelles. Arrêter les anciens importeurs avant mise à jour.
+
+Les préfixes anciens sans journal et les répertoires temporaires privés laissés
+par un arrêt restent à examiner manuellement ; la commande ne les supprime pas.
+Ne jamais supprimer globalement =media/imports/=. Le ZIP initial reste intact.
+Les journaux sont à inclure dans la sauvegarde et dans la rétention des médias.
+Le nettoyage n'efface pas les supports de façon sécurisée.
 
 Plafonds initiaux : 10 Gio décompressés, 100 000 entrées du paquet commun,
 64 Mio pour SQLite, 200 000 lignes métier. Les médias ne sont pas chargés en
@@ -201,6 +238,7 @@ Ne pas l'exécuter dans une requête WSGI ni pendant une purge de médias.
 #+begin_src sh
 python manage.py test suivi.tests_imports_ecole suivi.tests_exports_classe suivi.tests_carnets_annuels
 python manage.py test suivi.tests_accueil_import suivi.tests_courriels_comptes suivi.tests_courriel_accueil_test
+python manage.py test suivi.tests_reprise_import
 python manage.py makemigrations --check --dry-run
 #+end_src
 
@@ -227,3 +265,10 @@ l'envoi après commit, les échecs SMTP et le renvoi sans modification du
 mot de passe sont vérifiés avec un backend mémoire, sans courriel externe.
 Contrôle des migrations et liens du Guide réussis ; PostgreSQL reste à
 confirmer en CI et la réception SMTP réelle à vérifier avec le destinataire.
+
+Complément récupération : vingt scénarios d'import, accueil et récupération
+réussis sur SQLite/Linux, dont la libération du verrou après destruction d'un
+processus, la protection après commit avant accueil, les références FileField
+et JSON, les journaux invalides, les liens symboliques et le nettoyage ciblé
+idempotent. Aucun essai de coupure électrique réelle ; PostgreSQL et Hugo
+indisponibles localement. Contrôle des migrations et liens du Guide réussis.
