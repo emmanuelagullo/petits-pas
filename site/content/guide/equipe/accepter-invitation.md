@@ -14,27 +14,35 @@ statut = "disponible"
 
 1. Ouvrir le lien d’invitation.
 2. Choisir un nom d’utilisateur et renseigner prénom et nom.
-3. Saisir deux fois un mot de passe d’au moins douze caractères, conforme aux
-   indications du formulaire.
+3. Saisir deux fois un mot de passe d’au moins douze caractères. Le formulaire
+   refuse un mot de passe trop courant, composé uniquement de chiffres ou trop
+   proche du nom d’utilisateur ou du nom, et indique ce qu’il faut corriger.
 4. Sélectionner **Créer mon compte et rejoindre l’école**.
 
 ## Si un compte existe déjà
 
-Le formulaire demande le nom d’utilisateur et le mot de passe de ce compte.
-Sélectionner **Accepter l’invitation**. Après authentification, l’école est ajoutée au même compte : aucune seconde
-identité n’est créée.
+Lorsqu’un compte utilise déjà l’adresse de l’invitation, le formulaire demande le
+nom d’utilisateur et le mot de passe de ce compte. Sélectionner **Accepter
+l’invitation** : après authentification, l’école est ajoutée au même compte, aucune
+seconde identité n’est créée.
 
 ## Résultat attendu
 
-La page confirme que le compte est activé et membre de l’école. Sélectionner **Revenir à la connexion**, puis **Entrer** avec vos identifiants. Les fonctions préparées sont rattachées au compte avec leur état courant,
-leurs dates et leur classe. Le courriel décrit l’état à l’envoi : une fonction
-modifiée, retirée, suspendue ou terminée ne conserve pas ses anciens droits.
-Une fonction future attend sa date de début ; une classe en préparation attend
-son activation. L’écran d’acceptation indique les fonctions conservées.
+La page confirme que le compte est activé et membre de l’école. Sélectionner
+**Revenir à la connexion**, puis **Entrer** avec vos identifiants : l’acceptation
+ne connecte pas automatiquement.
 
-Tant que la direction n’a attribué ni responsabilité d’école ni
-fonction dans une classe, cette appartenance seule n’ouvre pas l’application
-pédagogique.
+- Si la direction avait **préparé une fonction**, la page liste les **fonctions
+  conservées à l’acceptation**, avec leur classe, leurs dates et, pour chacune,
+  « accessible maintenant » ou « pas encore accessible ou plus active : vérifiez
+  avec la direction ». Une fonction future attend sa date de début ; une classe en
+  préparation attend son activation. Le courriel décrit l’état à l’envoi : une
+  fonction modifiée, retirée, suspendue ou terminée depuis ne conserve pas ses
+  anciens droits.
+- Sinon, la direction peut à présent attribuer une fonction. Tant que ce n’est pas
+  fait, la connexion affiche : « Votre compte existe, mais aucune fonction ne vous
+  a encore été attribuée dans une classe. Contactez la direction de votre
+  école. » Cette appartenance seule n’ouvre pas l’application pédagogique.
 
 Si l’hébergeur ou la direction de l’école exige un
 [second facteur]({{< relref "/guide/equipe/second-facteur/" >}}) pour cette
@@ -46,8 +54,11 @@ fonction, il est à configurer dès la première connexion.
   l’invitation, sans distinction de majuscules.
 - Un lien expiré, révoqué, déjà accepté ou altéré affiche seulement qu’il n’est
   plus utilisable, sans révéler l’adresse destinataire.
-- Le nom d’utilisateur doit être disponible et le mot de passe doit satisfaire
-  les validateurs Django.
+- Le nom d’utilisateur doit être libre et le mot de passe respecter les règles
+  ci-dessus.
+- Avec un compte existant, un mot de passe erroné compte comme un échec de
+  connexion : après plusieurs essais manqués, la page demande de patienter (voir
+  la fiche de dépannage de connexion).
 - Ne pas transmettre son mot de passe à la direction : chaque compte reste
   individuel.
 

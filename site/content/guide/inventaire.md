@@ -18,12 +18,14 @@ Les statuts employés sont :
 | Je voudrais… | Pour qui ? | État | Point important |
 | --- | --- | --- | --- |
 | Me connecter et revenir à la page demandée | Toute personne autorisée | Disponible | Le compte doit posséder une responsabilité ou une affectation active. |
-| Créer mon compte depuis une invitation | Personne invitée | Disponible | Le mot de passe doit satisfaire les contrôles de sécurité affichés. |
+| Créer mon compte depuis une invitation | Personne invitée | Disponible | Mot de passe d’au moins douze caractères, ni trop courant ni composé de chiffres seuls. Une fonction peut avoir été préparée par la direction. |
 | Rattacher mon compte existant à une école | Personne invitée | Disponible | L’adresse du compte doit correspondre à l’invitation. |
-| Réinitialiser mon mot de passe | Toute personne disposant d’un compte | Selon l’installation | Nécessite l’envoi de courriel ; la réponse ne révèle pas si l’adresse est connue. |
+| Réinitialiser mon mot de passe | Toute personne disposant d’un compte | Selon l’installation | Nécessite l’envoi de courriel ; la réponse ne révèle pas si l’adresse est connue ; les sessions ouvertes sont fermées. |
+| Changer mon mot de passe quand je suis connecté | Toute personne autorisée | Disponible | Depuis Mon compte ; mot de passe actuel exigé ; les sessions ouvertes sur d’autres appareils sont fermées. Voir la [fiche]({{< relref "/guide/equipe/changer-mot-de-passe/" >}}). |
 | Ajouter un code de vérification à mon mot de passe (second facteur) | Toute personne autorisée | Selon l’installation | Nécessite que l’hébergeur ait activé la fonction ; code à six chiffres produit de préférence par un appareil distinct (téléphone, jeton), à défaut par un logiciel du poste. Voir la [fiche]({{< relref "/guide/equipe/second-facteur/" >}}). |
 | Me connecter avec un code de secours | Personne ayant configuré le second facteur | Selon l’installation | Dix codes à usage unique, remis une seule fois à la configuration ; régénérables. |
 | Réutiliser un lien accepté, révoqué ou expiré | — | Refusé | Une nouvelle invitation doit être créée. |
+| Réessayer sans limite un mot de passe erroné | — | Refusé | Blocage temporaire de l’identifiant depuis l’adresse concernée, après plusieurs essais manqués. |
 | Choisir entre plusieurs écoles | Personne rattachée à plusieurs écoles | Absent | Le contexte d’école est actuellement choisi automatiquement. |
 
 ## Observer les apprentissages
@@ -96,9 +98,10 @@ Les statuts employés sont :
 | Je voudrais… | État | Public ou limite |
 | --- | --- | --- |
 | Voir les membres et leurs coordonnées | Disponible | Direction. |
-| Voir les collaborateurs d’une classe | Disponible | Personnes affectées ; coordonnées non affichées. |
+| Voir les collaborateurs d’une classe | Disponible | Personnes affectées ; coordonnées non affichées. Une invitation en cours y figure sans adresse, sauf pour la direction. |
 | Inviter une nouvelle personne | Disponible | Direction ; courriel automatique si configuré, sinon lien à transmettre manuellement, affiché une seule fois. |
-| Révoquer une invitation encore valable | Disponible | Direction. |
+| Préparer une fonction dès l’invitation | Disponible | Direction ; conservée à l’acceptation (accès selon ses dates et l’activation de la classe), annulable avant ; choix possible seulement à la création de l’invitation. |
+| Révoquer une invitation encore valable | Disponible | Direction ; les fonctions préparées sont annulées avec elle, comme à l’expiration. |
 | Attribuer une fonction de classe | Disponible | Responsable, enseignant associé ou contributeur. |
 | Limiter une affectation dans le temps | Disponible | Date de fin facultative et motif conservé. |
 | Remplacer le responsable d’une classe | Disponible | Création et retrait sont réalisés dans une même transaction. |
@@ -180,9 +183,11 @@ les ajouts locaux disposent d'un parcours de création et de reprise explicite ;
 les correspondances explicites sont consultables sans transfert de réussite. Les images
 fournies sont facultatives et ne couvrent que quelques compétences.
 
-La reprise #G6b est volontairement différée : elle réexaminera les fiches
-d’invitation, de compte et d’affectation après les évolutions ultérieures de la
-phase d’authentification, sans bloquer le présent guide.
+Les fiches d’invitation, de compte et d’affectation ont été relues après la
+phase d’authentification (reprise #G6b) : fonction préparée dès l’invitation,
+changement de mot de passe d’un compte connecté, blocage après échecs, message
+d’un compte sans fonction et sessions fermées après un changement de mot de
+passe.
 
 ## Référentiel de classe
 
