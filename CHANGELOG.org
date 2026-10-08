@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Tests des migrations historiques : restauration de toutes les migrations
+  courantes avant les tests suivants, pour conserver notamment les tables
+  d'export nécessaires aux scénarios de récupération des imports.
+
 - Import : compatibilité des contraintes JSON Django avec les versions anciennes
   de SQLite, en lecture seule et avec interdiction des fonctions applicatives.
   Captures de démonstration : contexte navigateur isolé à chaque connexion et

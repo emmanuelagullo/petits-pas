@@ -22,8 +22,14 @@ class MigrationReferentiels(TransactionTestCase):
         return executant.loader.project_state([cible]).apps
 
     def tearDown(self):
-        self.migrer(("suivi", "0024_correspondances_competences"))
-        super().tearDown()
+        try:
+            # Restaurer le schéma courant de toutes les applications, sans
+            # figer une ancienne migration qui retire les tables ajoutées
+            # depuis (exports, politique du second facteur, etc.).
+            executant = MigrationExecutor(connection)
+            executant.migrate(executant.loader.graph.leaf_nodes())
+        finally:
+            super().tearDown()
 
     def test_ancienne_base_garde_identites_et_traces_masquees(self):
         apps = self.migrer(AVANT)
