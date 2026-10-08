@@ -28,8 +28,9 @@ Les instantanés JSON annuels sont filtrés, pas copiés aveuglément.
 
 Sans les autres scolarités, un état ancien inconnu ne doit pas devenir connu.
 Une adoption ouverte exportée conserve le degré de connaissance et la date de
-lecture dans =etat_final.export_classe=. Ce contexte est appliqué uniquement en
-mode local, tant que l'observation n'a pas été modifiée dans la copie. Une
+lecture dans =etat_final.export_classe=. Ce contexte est appliqué dans la copie,
+également après son import administrateur vers le service, tant que
+l'observation n'a pas été modifiée. Une
 nouvelle saisie reprend le fonctionnement ordinaire. La date technique requise
 par le schéma Observation ne devient pas une date pédagogique connue.
 
@@ -92,8 +93,10 @@ conserver le contrat de médias immuables et suspendre les purges externes.
 La PWA garde les plafonds qualifiés de 256 Mio décompressés, 5 000 entrées,
 64 Mio par média/base ; le contrôle préalable réserve aussi 1 Mio au manifeste.
 Le programme et le serveur conservent le plafond commun de 10 Gio. Le format
-ne permet ni fusion, ni import serveur, ni synchronisation ; ouvrir une copie
+ne permet ni fusion ni synchronisation ; ouvrir une copie
 indépendante ou installer explicitement sur un appareil vide.
+Un import vers une nouvelle école du service est désormais possible par
+l'exploitant, selon =IMPORT-ECOLE.org= ; aucun droit local n'est repris.
 
 * Vérifications reproductibles
 

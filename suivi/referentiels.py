@@ -205,9 +205,9 @@ def observations_classe(classe):
                               default=Value(None), output_field=DateField()))
     # Une projection de classe ne transporte aucune scolarité d'une autre
     # année. Conserver le degré de connaissance de l'état visible au moment de
-    # l'extraction, jusqu'à sa première modification dans la copie locale.
-    from django.conf import settings
-    export = adoption.etat_final.get("export_classe", {}) if settings.MODE_LOCAL else {}
+    # l'extraction, jusqu'à sa première modification dans la copie. L'import
+    # administrateur conserve ce contexte aussi sur le service partagé.
+    export = adoption.etat_final.get("export_classe", {})
     if export:
         from django.utils.dateparse import parse_datetime
         instantane = parse_datetime(export["instantane_le"])

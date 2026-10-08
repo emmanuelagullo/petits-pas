@@ -121,6 +121,7 @@ Les statuts employés sont :
 | Télécharger un ZIP du paquet local | Disponible en mode local | Direction ; conserve la base, les médias et la clé du paquet. |
 | Exporter une école du service vers un ZIP local | Selon version et installation | Direction active et autorisation explicite du service ; toutes les classes et années conservées. Voir la [fiche]({{< relref "/guide/service/exporter-ecole/" >}}). |
 | Exporter une copie indépendante d’une classe | Selon version et installation | Responsable actif ; local ou autorisation serveur distincte. Une classe/année ; aucune fusion. Voir la [fiche]({{< relref "/guide/eleves-classes/exporter-classe/" >}}). |
+| Transférer un ZIP local vers une nouvelle école du service | Exploitant uniquement, selon version | Vérification et confirmation par commande ; direction explicite, droits à recréer. Aucun remplacement ni fusion. Voir le [parcours]({{< relref "/guide/service/importer-zip/" >}}). |
 | Restaurer un ZIP du paquet local | Disponible en mode local | Direction ; après vérification et confirmation, l’application redémarre et l’ancien paquet reste dans un dossier séparé. |
 
 Plusieurs personnes peuvent se relayer avec leurs comptes sur cet appareil.

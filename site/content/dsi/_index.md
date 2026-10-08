@@ -99,8 +99,13 @@ L’extraction d’une seule classe par son responsable dispose d’une autorisa
 indépendante (`CARNET_EXPORT_CLASSES`), limitée à ses données consultables.
 Le même format est disponible sur poste, sans remplacer la sauvegarde complète ;
 voir la [fiche]({{< relref "/guide/eleves-classes/exporter-classe/" >}}).
-La PWA conserve ses plafonds qualifiés. Aucun import, remplacement ou fusion
-sur le service partagé n’est ajouté.
+La PWA conserve ses plafonds qualifiés. L'exploitant peut désormais importer
+un ZIP local vers une **nouvelle école** par commande, après vérification et
+confirmation de son empreinte. La direction est choisie explicitement, les
+classes passent en préparation et les comptes historiques restent inactifs.
+Aucun remplacement ni fusion dans une école existante. Cette première version
+exige des médias sur disque local ; voir `IMPORT-ECOLE.org` dans le dépôt et
+le [parcours de transfert]({{< relref "/guide/service/importer-zip/" >}}).
 
 ### Fonctionnement et installation
 

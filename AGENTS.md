@@ -99,6 +99,11 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   explicite dans la projection. Ne pas copier les secrets serveur, étendre
   les droits pédagogiques par analogie, ni relever les plafonds PWA sans
   qualification. Le traitement est séparé des workers WSGI et le ZIP est privé.
+  Import local → nouvelle école serveur : lire `IMPORT-ECOLE.org` et
+  `suivi/imports_ecole.py`. Aucun remplacement, rapprochement de comptes ou
+  reprise de capacités du ZIP ; remapper aussi les PK et chemins des JSON.
+  Conserver la vérification sans écriture, l'empreinte confirmée et l'annulation
+  SQL/fichiers. Toute nouvelle structure JSON exige une décision explicite.
 
 - Préserver les parcours existants et vérifier les droits d'accès quand une
   modification touche aux comptes, classes, élèves, observations ou médias.

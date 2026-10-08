@@ -1,0 +1,179 @@
+#+title: Import administrateur d'un ZIP local vers une nouvelle école serveur
+
+* Périmètre livré
+
+=python manage.py importer_ecole_zip= est une commande d'exploitation, absente
+de l'interface web. Elle accepte les sauvegardes locales PWA/programme et les
+exports d'école ou de classe au format commun version 1. Elle crée toujours
+une nouvelle école. Aucun remplacement, fusion, synchronisation, rapprochement
+automatique d'élèves ou association des auteurs à des comptes existants.
+
+Les deux variables =CARNET_EXPORT_ECOLES= et =CARNET_EXPORT_CLASSES= continuent
+de régler uniquement les sorties. L'import n'ajoute aucune permission web et
+ne nécessite aucune variable d'activation : il exige l'accès système au
+déploiement, un serveur persistant et un opérateur technique actif explicite.
+Le mode local, les ateliers et les démonstrations éphémères sont refusés.
+
+* Procédure
+
+Convenir avec l'école du périmètre et du moment du transfert. Pour un transfert
+définitif, arrêter les saisies dans la source après la copie retenue : aucune
+modification ultérieure ne rejoint le service automatiquement. Conserver le
+ZIP initial en lieu sûr et prévoir la sauvegarde ordinaire du service.
+
+Téléverser le ZIP par un canal privé choisi avec l'hébergeur. La commande ne
+crée pas de point de dépôt HTTP. Préparer un dossier de travail absolu et
+privé (0700), hors du code, des médias, des statiques et de tout chemin servi
+par HTTP, avec le même compte système que le service :
+
+#+begin_src sh
+mkdir -m 700 /chemin/prive/imports-temporaires
+python manage.py importer_ecole_zip /chemin/prive/ecole.zip \
+ --travail /chemin/prive/imports-temporaires
+#+end_src
+
+Ce premier passage n'écrit rien dans la base ni les médias du service. Il
+affiche le nom, la commune, les années, les quantités d'élèves, classes,
+traces, bilans et auteurs historiques, le volume des médias référencés et
+l'empreinte SHA-256 du ZIP, ainsi que les écoles où cette empreinte a déjà été
+importée. Ces informations restent privées. Une empreinte
+correcte prouve la cohérence des octets, pas l'identité ou l'autorisation de
+leur expéditeur ; l'exploitant vérifie séparément leur provenance.
+
+Après consultation, donner explicitement un nom à la nouvelle école, sa
+commune, un compte personnel de direction existant actif, et le compte
+technique responsable de l'opération. Recopier l'empreinte affichée :
+
+#+begin_src sh
+python manage.py importer_ecole_zip /chemin/prive/ecole.zip \
+ --travail /chemin/prive/imports-temporaires \
+ --confirmer --sha256 EMPREINTE_AFFICHEE \
+ --ecole "École fictive importée" --commune "Commune fictive" \
+ --direction direction-personnelle --operateur administration-technique
+#+end_src
+
+Pour créer plutôt un nouveau compte personnel, ajouter =--creer-direction
+--prenom "Prénom" --nom "Nom"=. La commande demande un nouveau mot de passe
+deux fois au terminal, avec les validateurs ordinaires. Aucun mot de passe
+en argument, aucune reprise du mot de passe du ZIP, aucun mail automatique.
+Transmettre ce premier secret par le canal prévu avec la personne concernée.
+La création d'un compte déjà présent, une école de même nom/commune ou une
+empreinte de ZIP déjà importée entraîne un refus ;
+ne pas relancer avec un autre nom pour contourner un doute sur un import déjà
+réussi. Consulter d'abord l'école et l'événement =ecole.import_zip=. Cette
+protection détecte les mêmes octets, pas deux ZIP différents contenant des
+copies du même établissement.
+
+La direction reçoit une appartenance et des droits de gestion explicites.
+La politique du second facteur est celle du service, sans délai de grâce
+ajouté par l'import. Les sessions existantes sont fermées si le second
+facteur est disponible, comme lors d'une attribution ordinaire de direction.
+
+Toutes les classes non archivées passent en préparation : aucun responsable
+n'est déduit des comptes du ZIP. Inviter ou affecter les personnes via
+=Équipe pédagogique=, puis activer les classes. Les classes archivées et
+adoptions closes restent historiques. La direction seule ne reçoit pas
+l'accès pédagogique de toutes les classes. Les auteurs historiques inactifs
+n'apparaissent pas comme membres habilités de l'équipe et ne sont pas
+automatiquement rapprochés des personnes nouvellement invitées.
+
+* Projection et isolation
+
+La source SQLite est ouverte en lecture seule et n'est jamais branchée comme
+connexion principale. Le validateur commun contrôle manifeste, chemins,
+empreintes, intégrité et clés étrangères. L'import ajoute : refus des vues et
+déclencheurs, migrations métier exactement à jour, refus des migrations
+inconnues, une école unique, liste blanche des tables, fermeture des relations
+dans le périmètre et validation des champs/contraintes/règles métier.
+Cette version refuse les anciens schémas : mettre à jour la copie dans une
+installation locale compatible puis produire un nouveau ZIP. Elle n'exécute
+pas de migrations ou de code venant de l'archive.
+
+Les contenus pédagogiques, années, suppressions logiques, adaptations,
+présentations, ajouts et correspondances sont projetés avec de nouvelles PK.
+Le remappage couvre aussi les contenus des référentiels, instantanés initiaux
+et finaux, clés de définitions, références de correspondances, propositions,
+ressources et chemins JSON. Une structure inconnue entraîne un refus au lieu
+d'une copie aveugle. Les horodatages pédagogiques sont conservés, notamment
+ceux permettant de lire un état inconnu d'un export de classe jusqu'à sa
+première nouvelle saisie sur le service.
+
+Les versions de sources sont des copies privées rattachées à cette école,
+avec de nouveaux identifiants internes. Le catalogue public et les réglages
+applicatifs du service ne sont pas modifiés. Les adoptions existantes restent
+lisibles ; les nouveaux choix de bases suivent les autorisations du service.
+L'import ne prétend pas inscrire ces copies privées dans le catalogue public
+ni autoriser les anciens choix pour de nouvelles adoptions. Les règles
+d'école et permissions de changement provenant du ZIP ne sont pas reprises.
+
+Les personnes nécessaires aux relations pédagogiques reçoivent de nouveaux
+identifiants historiques, sans adresse, mot de passe utilisable, rôle
+technique, groupe ni permission. Les autres comptes sont exclus. La clé
+Django locale, sessions, TOTP, codes de secours, invitations, appartenances,
+affectations, politique locale du second facteur, droits sur les années
+précédentes et journaux source ne sont pas importés. La nouvelle direction
+conserve uniquement ses secrets serveur ou son nouveau secret personnel.
+L'audit du service contient l'opérateur, l'école, la direction, l'empreinte,
+les quantités et le préfixe de médias créé ; il ne réécrit pas un journal
+historique issu du ZIP comme des événements du service.
+
+* Fichiers, transactions et interruptions
+
+Cette première version exige le backend Django FileSystemStorage ; le
+stockage objet est refusé avant écriture. Chaque média référencé est copié
+par blocs de 1 Mio, sans recompression, sous =imports/<UUID>/<nom opaque>=,
+hors des chemins existants. Les chemins FileField et JSON sont réécrits.
+Les fichiers non référencés dans le ZIP vérifié ne sont pas copiés au service.
+Les originaux des écoles déjà présentes ne sont jamais modifiés.
+
+Les créations SQL, comptes personnels compris, sont dans une transaction ;
+les contraintes et médias sont vérifiés avant commit. Une exception,
+interruption clavier ou panne ordinaire annule la transaction et supprime
+le seul dossier médias de cet import. PostgreSQL sérialise les commandes
+d'import par un verrou transactionnel ; SQLite conserve sa sérialisation
+d'écriture. Cette coordination ne remplace pas celle des autres commandes
+d'administration : éviter les créations simultanées d'une même école.
+
+Un SIGKILL ou une perte de courant peut laisser le répertoire temporaire et
+un dossier médias orphelin, même si SQL a annulé la transaction. Ne jamais
+supprimer globalement =media/imports/= : les imports réussis l'utilisent.
+Après avoir vérifié qu'aucun import ne tourne, comparer un préfixe suspect
+aux FileField, aux instantanés JSON et aux audits =ecole.import_zip= ; ne
+supprimer que le préfixe sans référence ni audit de succès. En cas d'incertitude
+sur le commit, examiner la base avant toute nouvelle tentative. Le ZIP initial
+reste intact. Les copies présentes dans les sauvegardes suivent la rétention
+de l'hébergeur. Le nettoyage n'efface pas les supports de façon sécurisée.
+
+Plafonds initiaux : 10 Gio décompressés, 100 000 entrées du paquet commun,
+64 Mio pour SQLite, 200 000 lignes métier. Les médias ne sont pas chargés en
+mémoire ; les lignes et instantanés JSON le sont, dans ces bornes. Plusieurs
+Go de médias n'impliquent donc pas plusieurs Go de RAM ; cette livraison ne
+promet pas de durée ou de consommation maximale sur tous les jeux de données.
+Prévoir le ZIP privé supplémentaire, sa décompression et les nouveaux médias,
+soit environ trois fois le volume transféré, plus les fichiers existants et
+les sauvegardes. Les contrôles d'espace ne réservent pas le disque : une panne
+doit annuler l'import. L'opération est synchrone en CLI, hors des workers web.
+Ne pas l'exécuter dans une requête WSGI ni pendant une purge de médias.
+
+* Vérifications
+
+#+begin_src sh
+python manage.py test suivi.tests_imports_ecole suivi.tests_exports_classe suivi.tests_carnets_annuels
+python manage.py makemigrations --check --dry-run
+#+end_src
+
+Les scénarios sont fictifs : vérification seule, collision avec les PK,
+école existante intacte, identité/droits/secrets exclus, nouveau compte,
+rollback SQL/fichiers, schéma futur/vues/déclencheurs, école multiple,
+médias absents/chemins invalides, références JSON invalides, clôture,
+ajouts/correspondances et état de classe inconnu. Le profil PostgreSQL de
+la CI exerce la destination réelle PostgreSQL ; les essais locaux SQLite
+ne prouvent pas ses temps de traitement ni la qualification sur une instance.
+
+Résultats locaux du 8 octobre 2026 : dix scénarios d'import et vingt de
+lecture/écriture annuelle et clôture, ainsi que 106 scénarios d'exports de
+classe, d'autorisations et d'aperçu local réussis sur SQLite/Linux, en plusieurs
+groupes. Les 23 tests du paquet commun, le contrôle des migrations et les
+liens du Guide réussissent. PostgreSQL et les volumes de plusieurs Go ne sont
+pas exécutés pour cet import dans cet environnement ; leur qualification
+reste distincte de celle de l'export. Hugo n'est pas disponible ici.
