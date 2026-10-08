@@ -107,7 +107,8 @@ class ImportEcoleTests(TransactionTestCase):
                     self.importer(projection)
         self.assertEqual(m.Ecole.objects.count(), 2)
         self.assertEqual(Utilisateur.objects.count(), comptes)
-        self.assertFalse(list((self.root / 'media' / 'imports').glob('*')))
+        # Le journal technique et le verrou restent ; aucun média ne subsiste.
+        self.assertFalse([p for p in (self.root / 'media' / 'imports').iterdir() if p.is_dir()])
 
     def test_cloture_ajout_correspondance_et_presentations_remappes(self):
         from .services.ajouts_referentiels import creer_ajout

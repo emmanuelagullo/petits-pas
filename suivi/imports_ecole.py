@@ -326,10 +326,19 @@ class Projection:
         return resultat
 
     def importer(self, direction, nom, commune, operateur):
+        from .reprise_import import verrou_imports, journaliser
+        verifier_serveur()
+        with verrou_imports() as racine:
+            identifiant = uuid4().hex
+            # Écrit et synchronisé avant tout média et toute transaction.
+            # Le succès se déduit exclusivement de l'audit SQL atomique.
+            journaliser(racine, identifiant, etat='commence', sha256=self.rapport['sha256'])
+            return self._importer(direction, nom, commune, operateur, identifiant)
+
+    def _importer(self, direction, nom, commune, operateur, identifiant):
         verifier_serveur()
         if not isinstance(default_storage, FileSystemStorage):
             raise ValidationError("Cette première version de l'import exige des médias sur disque local.")
-        identifiant = uuid4().hex
         direction_creee = direction.pk is None
         destination = Path(default_storage.path('imports/' + identifiant))
         destination.parent.mkdir(parents=True, exist_ok=True)

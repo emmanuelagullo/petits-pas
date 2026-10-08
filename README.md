@@ -415,7 +415,9 @@ identifiants. Aucun remplacement ni fusion ; destination sur disque local et
 schéma métier à jour pour cette première version. Voir `IMPORT-ECOLE.org`.
 Avec `--creer-direction --email ADRESSE --url ORIGINE_HTTPS`, la personne reçoit
 après import le lien de choix de son mot de passe et les premiers pas adaptés
-aux classes transférées. `renvoyer_accueil_import` reprend seulement l'envoi
+aux classes transférées. `recuperer_imports_ecoles` diagnostique les imports
+interrompus et permet un nettoyage ciblé des médias abandonnés sur serveur Unix.
+`renvoyer_accueil_import` reprend seulement l'envoi
 en cas d'échec, sans recréer l'école ni modifier le mot de passe.
 
 ## Site public
