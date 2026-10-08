@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Import : compatibilité des contraintes JSON Django avec les versions anciennes
+  de SQLite, en lecture seule et avec interdiction des fonctions applicatives.
+  Captures de démonstration : contexte navigateur isolé à chaque connexion et
+  contrôle du personnage connecté avant de poursuivre le scénario.
+
 - Récupération des imports interrompus : journal privé durable, verrou système
   libéré après arrêt brutal, diagnostic sans suppression et nettoyage explicite
   du seul préfixe abandonné sans audit ni référence fichier/JSON. Les imports
