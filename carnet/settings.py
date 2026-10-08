@@ -369,3 +369,6 @@ RATELIMIT_MOT_DE_PASSE_OUBLIE = os.environ.get(
 RATELIMIT_CHANGEMENT_MOT_DE_PASSE = os.environ.get(
     "CARNET_RATELIMIT_CHANGEMENT_MOT_DE_PASSE", "10/h"
 )
+
+# Fichier facultatif écrit par l’exploitant ; aucune donnée personnelle.
+MAINTENANCE_ANNONCE = os.environ.get("CARNET_MAINTENANCE_ANNONCE", "")

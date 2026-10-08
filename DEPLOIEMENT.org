@@ -646,3 +646,18 @@ inchangé. Vérifier cible, sauvegarde et restauration avant toute création.
 Ne pas lancer deux initialisations simultanément. La direction invite ensuite
 son équipe depuis *Gérer l'école → Équipe pédagogique* ; ses fonctions de classe
 restent attribuées séparément.
+
+* Annonce facultative de maintenance
+
+Le bandeau indique uniquement le délai avant l’interruption. Il ne promet pas
+sa durée et ne demande aucune sauvegarde aux utilisateurs. Les pages ouvertes
+interrogent =/maintenance-annonce/= toutes les dix secondes lorsqu’elles sont
+visibles ; un navigateur hors ligne ou endormi peut ne pas recevoir l’annonce.
+Aucune saisie n’est enregistrée automatiquement. Aucun bandeau dans les PDF.
+
+Définir =CARNET_MAINTENANCE_ANNONCE= comme chemin absolu d’un petit fichier JSON
+privé, lisible par le processus Web. L’exploitant le remplace atomiquement :
+=debut= est l’heure Unix prévue, =expiration= une heure ultérieure (au plus
+une heure après). Retirer le fichier pour annuler. Un fichier absent, invalide
+ou expiré n’affiche rien. L’annonce ne suspend pas les écritures : la mise en
+maintenance et la sauvegarde cohérente relèvent de l’exploitation.
