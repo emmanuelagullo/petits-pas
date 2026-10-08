@@ -40,6 +40,38 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+    def test_medias_externes_progressifs_empreinte_et_changement(self):
+        with tempfile.TemporaryDirectory() as temp:
+            paquet = Path(temp) / "paquet"
+            paquet.mkdir()
+            (paquet / "secret-key").write_text("cle-fictive")
+            (paquet / "media").mkdir()
+            with closing(sqlite3.connect(paquet / "carnet.sqlite3")) as db:
+                db.execute("CREATE TABLE django_migrations (app TEXT, name TEXT)")
+            contenu = b"media-fictif" * 200000
+            blocs = []
+            class Borne(BytesIO):
+                def read(self, taille=-1):
+                    self_outer.assertGreater(taille, 0)
+                    self_outer.assertLessEqual(taille, 1024**2)
+                    blocs.append(taille)
+                    return super().read(taille)
+            self_outer = self
+            archive = BytesIO()
+            creer_sauvegarde(paquet, archive, fichiers_externes={
+                "media/fictif.bin": (len(contenu), lambda: Borne(contenu))},
+                export_classe={"perimetre": "classe_annee"})
+            verifie = preparer_restauration(archive, Path(temp))
+            self.assertEqual((verifie.etape / "media/fictif.bin").read_bytes(), contenu)
+            self.assertGreater(len(blocs), 1)
+            for taille in (len(contenu)-1, len(contenu)+1):
+                with self.assertRaisesRegex(ValueError, "changé"):
+                    creer_sauvegarde(paquet, BytesIO(), fichiers_externes={
+                        "media/fictif.bin": (taille, lambda: BytesIO(contenu))})
+            for nom in ("secret.txt", "media/../secret.txt", "media/./fictif.bin", "media//fictif.bin"):
+                with self.assertRaisesRegex(ValueError, "invalide"):
+                    creer_sauvegarde(paquet, BytesIO(), fichiers_externes={nom:(1, lambda: BytesIO(b"x"))})
+
     def test_restauration_progressive_interrompue_nettoie_la_preparation(self):
         with tempfile.TemporaryDirectory() as temp:
             parent = Path(temp)

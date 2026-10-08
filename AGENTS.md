@@ -92,7 +92,10 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
 ## Travail dans le dépôt
 
 - Export d'école serveur → local : lire `EXPORT-ECOLE.org` et
-  `suivi/exports_ecole.py`. Toute nouvelle table métier exige une décision
+  `suivi/exports_ecole.py`. Export de classe : `EXPORT-CLASSE.org`,
+  `suivi/exports_classe.py` et `suivi/export_projection.py` ; conserver les
+  autorisations indépendantes et les médias OPFS progressifs, filtrer aussi
+  les instantanés JSON annuels. Toute nouvelle table métier exige une décision
   explicite dans la projection. Ne pas copier les secrets serveur, étendre
   les droits pédagogiques par analogie, ni relever les plafonds PWA sans
   qualification. Le traitement est séparé des workers WSGI et le ZIP est privé.

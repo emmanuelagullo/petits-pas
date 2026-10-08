@@ -72,10 +72,9 @@ class Ecole(models.Model):
     def __str__(self):
         return self.nom
 
-class ExportEcole(models.Model):
-    """Une seule copie temporaire par école ; absente du paquet exporté."""
+class ExportTemporaire(models.Model):
+    """État de préparation privé, absent des copies locales."""
 
-    ecole = models.OneToOneField(Ecole, on_delete=models.CASCADE, related_name="export_local")
     demande_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     identifiant = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     etat = models.CharField(max_length=12, default="attente", choices=[
@@ -95,6 +94,25 @@ class ExportEcole(models.Model):
     empreinte = models.CharField(max_length=64, blank=True)
     erreur = models.CharField(max_length=200, blank=True)
 
+
+    class Meta:
+        abstract = True
+
+
+class ExportEcole(ExportTemporaire):
+    ecole = models.OneToOneField(Ecole, on_delete=models.CASCADE, related_name="export_local")
+
+
+class ExportClasse(ExportTemporaire):
+    classe = models.OneToOneField("Classe", on_delete=models.CASCADE, related_name="export_local")
+
+    @property
+    def ecole(self):
+        return self.classe.ecole
+
+    @property
+    def ecole_id(self):
+        return self.classe.ecole_id
 
 class ParametresCarnet(models.Model):
     ecole = models.OneToOneField(

@@ -29,6 +29,13 @@
   {% if peut_gerer_eleves %}<a class="bouton discret" href="{% url 'importer_eleves' classe.pk %}">Gérer les enfants</a>{% endif %}
 </div>
 
+{% if export_classe_autorise %}
+<details class="aide-presentation"><summary>Transférer cette classe</summary>
+<p>Créer une copie indépendante pour une nouvelle installation locale.</p>
+<p><a href="{% url 'exporter_classe' classe.pk %}">Exporter cette classe</a></p>
+</details>
+{% endif %}
+
 {% if eleves %}
 <ul class="liste">
   {% for e in eleves %}

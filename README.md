@@ -397,6 +397,17 @@ pour l’historique avec accès désactivé. Les sauvegardes automatiques resten
 distinctes. Aucun import sur le service ni synchronisation n’est ajouté.
 Voir `EXPORT-ECOLE.org` pour le contrat et le traitement périodique obligatoire.
 
+## Exporter une classe
+
+Le responsable actif d'une classe peut en créer une copie indépendante via
+la rubrique repliée **Transférer cette classe** de sa page. Le ZIP contient
+une seule classe/année, dans le format commun aux modes locaux, sans étendre
+les droits de lecture dans la source. En local, il est produit directement ;
+sur serveur, `CARNET_EXPORT_CLASSES` l'autorise indépendamment de l'export
+d'école (vide : désactivé ; `*` : toutes les écoles ; `1,2` : écoles indiquées).
+Le traitement périodique existant prépare aussi ces ZIP. Il n'y a ni fusion,
+ni synchronisation, ni import serveur. Voir `EXPORT-CLASSE.org`.
+
 ## Site public
 
 Le site de présentation est construit avec Hugo depuis le répertoire `site/` :

@@ -1,0 +1,130 @@
+#+title: Export indépendant d'une classe vers le format local
+
+* Contrat
+
+Une seule classe et son année scolaire, depuis le service, le programme
+Windows/Linux ou la PWA. Le responsable actif de cette classe peut extraire
+une copie indépendante ; une direction sans affectation responsable ne le peut
+pas. Les rôles associé/contributeur et les accès suspendus ne suffisent pas.
+Une affectation historique doit déjà permettre la lecture pédagogique.
+
+Le ZIP au format local 1 contient une petite école avec cette seule classe :
+enfants non archivés figurant dans sa liste, scolarités de cette année,
+observations projetées selon =observations_classe=, traces et bilans non
+supprimés, référentiel de la classe et adaptations applicables. Les traces
+partagées sont individualisées : le texte déjà personnalisé est conservé,
+les liens vers l'origine commune sont retirés. Les années antérieures ou
+postérieures et leurs traces ne sont pas copiées, même si elles sont lisibles
+sur le service. Les données logiquement supprimées restent hors du périmètre.
+
+Les médias de traces sont inclus seulement si le moteur commun autorise déjà
+le téléchargement original. Pour un enfant désormais scolarisé ailleurs, le
+responsable historique peut avoir accès à l'état de l'année sans avoir accès
+aux traces ou bilans ni au média original : la copie conserve cet état, sans
+les contenus devenus inaccessibles, sans le fichier ni son chemin.
+Les ressources annuelles reprennent les conditions de lecture de
+=media_referentiel= ; les ressources d'autres classes ne sont pas transportées.
+Les instantanés JSON annuels sont filtrés, pas copiés aveuglément.
+
+Sans les autres scolarités, un état ancien inconnu ne doit pas devenir connu.
+Une adoption ouverte exportée conserve le degré de connaissance et la date de
+lecture dans =etat_final.export_classe=. Ce contexte est appliqué uniquement en
+mode local, tant que l'observation n'a pas été modifiée dans la copie. Une
+nouvelle saisie reprend le fonctionnement ordinaire. La date technique requise
+par le schéma Observation ne devient pas une date pédagogique connue.
+
+Le demandeur reçoit dans la copie un nouveau mot de passe, une appartenance,
+la direction de cette petite école et une responsabilité de classe sans date
+limite. Les droits ne sont pas modifiés dans la source. Les autres personnes
+référencées gardent seulement leur nom d'affichage et une identité historique
+locale inactive ; leurs identifiants de connexion sont remplacés, leurs
+adresses et mots de passe ne sont pas transportés. Si le compte source n’a pas
+de nom renseigné, son nom d’affichage reste son ancien identifiant. Sessions, invitations, audits, politique du second facteur,
+gouvernance et autorisations de changement de base du service sont exclus.
+Le manifeste ajoute =export_classe= : origine, année, version, date, identifiant
+local et absence de synchronisation. Ce ne sont pas des identifiants de fusion.
+
+* Interface et configuration
+
+Dans la page de la classe, la rubrique repliée =Transférer cette classe=
+contient le lien =Exporter cette classe=. La confirmation explique la copie
+indépendante et ses nouveaux droits locaux ; le bouton final est
+=Créer la copie de cette classe=. Aucun bouton n'est ajouté aux sauvegardes.
+L'extraction ne renouvelle pas le rappel de sauvegarde de l'installation.
+
+Sur serveur, =CARNET_EXPORT_CLASSES= est indépendant de =CARNET_EXPORT_ECOLES= :
+
+#+begin_example
+CARNET_EXPORT_CLASSES=*
+CARNET_EXPORT_ECOLES=
+CARNET_EXPORT_ROOT=/chemin/prive/exports-ecoles
+#+end_example
+
+Absent ou vide : aucun export de classe ; =*= seul : toutes les écoles
+présentes et futures ; =1,2= : classes des écoles 1 et 2. Les identifiants
+sont toujours des écoles. Il est également possible d'autoriser uniquement
+l'export d'école. Recharger le service et conserver le même environnement dans
+le traitement périodique. Appliquer la migration =0030_export_classe=.
+
+La commande existante =preparer_exports_ecoles= traite aussi les exports de
+classes sous le même verrou Linux. Une demande par classe, ZIP privé pendant
+24 heures, confirmations et reprise HTTP identiques à l'export d'école.
+Les autorisations sont relues lors de la préparation, avant livraison (également
+en local) et lors de chaque téléchargement serveur.
+Voir =EXPORT-ECOLE.org= pour la racine privée, le nettoyage, l'espace disque,
+les délais de WSGI/proxy et les limites d'une révocation pendant un flux actif.
+
+Sur poste, aucune variable d'exploitation ni tâche périodique n'est nécessaire.
+La préparation se fait pendant la requête ; garder l'application ouverte.
+Le programme écrit le ZIP dans un fichier temporaire natif ; la PWA le transmet
+par le transfert OPFS existant. SQLite est construit depuis le schéma seul de
+la base locale : ni subprocess, ni copie complète des données source. Le
+routeur de validation utilise un ContextVar ; les managers des clean() pointent
+vers la cible uniquement pendant sa validation, sans modifier les connexions
+des autres requêtes. Sur PostgreSQL, les migrations créent le schéma cible.
+
+Les médias sont lus par blocs de 1 Mio depuis leurs objets immuables, directement
+vers le ZIP commun. Aucun deuxième jeu complet de médias n'est créé en MEMFS.
+Un fichier manquant ou dont la taille change fait échouer la préparation.
+Les remplacements externes en place de même taille ne sont pas garantis détectés :
+conserver le contrat de médias immuables et suspendre les purges externes.
+
+La PWA garde les plafonds qualifiés de 256 Mio décompressés, 5 000 entrées,
+64 Mio par média/base ; le contrôle préalable réserve aussi 1 Mio au manifeste.
+Le programme et le serveur conservent le plafond commun de 10 Gio. Le format
+ne permet ni fusion, ni import serveur, ni synchronisation ; ouvrir une copie
+indépendante ou installer explicitement sur un appareil vide.
+
+* Vérifications reproductibles
+
+#+begin_src sh
+python manage.py test suivi.tests_exports_classe suivi.tests_exports_ecole
+python -m unittest discover -s scripts -p test_paquet_local.py
+python manage.py makemigrations --check --dry-run
+python scripts/construire-pwa.py --test
+node scripts/verifier-pwa.cjs
+#+end_src
+
+Les tests utilisent des enfants, mots de passe et fichiers fictifs. Le banc
+navigateur exerce le vrai formulaire PWA, télécharge le ZIP OPFS, vérifie son
+contenu en Python natif et l'installe dans une seconde PWA vierge. Les tests
+Django vérifient isolation, état annuel, absence de secrets, comptes locaux,
+indépendance des deux autorisations, CSRF, mot de passe, unicité des demandes,
+expiration/révocation, téléchargement Range et voie locale sans subprocess.
+
+* Qualification de cette livraison
+
+Sur SQLite/Linux : 36 scénarios ciblés Django (exports, lectures annuelles et
+révocation pendant la préparation locale) et 117 scénarios supplémentaires
+(autorisations, présentation et ouverture de copies ZIP) réussis, exécutés en
+plusieurs groupes. Les 23 tests du paquet commun, 2 tests de transferts PWA,
+8 du constructeur et 4 du transport JS réussissent. Contrôle des migrations
+sans différence, Guide : 50 fiches et liens valides, syntaxe JS et diff vérifiés.
+
+Le bundle PWA de test se construit. Le scénario réel Chromium a été ajouté
+au banc CI mais n'a pas pu être exécuté ici : le téléchargement de Chromium
+retourne une archive invalide. PostgreSQL → SQLite et l'exécution Windows
+restent à vérifier en CI ; les deux essais spécifiques à la source SQLite
+locale sont explicitement ignorés dans le profil PostgreSQL. Hugo n'est pas
+disponible dans cet environnement ; les contrôles de structure/liens du Guide
+ont été exécutés. Aucun nouveau plafond de volume PWA n'est qualifié ici.

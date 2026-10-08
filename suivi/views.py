@@ -964,6 +964,7 @@ def classe_detail(request, pk):
     classe = charger_classe_autorisee(
         request.user, pk, VOIR_LISTE_ELEVES, ecole=ecole
     )
+    from .exports_classe import autorise_export_classe
     eleves = list(avec_scolarites_pour_lecture(classe.eleves))
     suivi_complet = autorise(request.user, VOIR_SUIVI, classe, ecole=ecole)
     peut_generer = autorise(request.user, GENERER_CARNET, classe, ecole=ecole)
@@ -1005,6 +1006,7 @@ def classe_detail(request, pk):
             "peut_gerer_referentiel": autorise(request.user, GERER_REFERENTIEL_CLASSE, classe),
             "peut_gerer_eleves": peut_gerer_eleves,
             "vue_minimale": vue_minimale,
+            "export_classe_autorise": autorise_export_classe(request.user, classe),
         },
     )
 

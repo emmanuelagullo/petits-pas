@@ -100,7 +100,7 @@ def selections(ecole_id):
 
 
 def verifier_couverture(selection):
-    excludes = {m.ExportEcole, Utilisateur,
+    excludes = {m.ExportEcole, m.ExportClasse, Utilisateur,
                 apps.get_model("comptes", "DoubleFacteurCompte"),
                 apps.get_model("comptes", "CodeSecoursDoubleFacteur")}
     metier = {model for label in ("suivi", "comptes")

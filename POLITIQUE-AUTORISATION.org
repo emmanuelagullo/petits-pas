@@ -83,6 +83,13 @@ requête de téléchargement, reprise comprise. Les identités de l'historique
 restent dans la copie ; les secrets serveur et privilèges techniques en sont
 exclus.
 
+L'export d'une classe est autorisé séparément (=CARNET_EXPORT_CLASSES=) et
+réservé à son responsable actif, également en mode local. Il n'étend pas le
+périmètre consultable dans la source : une classe/année, sans contenus devenus
+inaccessibles ni secrets. La direction de la petite école résultante est
+attribuée uniquement dans la copie indépendante et expliquée avant confirmation.
+Voir =EXPORT-CLASSE.org=. Les deux permissions de sortie sont indépendantes.
+
 La direction administre l'école, les personnes, les classes, les élèves et les
 paramètres durables. Elle n'accède pas automatiquement au contenu pédagogique
 détaillé.

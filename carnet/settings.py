@@ -30,12 +30,19 @@ ENVIRONNEMENT_EPHEMERE = (
 )
 MODE_LOCAL = os.environ.get("CARNET_MODE_LOCAL", "") == "oui"
 # Permission de sortie complète, accordée explicitement par l'exploitant.
-_export_ecoles = os.environ.get("CARNET_EXPORT_ECOLES", "").strip()
-try:
-    EXPORT_ECOLES = ("*" if _export_ecoles == "*" else
-                     frozenset(int(v.strip()) for v in _export_ecoles.split(",") if v.strip()))
-except ValueError as exc:
-    raise ImproperlyConfigured("CARNET_EXPORT_ECOLES attend * ou des identifiants d'écoles séparés par des virgules.") from exc
+def _ecoles_export(variable):
+    valeur = os.environ.get(variable, "").strip()
+    try:
+        return ("*" if valeur == "*" else
+                frozenset(int(v.strip()) for v in valeur.split(",") if v.strip()))
+    except ValueError as exc:
+        raise ImproperlyConfigured(
+            f"{variable} attend * ou des identifiants d'écoles séparés par des virgules.") from exc
+
+
+EXPORT_ECOLES = _ecoles_export("CARNET_EXPORT_ECOLES")
+EXPORT_CLASSES = _ecoles_export("CARNET_EXPORT_CLASSES")
+DATABASE_ROUTERS = ["suivi.export_projection.RouteurProjection"]
 EXPORT_ROOT = os.environ.get("CARNET_EXPORT_ROOT", "")
 EXPORT_TAILLE_MAX = 10 * 1024**3
 ESPACE_ESSAI = MODE_LOCAL and os.environ.get("CARNET_ESPACE_ESSAI", "") == "oui"

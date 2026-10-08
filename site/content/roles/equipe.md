@@ -41,3 +41,10 @@ reprend, sans copie de réussite.
 La direction et les responsables peuvent [relier deux compétences]({{< relref "/guide/eleves-classes/relier-competences" >}})
 pour expliquer un rapprochement. La consultation suit les droits de classe ;
 aucun lien ne transfère une réussite ni ne donne accès à une photo.
+
+## Transférer une classe
+
+Selon la version et l'autorisation du service, un responsable actif peut
+[exporter une copie indépendante de sa classe]({{< relref "/guide/eleves-classes/exporter-classe/" >}}).
+Le même parcours est disponible dans les modes locaux. Il ne donne accès à
+aucun contenu supplémentaire dans la source et ne remplace pas une sauvegarde.

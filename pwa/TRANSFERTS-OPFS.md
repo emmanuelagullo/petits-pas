@@ -37,6 +37,12 @@ supprime le temporaire après consommation ou annulation. Le secours utilise
 Le bouton continue à vérifier le droit de direction en fonctionnement normal.
 Aucune URL publique ne sert un blob OPFS indépendamment de Django.
 
+L’extraction d’une classe utilise le même temporaire OPFS. La projection crée
+une base SQLite vide depuis le schéma seul, puis les seules lignes sélectionnées.
+Les médias autorisés sont lus directement vers le ZIP par blocs de 1 Mio, sans
+copie préalable dans MEMFS ni subprocess. Les plafonds restent identiques.
+Cette extraction ne renouvelle pas le rappel de sauvegarde complète.
+
 Le validateur commun contrôle noms, empreintes, taille décompressée, migrations
 et SQLite. Chaque média est extrait par blocs de 1 Mio vers un nouveau blob.
 Après fermeture, le chemin de préparation est lié au `File`. Les blobs préparés

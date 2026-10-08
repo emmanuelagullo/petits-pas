@@ -41,7 +41,7 @@ class ExportForm(forms.Form):
         if local:
             validate_password(local, self.utilisateur)
             if self.utilisateur.check_password(local):
-                raise ValidationError("Choisissez un mot de passe différent de celui du service.")
+                raise ValidationError("Choisissez un mot de passe différent de votre mot de passe actuel.")
             if local != donnees.get("confirmation_locale"):
                 raise ValidationError("Les nouveaux mots de passe ne correspondent pas.")
         return donnees
@@ -147,6 +147,11 @@ def telecharger_export_ecole(request, identifiant):
         raise Http404
     if request.session.get("export_confirme") != str(identifiant):
         return redirect("exporter_ecole")
+    return servir_export(request, export, f"ecole-{ecole.pk}", "ecole.export_telecharge")
+
+
+def servir_export(request, export, nom, evenement):
+    identifiant = export.identifiant
     try:
         fichier = (dossier(export) / "ecole.zip").open("rb")
     except FileNotFoundError:
@@ -170,7 +175,7 @@ def telecharger_export_ecole(request, identifiant):
     else:
         # L'ouverture précède le retour : un nettoyage Linux n'interrompt pas
         # un téléchargement déjà commencé. Aucun ZIP chargé en mémoire.
-        journaliser(request.user, "ecole.export_telecharge", export,
+        journaliser(request.user, evenement, export,
                     nouvelles={"export": str(identifiant), "debut": debut, "octets": longueur})
         response = StreamingHttpResponse(_flux(fichier, debut, longueur), status=statut,
                                          content_type="application/zip")
@@ -180,7 +185,7 @@ def telecharger_export_ecole(request, identifiant):
     response["ETag"] = etag
     response["Cache-Control"] = "private, no-store"
     response["X-Content-Type-Options"] = "nosniff"
-    response["Content-Disposition"] = f'attachment; filename="petits-pas-ecole-{ecole.pk}-{export.cree_le:%Y%m%d}.zip"'
+    response["Content-Disposition"] = f'attachment; filename="petits-pas-{nom}-{export.cree_le:%Y%m%d}.zip"'
     if statut == 206:
         response["Content-Range"] = f"bytes {debut}-{fin}/{export.taille_zip}"
     return response

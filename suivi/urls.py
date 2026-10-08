@@ -1,9 +1,11 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
-from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports
+from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
+    path("classe/<int:pk>/export/", views_exports_classe.exporter_classe, name="exporter_classe"),
+    path("classe/<int:pk>/export/<uuid:identifiant>.zip", views_exports_classe.telecharger_export_classe, name="telecharger_export_classe"),
     path("gestion/export/", views_exports.exporter_ecole, name="exporter_ecole"),
     path("gestion/export/<uuid:identifiant>.zip", views_exports.telecharger_export_ecole, name="telecharger_export_ecole"),
     path("classe/<int:classe_pk>/referentiel/permissions/", views_referentiels.permissions_referentiels, name="permissions_referentiels_classe"),

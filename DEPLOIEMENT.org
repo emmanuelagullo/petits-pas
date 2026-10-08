@@ -8,6 +8,9 @@ L'export d'une école vers le format local est facultatif : activer explicitemen
 Le dossier doit être privé et persistant, hors médias/statiques et de tout
 chemin servi publiquement. Le traitement nécessite Linux, de l'espace temporaire
 et un seul worker d'export partageant ce dossier avec les workers web.
+L’export de classe se pilote séparément avec =CARNET_EXPORT_CLASSES=, selon
+la même convention d’identifiants d’écoles ou de joker. Le même traitement
+prépare les deux types ; voir =EXPORT-CLASSE.org=.
 Voir =EXPORT-ECOLE.org= pour les volumes, les interruptions, la sécurité du
 téléchargement et les délais du serveur HTTP à vérifier avant activation.
 

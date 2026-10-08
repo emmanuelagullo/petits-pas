@@ -42,7 +42,8 @@ def _empreinte(fichier):
     return somme.hexdigest()
 
 
-def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None):
+def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None,
+                     export_classe=None, fichiers_externes=None):
     """Écrire un ZIP cohérent de la base, de la clé et des médias."""
     if taille_bloc is not None and not 0 < taille_bloc <= 1024**2:
         raise ValueError("Taille de bloc invalide")
@@ -75,6 +76,23 @@ def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None
                     info.compress_type = ZIP_DEFLATED
                     with chemin.open("rb") as source, archive.open(info, "w") as sortie:
                         shutil.copyfileobj(source, sortie, length=taille_bloc)
+            for nom, (taille, ouvrir) in (fichiers_externes or {}).items():
+                if (not nom.startswith("media/") or any(p in {"", ".", ".."} for p in nom.split("/"))
+                        or "\\" in nom or nom in fichiers or nom.endswith("/")):
+                    raise ValueError("Chemin de média externe invalide.")
+                empreinte, copies = hashlib.sha256(), 0
+                info = ZipInfo(nom)
+                info.compress_type = ZIP_DEFLATED
+                with ouvrir() as source, archive.open(info, "w", force_zip64=True) as sortie:
+                    while bloc := source.read(taille_bloc or 1024**2):
+                        copies += len(bloc)
+                        if copies > taille:
+                            raise ValueError("Un média a changé pendant l'export.")
+                        empreinte.update(bloc)
+                        sortie.write(bloc)
+                if copies != taille:
+                    raise ValueError("Un média a changé pendant l'export.")
+                empreintes[nom] = empreinte.hexdigest()
             archive.writestr(
                 "manifest.json",
                 json.dumps({
@@ -82,6 +100,7 @@ def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None
                     "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                     "files": empreintes,
                     **({"export_ecole": export_ecole} if export_ecole is not None else {}),
+                    **({"export_classe": export_classe} if export_classe is not None else {}),
                 }),
             )
 
