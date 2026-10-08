@@ -28,6 +28,11 @@ navigateur, une taille de fenêtre et des dates fixées. Le job
 `captures-demonstration` les transmet comme artefacts aux constructions Hugo,
 qui les publient sous `captures/`.
 
+Chaque connexion ferme le contexte navigateur précédent et ouvre un contexte
+neuf, avec les mêmes paramètres d'affichage. Le script vérifie le nom complet
+du personnage dans le menu avant de poursuivre : des réponses tardives d'un
+ancien profil ne peuvent pas réinstaller ses cookies dans le nouveau contexte.
+
 Les deux captures du mode autonome utilisent le même jeu fictif que le mode
 hébergé. La CI termine le serveur de démonstration puis relance Django sur
 `127.0.0.1` avec `CARNET_MODE_LOCAL=oui` pour montrer le vrai bouton de

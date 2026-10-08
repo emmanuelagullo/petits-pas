@@ -10,7 +10,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from playwright.sync_api import Locator, Page, sync_playwright
+from playwright.sync_api import Locator, Page, expect, sync_playwright
 
 RACINE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RACINE))
@@ -98,12 +98,20 @@ def connecter(page, base_url, demonstration, identifiant):
     personnage = profil(demonstration, identifiant)
     type_compte = personnage.get("compte_initial", "enseignant")
     mot_de_passe = demonstration["identifiants"][type_compte]["mot_de_passe"]
-    page.context.clear_cookies()
+    # Une réponse tardive (notamment le sondage de maintenance) de l'ancien
+    # profil ne doit jamais réinstaller ses cookies après clear_cookies().
+    ancien = page.context
+    contexte = nouveau_contexte(ancien.browser, page.viewport_size)
+    page = contexte.new_page()
+    ancien.close()
     page.goto(f"{base_url}/connexion/")
     page.locator("#nom_utilisateur").fill(personnage["utilisateur"])
     page.locator("#mdp").fill(mot_de_passe)
     page.get_by_role("button", name="Entrer").click()
     page.get_by_role("heading", name="Les classes").wait_for()
+    nom = " ".join((personnage["prenom"], personnage["nom_famille"]))
+    expect(page.locator(".menu-utilisateur > summary")).to_have_text(nom)
+    return page
 
 
 def ouvrir_classe(page, demonstration, identifiant):
@@ -129,7 +137,7 @@ def jouer_etapes_guide(page, demonstration, etapes):
 
 
 def jouer_scenario(page, base_url, output, demonstration, scenario):
-    connecter(page, base_url, demonstration, scenario["profil"])
+    page = connecter(page, base_url, demonstration, scenario["profil"])
     parcours = scenario["parcours"]
     if parcours == "guide":
         jouer_etapes_guide(page, demonstration, scenario["etapes"])
@@ -154,6 +162,7 @@ def jouer_scenario(page, base_url, output, demonstration, scenario):
     normaliser_contenu_instable(page)
     cible = page.locator(scenario["cible"]) if "cible" in scenario else None
     capturer(page, output / scenario["capture"], cible)
+    return page
 
 
 def nouveau_contexte(navigateur, viewport):
@@ -196,7 +205,7 @@ def main():
         page = contexte.new_page()
 
         if options.mode_local:
-            connecter(page, options.base_url, demonstration, "diane")
+            page = connecter(page, options.base_url, demonstration, "diane")
             page.get_by_role("link", name="Gérer l'école").click()
             page.get_by_role("heading", name="Gérer l'école").wait_for()
             page.get_by_role("link", name="Sauvegardes locales").wait_for()
@@ -204,7 +213,7 @@ def main():
             page.get_by_role("link", name="Sauvegardes locales").click()
             page.get_by_role("heading", name="Sauvegardes locales").wait_for()
             capturer(page, options.output / "guide/local/sauvegardes.png")
-            contexte.close()
+            page.context.close()
             navigateur.close()
             return
 
@@ -212,7 +221,7 @@ def main():
         page.get_by_role("heading", name="Carnet de suivi des apprentissages").wait_for()
         capturer(page, options.output / "connexion.png")
 
-        connecter(page, options.base_url, demonstration, "remi")
+        page = connecter(page, options.base_url, demonstration, "remi")
         premiere_classe = page.locator(".liste .entree").first
         nom_classe = premiere_classe.locator(".principal").inner_text().strip()
         premiere_classe.click()
@@ -236,13 +245,13 @@ def main():
         )
         capturer(page, options.output / "carnet.png")
 
-        connecter(page, options.base_url, demonstration, "diane")
+        page = connecter(page, options.base_url, demonstration, "diane")
         page.get_by_role("link", name="Gérer l'école").click()
         page.get_by_role("heading", name="Gérer l'école").wait_for()
         capturer(page, options.output / "direction.png")
 
         for scenario in demonstration["scenarios"]:
-            jouer_scenario(
+            page = jouer_scenario(
                 page,
                 options.base_url,
                 options.output,
@@ -250,7 +259,7 @@ def main():
                 scenario,
             )
 
-        contexte.close()
+        page.context.close()
         contexte_mobile = nouveau_contexte(
             navigateur, {"width": 390, "height": 844}
         )
@@ -259,14 +268,14 @@ def main():
             if "capture_mobile" not in scenario:
                 continue
             scenario_mobile = dict(scenario, capture=scenario["capture_mobile"])
-            jouer_scenario(
+            page_mobile = jouer_scenario(
                 page_mobile,
                 options.base_url,
                 options.output,
                 demonstration,
                 scenario_mobile,
             )
-        contexte_mobile.close()
+        page_mobile.context.close()
 
         navigateur.close()
 

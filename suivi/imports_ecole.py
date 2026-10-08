@@ -28,6 +28,7 @@ from .export_projection import validation_sur
 from .exports_ecole import selections, verifier_couverture
 from .paquet_local import preparer_restauration, TAILLE_MAX
 from .sauvegardes_medias import _nom_valide
+from .sqlite_import import securiser_lecture
 
 # Les politiques, appartenances, affectations, invitations et accès historiques
 # sont à décider sur le service. Aucun journal importé ne devient son audit.
@@ -67,9 +68,8 @@ def source_sqlite(chemin):
                   OPTIONS={'uri': True}, ATOMIC_REQUESTS=False, CONN_MAX_AGE=0)
     connections.databases[alias] = config
     try:
-        with connections[alias].cursor() as cursor:
-            cursor.execute('PRAGMA query_only=ON')
-            cursor.execute('PRAGMA trusted_schema=OFF')
+        connections[alias].ensure_connection()
+        securiser_lecture(connections[alias].connection)
         yield alias
     finally:
         connections[alias].close()
@@ -488,7 +488,7 @@ def verifier_zip(archive, parent):
         if db.stat().st_size > BASE_MAX:
             raise ValidationError("La base SQLite dépasse le plafond d'import de 64 Mio.")
         with closing(sqlite3.connect(db)) as source:
-            source.execute('PRAGMA trusted_schema=OFF')
+            securiser_lecture(source)
             if source.execute("SELECT 1 FROM sqlite_master WHERE type IN ('trigger','view')").fetchone():
                 raise ValidationError("Le SQLite contient des vues ou déclencheurs non autorisés.")
             appliquees = set(source.execute('SELECT app,name FROM django_migrations').fetchall())

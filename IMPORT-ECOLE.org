@@ -130,6 +130,14 @@ Cette version refuse les anciens schémas : mettre à jour la copie dans une
 installation locale compatible puis produire un nouveau ZIP. Elle n'exécute
 pas de migrations ou de code venant de l'archive.
 
+La connexion source reste en lecture seule. =trusted_schema= est désactivé
+sur les SQLite récents. Lorsque le JSON_VALID natif d'une ancienne version
+n'est pas marqué SQLITE_INNOCUOUS, un contrôle SQL restrictif permet cette seule
+exception native et les fonctions natives innocentes, tout en refusant les
+fonctions applicatives, leurs surcharges et ATTACH/DETACH. Les vues et
+déclencheurs restent refusés. Ce traitement concerne le SQLite du ZIP,
+indépendamment du moteur PostgreSQL ou SQLite de destination.
+
 Les contenus pédagogiques, années, suppressions logiques, adaptations,
 présentations, ajouts et correspondances sont projetés avec de nouvelles PK.
 Le remappage couvre aussi les contenus des référentiels, instantanés initiaux
@@ -272,3 +280,9 @@ processus, la protection après commit avant accueil, les références FileField
 et JSON, les journaux invalides, les liens symboliques et le nettoyage ciblé
 idempotent. Aucun essai de coupure électrique réelle ; PostgreSQL et Hugo
 indisponibles localement. Contrôle des migrations et liens du Guide réussis.
+
+Compatibilité SQLite : 22 scénarios d'import, accueil, récupération et lecture
+sécurisée réussis séparément avec SQLite 3.53.1 puis SQLite 3.40.1 compilé
+pour reproduire la contrainte JSON ancienne. Les fonctions applicatives,
+surcharges de fonctions natives, écritures et ATTACH restent refusés dans le
+chemin de compatibilité. Destination locale SQLite ; PostgreSQL reste à la CI.
