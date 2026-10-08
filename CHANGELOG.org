@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Après un import, ouverture de la nouvelle direction par courriel avec le
+  vrai lien Django de choix du mot de passe et les instructions adaptées aux
+  classes déjà transférées. Envoi après commit ; commande de renvoi sans
+  réimport ni modification du mot de passe. Aperçu fictif =direction-import=.
+
 - Import d'un ZIP local vers une nouvelle école du service, par commande
   d'exploitation : vérification préalable, empreinte confirmée, direction
   choisie explicitement, identifiants et médias distincts. Comptes historiques
@@ -26,7 +31,7 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   autres identités historiques sans accès ; secrets et sessions serveur exclus.
   La PWA conserve ses plafonds qualifiés ; aucune fusion ajoutée.
 
-- Commande =tester_courriel_accueil= : aperçu par mail des cinq scénarios
+- Commande =tester_courriel_accueil= : aperçu par mail des scénarios
   d’accueil, y compris pour une adresse déjà connue, sans accès à la base ni
   création de compte, invitation, droits ou lien secret.
 

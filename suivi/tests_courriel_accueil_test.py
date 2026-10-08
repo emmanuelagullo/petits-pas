@@ -21,6 +21,7 @@ class TestCourrielAccueilTests(TestCase):
     def test_tous_les_scenarios_sans_ecriture_ni_lecture_de_la_base(self):
         for scenario, attendu in {
             "direction": "Activer la classe", "sans-fonction": "Aucune fonction",
+            "direction-import": "Ne recréez pas les classes",
             "responsable": "Responsable de classe", "associe": "Enseignant associé",
             "contributeur": "Contributeur",
         }.items():

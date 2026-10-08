@@ -1,5 +1,6 @@
 """Import contrôlé d'un paquet local, sans écran ni remplacement sur le service."""
 import json
+import secrets
 from getpass import getpass
 from pathlib import Path
 from zipfile import BadZipFile
@@ -12,6 +13,7 @@ from comptes.forms import InitialisationEcoleForm
 from comptes.models import Utilisateur
 from suivi.imports_ecole import verifier_zip, verifier_serveur
 from suivi.models import Ecole
+from suivi.accueil_import import verifier_courriel, envoyer_accueil_import
 
 
 class Command(BaseCommand):
@@ -28,9 +30,11 @@ class Command(BaseCommand):
         parser.add_argument('--direction', help="Identifiant du compte serveur choisi explicitement.")
         parser.add_argument('--operateur', help="Compte technique actif qui réalise l'import.")
         parser.add_argument('--creer-direction', action='store_true',
-                            help="Crée ce compte personnel avec un nouveau mot de passe saisi au terminal.")
+                            help="Crée ce compte personnel ; mot de passe choisi par courriel ou saisi au terminal.")
         parser.add_argument('--prenom')
         parser.add_argument('--nom')
+        parser.add_argument('--email', help="Avec --creer-direction, envoie un lien pour choisir le premier mot de passe.")
+        parser.add_argument('--url', help="Origine HTTPS du service, obligatoire avec --email.")
 
     def handle(self, *args, **options):
         try:
@@ -47,8 +51,18 @@ class Command(BaseCommand):
             if options['confirmer']:
                 if not all(options[c] for c in ('sha256', 'ecole', 'direction', 'operateur')):
                     raise CommandError("La confirmation exige --sha256, --ecole, --direction et --operateur.")
-            elif any(options[c] for c in ('sha256', 'direction', 'operateur', 'creer_direction', 'prenom', 'nom')):
+            elif any(options[c] is not None and options[c] is not False
+                     for c in ('sha256', 'direction', 'operateur', 'creer_direction', 'prenom', 'nom', 'email', 'url')):
                 raise CommandError("Ces options exigent --confirmer ; lancer d'abord la vérification seule.")
+            email = None
+            if options['email'] is not None:
+                if not options['creer_direction']:
+                    raise CommandError("--email exige --creer-direction ; un compte existant garde ses identifiants.")
+                email = verifier_courriel(options['email'], options['url'])
+                if Utilisateur.objects.filter(email__iexact=email).exists():
+                    raise CommandError("Adresse déjà utilisée : choisir explicitement le compte serveur existant.")
+            elif options['url'] is not None:
+                raise CommandError("--url exige --email.")
             with verifier_zip(options['archive'], travail) as projection:
                 self.stdout.write(json.dumps(projection.rapport, ensure_ascii=False, indent=2))
                 self.stdout.write("Nouvelle école uniquement ; classes en préparation ; auteurs inactifs ; aucun droit local repris.")
@@ -68,8 +82,13 @@ class Command(BaseCommand):
                 if options['creer_direction']:
                     if not options['prenom'] or not options['nom']:
                         raise CommandError("--creer-direction exige --prenom et --nom.")
-                    mot_de_passe = getpass("Nouveau mot de passe du compte de direction : ")
-                    confirmation = getpass("Confirmer le nouveau mot de passe : ")
+                    if email:
+                        # Secret aléatoire jamais affiché ni envoyé : le parcours
+                        # Django de récupération exige un hash utilisable.
+                        mot_de_passe = confirmation = secrets.token_urlsafe(48)
+                    else:
+                        mot_de_passe = getpass("Nouveau mot de passe du compte de direction : ")
+                        confirmation = getpass("Confirmer le nouveau mot de passe : ")
                     formulaire = InitialisationEcoleForm(dict(
                         ecole_nom=nom, commune=commune, username=options['direction'],
                         first_name=options['prenom'], last_name=options['nom'],
@@ -77,6 +96,7 @@ class Command(BaseCommand):
                     if not formulaire.is_valid():
                         raise CommandError("Compte refusé : " + str(formulaire.errors.as_text()))
                     direction = formulaire.save(commit=False)
+                    direction.email = email or ''
                 else:
                     if options['prenom'] or options['nom']:
                         raise CommandError("--prenom et --nom exigent --creer-direction.")
@@ -99,3 +119,9 @@ class Command(BaseCommand):
             else:
                 message = "Erreur de lecture, de stockage ou de base ; import annulé."
             raise CommandError("Import refusé : " + message) from None
+        # L'envoi est hors transaction et hors gestion des erreurs d'import :
+        # un échec SMTP ne doit jamais annoncer l'annulation d'une école créée.
+        if email:
+            envoyer_accueil_import(ecole=ecole, direction=direction,
+                operateur=operateur, url=options['url'])
+            self.stdout.write("Courriel accepté par le backend ; réception à vérifier avec le destinataire.")

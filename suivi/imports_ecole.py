@@ -330,6 +330,7 @@ class Projection:
         if not isinstance(default_storage, FileSystemStorage):
             raise ValidationError("Cette première version de l'import exige des médias sur disque local.")
         identifiant = uuid4().hex
+        direction_creee = direction.pk is None
         destination = Path(default_storage.path('imports/' + identifiant))
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.mkdir(mode=0o700)
@@ -443,6 +444,7 @@ class Projection:
                     nouvelles_valeurs={'sha256': self.rapport['sha256'], 'classes': self.rapport['classes'],
                                       'eleves': self.rapport['eleves'], 'droits_recrees': False,
                                       'direction_id': direction.pk,
+                                      'direction_creee': direction_creee,
                                       'medias_prefixe': f'imports/{identifiant}/'})
             return ecole
         except BaseException:

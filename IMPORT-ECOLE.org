@@ -55,8 +55,49 @@ python manage.py importer_ecole_zip /chemin/prive/ecole.zip \
 Pour créer plutôt un nouveau compte personnel, ajouter =--creer-direction
 --prenom "Prénom" --nom "Nom"=. La commande demande un nouveau mot de passe
 deux fois au terminal, avec les validateurs ordinaires. Aucun mot de passe
-en argument, aucune reprise du mot de passe du ZIP, aucun mail automatique.
+en argument, aucune reprise du mot de passe du ZIP.
 Transmettre ce premier secret par le canal prévu avec la personne concernée.
+
+Pour laisser la nouvelle direction choisir elle-même son premier mot de passe,
+ajouter plutôt =--email camille@example.invalid --url https://ecole.example.invalid=
+aux options =--creer-direction --prenom "Camille" --nom "Fictive"=.
+La commande valide le transport, l'adresse non encore utilisée et l'origine
+HTTPS avant toute création. Aucun secret n'est alors demandé au terminal : un
+secret aléatoire non communiqué permet le parcours Django de récupération.
+L'envoi suit la validation de la transaction d'import. Le courriel commun
+texte/HTML contient le vrai lien à usage unique de choix du mot de passe, sa
+durée de validité et des instructions adaptées aux classes et élèves déjà
+transférés. La clé, les mots de passe et les adresses du ZIP restent exclus.
+Un compte serveur existant garde ses identifiants : =--email= exige ici la
+création explicite d'une nouvelle direction et ne modifie pas un autre compte.
+
+Un échec SMTP n'annule pas l'école créée. La sortie affiche son identifiant,
+puis signale l'envoi non confirmé et demande de ne pas réimporter. Vérifier
+le transport puis renvoyer seulement le courriel :
+
+#+begin_src sh
+python manage.py renvoyer_accueil_import --ecole IDENTIFIANT_CREE \
+ --direction direction-personnelle --operateur administration-technique \
+ --url https://ecole.example.invalid
+#+end_src
+
+Le renvoi utilise l'adresse actuelle du compte, exige un opérateur technique
+actif et la direction toujours active de cette école. Il concerne uniquement
+un compte dont la création par l'import est attestée dans l'audit ; aucune
+modification de mot de passe, compte, classe ou droit. Les imports antérieurs
+à cette métadonnée ne deviennent pas éligibles par supposition. Pour un lien
+expiré, =Mot de passe oublié ?= reste également disponible sur le service.
+La réutilisation du générateur Django conserve les règles habituelles : après
+le choix du mot de passe, les anciens liens deviennent inutilisables.
+Les audits d'envoi/échec contiennent l'opérateur, l'école, l'identité et le
+type d'erreur éventuelle, jamais le lien secret, son jeton ou le texte brut
+d'une exception SMTP. Un envoi accepté ne prouve pas sa réception.
+
+Pour prévisualiser le courriel sans compte, données ou lien d'accès :
+
+#+begin_src sh
+python manage.py tester_courriel_accueil votre-adresse --scenario direction-import
+#+end_src
 La création d'un compte déjà présent, une école de même nom/commune ou une
 empreinte de ZIP déjà importée entraîne un refus ;
 ne pas relancer avec un autre nom pour contourner un doute sur un import déjà
@@ -159,6 +200,7 @@ Ne pas l'exécuter dans une requête WSGI ni pendant une purge de médias.
 
 #+begin_src sh
 python manage.py test suivi.tests_imports_ecole suivi.tests_exports_classe suivi.tests_carnets_annuels
+python manage.py test suivi.tests_accueil_import suivi.tests_courriels_comptes suivi.tests_courriel_accueil_test
 python manage.py makemigrations --check --dry-run
 #+end_src
 
@@ -177,3 +219,11 @@ groupes. Les 23 tests du paquet commun, le contrôle des migrations et les
 liens du Guide réussissent. PostgreSQL et les volumes de plusieurs Go ne sont
 pas exécutés pour cet import dans cet environnement ; leur qualification
 reste distincte de celle de l'export. Hugo n'est pas disponible ici.
+
+Complément accueil par courriel : 34 scénarios d'import, composition d'accueil,
+initialisation par mail et aperçu fictif réussis sur SQLite/Linux. Le vrai
+écran Django de choix du mot de passe, l'invalidation du lien après choix,
+l'envoi après commit, les échecs SMTP et le renvoi sans modification du
+mot de passe sont vérifiés avec un backend mémoire, sans courriel externe.
+Contrôle des migrations et liens du Guide réussis ; PostgreSQL reste à
+confirmer en CI et la réception SMTP réelle à vérifier avec le destinataire.

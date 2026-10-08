@@ -30,6 +30,14 @@ son compte serveur ou un nouveau compte personnel. **Les mots de passe et les
 droits du mode local ne sont pas repris.** Les noms des auteurs restent dans
 l’historique, avec des comptes inactifs qui ne permettent pas de se connecter.
 
+Pour un nouveau compte, l’exploitant peut vous envoyer un courriel avec le lien
+**Choisir mon mot de passe**. Choisissez votre mot de passe personnel, puis
+connectez-vous avec le nom d’utilisateur indiqué. Si le lien a expiré, utilisez
+**Mot de passe oublié ?** sur la page de connexion avec votre adresse ;
+l’exploitant peut aussi renvoyer le courriel sans refaire le transfert.
+Si vous avez déjà choisi votre mot de passe, connectez-vous directement.
+Un compte serveur déjà existant conserve ses identifiants.
+
 Les classes non archivées sont mises en préparation. La direction doit
 [inviter les collègues]({{< relref "/guide/equipe/inviter-membre/" >}}),
 [attribuer les fonctions]({{< relref "/guide/equipe/attribuer-fonction/" >}}),
