@@ -42,7 +42,7 @@ def _empreinte(fichier):
     return somme.hexdigest()
 
 
-def creer_sauvegarde(paquet, destination, *, taille_bloc=None):
+def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None):
     """Écrire un ZIP cohérent de la base, de la clé et des médias."""
     if taille_bloc is not None and not 0 < taille_bloc <= 1024**2:
         raise ValueError("Taille de bloc invalide")
@@ -81,6 +81,7 @@ def creer_sauvegarde(paquet, destination, *, taille_bloc=None):
                     "format": FORMAT, "version": VERSION,
                     "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                     "files": empreintes,
+                    **({"export_ecole": export_ecole} if export_ecole is not None else {}),
                 }),
             )
 

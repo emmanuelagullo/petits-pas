@@ -29,6 +29,13 @@ ENVIRONNEMENT_EPHEMERE = (
     os.environ.get("CARNET_ENVIRONNEMENT_EPHEMERE", "") == "oui"
 )
 MODE_LOCAL = os.environ.get("CARNET_MODE_LOCAL", "") == "oui"
+# Permission de sortie complète, accordée explicitement par l'exploitant.
+try:
+    EXPORT_ECOLES = frozenset(int(v.strip()) for v in os.environ.get("CARNET_EXPORT_ECOLES", "").split(",") if v.strip())
+except ValueError as exc:
+    raise ImproperlyConfigured("CARNET_EXPORT_ECOLES attend des identifiants d'écoles séparés par des virgules.") from exc
+EXPORT_ROOT = os.environ.get("CARNET_EXPORT_ROOT", "")
+EXPORT_TAILLE_MAX = 10 * 1024**3
 ESPACE_ESSAI = MODE_LOCAL and os.environ.get("CARNET_ESPACE_ESSAI", "") == "oui"
 ESPACE_APERCU = MODE_LOCAL and os.environ.get("CARNET_ESPACE_APERCU", "") == "oui"
 VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip() or version_application()

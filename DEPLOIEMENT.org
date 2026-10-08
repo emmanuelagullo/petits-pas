@@ -2,6 +2,15 @@
 
 * Objet
 
+L'export d'une école vers le format local est facultatif : activer explicitement
+=CARNET_EXPORT_ECOLES= et =CARNET_EXPORT_ROOT=, puis programmer
+=python manage.py preparer_exports_ecoles= avec les mêmes paramètres de service.
+Le dossier doit être privé et persistant, hors médias/statiques et de tout
+chemin servi publiquement. Le traitement nécessite Linux, de l'espace temporaire
+et un seul worker d'export partageant ce dossier avec les workers web.
+Voir =EXPORT-ECOLE.org= pour les volumes, les interruptions, la sécurité du
+téléchargement et les délais du serveur HTTP à vérifier avant activation.
+
 Ce document décrit les ressources et réglages attendus par le profil
 persistant de Petits Pas, avec stockage objet ou médias locaux. Il sert d’interface entre l’application et
 l’hébergeur ; il ne prescrit ni fournisseur, ni orchestrateur particulier.

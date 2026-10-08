@@ -1,0 +1,205 @@
+#+title: Export complet d'une école vers le format local
+
+* Périmètre
+
+Cette étape ajoute la sortie serveur → ZIP local. Elle ne remplace pas les
+sauvegardes automatiques, ne crée pas de synchronisation et n'ajoute aucun
+import, remplacement ou fusion côté serveur.
+
+La direction active demande =Exporter l'école= puis =Préparer le ZIP=.
+L'exploitant doit autoriser explicitement l'école : une direction n'accède
+pas ordinairement à tous les contenus pédagogiques, tandis que le possesseur
+d'un SQLite peut lire les contenus hors de l'application.
+
+* Activation et exploitation
+
+Paramètres communs aux workers web et au traitement :
+
+#+begin_example
+CARNET_EXPORT_ECOLES=1,2
+CARNET_EXPORT_ROOT=/chemin/prive/exports-ecoles
+#+end_example
+
+La liste contient des identifiants d'écoles, pas des identifiants d'utilisateurs.
+La permission reste subordonnée à une direction active à chaque action.
+Les chemins relatifs, et les dossiers sous MEDIA_ROOT ou STATIC_ROOT, sont
+refusés. L'exploitant doit aussi exclure le dossier de toute publication HTTP.
+Répertoire privé 0700, archives 0600 ; aucun lien public ni URL signée durable.
+Les paramètres sont facultatifs : par défaut, le parcours est absent.
+
+Appliquer les migrations, puis programmer chaque minute, avec le Python,
+l'environnement et le compte système du service :
+
+#+begin_src sh
+python manage.py preparer_exports_ecoles
+#+end_src
+
+Cette commande traite les demandes persistées en base ; elle doit tourner
+indépendamment de WSGI. Sans programmation, la demande reste en attente.
+Un verrou OS non bloquant limite le traitement à un processus ; il se libère
+après SIGKILL. Web et traitement partagent la racine privée sur un serveur
+Linux. Ce jalon ne fournit pas un worker distribué ni un traitement Windows.
+
+Une préparation interrompue passe en échec à l'invocation suivante, avec
+nettoyage et nouvelle demande explicite. Les états échoués ne sont pas rejoués
+automatiquement. Les fichiers périmés et dossiers d'anciennes demandes sont
+effacés par la même commande. Le ZIP expire 24 heures après la préparation ;
+une demande non traitée expire 24 heures après sa création. Un seul ZIP est
+disponible par école. Ne pas arrêter définitivement le traitement sans nettoyer
+ses temporaires. Les copies présentes dans les sauvegardes de l'hébergeur
+suivent la rétention de celui-ci, indépendante de cette expiration.
+
+Les erreurs exposées ne contiennent pas les messages bruts de transport,
+chemins de médias, liens signés ou secrets. Les événements d'audit contiennent
+l'identifiant d'export, l'acteur et le type d'échec. La copie temporaire de
+l'empreinte du mot de passe local est effacée après succès, échec ou expiration.
+
+* Contrat du ZIP
+
+Réutilisation de =suivi/paquet_local.py=, format =petits-pas-paquet= version 1 :
+=carnet.sqlite3=, =secret-key=, médias référencés, =manifest.json=.
+Une métadonnée facultative =export_ecole= indique la version applicative,
+l'identifiant d'export, l'école d'origine, la date du snapshot et l'identifiant
+de connexion locale. Les validateurs v1 ignorent cette métadonnée ; aucun
+fichier supplémentaire ni contournement de la liste des fichiers autorisés.
+
+La base SQLite est créée par les migrations locales courantes dans un
+sous-processus au courrier désactivé, sans axes ni paramètres hébergés hérités.
+Une liste blanche explicite sélectionne les tables métier ; une nouvelle
+table non examinée fait refuser l'export. La projection conserve les PK dans
+cette base indépendante, afin de préserver aussi les identifiants dans les
+instantanés JSON des référentiels et de l'audit. Cela ne constitue pas un
+identifiant d'école universel utilisable pour une fusion serveur.
+
+Sont conservés : toutes les années et classes de l'école, élèves et scolarités,
+bilans, observations, traces partagées et versions personnelles, états internes,
+archives et suppressions logiques, adaptations et historiques annuels,
+référentiels locaux et catalogue public, audit de cette école. Les choix
+applicatifs des années concernées sont conservés sans leur journal global.
+Une relation vers un objet métier d'une autre école fait refuser l'export.
+Les fichiers sont copiés via le storage Django, sans recopier son inventaire
+global et sans recompression. Les médias orphelins et variantes PDF recalculables
+ne sont pas exportés. Un média nécessaire manquant fait échouer la préparation.
+
+Les identités liées à l'école ou aux auteurs historiques sont projetées avec
+une liste blanche d'attributs d'identité. Leurs appartenances aux autres écoles,
+empreintes de mots de passe serveur, sessions, groupes, permissions techniques,
+TOTP et codes de secours ne sont pas copiés. Les invitations restent présentes
+pour les relations historiques, mais sont révoquées et leurs capacités retirées.
+Une nouvelle clé Django indépendante est créée. Le demandeur conserve son
+identité et ses droits d'école, avec un nouveau mot de passe local validé,
+différent du mot de passe serveur. Les autres comptes sont désactivés avec
+mot de passe inutilisable. Aucun rôle pédagogique n'est attribué implicitement.
+
+Les contrôles métier clean() s'exécutent dans un processus local où la connexion
+default est la copie ; ils n'interrogent pas les managers du service. Le ZIP
+produit est relu par le validateur commun : empreintes, noms, limites, intégrité
+SQLite et clés étrangères. Les contrôles ne rendent pas le ZIP digne de
+confiance pour un futur import serveur : celui-ci devra réexaminer comptes,
+droits, schéma et règles métier.
+
+* Cohérence et concurrence
+
+PostgreSQL utilise un snapshot REPEATABLE READ en lecture seule pour les
+sélections. SQLite utilise sa transaction de lecture. Aucun objet source n'est
+modifié. Les médias sont copiés avant fermeture du snapshot SQL ; tailles et
+quantités lues sont contrôlées. Les écritures ordinaires du projet créent de
+nouveaux objets médias et ne modifient pas les anciens en place.
+
+Une suppression physique concurrente peut faire échouer la préparation ;
+elle ne doit pas produire silencieusement un ZIP incomplet. Les procédures
+externes de purge/remplacement de fichiers doivent être suspendues pendant
+un export. Aucune suspension générale des saisies n'est requise. Une écriture
+en place hors application, notamment de même taille, ne serait pas détectée
+de façon certaine par le seul contrôle de taille : elle sort de ce contrat.
+Le snapshot SQL peut durer plusieurs minutes pour plusieurs Go et retarde
+le nettoyage des versions de lignes PostgreSQL ; limiter les traitements
+et surveiller leur durée avant élargissement à de nombreuses écoles.
+
+Les droits sont vérifiés avant et après préparation, puis lors du téléchargement.
+La confirmation utilise les backends et limitations de la connexion ; elle ne
+réinitialise pas la session vérifiée du second facteur. Un seul export est
+confirmé à la fois dans la session, jusqu'à son expiration ou la déconnexion.
+
+* Gros volumes et réseau
+
+La copie des fichiers, leur compression et le téléchargement sont progressifs.
+Le volume des médias n'est pas chargé en mémoire ; les identifiants métier,
+chemins et métadonnées restent proportionnels au nombre de lignes/fichiers.
+La borne serveur est 10 Gio décompressés, avec la borne commune de 100 000
+entrées. Prévoir, en plus des originaux, environ trois fois le volume d'une
+école pour copie, ZIP et validation, plus les autres exports non expirés.
+Le contrôle de place libre garde 128 Mio de marge mais ne réserve pas l'espace
+contre d'autres processus. Une panne de disque entraîne échec et nettoyage.
+
+Le téléchargement authentifié expose Content-Length, ETag, Accept-Ranges,
+HEAD et une plage bytes unique (206). Une plage invalide ou multiple est
+refusée (416). Un If-Range différent renvoie le fichier entier. L'archive
+reste immuable entre ces requêtes. Le serveur conserve un descripteur ouvert
+pour le flux ; un nettoyage Linux n'interrompt pas celui déjà commencé.
+Les reprises exigent encore une session confirmée et les droits actuels.
+Aucun multipart par plages ni promesse de reprise automatique du navigateur.
+
+Vérifier avant activation les timeouts et tampons de WSGI, du mandataire
+inverse et de l'hébergeur. Un worker Gunicorn sync avec timeout court peut
+être tué pendant un téléchargement lent ; employer par exemple gthread et
+vérifier les délais réseau de la chaîne complète. Plusieurs téléchargements
+peuvent monopoliser des threads et de la bande passante : dimensionner leurs
+limites côté hébergeur. Le banc WSGI ne mesure pas ces réglages ni le débit Internet.
+
+* PWA : format commun, plafond distinct
+
+#PWA11 met les médias dans OPFS et #PWA12 rend les ZIP progressifs. #PWA13
+maintient ces parcours. =pwa/QUALIFICATION.md= mesure environ 241 Mio et
+conserve volontairement 256 Mio décompressés, 5 000 entrées, 64 Mio pour
+la base ou un média. La base reste en mémoire. Aucun relèvement arbitraire
+n'est ajouté à cette livraison.
+
+La page d'export annonce si le ZIP respecte ces plafonds en calculant les
+tailles décompressées et les entrées réelles, manifeste compris. Cela ne
+garantit pas le quota libre du profil, la compatibilité d'une ancienne version,
+ni l'espace nécessaire aux états actif/précédent/secours. Un gros ZIP reste
+au même format, mais son ouverture PWA n'est pas promise tant que les plafonds
+ne sont pas requalifiés. Le programme sur disque conserve sa borne commune.
+
+* Vérifications reproductibles
+
+#+begin_src sh
+python manage.py test suivi.tests_exports_ecole
+python scripts/qualifier-export-ecole.py --destination /tmp/export-fictif.zip
+python scripts/qualifier-export-ecole.py --mio 3072 --destination /tmp/export-3gio-fictif.zip
+python scripts/construire-pwa.py --test
+node scripts/verifier-pwa.cjs
+#+end_src
+
+Le banc de volume crée une base SQLite et des JPEG synthétiques dans un
+répertoire temporaire indépendant. Il élimine les paramètres de service
+hérités, confirme la projection réelle, interrompt un flux WSGI puis le reprend
+par Range/If-Range, compare l'empreinte et restaure avec le validateur commun.
+Le rapport JSON distingue volume, durée, mémoire Linux et compatibilité PWA.
+Il ne qualifie pas les temps réseau de production ni le rendu de milliers
+de traces dans les interfaces. Le banc PWA installe une petite archive de
+ce même export et vérifie sa connexion locale et la présence des médias.
+
+** Résultats du 8 octobre 2026
+
+- Linux/Python 3.12/Django 6.1.2, source SQLite : 4 063 JPEG synthétiques,
+  3 223 889 294 octets décompressés, ZIP de 3 214 902 290 octets.
+  Préparation et validation en 173,73 s ; reprise WSGI et restauration avec
+  contrôle de tous les médias réussies ; restauration en 31,70 s.
+  Maximum RSS du processus principal : 81 652 Kio, environ 80 Mio.
+  Ces durées dépendent de la machine et ne mesurent pas un réseau d'école.
+- 11 tests de projection/permissions/reprise/échecs ; 22 tests du paquet
+  commun ; 212 tests des modules de sécurité et d'export après installation
+  des dépendances 2FA (un scénario réservé à PostgreSQL ignoré).
+  La suite générale sans cette extension a exercé 895 tests ; ses deux erreurs
+  de dépendances ont été résolues et les modules concernés repassés.
+- Contrôle migrations, syntaxe Node, tests du transport PWA et du constructeur,
+  liens du Guide et construction Hugo réussis ; bundle PWA --test construit.
+- Essais Chromium non exécutés ici : le téléchargement du navigateur fournit
+  un contenu inexploitable dans cet environnement. Le parcours d'ouverture
+  du nouvel export est ajouté au banc PWA existant, pour les CI Linux/Windows.
+  PostgreSQL n'a pas pu être démarré sous le compte disponible : la projection
+  PostgreSQL → SQLite et son snapshot restent à vérifier dans la CI serveur.
+  Les timeouts et téléchargements sur l'hébergement réel restent à vérifier
+  avant activation ; aucune instance distante n'a été modifiée.

@@ -81,6 +81,23 @@ restauration de la base partagée n’est proposée dans l’interface de direct
 
 ## Mode autonome local
 
+### Export d’une école depuis le service
+
+La direction peut préparer un ZIP d’école compatible avec les modes locaux
+lorsque l’exploitant accorde explicitement cette permission pour l’école.
+L’archive contient les données pédagogiques de toutes les classes, y compris
+les contenus internes : cette permission de sortie est distincte des droits
+ordinaires de consultation. Le parcours est décrit dans le
+[Guide]({{< relref "/guide/service/exporter-ecole/" >}}).
+
+La préparation passe par un traitement périodique séparé, un dossier temporaire
+privé, une expiration de 24 heures et un téléchargement authentifié avec reprise
+HTTP. Les sauvegardes du service conservent leurs propres procédures. Le ZIP
+ne contient pas les secrets de connexion du serveur. La configuration et les
+limites figurent dans `EXPORT-ECOLE.org` et `DEPLOIEMENT.org` du dépôt.
+La PWA conserve ses plafonds qualifiés. Aucun import, remplacement ou fusion
+sur le service partagé n’est ajouté.
+
 ### Fonctionnement et installation
 
 Le programme autonome embarque Django et ouvre l’interface dans une fenêtre

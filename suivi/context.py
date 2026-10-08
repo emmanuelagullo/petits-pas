@@ -47,6 +47,7 @@ def session_ecole(request):
             else:
                 affectations_passees.append(affectation)
     sauvegarde = {}
+    from .exports_ecole import autorise_export
     if direction and settings.MODE_LOCAL:
         from .paquet_local import suivi_export
         sauvegarde = suivi_export(Path(settings.DATABASES["default"]["NAME"]).parent)
@@ -61,6 +62,7 @@ def session_ecole(request):
         "version_application": settings.VERSION_APPLICATION,
         "email_disponible": settings.EMAIL_DISPONIBLE,
         "mode_local": settings.MODE_LOCAL,
+        "export_ecole_autorise": direction and autorise_export(utilisateur, ecole),
         "double_facteur_disponible": settings.DOUBLE_FACTEUR_DISPONIBLE,
         "espace_essai": settings.ESPACE_ESSAI,
         "espace_apercu": settings.ESPACE_APERCU,

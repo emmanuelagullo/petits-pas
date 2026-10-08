@@ -386,6 +386,17 @@ Le parcours de validation des exécutables Windows et Ubuntu (installation,
 persistance, sauvegarde, restauration et redémarrage) est décrit dans
 [`VALIDATION-PAQUET-AUTONOME.md`](VALIDATION-PAQUET-AUTONOME.md).
 
+## Export d’une école du service vers un appareil
+
+**Gérer l’école → Exporter l’école** prépare le ZIP commun aux modes locaux,
+si l’exploitant a autorisé cette sortie complète pour l’école. La préparation
+est séparée des requêtes web ; le téléchargement authentifié permet la reprise
+HTTP. Les sessions et secrets de connexion du serveur sont exclus ; la direction
+choisit un mot de passe propre à la copie. Les autres identités sont conservées
+pour l’historique avec accès désactivé. Les sauvegardes automatiques restent
+distinctes. Aucun import sur le service ni synchronisation n’est ajouté.
+Voir `EXPORT-ECOLE.org` pour le contrat et le traitement périodique obligatoire.
+
 ## Site public
 
 Le site de présentation est construit avec Hugo depuis le répertoire `site/` :

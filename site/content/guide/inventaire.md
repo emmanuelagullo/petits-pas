@@ -119,6 +119,7 @@ Les statuts employés sont :
 | Installer ou mettre à jour le programme | Disponible | Le setup Windows guide l'installation et la mise à jour ; les données restent séparées du programme. |
 | Revenir à la version précédente du programme | Technique uniquement sous Windows | Pas de bouton dans le setup ; une migration de la base peut empêcher une ancienne version de relire l'école. |
 | Télécharger un ZIP du paquet local | Disponible en mode local | Direction ; conserve la base, les médias et la clé du paquet. |
+| Exporter une école du service vers un ZIP local | Selon version et installation | Direction active et autorisation explicite du service ; toutes les classes et années conservées. Voir la [fiche]({{< relref "/guide/service/exporter-ecole/" >}}). |
 | Restaurer un ZIP du paquet local | Disponible en mode local | Direction ; après vérification et confirmation, l’application redémarre et l’ancien paquet reste dans un dossier séparé. |
 
 Plusieurs personnes peuvent se relayer avec leurs comptes sur cet appareil.

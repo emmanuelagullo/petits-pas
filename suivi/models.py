@@ -1,4 +1,5 @@
 import re
+import uuid
 import datetime
 
 from django.conf import settings
@@ -70,6 +71,30 @@ class Ecole(models.Model):
 
     def __str__(self):
         return self.nom
+
+class ExportEcole(models.Model):
+    """Une seule copie temporaire par école ; absente du paquet exporté."""
+
+    ecole = models.OneToOneField(Ecole, on_delete=models.CASCADE, related_name="export_local")
+    demande_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    identifiant = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    etat = models.CharField(max_length=12, default="attente", choices=[
+        ("attente", "En attente"), ("preparation", "En préparation"),
+        ("pret", "Prêt"), ("echec", "Échec"),
+    ])
+    # Empreinte du nouveau mot de passe local, effacée après préparation.
+    mot_de_passe_local = models.CharField(max_length=256, blank=True)
+    identifiant_local = models.CharField(max_length=150, blank=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+    expire_le = models.DateTimeField()
+    instantane_le = models.DateTimeField(null=True, blank=True)
+    taille_zip = models.PositiveBigIntegerField(default=0)
+    taille_decompressee = models.PositiveBigIntegerField(default=0)
+    fichiers = models.PositiveIntegerField(default=0)
+    compatible_pwa = models.BooleanField(default=False)
+    empreinte = models.CharField(max_length=64, blank=True)
+    erreur = models.CharField(max_length=200, blank=True)
+
 
 class ParametresCarnet(models.Model):
     ecole = models.OneToOneField(
