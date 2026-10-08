@@ -320,12 +320,13 @@ assert not p.exists() and not q.exists()
   const classPath = await classDownload.path();
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,zipfile,json,hashlib,sqlite3,tempfile,pathlib
+from contextlib import closing
 with zipfile.ZipFile(sys.argv[1]) as z, tempfile.TemporaryDirectory() as temp:
     m=json.loads(z.read('manifest.json'))
     assert m['export_classe']['perimetre']=='classe_annee'
     assert all(hashlib.sha256(z.read(n)).hexdigest()==h for n,h in m['files'].items())
     p=pathlib.Path(temp)/'carnet.sqlite3'; p.write_bytes(z.read('carnet.sqlite3'))
-    with sqlite3.connect(p) as db:
+    with closing(sqlite3.connect(p)) as db:
         assert db.execute('select count(*) from suivi_classe').fetchone()[0]==1
         assert not db.execute('pragma foreign_key_check').fetchall()
         assert db.execute('select count(*) from suivi_exportclasse').fetchone()[0]==0
