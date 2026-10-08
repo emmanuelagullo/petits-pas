@@ -1,0 +1,37 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Exporter l’école{% endblock %}
+{% block contenu %}
+<h1>Exporter l’école</h1>
+<p>Préparer une copie complète pour ouvrir cette école dans Petits Pas sur un autre appareil. Les sauvegardes automatiques du service restent gérées séparément.</p>
+<p class="encadre">Le ZIP contient les données privées de toutes les classes et de toutes les années conservées, y compris les traces internes. Conservez-le sur un appareil protégé. La copie et le service évolueront indépendamment.</p>
+{% if actif and formulaire.errors %}<div class="encadre">{{ formulaire.non_field_errors }}</div>{% endif %}
+{% if export %}
+  {% if expire %}<p>Le délai de téléchargement est terminé. Vous pouvez demander un nouvel export.</p>
+  {% elif export.etat == "pret" %}
+    <h2>Le ZIP est prêt</h2>
+    <p>État de l’école au {{ export.instantane_le|date:"d/m/Y à H:i" }} · {{ export.taille_zip|filesizeformat }} à télécharger · disponible jusqu’au {{ export.expire_le|date:"d/m/Y à H:i" }}.</p>
+    <p>{% if export.compatible_pwa %}Le volume respecte les limites actuelles du navigateur et du programme Windows/Linux.{% else %}Le volume dépasse les limites actuelles de Petits Pas dans le navigateur. Utilisez le programme Windows/Linux.{% endif %} L’application locale doit être de la même version ou d’une version compatible plus récente.</p>
+    <p>Dans la copie, connectez-vous avec l’identifiant <strong>{{ export.identifiant_local }}</strong> et le nouveau mot de passe choisi lors de la préparation. Les autres comptes sont conservés pour l’historique ; leur accès local est désactivé.</p>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="telecharger">
+      <label for="mot-de-passe-telechargement">Votre mot de passe sur ce service</label>
+      <input id="mot-de-passe-telechargement" name="mot_de_passe" type="password" autocomplete="current-password" required>
+      <button type="submit">Télécharger le ZIP</button>
+    </form>
+    <p class="aide">Une interruption peut être reprise par les logiciels de téléchargement qui le permettent, tant que le ZIP reste disponible et que vous avez accès à l’école.</p>
+  {% elif export.etat == "echec" %}<p class="encadre">{{ export.erreur }}</p>
+  {% else %}<p role="status">{% if export.etat == "attente" %}Votre demande est enregistrée.{% else %}Le ZIP est en préparation.{% endif %} Vous pouvez fermer cette page et revenir plus tard.</p>
+    <p><a class="bouton discret" href="{% url 'exporter_ecole' %}">Actualiser</a></p>
+  {% endif %}
+{% endif %}
+{% if not actif %}
+  <h2>Préparer le ZIP</h2>
+  <p>Choisissez un nouveau mot de passe pour votre compte dans la copie locale. Il doit être différent de celui du service. Les sessions, invitations utilisables et secrets de connexion du service ne sont pas exportés.</p>
+  <form method="post">{% csrf_token %}
+    <input type="hidden" name="action" value="preparer">
+    {{ formulaire.as_p }}
+    <button type="submit">Préparer le ZIP</button>
+  </form>
+{% endif %}
+<p><a href="{% url 'gestion' %}">Retour à la gestion de l’école</a></p>
+{% endblock %}

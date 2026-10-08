@@ -348,6 +348,34 @@ with tempfile.TemporaryDirectory() as folder:
   assert.equal(await python(appareilVide, 'from django.conf import settings; settings.ESPACE_APERCU'), false);
   await premiereInstallation.close();
   pass('Installation explicite du ZIP vérifié sur un appareil vide, sans école provisoire');
+  // ZIP issu de la projection serveur réelle, pas d'une sauvegarde locale.
+  const exportFixture = fs.mkdtempSync(path.join(os.tmpdir(), 'petits-pas-export-fictif-'));
+  const exportZip = path.join(exportFixture, 'ecole.zip');
+  try {
+    execFileSync(process.env.PWA_PYTHON || 'python3',
+      [path.join(__dirname, 'qualifier-export-ecole.py'), '--destination', exportZip], {stdio:'pipe'});
+    const imported = await browser.newContext({acceptDownloads:true, ignoreHTTPSErrors:tls});
+    try {
+      const copied = await imported.newPage();
+      await boot(copied, url);
+      await copied.frames()[1].goto(url + 'app/verifier-zip/');
+      const school = copied.frameLocator('#app');
+      await school.locator('[name="archive"]').setInputFiles(exportZip);
+      await school.getByRole('button', {name:'Vérifier le ZIP pour ouvrir une copie', exact:true}).click();
+      await school.getByRole('button', {name:'Utiliser ce ZIP comme école sur cet appareil', exact:true}).click();
+      await school.locator('[name="nom_utilisateur"]').fill('export-fictif');
+      await school.locator('[name="mot_de_passe"]').fill('Copie!Fictive2026');
+      await school.getByRole('button', {name:'Entrer', exact:true}).click();
+      await school.locator('.bandeau .marque').waitFor({timeout:30000});
+      assert.equal(await python(copied, 'from suivi.models import Ecole; Ecole.objects.get().nom'), 'École fictive export');
+      assert.equal(await python(copied, 'from comptes.models import Utilisateur; Utilisateur.objects.get().check_password("Service!Fictif2026")'), false);
+      assert.equal(await python(copied, 'from suivi.models import Trace; Trace.objects.count() > 0'), true);
+      assert.equal(await python(copied, 'from suivi.models import ExportEcole; ExportEcole.objects.count()'), 0);
+      const media = await python(copied, 'from suivi.models import Trace; Trace.objects.first().photo.name');
+      assert.equal(await python(copied, `from django.core.files.storage import default_storage; default_storage.exists(${JSON.stringify(media)})`), true);
+      pass('Export serveur installé dans la PWA : mot de passe local, école, traces et média conservés');
+    } finally {await imported.close();}
+  } finally {fs.rmSync(exportFixture, {recursive:true, force:true});}
   await page.close(); page = await context.newPage(); currentPage = page;
   await boot(page, url + '?apercu=oui'); await login(page);
   assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'Copie fictive vérifiée');

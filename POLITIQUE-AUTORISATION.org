@@ -70,6 +70,19 @@ scolarité dans cette classe, mais pas à leurs données relevant d'une autre
 
 ** Séparation des responsabilités
 
+L'export complet d'une école est une permission de sortie distincte, activée
+explicitement par l'exploitant pour cette école. Elle permet à une direction
+active de télécharger toutes les données pédagogiques conservées, y compris
+les traces internes et les données supprimées logiquement. Elle ne doit pas
+être déduite du seul droit d'administration : un fichier SQLite possédé peut
+être lu hors des contrôles de l'application. Le mot de passe confirme la
+demande et le téléchargement ; le second facteur de la session reste appliqué
+lorsqu'il est disponible. Demandes, préparations, échecs et téléchargements
+sont journalisés. Les droits sont revérifiés lors du traitement et de chaque
+requête de téléchargement, reprise comprise. Les identités de l'historique
+restent dans la copie ; les secrets serveur et privilèges techniques en sont
+exclus.
+
 La direction administre l'école, les personnes, les classes, les élèves et les
 paramètres durables. Elle n'accède pas automatiquement au contenu pédagogique
 détaillé.
