@@ -39,5 +39,5 @@ conservées.
 - Les anciennes traces visibles dans un parcours rapproché restent régies par
   les règles de continuité et ne deviennent pas modifiables.
 
-Voir [Créer puis activer une classe]({{< relref "creer-activer-classe.md" >}})
+Voir [Créer puis activer une classe]({{< relref "creer-activer-classe" >}})
 et les [situations de continuité du parcours]({{< relref "/roles/situations/" >}}).

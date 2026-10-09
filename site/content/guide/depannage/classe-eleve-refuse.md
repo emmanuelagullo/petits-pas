@@ -42,6 +42,6 @@ candidat valable, ou l’élève peut déjà avoir une autre classe cette année
 direction doit revenir à la liste courante et vérifier nominativement le
 dossier ; aucune fusion automatique n’est réalisée.
 
-Voir [Créer puis activer une classe]({{< relref "/guide/eleves-classes/creer-activer-classe.md" >}}),
+Voir [Créer puis activer une classe]({{< relref "/guide/eleves-classes/creer-activer-classe" >}}),
 [Retirer, archiver ou réactiver un élève]({{< relref "/guide/eleves-classes/archiver-reactiver.md" >}})
 et [Valider un rapprochement]({{< relref "/guide/eleves-classes/valider-rapprochement.md" >}}).

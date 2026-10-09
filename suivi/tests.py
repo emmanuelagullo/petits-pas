@@ -2666,9 +2666,11 @@ class ParcoursLongitudinal(Base):
     def test_la_creation_d_une_classe_demande_son_annee(self):
         self.entrer("dir-mdp")
 
+        page = self.client.get(reverse("creer_classe"), {"annee_scolaire": "2027-2028"})
         reponse = self.client.post(
             reverse("creer_classe"),
-            {"nom": "MS-GS", "annee_scolaire": "2027-2028"},
+            {"nom": "MS-GS", "annee_scolaire": "2027-2028", "base": "plus_tard",
+             "jeton_choix": page.context["formulaire"]["jeton_choix"].value()},
         )
 
         classe = Classe.objects.get(nom="MS-GS")

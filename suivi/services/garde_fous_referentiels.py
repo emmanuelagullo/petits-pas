@@ -116,7 +116,7 @@ def consommer_permission(utilisateur, classe):
 
 
 def demarrage_ecole(ecole):
-    """Lecture conservatrice : une adoption n'est jamais un héritage vivant.
+    """Lecture conservatrice : l’origine du premier choix ne crée pas d’héritage.
 
     La reprise automatique de la trame seule n'est pas une saisie. Les autres
     années et les choix retirés restent des signes d'une école déjà utilisée.
@@ -126,7 +126,8 @@ def demarrage_ecole(ecole):
                               FormulationLocale)
     classes = Classe.objects.filter(ecole=ecole)
     if AdoptionReferentiel.objects.filter(classe__ecole=ecole).filter(
-            Q(reprise=False) | Q(auteur__isnull=False) | Q(clos=True)).exists():
+            Q(reprise=False, initialisee_depuis_ecole=False) |
+            Q(reprise=True, auteur__isnull=False) | Q(clos=True)).exists():
         return False
     if any(model.objects.filter(ecole=ecole).exists() for model in
            (AdaptationCompetence, CompetenceLocale, CorrespondanceCompetence,

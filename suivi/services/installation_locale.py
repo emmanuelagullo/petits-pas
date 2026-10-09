@@ -60,5 +60,5 @@ def preparer_premiere_classe(*, utilisateur, appartenance, classe, version):
     apercu = apercu_adoption(utilisateur=utilisateur, classe=classe, version_id=version.pk)
     adopter_base(utilisateur=utilisateur, classe=classe, version_id=version.pk,
         revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
-        garde_attendue=apercu["garde"]["empreinte"])
+        garde_attendue=apercu["garde"]["empreinte"], initialisee_depuis_ecole=True)
     activer_classe(utilisateur=utilisateur, classe=classe)

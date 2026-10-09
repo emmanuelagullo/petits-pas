@@ -1,0 +1,65 @@
++++
+title = "Créer puis activer une classe"
+description = "Préparer une classe pour une année scolaire, lui attribuer un responsable et l’ouvrir aux usages pédagogiques."
+fiche = true
+categorie = "eleves-classes"
+publics = ["direction"]
+intentions = ["classe", "créer", "activer", "préparation", "année scolaire", "responsable"]
+prerequis = "Vous exercez la fonction de direction dans l’école."
+depart = "Gérer l’école → Créer une classe"
+statut = "disponible"
++++
+
+* Créer la classe
+
+1. Saisir son nom usuel.
+2. Vérifier l’année scolaire. Pour une autre année, l’indiquer sous la forme
+   =2027-2028=, puis sélectionner *Voir les propositions pour cette année*.
+3. Garder *Utiliser le référentiel proposé par l’école* dans *Référentiel
+   de départ* : son nom et sa version sont visibles. La base sera préparée
+   avec la classe, sans confirmation supplémentaire.
+4. Sélectionner *Créer et ajouter les enfants*.
+
+La classe est créée *en préparation*. Vous pouvez déjà en composer l’effectif,
+mais elle n’ouvre pas encore les droits pédagogiques ordinaires. Son référentiel
+est déjà prêt. Si l’école change ensuite sa proposition, cette classe garde
+la base préparée à sa création ; elle ne suit pas automatiquement le changement.
+
+Pour un besoin différent, sélectionner un *Choix indépendant* dans la liste.
+Ouvrir *Choix indépendant — confirmer avec mon mot de passe*, puis renseigner
+le mot de passe du compte connecté avant de créer. Ce choix reste enregistré
+comme indépendant, même si vous choisissez la même version que l’école.
+
+Si aucune base n’est proposée pour l’année, le formulaire l’explique : une
+base autorisée peut être choisie indépendamment, ou la classe créée sans base.
+Dans ce dernier cas, préparer son référentiel avant les premières saisies.
+
+{{< capture-guide src="captures/guide/classes/creer-classe.png" alt="Formulaire de création d’une classe fictive" caption="Le formulaire ciblé est reproduit automatiquement depuis la démonstration." >}}
+
+* Attribuer un responsable et activer
+
+1. Dans *Équipe pédagogique*, attribuer la fonction *Responsable de classe*
+   à un membre actif pour cette classe.
+2. Revenir dans *Gérer l’école*.
+3. Sous la classe en préparation, sélectionner *Activer la classe*, puis
+   confirmer.
+
+* Résultat attendu
+
+La classe apparaît comme active. Les personnes affectées peuvent désormais y
+accéder selon leur fonction ; la direction conserve sa vue administrative sans
+recevoir automatiquement l’accès au suivi pédagogique.
+
+* Limites et refus
+
+- Une classe sans responsable actif ne peut pas être activée : l’interface
+  indique d’abord d’attribuer cette fonction.
+- Une classe de même nom pour la même année scolaire est refusée.
+- L’interface ne permet actuellement ni de renommer, ni d’archiver, ni de
+  supprimer une classe.
+
+Voir les [[{{< relref "/roles/" >}}][règles détaillées des rôles et affectations]].
+
+Vous pouvez ensuite
+[[{{< relref "/guide/eleves-classes/choisir-referentiel" >}}][consulter ou changer le référentiel de la classe]]
+parmi les bases autorisées pour son année.

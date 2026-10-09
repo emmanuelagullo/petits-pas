@@ -234,3 +234,23 @@ L’aide « Pourquoi un référentiel manque-t-il ? » indique si le catalogue a
 est publié, les nombres de bases autorisées et proposées, et l’existence d’une
 restriction d’école. Elle n’affiche pas les sources non autorisées et ne les
 importe pas. Voir [[file:AUDIT-DEMARRAGE-ECOLE.org][l’audit]] pour la règle initiale et ses limites.
+
+* Première base préparée avec une nouvelle classe
+
+« Référentiel de départ » présélectionne « Utiliser le référentiel proposé par
+l’école », avec le titre et la version pour l’année affichée. La création
+adopte cette version sans aperçu séparé ni nouvelle saisie de mot de passe.
+Un choix indépendant est possible dans la même liste ; il demande le mot de
+passe, y compris si la version sélectionnée est aussi celle proposée par l’école.
+
+La classe et son adoption sont créées dans la même transaction. Les propositions
+annuelles consultées sont signées et leurs révisions contrôlées sous verrou ;
+changer d’année exige de consulter ses propositions. Sans défaut disponible,
+une classe peut rester sans base, avec un message explicite, ou choisir une
+base autorisée indépendamment. Aucun import ni autorisation n’est ajouté.
+
+La migration 0031 ajoute initialisee_depuis_ecole sur l’adoption. Le marqueur
+conserve seulement l’origine du premier choix : il ne signifie pas « suivre
+les changements ». Toutes les anciennes adoptions restent False ; aucune
+origine n’est inférée en comparant leur version au défaut actuel. Une adoption
+ultérieure reste un changement ordinaire, avec les garde-fous existants.

@@ -131,3 +131,12 @@ restent à vérifier en CI ; les deux essais spécifiques à la source SQLite
 locale sont explicitement ignorés dans le profil PostgreSQL. Hugo n'est pas
 disponible dans cet environnement ; les contrôles de structure/liens du Guide
 ont été exécutés. Aucun nouveau plafond de volume PWA n'est qualifié ici.
+
+* Origine du premier référentiel de classe
+
+Le booléen AdoptionReferentiel.initialisee_depuis_ecole ajouté par la migration
+0031 est un attribut métier, conservé dans les projections et remappages du
+modèle existant. Il ne contient ni référence JSON supplémentaire, ni droit,
+ni capacité, ni instruction de changement automatique. Les auteurs restent
+traités comme les autres identités historiques. False reste la valeur prudente
+pour les anciennes adoptions après migration ; aucune origine n’est déduite.

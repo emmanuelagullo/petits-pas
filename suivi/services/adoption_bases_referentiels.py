@@ -54,7 +54,7 @@ def apercu_adoption(*, utilisateur, classe, version_id):
 
 
 @transaction.atomic
-def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None):
+def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None, initialisee_depuis_ecole=False):
     classe_fournie = classe
     # Même ordre de coordination que les choix d'école.
     _application_verrouillee(classe.annee_scolaire)
@@ -67,6 +67,11 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     if adaptations_attendues is not None and (not mise_a_jour or
             mise_a_jour["empreinte_adaptations"] != adaptations_attendues):
         raise ValidationError("Les adaptations ont changé. Consultez à nouveau les conséquences avant de confirmer.")
+    if initialisee_depuis_ecole:
+        choix = choix_bases(classe.ecole, classe.annee_scolaire)
+        if (AdoptionReferentiel.objects.filter(classe=classe).exists() or
+                not choix.proposee or choix.proposee.pk != version_id or apercu["garde"]["saisies"]):
+            raise ValidationError("L'initialisation depuis l'école est réservée à une classe neuve sans saisie.")
     if apercu["meme"]:
         return AdoptionReferentiel.objects.get(pk=apercu["adoption_id"])
     garde = apercu["garde"]
@@ -80,7 +85,8 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
                                                       defaults={"version_proposee": version})
     AdoptionReferentiel.objects.filter(classe=classe, courante=True).update(courante=False)
     adoption = AdoptionReferentiel(classe=classe, annuel=annuel, version=version, contenu=contenu,
-                                   auteur=utilisateur, adopte_le=timezone.now())
+                                   auteur=utilisateur, adopte_le=timezone.now(),
+                                   initialisee_depuis_ecole=initialisee_depuis_ecole)
     adoption.full_clean()
     adoption.save()
     for c in contenu["competences"]:
@@ -88,7 +94,7 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
         usage.full_clean()
         usage.save()
     journaliser(utilisateur, "referentiel.base_classe", adoption,
-        anciennes={"adoption": apercu["adoption_id"]}, nouvelles={"version": version.pk})
+        anciennes={"adoption": apercu["adoption_id"]}, nouvelles={"version": version.pk, "initialisee_depuis_ecole": initialisee_depuis_ecole})
     if garde["permission"]["classe"]:
         consommer_permission(utilisateur, classe)
     classe_fournie._adoption_referentiel_lecture = adoption

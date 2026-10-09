@@ -31,13 +31,16 @@ un héritage, ni l’absence d’un choix indépendant antérieur.
 * Règle retenue
 
 La préparation des propositions est verte, accompagnée du texte « Préparation
-initiale », lorsqu’aucune adoption explicite ni close n’existe et qu’aucune
+initiale », lorsqu’aucune adoption indépendante, ancienne d’origine non établie ou close
+n’existe et qu’aucune
 adaptation, ajout local, correspondance, observation ou trace n’est conservée.
 Les réglages d’illustration et de phrases comptent également. Les autres années,
 anciennes adoptions et suppressions logiques comptent par précaution.
 Les seules adoptions de reprise, non closes et sans auteur, ne suffisent pas
 à rendre le démarrage sensible ; la trame préchargée ne compte pas comme saisie.
 Une classe créée sans adoption peut donc rester dans le démarrage initial.
+Depuis le complément ci-dessous, une nouvelle adoption marquée comme préparée
+depuis la proposition d’école peut aussi rester dans ce démarrage.
 
 La règle est volontairement plus conservatrice que « aucun choix autre que
 le défaut actuel ». Elle ne prétend pas distinguer une ancienne adaptation
@@ -122,3 +125,39 @@ l’arbre résultant et de l’arbre livré.
 L’essai visuel dans un navigateur n’a pas été exécuté : le téléchargement du
 navigateur de test a échoué. La validation en école réelle, les appareils
 tactiles, PostgreSQL et Django 5.2 restent à réaliser ; aucune politique annuelle d’une instance n’a été publiée ici.
+
+* Complément — éviter la confirmation répétée pour chaque classe
+
+Après le premier patch, la création d’une nouvelle classe prépare désormais
+sa base depuis la proposition annuelle affichée, sans confirmation séparée.
+Un marqueur d’origine explicite remplace toute déduction par comparaison de
+versions. Le choix indépendant reste disponible à la création, avec mot de
+passe. L’ancienne base d’une classe n’est jamais remplacée, et aucune ancienne
+adoption n’est réétiquetée par la migration 0031.
+
+Le programme et le navigateur locaux marquent également l’origine de leur
+première classe préparée depuis la proposition d’école. Ce complément ne modifie
+pas leurs catalogues de départ ni la politique du service hébergé. Les projections
+d’école et de classe et l’import conservent le booléen métier sans reprendre de
+droits supplémentaires ; un scénario vérifie le passage export/import réel.
+
+Appliquer le patch complémentaire puis les migrations avant de redémarrer.
+Les classes anciennes sans base gardent leur parcours de choix ; les classes
+nouvelles avec un défaut disponible n’ont plus cette étape répétée.
+
+Vérifications du complément :
+
+- Suite complète : 948 tests, OK (un scénario ignoré), SQLite / Django 6.1.2,
+  quatre processus. Après les derniers textes et le retrait d’un import Python
+  inutilisé, les neuf scénarios de création passent encore.
+- Dix-neuf scénarios ciblés de création, garde initiale et export/import réel
+  réussis en groupe séparé.
+- Contrôles Django, absence de migration manquante, Guide (50 fiches,
+  13 captures référencées), Hugo 0.140.2 sans avertissement, syntaxe shell et
+  git diff --check réussis. Les deux nouvelles pages Org gardent leurs URL.
+- Le patch complémentaire est vérifié avec git am après le premier patch,
+  avec égalité des arbres Git.
+
+La validation PostgreSQL, Django 5.2 et navigateur/tactile reste à la CI et aux
+appareils d’essai. Aucun catalogue de service ni configuration d’hébergement
+n’a été modifié ; seul le schéma public reçoit le marqueur d’origine.
