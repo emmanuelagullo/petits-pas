@@ -73,6 +73,8 @@ def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None,
             "manque, consultez Pourquoi un référentiel manque-t-il ? Les classes "
             "déjà préparées gardent leur base.",
             "4. Dans Gérer l’école → Créer une classe, créez les classes en préparation. "
+            "Utiliser le référentiel proposé par l’école est sélectionné par défaut : "
+            "la base sera prête à la création, sans confirmation séparée. "
             "Puis, dans Équipe pédagogique → Inviter une personne, invitez l’équipe. "
             "Attribuez "
             "ensuite un Responsable de classe à chaque classe dans Équipe pédagogique "

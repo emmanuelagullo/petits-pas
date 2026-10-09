@@ -987,6 +987,8 @@ class AdoptionReferentiel(models.Model):
     adopte_le = models.DateTimeField(null=True, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True)
     reprise = models.BooleanField(default=False)
+    # Origine du premier choix, sans héritage vivant ni remplacement automatique.
+    initialisee_depuis_ecole = models.BooleanField(default=False)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["classe"], condition=models.Q(courante=True), name="adoption_courante_classe_unique")]

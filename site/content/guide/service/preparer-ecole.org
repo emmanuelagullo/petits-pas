@@ -19,7 +19,9 @@ sans accès pédagogique automatique aux observations et aux carnets.
    une autre proposition reste possible. Si une offre manque, ouvrir
    *Pourquoi un référentiel manque-t-il ?*.
 3. Dans *Gérer l’école → Créer une classe*, [[{{< relref "/guide/eleves-classes/creer-activer-classe" >}}][créer les classes]]
-   pour l’année souhaitée avec *Créer et ajouter les enfants*.
+   pour l’année souhaitée. *Utiliser le référentiel proposé par l’école* est
+   sélectionné par défaut : son nom est visible et la base est préparée avec
+   *Créer et ajouter les enfants*, sans nouvelle confirmation séparée.
    Puis, dans *Équipe pédagogique → Inviter une personne*,
    [[{{< relref "/guide/equipe/inviter-membre" >}}][inviter les collègues]].
    Une classe doit exister pour préparer une fonction dans l’invitation.

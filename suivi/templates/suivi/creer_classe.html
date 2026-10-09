@@ -3,14 +3,32 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Créer une classe</h1>
-<p>Avant de créer les classes, <a href="{% url 'referentiels_ecole' %}">choisissez ou validez les propositions de référentiels de l’école</a> pour l’année souhaitée. Chaque classe choisira ensuite sa base ; les bases déjà adoptées restent conservées.</p>
+<p>Avant de créer les classes, <a href="{% url 'referentiels_ecole' %}">choisissez ou validez les propositions de référentiels de l’école</a> pour l’année souhaitée.</p>
+<form method="get">
+  <label for="annee-propositions">Année scolaire</label>
+  <input id="annee-propositions" name="annee_scolaire" value="{{ formulaire.annee }}" required pattern="[0-9]{4}-[0-9]{4}" aria-describedby="aide-annee">
+  <p id="aide-annee" class="aide">Pour une autre année, indiquez-la puis affichez ses propositions avant de créer la classe.</p>
+  <button class="bouton discret">Voir les propositions pour cette année</button>
+</form>
 <form method="post" class="encadre" id="creer-classe">
   {% csrf_token %}
+  <p>Année scolaire : <strong>{{ formulaire.annee }}</strong>.</p>
+  {{ formulaire.non_field_errors }}
   {% for champ in formulaire %}
-  <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>{{ champ }}
-  {% if champ.help_text %}<p class="aide">{{ champ.help_text }}</p>{% endif %}
-  {{ champ.errors }}
+    {% if champ.is_hidden %}{{ champ }}{{ champ.errors }}
+    {% elif champ.name != "mot_de_passe" %}
+      <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>{{ champ }}
+      {% if champ.help_text %}<p class="aide">{{ champ.help_text }}</p>{% endif %}
+      {{ champ.errors }}
+    {% endif %}
   {% endfor %}
+  <p>La base est préparée à la création : aucune confirmation séparée n’est demandée pour utiliser la proposition de l’école. Si l’école change ensuite sa proposition, cette classe conserve sa base.</p>
+  {% if not choix.proposee %}<p class="message">Aucun référentiel n’est proposé par défaut pour cette année. Vous pouvez créer la classe et choisir sa base ensuite, ou sélectionner une base autorisée dans la liste. <a href="{% url 'referentiels_ecole' %}?annee={{ formulaire.annee }}">Vérifier les propositions de l’école</a>.</p>{% endif %}
+  <details{% if formulaire.is_bound and formulaire.base.value != "ecole" and formulaire.base.value != "plus_tard" %} open{% endif %}>
+    <summary>Choix indépendant — confirmer avec mon mot de passe</summary>
+    <p>Choisir une base indépendante peut différencier cette classe des autres. Sélectionnez la base souhaitée dans la liste puis confirmez avec votre mot de passe. Même si vous sélectionnez la même version que l’école, l’origine de ce choix indépendant sera conservée.</p>
+    {{ formulaire.mot_de_passe.label_tag }}{{ formulaire.mot_de_passe }}{{ formulaire.mot_de_passe.errors }}
+  </details>
   <div class="actions"><button class="bouton" type="submit">Créer et ajouter les enfants</button></div>
 </form>
 {% endblock %}

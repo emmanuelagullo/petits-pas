@@ -286,3 +286,12 @@ sécurisée réussis séparément avec SQLite 3.53.1 puis SQLite 3.40.1 compilé
 pour reproduire la contrainte JSON ancienne. Les fonctions applicatives,
 surcharges de fonctions natives, écritures et ATTACH restent refusés dans le
 chemin de compatibilité. Destination locale SQLite ; PostgreSQL reste à la CI.
+
+* Origine du premier référentiel de classe
+
+Le booléen AdoptionReferentiel.initialisee_depuis_ecole ajouté par la migration
+0031 est un attribut métier, conservé dans les projections et remappages du
+modèle existant. Il ne contient ni référence JSON supplémentaire, ni droit,
+ni capacité, ni instruction de changement automatique. Les auteurs restent
+traités comme les autres identités historiques. False reste la valeur prudente
+pour les anciennes adoptions après migration ; aucune origine n’est déduite.

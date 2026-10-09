@@ -19,7 +19,7 @@
 <p>Pour expliquer à l’équipe comment deux apprentissages se rapprochent. Ces repères facultatifs ne changent pas la liste de saisie et ne transfèrent aucune réussite. Vous pouvez utiliser les autres réglages sans en créer.</p>
 <p><a class="bouton discret" href="{% url 'correspondances_classe' classe.pk %}">Correspondances entre compétences</a></p>
 </details>
-{% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% endif %}
+{% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% if actuelle.initialisee_depuis_ecole %}<p>Cette base a été préparée depuis la proposition de l’école lors de la création de la classe. Elle reste conservée si l’école change ensuite sa proposition.</p>{% endif %}{% endif %}
 {% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}

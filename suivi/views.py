@@ -56,7 +56,7 @@ from comptes.models import (
     Utilisateur,
 )
 from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
-from .forms import ClasseForm, DroitsGestionForm
+from .forms import DroitsGestionForm
 from .confirmations_referentiels import verifier_confirmation
 from .lectures_eleves import avec_scolarites_pour_lecture
 
@@ -2732,14 +2732,43 @@ def parametres_carnet(request):
 
 @direction_requise
 def creer_classe(request):
+    from django.core import signing
+    from .forms import CreationClasseForm
+    from .confirmations_referentiels import verifier_confirmation
+    from .services.creation_classe import creer_classe_avec_base
+
     ecole = ecole_courante(request)
-    formulaire = ClasseForm(request.POST or None)
+    initial = {"annee_scolaire": request.GET.get("annee_scolaire", annee_scolaire_pour(timezone.localdate())),
+               "nom": request.GET.get("nom", "")}
+    formulaire = CreationClasseForm(request.POST or None, ecole=ecole, initial=initial)
     if request.method == "POST" and formulaire.is_valid():
-        classe, creee = Classe.objects.get_or_create(ecole=ecole, **formulaire.cleaned_data)
-        if creee:
+        try:
+            donnees = formulaire.cleaned_data
+            try:
+                choix_lus = signing.loads(donnees["jeton_choix"], salt="creation-classe", max_age=1800)
+            except signing.BadSignature as cause:
+                raise ValidationError("Les propositions ont expiré. Vérifiez le référentiel affiché avant de créer la classe.") from cause
+            if (choix_lus["ecole"] != ecole.pk or choix_lus["auteur"] != request.user.pk or
+                    choix_lus["annee"] != donnees["annee_scolaire"]):
+                raise ValidationError("Vérifiez les propositions pour l’année choisie avant de créer la classe.")
+            independante = donnees["base"] not in ("ecole", "plus_tard")
+            verifier_confirmation(request, renforcee=independante)
+            classe = creer_classe_avec_base(utilisateur=request.user, ecole=ecole,
+                nom=donnees["nom"], annee=donnees["annee_scolaire"], base=donnees["base"],
+                revisions_attendues=choix_lus["revisions"])
             return redirect("importer_eleves", pk=classe.pk)
-        formulaire.add_error("nom", "Cette classe existe déjà pour cette année.")
-    return render(request, "suivi/creer_classe.html", {"formulaire": formulaire})
+        except ValidationError as cause:
+            formulaire.add_error(None, " ".join(cause.messages))
+    choix = formulaire.choix
+    jeton = signing.dumps({"ecole": ecole.pk, "auteur": request.user.pk,
+        "annee": formulaire.annee, "revisions": choix.revisions if choix else None}, salt="creation-classe")
+    # Une page refusée reçoit les propositions relues, jamais un ancien jeton.
+    if formulaire.is_bound:
+        formulaire.data = formulaire.data.copy()
+        formulaire.data["jeton_choix"] = jeton
+    else:
+        formulaire.initial["jeton_choix"] = jeton
+    return render(request, "suivi/creer_classe.html", {"formulaire": formulaire, "choix": choix})
 
 
 @direction_requise

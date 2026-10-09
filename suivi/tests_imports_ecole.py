@@ -43,6 +43,26 @@ class ImportEcoleTests(TransactionTestCase):
     def importer(self, projection, nom='École importée fictive'):
         return projection.importer(self.compte, nom, 'Commune fictive', self.direction)
 
+    def test_origine_initialisation_conservee_par_export_et_import_sans_droits(self):
+        from .services.creation_classe import creer_classe_avec_base
+        from .services.choix_bases_referentiels import choix_bases
+        choix = choix_bases(self.ecole, "2026-2027")
+        classe = creer_classe_avec_base(utilisateur=self.direction, ecole=self.ecole,
+            nom="Classe initialisée fictive", annee="2026-2027", base="ecole",
+            revisions_attendues=choix.revisions)
+        self.assertTrue(m.AdoptionReferentiel.objects.get(classe=classe).initialisee_depuis_ecole)
+        m.ExportEcole.objects.filter(ecole=self.ecole).delete()
+        export = m.ExportEcole.objects.create(ecole=self.ecole, demande_par=self.direction,
+            mot_de_passe_local="!", expire_le=timezone.now() + timedelta(hours=24))
+        produire(export)
+        with verifier_zip(dossier(export) / "ecole.zip", self.root) as projection:
+            ecole = self.importer(projection)
+        copie = m.Classe.objects.get(ecole=ecole, nom=classe.nom)
+        self.assertTrue(m.AdoptionReferentiel.objects.get(classe=copie).initialisee_depuis_ecole)
+        self.assertFalse(AffectationClasse.objects.filter(classe=copie).exists())
+        self.assertFalse(m.AdoptionReferentiel.objects.get(classe__ecole=ecole,
+            classe__nom=self.classe.nom, courante=True).initialisee_depuis_ecole)
+
     def test_verification_seule_ne_modifie_rien_et_refuse_empreinte_differente(self):
         comptes = Utilisateur.objects.count()
         sortie = io.StringIO()

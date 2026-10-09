@@ -207,3 +207,12 @@ ce même export et vérifie sa connexion locale et la présence des médias.
   PostgreSQL → SQLite et son snapshot restent à vérifier dans la CI serveur.
   Les timeouts et téléchargements sur l'hébergement réel restent à vérifier
   avant activation ; aucune instance distante n'a été modifiée.
+
+* Origine du premier référentiel de classe
+
+Le booléen AdoptionReferentiel.initialisee_depuis_ecole ajouté par la migration
+0031 est un attribut métier, conservé dans les projections et remappages du
+modèle existant. Il ne contient ni référence JSON supplémentaire, ni droit,
+ni capacité, ni instruction de changement automatique. Les auteurs restent
+traités comme les autres identités historiques. False reste la valeur prudente
+pour les anciennes adoptions après migration ; aucune origine n’est déduite.

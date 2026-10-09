@@ -97,11 +97,14 @@ provenance et sa licence n’ouvre aucune permission et ne l’adopte pas.
 
 * Au démarrage et lorsqu’une offre manque
 
-La préparation initiale reste simple tant qu’il n’existe aucun choix explicite
+La préparation initiale reste simple tant qu’il n’existe aucun choix indépendant
 de base de classe, adaptation, ajout, correspondance, observation ou trace.
+Les nouvelles classes préparées depuis la proposition de l’école sont distinguées
+des choix indépendants. Les anciennes adoptions conservent leur traitement
+prudent : leur origine n’est pas déduite après coup.
 Le chargement automatique de la trame ne compte pas comme une saisie.
-Une classe ayant adopté la base proposée a fait un choix : elle ne suit pas
-les changements futurs de l’école. Même sans observation, ce choix est conservé.
+Une classe préparée depuis la proposition de l’école conserve également sa
+base : elle ne suit pas les changements futurs de l’école, même sans observation.
 Les anciennes années et les traces retirées comptent aussi dans cette précaution.
 
 Ouvrir *Pourquoi un référentiel manque-t-il ?* : vérifier l’année et une

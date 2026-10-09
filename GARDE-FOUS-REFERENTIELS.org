@@ -159,3 +159,14 @@ passe supplémentaire lorsque l’école n’a aucun choix explicite de classe n
 travail pédagogique. Une restriction modifiée reste orange. Les adoptions de
 classe et les permissions après saisies gardent toutes leurs règles existantes.
 Les adaptations courantes et les permissions restent accessibles plus bas.
+
+* Origine du premier choix de classe
+
+Une nouvelle classe initialisée depuis la proposition de l’école ne rend pas
+seule les propositions d’école sensibles. Une adoption indépendante, une
+ancienne adoption d’origine non établie, une classe close ou du travail
+pédagogique conserve le traitement prudent. Un choix indépendant effectué dans
+le formulaire de création demande le mot de passe. Les permissions d’adoption
+après saisies et le classement des changements de classe restent inchangés.
+Le marqueur ne peut pas être utilisé par le service pour remplacer une adoption
+existante ni pour initialiser une classe déjà renseignée.
