@@ -62,7 +62,7 @@ from .lectures_eleves import avec_scolarites_pour_lecture
 
 from .acces_double_facteur import (
     DELAI_ATTENTE_SECONDES, SESSION_ATTENTE, SESSION_VERIFIE,
-    verification_requise_a_la_connexion,
+    connexion_recente, noter_authentification, verification_requise_a_la_connexion,
 )
 from .double_facteur import Exigence, exigence_double_facteur
 from .services.double_facteur import (
@@ -388,16 +388,23 @@ def double_facteur(request):
             else:
                 messages.error(request, "Code incorrect ou expiré.")
         elif not inscrit:
-            if totp.confirmer_inscription(request.user, code):
+            if not connexion_recente(request) and not request.user.check_password(
+                    request.POST.get("mot_de_passe", "")):
+                messages.error(
+                    request, "Confirmez votre mot de passe pour configurer le second facteur.")
+            elif totp.confirmer_inscription(request.user, code):
                 request.session[SESSION_VERIFIE] = True
+                noter_authentification(request)
                 codes = totp.generer_codes_secours(request.user)
                 # Affichés une seule fois, dans cette réponse : jamais conservés en clair.
                 return render(request, "suivi/double_facteur.html",
                               {"inscrit": True, "obligatoire": exigence == Exigence.OBLIGATOIRE,
                                "codes_secours": codes, "codes_restants": len(codes),
                                "inscription_terminee": True})
-            messages.error(request, "Code incorrect ou expiré. Vérifiez l'heure de l'appareil qui produit les codes.")
+            else:
+                messages.error(request, "Code incorrect ou expiré. Vérifiez l'heure de l'appareil qui produit les codes.")
     if not inscrit:
+        contexte["mot_de_passe_requis"] = not connexion_recente(request)
         compte = totp.commencer_inscription(request.user)
         cle = totp.cle_en_cours(compte)
         contexte.update({

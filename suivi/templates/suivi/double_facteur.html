@@ -51,8 +51,12 @@
 </div>
 <form method="post" class="encadre">
   {% csrf_token %}
+  {% if mot_de_passe_requis %}
+  <label for="mot_de_passe">Confirmez votre mot de passe</label>
+  <input type="password" id="mot_de_passe" name="mot_de_passe" autocomplete="current-password" required>
+  {% endif %}
   <label for="code">Code affiché par le générateur</label>
-  <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" autofocus required>
+  <input type="text" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9 ]*" maxlength="7" {% if not mot_de_passe_requis %}autofocus {% endif %}required>
   <div class="actions">
     <button class="bouton" type="submit">Activer</button>
     <a href="{% url 'mon_compte' %}">Plus tard</a>
