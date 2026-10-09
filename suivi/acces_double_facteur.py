@@ -15,6 +15,8 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import logout
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
 from django.shortcuts import redirect
 from django.utils import timezone
 
@@ -26,6 +28,10 @@ SESSION_VERIFIE = "double_facteur_verifie"
 SESSION_ATTENTE = "double_facteur_attente"
 SESSION_EXIGENCE = "double_facteur_exigence"
 DELAI_ATTENTE_SECONDES = 300
+SESSION_CONNEXION_LE = "connexion_le"
+# Au-delà, lier un premier appareil redemande le mot de passe (une session
+# volée ne doit pas pouvoir enrôler son propre authentificateur).
+CONNEXION_RECENTE_SECONDES = 300
 # Pages restant accessibles à un compte qui doit encore s'inscrire.
 PAGES_INSCRIPTION = {"double_facteur", "deconnexion"}
 
@@ -137,6 +143,29 @@ class DoubleFacteurMiddleware:
                 )
                 return redirect("double_facteur")
         return None
+
+
+@receiver(user_logged_in)
+def _noter_la_connexion(sender, request=None, **kwargs):
+    if request is not None and hasattr(request, "session"):
+        noter_authentification(request)
+
+
+def noter_authentification(request):
+    request.session[SESSION_CONNEXION_LE] = int(time.time())
+
+
+def connexion_recente(request):
+    """Vrai si le mot de passe a été saisi pour cette session il y a peu.
+
+    Une session sans horodatage (antérieure à ce contrôle) n'est pas récente :
+    le mot de passe est demandé une fois.
+    """
+    depuis = request.session.get(SESSION_CONNEXION_LE)
+    return (
+        isinstance(depuis, int)
+        and 0 <= time.time() - depuis <= CONNEXION_RECENTE_SECONDES
+    )
 
 
 def fermer_sessions_compte(utilisateur):

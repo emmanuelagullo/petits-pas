@@ -361,6 +361,42 @@ class InscriptionEtRetrait(BaseAcces):
         # Même clé au rechargement tant que ce n'est pas confirmé.
         self.assertEqual(self.lire_cle(self.client.get(reverse("double_facteur"))), cle)
 
+    def _vieillir_la_connexion(self):
+        session = self.client.session
+        session["connexion_le"] = int(time.time()) - 10_000
+        session.save()
+
+    def test_connexion_recente_pas_de_mot_de_passe_demande(self):
+        """Audit C-02 : juste après la connexion, aucune saisie en plus."""
+        page = self.client.get(reverse("double_facteur"))
+        self.assertNotContains(page, 'name="mot_de_passe"')
+
+    def test_session_ancienne_exige_le_mot_de_passe_pour_lier_un_appareil(self):
+        self._vieillir_la_connexion()
+        page = self.client.get(reverse("double_facteur"))
+        self.assertContains(page, 'name="mot_de_passe"')
+        cle = self.lire_cle(page)
+        reponse = self.client.post(reverse("double_facteur"), {"code": self.code(cle)})
+        self.assertContains(reponse, "Confirmez votre mot de passe")
+        self.assertFalse(totp.est_inscrit(self.enseignant))
+        reponse = self.client.post(reverse("double_facteur"), {
+            "code": self.code(cle), "mot_de_passe": "faux-mot-de-passe-12"})
+        self.assertFalse(totp.est_inscrit(self.enseignant))
+
+    def test_session_ancienne_avec_le_bon_mot_de_passe_inscrit(self):
+        self._vieillir_la_connexion()
+        cle = self.lire_cle(self.client.get(reverse("double_facteur")))
+        reponse = self.client.post(reverse("double_facteur"), {
+            "code": self.code(cle), "mot_de_passe": MOT_DE_PASSE})
+        self.assertContains(reponse, "Vos codes de secours")
+        self.assertTrue(totp.est_inscrit(self.enseignant))
+
+    def test_session_sans_horodatage_est_consideree_ancienne(self):
+        session = self.client.session
+        session.pop("connexion_le", None)
+        session.save()
+        self.assertContains(self.client.get(reverse("double_facteur")), 'name="mot_de_passe"')
+
     def test_inscription_par_un_code_valide(self):
         cle = self.lire_cle(self.client.get(reverse("double_facteur")))
         reponse = self.client.post(reverse("double_facteur"), {"code": self.code(cle)})
