@@ -2734,7 +2734,6 @@ def parametres_carnet(request):
 def creer_classe(request):
     from django.core import signing
     from .forms import CreationClasseForm
-    from .confirmations_referentiels import verifier_confirmation
     from .services.creation_classe import creer_classe_avec_base
 
     ecole = ecole_courante(request)
@@ -2751,8 +2750,6 @@ def creer_classe(request):
             if (choix_lus["ecole"] != ecole.pk or choix_lus["auteur"] != request.user.pk or
                     choix_lus["annee"] != donnees["annee_scolaire"]):
                 raise ValidationError("Vérifiez les propositions pour l’année choisie avant de créer la classe.")
-            independante = donnees["base"] not in ("ecole", "plus_tard")
-            verifier_confirmation(request, renforcee=independante)
             classe = creer_classe_avec_base(utilisateur=request.user, ecole=ecole,
                 nom=donnees["nom"], annee=donnees["annee_scolaire"], base=donnees["base"],
                 revisions_attendues=choix_lus["revisions"])

@@ -237,17 +237,17 @@ importe pas. Voir [[file:AUDIT-DEMARRAGE-ECOLE.org][l’audit]] pour la règle i
 
 * Première base préparée avec une nouvelle classe
 
-« Référentiel de départ » présélectionne « Utiliser le référentiel proposé par
-l’école », avec le titre et la version pour l’année affichée. La création
-adopte cette version sans aperçu séparé ni nouvelle saisie de mot de passe.
-Un choix indépendant est possible dans la même liste ; il demande le mot de
-passe, y compris si la version sélectionnée est aussi celle proposée par l’école.
+La création affiche le référentiel proposé par l’école, avec son titre et sa
+version pour l’année affichée. Elle adopte cette version sans choix supplémentaire
+ni nouvelle saisie de mot de passe. Aucun choix indépendant n’est proposé à la
+création. Choisir une autre base reste une action avancée et risquée de la classe,
+avec aperçu et confirmation par mot de passe, même avant les premières saisies.
 
 La classe et son adoption sont créées dans la même transaction. Les propositions
 annuelles consultées sont signées et leurs révisions contrôlées sous verrou ;
 changer d’année exige de consulter ses propositions. Sans défaut disponible,
-une classe peut rester sans base, avec un message explicite, ou choisir une
-base autorisée indépendamment. Aucun import ni autorisation n’est ajouté.
+une classe peut rester sans base, avec un message explicite invitant à vérifier
+les propositions de l’école. Aucun import ni autorisation n’est ajouté.
 
 La migration 0031 ajoute initialisee_depuis_ecole sur l’adoption. Le marqueur
 conserve seulement l’origine du premier choix : il ne signifie pas « suivre
