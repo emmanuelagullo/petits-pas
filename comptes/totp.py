@@ -117,10 +117,25 @@ def commencer_inscription(utilisateur):
         compte = DoubleFacteurCompte.objects.select_for_update().get(utilisateur=utilisateur)
         if compte.inscrit:
             raise ValidationError("Le second facteur est déjà configuré pour ce compte.")
+        if compte.cle_chiffree and not _cle_lisible(compte.cle_chiffree):
+            # Clé de chiffrement changée sans conserver l'ancienne pendant une
+            # inscription non confirmée : rien n'est encore protégé, on repart.
+            logger.warning("Clé d'inscription illisible : régénérée (compte %s)", utilisateur.pk)
+            compte.cle_chiffree = ""
         if not compte.cle_chiffree:
             compte.cle_chiffree = chiffrer(secrets.token_bytes(OCTETS_CLE))
             compte.save(update_fields=["cle_chiffree"])
     return compte
+
+
+def _cle_lisible(jeton):
+    from cryptography.fernet import InvalidToken
+
+    try:
+        dechiffrer(jeton)
+    except InvalidToken:
+        return False
+    return True
 
 
 def cle_en_cours(compte):

@@ -2378,8 +2378,9 @@ def equipe_ecole(request):
                     acteur=request.user, cible=membre.utilisateur, ecole=ecole)
                 messages.success(
                     request,
-                    "Le second facteur de cette personne a été réinitialisé. Elle devra "
-                    "le configurer de nouveau à sa prochaine connexion.",
+                    "Le second facteur de cette personne a été réinitialisé et ses "
+                    "sessions ouvertes ont été fermées. Si votre politique l'exige "
+                    "encore, elle devra le configurer de nouveau dès sa prochaine connexion.",
                 )
             elif action == "revoquer_invitation":
                 revoquer_invitation(
