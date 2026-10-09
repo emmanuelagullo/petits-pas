@@ -113,3 +113,28 @@ def consommer_permission(utilisateur, classe):
     regle.save(update_fields=["ouverte", "revision"])
     journaliser(utilisateur, "referentiel.permission_consommee", regle,
                 anciennes={"ouverte": True}, nouvelles={"ouverte": False})
+
+
+def demarrage_ecole(ecole):
+    """Lecture conservatrice : une adoption n'est jamais un héritage vivant.
+
+    La reprise automatique de la trame seule n'est pas une saisie. Les autres
+    années et les choix retirés restent des signes d'une école déjà utilisée.
+    """
+    from suivi.models import (AdaptationCompetence, CompetenceLocale,
+                              CorrespondanceCompetence, ReglagePresentation,
+                              FormulationLocale)
+    classes = Classe.objects.filter(ecole=ecole)
+    if AdoptionReferentiel.objects.filter(classe__ecole=ecole).filter(
+            Q(reprise=False) | Q(auteur__isnull=False) | Q(clos=True)).exists():
+        return False
+    if any(model.objects.filter(ecole=ecole).exists() for model in
+           (AdaptationCompetence, CompetenceLocale, CorrespondanceCompetence,
+            ReglagePresentation, FormulationLocale)):
+        return False
+    # Ne pas perdre les traces d'élèves déplacés ni les suppressions logiques.
+    if Observation.objects.filter(eleve__ecole=ecole).exists():
+        return False
+    if Trace.objects.filter(observation__eleve__ecole=ecole).exists():
+        return False
+    return not any(saisies_classe(classe)["presentes"] for classe in classes)

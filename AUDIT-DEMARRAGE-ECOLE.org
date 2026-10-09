@@ -1,0 +1,124 @@
+#+TITLE: Démarrage d’une nouvelle école — audit et correction
+#+DATE: 2026-10-09
+
+* Périmètre et constats
+
+Code examiné sur main b2d5c35a326349d2fa5a13ba1eb05a0f2633f179.
+Lecture d’AGENTS.md, README.md, CONTRIBUTING.md, des documents de choix,
+reprise, import, adaptations et garde-fous, du Guide et des services concernés.
+Aucun hébergement ni catalogue d’une instance réelle n’a été modifié.
+
+L’accueil vide proposait d’abord « Créer la première classe ». Gérer l’école
+mettait également la création avant les référentiels. Le choix annuel était
+caché dans Avancé et présenté en orange, quelle que soit l’utilisation réelle.
+Tout changement de propositions d’école demandait le mot de passe.
+
+* Ce que le code fait réellement
+
+| Action | Effet | Ce qu’elle ne fait pas |
+|--------+-------+------------------------|
+| Importer une source | Préparer une version immuable du catalogue | Autoriser ou adopter cette version |
+| Publier les bases pour une année | Autoriser des versions fournies et proposer un défaut applicatif | Remplacer une base de classe |
+| Choisir les propositions d’école | Garder ou réduire la liste, proposer un défaut annuel | Adopter ce défaut pour les classes |
+| Adopter une base de classe | Créer un choix daté et ses usages de compétences | Copier les acquis d’une autre identité |
+| Reprendre la trame initiale | Conserver les définitions et contextes existants | Créer une saisie utilisateur |
+
+Le modèle actuel ne conserve pas un mode « hériter de la base de l’école »
+pour une classe. L’adoption du défaut est elle aussi explicite et reste fixe.
+Comparer la version adoptée au défaut courant ne permet donc pas de prouver
+un héritage, ni l’absence d’un choix indépendant antérieur.
+
+* Règle retenue
+
+La préparation des propositions est verte, accompagnée du texte « Préparation
+initiale », lorsqu’aucune adoption explicite ni close n’existe et qu’aucune
+adaptation, ajout local, correspondance, observation ou trace n’est conservée.
+Les réglages d’illustration et de phrases comptent également. Les autres années,
+anciennes adoptions et suppressions logiques comptent par précaution.
+Les seules adoptions de reprise, non closes et sans auteur, ne suffisent pas
+à rendre le démarrage sensible ; la trame préchargée ne compte pas comme saisie.
+Une classe créée sans adoption peut donc rester dans le démarrage initial.
+
+La règle est volontairement plus conservatrice que « aucun choix autre que
+le défaut actuel ». Elle ne prétend pas distinguer une ancienne adaptation
+annulée d’une école jamais utilisée lorsqu’une ligne d’adaptation reste présente.
+Elle ne reconstruit pas non plus une saisie supprimée physiquement.
+
+Pour modifier les propositions sans restriction dans ce démarrage, l’aperçu
+et la confirmation restent nécessaires, sans nouvelle saisie de mot de passe.
+Créer, modifier ou retirer une restriction demande toujours le mot de passe.
+En école déjà utilisée, une modification de propositions reste orange et
+confirmée par mot de passe ; conserver les mêmes choix reste ordinaire.
+
+L’aperçu signé conserve l’état initial. La vue le recalcule à la confirmation ;
+le service le revérifie sous les verrous annuels et d’école, avant écriture.
+Une évolution demande un nouvel aperçu. Les révisions, droits et contraintes
+annuelles restent contrôlés. Cette vérification ne transforme pas les écritures
+pédagogiques existantes en transactions sérialisables : l’essai concurrent réel
+sur PostgreSQL reste nécessaire. Aucun contenu pédagogique n’est remplacé.
+
+Les règles d’adoption de classe ne changent pas : premier choix du défaut avant
+saisies ordinaire, autres choix avant saisies orange, après saisies permissions
+application/école/classe et confirmation renforcée. Aucune base adoptée ne suit
+automatiquement les changements des propositions de l’école.
+
+* Offres absentes : quatre niveaux distincts
+
+| Niveau | Vérification | Responsabilité |
+|--------+--------------+----------------|
+| Fichiers du dépôt | trame-cycle1.yaml, cycle1/objectifs-programmes.yaml, cycle1/cycle1-etaye.yaml, chatdecole/tableaux-cycle1.yaml | Distribution du code et mentions propres aux sources |
+| Sources importées | SourceReferentiel et VersionReferentiel ; importer_source_referentiel | Administration du service |
+| Autorisations annuelles | ChoixApplicationAnnuel.configure et versions autorisées ; proposer_bases_referentiels --annee | Administration du service |
+| Restrictions et propositions d’école | ChoixEcoleAnnuel et choix_bases pour l’année | Direction, dans la limite supérieure |
+
+Le démarrage serveur (initialiser_ecole_serveur) charge la trame historique puis
+la prépare avec la reprise existante. Il n’importe pas tout le catalogue ni
+ne publie une politique annuelle. Sans cette publication, le résolveur ne rend
+disponible que la version initiale propre à l’école reprise. Un catalogue
+importé ne devient donc pas implicitement autorisé. Une liste d’école explicite
+ne s’étend pas lorsqu’une nouvelle offre est publiée ; le défaut ne restreint
+jamais à lui seul la liste.
+
+Le démarrage local conserve sa politique distincte dans installation_locale :
+il propose les fichiers de départ explicites et ne modifie les choix applicatifs
+que dans une installation locale neuve. Cette livraison n’ajoute aucun import,
+publication ni droit technique à un parcours de direction.
+
+L’aide indique l’année, la présence d’une publication annuelle, le nombre de
+bases supérieures et celui des propositions d’école, et une restriction locale.
+Elle explique les fichiers non importés ou non autorisés sans divulguer les
+sources exclues du catalogue autorisé. La direction peut vérifier sa restriction
+et contacter le gestionnaire avec l’année et l’offre attendue. Pour diagnostiquer
+les imports, celui-ci doit consulter sa base : le dépôt seul ne prouve pas
+l’état effectif du catalogue d’un service réel.
+
+* Parcours livré
+
+1. Direction : choisir ou valider les propositions de référentiels pour l’année.
+2. Créer les classes ; aucune validation préalable obligatoire n’est introduite.
+3. Inviter l’équipe, attribuer les fonctions et activer les classes.
+
+Les adaptations courantes restent accessibles après le choix initial ; les
+permissions après saisies et les correspondances restent dépliables.
+Les aides, les trois pages de Guide concernées en Org et le courriel de direction
+sont synchronisés. Les URL, rôles, invitations et accueil après import restent
+conservés. Le contrôle du Guide et celui des liens des courriels acceptent Org.
+
+* Contrôles et limites
+
+- 30 tests ciblés de démarrage, choix annuels et courriels : réussis.
+- Suite complète : 938 tests, OK (un scénario ignoré), SQLite et Django 6.1.2,
+  quatre processus. Les extensions de test du second facteur ont été installées
+  avant ce contrôle ; aucun fichier de dépendances du dépôt n’est modifié.
+- Contrôle Django et absence de migration nouvelle : réussis.
+- Syntaxe shell des commandes de référence : réussie.
+- Guide : 50 fiches, 13 captures référencées et liens valides, y compris Org.
+- Hugo 0.140.2, --minify --panicOnWarning : réussi, sans avertissement.
+  Les trois pages Org produisent les mêmes URL et des liens HTML résolus.
+- git diff --check : réussi.
+
+Le patch est vérifié avec git am sur le commit de départ, avec égalité de
+l’arbre résultant et de l’arbre livré.
+L’essai visuel dans un navigateur n’a pas été exécuté : le téléchargement du
+navigateur de test a échoué. La validation en école réelle, les appareils
+tactiles, PostgreSQL et Django 5.2 restent à réaliser ; aucune politique annuelle d’une instance n’a été publiée ici.

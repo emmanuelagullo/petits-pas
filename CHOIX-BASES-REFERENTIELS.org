@@ -223,3 +223,14 @@ la liste vide et l'absence de bascule des classes sont vérifiés. Contrôle Dja
 absence d'écart de migration et guide (39 fiches, 13 captures référencées) réussis.
 Construction Hugo, captures visuelles et PostgreSQL non exécutés localement.
 Le patch est vérifié avec git am sur main avant remise.
+
+* Démarrage guidé de l’école
+
+Les propositions annuelles sont visibles directement sous « Choisir ou valider
+les propositions de l’école », avant les adaptations et les opérations avancées.
+L’accueil de la direction et Gérer l’école indiquent l’ordre référentiels,
+classes, équipe. Cette recommandation ne bloque pas la création d’une classe.
+L’aide « Pourquoi un référentiel manque-t-il ? » indique si le catalogue annuel
+est publié, les nombres de bases autorisées et proposées, et l’existence d’une
+restriction d’école. Elle n’affiche pas les sources non autorisées et ne les
+importe pas. Voir [[file:AUDIT-DEMARRAGE-ECOLE.org][l’audit]] pour la règle initiale et ses limites.

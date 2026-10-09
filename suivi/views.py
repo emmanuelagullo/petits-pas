@@ -833,6 +833,7 @@ def _grouper_classes_par_annee(classes, toutes):
 
 @acces_requis
 def accueil(request):
+    from .services.garde_fous_referentiels import demarrage_ecole
     ecole = ecole_courante(request)
     if (settings.MODE_LOCAL and est_direction(request.user, ecole)
             and lire_resultat(Path(settings.DATABASES["default"]["NAME"]).parent)):
@@ -851,6 +852,7 @@ def accueil(request):
         request,
         "suivi/accueil.html",
         {
+            "demarrage_ecole": est_direction(request.user, ecole) and demarrage_ecole(ecole),
             "groupes": groupes,
             "toutes": toutes,
             "a_des_annees_passees": a_des_annees_passees,
@@ -2251,6 +2253,7 @@ def annuaire_eleves(request):
 
 @direction_requise
 def gestion(request):
+    from .services.garde_fous_referentiels import demarrage_ecole
     ecole = ecole_courante(request)
     classes = ecole.classes.annotate(
         nb_eleves=Count(
@@ -2274,6 +2277,7 @@ def gestion(request):
         request,
         "suivi/gestion.html",
         {
+            "demarrage_ecole": est_direction(request.user, ecole) and demarrage_ecole(ecole),
             "groupes": groupes,
             "toutes": toutes,
             "a_des_annees_passees": a_des_annees_passees,

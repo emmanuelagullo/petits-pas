@@ -2,6 +2,13 @@
 {% block titre %}Les classes{% endblock %}
 {% block contenu %}
 <h1>Les classes</h1>
+{% if est_direction and demarrage_ecole %}
+<aside class="avertissement-referentiel avertissement-vert" aria-label="Préparer l’école">
+<h2>Préparer l’école</h2>
+<ol><li><a href="{% url 'referentiels_ecole' %}">Choisir ou valider les propositions de référentiels</a> pour l’année.</li>
+<li><a href="{% url 'creer_classe' %}">Créer les classes</a>.</li>
+<li><a href="{% url 'equipe_ecole' %}">Inviter l’équipe</a>, attribuer les fonctions, puis activer les classes.</li></ol>
+</aside>{% endif %}
 <p class="sous-titre">Choisissez la vôtre pour voir les enfants et saisir leurs réussites.</p>
 {% if groupes %}
   {% include "suivi/partiels/groupes_classes.html" with url_nom="classe_detail" %}

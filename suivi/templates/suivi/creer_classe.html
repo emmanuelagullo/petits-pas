@@ -3,6 +3,7 @@
 {% block contenu %}
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Créer une classe</h1>
+<p>Avant de créer les classes, <a href="{% url 'referentiels_ecole' %}">choisissez ou validez les propositions de référentiels de l’école</a> pour l’année souhaitée. Chaque classe choisira ensuite sa base ; les bases déjà adoptées restent conservées.</p>
 <form method="post" class="encadre" id="creer-classe">
   {% csrf_token %}
   {% for champ in formulaire %}

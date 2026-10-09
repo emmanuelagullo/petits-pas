@@ -923,3 +923,5 @@ textarea { min-height: 7rem; resize: vertical; }
 @media (max-width: 34rem) {
   .recherche-referentiel { flex-direction: column; align-items: stretch; }
 }
+
+.avertissement-vert { border-color: #287440; background: #edf8ef; color: #174527; }

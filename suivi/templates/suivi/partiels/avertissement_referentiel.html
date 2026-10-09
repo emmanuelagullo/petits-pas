@@ -1,5 +1,5 @@
-<aside class="avertissement-referentiel avertissement-{{ niveau|default:'info' }}" aria-label="{% if niveau == 'rouge' %}Avertissement majeur{% elif niveau == 'orange' %}Attention{% else %}Information{% endif %}">
-<strong>{% if niveau == 'rouge' %}Avertissement majeur — {% elif niveau == 'orange' %}Attention — {% else %}Information — {% endif %}{{ titre }}</strong>
+<aside class="avertissement-referentiel avertissement-{{ niveau|default:'info' }}" aria-label="{% if niveau == 'rouge' %}Avertissement majeur{% elif niveau == 'orange' %}Attention{% elif niveau == 'vert' %}Préparation initiale{% else %}Information{% endif %}">
+<strong>{% if niveau == 'rouge' %}Avertissement majeur — {% elif niveau == 'orange' %}Attention — {% elif niveau == 'vert' %}Préparation initiale — {% else %}Information — {% endif %}{{ titre }}</strong>
 <p>{{ resume }}</p>
 {% if details %}<details><summary>Comprendre les conséquences</summary><p>{{ details }}</p></details>{% endif %}
 </aside>
