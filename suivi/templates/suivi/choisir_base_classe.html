@@ -24,7 +24,7 @@
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}
 <details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — changer la base de compétences</summary>
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Modifier la base de toute la classe" resume="Changer de référentiel peut compliquer les comparaisons avec les autres classes et les autres années. Privilégiez les adaptations courantes lorsque la base vous convient." %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Modifier la base de toute la classe" resume="Choisir un autre référentiel peut éloigner cette classe du référentiel commun de l’école, même avant les premières saisies, et compliquer les comparaisons avec les autres classes et les autres années. Privilégiez les adaptations courantes lorsque la base vous convient." %}
 <p>Changements après saisies : {% if permission.effective %}<strong>exception ouverte pour un seul changement</strong>{% else %}<strong>interdits au niveau {{ permission.blocage }}</strong>{% endif %}.</p>
 <p><a href="{% url 'permissions_referentiels_classe' classe.pk %}">Autorisation exceptionnelle de cette classe</a></p>
 <h2>Choisir le référentiel de la classe</h2>
@@ -48,7 +48,7 @@
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="rouge" titre="Cette classe a déjà des saisies" resume="Vous changez les prochaines compétences proposées à toute la classe. Les anciens parcours sont conservés. Les compétences d’une autre identité ne reçoivent aucune réussite. Revenir ensuite ne supprimera pas les saisies faites entre-temps." details="Les compétences qui sortent de la base restent dans les parcours, mais quittent les prochaines saisies. Les identités conservées retrouvent leur suivi. Les ajouts locaux restent disponibles. Une mise à jour peut aussi modifier les textes, images et phrases des carnets ouverts ; les années closes restent figées." %}
 {% if apercu.garde.ambigu %}<p class="message">Des observations anciennes ne peuvent pas être situées avec certitude. Cette opération demande les mêmes précautions qu’un changement après saisies.</p>{% endif %}
 {% elif apercu.garde.niveau == "orange" %}
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Avant les premières saisies" resume="Ce choix concerne toute la classe. Les compétences peuvent différer de celles des autres classes et des années précédentes. Discutez ce choix avec l’équipe avant de confirmer." %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Avant les premières saisies" resume="Ce choix concerne toute la classe et peut l’éloigner du référentiel commun de l’école. Les compétences peuvent différer de celles des autres classes et des années précédentes. Discutez ce choix avec l’équipe avant de confirmer." %}
 {% endif %}
 <p>Ce choix concerne toute la classe pour les prochaines saisies. Les observations, commentaires et photos déjà enregistrés sont conservés.</p>
 <p><strong>{{ apercu.version.source.titre }}</strong> — version {{ apercu.version.numero }}.</p>

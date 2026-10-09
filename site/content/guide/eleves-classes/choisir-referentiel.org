@@ -37,7 +37,9 @@ La nouvelle classe utilise normalement le référentiel proposé par l’école,
 préparé dès *Créer et ajouter les enfants*. Il n’est pas nécessaire de refaire
 ce choix dans cette page. Le nom de sa base et son origine sont visibles.
 Les modifications futures des propositions d’école ne remplacent jamais cette
-base. Un choix indépendant reste possible dans le formulaire de création.
+base. Choisir un autre référentiel reste une action *Avancé — changer la base
+de compétences*, signalée comme risquée avec confirmation par mot de passe :
+la classe peut s’éloigner du référentiel commun, même sans saisie pédagogique.
 
 Les classes déjà existantes conservent leur situation. Si aucune base n’a pu
 être préparée à la création, le choix décrit ci-dessous reste nécessaire.

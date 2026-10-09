@@ -25,12 +25,10 @@ def creer_classe_avec_base(*, utilisateur, ecole, nom, annee, base, revisions_at
             raise ValidationError("Aucun référentiel n'est proposé pour cette année.")
     elif base == "plus_tard":
         if choix.proposee:
-            raise ValidationError("Utilisez la proposition de l'école ou choisissez une autre base.")
+            raise ValidationError("Utilisez le référentiel proposé par l'école.")
         version = None
     else:
-        version = next((v for v in choix.versions if str(v.pk) == base), None)
-        if not version:
-            raise ValidationError("Cette base n'est pas autorisée pour cette année.")
+        raise ValidationError("La création utilise le référentiel proposé par l’école. Un autre choix relève des réglages avancés de la classe.")
     classe, creee = Classe.objects.get_or_create(ecole=ecole, nom=nom, annee_scolaire=annee)
     if not creee:
         raise ValidationError("Cette classe existe déjà pour cette année.")

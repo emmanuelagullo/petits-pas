@@ -56,21 +56,43 @@ class CreationBaseClasse(Base):
         self.assertEqual(adoption.version_id, self.a.pk)
         self.assertEqual(AdoptionReferentiel.objects.filter(classe=classe).count(), 1)
 
-    def test_choix_independant_exige_mot_de_passe_meme_pour_le_defaut(self):
-        page = self.creer(base=str(self.a.pk))
-        self.assertContains(page, "Saisissez votre mot de passe")
-        self.assertFalse(Classe.objects.filter(nom="Nouvelle classe fictive").exists())
-        self.creer(base=str(self.a.pk), mot_de_passe="dir-mdp")
-        adoption = AdoptionReferentiel.objects.get(classe__nom="Nouvelle classe fictive")
-        self.assertFalse(adoption.initialisee_depuis_ecole)
-        self.assertFalse(demarrage_ecole(self.ecole))
+    def test_creation_ne_propose_pas_de_choix_independant_et_refuse_un_post_forge(self):
+        page = self.client.get(self.creation, {"annee_scolaire": self.annee})
+        self.assertContains(page, self.a.source.titre)
+        self.assertNotContains(page, "Choix indépendant")
+        self.assertNotContains(page, 'name="mot_de_passe"')
+        self.assertNotContains(page, '<select')
+        for version in (self.a, self.b):
+            page = self.creer(base=str(version.pk), mot_de_passe="dir-mdp")
+            self.assertContains(page, "Sélectionnez un choix valide")
+            self.assertFalse(Classe.objects.filter(nom="Nouvelle classe fictive").exists())
+            with self.assertRaises(ValidationError):
+                creer_classe_avec_base(utilisateur=self.direction, ecole=self.ecole,
+                    nom="Interdite", annee=self.annee, base=str(version.pk),
+                    revisions_attendues=choix_bases(self.ecole, self.annee).revisions)
+            self.assertFalse(Classe.objects.filter(nom="Interdite").exists())
 
-    def test_autre_base_choisie_explicitement_et_sans_droit_pedagogique(self):
-        self.creer(base=str(self.b.pk), mot_de_passe="dir-mdp")
-        adoption = AdoptionReferentiel.objects.get(classe__nom="Nouvelle classe fictive")
+    def test_changement_reste_avance_risque_et_confirme_sans_droit_pedagogique(self):
+        self.creer()
+        classe = Classe.objects.get(nom="Nouvelle classe fictive")
+        url = reverse("referentiel_classe", args=[classe.pk])
+        page = self.client.get(url)
+        self.assertContains(page, "Avancé — changer la base de compétences")
+        self.assertContains(page, "référentiel commun de l’école")
+        page = self.client.post(url, {"action": "apercu", "version": self.b.pk})
+        jeton = page.context["jeton"]
+        self.assertEqual(page.context["apercu"]["garde"]["niveau"], "orange")
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton}).status_code, 400)
+        self.assertEqual(AdoptionReferentiel.objects.get(classe=classe).version_id, self.a.pk)
+        self.assertEqual(self.client.post(url, {"action": "confirmer", "jeton": jeton,
+            "mot_de_passe": "dir-mdp"}).status_code, 302)
+        adoption = AdoptionReferentiel.objects.get(classe=classe, courante=True)
+        self.assertEqual(AdoptionReferentiel.objects.filter(classe=classe).count(), 2)
+        self.assertTrue(AdoptionReferentiel.objects.filter(classe=classe, version=self.a, courante=False).exists())
         self.assertEqual(adoption.version_id, self.b.pk)
         self.assertFalse(adoption.initialisee_depuis_ecole)
-        self.assertFalse(adoption.classe.responsables_actifs().exists())
+        self.assertFalse(demarrage_ecole(self.ecole))
+        self.assertFalse(classe.responsables_actifs().exists())
 
     def test_absence_de_catalogue_n_empeche_pas_preparation_sans_base(self):
         self.annee = "2027-2028"

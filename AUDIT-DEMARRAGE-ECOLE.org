@@ -131,9 +131,9 @@ tactiles, PostgreSQL et Django 5.2 restent à réaliser ; aucune politique annue
 Après le premier patch, la création d’une nouvelle classe prépare désormais
 sa base depuis la proposition annuelle affichée, sans confirmation séparée.
 Un marqueur d’origine explicite remplace toute déduction par comparaison de
-versions. Le choix indépendant reste disponible à la création, avec mot de
-passe. L’ancienne base d’une classe n’est jamais remplacée, et aucune ancienne
-adoption n’est réétiquetée par la migration 0031.
+versions. Le choix indépendant reste réservé aux réglages avancés de la classe,
+avec avertissement et mot de passe. L’ancienne base d’une classe n’est jamais
+remplacée automatiquement, et aucune ancienne adoption n’est réétiquetée par la migration 0031.
 
 Le programme et le navigateur locaux marquent également l’origine de leur
 première classe préparée depuis la proposition d’école. Ce complément ne modifie
@@ -161,3 +161,28 @@ Vérifications du complément :
 La validation PostgreSQL, Django 5.2 et navigateur/tactile reste à la CI et aux
 appareils d’essai. Aucun catalogue de service ni configuration d’hébergement
 n’a été modifié ; seul le schéma public reçoit le marqueur d’origine.
+
+* Correction — garder le référentiel commun à la création
+
+La création ne propose plus de choix indépendant, même avec mot de passe.
+Le référentiel commun est affiché et préparé avec la nouvelle classe. Les
+valeurs détournées sont refusées par le formulaire et par le service.
+Sans proposition annuelle, le message invite à vérifier les propositions de
+l’école ; la préparation sans base reste possible.
+
+Changer une base existante reste dans le volet avancé, fermé par défaut,
+avec avertissement orange avant saisies et confirmation par mot de passe.
+L’avertissement indique aussi le risque de quitter le référentiel commun.
+Les protections après saisies, les restrictions annuelles, les rôles et
+l’historique des adoptions ne changent pas. Le Guide et le courriel d’accueil
+suivent ce parcours.
+
+Les tests vérifient aussi le refus d’un choix indépendant à la création,
+le changement avancé orange, le refus sans mot de passe et la conservation
+de l’ancienne adoption. Aucun nouveau schéma ni catalogue n’est introduit.
+
+Contrôles de cette correction : 948 tests Django réussis (un ignoré), sous
+SQLite et Django 6.1.2 ; contrôle des migrations et de Django, Guide pratique
+(50 fiches), construction Hugo 0.140.2 sans avertissement et git diff --check.
+Les essais PostgreSQL, Django 5.2 et navigateur/tactile ne sont pas exécutés
+ici. Le patch est vérifié avec git am après le complément précédent.

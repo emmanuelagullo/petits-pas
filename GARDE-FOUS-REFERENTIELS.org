@@ -165,8 +165,9 @@ Les adaptations courantes et les permissions restent accessibles plus bas.
 Une nouvelle classe initialisée depuis la proposition de l’école ne rend pas
 seule les propositions d’école sensibles. Une adoption indépendante, une
 ancienne adoption d’origine non établie, une classe close ou du travail
-pédagogique conserve le traitement prudent. Un choix indépendant effectué dans
-le formulaire de création demande le mot de passe. Les permissions d’adoption
+pédagogique conserve le traitement prudent. Le formulaire de création ne propose
+pas de choix indépendant. Changer la base reste une action avancée et risquée,
+avec mot de passe : elle peut éloigner la classe du référentiel commun de l’école. Les permissions d’adoption
 après saisies et le classement des changements de classe restent inchangés.
 Le marqueur ne peut pas être utilisé par le service pour remplacer une adoption
 existante ni pour initialiser une classe déjà renseignée.
