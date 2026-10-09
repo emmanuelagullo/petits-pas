@@ -7,6 +7,7 @@ from importlib.util import find_spec
 from unittest import skipUnless
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.core import mail
 from django.core.cache import cache
 from django.test import Client, TestCase, override_settings
@@ -304,6 +305,22 @@ class EcheanceDInscription(BaseAcces):
         self.connecter(neuf)
         self.assertRedirects(self.client.get(reverse("accueil")), reverse("double_facteur"),
                              fetch_redirect_response=False)
+
+    def test_course_sur_le_nom_d_utilisateur_donne_une_erreur_de_formulaire(self):
+        """Audit C-08 : IntegrityError -> ValidationError, la transaction reste saine."""
+        from unittest import mock
+
+        from django.db import IntegrityError
+
+        invitation, jeton = inviter(utilisateur=self.direction, ecole=self.ecole, email="course@example.test")
+        with mock.patch.object(
+                get_user_model().objects, "create_user", side_effect=IntegrityError):
+            with self.assertRaises(ValidationError):
+                creer_compte_et_accepter_invitation(
+                    invitation=invitation, jeton=jeton, username="course", first_name="C",
+                    last_name="D", password=MOT_DE_PASSE)
+        invitation.refresh_from_db()
+        self.assertEqual(invitation.etat, invitation.EN_ATTENTE)
 
     def test_compte_neuf_non_concerne_n_a_aucune_ligne(self):
         invitation, jeton = inviter(utilisateur=self.direction, ecole=self.ecole, email="libre@example.test")

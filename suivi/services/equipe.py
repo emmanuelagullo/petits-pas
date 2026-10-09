@@ -6,7 +6,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import EmailMultiAlternatives
-from django.db import models, transaction
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
 from comptes.models import (
@@ -227,13 +227,22 @@ def creer_compte_et_accepter_invitation(
         raise ValidationError(
             "Un compte existe déjà pour cette adresse : connectez-vous avec celui-ci."
         )
-    utilisateur = Utilisateur.objects.create_user(
-        username=username,
-        email=invitation.email.strip().casefold(),
-        password=password,
-        first_name=first_name.strip(),
-        last_name=last_name.strip(),
-    )
+    try:
+        with transaction.atomic():
+            utilisateur = Utilisateur.objects.create_user(
+                username=username,
+                email=invitation.email.strip().casefold(),
+                password=password,
+                first_name=first_name.strip(),
+                last_name=last_name.strip(),
+            )
+    except IntegrityError:
+        # Course sur le nom d'utilisateur ou l'adresse : erreur de formulaire,
+        # pas une erreur serveur.
+        raise ValidationError(
+            "Ce nom d'utilisateur ou cette adresse vient d'être utilisé : "
+            "choisissez un autre nom ou connectez-vous."
+        )
     _accepter_invitation_verrouillee(
         utilisateur=utilisateur, invitation=invitation
     )

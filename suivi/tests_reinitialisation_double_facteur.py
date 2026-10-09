@@ -180,6 +180,19 @@ class ReinitialisationParLaDirection(BaseAcces):
         self.assertFalse(totp.est_inscrit(self.enseignant))
         self.assertFalse(CodeSecoursDoubleFacteur.objects.exists())
 
+    def test_la_reinitialisation_ferme_les_sessions_deja_ouvertes(self):
+        """Audit C-01 : une session ouverte avant ne peut pas enrôler le nouvel appareil."""
+        self.client.force_login(self.enseignant)
+        self.assertTrue(self.est_connecte())
+        self.reinitialiser()
+        self.assertFalse(self.est_connecte())
+
+    def test_la_reinitialisation_ne_ferme_pas_les_sessions_des_autres_comptes(self):
+        autre = type(self.client)()
+        autre.force_login(self.direction)
+        self.reinitialiser()
+        self.assertTrue(self.est_connecte(autre))
+
     def test_l_operation_est_journalisee_dans_l_ecole_de_la_direction(self):
         self.reinitialiser()
         evenement = EvenementAudit.objects.get(action="securite.double_facteur_reinitialise")

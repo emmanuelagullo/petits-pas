@@ -139,7 +139,7 @@
   <details class="ajout-contextuel">
     <summary>Second facteur de {{ appartenance.utilisateur.first_name|default:appartenance.utilisateur.username }}</summary>
     <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="reinitialiser_double_facteur"><input type="hidden" name="appartenance" value="{{ appartenance.pk }}"><input type="hidden" name="vue" value="personnes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
-      <p class="aide">À utiliser si cette personne a perdu son générateur de codes et ses codes de secours. Elle devra configurer de nouveau son second facteur à sa prochaine connexion ; l'opération est consignée dans le journal de l'école.</p>
+      <p class="aide">À utiliser si cette personne a perdu son générateur de codes et ses codes de secours. Ses sessions ouvertes sont fermées et, si votre politique l'exige, elle devra configurer de nouveau son second facteur dès sa prochaine connexion ; l'opération est consignée dans le journal de l'école.</p>
       <button class="bouton discret" type="submit">Réinitialiser le second facteur</button>
     </form>
   </details>

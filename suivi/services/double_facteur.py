@@ -8,7 +8,7 @@ from django.db import transaction
 from carnet.double_facteur import DIRECTION, verifier_curseurs
 from comptes import totp
 from comptes.models import DoubleFacteurCompte
-from suivi.acces_double_facteur import poser_echeance_si_besoin
+from suivi.acces_double_facteur import fermer_sessions_compte, poser_echeance_si_besoin
 from suivi.audit import journaliser
 from suivi.autorisations import ADMINISTRER_ECOLE, appartenances_actives, autorise
 from suivi.double_facteur import combiner, politique_deployeur, rang_le_plus_haut
@@ -103,6 +103,10 @@ def _effacer_second_facteur(cible):
     totp.reinitialiser(cible)
     DoubleFacteurCompte.objects.filter(utilisateur=cible).update(echeance_le=None)
     poser_echeance_si_besoin(cible, delai_de_grace=False)
+    # Une session ouverte avant la réinitialisation (appareil perdu ou volé)
+    # ne doit pas pouvoir enrôler le nouvel authentificateur : la personne
+    # se reconnecte, puis se réinscrit.
+    fermer_sessions_compte(cible)
 
 
 def refus_reinitialisation(acteur, cible, ecole):
