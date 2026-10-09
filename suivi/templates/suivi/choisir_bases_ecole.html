@@ -5,7 +5,7 @@
 <p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
 <h1>Référentiels de l'école</h1>
 <p><a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
-<p>Consultez les bases disponibles et adaptez les propositions de l’école. Les libellés, images et phrases proposés peuvent être repris ou adaptés par chaque classe. Les choix de bases et leurs restrictions se règlent dans Avancé ; ils ne changent pas automatiquement la base des classes.</p>
+<p>Consultez les bases disponibles et adaptez les propositions de l’école. Les libellés, images et phrases proposés peuvent être repris ou adaptés par chaque classe. Choisissez d’abord les propositions pour l’année, puis créez les classes et invitez l’équipe. Les classes déjà préparées gardent leur base.</p>
 <form method="get">
 <label for="annee">Année scolaire</label>
 <input id="annee" name="annee" value="{{ annee }}" list="annees" required pattern="[0-9]{4}-[0-9]{4}" aria-describedby="aide-annee">
@@ -15,22 +15,19 @@
 </form>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if form %}
-<section class="encadre adaptations-courantes" aria-labelledby="adaptations-courantes"><h2 id="adaptations-courantes">Proposer des adaptations à l’équipe</h2>
-<div class="menus-referentiel">
-<a href="{% url 'presentation_ecole' %}" aria-labelledby="menu-presentation" aria-describedby="aide-presentation"><strong id="menu-presentation">Illustrations et phrases proposées</strong><span id="aide-presentation">Proposer des images et des suggestions de rédaction aux classes.</span></a>
-<a href="{% url 'adaptations_ecole' %}?annee={{ annee }}" aria-labelledby="menu-libelles" aria-describedby="aide-libelles"><strong id="menu-libelles">Libellés et compétences masquées</strong><span id="aide-libelles">Proposer des libellés et une visibilité pour cette année.</span></a>
-<a href="{% url 'ajouts_ecole' %}?annee={{ annee }}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Proposer des apprentissages supplémentaires que les classes peuvent reprendre.</span></a>
-</div></section>
-<details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary><p>Des repères facultatifs pour expliquer des rapprochements à l’équipe, sans modifier les saisies ni transférer de réussite.</p><p><a href="{% url 'correspondances_ecole' %}?annee={{ annee }}">Correspondances entre compétences</a></p></details>
 <h2>Choix actuels — {{ annee }}</h2>
 <ul>{% for version in choix.versions %}<li>{{ version.source.titre }} — version {{ version.numero }}{% if choix.proposee.pk == version.pk %} · choix proposé{% endif %}</li>{% empty %}<li>Aucune base autorisée pour un nouveau choix de classe.</li>{% endfor %}</ul>
 {% if not choix.proposee %}<p>Aucune base n'est proposée par défaut.</p>{% endif %}
 {% for avertissement in choix.avertissements %}<p class="message">{{ avertissement }}</p>{% endfor %}
 <p>Choix proposé par l'application : {% if proposee_superieure %}<strong>{{ proposee_superieure.source.titre }}</strong> — version {{ proposee_superieure.numero }}{% else %}aucun{% endif %}.</p>
-<details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — choix et restrictions de l’école</summary>
+<section aria-labelledby="choix-ecole"><h2 id="choix-ecole">Choisir ou valider les propositions de l’école</h2>
+{% if niveau_choix == "vert" %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="vert" titre="Choisissez les propositions pour commencer" resume="Préparez le point de départ de l’équipe pour cette année. Le chargement de la trame n’est pas une saisie pédagogique. Une classe déjà préparée garde sa base ; chaque classe choisira ensuite sa base explicitement." %}
+{% else %}
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Choix pour toute l’école" resume="Ces réglages changent les possibilités et les propositions des classes pour cette année. Les classes conservent leur base actuelle." %}
-<p><a href="{% url 'permissions_referentiels_ecole' %}?annee={{ annee }}">Autoriser les changements après saisies</a></p>
-<p>Permission de l’application : {% if permission.application %}accordée{% else %}refusée{% endif %}. Permission de l’école : {% if permission.ecole %}accordée{% else %}refusée{% endif %}.</p>
+{% endif %}
+<details><summary>Avancé — autoriser les changements après saisies</summary><p><a href="{% url 'permissions_referentiels_ecole' %}?annee={{ annee }}">Autoriser les changements après saisies</a></p>
+<p>Permission de l’application : {% if permission.application %}accordée{% else %}refusée{% endif %}. Permission de l’école : {% if permission.ecole %}accordée{% else %}refusée{% endif %}.</p></details>
 <form method="post">{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}">
 <fieldset><legend>{{ form.autorisations.label }}</legend>{{ form.autorisations.errors }}{{ form.autorisations }}</fieldset>
 <details{% if form.autorisations.value == "restreindre" or form.versions.errors %} open{% endif %}><summary>Choisir une liste plus courte</summary>
@@ -56,10 +53,24 @@
 {% endif %}
 {% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Enregistrer ces choix pour l’année" %}
 {% endif %}
+<p><a class="bouton" href="{% url 'creer_classe' %}">Créer une classe</a> puis <a href="{% url 'equipe_ecole' %}">inviter l’équipe</a>.</p>
+<details><summary>Pourquoi un référentiel manque-t-il ?</summary>
+<p>Pour {{ annee }} : {% if catalogue_publie %}les bases autorisées par l’application ont été publiées.{% else %}aucune liste de bases n’a encore été publiée par l’administration du service.{% endif %}
+{{ nb_bases_superieures }} base{{ nb_bases_superieures|pluralize }} autorisée{{ nb_bases_superieures|pluralize }} au niveau de l’application pour cette école ; {{ choix.versions|length }} proposée{{ choix.versions|length|pluralize }} par l’école.
+{% if restriction_ecole %}L’école conserve une liste plus courte pour cette année.{% else %}L’école garde la liste autorisée par l’application.{% endif %}</p>
+<p>Un fichier fourni avec Petits Pas n’est pas forcément disponible sur ce service. L’administration doit d’abord l’importer, puis l’autoriser pour l’année affichée. Sans publication annuelle, seule la trame initiale de l’école peut être proposée. Vérifiez aussi l’année et une éventuelle liste plus courte conservée par l’école.</p>
+<p>Le choix proposé par défaut ne limite pas la liste. Pour une offre absente des bases autorisées par l’application, contactez la personne qui administre le service en indiquant l’année et le référentiel attendu. La direction ne peut ni importer une source ni élargir les autorisations de l’application.</p></details>
 <details><summary>Quel choix privilégier ?</summary>
 <p>Pour commencer, gardez les autorisations et le choix proposés par l'application. Choisissez une autre base proposée si l'équipe a un besoin pédagogique précis : les autres bases restent disponibles.</p>
 <p>Conservez une liste plus courte seulement si l'école souhaite limiter les nouveaux choix de ses classes. Ce choix concerne toute l'école pour l'année indiquée.</p>
 <p>À la nouvelle année, vérifiez les propositions disponibles. Les choix de l'année précédente ne sont pas recopiés automatiquement. L'import d'une nouvelle version ne bascule aucune classe.</p></details>
-{% if form %}</details>{% endif %}
+{% if form %}</section>
+<section class="encadre adaptations-courantes" aria-labelledby="adaptations-courantes"><h2 id="adaptations-courantes">Proposer des adaptations à l’équipe</h2>
+<div class="menus-referentiel">
+<a href="{% url 'presentation_ecole' %}" aria-labelledby="menu-presentation" aria-describedby="aide-presentation"><strong id="menu-presentation">Illustrations et phrases proposées</strong><span id="aide-presentation">Proposer des images et des suggestions de rédaction aux classes.</span></a>
+<a href="{% url 'adaptations_ecole' %}?annee={{ annee }}" aria-labelledby="menu-libelles" aria-describedby="aide-libelles"><strong id="menu-libelles">Libellés et compétences masquées</strong><span id="aide-libelles">Proposer des libellés et une visibilité pour cette année.</span></a>
+<a href="{% url 'ajouts_ecole' %}?annee={{ annee }}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Proposer des apprentissages supplémentaires que les classes peuvent reprendre.</span></a>
+</div></section>
+<details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary><p>Des repères facultatifs pour expliquer des rapprochements à l’équipe, sans modifier les saisies ni transférer de réussite.</p><p><a href="{% url 'correspondances_ecole' %}?annee={{ annee }}">Correspondances entre compétences</a></p></details>{% endif %}
 </div>
 {% endblock %}

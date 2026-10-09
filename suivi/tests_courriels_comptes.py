@@ -59,13 +59,16 @@ class CourrielsComptesTests(BasePreattributions):
 
     def test_liens_documentaires_correspondent_aux_sources(self):
         for chemin in PARCOURS.values():
-            source = Path(__file__).resolve().parent.parent / "site/content/guide" / (chemin.rstrip("/") + ".md")
-            self.assertTrue(source.is_file())
+            source = Path(__file__).resolve().parent.parent / "site/content/guide" / chemin.rstrip("/")
+            self.assertTrue(any(source.with_suffix(extension).is_file() for extension in (".md", ".org")))
         message = composer_accueil(ecole=self.ecole, compte=self.direction,
             destinataire=self.direction.email, lien="https://ecole.example.test/choix/fictif/")
         self.assertIn(GUIDE + PARCOURS["direction"], message.body)
         self.assertIn("ne donnent pas automatiquement", message.body)
         self.assertIn("facultatif", message.body)
+        self.assertLess(message.body.index("choisissez ou validez"), message.body.index("créez les classes"))
+        self.assertLess(message.body.index("créez les classes"), message.body.index("invitez l’équipe"))
+        self.assertIn("Pourquoi un référentiel manque-t-il ?", message.body)
         self.assertIn("attribuez-vous explicitement", message.body)
         self.assertEqual(message.alternatives[0].mimetype, "text/html")
 

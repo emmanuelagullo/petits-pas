@@ -62,12 +62,12 @@ def resoudre_contenu(page, cible, *, lien_page=False):
         # Sur le site, une fiche.md est publiée sous fiche/ : les liens
         # relatifs partent de cette URL, pas du dossier source de fiche.md.
         repertoire_url = (
-            page.with_suffix("") if lien_page and page.name != "_index.md" else page.parent
+            page.with_suffix("") if lien_page and page.stem != "_index" else page.parent
         )
         base = repertoire_url / cible
     candidats = [base]
     if base.suffix not in {".md", ".org"}:
-        candidats.extend((base.with_suffix(".md"), base / "_index.md"))
+        candidats.extend((base.with_suffix(".md"), base.with_suffix(".org"), base / "_index.md", base / "_index.org"))
     return next((candidat for candidat in candidats if candidat.is_file()), None)
 
 
@@ -77,7 +77,8 @@ def verifier_liens(page, corps, erreurs):
         if resoudre_contenu(page, cible) is None:
             erreurs.append(f"{page} : cible relref introuvable : {cible}")
 
-    for cible in re.findall(r"(?<!!)\[[^]]+\]\(([^)]+)\)", corps):
+    for cible in (re.findall(r"(?<!!)\[[^]]+\]\(([^)]+)\)", corps)
+                  + re.findall(r"\[\[([^]\n]+)\](?:\[[^]\n]*\])?\]", corps)):
         cible = cible.strip()
         if (
             not cible
@@ -114,7 +115,7 @@ def verifier_guide():
     erreurs = []
     captures_utilisees = set()
     fiches = []
-    for page in sorted(GUIDE.rglob("*.md")):
+    for page in sorted([*GUIDE.rglob("*.md"), *GUIDE.rglob("*.org")]):
         entete, corps = lire_entete(page)
         verifier_liens(page, corps, erreurs)
         for appel in re.findall(r"{{<\s*capture-guide\s+([^>]+)>}}", corps):

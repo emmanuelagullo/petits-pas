@@ -150,3 +150,12 @@ documentaire distingue origine et réutilisation. Les URL présentes restent
 cliquables ; les mentions précises connues des BO, de la notice, du registre
 et des licences reçoivent des liens nommés. Aucun lien n'est déduit pour une
 référence inconnue et aucune métadonnée protégée n'est modifiée.
+
+* Préparation initiale de l’école
+
+La règle de confirmation des propositions d’école de #R9d est précisée dans
+[[file:AUDIT-DEMARRAGE-ECOLE.org][l’audit du démarrage]]. Le choix initial proposé est vert et sans mot de
+passe supplémentaire lorsque l’école n’a aucun choix explicite de classe ni
+travail pédagogique. Une restriction modifiée reste orange. Les adoptions de
+classe et les permissions après saisies gardent toutes leurs règles existantes.
+Les adaptations courantes et les permissions restent accessibles plus bas.

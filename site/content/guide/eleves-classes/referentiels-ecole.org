@@ -11,36 +11,39 @@ statut = "disponible"
 +++
 
 Les illustrations, phrases proposées, libellés et compétences ajoutées sont
-regroupés dans **Proposer des adaptations à l’équipe**. Les correspondances
-ont leur propre bloc **Avancé** ; elles restent facultatives. Les choix et
+regroupés dans *Proposer des adaptations à l’équipe*. Les correspondances
+ont leur propre bloc *Avancé* ; elles restent facultatives. Les choix et
 restrictions de base décrits ci-dessous sont une démarche distincte.
 
-## Étapes
+* Étapes
 
-1. Ouvrir **Gérer l’école → Référentiels de l’école**.
-2. Vérifier l’**Année scolaire**, puis cliquer sur **Consulter cette année** si
+1. Ouvrir *Gérer l’école → Référentiels de l’école*.
+2. Vérifier l’*Année scolaire*, puis cliquer sur *Consulter cette année* si
    vous souhaitez en préparer une autre.
-3. Ouvrir **Avancé — choix et restrictions de l’école**. Pour commencer, garder toutes les bases autorisées par l’application et son
+3. Dans *Choisir ou valider les propositions de l’école*, Pour commencer, garder toutes les bases autorisées par l’application et son
    choix proposé. Vous pouvez proposer une autre base sans interdire les autres.
 4. Si l’équipe souhaite limiter les nouveaux choix de classe, sélectionner
-   **Conserver une liste plus courte pour l’école**, ouvrir **Choisir une liste
-   plus courte**, puis cocher les bases souhaitées. Le choix proposé doit
+   *Conserver une liste plus courte pour l’école*, ouvrir *Choisir une liste
+   plus courte*, puis cocher les bases souhaitées. Le choix proposé doit
    figurer dans cette liste.
-5. Cliquer sur **Voir les conséquences**, puis lire la liste et le choix
+5. Cliquer sur *Voir les conséquences*, puis lire la liste et le choix
    proposé. Une explication dépliable indique les classes qui garderont une
    base hors des nouveaux choix.
-6. Confirmer avec **Enregistrer ces choix pour l’année** et le mot de passe
-   de votre compte connecté.
+6. Confirmer avec *Enregistrer ces choix pour l’année*. Le mot de passe
+   est demandé pour un changement sensible ou une restriction. Au démarrage,
+   le choix proposé est présenté en vert, avec le texte *Préparation initiale*.
+7. *Créer une classe*, puis ouvrir *Équipe pédagogique* pour inviter les
+   collègues et attribuer les fonctions.
 
-## Résultat attendu
+* Résultat attendu
 
 Les classes peuvent choisir dans la liste autorisée pour cette année. La base
 proposée est un point de départ : elle n’interdit pas les autres bases de la
 liste. Chaque responsable ou la direction peut ensuite
-[choisir la base d’une classe]({{< relref "/guide/eleves-classes/choisir-referentiel" >}})
+[[{{< relref "/guide/eleves-classes/choisir-referentiel" >}}][choisir la base d’une classe]]
 avec son propre aperçu et sa confirmation.
 
-**Les bases des classes déjà renseignées restent inchangées.** Leurs
+*Les bases des classes déjà renseignées restent inchangées.* Leurs
 observations, traces et anciens parcours sont conservés. Une restriction de
 l’école ne transfère aucune réussite et n’efface aucune compétence.
 
@@ -50,7 +53,7 @@ l’école ne s’étend pas toute seule. De même, garder le choix proposé sui
 propositions de l’application ; une base proposée explicitement par l’école
 reste son choix tant qu’elle demeure autorisée.
 
-## Limites et refus
+* Limites et refus
 
 - Ne cocher aucune base dans une liste propre à l’école interdit les nouveaux
   choix de classe pour cette année. Ce choix particulier laisse les bases des
@@ -70,24 +73,41 @@ Les exemples de nouvelles sources restent fictifs. La trame Petits Pas est
 une trame de travail provisoire.
 
 Pour proposer des libellés ou masquer des compétences dans l’année, ouvrir
-[Libellés et compétences masquées]({{< relref "/guide/eleves-classes/adapter-competences" >}}).
+[[{{< relref "/guide/eleves-classes/adapter-competences" >}}][Libellés et compétences masquées]].
 Une classe peut adapter ces propositions ; cela ne change pas les bases autorisées.
 
-## Changements après saisies
+* Changements après saisies
 
 La liste des bases autorisées et la permission de changer après saisies sont
-séparées. Dans **Avancé — choix et restrictions de l’école**, ouvrir
-**Autoriser les changements après saisies**. Si l’application l’interdit pour
+séparées. Ouvrir *Avancé — autoriser les changements après saisies*, puis
+*Autoriser les changements après saisies*. Si l’application l’interdit pour
 cette année, contacter son gestionnaire. Si elle le permet, lire l’avertissement
-rouge puis **Ouvrir cette autorisation** avec votre mot de passe.
+rouge puis *Ouvrir cette autorisation* avec votre mot de passe.
 
 Cela ne change aucune classe : chaque classe doit aussi ouvrir son exception
 et confirmer son changement, avec des avertissements et un mot de passe à
 chaque opération. L’exception de classe se referme après un changement. La
 permission de l’école reste ouverte jusqu’à ce que la direction la referme.
-Utiliser **Refermer cette autorisation** lorsque les opérations prévues sont
+Utiliser *Refermer cette autorisation* lorsque les opérations prévues sont
 terminées. Les bases actuelles et leurs prochaines saisies restent utilisables.
 La nouvelle année commence avec ces permissions fermées.
 
-**Consulter les référentiels** reste indépendant : parcourir une base, sa
+*Consulter les référentiels* reste indépendant : parcourir une base, sa
 provenance et sa licence n’ouvre aucune permission et ne l’adopte pas.
+
+* Au démarrage et lorsqu’une offre manque
+
+La préparation initiale reste simple tant qu’il n’existe aucun choix explicite
+de base de classe, adaptation, ajout, correspondance, observation ou trace.
+Le chargement automatique de la trame ne compte pas comme une saisie.
+Une classe ayant adopté la base proposée a fait un choix : elle ne suit pas
+les changements futurs de l’école. Même sans observation, ce choix est conservé.
+Les anciennes années et les traces retirées comptent aussi dans cette précaution.
+
+Ouvrir *Pourquoi un référentiel manque-t-il ?* : vérifier l’année et une
+éventuelle liste plus courte de l’école. Un fichier fourni dans le dépôt
+peut ne pas avoir été importé sur le service, ou ne pas être autorisé pour
+cette année. Sans publication annuelle, seule la trame initiale peut être
+proposée. Le défaut proposé ne limite pas la liste. Pour une offre absente
+au niveau de l’application, contacter son gestionnaire en indiquant l’année
+et le référentiel attendu ; aucun import ni droit technique n’est ajouté ici.

@@ -7,6 +7,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Démarrage d’école : choisir ou valider les propositions annuelles avant
+  de créer les classes et inviter l’équipe. Présentation initiale positive,
+  sans assimiler la trame préchargée à une saisie. Les restrictions et les
+  choix déjà utilisés conservent la confirmation par mot de passe ; aucune
+  base de classe ne change automatiquement. Aide sur les offres absentes,
+  Guide en Org et courriel de direction synchronisés.
+
 - Tests des migrations historiques : restauration de toutes les migrations
   courantes avant les tests suivants, pour conserver notamment les tables
   d'export nécessaires aux scénarios de récupération des imports.

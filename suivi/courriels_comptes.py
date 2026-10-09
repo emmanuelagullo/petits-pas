@@ -66,12 +66,15 @@ def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None,
             "choisi votre mot de passe pour ce compte, connectez-vous directement. "
             "Si vous possédez un autre compte, demandez à la direction de vérifier "
             "le compte à utiliser ; ce lien ne rattache pas un compte existant.",
-            "3. Dans Gérer l’école → Référentiels de l’école, vérifiez le choix "
-            "proposé pour l’année. La trame de départ est prête ; changer ce choix "
-            "est facultatif et ne change pas les classes déjà préparées.",
-            "4. Dans Équipe pédagogique → Inviter une personne, invitez l’équipe. "
-            "Dans Gérer l’école → Créer une classe, créez les classes en préparation. "
-            "Ces deux étapes peuvent se faire dans l’un ou l’autre ordre. Attribuez "
+            "3. Dans Gérer l’école → Référentiels de l’école, choisissez ou validez les "
+            "propositions pour l’année avec Voir les conséquences puis Enregistrer "
+            "ces choix pour l’année. La trame de départ est prête ; choisir une autre "
+            "proposition reste facultatif. Si une offre "
+            "manque, consultez Pourquoi un référentiel manque-t-il ? Les classes "
+            "déjà préparées gardent leur base.",
+            "4. Dans Gérer l’école → Créer une classe, créez les classes en préparation. "
+            "Puis, dans Équipe pédagogique → Inviter une personne, invitez l’équipe. "
+            "Attribuez "
             "ensuite un Responsable de classe à chaque classe dans Équipe pédagogique "
             "→ Ajouter une personne à cette classe → Attribuer ; attendez son "
             "acceptation si vous avez préparé sa fonction dans une invitation. "

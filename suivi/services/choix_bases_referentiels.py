@@ -122,7 +122,7 @@ def publier_choix_application(*, annee, versions_ids, proposee_id, revision_atte
 
 @transaction.atomic
 def enregistrer_choix_ecole(*, utilisateur, ecole, annee, restreindre,
-                            versions_ids, proposee_id, revisions_attendues):
+                            versions_ids, proposee_id, revisions_attendues, demarrage_attendu=None):
     verifier_annee(annee)
     if not autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole):
         raise PermissionDenied
@@ -137,6 +137,10 @@ def enregistrer_choix_ecole(*, utilisateur, ecole, annee, restreindre,
         raise ValidationError("Pour garder les autorisations proposées, ne transmettez pas de liste locale.")
     application = _application_verrouillee(annee)
     Ecole.objects.select_for_update().get(pk=ecole.pk)
+    if demarrage_attendu is not None:
+        from .garde_fous_referentiels import demarrage_ecole
+        if demarrage_ecole(ecole) != demarrage_attendu:
+            raise ValidationError("La préparation de l'école a évolué. Consultez un nouvel aperçu.")
     local, _ = ChoixEcoleAnnuel.objects.get_or_create(ecole=ecole, annee_scolaire=annee)
     local = ChoixEcoleAnnuel.objects.select_for_update().get(pk=local.pk)
     if (application.revision, local.revision) != tuple(revisions_attendues):

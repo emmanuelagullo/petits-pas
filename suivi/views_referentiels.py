@@ -69,6 +69,11 @@ def choix_ecole_modifies(local, donnees):
             set(local.versions_autorisees.values_list("pk", flat=True) if local else []) != set(donnees["versions_ids"]))
 
 
+def choix_ecole_renforces(local, donnees, demarrage):
+    return choix_ecole_modifies(local, donnees) and (
+        not demarrage or donnees["restreindre"] or bool(local and local.restreindre))
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def choisir_bases_ecole(request):
@@ -101,6 +106,8 @@ def choisir_bases_ecole(request):
     superieures, proposee_superieure = choix_superieurs(ecole, annee)
     choix = choix_bases(ecole, annee)
     local = ChoixEcoleAnnuel.objects.filter(ecole=ecole, annee_scolaire=annee).first()
+    from .services.garde_fous_referentiels import demarrage_ecole
+    demarrage = demarrage_ecole(ecole)
     initial = {"autorisations": "restreindre" if local and local.restreindre else "garder",
         "versions": list(local.versions_autorisees.values_list("pk", flat=True)) if local else [],
         "proposee": local.version_proposee_id if local else None}
@@ -115,10 +122,13 @@ def choisir_bases_ecole(request):
                     raise ValidationError("L'aperçu a expiré ou n'est plus valable. Préparez un nouvel aperçu.") from cause
                 if donnees["ecole"] != ecole.pk or donnees["auteur"] != request.user.pk or donnees["annee"] != annee:
                     raise ValidationError("Cet aperçu ne correspond pas à votre école ou à l'année choisie.")
-                verifier_confirmation(request, renforcee=choix_ecole_modifies(local, donnees))
+                if donnees.get("demarrage") != demarrage:
+                    raise ValidationError("La préparation de l'école a évolué. Consultez un nouvel aperçu.")
+                verifier_confirmation(request, renforcee=choix_ecole_renforces(local, donnees, demarrage))
                 enregistrer_choix_ecole(utilisateur=request.user, ecole=ecole, annee=annee,
                     restreindre=donnees["restreindre"], versions_ids=donnees["versions_ids"],
-                    proposee_id=donnees["proposee_id"], revisions_attendues=donnees["revisions"])
+                    proposee_id=donnees["proposee_id"], revisions_attendues=donnees["revisions"],
+                    demarrage_attendu=donnees["demarrage"])
                 messages.success(request, "Les choix de l'école sont enregistrés pour cette année. Les bases des classes et leurs observations sont conservées.")
                 return redirect(f"{reverse('referentiels_ecole')}?annee={annee}")
             if request.POST.get("action") != "apercu":
@@ -130,11 +140,15 @@ def choisir_bases_ecole(request):
                 restreindre=form.cleaned_data["restreindre"], versions_ids=form.cleaned_data["versions"],
                 proposee_id=form.cleaned_data["proposee"])
             jeton = signing.dumps({"ecole": ecole.pk, "auteur": request.user.pk, "annee": annee,
-                **{cle: apercu[cle] for cle in ("restreindre", "versions_ids", "proposee_id", "revisions")}}, salt="bases-ecole")
+                "demarrage": demarrage, **{cle: apercu[cle] for cle in ("restreindre", "versions_ids", "proposee_id", "revisions")}}, salt="bases-ecole")
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     from .services.garde_fous_referentiels import permissions
-    contexte.update(confirmation_form=ConfirmationReferentielForm(renforcee=bool(apercu and choix_ecole_modifies(local, apercu))), permission=permissions(ecole, annee),
+    application = ChoixApplicationAnnuel.objects.filter(annee_scolaire=annee).first()
+    contexte.update(catalogue_publie=bool(application and application.configure),
+        nb_bases_superieures=len(superieures), restriction_ecole=bool(local and local.restreindre),
+        demarrage=demarrage, niveau_choix="vert" if demarrage and not (local and local.restreindre) and not (apercu and apercu["restreindre"]) else "orange",
+        confirmation_form=ConfirmationReferentielForm(renforcee=bool(apercu and choix_ecole_renforces(local, apercu, demarrage))), permission=permissions(ecole, annee),
         form=form, choix=choix, proposee_superieure=proposee_superieure,
         apercu=apercu, jeton=jeton, erreur=erreur)
     return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400 if erreur else 200)
