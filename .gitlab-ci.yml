@@ -7,6 +7,8 @@ stages:
   - publication
 
 workflow:
+  auto_cancel:
+    on_new_commit: interruptible
   rules:
     - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -40,6 +42,7 @@ cache:
     - .cache/pip
 
 qualite-depot:
+  interruptible: true
   stage: test
   cache: []
   before_script:
@@ -49,6 +52,7 @@ qualite-depot:
     - git show --check --format= --no-renames "$CI_COMMIT_SHA"
 
 test:
+  interruptible: true
   stage: test
   # Keep this list aligned with every file that can affect the application or
   # its test environment. A CI change deliberately exercises the full matrix.
@@ -58,6 +62,7 @@ test:
         - .gitlab-ci.yml
         - "*.py"
         - "carnet/**/*"
+        - "comptes/**/*"
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
@@ -108,6 +113,7 @@ test:
               time.sleep(1)
       PY
   script:
+    - python3 -m unittest discover -s scripts -p test_version_application.py
     - python3 manage.py collectstatic --noinput
     - python3 scripts/valider-illustrations-statiques.py
     - python3 manage.py test --settings=carnet.settings_tests --durations 30 --timing
@@ -122,6 +128,7 @@ deploiement-ephemere:
         - .gitlab-ci.yml
         - "*.py"
         - "carnet/**/*"
+        - "comptes/**/*"
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
@@ -228,6 +235,7 @@ deploiement-persistant-local:
         - POLITIQUE-AUTORISATION.org
         - "*.py"
         - "carnet/**/*"
+        - "comptes/**/*"
         - "referentiel/**/*"
         - requirements.lock
         - requirements-2fa.txt
@@ -241,6 +249,7 @@ deploiement-persistant-local:
     - when: never
 
 captures-demonstration:
+  interruptible: true
   extends: .site-public-rules
   stage: test
   image:
@@ -307,6 +316,7 @@ captures-demonstration:
     - hugo version
 
 site-public:
+  interruptible: true
   extends:
     - .hugo
     - .site-public-rules
@@ -342,6 +352,7 @@ pages:
         - POLITIQUE-AUTORISATION.org
         - "*.py"
         - "carnet/**/*"
+        - "comptes/**/*"
         - "referentiel/**/*"
         - requirements.lock
         - requirements-2fa.txt
@@ -356,6 +367,7 @@ pages:
 # Essais automatiques, exécutés en parallèle des autres vérifications.
 # L'artefact final désactive impérativement le protocole Python des tests.
 pwa-prototype:
+  interruptible: true
   # Trixie fournit Node >= 20, requis par Playwright 1.62.
   image: python:3.12-slim-trixie
   stage: construction
@@ -381,7 +393,7 @@ pwa-prototype:
     - python3 -m unittest discover -s scripts -p test_construire_pwa.py
     - python3 -m unittest discover -s scripts -p test_ecole_fictive.py
     - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-314.0.7
-    - node --test scripts/test_transport_pwa.cjs
+    - node --test scripts/test_transport_pwa.cjs scripts/test_recherche_referentiel.cjs
     - python3 -m unittest discover -s scripts -p test_transferts_pwa.py
     - node scripts/verifier-pwa.cjs
     - cp dist/pwa/resultats-tests.json resultats-pwa.json

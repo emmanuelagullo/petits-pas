@@ -16,6 +16,10 @@ on:
       - site/data/demonstration.yaml
       - CHANGELOG.org
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
 permissions:
   contents: read
 
