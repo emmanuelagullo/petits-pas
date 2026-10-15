@@ -24,6 +24,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django_ratelimit.core import is_ratelimited
 from carnet.reseau import adresse_client, cle_ip
 from comptes import totp
+from comptes.validators import LONGUEUR_MAX_MOT_DE_PASSE
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -266,6 +267,10 @@ def connexion(request):
     if request.user.is_authenticated:
         return redirect("accueil")
     if request.method == "POST":
+        if settings.ANTIBRUTEFORCE_ACTIF and is_ratelimited(
+                request, group="connexion_ip", key=cle_ip,
+                rate=settings.RATELIMIT_CONNEXION_IP, method="POST", increment=False):
+            return render(request, "suivi/connexion_bloquee.html", status=429)
         nom_utilisateur = request.POST.get("nom_utilisateur", "").strip()
         utilisateur = authenticate(
             request,
@@ -284,6 +289,10 @@ def connexion(request):
             login(request, utilisateur)
             return _suite_connexion(request, utilisateur, nom_utilisateur)
         _tracer_echec_connexion(request, nom_utilisateur)
+        if settings.ANTIBRUTEFORCE_ACTIF:
+            is_ratelimited(
+                request, group="connexion_ip", key=cle_ip,
+                rate=settings.RATELIMIT_CONNEXION_IP, method="POST", increment=True)
         messages.error(request, "Nom d'utilisateur ou mot de passe incorrect.")
         return render(
             request, "suivi/connexion.html", {"nom_utilisateur": nom_utilisateur}
@@ -389,8 +398,10 @@ def double_facteur(request):
             else:
                 messages.error(request, "Code incorrect ou expiré.")
         elif not inscrit:
-            if not connexion_recente(request) and not request.user.check_password(
-                    request.POST.get("mot_de_passe", "")):
+            saisie = request.POST.get("mot_de_passe", "")
+            if not connexion_recente(request) and not (
+                    len(saisie) <= LONGUEUR_MAX_MOT_DE_PASSE
+                    and request.user.check_password(saisie)):
                 messages.error(
                     request, "Confirmez votre mot de passe pour configurer le second facteur.")
             elif totp.confirmer_inscription(request.user, code):
