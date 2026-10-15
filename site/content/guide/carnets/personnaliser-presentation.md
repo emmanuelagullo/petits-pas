@@ -14,7 +14,7 @@ statut = "disponible"
 
 | Je souhaite… | J’utilise… | Ce qui apparaîtra dans le carnet |
 | --- | --- | --- |
-| Illustrer une compétence de la même façon pour la classe | L’icône de la compétence | L’image accompagne cette compétence, lorsqu’elle figure dans le carnet. |
+| Illustrer une compétence de la même façon pour la classe | L’image proposée pour l’apprentissage | L’image accompagne cette compétence, lorsqu’elle figure dans le carnet. |
 | Raconter une activité avec une date et une photo pour certains enfants | Une [trace commune]({{< relref "/guide/observer/traces-communes/" >}}) | La trace apparaît uniquement pour les enfants choisis, si elle est affichée dans leur carnet. |
 | Préparer une phrase pour aider à rédiger les observations | Une formulation proposée | Rien n’est ajouté automatiquement : la phrase sert de point de départ lors de la saisie d’une trace. |
 
@@ -41,13 +41,47 @@ La liste des compétences suit les mêmes domaines et le même ordre que le carn
 | **Remplacer** | Choisir une icône fournie ou importer sa propre image. Ce choix est conservé même si l’image proposée change. |
 | **Désactiver** | Ne pas afficher d’image. Si l’école fait ce choix, une classe peut encore choisir sa propre image. |
 
-Avec **Remplacer**, l’icône choisie apparaît à côté du menu. Pour passer d’une photo importée à une icône fournie, cocher aussi **Effacer**. Les champs d’image sont grisés avec les autres choix. On peut revenir à l’image proposée en sélectionnant **Hériter**.
+Avec **Remplacer**, l’image choisie apparaît à côté du menu. Pour passer d’une photo importée à une icône fournie, cocher aussi **Effacer**. Les champs d’image sont grisés avec les autres choix. On peut revenir à l’image proposée en sélectionnant **Hériter**.
 
 Les images importées doivent être au format JPEG, PNG ou WebP, et ne pas dépasser 25 Mio. Elles restent privées. Petits Pas les allège automatiquement, corrige leur orientation et retire leurs métadonnées ; le fichier présent sur l’appareil n’est pas modifié. La photo de couverture conserve une définition légèrement supérieure à celle d’une trace. Pour une photo de groupe, vérifier que sa diffusion dans les carnets convient à toutes les personnes visibles.
 
 Désactiver la photo de couverture ne retire pas la page de couverture. Une compétence peut très bien ne pas avoir d’image : les illustrations fournies sont facultatives et ne couvrent actuellement que quelques compétences.
 
 Les petites icônes apparaissent aussi dans les listes de compétences. Elles sont placées à côté du niveau et avant le texte ; les boutons de photo à droite signalent, eux, des photos dans les traces de l’élève.
+
+## Quand une photo est déjà affichée
+
+Sur **Présentation du carnet**, la rubrique **Images proposées et photos**
+permet de choisir :
+
+- **Cacher l’image proposée** lorsqu’au moins une photo de cet apprentissage
+  figure dans le carnet de l’élève ;
+- **Garder aussi l’image proposée** pour l’afficher avec les photos.
+
+Le responsable peut **Garder le choix de l’école** ou faire un choix pour sa
+classe. Cliquer sur **Enregistrer l’affichage des images**. Le choix utilisé
+et son origine sont indiqués juste au-dessus.
+
+Toutes les photos collectives et personnelles des traces affichées restent
+présentes. Ce réglage ne choisit pas entre elles. Une photo masquée dans le
+carnet, retirée ou hors de l’année consultée ne cache pas l’image proposée.
+La photo de la dernière trace ne suffit pas à décider : une trace plus ancienne
+peut aussi comporter une photo.
+
+Sans photo, l’image proposée reste visible si elle existe. **Désactiver** dans
+les réglages d’un apprentissage retire cette image, même si le choix général
+est de la garder avec les photos. La couverture et les petits repères dans
+les listes de suivi restent indépendants.
+
+Les nouvelles écoles proposent de cacher l’image en présence d’une photo.
+La mise à jour conserve le comportement des écoles existantes : elles gardent
+aussi l’image, jusqu’à ce qu’elles choisissent autrement. Une année close garde
+son choix enregistré. Les PDF déjà téléchargés ne changent pas.
+
+Une petite mention en fin de carnet crédite une seule fois les collections
+fournies réellement affichées, notamment **OpenMoji — CC BY-SA 4.0**. Les
+illustrations présentent les apprentissages ; elles ne sont pas une production
+de l’enfant.
 
 ## Préparer des phrases proposées
 
@@ -66,11 +100,11 @@ Les questions dépliables expliquent à quoi servent ces phrases et comment fair
 
 ## Vérifier le résultat
 
-Ouvrir le carnet d’un élève de la classe. La couverture et les images de compétences reprennent les choix enregistrés. Une image de compétence ne figure dans le carnet que si les options de contenu font apparaître cette compétence.
+Ouvrir le carnet d’un élève de la classe. La couverture et les images de compétences reprennent les choix enregistrés. Une image de compétence suit les options de contenu et le choix de la rubrique **Images proposées et photos**.
 
 Les nouveaux aperçus et PDF utilisent les images choisies maintenant. Les PDF déjà téléchargés ne changent pas. Modifier une phrase proposée ne réécrit pas les commentaires déjà enregistrés dans les traces.
 
-Si une image attendue manque, vérifier la compétence, le choix **Hériter / Remplacer / Désactiver**, puis les options de contenu du carnet. Si une phrase manque dans le menu, vérifier qu’elle n’est pas masquée pour l’école ou la classe.
+Si une image attendue manque, vérifier la compétence, le choix **Hériter / Remplacer / Désactiver**, puis **Images proposées et photos** et les options de contenu du carnet. Si une phrase manque dans le menu, vérifier qu’elle n’est pas masquée pour l’école ou la classe.
 
 ## Limites et accès refusé
 

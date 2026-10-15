@@ -2,36 +2,48 @@ icones:
   parler:
     nom: Parler et échanger
     fichier: referentiel/icones/parler.svg
+    credit: petits-pas
   livre:
     nom: Lire et raconter
     fichier: referentiel/icones/livre.svg
+    credit: petits-pas
   collection:
     nom: Observer une collection
     fichier: referentiel/icones/collection.svg
+    credit: petits-pas
   om-parole:
     nom: Parole et échanges
     fichier: referentiel/icones/openmoji/1F4AC.svg
+    credit: openmoji
   om-nombres:
     nom: Quantités et nombres
     fichier: referentiel/icones/openmoji/1F9EE.svg
+    credit: openmoji
   om-musique:
     nom: Écoute musicale
     fichier: referentiel/icones/openmoji/1F3B5.svg
+    credit: openmoji
   om-calendrier:
     nom: Date et calendrier
     fichier: referentiel/icones/openmoji/1F4C5.svg
+    credit: openmoji
   om-plante:
     nom: Plantations
     fichier: referentiel/icones/openmoji/1F331.svg
+    credit: openmoji
   om-crayon:
     nom: Tracé et écriture
     fichier: referentiel/icones/openmoji/270F.svg
+    credit: openmoji
   om-formes:
     nom: Assemblages de formes
     fichier: referentiel/icones/openmoji/1F9E9.svg
+    credit: openmoji
   om-peinture:
     nom: Création plastique
     fichier: referentiel/icones/openmoji/1F3A8.svg
+    credit: openmoji
   om-globe:
     nom: Espaces géographiques
     fichier: referentiel/icones/openmoji/1F30D.svg
+    credit: openmoji

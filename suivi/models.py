@@ -62,6 +62,7 @@ class Ecole(models.Model):
 
     nom = models.CharField(max_length=200)
     commune = models.CharField(max_length=200, blank=True)
+    illustration_avec_photos = models.BooleanField(default=False)
     etat = models.CharField(max_length=12, choices=ETATS, default=ACTIVE)
     cree_le = models.DateTimeField(auto_now_add=True)
 
@@ -192,6 +193,8 @@ class Classe(models.Model):
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name="classes")
     nom = models.CharField(max_length=100, help_text="Par exemple : PS-MS de Nadia")
     annee_scolaire = models.CharField(max_length=9, default="2026-2027")
+    # None suit la préférence de l'école ; les photos ne sont jamais filtrées.
+    illustration_avec_photos = models.BooleanField(null=True, blank=True, default=None)
     ordre = models.PositiveSmallIntegerField(default=0)
     etat = models.CharField(max_length=11, choices=ETATS, default=PREPARATION)
 

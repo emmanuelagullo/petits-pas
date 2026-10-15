@@ -36,7 +36,7 @@
         <li class="{% if obs %}{{ obs.statut }}{% else %}absent{% endif %}">
           <span class="puce" aria-hidden="true">{% if obs.statut == 'reussi' %}★{% elif obs.statut == 'en_cours' %}☆{% else %}·{% endif %}</span>
           <span class="contenu-competence">
-            {% if competence.url_icone %}<img class="icone-competence" src="{% if generation_pdf %}{{ competence.url_icone_pdf }}{% else %}{{ competence.url_icone }}{% endif %}" alt="">{% endif %}
+            {% if competence.afficher_illustration and competence.url_icone %}<img class="icone-competence" src="{% if generation_pdf %}{{ competence.url_icone_pdf }}{% else %}{{ competence.url_icone }}{% endif %}" alt="Illustration de l'apprentissage">{% endif %}
             <span class="libelle-competence">{{ competence.libelle }}</span>
             {% if afficher_sous_domaines and competence.sous_domaine %}<span class="sous-domaine-competence">{{ competence.sous_domaine.nom }}</span>{% endif %}
             {% if obs.historique_inconnu %}<span class="etat-competence">État de cette année non retrouvé</span>{% endif %}
@@ -68,5 +68,6 @@
     {% endif %}
 
     <p class="pied">Carnet édité le {{ edite_le|date:"j F Y" }} par {{ ecole.nom }}.</p>
+    {% if a_illustrations or credits_illustrations %}<p class="credits-illustrations">{% if a_illustrations %}Images d’illustration, distinctes des photos des traces.{% endif %}{% if credits_illustrations %} Illustrations : {% for credit in credits_illustrations %}<a href="{{ credit.url }}">{{ credit.nom }}</a>{% if not forloop.last %}, {% endif %}{% endfor %} — <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.{% endif %}</p>{% endif %}
   </div>
 </article>

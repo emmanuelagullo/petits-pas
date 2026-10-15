@@ -3,7 +3,25 @@ from django.db import transaction
 
 from suivi.audit import instantane, journaliser
 from suivi.autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, autorise
-from suivi.models import FormulationLocale, FormulationProposee, ReglagePresentation
+from suivi.models import Classe, Ecole, FormulationLocale, FormulationProposee, ReglagePresentation
+
+
+@transaction.atomic
+def enregistrer_affichage(utilisateur, ecole, classe=None, *, avec_photos):
+    ecole = Ecole.objects.select_for_update().get(pk=ecole.pk)
+    if classe is not None:
+        classe = Classe.objects.select_for_update().get(pk=classe.pk)
+    verifier_droit(utilisateur, ecole, classe)
+    if type(avec_photos) is not bool and not (classe and avec_photos is None):
+        raise ValueError("Choix d'affichage invalide.")
+    cible = classe or ecole
+    # Ne pas réécrire les autres réglages de l'école ou de la classe.
+    anciennes = instantane(cible, ("illustration_avec_photos",))
+    cible.illustration_avec_photos = avec_photos
+    cible.save(update_fields=["illustration_avec_photos"])
+    journaliser(utilisateur, "presentation.affichage", cible, anciennes,
+               nouvelles=instantane(cible, ("illustration_avec_photos",)))
+    return cible
 
 
 def verifier_droit(utilisateur, ecole, classe=None):

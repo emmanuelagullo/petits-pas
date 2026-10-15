@@ -925,3 +925,6 @@ textarea { min-height: 7rem; resize: vertical; }
 }
 
 .avertissement-vert { border-color: #287440; background: #edf8ef; color: #174527; }
+
+.credits-illustrations { font-size: .65rem; color: #525b55; margin-top: .5rem; }
+@media print { .credits-illustrations { font-size: 7pt; } }

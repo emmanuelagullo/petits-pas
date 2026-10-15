@@ -163,9 +163,13 @@ def _transformer(objet, fields, classe, utilisateur, etats, ids, photos_autorise
                                      if r.get("classe_id") in (None, classe.pk)
                                      and r.get("competence_id") in ids[m.Competence]],
         }
+        if "affichage_images" in ancien:
+            choix = ancien["affichage_images"]
+            fields["etat_initial"]["affichage_images"] = {"ecole": choix["ecole"], "classes": {
+                pk: v for pk, v in choix["classes"].items() if pk == str(classe.pk)}}
     elif model is m.AdoptionReferentiel:
         final = {nom: copy.deepcopy(valeur) for nom, valeur in objet.etat_final.items()
-                 if nom in {"contenu", "illustrations", "propositions", "couverture", "etats", "correspondances", "ressources"}}
+                 if nom in {"contenu", "illustrations", "propositions", "couverture", "etats", "correspondances", "ressources", "illustration_avec_photos"}}
         if "etats" in final:
             final["etats"] = [e for e in final["etats"] if e.get("observation_id") in ids[m.Observation]]
         if "ressources" in final:

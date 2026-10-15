@@ -209,7 +209,7 @@ class Projection:
         permis = ({f.attname for f in model._meta.concrete_fields} | {'cle_definition', 'type_libelle'}
                   if model else set(REFERENCES) | {
                       'reference', 'libelle', 'code', 'niveau', 'origine',
-                      'provenance', 'icone', 'photo', 'statut', 'date_observation', 'connu'})
+                      'provenance', 'icone', 'photo', 'credit', 'statut', 'date_observation', 'connu'})
         if set(valeur) - permis:
             raise ValidationError("Champs d'instantané non pris en charge.")
         if model:
@@ -218,6 +218,10 @@ class Projection:
                         and not isinstance(champ, (models.JSONField, models.FileField))):
                     champ.clean(valeur[champ.attname], None)
         resultat = copy.deepcopy(valeur)
+        if 'credit' in valeur:
+            from .presentation import CREDITS_IMAGES
+            if valeur['credit'] not in ('', *CREDITS_IMAGES):
+                raise ValidationError("Crédit d'illustration inconnu.")
         for cle, val in valeur.items():
             if cle == 'id' and model:
                 resultat[cle] = self.ref(model, val)
@@ -253,9 +257,17 @@ class Projection:
         return resultat
 
     def initial(self, valeur):
-        if not isinstance(valeur, dict) or set(valeur) - {'reglages', 'formulations_locales', 'avertissement'}:
+        if not isinstance(valeur, dict) or set(valeur) - {'reglages', 'formulations_locales', 'avertissement', 'affichage_images'}:
             raise ValidationError("Instantané initial non pris en charge.")
         resultat = copy.deepcopy(valeur)
+        if 'affichage_images' in valeur:
+            choix = valeur['affichage_images']
+            if (not isinstance(choix, dict) or set(choix) != {'ecole', 'classes'}
+                    or type(choix['ecole']) is not bool or not isinstance(choix['classes'], dict)
+                    or any(type(v) is not bool for v in choix['classes'].values())):
+                raise ValidationError("Choix d'images initial invalide.")
+            resultat['affichage_images'] = {'ecole': choix['ecole'], 'classes': {
+                str(self.ref(m.Classe, int(pk))): v for pk, v in choix['classes'].items()}}
         for cle, model in (('reglages', m.ReglagePresentation), ('formulations_locales', m.FormulationLocale)):
             if cle in valeur:
                 resultat[cle] = [self.ligne_json(r, model) for r in valeur[cle]]
@@ -264,9 +276,11 @@ class Projection:
     def final(self, valeur):
         if not isinstance(valeur, dict) or set(valeur) - {
                 'contenu', 'illustrations', 'propositions', 'couverture', 'etats',
-                'correspondances', 'ressources', 'export_classe'}:
+                'correspondances', 'ressources', 'export_classe', 'illustration_avec_photos'}:
             raise ValidationError("Instantané final non pris en charge.")
         resultat = copy.deepcopy(valeur)
+        if 'illustration_avec_photos' in valeur and type(valeur['illustration_avec_photos']) is not bool:
+            raise ValidationError("Choix d'images final invalide.")
         for cle, val in valeur.items():
             if cle == 'contenu':
                 resultat[cle] = self.contenu(val)
