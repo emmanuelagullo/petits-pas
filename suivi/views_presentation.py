@@ -67,7 +67,7 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
                 form = IllustrationForm(request.POST, request.FILES, instance=reglage)
                 if form.is_valid():
                     nouveau_reglage = form.save(commit=False)
-                    if request.FILES.get("photo"):
+                    if nouveau_reglage.mode == ReglagePresentation.REMPLACER and request.FILES.get("photo"):
                         famille = "trace" if competence else "couverture"
                         nouveau_reglage.photo = preparer_image(
                             request.FILES["photo"], famille=famille
@@ -121,6 +121,7 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         "domaines": domaines,
         "afficher_sous_domaines": parametres.afficher_sous_domaines,
         "icones_apercu": {cle: static(valeur["fichier"]) for cle, valeur in catalogue_icones().items()},
+        "images_fournies": catalogue_icones() if competence else {},
         "propositions": propositions(competence, classe, inclure_masquees=True) if competence else [],
     })
 

@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Images proposées : galerie dépliable des 22 dessins dans les réglages d’un
+  apprentissage. Le menu et l’aperçu restent disponibles ; choisir un dessin
+  ne l’enregistre pas automatiquement. Hériter, remplacer et désactiver gardent
+  leurs règles. Un fichier envoyé hors du choix Remplacer est ignoré aussi
+  par le serveur, comme les autres champs d’image.
+
 - Images proposées : éditions 2026.3 des trois référentiels, avec 30 associations
   pour les objectifs des programmes, 30 pour Chat d’École et 38 pour Petits Pas
   étayé. Textes, identités, niveaux et ordre inchangés ; six associations moins

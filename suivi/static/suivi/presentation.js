@@ -4,6 +4,9 @@
     const mode = form.querySelector('[name="mode"]');
     const icone = form.querySelector('[name="icone"]');
     const apercu = form.querySelector('[data-apercu-icone]');
+    const galerie = form.querySelector('[data-galerie-images]');
+    const boutons = form.querySelectorAll('[data-choisir-image]');
+    if (galerie) galerie.hidden = false;
     const actualiser = () => {
       const editable = mode.value === "remplacer";
       form.querySelectorAll('[name="icone"], [name="photo"], [name="photo-clear"]').forEach(champ => {
@@ -13,6 +16,10 @@
       if (texte) texte.readOnly = !editable;
       const aide = form.querySelector('[data-aide-champs]');
       if (aide) aide.hidden = editable;
+      boutons.forEach(bouton => {
+        bouton.disabled = !editable;
+        bouton.setAttribute("aria-pressed", String(bouton.dataset.choisirImage === icone.value));
+      });
       if (apercu) {
         const url = catalogue[icone.value];
         apercu.hidden = !editable || !url;
@@ -24,6 +31,10 @@
     };
     mode.addEventListener("change", actualiser);
     if (icone) icone.addEventListener("change", actualiser);
+    boutons.forEach(bouton => bouton.addEventListener("click", () => {
+      icone.value = bouton.dataset.choisirImage;
+      icone.dispatchEvent(new Event("change", { bubbles: true }));
+    }));
     actualiser();
   });
 })();
