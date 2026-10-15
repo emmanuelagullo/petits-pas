@@ -10,7 +10,7 @@ from suivi.autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, autorise
 from suivi.audit import journaliser
 from suivi.models import (AdoptionReferentiel, Classe, Ecole, EtatAnnuelObservation, Observation,
                           RessourceReferentiel, UsageCompetence)
-from suivi.presentation import illustration_effective, propositions
+from suivi.presentation import affichage_avec_photos, credit_illustration, illustration_effective, propositions
 from suivi.referentiels import arbre_competences, contenu_adoption
 
 
@@ -19,16 +19,18 @@ def clore(*, utilisateur, classe):
     if not (autorise(utilisateur, MODIFIER_ETAT, classe) or autorise(utilisateur, ADMINISTRER_ECOLE, classe.ecole)):
         raise PermissionDenied
     Ecole.objects.select_for_update().get(pk=classe.ecole_id)
-    Classe.objects.select_for_update().get(pk=classe.pk)
+    classe_appelee = classe
+    classe = Classe.objects.select_for_update().get(pk=classe.pk)
     adoption = AdoptionReferentiel.objects.select_for_update().get(classe=classe, courante=True)
     classe._adoption_referentiel_lecture = adoption
+    classe_appelee._adoption_referentiel_lecture = adoption
     if adoption.clos:
         return adoption
     ressources = []
 
     def conserver(image):
         resultat = {"provenance": image.provenance, "icone": "", "photo": "",
-                    "ressource_id": None}
+                    "ressource_id": None, "credit": credit_illustration(image)}
         if image.photo:
             ressource, _ = RessourceReferentiel.objects.get_or_create(
                 annuel=adoption.annuel,
@@ -52,6 +54,7 @@ def clore(*, utilisateur, classe):
 
     from suivi.correspondances_referentiels import correspondances_classe
     final = {"contenu": deepcopy(contenu_adoption(adoption)), "illustrations": {}, "propositions": {},
+             "illustration_avec_photos": affichage_avec_photos(classe.ecole, classe),
              "couverture": conserver(illustration_effective(classe.ecole, classe=classe)), "etats": [], "correspondances": correspondances_classe(classe)}
     observations = Observation.objects.filter(eleve__scolarites__classe=classe).distinct()
     suivies = set(observations.values_list("competence_id", flat=True))

@@ -3,12 +3,23 @@ from .models import ReglagePresentation
 from .presentation import catalogue_icones
 
 
+class AffichageIllustrationForm(forms.Form):
+    choix = forms.ChoiceField(label="Quand une photo est affichée pour l'apprentissage…")
+
+    def __init__(self, *args, classe=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["choix"].choices = (
+            [("heriter", "Garder le choix de l'école")] if classe else []
+        ) + [("sans_photo", "Cacher l'image proposée"),
+             ("avec_photos", "Garder aussi l'image proposée")]
+
+
 class ImagePriveeInput(forms.ClearableFileInput):
     template_name = "suivi/widgets/image_privee.html"
 
 
 class IllustrationForm(forms.ModelForm):
-    icone = forms.ChoiceField(label="Icône fournie", required=False)
+    icone = forms.ChoiceField(label="Image fournie", required=False)
 
     class Meta:
         model = ReglagePresentation
@@ -19,7 +30,7 @@ class IllustrationForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["icone"].choices = [("", "Aucune icône fournie")]
+        self.fields["icone"].choices = [("", "Aucune image fournie")]
         self.fields["icone"].choices += [(cle, valeur["nom"]) for cle, valeur in catalogue_icones().items()]
         if self.instance.competence_id is None:
             self.fields.pop("icone")

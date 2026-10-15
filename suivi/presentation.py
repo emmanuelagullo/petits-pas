@@ -25,10 +25,62 @@ class Illustration:
     photo: str = ""
     reglage_id: int | None = None
     ressource_id: int | None = None
+    credit: str = ""
 
     @property
     def statique(self):
         return catalogue_icones().get(self.icone, {}).get("fichier", "")
+
+
+def affichage_avec_photos(ecole, classe=None, *, historique=False):
+    """Préférence du carnet, indépendante de l'image et des photos des traces."""
+    if classe is not None:
+        if classe.ecole_id != ecole.pk:
+            raise ValueError("Classe d'une autre école.")
+        from .referentiels import adoption_courante
+        adoption = adoption_courante(classe)
+        if adoption and adoption.clos:
+            return adoption.etat_final.get("illustration_avec_photos", True)
+        if adoption and historique:
+            choix = adoption.annuel.etat_initial.get("affichage_images", {})
+            return choix.get("classes", {}).get(str(classe.pk), choix.get("ecole", True))
+        if classe.illustration_avec_photos is not None:
+            return classe.illustration_avec_photos
+    return ecole.illustration_avec_photos
+
+
+CREDITS_IMAGES = {
+    "openmoji": {"nom": "OpenMoji", "url": "https://openmoji.org/"},
+    "petits-pas": {"nom": "Petits Pas", "url": "https://petits-pas.gitlabpages.inria.fr/petits-pas/"},
+}
+
+
+@lru_cache(maxsize=1)
+def _credits_par_empreinte():
+    # Compatibilité des anciens instantanés clos, qui conservaient le SVG
+    # sans son identifiant. Comparer les octets, jamais déduire du seul nom.
+    import hashlib
+    from django.contrib.staticfiles import finders
+    resultat = {}
+    for entree in catalogue_icones().values():
+        chemin = finders.find(entree["fichier"])
+        if chemin and entree.get("credit"):
+            with open(chemin, "rb") as fichier:
+                resultat[hashlib.sha256(fichier.read()).digest()] = entree["credit"]
+    return resultat
+
+
+def credit_illustration(image):
+    credit = image.credit or catalogue_icones().get(image.icone, {}).get("credit", "")
+    if not credit and image.ressource_id and image.photo.lower().endswith(".svg"):
+        import hashlib
+        from django.core.files.storage import default_storage
+        try:
+            with default_storage.open(image.photo, "rb") as fichier:
+                credit = _credits_par_empreinte().get(hashlib.sha256(fichier.read()).digest(), "")
+        except FileNotFoundError:
+            pass  # Le fichier absent reste traité par le parcours médias/PDF.
+    return credit if credit in CREDITS_IMAGES else ""
 
 
 def reglages_du_perimetre(ecole, classe=None):

@@ -65,3 +65,13 @@ choix **Afficher cette trace dans le carnet** et les options de contenu du carne
 Pour une simple image qui accompagne la compétence dans tous les carnets
 concernés, sans date d'activité ni sélection d'enfants, utiliser plutôt
 [l'icône de la compétence]({{< relref "/guide/carnets/personnaliser-presentation/" >}}).
+
+## Images proposées et photos
+
+Si plusieurs traces comportent des photos collectives ou personnelles, elles
+restent toutes dans le carnet selon leur visibilité. Le choix
+**Images proposées et photos**, dans
+[Présentation du carnet]({{< relref "/guide/carnets/personnaliser-presentation/" >}}),
+concerne seulement l’illustration supplémentaire de l’apprentissage.
+Personnaliser une trace commune garde son fonctionnement habituel : la version
+conserve d’abord la photo, puis peut la remplacer ou la retirer.

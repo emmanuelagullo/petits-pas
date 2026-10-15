@@ -12,11 +12,11 @@ from django.views.decorators.http import require_safe
 
 from .autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee, classes_accessibles
 from .contexte_ecole import ecole_courante
-from .forms_presentation import IllustrationForm
+from .forms_presentation import AffichageIllustrationForm, IllustrationForm
 from .models import Competence, ParametresCarnet, ReglagePresentation
 from .referentiels import arbre_competences, competence_classe
-from .presentation import catalogue_icones, illustration_effective, propositions
-from .services.presentation import enregistrer_formulation, enregistrer_reglage, verifier_droit
+from .presentation import affichage_avec_photos, catalogue_icones, illustration_effective, propositions
+from .services.presentation import enregistrer_affichage, enregistrer_formulation, enregistrer_reglage, verifier_droit
 from .services.medias_django import preparer_image
 from .views import acces_requis, _supprimer_media_apres_validation
 
@@ -56,6 +56,9 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
     reglage = ReglagePresentation.objects.filter(**filtres).first() or ReglagePresentation(**filtres)
     ancien_nom = reglage.photo.name if reglage.photo else ""
     form = IllustrationForm(instance=reglage)
+    choix = (classe or ecole).illustration_avec_photos
+    affichage_form = AffichageIllustrationForm(classe=classe, initial={
+        "choix": "heriter" if choix is None else "avec_photos" if choix else "sans_photo"})
     erreur = None
     if request.method == "POST":
         action = request.POST.get("action", "illustration")
@@ -74,6 +77,13 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
                         _supprimer_media_apres_validation(ancien_nom)
                 else:
                     raise ValidationError("Vérifiez le choix d'illustration.")
+            elif action == "affichage" and not competence:
+                affichage_form = AffichageIllustrationForm(request.POST, classe=classe)
+                if not affichage_form.is_valid():
+                    raise ValidationError("Vérifiez le choix d'affichage.")
+                choix = affichage_form.cleaned_data["choix"]
+                enregistrer_affichage(request.user, ecole, classe,
+                                     avec_photos=None if choix == "heriter" else choix == "avec_photos")
             elif action in {"formulation", "ajouter_formulation"} and competence:
                 enregistrer_formulation(
                     utilisateur=request.user, competence=competence, classe=classe,
@@ -104,6 +114,9 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
     return render(request, "suivi/presentation.html", {
         "ecole": ecole, "classe": classe, "competence": competence,
         "form": form, "erreur": erreur, "illustration": illustration,
+        "affichage_form": affichage_form,
+        "illustration_avec_photos": affichage_avec_photos(ecole, classe),
+        "affichage_origine": "Classe" if classe and classe.illustration_avec_photos is not None else "École",
         "illustration_url": url_illustration(illustration), "index_url": index_url,
         "domaines": domaines,
         "afficher_sous_domaines": parametres.afficher_sous_domaines,

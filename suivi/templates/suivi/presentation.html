@@ -12,8 +12,21 @@
   <p>Les phrases proposées servent à vous aider à écrire de nouvelles traces. Modifier une phrase ici ne modifie pas les commentaires déjà enregistrés pour les élèves.</p>
 </details>
 {% if erreur %}<p class="erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if not competence %}
 <section class="encadre">
-  <h2>{% if competence %}Icône de la compétence{% else %}Photo de couverture{% endif %}</h2>
+  <h2>Images proposées et photos</h2>
+  <p>Les photos collectives et personnelles des traces affichées restent toutes dans le carnet. Ce choix concerne seulement l'image qui illustre l'apprentissage.</p>
+  <p>Choix utilisé : {% if illustration_avec_photos %}garder aussi l'image proposée{% else %}cacher l'image proposée lorsqu'une photo est affichée{% endif %} ({{ affichage_origine }}).</p>
+  <form method="post">
+    {% csrf_token %}<input type="hidden" name="action" value="affichage">
+    {{ affichage_form.as_p }}
+    <p>Sans photo, l'image proposée reste visible si elle existe. Pour la retirer d'un apprentissage, choisissez « Désactiver » dans ses réglages. La couverture reste indépendante.</p>
+    <button class="bouton" type="submit">Enregistrer l'affichage des images</button>
+  </form>
+</section>
+{% endif %}
+<section class="encadre">
+  <h2>{% if competence %}Image proposée pour cet apprentissage{% else %}Photo de couverture{% endif %}</h2>
   <p>Image utilisée : {{ illustration.provenance }}.{% if not illustration_url %} Aucune image affichée.{% endif %}</p>
   {% if illustration_url %}<img class="miniature" src="{{ illustration_url }}" alt="Illustration effective">{% endif %}
   <details class="aide-presentation">
@@ -68,7 +81,7 @@
   <button class="bouton" type="submit">Ajouter la proposition</button>
 </form>
 {% else %}
-<h2>Icônes et formulations par compétence</h2>
+<h2>Images et formulations par compétence</h2>
 {% for domaine, lignes in domaines %}
 <section class="domaine">
   <h3>{{ domaine.nom }}</h3>

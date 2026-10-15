@@ -145,7 +145,8 @@ from .services.pedagogie import (
 )
 from .services.traces_communes import enregistrer_commune, personnaliser, personnaliser_texte, supprimer_commune
 from .services.medias_django import preparer_image
-from .presentation import illustration_effective, reglages_du_perimetre, formulations_effectives
+from .presentation import (affichage_avec_photos, credit_illustration, CREDITS_IMAGES,
+                           illustration_effective, reglages_du_perimetre, formulations_effectives)
 from .correspondances_referentiels import correspondances_classe
 from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe, observations_classe, projeter_etat_classe, classe_historique, competence_saisissable
 from .statistiques import repartition_competences
@@ -1866,13 +1867,24 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
 
     reglages = reglages_du_perimetre(ecole, classe_presentation)
     couverture = illustration_effective(ecole, classe=classe_presentation, reglages=reglages, historique=historique)
+    avec_photos = affichage_avec_photos(ecole, classe_presentation, historique=historique)
+    credits = set()
+    a_illustrations = False
+    if couverture.photo and (credit := credit_illustration(couverture)):
+        credits.add(credit)
     for _domaine, groupes in domaines:
         for _titre, lignes in groupes:
             for competence, _observation in lignes:
                 competence.illustration = illustration_effective(ecole, competence, classe_presentation, reglages, historique=historique)
                 image = competence.illustration
+                competence.afficher_illustration = avec_photos or not any(
+                    trace.photo for trace in getattr(_observation, "traces_carnet", []))
                 competence.url_icone = ((reverse("media_referentiel", args=[eleve.pk, image.ressource_id]) if image.ressource_id else reverse("media_presentation", args=[image.reglage_id])) if image.photo
                                         else static(image.statique) if image.statique else "")
+                if competence.afficher_illustration and competence.url_icone:
+                    a_illustrations = True
+                    if credit := credit_illustration(image):
+                        credits.add(credit)
     bilans = (
         Bilan.objects.filter(
             scolarite__eleve=eleve,
@@ -1898,6 +1910,8 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         "bilans": bilans,
         "parametres_carnet": parametres,
         "illustration_couverture": couverture,
+        "credits_illustrations": [CREDITS_IMAGES[cle] for cle in sorted(credits)],
+        "a_illustrations": a_illustrations,
         "url_photo_couverture": (reverse("media_referentiel", args=[eleve.pk, couverture.ressource_id]) if couverture.ressource_id else reverse("media_presentation", args=[couverture.reglage_id])) if couverture.photo else "",
         "afficher_attendus": afficher_attendus,
         "afficher_sous_domaines": afficher_sous_domaines,
@@ -2043,7 +2057,9 @@ def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
         for _titre, lignes in groupes:
             for _competence, observation in lignes:
                 image = _competence.illustration
-                if image.photo:
+                if not _competence.afficher_illustration:
+                    pass
+                elif image.photo:
                     _competence.url_icone_pdf = _url_media_pdf(image.photo)
                     noms_media.append(image.photo)
                 elif image.statique:

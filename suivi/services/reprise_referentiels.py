@@ -58,6 +58,9 @@ def reprendre(ecole_id):
                 ecole=ecole, annee_scolaire=classe.annee_scolaire, version_proposee=version,
                 origine_reprise=True, historique_reconstitue=False,
                 etat_initial={"reglages": reglages, "formulations_locales": formulations,
+                              "affichage_images": {"ecole": ecole.illustration_avec_photos,
+                                  "classes": {str(c.pk): c.illustration_avec_photos for c in classes
+                                              if c.illustration_avec_photos is not None}},
                               "avertissement": "Réglages présents à la reprise, pas une présentation historique reconstituée."})
         for reglage in reglages:
             if reglage["photo"]:

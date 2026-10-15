@@ -1,6 +1,6 @@
 import datetime
 
-from .models import EvenementAudit
+from .models import Ecole, EvenementAudit
 
 
 def _json(valeur):
@@ -16,7 +16,9 @@ def instantane(objet, champs):
 
 
 def journaliser(acteur, action, objet, anciennes=None, nouvelles=None):
-    if hasattr(objet, "ecole"):
+    if isinstance(objet, Ecole):
+        ecole = objet
+    elif hasattr(objet, "ecole"):
         ecole = objet.ecole
     elif hasattr(objet, "classe"):
         ecole = objet.classe.ecole

@@ -43,6 +43,31 @@ class ImportEcoleTests(TransactionTestCase):
     def importer(self, projection, nom='École importée fictive'):
         return projection.importer(self.compte, nom, 'Commune fictive', self.direction)
 
+    def test_images_regles_et_credits_conserves_et_classes_initiales_remappees(self):
+        from .services.cloture_referentiels import clore
+        self.ecole.illustration_avec_photos = True
+        self.ecole.save()
+        self.classe.illustration_avec_photos = False
+        self.classe.save()
+        annuel = m.ReferentielAnnuel.objects.get(ecole=self.ecole, annee_scolaire=self.classe.annee_scolaire)
+        annuel.etat_initial['affichage_images'] = {'ecole': True, 'classes': {str(self.classe.pk): False}}
+        annuel.save(update_fields=['etat_initial'])
+        clore(utilisateur=self.prof, classe=self.classe)
+        m.ExportEcole.objects.filter(ecole=self.ecole).delete()
+        export = m.ExportEcole.objects.create(ecole=self.ecole, demande_par=self.direction,
+            mot_de_passe_local='!', expire_le=timezone.now() + timedelta(hours=24))
+        produire(export)
+        with verifier_zip(dossier(export) / 'ecole.zip', self.root) as projection:
+            ecole = self.importer(projection)
+        copie = m.Classe.objects.get(ecole=ecole, nom=self.classe.nom)
+        self.assertTrue(ecole.illustration_avec_photos)
+        self.assertIs(copie.illustration_avec_photos, False)
+        adoption = m.AdoptionReferentiel.objects.get(classe=copie, courante=True)
+        self.assertIs(adoption.etat_final['illustration_avec_photos'], False)
+        self.assertEqual(adoption.annuel.etat_initial['affichage_images'],
+                         {'ecole': True, 'classes': {str(copie.pk): False}})
+        self.assertIn('petits-pas', {i.get('credit') for i in adoption.etat_final['illustrations'].values()})
+
     def test_origine_initialisation_conservee_par_export_et_import_sans_droits(self):
         from .services.creation_classe import creer_classe_avec_base
         from .services.choix_bases_referentiels import choix_bases
@@ -196,7 +221,7 @@ class ImportEcoleTests(TransactionTestCase):
         for sql in (
             "INSERT INTO django_migrations(app,name,applied) VALUES ('suivi','9999_future','2026-01-01');",
             "CREATE TRIGGER surprise AFTER UPDATE ON suivi_ecole BEGIN DELETE FROM suivi_trace; END;",
-            "INSERT INTO suivi_ecole(nom,commune,etat,cree_le) VALUES('autre','', 'active','2026-01-01');",
+            "INSERT INTO suivi_ecole(nom,commune,etat,cree_le,illustration_avec_photos) VALUES('autre','', 'active','2026-01-01',0);",
             "UPDATE suivi_adoptionreferentiel SET etat_final='{\"structure_future\": 1}';",
         ):
             with self.subTest(sql=sql):

@@ -31,8 +31,8 @@ classe concernée.
 | Modifier les états d'acquisition | Non | Oui | Non | Non |
 | Ajouter une trace ou une observation | Non | Oui | Oui | Limitée |
 | Créer ou modifier une trace commune | Non | Oui | Non | Non |
-| Choisir les images et phrases proposées pour l’école | Oui | Non | Non | Non |
-| Choisir les images et phrases proposées pour la classe | Non | Oui | Non | Non |
+| Choisir les images, leur affichage et les phrases proposées pour l’école | Oui | Non | Non | Non |
+| Choisir les images, leur affichage et les phrases proposées pour la classe | Non | Oui | Non | Non |
 | Relire une contribution de l'équipe | Non | Oui | Oui, sans la modifier | Non |
 | Prévisualiser un carnet | Non | Oui | Oui | Non |
 | Générer ou télécharger un PDF | Non | Oui | Non | Non |

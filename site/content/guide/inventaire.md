@@ -70,7 +70,7 @@ Les statuts employés sont :
 | Télécharger le PDF individuel | Disponible | Responsable seulement. |
 | Générer les carnets d’une classe dans une archive ZIP | Disponible | Responsable ; au moins un élève doit être sélectionné. |
 | Définir les paramètres habituels des carnets | Disponible | Direction. |
-| Choisir les icônes et la photo de couverture | Disponible | Direction pour l’école, responsable pour la classe ; garder l’image proposée, choisir la sienne ou ne pas afficher d’image. |
+| Choisir les images proposées et la photo de couverture | Disponible | Direction pour l’école, responsable pour la classe ; hériter, remplacer, désactiver et choisir si l’image accompagne aussi les photos. Toutes les photos des traces affichées restent présentes. |
 | Adapter les formulations proposées | Disponible | Par proposition, à l’école ou dans la classe ; les traces enregistrées gardent leur texte. |
 
 ## Classes et élèves

@@ -70,6 +70,27 @@ class ExportClasseTests(TransactionTestCase):
         chemin.write_bytes(contenu)
         return sqlite3.connect(chemin), manifest, noms
 
+    def test_images_choix_ecole_classe_et_instantane_initial_filtre(self):
+        from .services.reprise_referentiels import preparer_nouvelle_ecole
+        self.ecole.illustration_avec_photos = True
+        self.ecole.save()
+        self.classe.illustration_avec_photos = False
+        self.classe.save()
+        self.voisine.illustration_avec_photos = True
+        self.voisine.save()
+        preparer_nouvelle_ecole(self.ecole)
+        export = self.demande()
+        produire_classe(export)
+        export.refresh_from_db()
+        self.assertEqual(export.etat, 'pret')
+        db, _, _ = self.lire(dossier(export) / 'ecole.zip')
+        with db:
+            self.assertEqual(db.execute('SELECT illustration_avec_photos FROM suivi_ecole').fetchone(), (1,))
+            self.assertEqual(db.execute('SELECT illustration_avec_photos FROM suivi_classe').fetchone(), (0,))
+            initial = json.loads(db.execute('SELECT etat_initial FROM suivi_referentielannuel').fetchone()[0])
+            self.assertEqual(initial['affichage_images'], {'ecole': True, 'classes': {str(self.classe.pk): False}})
+        db.close()
+
     def test_projection_isolee_et_compte_local_administrable(self):
         from .services.reprise_referentiels import preparer_nouvelle_ecole
         # La reprise annuelle conserve normalement les réglages de toutes les classes.
