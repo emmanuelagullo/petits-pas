@@ -627,7 +627,8 @@ explicitement identifiées par l'hébergeur.
   de données recréé. L'URL, le nom de l'école et les identifiants publics sont
   définis dans =site/data/demonstration.yaml=, également lu par le site Hugo.
   =start-render.sh= impose lui-même =CARNET_ENVIRONNEMENT_EPHEMERE=oui= afin
-  d'afficher le bandeau d'avertissement ;
+  d'afficher le bandeau d'avertissement, désactive le mode debug et génère une
+  clé secrète aléatoire lorsque l'environnement ne les définit pas ;
 - développement local natif : PostgreSQL et médias dans
   =.local-persistent/= ;
 - développement local Compose : PostgreSQL et MinIO, variante préparée mais

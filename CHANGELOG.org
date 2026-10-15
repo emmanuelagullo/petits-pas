@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Démonstration éphémère : mode debug désactivé et clé secrète aléatoire par
+  défaut lorsque l’environnement ne les définit pas.
+
 - Second facteur : la réinitialisation ferme les sessions ouvertes du compte ;
   le mot de passe est redemandé pour configurer un premier appareil si la
   connexion date de plus de cinq minutes ; une inscription non confirmée est

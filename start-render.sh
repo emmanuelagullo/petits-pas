@@ -18,6 +18,17 @@ if [[ "${CARNET_ENVIRONNEMENT_ATELIER:-}" == "oui" ]]; then
 fi
 
 export CARNET_ENVIRONNEMENT_EPHEMERE=oui
+
+# Valeurs sûres par défaut pour une démonstration publique : pas de mode debug
+# et une clé secrète propre à chaque démarrage, sauf si l'environnement les
+# définit explicitement (la base étant éphémère, les sessions n'ont pas à
+# survivre à un redémarrage).
+export CARNET_DEBUG="${CARNET_DEBUG:-0}"
+if [[ -z "${CARNET_SECRET_KEY:-}" ]]; then
+    CARNET_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')"
+    export CARNET_SECRET_KEY
+fi
+
 python3 manage.py migrate --noinput
 python3 manage.py preparer_demonstration
 
