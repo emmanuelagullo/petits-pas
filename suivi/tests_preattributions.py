@@ -20,30 +20,33 @@ ADRESSE = "invitee@example.test"
 
 
 class BasePreattributions(TestCase):
-    def setUp(self):
-        self.ecole = Ecole.objects.create(nom="École A")
-        self.classe = Classe.objects.create(ecole=self.ecole, nom="A1")
-        self.autre_classe = Classe.objects.create(ecole=self.ecole, nom="A2")
-        self.direction = self._membre("direction")
-        ResponsabiliteEcole.objects.create(appartenance=self.direction_a)
-        self.responsable = self._membre("responsable", AffectationClasse.RESPONSABLE)
-        self.associe = self._membre("associe", AffectationClasse.ENSEIGNANT_ASSOCIE)
-        self.contributeur = self._membre("contributeur", AffectationClasse.CONTRIBUTEUR)
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.ecole = Ecole.objects.create(nom="École A")
+        cls.classe = Classe.objects.create(ecole=cls.ecole, nom="A1")
+        cls.autre_classe = Classe.objects.create(ecole=cls.ecole, nom="A2")
+        cls.direction = cls._membre("direction")
+        ResponsabiliteEcole.objects.create(appartenance=cls.direction_a)
+        cls.responsable = cls._membre("responsable", AffectationClasse.RESPONSABLE)
+        cls.associe = cls._membre("associe", AffectationClasse.ENSEIGNANT_ASSOCIE)
+        cls.contributeur = cls._membre("contributeur", AffectationClasse.CONTRIBUTEUR)
         AffectationClasse.objects.create(
-            appartenance=self.responsable_a, classe=self.autre_classe,
+            appartenance=cls.responsable_a, classe=cls.autre_classe,
             type=AffectationClasse.RESPONSABLE)
-        self.classe.activer()
-        self.autre_classe.activer()
-        self.url_collaborateurs = reverse("collaborateurs_classe", args=[self.classe.pk])
+        cls.classe.activer()
+        cls.autre_classe.activer()
+        cls.url_collaborateurs = reverse("collaborateurs_classe", args=[cls.classe.pk])
 
-    def _membre(self, nom, fonction=None):
+    @classmethod
+    def _membre(cls, nom, fonction=None):
         utilisateur = get_user_model().objects.create_user(
             nom, email=f"{nom}@example.test", password=MOT_DE_PASSE)
-        appartenance = AppartenanceEcole.objects.create(utilisateur=utilisateur, ecole=self.ecole)
-        setattr(self, f"{nom}_a", appartenance)
+        appartenance = AppartenanceEcole.objects.create(utilisateur=utilisateur, ecole=cls.ecole)
+        setattr(cls, f"{nom}_a", appartenance)
         if fonction:
             AffectationClasse.objects.create(
-                appartenance=appartenance, classe=self.classe, type=fonction)
+                appartenance=appartenance, classe=cls.classe, type=fonction)
         return utilisateur
 
     def inviter_avec_fonction(self, adresse=ADRESSE, classes=None, type=AffectationClasse.CONTRIBUTEUR):

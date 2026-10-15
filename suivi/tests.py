@@ -405,43 +405,45 @@ class AnneeScolaireUtilitaires(TestCase):
 
 
 class Base(TestCase):
-    def setUp(self):
-        self.ecole = Ecole.objects.create(nom="Les Tilleuls")
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.ecole = Ecole.objects.create(nom="Les Tilleuls")
         Utilisateur = get_user_model()
-        self.enseignant = Utilisateur.objects.create_user(
+        cls.enseignant = Utilisateur.objects.create_user(
             username="enseignant-test",
             password="ens-mdp",
         )
-        self.direction = Utilisateur.objects.create_user(
+        cls.direction = Utilisateur.objects.create_user(
             username="direction-test",
             password="dir-mdp",
         )
-        self.classe = Classe.objects.create(ecole=self.ecole, nom="PS-MS")
-        self.appartenance_enseignant = AppartenanceEcole.objects.create(
-            utilisateur=self.enseignant, ecole=self.ecole
+        cls.classe = Classe.objects.create(ecole=cls.ecole, nom="PS-MS")
+        cls.appartenance_enseignant = AppartenanceEcole.objects.create(
+            utilisateur=cls.enseignant, ecole=cls.ecole
         )
-        self.appartenance_direction = AppartenanceEcole.objects.create(
-            utilisateur=self.direction, ecole=self.ecole
+        cls.appartenance_direction = AppartenanceEcole.objects.create(
+            utilisateur=cls.direction, ecole=cls.ecole
         )
         ResponsabiliteEcole.objects.create(
-            appartenance=self.appartenance_direction,
+            appartenance=cls.appartenance_direction,
             type=ResponsabiliteEcole.DIRECTION,
         )
         AffectationClasse.objects.create(
-            appartenance=self.appartenance_enseignant,
-            classe=self.classe,
+            appartenance=cls.appartenance_enseignant,
+            classe=cls.classe,
             type=AffectationClasse.RESPONSABLE,
         )
-        self.classe.activer()
-        self.eleve = Eleve.objects.create(ecole=self.ecole, prenom="Lou")
-        self.scolarite = Scolarite.objects.create(
-            eleve=self.eleve,
-            classe=self.classe,
-            annee_scolaire=self.classe.annee_scolaire,
+        cls.classe.activer()
+        cls.eleve = Eleve.objects.create(ecole=cls.ecole, prenom="Lou")
+        cls.scolarite = Scolarite.objects.create(
+            eleve=cls.eleve,
+            classe=cls.classe,
+            annee_scolaire=cls.classe.annee_scolaire,
             niveau="PS",
         )
-        domaine = Domaine.objects.create(ecole=self.ecole, code="LANG", nom="Langage")
-        self.competence = Competence.objects.create(
+        domaine = Domaine.objects.create(ecole=cls.ecole, code="LANG", nom="Langage")
+        cls.competence = Competence.objects.create(
             domaine=domaine, code="LANG-01", libelle="Je dis mon prénom", niveau="PS"
         )
 
