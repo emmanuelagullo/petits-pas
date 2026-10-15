@@ -24,9 +24,23 @@ fictives.
 Avant de proposer une modification, exécuter lorsque cela s'applique :
 
 ```sh
-python3 manage.py test
+python3 manage.py collectstatic --noinput
+python3 manage.py test --settings=carnet.settings_tests --durations 30 --timing
 python3 manage.py makemigrations --check --dry-run
 bash -n start-atelier.sh start-persistent.sh start-render.sh scripts/*.sh
 hugo --source site --minify
 git diff --check
 ```
+
+`carnet.settings_tests` accélère uniquement le hachage des mots de passe
+fictifs. Il doit être choisi explicitement : ne pas l'utiliser pour lancer
+le service, préparer une école ou construire une distribution. Les tests
+d'authentification ordinaire et le scénario d'export complet d'école gardent
+le hachage Django par défaut ; les sous-processus d'export utilisent
+`carnet.settings`. Pour comparer avec les paramètres habituels, omettre
+`--settings=carnet.settings_tests`.
+
+`--durations 30` affiche les trente tests les plus lents ; `--timing`
+distingue notamment la préparation des bases de leur utilisation. Les fixtures
+de classe ne sont pas attribuées à chaque durée individuelle. Comparer les
+durées à environnement équivalent.
