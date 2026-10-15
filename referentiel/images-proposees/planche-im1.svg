@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+<rect width="1200" height="720" fill="#f4f5f0"/>
+<g font-family="DejaVu Sans, sans-serif" fill="#243c35">
+<text x="40" y="48" font-size="30" font-weight="bold" fill="#243c35">Images proposées par défaut</text>
+<text x="40" y="80" font-size="17" font-weight="normal" fill="#243c35">#IM1 · Échantillon de discussion · Images déjà présentes dans Petits Pas</text>
+<rect x="40" y="110" width="350" height="365" rx="16" fill="white" stroke="#d8dfd8"/>
+<text x="60" y="144" font-size="12" font-weight="bold" fill="#527064">ACTIVITÉ</text>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 80 80" x="60" y="155">
+  <ns0:rect x="3" y="3" width="74" height="74" rx="18" fill="#f1f6ed" />
+  <ns0:path d="M40 24Q27 17 14 22v37q13-5 26 2 13-7 26-2V22q-13-5-26 2z" fill="#fff" stroke="#355b48" stroke-width="3" stroke-linejoin="round" />
+  <ns0:path d="M40 25v35M22 32l10 2m-10 8 10 2m16-10 10-2m-10 12 10-2" fill="none" stroke="#355b48" stroke-width="3" stroke-linecap="round" />
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 80 80" x="195" y="208">
+  <ns0:rect x="3" y="3" width="74" height="74" rx="18" fill="#f1f6ed" />
+  <ns0:path d="M40 24Q27 17 14 22v37q13-5 26 2 13-7 26-2V22q-13-5-26 2z" fill="#fff" stroke="#355b48" stroke-width="3" stroke-linejoin="round" />
+  <ns0:path d="M40 25v35M22 32l10 2m-10 8 10 2m16-10 10-2m-10 12 10-2" fill="none" stroke="#355b48" stroke-width="3" stroke-linecap="round" />
+</ns0:svg>
+<text x="195" y="263" font-size="12" font-weight="normal" fill="#243c35">32 px</text>
+<text x="60" y="301" font-size="20" font-weight="bold" fill="#243c35">Raconter une histoire</text>
+<text x="60" y="353" font-size="14" font-weight="normal" fill="#243c35">Trame Petits Pas · LANG-07</text>
+<text x="60" y="391" font-size="15" font-weight="normal" fill="#243c35">Association existante.</text>
+<text x="60" y="415" font-size="15" font-weight="normal" fill="#243c35">Le livre évoque le support,</text>
+<text x="60" y="439" font-size="15" font-weight="normal" fill="#243c35">le texte précise l’activité.</text>
+<rect x="425" y="110" width="350" height="365" rx="16" fill="white" stroke="#d8dfd8"/>
+<text x="445" y="144" font-size="12" font-weight="bold" fill="#527064">ACTIVITÉ</text>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="445" y="155" width="100" height="100">
+  <ns0:g id="color">
+    <ns0:polygon fill="#3F3F3F" stroke="none" points="14.5943,53.154 18.2544,56.814 12.6242,59.0928" />
+    <ns0:polyline fill="#f4aa41" stroke="none" points="18.0381,41.8761 36.8684,23.0457 48.1813,34.3586 29.5108,53.0291" />
+    <ns0:polyline fill="#a57939" stroke="none" points="14.4132,52.5663 17.9281,43.3946 27.8278,53.2939 18.6558,56.809" />
+    <ns0:polyline fill="#EA5A47" stroke="none" points="42.9209,16.9933 50.4228,9.4913 61.7357,20.8042 54.2975,28.2424" />
+    <ns0:polyline fill="#9b9b9a" stroke="none" points="35.6498,24.2643 43.3318,16.5823 54.6447,27.8952 47.0278,35.512" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="18.6304,56.8203 27.8278,53.2939 53.8207,27.301 43.9212,17.4015 17.9281,43.3946 14.3904,52.6032" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="47.3354,13.9873 50.8388,10.4839 60.7383,20.3834 57.2645,23.8572" />
+    <ns0:line x1="18.5562" x2="28.4557" y1="42.7665" y2="52.6659" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="14.3979,52.5817 11.9073,59.3148 18.6558,56.809" />
+    <ns0:line x1="36.9099" x2="46.4225" y1="25.0073" y2="34.5199" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="580" y="208" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:polygon fill="#3F3F3F" stroke="none" points="14.5943,53.154 18.2544,56.814 12.6242,59.0928" />
+    <ns0:polyline fill="#f4aa41" stroke="none" points="18.0381,41.8761 36.8684,23.0457 48.1813,34.3586 29.5108,53.0291" />
+    <ns0:polyline fill="#a57939" stroke="none" points="14.4132,52.5663 17.9281,43.3946 27.8278,53.2939 18.6558,56.809" />
+    <ns0:polyline fill="#EA5A47" stroke="none" points="42.9209,16.9933 50.4228,9.4913 61.7357,20.8042 54.2975,28.2424" />
+    <ns0:polyline fill="#9b9b9a" stroke="none" points="35.6498,24.2643 43.3318,16.5823 54.6447,27.8952 47.0278,35.512" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="18.6304,56.8203 27.8278,53.2939 53.8207,27.301 43.9212,17.4015 17.9281,43.3946 14.3904,52.6032" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="47.3354,13.9873 50.8388,10.4839 60.7383,20.3834 57.2645,23.8572" />
+    <ns0:line x1="18.5562" x2="28.4557" y1="42.7665" y2="52.6659" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="14.3979,52.5817 11.9073,59.3148 18.6558,56.809" />
+    <ns0:line x1="36.9099" x2="46.4225" y1="25.0073" y2="34.5199" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="580" y="263" font-size="12" font-weight="normal" fill="#243c35">32 px</text>
+<text x="445" y="301" font-size="20" font-weight="bold" fill="#243c35">Dessiner avec une intention</text>
+<text x="445" y="353" font-size="14" font-weight="normal" fill="#243c35">Chat d’École · ARTS-O002</text>
+<text x="445" y="391" font-size="15" font-weight="normal" fill="#243c35">Association proposée.</text>
+<text x="445" y="415" font-size="15" font-weight="normal" fill="#243c35">Le crayon évoque le dessin,</text>
+<text x="445" y="439" font-size="15" font-weight="normal" fill="#243c35">pas la réussite de l’enfant.</text>
+<rect x="810" y="110" width="350" height="365" rx="16" fill="white" stroke="#d8dfd8"/>
+<text x="830" y="144" font-size="12" font-weight="bold" fill="#527064">ACTIVITÉ / THÈME</text>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="830" y="155" width="100" height="100">
+  <ns0:g id="color">
+    <ns0:path fill="#B1CC33" stroke="none" d="M51.935,35.8718c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226 s-6.7648-5.4824-6.7648-5.4824S47.7371,34.9462,51.935,35.8718z" />
+    <ns0:path fill="#5C9E31" stroke="none" d="M22.3618,19.992c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149 s-6.0978-6.2158-6.0978-6.2158S18.2963,18.5952,22.3618,19.992z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="36,63.1661 36,51.1661 31,29.1661" />
+    <ns0:line x1="36" x2="41" y1="51.1661" y2="41.1661" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22.3618,19.992 c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149s-6.0978-6.2158-6.0978-6.2158 S18.2963,18.5952,22.3618,19.992z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M51.935,35.8718 c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226s-6.7648-5.4824-6.7648-5.4824 S47.7371,34.9462,51.935,35.8718z" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="965" y="208" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#B1CC33" stroke="none" d="M51.935,35.8718c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226 s-6.7648-5.4824-6.7648-5.4824S47.7371,34.9462,51.935,35.8718z" />
+    <ns0:path fill="#5C9E31" stroke="none" d="M22.3618,19.992c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149 s-6.0978-6.2158-6.0978-6.2158S18.2963,18.5952,22.3618,19.992z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="36,63.1661 36,51.1661 31,29.1661" />
+    <ns0:line x1="36" x2="41" y1="51.1661" y2="41.1661" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22.3618,19.992 c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149s-6.0978-6.2158-6.0978-6.2158 S18.2963,18.5952,22.3618,19.992z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M51.935,35.8718 c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226s-6.7648-5.4824-6.7648-5.4824 S47.7371,34.9462,51.935,35.8718z" />
+  </ns0:g>
+</ns0:svg>
+<text x="965" y="263" font-size="12" font-weight="normal" fill="#243c35">32 px</text>
+<text x="830" y="301" font-size="20" font-weight="bold" fill="#243c35">Prendre soin</text>
+<text x="830" y="327" font-size="20" font-weight="bold" fill="#243c35">des plantations</text>
+<text x="830" y="353" font-size="14" font-weight="normal" fill="#243c35">Petits Pas étayé · R09</text>
+<text x="830" y="391" font-size="15" font-weight="normal" fill="#243c35">Association existante.</text>
+<text x="830" y="415" font-size="15" font-weight="normal" fill="#243c35">Réserve pour VIVANT-O003 :</text>
+<text x="830" y="439" font-size="15" font-weight="normal" fill="#243c35">la plante exclut les élevages.</text>
+<text x="40" y="519" font-size="22" font-weight="bold" fill="#243c35">Règle proposée : seulement sans photo dans le carnet</text>
+<text x="40" y="554" font-size="17" font-weight="normal" fill="#243c35">Sans photo : illustration. Avec des photos : choisir de garder aussi l’illustration ou de la cacher.</text>
+<text x="40" y="586" font-size="17" font-weight="normal" fill="#243c35">Les photos collectives et personnelles des traces affichées restent toutes dans le carnet.</text>
+<text x="40" y="623" font-size="16" font-weight="normal" fill="#243c35">Les illustrations présentent les activités ; elles ne constituent pas une production de l’enfant.</text>
+<text x="40" y="663" font-size="13" font-weight="normal" fill="#243c35">Livre : Petits Pas · Crayon et pousse : OpenMoji, HfG Schwäbisch Gmünd et contributeurs, 17.0.0.</text>
+<text x="40" y="687" font-size="13" font-weight="normal" fill="#243c35">Images : CC BY-SA 4.0 · https://creativecommons.org/licenses/by-sa/4.0/ · Dessins repris sans retouche.</text>
+</g>
+</svg>
