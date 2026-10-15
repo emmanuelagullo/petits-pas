@@ -86,3 +86,20 @@ local ; les adaptations école/classe restent prioritaires.
 Les éditions 2026.2 sont conservées sous `editions/`. Les classes déjà préparées
 gardent leur version jusqu’à une adoption explicite. Les nouveaux dessins sont
 néanmoins disponibles dans **Image fournie**, sans changer de base.
+
+## Petit complément dans les éditions 2026.4 — #IM8
+
+Quatre associations sont ajoutées par source, soit 34 dans les objectifs des
+programmes, 34 dans Chat d’École et 42 dans Petits Pas étayé. Le livre ouvert
+évoque le support du travail sur les personnages (`LANG-O061` et `LANG-O066`) ;
+le calendrier évoque les repères et événements dans la semaine (`TEMPS-O006`
+et `TEMPS-O010`). Voir la [petite planche](planche-im8.svg) et le
+[manifeste explicite](associations-im8.yaml). Les textes et identités restent
+inchangés. Aucun nouveau dessin, service externe ou crédit par image n’est ajouté.
+
+Les éditions 2026.3 restent sous `editions/` ; le manifeste IM6 pointe désormais
+vers leurs fichiers archivés, dont les octets et empreintes sont inchangés.
+La plupart des entrées restent sans image. Les objectifs composites (plantes
+et animaux, hygiène de vie, techniques plastiques variées) ne reçoivent pas
+un dessin représentant seulement une de leurs composantes. Les images locales
+restent disponibles indépendamment de la version adoptée.

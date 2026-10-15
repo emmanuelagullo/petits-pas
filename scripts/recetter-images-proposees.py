@@ -186,9 +186,10 @@ def main():
                     garde_attendue=apercu['garde']['empreinte'])
                 eleve = Eleve.objects.create(ecole=ecole, prenom='Camille', nom='Fictif')
                 Scolarite.objects.create(eleve=eleve, classe=exemple, annee_scolaire=classe.annee_scolaire, niveau='MS')
-                selection = {'LANG-O062', 'LANG-O080', 'PHYS-O002', 'ARTS-O048', 'MATH-O066'}
+                selection = {'LANG-O062', 'LANG-O080', 'PHYS-O002', 'ARTS-O048', 'MATH-O066',
+                             'LANG-O061', 'LANG-O066', 'TEMPS-O006', 'TEMPS-O010'}
                 definitions = [c for c in contenu_adoption(adoption)['competences'] if c['code'] in selection]
-                assert len(definitions) == 5
+                assert len(definitions) == len(selection)
                 for definition in definitions:
                     modifier_etat(utilisateur=responsable, eleve=eleve,
                         competence=Competence.objects.get(pk=definition['id']), statut='en_cours')
@@ -196,14 +197,14 @@ def main():
                 web = client.get(reverse('carnet', args=[eleve.pk]), options)
                 assert web.status_code == 200
                 html = web.content.decode()
-                assert html.count('class="icone-competence"') == 5
+                assert html.count('class="icone-competence"') == len(selection)
                 assert html.count('>OpenMoji</a>') == 1
                 apercu_autonome(html, nom, eleve.prenom)
                 pdf = client.get(reverse('carnet_pdf', args=[eleve.pk]), options)
                 assert pdf.status_code == 200 and pdf.content.startswith(b'%PDF')
                 (destination / (nom+'.pdf')).write_bytes(pdf.content)
                 rapport.append({'source': version.source.identifiant, 'version': version.numero,
-                    'photos': 0, 'illustrations': 5, 'credits_openmoji': 1, 'pdf_octets': len(pdf.content)})
+                    'photos': 0, 'illustrations': len(selection), 'credits_openmoji': 1, 'pdf_octets': len(pdf.content)})
                 liens.append(f'<li>{nom}, édition {version.numero} : <a href="{nom}.html">carnet web</a> · <a href="{nom}.pdf">PDF</a></li>')
         (destination / 'rapport.json').write_text(json.dumps(rapport, ensure_ascii=False, indent=2))
         (destination / 'index.html').write_text('<!doctype html><html lang="fr"><meta charset="utf-8">'

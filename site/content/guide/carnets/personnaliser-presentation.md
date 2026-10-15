@@ -59,8 +59,9 @@ pas nécessairement tout un objectif. Choisissez une image seulement si elle
 aide à comprendre l’apprentissage. Une absence d’image est tout à fait possible.
 Le choix d’une image dans ce menu ne change pas le référentiel de la classe.
 Les nouveaux dessins restent disponibles même si la classe garde une ancienne
-édition. Les éditions 2026.3 proposent davantage d’associations fournies, sans
-modifier les apprentissages ; leur adoption reste séparée du choix local d’image.
+édition. Les éditions 2026.4 proposent davantage d’associations fournies, sans
+modifier les apprentissages. Les quatre ajouts de cette édition concernent les
+personnages des récits et les repères dans la semaine ; leur adoption reste séparée du choix local d’image.
 
 Les petites icônes apparaissent aussi dans les listes de compétences. Elles sont placées à côté du niveau et avant le texte ; les boutons de photo à droite signalent, eux, des photos dans les traces de l’élève.
 

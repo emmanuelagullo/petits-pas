@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Images proposées : éditions 2026.4, avec quatre associations supplémentaires
+  par source pour les personnages des récits et les repères dans la semaine.
+  Aucun nouveau dessin ni changement pédagogique. Les éditions 2026.3 restent
+  disponibles ; les classes existantes et leurs choix locaux sont conservés.
+
 - Images proposées : galerie dépliable des 22 dessins dans les réglages d’un
   apprentissage. Le menu et l’aperçu restent disponibles ; choisir un dessin
   ne l’enregistre pas automatiquement. Hériter, remplacer et désactiver gardent

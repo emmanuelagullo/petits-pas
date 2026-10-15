@@ -107,7 +107,7 @@ class AssociationsIM6(SimpleTestCase):
         avant = {e['identite']: e for e in entrees(yaml.safe_load(
             (racine / 'cycle1/editions/cycle1-etaye-2026.2.yaml').read_text()))}
         apres = {e['identite']: e for e in entrees(yaml.safe_load(
-            (racine / 'cycle1/cycle1-etaye.yaml').read_text()))}
+            (racine / 'cycle1/editions/cycle1-etaye-2026.3.yaml').read_text()))}
         self.assertEqual(set(avant), set(apres))
         for retrait in manifeste['retraits']:
             identite = retrait['identite']
@@ -116,7 +116,7 @@ class AssociationsIM6(SimpleTestCase):
             self.assertTrue(retrait['raison'])
 
 
-class ImportEditionsIM6(Base):
+class ImportEditionsIM8(Base):
     def test_import_versions_precedentes_et_nouvelles_sans_bascule_de_classe(self):
         from .models import AdoptionReferentiel, Observation, Trace
         from .services.import_sources_referentiels import importer_source
@@ -127,7 +127,7 @@ class ImportEditionsIM6(Base):
         observations = list(Observation.objects.values())
         traces = list(Trace.objects.values())
         racine = settings.BASE_DIR
-        manifeste = yaml.safe_load((racine / 'referentiel/images-proposees/associations-im6.yaml').read_text())
+        manifeste = yaml.safe_load((racine / 'referentiel/images-proposees/associations-im8.yaml').read_text())
         for entree in manifeste['versions']:
             avant = importer_source((racine / entree['precedente']).read_text())[0]
             contenu_avant = deepcopy(avant.contenu)
@@ -136,7 +136,54 @@ class ImportEditionsIM6(Base):
             self.assertEqual(avant.contenu, contenu_avant)
             self.assertNotEqual(apres.pk, avant.pk)
             self.assertEqual(apres.source_id, avant.source_id)
-            self.assertEqual((avant.numero, apres.numero), ('2026.2', '2026.3'))
+            self.assertEqual((avant.numero, apres.numero), ('2026.3', '2026.4'))
         self.assertEqual(AdoptionReferentiel.objects.get(classe=self.classe, courante=True).pk, adoption.pk)
         self.assertEqual(list(Observation.objects.values()), observations)
         self.assertEqual(list(Trace.objects.values()), traces)
+
+
+class AssociationsIM8(SimpleTestCase):
+    def test_quatre_ajouts_explicites_par_source_et_aucun_autre_changement(self):
+        racine = settings.BASE_DIR
+        manifeste = yaml.safe_load((racine / 'referentiel/images-proposees/associations-im8.yaml').read_text())
+        selections = {
+            'cycle1-objectifs-programmes': {'lang-o061': 'om-livre', 'lang-o066': 'om-livre',
+                'temps-o006': 'om-calendrier', 'temps-o010': 'om-calendrier'},
+            'petits-pas-cycle1-etaye': {'lang-o061': 'om-livre', 'lang-o066': 'om-livre',
+                'temps-o006': 'om-calendrier', 'temps-o010': 'om-calendrier'},
+            'chatdecole-tableaux-cycle1': {'cde-lang-o061': 'om-livre', 'cde-lang-o066': 'om-livre',
+                'cde-temps-o006': 'om-calendrier', 'cde-temps-o010': 'om-calendrier'},
+        }
+        self.assertEqual(len(manifeste['associations']), 110)
+        for version in manifeste['versions']:
+            with self.subTest(source=version['source']):
+                fichier, archive = racine / version['fichier'], racine / version['precedente']
+                self.assertEqual(hashlib.sha256(fichier.read_bytes()).hexdigest(), version['sha256'])
+                self.assertEqual(hashlib.sha256(archive.read_bytes()).hexdigest(), version['sha256_precedente'])
+                apres, avant = yaml.safe_load(fichier.read_text()), yaml.safe_load(archive.read_text())
+                normaliser(apres)
+                self.assertEqual((avant['version'], apres['version']), ('2026.3', '2026.4'))
+                entrees_avant = {e['identite']: e for e in entrees(avant)}
+                entrees_apres = {e['identite']: e for e in entrees(apres)}
+                self.assertEqual(entrees_avant.keys(), entrees_apres.keys())
+                changements = {cle: e['icone'] for cle, e in entrees_apres.items()
+                    if e.get('icone') != entrees_avant[cle].get('icone')}
+                self.assertEqual(changements, selections[version['source']])
+                self.assertEqual(len(changements), version['ajouts'])
+                images = {e['identite']: e['icone'] for e in entrees_apres.values() if e.get('icone')}
+                declarations = {e['identite']: e for e in manifeste['associations']
+                                if e['source'] == version['source']}
+                self.assertEqual(len(images), version['associations'])
+                self.assertEqual(images, {cle: e['image'] for cle, e in declarations.items()})
+                for cle, e in declarations.items():
+                    self.assertEqual(e['version'], '2026.4')
+                    self.assertEqual(e['libelle'], entrees_apres[cle]['libelle'])
+                    self.assertEqual(e['code'], entrees_apres[cle]['code'])
+                    self.assertIn(e['image'], catalogue_icones())
+                    self.assertTrue(e['raison'])
+                apres['version'] = avant['version']
+                for e in entrees(apres):
+                    e.pop('icone', None)
+                for e in entrees(avant):
+                    e.pop('icone', None)
+                self.assertEqual(apres, avant)

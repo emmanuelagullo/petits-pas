@@ -193,7 +193,13 @@ class InstallationLocaleTests(TestCase):
         from suivi.models import AdoptionReferentiel, ChoixEcoleAnnuel
         from suivi.services.choix_bases_referentiels import choix_bases
         adoption = AdoptionReferentiel.objects.get(classe=classe, courante=True)
-        self.assertEqual(adoption.version.numero, "2026.2")
+        from django.conf import settings
+        from suivi.services.import_sources_referentiels import lire_source
+        # L’installation charge l’édition réellement distribuée, même après
+        # un complément d’images ; ne pas figer ici un ancien numéro.
+        fourni, _ = lire_source((settings.BASE_DIR / "referentiel/cycle1/cycle1-etaye.yaml").read_text())
+        self.assertEqual(adoption.version.numero, fourni["version"])
+        self.assertEqual(adoption.version.contenu, fourni)
         self.assertFalse(ChoixEcoleAnnuel.objects.get().restreindre)
         self.assertEqual(len(choix_bases(classe.ecole, classe.annee_scolaire).versions), 3)
 
