@@ -103,9 +103,8 @@ def _effacer_second_facteur(cible):
     totp.reinitialiser(cible)
     DoubleFacteurCompte.objects.filter(utilisateur=cible).update(echeance_le=None)
     poser_echeance_si_besoin(cible, delai_de_grace=False)
-    # Une session ouverte avant la réinitialisation (appareil perdu ou volé)
-    # ne doit pas pouvoir enrôler le nouvel authentificateur : la personne
-    # se reconnecte, puis se réinscrit.
+    # Les sessions ouvertes sont fermées : la personne se reconnecte, puis se
+    # réinscrit.
     fermer_sessions_compte(cible)
 
 

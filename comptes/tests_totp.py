@@ -45,7 +45,7 @@ class Totp(TestCase):
         return cle
 
     def test_cle_illisible_apres_rotation_pendant_une_inscription_est_regeneree(self):
-        """Audit C-03 : plus d'InvalidToken quand la clé de chiffrement a changé."""
+        """Une inscription non confirmée est reprise après un changement de clé."""
         totp.commencer_inscription(self.utilisateur)
         ancienne = DoubleFacteurCompte.objects.get(utilisateur=self.utilisateur).cle_chiffree
         with override_settings(DOUBLE_FACTEUR_CLES=[cle_de_test()]):

@@ -307,7 +307,7 @@ class EcheanceDInscription(BaseAcces):
                              fetch_redirect_response=False)
 
     def test_course_sur_le_nom_d_utilisateur_donne_une_erreur_de_formulaire(self):
-        """Audit C-08 : IntegrityError -> ValidationError, la transaction reste saine."""
+        """Une contrainte d'unicité devient une erreur de formulaire."""
         from unittest import mock
 
         from django.db import IntegrityError
@@ -367,7 +367,7 @@ class InscriptionEtRetrait(BaseAcces):
         session.save()
 
     def test_connexion_recente_pas_de_mot_de_passe_demande(self):
-        """Audit C-02 : juste après la connexion, aucune saisie en plus."""
+        """Juste après la connexion, aucune saisie en plus."""
         page = self.client.get(reverse("double_facteur"))
         self.assertNotContains(page, 'name="mot_de_passe"')
 

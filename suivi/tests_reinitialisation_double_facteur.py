@@ -181,7 +181,7 @@ class ReinitialisationParLaDirection(BaseAcces):
         self.assertFalse(CodeSecoursDoubleFacteur.objects.exists())
 
     def test_la_reinitialisation_ferme_les_sessions_deja_ouvertes(self):
-        """Audit C-01 : une session ouverte avant ne peut pas enrôler le nouvel appareil."""
+        """Les sessions ouvertes sont fermées par la réinitialisation."""
         self.client.force_login(self.enseignant)
         self.assertTrue(self.est_connecte())
         self.reinitialiser()
