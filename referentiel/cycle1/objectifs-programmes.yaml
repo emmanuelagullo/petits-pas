@@ -12,7 +12,7 @@ source:
     réussite non transformés en objectifs.'
   licence: Etalab-2.0
   provisoire: true
-version: '2026.1'
+version: '2026.2'
 domaines:
 - code: LANG
   nom: Le développement et la structuration du langage oral et écrit
@@ -385,6 +385,7 @@ domaines:
       code: LANG-O080
       libelle: Tracer des lettres capitales.
       niveau: MS
+      icone: om-crayon
     - identite: lang-o081
       code: LANG-O081
       libelle: S’initier aux tracés de l’écriture cursive.
@@ -402,6 +403,7 @@ domaines:
       code: LANG-O084
       libelle: Tracer des lettres en écriture cursive, les enchainer.
       niveau: GS
+      icone: om-crayon
   - code: S09
     nom: Produire de premiers écrits
     competences:
@@ -683,6 +685,7 @@ domaines:
       code: ARTS-O002
       libelle: S’exercer progressivement au dessin avec une intention de représentation.
       niveau: PS
+      icone: om-crayon
     - identite: arts-o003
       code: ARTS-O003
       libelle: Expérimenter la diversité des outils, des supports, des matériaux et faire des choix.
@@ -691,6 +694,7 @@ domaines:
       code: ARTS-O004
       libelle: S’exercer au dessin avec une intention de représentation.
       niveau: MS
+      icone: om-crayon
     - identite: arts-o005
       code: ARTS-O005
       libelle: Dessiner pour représenter sur la base d’un modèle.
@@ -699,6 +703,7 @@ domaines:
       code: ARTS-O006
       libelle: Dessiner pour représenter un personnage ou un évènement fictif.
       niveau: GS
+      icone: om-crayon
     - identite: arts-o007
       code: ARTS-O007
       libelle: Participer à la réalisation d’une œuvre collective à partir d’une consigne ou d’un problème
@@ -1439,6 +1444,7 @@ domaines:
       code: TEMPS-O012
       libelle: Énoncer la date.
       niveau: GS
+      icone: om-calendrier
     - identite: temps-o013
       code: TEMPS-O013
       libelle: Utiliser des mois qui servent de repères pour se situer dans l’année.

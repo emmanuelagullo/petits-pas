@@ -38,7 +38,7 @@ associations:
   statut: a_reexaminer
   raison: 'La plante ne représente pas les élevages : association existante trop partielle
     pour une généralisation.'
-- fichier_referentiel: referentiel/cycle1/objectifs-programmes.yaml
+- fichier_referentiel: referentiel/cycle1/editions/objectifs-programmes-2026.1.yaml
   empreinte_referentiel: c673f18c7e547f33fccfd41b611ad12f062899103a418be423683fd670b738ec
   source: cycle1-objectifs-programmes
   version: '2026.1'
@@ -49,7 +49,7 @@ associations:
   portee: theme
   statut: non_retenue_en_attente
   raison: Objectif couvrant élevages et cultures ; ne pas réduire aux végétaux.
-- fichier_referentiel: referentiel/chatdecole/tableaux-cycle1.yaml
+- fichier_referentiel: referentiel/chatdecole/editions/tableaux-cycle1-2026.1.yaml
   empreinte_referentiel: ffaaf45ab0c4105c1ca1904e6fc665f6ca1be01bcfb3c38aa352a627e560d61f
   source: chatdecole-tableaux-cycle1
   version: '2026.1'
@@ -60,7 +60,7 @@ associations:
   portee: activite
   statut: proposee
   raison: Évoque le dessin ; ne représente pas à lui seul une intention de représentation.
-- fichier_referentiel: referentiel/chatdecole/tableaux-cycle1.yaml
+- fichier_referentiel: referentiel/chatdecole/editions/tableaux-cycle1-2026.1.yaml
   empreinte_referentiel: ffaaf45ab0c4105c1ca1904e6fc665f6ca1be01bcfb3c38aa352a627e560d61f
   source: chatdecole-tableaux-cycle1
   version: '2026.1'

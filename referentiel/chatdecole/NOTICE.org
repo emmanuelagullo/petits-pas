@@ -1,4 +1,4 @@
-#+TITLE: Chat d’école — Tableaux cycle 1 (pilote), édition 2026.1
+#+TITLE: Chat d’école — Tableaux cycle 1 (pilote), édition 2026.2
 #+DATE: 2026-10-01
 #+LANGUAGE: fr
 
@@ -42,7 +42,8 @@ Les textes importés ne sont pas des reformulations nouvelles de Petits Pas.
 Ils restent à interpréter avec le contexte des programmes, les activités et
 les aides proposées. Une liste complète ne signifie pas que chaque ligne doit
 faire l’objet d’une épreuve ou d’une validation isolée.
-Aucune illustration ni phrase proposée n’est ajoutée à cette édition.
+L’édition 2026.1 ne comportait aucune illustration ni phrase proposée.
+L’édition 2026.2 ajoute seulement les six associations décrites plus bas.
 
 REGISTRE.csv indique, pour chacune des entrées, le fichier Word et les numéros
 de paragraphes du XML document.xml (comptés à partir de 1). Le repère vers
@@ -54,7 +55,7 @@ Les documents tiers Word/PDF ne sont pas joints à la conversion.
 
 * Identités et versions
 
-Source =chatdecole-tableaux-cycle1= ; version =2026.1= ; statut pilote.
+Source =chatdecole-tableaux-cycle1= ; version =2026.2= ; statut pilote.
 Chaque identité =cde-…= est attribuée une fois dans cette première édition,
 indépendamment de son ordre dans une prochaine version. Les codes facilitent
 la lecture, mais ne prouvent pas une identité commune entre sources.
@@ -72,3 +73,20 @@ conservent leurs bases respectives. Chaque classe choisit sa source explicitemen
 Le démarrage Render prépare ce scénario dans le jeu fictif. Il ne faut pas
 l’exécuter sur une école réelle. Importer, autoriser au catalogue et adopter
 une base restent des actions distinctes.
+
+* Images proposées — #IM4
+
+L’édition =2026.2= conserve les 417 entrées, leurs textes et identités.
+Elle ajoute six associations OpenMoji : crayon pour le dessin et le tracé de
+lettres, calendrier pour dire la date. Voir
+=../images-proposees/associations-im4.yaml=. Les SVG ne proviennent pas de
+Chat d’École : OpenMoji 17.0.0, HfG Schwäbisch Gmünd et contributeurs,
+CC BY-SA 4.0, sans retouche. Les détails restent dans =../ILLUSTRATIONS-CR5.yaml=
+et la licence accompagne les fichiers. Une seule mention discrète crédite
+OpenMoji dans le carnet lorsqu’une de ces images est affichée.
+
+L’accord de réutilisation discuté pour ce projet a été confirmé par Chat
+d’École au porteur du projet ; il ne vaut pas autorisation pour des images
+tierces. Les conditions et la provenance des textes restent distinctes.
+La version =2026.1= est conservée dans =editions/tableaux-cycle1-2026.1.yaml=.
+Importer la nouvelle version ne l’adopte pour aucune classe.

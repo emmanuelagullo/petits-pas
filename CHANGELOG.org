@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Images proposées : les objectifs des programmes et les tableaux Chat d’École
+  passent en édition 2026.2 pour six associations chacun (dessin, tracé des
+  lettres et date). Aucun texte, niveau ou apprentissage n’est modifié. Les
+  anciennes éditions restent disponibles ; aucune adoption automatique.
+
 - Images proposées : choisir à l’école ou dans la classe si l’illustration
   reste visible lorsqu’une photo de l’apprentissage figure dans le carnet.
   Les photos collectives et personnelles des traces affichées restent toutes

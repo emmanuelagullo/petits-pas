@@ -10,9 +10,9 @@ approuvées par le ministère ou par une équipe pédagogique.
 
 | Offre | Édition | Contenu | Classe fictive prête à essayer |
 |---|---|---|---|
-| Cycle 1 — Objectifs des programmes | 2026.1 | 426 objectifs dans leur rédaction officielle | Les Hirondelles, avec Nadia |
+| Cycle 1 — Objectifs des programmes | 2026.2 | 426 objectifs inchangés et six associations d’images | Les Hirondelles, avec Nadia |
 | Petits Pas — Cycle 1, objectifs et repères (pilote) | 2026.2 | Les mêmes 426 objectifs, 12 repères ciblés et 17 associations d’illustrations | Les Mésanges, avec Rémi |
-| Chat d’école — Tableaux cycle 1 (pilote) | 2026.1 | 417 entrées issues des tableaux par niveau, six domaines, sans EVAR | Les Pinsons, avec Rémi |
+| Chat d’école — Tableaux cycle 1 (pilote) | 2026.2 | 417 entrées inchangées, six domaines, sans EVAR et six associations d’images | Les Pinsons, avec Rémi |
 
 Dans l’offre étayée, **Objectif :** annonce le texte officiel et **Repère :**
 une reformulation Petits Pas. Les douze repères seuls ne couvrent pas tout le
@@ -69,8 +69,8 @@ que tout a déjà été travaillé.
 Pour essayer **Chat d’école**, rester connecté avec Rémi et ouvrir
 **Les Pinsons — 2026-2027** : 12 autres élèves fictifs, quatre PS, quatre MS et
 quatre GS. Consulter le référentiel de la classe, les observations d’Ada E.
-et son carnet. Cette base conserve les textes des tableaux, sans EVAR,
-illustration ni phrase ajoutée. La [notice et les crédits](../../referentiels/chatdecole/NOTICE.org)
+et son carnet. Cette base conserve les textes des tableaux, sans EVAR ni
+phrase ajoutée ; six images OpenMoji sont proposées dans l’édition 2026.2. La [notice et les crédits](../../referentiels/chatdecole/NOTICE.org)
 et le [registre de transcription](../../referentiels/chatdecole/REGISTRE.csv)
 accompagnent son essai. Aucun suivi n’est copié depuis les autres classes.
 
@@ -91,9 +91,9 @@ expliquent les actions possibles.
 
 {{< capture-guide src="captures/referentiels/cycle1/mesanges.png" alt="Référentiel de la classe fictive des Mésanges, édition étayée 2026.2" caption="Rémi suit les Mésanges avec l’offre étayée. Données fictives." >}}
 
-{{< capture-guide src="captures/referentiels/cycle1/hirondelles.png" alt="Référentiel de la classe fictive des Hirondelles, objectifs officiels 2026.1" caption="Nadia suit les Hirondelles avec les objectifs officiels seuls. Données fictives." >}}
+{{< capture-guide src="captures/referentiels/cycle1/hirondelles.png" alt="Référentiel de la classe fictive des Hirondelles, objectifs officiels 2026.2" caption="Nadia suit les Hirondelles avec les objectifs officiels seuls. Données fictives." >}}
 
-{{< capture-guide src="captures/referentiels/cycle1/pinsons.png" alt="Référentiel de la classe fictive des Pinsons, tableaux Chat d’école 2026.1" caption="Rémi suit les Pinsons avec les tableaux Chat d’école. Données fictives." >}}
+{{< capture-guide src="captures/referentiels/cycle1/pinsons.png" alt="Référentiel de la classe fictive des Pinsons, tableaux Chat d’école 2026.2" caption="Rémi suit les Pinsons avec les tableaux Chat d’école. Données fictives." >}}
 
 ## Sources et droits
 
@@ -139,10 +139,10 @@ permet pas de transférer automatiquement une réussite.
 
 ## Télécharger les fichiers
 
-- [Objectifs officiels, YAML 2026.1](../../referentiels/cycle1/objectifs-programmes.yaml)
+- [Objectifs officiels, YAML 2026.2](../../referentiels/cycle1/objectifs-programmes.yaml)
 - [Édition étayée, YAML 2026.2](../../referentiels/cycle1/cycle1-etaye.yaml)
 - [Registre de provenance et de sens, CSV](../../referentiels/cycle1/REGISTRE.csv)
-- [Chat d’école, YAML 2026.1](../../referentiels/chatdecole/tableaux-cycle1.yaml)
+- [Chat d’école, YAML 2026.2](../../referentiels/chatdecole/tableaux-cycle1.yaml)
 
 Les fichiers utilisent l’import versionné de Petits Pas. Télécharger ou importer
 une source ne change pas automatiquement le référentiel d’une classe.

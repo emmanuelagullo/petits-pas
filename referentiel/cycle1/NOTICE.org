@@ -1,4 +1,4 @@
-#+TITLE: Cycle 1 — objectifs des programmes et édition étayée 2026.1
+#+TITLE: Cycle 1 — objectifs des programmes et édition étayée
 #+DATE: 2026-10-01
 #+LANGUAGE: fr
 
@@ -119,8 +119,18 @@ réussite et ne change pas l’identité de l’apprentissage.
 
 * Illustrations et versions
 
-L’offre officielle reste en version =2026.1=. L’offre étayée passe en =2026.2=
+Lors de #CR5, l’offre officielle restait en =2026.1= et l’offre étayée passait en =2026.2=
 pour les 17 associations d’icônes, sans changement d’apprentissage ni d’identité.
 La version étayée =2026.1= sans icônes est conservée dans =editions/= pour
 permettre de reproduire un import déjà effectué. Voir
 =../ILLUSTRATIONS-CR5.org= pour les crédits et les choix de correspondance.
+
+* Images proposées — #IM4
+
+L’offre Objectifs des programmes passe en =2026.2= pour six associations
+explicites, sans modification des apprentissages : dessin et tracé de lettres
+(crayon), date (calendrier). La version =2026.1= reste disponible dans
+=editions/objectifs-programmes-2026.1.yaml=. L’offre étayée reste en =2026.2=.
+Le manifeste =../images-proposees/associations-im4.yaml= conserve les identités
+et justifications ; les crédits OpenMoji 17.0.0 restent dans les fichiers #CR5.
+Aucune classe existante n’adopte automatiquement ces associations.
