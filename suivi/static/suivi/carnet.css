@@ -619,6 +619,18 @@ textarea { min-height: 7rem; resize: vertical; }
 .entree:hover .detail-repartition, .entree:focus .detail-repartition { display: inline; }
 .aide-presentation { margin: 1rem 0; }
 .aide-presentation summary { cursor: pointer; }
+.champ-presentation { margin: 1rem 0; }
+.galerie-images { margin: 1rem 0; }
+.galerie-images summary { cursor: pointer; }
+.grille-images { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: .5rem; }
+.grille-images button {
+  display: flex; flex-direction: column; align-items: center; gap: .35rem;
+  padding: .6rem; border: 2px solid var(--trait); border-radius: var(--rayon);
+  background: var(--papier); color: var(--ardoise); font: inherit; cursor: pointer;
+}
+.grille-images button[aria-pressed="true"] { border-color: var(--reussi); background: #edf5ed; }
+.grille-images button:focus-visible { outline: 3px solid var(--ardoise); outline-offset: 2px; }
+.grille-images img { object-fit: contain; }
 [data-presentation] textarea[readonly], [data-presentation] :disabled { background: #eee; color: #666; }
 .photo-couverture { display: block; max-width: 100%; max-height: 75mm; object-fit: contain; margin: 1rem auto; }
 .propositions-commentaire {

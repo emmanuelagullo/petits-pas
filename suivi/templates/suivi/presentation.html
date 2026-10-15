@@ -35,12 +35,30 @@
     <p><strong>Remplacer :</strong> choisir votre propre image. Vous garderez ce choix même si l'image proposée change.</p>
     <p><strong>Désactiver :</strong> ne pas afficher d'image {% if classe %}pour cette classe{% else %}par défaut pour l'école. Chaque classe pourra encore choisir une image{% endif %}.{% if not competence %} La page de couverture reste présente.{% endif %}</p>
     <p>Vous pouvez changer d'avis à tout moment. Choisir <strong>Hériter</strong> permet de reprendre l'image proposée.</p>
-    <p>Pour remplacer, choisissez soit une icône fournie, soit une image importée. Pour passer d'une image importée à une icône, cochez aussi « Effacer ».</p>
+    <p>Pour remplacer, choisissez soit une image fournie, soit une image importée. Pour passer d'une image importée à une image fournie, cochez aussi « Effacer ».</p>
   </details>
   <form method="post" enctype="multipart/form-data" data-presentation="illustration">
     {% csrf_token %}<input type="hidden" name="action" value="illustration">
-    {{ form.as_p }}
-    {% if competence %}<p data-apercu-icone hidden>Icône choisie : <img class="icone-apercu" alt=""></p>{% endif %}
+    {{ form.non_field_errors }}
+    {% for champ in form %}
+    <div class="champ-presentation">{{ champ.as_field_group }}</div>
+    {% if champ.name == 'icone' %}
+    <details class="galerie-images" data-galerie-images hidden>
+      <summary>Voir les {{ images_fournies|length }} images fournies</summary>
+      <p>Choisissez un dessin, puis enregistrez l’illustration. Une image illustre l’apprentissage ; elle ne représente pas le travail d’un enfant.</p>
+      <div class="grille-images">
+        {% for cle, image in images_fournies.items %}
+        <button type="button" data-choisir-image="{{ cle }}" aria-pressed="false">
+          <img src="{% static image.fichier %}" alt="" width="48" height="48" loading="lazy">
+          <span>{{ image.nom }}</span>
+        </button>
+        {% endfor %}
+      </div>
+      <p class="secondaire">Dessins : <a href="https://openmoji.org/">OpenMoji</a> et Petits Pas — <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>.</p>
+    </details>
+    {% endif %}
+    {% endfor %}
+    {% if competence %}<p data-apercu-icone aria-live="polite" hidden>Image choisie : <img class="icone-apercu" alt=""></p>{% endif %}
     <p data-aide-champs>Les champs d'image sont modifiables avec « Remplacer ».</p>
     <button class="bouton" type="submit">Enregistrer l'illustration</button>
   </form>

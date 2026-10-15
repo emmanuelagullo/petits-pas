@@ -202,6 +202,42 @@ class ParcoursPresentation(Base):
         self.assertContains(page, 'id="icones-apercu"')
         self.assertNotContains(page, 'details open')
 
+    def test_galerie_facultative_partage_le_catalogue_et_le_champ_existant(self):
+        self.client.force_login(self.enseignant)
+        url = reverse("presentation_competence_classe", args=[self.classe.pk, self.competence.pk])
+        page = self.client.get(url)
+        self.assertContains(page, 'name="icone"', count=1)
+        self.assertContains(page, 'data-galerie-images hidden', count=1)
+        for cle, image in catalogue_icones().items():
+            self.assertContains(page, f'data-choisir-image="{cle}"', count=1)
+            self.assertContains(page, image["nom"])
+        self.assertFalse(ReglagePresentation.objects.exists())
+        # Le même POST sert au menu, à la galerie et à un navigateur sans JS.
+        self.assertEqual(self.client.post(url, {"mode": "remplacer", "icone": "om-livre"}).status_code, 302)
+        self.assertEqual(illustration_effective(self.ecole, self.competence, self.classe).icone, "om-livre")
+        page = self.client.get(reverse("presentation_classe", args=[self.classe.pk]))
+        self.assertNotContains(page, 'data-galerie-images')
+        # Une valeur forgée ne doit pas contourner le catalogue.
+        self.client.post(url, {"mode": "remplacer", "icone": "image-inconnue"})
+        self.assertEqual(illustration_effective(self.ecole, self.competence, self.classe).icone, "om-livre")
+
+    def test_fichier_ignore_hors_remplacement_conserve_ancien_choix(self):
+        with TemporaryDirectory() as dossier, override_settings(MEDIA_ROOT=dossier):
+            self.client.force_login(self.enseignant)
+            url = reverse("presentation_competence_classe", args=[self.classe.pk, self.competence.pk])
+            self.client.post(url, {"mode": "remplacer", "photo": image_fictive()})
+            reglage = ReglagePresentation.objects.get()
+            ancien = reglage.photo.name
+            for mode in ("heriter", "desactiver"):
+                with self.subTest(mode=mode):
+                    page = self.client.post(url, {"mode": mode, "photo": image_fictive("ignorer.png"),
+                                                 "photo-clear": "on", "icone": "om-livre"})
+                    self.assertEqual(page.status_code, 302)
+                    reglage.refresh_from_db()
+                    self.assertEqual(reglage.photo.name, ancien)
+                    self.assertEqual(reglage.icone, "")
+                    self.assertEqual([p for p in Path(dossier).rglob("*") if p.is_file()], [Path(reglage.photo.path)])
+
     def test_adaptation_et_retour_a_heritage_depuis_interface(self):
         source = FormulationProposee.objects.create(competence=self.competence, code="F", texte="Source")
         self.client.force_login(self.enseignant)
