@@ -40,3 +40,24 @@ Les éditions antérieures sont conservées sous `cycle1/editions/` et
 `chatdecole/editions/`. L'import des nouveaux YAML ne change pas la base d'une
 classe ; l'adoption et les adaptations école/classe suivent les parcours
 habituels. Textes, ordre, niveaux, identités et phrases proposées sont inchangés.
+
+## Choisir parmi les dessins disponibles — #IM5
+
+Le catalogue propose 22 images : les trois dessins Petits Pas et 19 OpenMoji,
+dont dix nouveaux dessins. La [planche de sélection](planche-im5.svg) montre
+16 usages à grande et petite taille. Les fichiers restent locaux dans le
+programme, la PWA et l'application hébergée ; aucun service d'images externe
+n'est appelé.
+
+Le [manifeste de collection](collection-im5.yaml) précise pour chaque OpenMoji
+le tag 17.0.0, son commit, l'auteur déclaré, le fichier, l'URL source et
+l'empreinte SHA-256. Les dessins sont repris sans retouche. Les conditions
+CC BY-SA 4.0 sont conservées avec les fichiers ; une petite mention unique
+crédite OpenMoji dans le carnet, seulement si une de ces images y apparaît.
+
+Les ciseaux, le pinceau, la règle, la loupe, le verre qui verse et le lavage
+des mains sont disponibles pour les choix locaux. Ils ne sont pas appliqués
+automatiquement à des objectifs plus généraux. Le dessin d'un pinceau ne
+représente pas toute la création plastique, ni celui du lavage des mains
+toutes les règles d'hygiène de vie. Aucun dessin n'est imposé pour coller,
+enfiler, modeler ou construire avec des blocs.

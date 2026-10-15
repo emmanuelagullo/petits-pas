@@ -48,3 +48,10 @@ cp "$racine/referentiel/images-proposees/associations-im4.yaml" "$chatdecole/ASS
 mkdir -p "$contenus/editions" "$chatdecole/editions"
 cp "$racine/referentiel/cycle1/editions/"*.yaml "$contenus/editions/"
 cp "$racine/referentiel/chatdecole/editions/"*.yaml "$chatdecole/editions/"
+
+# Collection d'images et planche communes aux offres.
+images="$racine/site/static/referentiels/images-proposees"
+mkdir -p "$images"
+for source in collection-im5.yaml planche-im5.svg; do
+    cp "$racine/referentiel/images-proposees/$source" "$images/$source"
+done

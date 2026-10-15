@@ -81,3 +81,12 @@ sans modifier les textes ; la version 2026.1 reste conservée sous `editions/`. 
 conserve les fichiers sources et les repères de transcription. Les conditions
 publiées par Chat d’école et les crédits restent distincts de la licence du
 logiciel. La classe fictive des Pinsons permet de l’essayer dans la démonstration.
+
+## Images proposées par défaut
+
+Le [catalogue commun](images-proposees/README.md) contient désormais 22 images,
+dont 19 OpenMoji 17.0.0. La [planche](images-proposees/planche-im5.svg) montre
+16 usages. Le [manifeste](images-proposees/collection-im5.yaml) conserve auteurs,
+version amont, commit, licence et empreintes des SVG non retouchés.
+Les images restent facultatives ; les dessins disponibles pour un choix local
+ne sont pas tous associés automatiquement aux référentiels.

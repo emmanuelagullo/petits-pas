@@ -1,0 +1,256 @@
+format: 1
+collection: OpenMoji
+version: 17.0.0
+commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+licence: CC-BY-SA-4.0
+licence_url: https://creativecommons.org/licenses/by-sa/4.0/
+licence_locale: referentiel/static/referentiel/icones/openmoji/LICENSE.txt
+metadonnees_amont: https://github.com/hfg-gmuend/openmoji/blob/17.0.0/data/openmoji.json
+illustrations:
+- identifiant: om-parole
+  code_openmoji: 1F4AC
+  nom: Parole et échanges
+  fichier: referentiel/icones/openmoji/1F4AC.svg
+  auteur: Laura Humpfer
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4AC.svg
+  licence: CC-BY-SA-4.0
+  sha256: 4c27a874ea4eb7d11ae09b2c082d2708c8c027e1f7e666b570eb17436fa9ac19
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-nombres
+  code_openmoji: 1F9EE
+  nom: Quantités et nombres
+  fichier: referentiel/icones/openmoji/1F9EE.svg
+  auteur: Nicole Kornhaas
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9EE.svg
+  licence: CC-BY-SA-4.0
+  sha256: 3fe49fe9a15d4247ee8da856198b572963366bdec8d7b5151c0065443652eee6
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-musique
+  code_openmoji: 1F3B5
+  nom: Écoute musicale
+  fichier: referentiel/icones/openmoji/1F3B5.svg
+  auteur: Sina Schulz
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3B5.svg
+  licence: CC-BY-SA-4.0
+  sha256: 2cbf924ad24a25f62f53bb62e67353c2937f03bfe5dc784635b464c9b0d7dccb
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-calendrier
+  code_openmoji: 1F4C5
+  nom: Date et calendrier
+  fichier: referentiel/icones/openmoji/1F4C5.svg
+  auteur: Sina Schulz
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4C5.svg
+  licence: CC-BY-SA-4.0
+  sha256: ea09b06a917f3d813cf3a9aee3f5d3e922899a74930e52e64bddb51360b23160
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-plante
+  code_openmoji: 1F331
+  nom: Plantations
+  fichier: referentiel/icones/openmoji/1F331.svg
+  auteur: Hilda Kalyoncu
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F331.svg
+  licence: CC-BY-SA-4.0
+  sha256: 5f7b280dd0435ea429e6086f18f11a4e02ce46b2497c2231a115feca40634513
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-crayon
+  code_openmoji: 270F
+  nom: Tracé et écriture
+  fichier: referentiel/icones/openmoji/270F.svg
+  auteur: Rana Cakir
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/270F.svg
+  licence: CC-BY-SA-4.0
+  sha256: ecba2acd2790c57042db30194f1052d525959017f5148670225adb3902301a53
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-formes
+  code_openmoji: 1F9E9
+  nom: Assemblages de formes
+  fichier: referentiel/icones/openmoji/1F9E9.svg
+  auteur: Nicole Kornhaas
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F9E9.svg
+  licence: CC-BY-SA-4.0
+  sha256: 484306b66fbbe2f59fa55797b63ed2dbc96fc5322f3d32fea378bd16a0b5d9f0
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-peinture
+  code_openmoji: 1F3A8
+  nom: Création plastique
+  fichier: referentiel/icones/openmoji/1F3A8.svg
+  auteur: Martin Wehl
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3A8.svg
+  licence: CC-BY-SA-4.0
+  sha256: 1e440790c0d02486a2dbd061ec465f78e28111d0c778dec08de62df123959cb6
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-globe
+  code_openmoji: 1F30D
+  nom: Espaces géographiques
+  fichier: referentiel/icones/openmoji/1F30D.svg
+  auteur: Martin Wehl
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F30D.svg
+  licence: CC-BY-SA-4.0
+  sha256: 0a68747c6c59b68024885df41a1dd46fef36f4d7db014c27c9713558a56a40ac
+  modifications: Aucune
+  nouvelle_im5: false
+  usage_local_sans_association_automatique: false
+- identifiant: om-livre
+  code_openmoji: 1F4D6
+  nom: Livre ouvert
+  fichier: referentiel/icones/openmoji/1F4D6.svg
+  auteur: Jonas Roßner
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4D6.svg
+  licence: CC-BY-SA-4.0
+  sha256: 12ceb88b0c0b0fd7c5ff65956f106d598e5d44536f7934e7d22937e291665753
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: false
+- identifiant: om-pinceau
+  code_openmoji: 1F58C
+  nom: Peindre
+  fichier: referentiel/icones/openmoji/1F58C.svg
+  auteur: Rana Cakir
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F58C.svg
+  licence: CC-BY-SA-4.0
+  sha256: 57970e1777205461f0b3aecd6fd48e28e108221a82ecd345ce781bfca4869a83
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: true
+- identifiant: om-tambour
+  code_openmoji: 1F941
+  nom: Jouer un rythme
+  fichier: referentiel/icones/openmoji/1F941.svg
+  auteur: Sina Schulz
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F941.svg
+  licence: CC-BY-SA-4.0
+  sha256: 8ed2c0355fa2910e9acd931ce6a7c8ae7731302292005466ceb25ec363501c7f
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: false
+- identifiant: om-ciseaux
+  code_openmoji: '2702'
+  nom: Découper
+  fichier: referentiel/icones/openmoji/2702.svg
+  auteur: Sina Schulz
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2702.svg
+  licence: CC-BY-SA-4.0
+  sha256: 8a5cc545a4ff3ba2fae4ab24877bb5486a9d1666829845fb4b640ae21d2ce39f
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: true
+- identifiant: om-regle
+  code_openmoji: 1F4CF
+  nom: Utiliser une règle
+  fichier: referentiel/icones/openmoji/1F4CF.svg
+  auteur: Sina Schulz
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F4CF.svg
+  licence: CC-BY-SA-4.0
+  sha256: 181870ff83197dddd0310ffb15be7da63e15046b8e97a7820ecffc77b2abb3d5
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: true
+- identifiant: om-balance
+  code_openmoji: '2696'
+  nom: Comparer des masses
+  fichier: referentiel/icones/openmoji/2696.svg
+  auteur: Hilda Kalyoncu
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/2696.svg
+  licence: CC-BY-SA-4.0
+  sha256: 8cea2a645212984ed5f5ec1e0248b60692c69ef9f8e2be7f027d15cf8154d645
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: false
+- identifiant: om-loupe
+  code_openmoji: 1F50D
+  nom: Observer des détails
+  fichier: referentiel/icones/openmoji/1F50D.svg
+  auteur: Sina Schulz
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F50D.svg
+  licence: CC-BY-SA-4.0
+  sha256: 2acd94760e04fe08acfa605545881915cce8d77b54eb77de1561e6f5f773cffa
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: true
+- identifiant: om-verser
+  code_openmoji: 1FAD7
+  nom: Verser un liquide
+  fichier: referentiel/icones/openmoji/1FAD7.svg
+  auteur: Klara Schöninger
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1FAD7.svg
+  licence: CC-BY-SA-4.0
+  sha256: e9ab701344996940dc3830159f0c72945178df4c969f099a6c162a271355e72f
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: true
+- identifiant: om-lavage-mains
+  code_openmoji: E0B2
+  nom: Se laver les mains
+  fichier: referentiel/icones/openmoji/E0B2.svg
+  auteur: Guemil Project
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/E0B2.svg
+  licence: CC-BY-SA-4.0
+  sha256: 18b92a52d998b0ed12cb3974f148f414f289e8262d1c1874f843493403967264
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: true
+- identifiant: om-courir
+  code_openmoji: 1F3C3
+  nom: Courir
+  fichier: referentiel/icones/openmoji/1F3C3.svg
+  auteur: Johanna Wellnitz
+  version: 17.0.0
+  commit: f9fc506a3f913be9897ab0181d611d4c910a4104
+  url: https://raw.githubusercontent.com/hfg-gmuend/openmoji/17.0.0/color/svg/1F3C3.svg
+  licence: CC-BY-SA-4.0
+  sha256: 0efe47c77327eb2c631d5f35f7868b4007a287dec4e0714d26385bc9e3bf83f2
+  modifications: Aucune
+  nouvelle_im5: true
+  usage_local_sans_association_automatique: false

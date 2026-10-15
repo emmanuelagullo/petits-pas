@@ -47,3 +47,43 @@ icones:
     nom: Espaces géographiques
     fichier: referentiel/icones/openmoji/1F30D.svg
     credit: openmoji
+  om-livre:
+    nom: Livre ouvert
+    fichier: referentiel/icones/openmoji/1F4D6.svg
+    credit: openmoji
+  om-pinceau:
+    nom: Peindre
+    fichier: referentiel/icones/openmoji/1F58C.svg
+    credit: openmoji
+  om-tambour:
+    nom: Jouer un rythme
+    fichier: referentiel/icones/openmoji/1F941.svg
+    credit: openmoji
+  om-ciseaux:
+    nom: Découper
+    fichier: referentiel/icones/openmoji/2702.svg
+    credit: openmoji
+  om-regle:
+    nom: Utiliser une règle
+    fichier: referentiel/icones/openmoji/1F4CF.svg
+    credit: openmoji
+  om-balance:
+    nom: Comparer des masses
+    fichier: referentiel/icones/openmoji/2696.svg
+    credit: openmoji
+  om-loupe:
+    nom: Observer des détails
+    fichier: referentiel/icones/openmoji/1F50D.svg
+    credit: openmoji
+  om-verser:
+    nom: Verser un liquide
+    fichier: referentiel/icones/openmoji/1FAD7.svg
+    credit: openmoji
+  om-lavage-mains:
+    nom: Se laver les mains
+    fichier: referentiel/icones/openmoji/E0B2.svg
+    credit: openmoji
+  om-courir:
+    nom: Courir
+    fichier: referentiel/icones/openmoji/1F3C3.svg
+    credit: openmoji
