@@ -15,8 +15,8 @@ from comptes.models import AffectationClasse
 # Liste publique explicite, commune à l'interface et au chargement.
 REFERENTIELS_DEPART = (
     ("trame", "Trame de démarrage Petits Pas — sélection provisoire", None),
-    ("objectifs", "Cycle 1 — objectifs des programmes (2026.1)", "referentiel/cycle1/objectifs-programmes.yaml"),
-    ("etaye", "Cycle 1 — édition étayée (2026.2)", "referentiel/cycle1/cycle1-etaye.yaml"),
+    ("objectifs", "Cycle 1 — objectifs des programmes", "referentiel/cycle1/objectifs-programmes.yaml"),
+    ("etaye", "Cycle 1 — édition étayée", "referentiel/cycle1/cycle1-etaye.yaml"),
     ("chatdecole", "Cycle 1 — tableaux Chat d’école", "referentiel/chatdecole/tableaux-cycle1.yaml"),
 )
 

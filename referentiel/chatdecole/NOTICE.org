@@ -104,3 +104,18 @@ Le manifeste =../images-proposees/associations-im6.yaml= déclare chaque associa
 indépendamment des autres sources. Les outils plus généraux restent au choix
 local, sans association automatique. Aucune classe ne change de version lors
 d’un simple import.
+
+* Petit complément d’images — #IM8
+
+L’édition =2026.4= ajoute quatre associations : livre pour les personnages
+(=LANG-O061= et =LANG-O066=), calendrier pour les repères et événements de
+la semaine (=TEMPS-O006= et =TEMPS-O010=). Ces images évoquent un support,
+pas une production de l’enfant ni les critères de réussite. Elles proviennent
+de la collection OpenMoji 17.0.0 déjà distribuée, sans nouveau fichier ni retouche.
+Le manifeste =../images-proposees/associations-im8.yaml= conserve chaque
+association explicitement, sans créer d’équivalence entre les sources.
+
+Les textes, identités, niveaux, ordre et phrases sont inchangés. Les versions
+=2026.3= sont conservées dans =editions/=. Une classe existante ne bascule pas
+automatiquement ; les choix locaux restent prioritaires. La plupart des entrées
+restent sans image.

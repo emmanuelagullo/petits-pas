@@ -3,21 +3,21 @@ statut: Associations explicites intégrées aux éditions 2026.3 ; aucune adopti
 versions:
 - source: cycle1-objectifs-programmes
   version: '2026.3'
-  fichier: referentiel/cycle1/objectifs-programmes.yaml
+  fichier: referentiel/cycle1/editions/objectifs-programmes-2026.3.yaml
   sha256: 63d9d981079a35831dc1342ee676d01cb4de46251430cadc0bff0e1033dd072b
   precedente: referentiel/cycle1/editions/objectifs-programmes-2026.2.yaml
   sha256_precedente: cce42f511e73b9fc1f56b202027e2da3172b40a1295f541954de0a06da1d22db
   associations: 30
 - source: petits-pas-cycle1-etaye
   version: '2026.3'
-  fichier: referentiel/cycle1/cycle1-etaye.yaml
+  fichier: referentiel/cycle1/editions/cycle1-etaye-2026.3.yaml
   sha256: 710a040b79202b96557bf9de33dffc50a4195827ebe9e9fac1a40e8447d7784d
   precedente: referentiel/cycle1/editions/cycle1-etaye-2026.2.yaml
   sha256_precedente: 8cc5cb54748c59ad1678ea90ba9871ca9b3b28cde61a4f131491dee39847db19
   associations: 38
 - source: chatdecole-tableaux-cycle1
   version: '2026.3'
-  fichier: referentiel/chatdecole/tableaux-cycle1.yaml
+  fichier: referentiel/chatdecole/editions/tableaux-cycle1-2026.3.yaml
   sha256: 807d89f1f5958ebb3e5741329207b9de9eebcc02f9e6a1cb721d72830b74ef8c
   precedente: referentiel/chatdecole/editions/tableaux-cycle1-2026.2.yaml
   sha256_precedente: 9e3d849662035600ac87a6a538c12a476ae42af14dac4bc498a2fd6b8bee8a3b

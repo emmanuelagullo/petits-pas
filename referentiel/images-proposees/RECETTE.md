@@ -38,8 +38,9 @@ Pour vérifier aussi les associations des trois éditions fournies :
 python scripts/recetter-images-proposees.py --avec-associations --destination /tmp/carnets-associations-fictifs
 ```
 
-Le script ajoute trois carnets de Camille Fictif, avec cinq apprentissages de
-chaque source : récit, écriture, course, rythme et comparaison de masses. Il
+Le script ajoute trois carnets de Camille Fictif, avec neuf apprentissages de
+chaque source : récits et personnages, écriture, course, rythme, comparaison
+de masses et repères dans la semaine. Il
 importe et adopte les vraies éditions dans sa seule base temporaire. Vérifier
-les cinq illustrations, leurs textes et le crédit OpenMoji unique en fin de
+les neuf illustrations, leurs textes et le crédit OpenMoji unique en fin de
 carnet. Il n’importe aucune photographie réelle.

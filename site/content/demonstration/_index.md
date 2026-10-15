@@ -128,5 +128,6 @@ que les anciennes observations restent dans les carnets et qu’aucune réussite
 n’est copiée vers une compétence d’une autre identité. L’autorisation de classe
 est alors refermée ; un retour demandera une nouvelle ouverture.
 
-L’édition étayée des Mésanges passe en 2026.3 avec 438 entrées ; les objectifs
-seuls des Hirondelles restent en 2026.1 avec 426 entrées au démarrage.
+Au démarrage du jeu fictif, les Mésanges utilisent l’édition étayée 2026.4
+(438 entrées), les Hirondelles les objectifs des programmes 2026.4 (426 entrées),
+et les Pinsons les tableaux Chat d’École 2026.4 (417 entrées).

@@ -12,7 +12,7 @@ source:
     réussite non transformés en objectifs.'
   licence: Etalab-2.0
   provisoire: true
-version: '2026.3'
+version: '2026.4'
 domaines:
 - code: LANG
   nom: Le développement et la structuration du langage oral et écrit
@@ -294,6 +294,7 @@ domaines:
       code: LANG-O061
       libelle: Reconnaitre un personnage, le nommer et le situer dans les illustrations.
       niveau: PS
+      icone: om-livre
     - identite: lang-o062
       code: LANG-O062
       libelle: Comprendre des histoires où l’enchainement des actions peut être rattaché à des expériences
@@ -319,6 +320,7 @@ domaines:
       code: LANG-O066
       libelle: Identifier et décrire le personnage principal et les personnages secondaires.
       niveau: MS
+      icone: om-livre
     - identite: lang-o067
       code: LANG-O067
       libelle: Comprendre des histoires dont les actions sont organisées autour d’une structure répétitive
@@ -1442,6 +1444,7 @@ domaines:
       code: TEMPS-O006
       libelle: Établir des jours qui servent de repères dans la semaine.
       niveau: MS
+      icone: om-calendrier
     - identite: temps-o007
       code: TEMPS-O007
       libelle: Savoir que la semaine est une suite de sept jours.
@@ -1459,6 +1462,7 @@ domaines:
       code: TEMPS-O010
       libelle: Situer un évènement dans la semaine.
       niveau: GS
+      icone: om-calendrier
     - identite: temps-o011
       code: TEMPS-O011
       libelle: Continuer à s’approprier les temps conjugués (futur simple et futur antérieur) et les jours
