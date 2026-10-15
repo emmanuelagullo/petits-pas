@@ -1,0 +1,1934 @@
+# Lire NOTICE.org et REGISTRE.csv avec cette édition.
+format: 1
+source:
+  identifiant: chatdecole-tableaux-cycle1
+  titre: Chat d’école — Tableaux cycle 1 (pilote)
+  provenance: 'Chat d’école, tableaux simplifiés des nouveaux programmes, page datée du 26 juillet
+    2026 : https://www.chatdecole.site/tableaux-simplifies-des-nouveaux-programmes/ . Contributions
+    de Juliette et Vanessa mentionnées par l’autrice. Conversion Petits Pas, 1er octobre 2026, des
+    18 documents Word PS/MS/GS. Six domaines ; pas d’EVAR dans cette édition. Conditions publiées
+    : https://www.chatdecole.site/a-propos/ . Usage en classe ou en formation ; mention de l’origine
+    lors d’une republication. Ces conditions ne sont pas une licence libre déclarée. Voir referentiel/chatdecole/NOTICE.org
+    et REGISTRE.csv pour la transcription, les crédits, les fichiers sources et les passages à relire.
+    Édition pédagogique pilote, sans statut ministériel ; aucune réussite transférée entre sources.'
+  licence: 'Conditions Chat d’école : classe/formation, origine à mentionner. https://www.chatdecole.site/a-propos/'
+  provisoire: true
+version: '2026.1'
+domaines:
+- code: LANG
+  nom: Le développement et la structuration du langage oral et écrit
+  sous_domaines:
+  - code: S01
+    nom: Enrichir son vocabulaire
+    competences:
+    - identite: cde-lang-o001
+      code: LANG-O001
+      libelle: Comprendre, mémoriser, réemployer les mots des corpus enseignés (2 par période).
+      niveau: PS
+    - identite: cde-lang-o002
+      code: LANG-O002
+      libelle: Organiser les mots en catégorie et en réseau.
+      niveau: PS
+    - identite: cde-lang-o003
+      code: LANG-O003
+      libelle: Comprendre, mémoriser, réemployer les mots des corpus enseignés (2 par période).
+      niveau: MS
+    - identite: cde-lang-o004
+      code: LANG-O004
+      libelle: Organiser les mots en catégorie et en réseau.
+      niveau: MS
+    - identite: cde-lang-o005
+      code: LANG-O005
+      libelle: Comprendre, mémoriser, réemployer les mots des corpus enseignés (3 par période).
+      niveau: GS
+    - identite: cde-lang-o006
+      code: LANG-O006
+      libelle: Organiser les mots en catégorie et en réseau.
+      niveau: GS
+  - code: S02
+    nom: Développer sa syntaxe
+    competences:
+    - identite: cde-lang-o007
+      code: LANG-O007
+      libelle: Diversifier les pronoms employés.
+      niveau: PS
+    - identite: cde-lang-o008
+      code: LANG-O008
+      libelle: Construire à l’oral un système de temps de plus en plus efficace.
+      niveau: PS
+    - identite: cde-lang-o009
+      code: LANG-O009
+      libelle: Formuler des énoncés de plus en plus complexes.
+      niveau: PS
+    - identite: cde-lang-o010
+      code: LANG-O010
+      libelle: Diversifier les pronoms employés.
+      niveau: MS
+    - identite: cde-lang-o011
+      code: LANG-O011
+      libelle: Construire à l’oral un système de temps de plus en plus efficace.
+      niveau: MS
+    - identite: cde-lang-o012
+      code: LANG-O012
+      libelle: Formuler des énoncés de plus en plus complexes.
+      niveau: MS
+    - identite: cde-lang-o013
+      code: LANG-O013
+      libelle: Diversifier les pronoms employés.
+      niveau: GS
+    - identite: cde-lang-o014
+      code: LANG-O014
+      libelle: Construire à l’oral un système de temps de plus en plus efficace.
+      niveau: GS
+    - identite: cde-lang-o015
+      code: LANG-O015
+      libelle: Formuler des énoncés de plus en plus complexes.
+      niveau: GS
+  - code: S03
+    nom: Articuler distinctement
+    competences:
+    - identite: cde-lang-o016
+      code: LANG-O016
+      libelle: 'Articuler distinctement les couples de consonnes proches suivants : t/k, f/s, m/n.'
+      niveau: PS
+    - identite: cde-lang-o017
+      code: LANG-O017
+      libelle: 'Distinguer et produire correctement les nasales : é/in, a/an, o/on. - Articuler distinctement
+        les couples de consonnes proches suivants : f/v, s/z, p/b, t/d, k/g.'
+      niveau: MS
+    - identite: cde-lang-o018
+      code: LANG-O018
+      libelle: 'Distinguer et produire correctement les nasales : é/in, a/an, o/on. - Articuler distinctement
+        les couples de consonnes proches suivants : f/v, s/z, p/b, t/d, k/g.'
+      niveau: MS
+    - identite: cde-lang-o019
+      code: LANG-O019
+      libelle: 'Prononcer correctement les couples de consonnes proches suivants : ch/s, ch/j, ch/z.'
+      niveau: GS
+    - identite: cde-lang-o020
+      code: LANG-O020
+      libelle: 'Prononcer correctement les doubles consonnes : br/cr/bl/pl/sl.'
+      niveau: GS
+  - code: S04
+    nom: Produire des discours variés
+    competences:
+    - identite: cde-lang-o021
+      code: LANG-O021
+      libelle: Entrer en communication verbale avec un adulte ou un autre élève.
+      niveau: PS
+    - identite: cde-lang-o022
+      code: LANG-O022
+      libelle: Dire ce qu’on fait.
+      niveau: PS
+    - identite: cde-lang-o023
+      code: LANG-O023
+      libelle: Dire ce qu’on a fait et, peu à peu, ce qu’on va faire.
+      niveau: PS
+    - identite: cde-lang-o024
+      code: LANG-O024
+      libelle: Prendre part à l’oralisation d’un court texte mémorisé.
+      niveau: PS
+    - identite: cde-lang-o025
+      code: LANG-O025
+      libelle: Dire ce qu’on va faire.
+      niveau: MS
+    - identite: cde-lang-o026
+      code: LANG-O026
+      libelle: Dire comment on a fait ou comment on va faire.
+      niveau: MS
+    - identite: cde-lang-o027
+      code: LANG-O027
+      libelle: Oraliser un court texte mémorisé.
+      niveau: MS
+    - identite: cde-lang-o028
+      code: LANG-O028
+      libelle: Participer à des échanges en restant dans le propos.
+      niveau: MS
+    - identite: cde-lang-o029
+      code: LANG-O029
+      libelle: Décrire une action ou une activité qui a été menée par un autre élève.
+      niveau: GS
+    - identite: cde-lang-o030
+      code: LANG-O030
+      libelle: Se faire comprendre, par le truchement du langage, d’un adulte qui ne connait rien
+        à la situation évoquée.
+      niveau: GS
+    - identite: cde-lang-o031
+      code: LANG-O031
+      libelle: Participer à une conversation avec un adulte ou des pairs et reformuler son propos
+        s’il n’a pas été compris.
+      niveau: GS
+    - identite: cde-lang-o032
+      code: LANG-O032
+      libelle: Émettre une hypothèse.
+      niveau: GS
+  - code: S05
+    nom: Acquérir les habiletés phonologiques et le principe alphabétique
+    competences:
+    - identite: cde-lang-o033
+      code: LANG-O033
+      libelle: Identifier les sons de la langue, lors de situations d’écoute proposées par le professeur.
+      niveau: PS
+    - identite: cde-lang-o034
+      code: LANG-O034
+      libelle: Identifier un mot donné à l’oral dans une phrase, dans un texte.
+      niveau: PS
+    - identite: cde-lang-o035
+      code: LANG-O035
+      libelle: Scander les syllabes d’un mot.
+      niveau: PS
+    - identite: cde-lang-o036
+      code: LANG-O036
+      libelle: Dire des comptines courtes comprenant des phonèmes proches.
+      niveau: PS
+    - identite: cde-lang-o037
+      code: LANG-O037
+      libelle: Reconnaitre et nommer certaines lettres de son prénom écrit en capitales.
+      niveau: PS
+    - identite: cde-lang-o038
+      code: LANG-O038
+      libelle: Utiliser la voix parlée, chantée et les possibilités vocales (imitation de sons, onomatopées)
+        afin d’expérimenter différents sons.
+      niveau: MS
+    - identite: cde-lang-o039
+      code: LANG-O039
+      libelle: Entendre, discriminer des phonèmes.
+      niveau: MS
+    - identite: cde-lang-o040
+      code: LANG-O040
+      libelle: Scander les syllabes d’un mot.
+      niveau: MS
+    - identite: cde-lang-o041
+      code: LANG-O041
+      libelle: Manipuler les syllabes d’un mot (ajout, suppression, permutation, répétition, fusion,
+        substitution).
+      niveau: MS
+    - identite: cde-lang-o042
+      code: LANG-O042
+      libelle: Dire des comptines courtes comprenant des phonèmes proches.
+      niveau: MS
+    - identite: cde-lang-o043
+      code: LANG-O043
+      libelle: Nommer les lettres de son prénom et quelques lettres de mots connus (le professeur
+        nomme systématiquement les lettres).
+      niveau: MS
+    - identite: cde-lang-o044
+      code: LANG-O044
+      libelle: Connaitre la correspondance entre les lettres scriptes majuscules et minuscules et
+        les lettres cursives minuscules.
+      niveau: MS
+    - identite: cde-lang-o045
+      code: LANG-O045
+      libelle: Donner les valeurs sonores de quelques lettres de mots simples connus.
+      niveau: MS
+    - identite: cde-lang-o046
+      code: LANG-O046
+      libelle: Utiliser les possibilités sonores de la voix.
+      niveau: GS
+    - identite: cde-lang-o047
+      code: LANG-O047
+      libelle: Augmenter sa mémoire auditive et sa capacité de concentration.
+      niveau: GS
+    - identite: cde-lang-o048
+      code: LANG-O048
+      libelle: Supprimer, ajouter, remplacer, inverser, substituer, fusionner les syllabes d’un mot.
+      niveau: GS
+    - identite: cde-lang-o049
+      code: LANG-O049
+      libelle: Repérer et produire des rimes et des assonances.
+      niveau: GS
+    - identite: cde-lang-o050
+      code: LANG-O050
+      libelle: Entendre, discriminer, manipuler des phonèmes.
+      niveau: GS
+    - identite: cde-lang-o051
+      code: LANG-O051
+      libelle: Connaitre le nom des lettres de l’alphabet.
+      niveau: GS
+    - identite: cde-lang-o052
+      code: LANG-O052
+      libelle: Connaitre les différentes graphies d’une même lettre (majuscule lettre capitale ;
+        minuscules scriptes ; cursives).
+      niveau: GS
+    - identite: cde-lang-o053
+      code: LANG-O053
+      libelle: Distinguer des lettres visuellement proches (b/d, c/e/o, p/q) grâce à leur écriture
+        cursive et les nommer correctement.
+      niveau: GS
+    - identite: cde-lang-o054
+      code: LANG-O054
+      libelle: Connaitre le nom des lettres de l’alphabet et leur valeur sonore hormis les occlusives.
+      niveau: GS
+    - identite: cde-lang-o055
+      code: LANG-O055
+      libelle: Discriminer des mots auditivement proches.
+      niveau: GS
+  - code: S06
+    nom: S’éveiller à la diversité linguistique
+    competences:
+    - identite: cde-lang-o056
+      code: LANG-O056
+      libelle: Écouter des chants, des comptines, des histoires connues dans des versions en français
+        et en langue étrangère.
+      niveau: PS
+    - identite: cde-lang-o057
+      code: LANG-O057
+      libelle: 'Participer à des jeux dans une autre langue : jeux de doigts, rondes, jeux dansés,
+        mimes, jeux de cour, jeux de cartes.'
+      niveau: MS
+    - identite: cde-lang-o058
+      code: LANG-O058
+      libelle: Comparer des histoires lues en français et dans une autre langue.
+      niveau: MS
+  - code: S07
+    nom: Écouter et comprendre différentes formes d’écrits
+    competences:
+    - identite: cde-lang-o059
+      code: LANG-O059
+      libelle: Repérer les outils fonctionnels utilisés quotidiennement en classe (étiquette du prénom,
+        emploi du temps, affiches, etc.).
+      niveau: PS
+    - identite: cde-lang-o060
+      code: LANG-O060
+      libelle: Reconnaitre quelques écrits utilisés et produits en classe (comptines, recettes, carnet
+        de lecteur).
+      niveau: PS
+    - identite: cde-lang-o061
+      code: LANG-O061
+      libelle: Reconnaitre un personnage, le nommer et le situer dans les illustrations.
+      niveau: PS
+    - identite: cde-lang-o062
+      code: LANG-O062
+      libelle: Comprendre des histoires où l’enchainement des actions peut être rattaché à des expériences
+        connues de la vie quotidienne (le bain, le coucher, etc.).
+      niveau: PS
+    - identite: cde-lang-o063
+      code: LANG-O063
+      libelle: Reconnaitre, nommer et identifier la fonction de différents écrits rencontrés dans
+        la vie courante.
+      niveau: MS
+    - identite: cde-lang-o064
+      code: LANG-O064
+      libelle: Prendre conscience de la notion de destinataire et de contenu de la requête adressée
+        par un écrit.
+      niveau: MS
+    - identite: cde-lang-o065
+      code: LANG-O065
+      libelle: Identifier et utiliser quotidiennement des outils fonctionnels pour se repérer, s’organiser,
+        ranger.
+      niveau: MS
+    - identite: cde-lang-o066
+      code: LANG-O066
+      libelle: Identifier et décrire le personnage principal et les personnages secondaires.
+      niveau: MS
+    - identite: cde-lang-o067
+      code: LANG-O067
+      libelle: Comprendre des histoires dont les actions sont organisées autour d’une structure répétitive
+        (rencontres successives) et commencer à comprendre les informations implicites (émotions,
+        états et sentiments des personnages).
+      niveau: MS
+    - identite: cde-lang-o068
+      code: LANG-O068
+      libelle: Différencier les types d’écrits et associer un écrit à un projet d’écriture ou de
+        communication.
+      niveau: GS
+    - identite: cde-lang-o069
+      code: LANG-O069
+      libelle: Repérer et dégager la structure et l’organisation (mise en page, typographie) de formes
+        d’écrits fréquemment utilisés en classe (structure de la lettre, de la recette, du conte,
+        d’un écrit documentaire, d’une notice de fabrication).
+      niveau: GS
+    - identite: cde-lang-o070
+      code: LANG-O070
+      libelle: Construire les caractéristiques des personnages archétypaux (loup, princesse, ogre,
+        sorcière, renard, fée, etc.).
+      niveau: GS
+    - identite: cde-lang-o071
+      code: LANG-O071
+      libelle: Comprendre des histoires où l’enchainement des actions est lié au destin de personnages
+        centraux ou secondaires qui évoluent et interagissent, dans des lieux diversifiés.
+      niveau: GS
+    - identite: cde-lang-o072
+      code: LANG-O072
+      libelle: Comprendre les émotions, les intentions et les sentiments qui animent les personnages.
+      niveau: GS
+    - identite: cde-lang-o073
+      code: LANG-O073
+      libelle: Établir un lien entre la lecture effectuée et sa propre expérience.
+      niveau: GS
+  - code: S08
+    nom: Apprendre le geste d’écriture
+    competences:
+    - identite: cde-lang-o074
+      code: LANG-O074
+      libelle: Participer aux activités de motricité générale, de motricité fine et aux exercices
+        de graphismes.
+      niveau: PS
+    - identite: cde-lang-o075
+      code: LANG-O075
+      libelle: Guider son geste par le regard lorsqu’il trace ou écrit.
+      niveau: PS
+    - identite: cde-lang-o076
+      code: LANG-O076
+      libelle: Prendre des repères spatiaux sur le support utilisé pour tracer.
+      niveau: PS
+    - identite: cde-lang-o077
+      code: LANG-O077
+      libelle: Adopter une posture adaptée au geste d’écriture.
+      niveau: MS
+    - identite: cde-lang-o078
+      code: LANG-O078
+      libelle: Adopter une préhension correcte du stylo et s’entrainer à ne pas le lever en écrivant.
+      niveau: MS
+    - identite: cde-lang-o079
+      code: LANG-O079
+      libelle: Utiliser de façon coordonnée les quatre articulations qui servent à tenir et guider
+        le crayon (épaule, coude, poignet, doigts).
+      niveau: MS
+    - identite: cde-lang-o080
+      code: LANG-O080
+      libelle: Tracer des lettres capitales.
+      niveau: MS
+    - identite: cde-lang-o081
+      code: LANG-O081
+      libelle: S’initier aux tracés de l’écriture cursive.
+      niveau: MS
+    - identite: cde-lang-o082
+      code: LANG-O082
+      libelle: Tenir correctement son stylo par la pince des doigts et utiliser de façon coordonnée
+        les quatre articulations (épaule, coude, poignet, doigts).
+      niveau: GS
+    - identite: cde-lang-o083
+      code: LANG-O083
+      libelle: Travailler la ligature entre deux lettres.
+      niveau: GS
+    - identite: cde-lang-o084
+      code: LANG-O084
+      libelle: Tracer des lettres en écriture cursive, les enchainer.
+      niveau: GS
+  - code: S09
+    nom: Produire de premiers écrits
+    competences:
+    - identite: cde-lang-o085
+      code: LANG-O085
+      libelle: Percevoir que l’écrit encode l’oral.
+      niveau: PS
+    - identite: cde-lang-o086
+      code: LANG-O086
+      libelle: Utiliser un support écrit connu.
+      niveau: PS
+    - identite: cde-lang-o087
+      code: LANG-O087
+      libelle: Mimer la posture et les gestes d’écriture de l’adulte lors de la production de traces
+        qui s’apparentent à de l’écriture.
+      niveau: PS
+    - identite: cde-lang-o088
+      code: LANG-O088
+      libelle: Tracer volontairement des signes abstraits dont on comprend qu’il ne s’agit pas de
+        dessins, mais de lettres.
+      niveau: PS
+    - identite: cde-lang-o089
+      code: LANG-O089
+      libelle: Comprendre que lorsque l’adulte lit un même écrit plusieurs fois, ce qu’il lit est
+        toujours identique.
+      niveau: MS
+    - identite: cde-lang-o090
+      code: LANG-O090
+      libelle: Comprendre que l’écrit code des sons.
+      niveau: MS
+    - identite: cde-lang-o091
+      code: LANG-O091
+      libelle: Proposer au professeur, lors d’une activité de dictée à l’adulte, le contenu d’un
+        court message, stabiliser un énoncé oral et le mémoriser pour pouvoir ensuite le dicter au
+        professeur.
+      niveau: MS
+    - identite: cde-lang-o092
+      code: LANG-O092
+      libelle: Comparer la longueur d’un texte écrit et la durée du texte entendu.
+      niveau: MS
+    - identite: cde-lang-o093
+      code: LANG-O093
+      libelle: Savoir que le sens de la lecture est de gauche à droite et de haut en bas
+      niveau: MS
+    - identite: cde-lang-o094
+      code: LANG-O094
+      libelle: Chercher parmi les outils à sa disposition des modèles qui seront réutilisés dans
+        un essai d’écriture.
+      niveau: MS
+    - identite: cde-lang-o095
+      code: LANG-O095
+      libelle: Segmenter l’oral en mots, les mots en syllabes, quelques syllabes en phonèmes.
+      niveau: GS
+    - identite: cde-lang-o096
+      code: LANG-O096
+      libelle: Comprendre que l’écrit encode l’oral et que les sons de la langue sont codés par des
+        lettres.
+      niveau: GS
+    - identite: cde-lang-o097
+      code: LANG-O097
+      libelle: Suivre la trace écrite des yeux lors d’une relecture par l’adulte d’un message produit
+        lors d’une dictée à l’adulte.
+      niveau: GS
+    - identite: cde-lang-o098
+      code: LANG-O098
+      libelle: Mémoriser la graphie d’un mot transparent, en s’appuyant sur la connaissance des lettres
+        et la conscience phonologique et le retranscrire sur un support.
+      niveau: GS
+    - identite: cde-lang-o099
+      code: LANG-O099
+      libelle: Réinvestir ses premières connaissances relatives au principe alphabétique pour produire
+        un écrit.
+      niveau: GS
+    - identite: cde-lang-o100
+      code: LANG-O100
+      libelle: Se repérer dans l’alphabet pour retrouver l’écriture d’une lettre nécessaire pour
+        produire un écrit.
+      niveau: GS
+    - identite: cde-lang-o101
+      code: LANG-O101
+      libelle: Mémoriser l’écriture de mots transparents ou de syllabes connues pour les réutiliser
+        dans une production d’écrit.
+      niveau: GS
+    - identite: cde-lang-o102
+      code: LANG-O102
+      libelle: 'Comprendre qu’il existe une norme pour écrire : ponctuation, majuscules, mise en
+        page, etc.'
+      niveau: GS
+    - identite: cde-lang-o103
+      code: LANG-O103
+      libelle: 'Persévérer pour mener la production d’écrit à son terme : préparation, énonciation
+        et révision.'
+      niveau: GS
+- code: PHYS
+  nom: Agir, s’exprimer, comprendre à travers les activités physiques
+  sous_domaines:
+  - code: S01
+    nom: Manipuler, courir, sauter, lancer, s’orienter
+    competences:
+    - identite: cde-phys-o001
+      code: PHYS-O001
+      libelle: Manipuler et lancer des objets avec des intentions motrices différents.
+      niveau: PS
+    - identite: cde-phys-o002
+      code: PHYS-O002
+      libelle: Courir de manière variée et coordonnée.
+      niveau: PS
+    - identite: cde-phys-o003
+      code: PHYS-O003
+      libelle: Sauter sans élan un obstacle.
+      niveau: PS
+    - identite: cde-phys-o004
+      code: PHYS-O004
+      libelle: Se situer dans un espace proche et connu en utilisant des indices présents dans l’environnement.
+      niveau: PS
+    - identite: cde-phys-o005
+      code: PHYS-O005
+      libelle: Lancer loin de manière coordonnée.
+      niveau: MS
+    - identite: cde-phys-o006
+      code: PHYS-O006
+      libelle: Courir vite en ligne droite sur une distance ou une durée courte.
+      niveau: MS
+    - identite: cde-phys-o007
+      code: PHYS-O007
+      libelle: Sauter sans élan plusieurs obstacles.
+      niveau: MS
+    - identite: cde-phys-o008
+      code: PHYS-O008
+      libelle: Se situer dans un espace élargi et connu grâce à des indices prélevés dans l’environnement.
+      niveau: MS
+    - identite: cde-phys-o009
+      code: PHYS-O009
+      libelle: Lancer loin et avec précision différents objets.
+      niveau: GS
+    - identite: cde-phys-o010
+      code: PHYS-O010
+      libelle: Courir de plus en plus longtemps sans s’arrêter.
+      niveau: GS
+    - identite: cde-phys-o011
+      code: PHYS-O011
+      libelle: Courir vite et franchir un obstacle sur une distance courte.
+      niveau: GS
+    - identite: cde-phys-o012
+      code: PHYS-O012
+      libelle: Coordonner ses actions et ses déplacements pour lancer et pour sauter haut ou loin.
+      niveau: GS
+    - identite: cde-phys-o013
+      code: PHYS-O013
+      libelle: Se situer dans un milieu moins connu grâce à des indices prélevés dans l’environnement.
+      niveau: GS
+  - code: S02
+    nom: Tourner, se suspendre, se renverser, grimper, rouler, glisser, nager
+    competences:
+    - identite: cde-phys-o014
+      code: PHYS-O014
+      libelle: Développer de nouveaux équilibres par des modes de déplacements variés.
+      niveau: PS
+    - identite: cde-phys-o015
+      code: PHYS-O015
+      libelle: Développer de nouveaux équilibres dans des environnements de pratiques inhabituelles
+        et sécurisées.
+      niveau: PS
+    - identite: cde-phys-o016
+      code: PHYS-O016
+      libelle: Développer de nouveaux équilibres par des déplacements impliquant une perte de repères
+        habituels.
+      niveau: MS
+    - identite: cde-phys-o017
+      code: PHYS-O017
+      libelle: Comprendre l’intérêt des règles de sécurité dans les activités et environnement inhabituels.
+      niveau: MS
+    - identite: cde-phys-o018
+      code: PHYS-O018
+      libelle: Construire de nouveaux équilibres par des déplacements impliquant une combinaison
+        d’actions.
+      niveau: GS
+    - identite: cde-phys-o019
+      code: PHYS-O019
+      libelle: Explorer le milieu aquatique et développer une nouvelle locomotion dans l’eau.
+      niveau: GS
+    - identite: cde-phys-o020
+      code: PHYS-O020
+      libelle: Respecter les règles de sécurité pour soi et pour les autres.
+      niveau: GS
+  - code: S03
+    nom: Explorer, s’exprimer, danser, observer
+    competences:
+    - identite: cde-phys-o021
+      code: PHYS-O021
+      libelle: Découvrir et explorer le mouvement comme vecteur d’expression.
+      niveau: PS
+    - identite: cde-phys-o022
+      code: PHYS-O022
+      libelle: Oser s’exprimer avec son corps seul et avec les autres en répondant à une consigne
+        simple.
+      niveau: PS
+    - identite: cde-phys-o023
+      code: PHYS-O023
+      libelle: Observer pour produire et reproduire un ou plusieurs mouvements avec une intention
+        d’expression.
+      niveau: PS
+    - identite: cde-phys-o024
+      code: PHYS-O024
+      libelle: Découvrir et explorer le geste dansé.
+      niveau: MS
+    - identite: cde-phys-o025
+      code: PHYS-O025
+      libelle: Découvrir l’espace scénique.
+      niveau: MS
+    - identite: cde-phys-o026
+      code: PHYS-O026
+      libelle: Développer une posture de spectateur et de spectatrice actifs.
+      niveau: MS
+    - identite: cde-phys-o027
+      code: PHYS-O027
+      libelle: Enrichir le geste dansé par de nouvelles coordinations motrices, issues également
+        des arts du cirque.
+      niveau: GS
+    - identite: cde-phys-o028
+      code: PHYS-O028
+      libelle: Explorer l’ensemble de l’espace scénique en variant les inducteurs (objets, mondes
+        sonores, modes de déplacements, etc…) pour créer des effets.
+      niveau: GS
+    - identite: cde-phys-o029
+      code: PHYS-O029
+      libelle: Danser, seul ou à plusieurs, en créant et en reproduisant un ou plusieurs gestes et
+        déplacements.
+      niveau: GS
+    - identite: cde-phys-o030
+      code: PHYS-O030
+      libelle: Adopter une posture de spectateur et de spectatrice actifs.
+      niveau: GS
+  - code: S04
+    nom: Coopérer, s’opposer, respecter
+    competences:
+    - identite: cde-phys-o031
+      code: PHYS-O031
+      libelle: Comprendre et s’approprier un rôle dans les formes de jeu les + simple.
+      niveau: PS
+    - identite: cde-phys-o032
+      code: PHYS-O032
+      libelle: Explorer différents jeux moteurs vécus en interindividuel ou en collectif.
+      niveau: PS
+    - identite: cde-phys-o033
+      code: PHYS-O033
+      libelle: Eprouver le plaisir de jouer dans le respect des autres et des règles communes.
+      niveau: PS
+    - identite: cde-phys-o034
+      code: PHYS-O034
+      libelle: Jouer en coopérant.
+      niveau: MS
+    - identite: cde-phys-o035
+      code: PHYS-O035
+      libelle: 'Jouer en exerçant des rôles différents : attaquant, attaquante, défenseur, défenseuse.'
+      niveau: MS
+    - identite: cde-phys-o036
+      code: PHYS-O036
+      libelle: Coopérer dans le respect des autres et des règles communes.
+      niveau: MS
+    - identite: cde-phys-o037
+      code: PHYS-O037
+      libelle: Elaborer seul ou à plusieurs des stratégies pour gagner un jeu.
+      niveau: GS
+    - identite: cde-phys-o038
+      code: PHYS-O038
+      libelle: 'Jouer en exerçant des rôles différents : attaquant, attaquante, défenseur, défenseuse
+        et arbitre.'
+      niveau: GS
+    - identite: cde-phys-o039
+      code: PHYS-O039
+      libelle: Eprouver le plaisir de coopérer et de s’opposer dans le respect des autres et des
+        règles communes.
+      niveau: GS
+- code: ARTS
+  nom: Agir, s’exprimer, comprendre à travers les activités artistiques
+  sous_domaines:
+  - code: S01
+    nom: Dessiner
+    competences:
+    - identite: cde-arts-o001
+      code: ARTS-O001
+      libelle: S’exercer au dessin pour développer son habileté motrice.
+      niveau: PS
+    - identite: cde-arts-o002
+      code: ARTS-O002
+      libelle: S’exercer progressivement au dessin avec une intention de représentation.
+      niveau: PS
+    - identite: cde-arts-o003
+      code: ARTS-O003
+      libelle: Expérimenter la diversité des outils, des supports, des matériaux et faire des choix.
+      niveau: MS
+    - identite: cde-arts-o004
+      code: ARTS-O004
+      libelle: S’exercer au dessin avec une intention de représentation.
+      niveau: MS
+    - identite: cde-arts-o005
+      code: ARTS-O005
+      libelle: Dessiner pour représenter sur la base d’un modèle.
+      niveau: GS
+    - identite: cde-arts-o006
+      code: ARTS-O006
+      libelle: Dessiner pour représenter un personnage ou un événement fictif.
+      niveau: GS
+    - identite: cde-arts-o007
+      code: ARTS-O007
+      libelle: Participer à la réalisation d’une œuvre collective à partir d’une consigne ou d’un
+        problème à résoudre.
+      niveau: GS
+    - identite: cde-arts-o008
+      code: ARTS-O008
+      libelle: Utiliser le vocabulaire spécifique au dessin.
+      niveau: GS
+  - code: S02
+    nom: S’exercer au graphisme artistique
+    competences:
+    - identite: cde-arts-o009
+      code: ARTS-O009
+      libelle: Explorer des gestes et commencer à les associer à des types de tracés précis.
+      niveau: PS
+    - identite: cde-arts-o010
+      code: ARTS-O010
+      libelle: Repérer des motifs graphiques issus de son environnement proche.
+      niveau: PS
+    - identite: cde-arts-o011
+      code: ARTS-O011
+      libelle: Découvrir des expressions graphiques dans des œuvres d’art.
+      niveau: PS
+    - identite: cde-arts-o012
+      code: ARTS-O012
+      libelle: Exercer et développer sa motricité fine.
+      niveau: MS
+    - identite: cde-arts-o013
+      code: ARTS-O013
+      libelle: Repérer des motifs graphiques issus de son environnement.
+      niveau: MS
+    - identite: cde-arts-o014
+      code: ARTS-O014
+      libelle: Reproduire et créer des motifs de plus en plus élaborés.
+      niveau: MS
+    - identite: cde-arts-o015
+      code: ARTS-O015
+      libelle: Transformer ou détourner des motifs du répertoire de la classe pour observer les effets
+        produits.
+      niveau: GS
+    - identite: cde-arts-o016
+      code: ARTS-O016
+      libelle: Créer de nouveaux motifs.
+      niveau: GS
+    - identite: cde-arts-o017
+      code: ARTS-O017
+      libelle: Réaliser une composition à partir de plusieurs contraintes.
+      niveau: GS
+  - code: S03
+    nom: Réaliser des compositions planes ou en volume
+    competences:
+    - identite: cde-arts-o018
+      code: ARTS-O018
+      libelle: Explorer l’usage des outils et observer leurs effets sur le geste.
+      niveau: PS
+    - identite: cde-arts-o019
+      code: ARTS-O019
+      libelle: Utiliser différents médiums et observer leurs effets sur les couleurs, les formes
+        et les volumes.
+      niveau: PS
+    - identite: cde-arts-o020
+      code: ARTS-O020
+      libelle: Expérimenter la résistance de certains matériaux.
+      niveau: PS
+    - identite: cde-arts-o021
+      code: ARTS-O021
+      libelle: Réaliser individuellement ou collectivement une production plastique en volume.
+      niveau: PS
+    - identite: cde-arts-o022
+      code: ARTS-O022
+      libelle: S’approprier les constituants plastiques (couleurs, formes, matières, rythme etc…).
+      niveau: MS
+    - identite: cde-arts-o023
+      code: ARTS-O023
+      libelle: Réaliser une composition en 2 ou 3 dimensions en fonction d’un projet individuel ou
+        collectif.
+      niveau: MS
+    - identite: cde-arts-o024
+      code: ARTS-O024
+      libelle: Découvrir différentes formes d’expression artistique.
+      niveau: MS
+    - identite: cde-arts-o025
+      code: ARTS-O025
+      libelle: Réaliser des compositions plastiques, seul ou en petit groupe, en choisissant et combinant
+        des matériaux et en réinvestissant des techniques et des procédés.
+      niveau: GS
+    - identite: cde-arts-o026
+      code: ARTS-O026
+      libelle: Se familiariser avec différentes formes d’expression artistique.
+      niveau: GS
+  - code: S04
+    nom: Observer, comprendre et transformer des images
+    competences:
+    - identite: cde-arts-o027
+      code: ARTS-O027
+      libelle: Apprendre à regarder avec attention et à identifier des éléments visuels
+      niveau: PS
+    - identite: cde-arts-o028
+      code: ARTS-O028
+      libelle: Découvrir quelques éléments constitutifs d’une illustration
+      niveau: PS
+    - identite: cde-arts-o029
+      code: ARTS-O029
+      libelle: Différencier une image fixe d’une image animée
+      niveau: MS
+    - identite: cde-arts-o030
+      code: ARTS-O030
+      libelle: Fabriquer des images à partir d’images existantes.
+      niveau: MS
+    - identite: cde-arts-o031
+      code: ARTS-O031
+      libelle: Identifier et nommer des éléments graphiques d’une illustration.
+      niveau: MS
+    - identite: cde-arts-o032
+      code: ARTS-O032
+      libelle: Différencier des types d’images (portrait, paysage, nature morte etc…).
+      niveau: GS
+    - identite: cde-arts-o033
+      code: ARTS-O033
+      libelle: Identifier et nommer des éléments esthétiques d’une illustration.
+      niveau: GS
+  - code: S05
+    nom: Jouer avec sa voix et acquérir un répertoire de comptines et de chansons
+    competences:
+    - identite: cde-arts-o034
+      code: ARTS-O034
+      libelle: Dépasser les usages courants de la voix.
+      niveau: PS
+    - identite: cde-arts-o035
+      code: ARTS-O035
+      libelle: Chanter en se faisant comprendre des autres
+      niveau: PS
+    - identite: cde-arts-o036
+      code: ARTS-O036
+      libelle: Dire ou chanter au moins 5 comptines
+      niveau: PS
+    - identite: cde-arts-o037
+      code: ARTS-O037
+      libelle: Découvrir et explorer la richesse de sa voix
+      niveau: MS
+    - identite: cde-arts-o038
+      code: ARTS-O038
+      libelle: Chanter en exprimant une émotion
+      niveau: MS
+    - identite: cde-arts-o039
+      code: ARTS-O039
+      libelle: Dire ou chanter au moins 8 comptines ou chants, en réinvestissant les comptines apprises
+        l’année précédente
+      niveau: MS
+    - identite: cde-arts-o040
+      code: ARTS-O040
+      libelle: Développer et affirmer son inventivité avec sa voix.
+      niveau: GS
+    - identite: cde-arts-o041
+      code: ARTS-O041
+      libelle: Trouver sa place dans un collectif chantant.
+      niveau: GS
+    - identite: cde-arts-o042
+      code: ARTS-O042
+      libelle: Dire ou chanter au moins 10 comptines ou chants, en réinvestissant ceux appris les
+        années antérieures.
+      niveau: GS
+  - code: S06
+    nom: Explorer des instruments, utiliser les sonorités du corps
+    competences:
+    - identite: cde-arts-o043
+      code: ARTS-O043
+      libelle: Explorer les possibilités sonores de son corps, d’objets et d’instruments.
+      niveau: PS
+    - identite: cde-arts-o044
+      code: ARTS-O044
+      libelle: Découvrir les possibilités expressives de son corps, d’objets et d’instruments
+      niveau: PS
+    - identite: cde-arts-o045
+      code: ARTS-O045
+      libelle: Observer et commenter ce que font les camarades de classe pour produire des sons avec
+        leur corps, des objets et des instruments
+      niveau: PS
+    - identite: cde-arts-o046
+      code: ARTS-O046
+      libelle: Produire des sons à partir de son corps, d’objets et d’instruments
+      niveau: MS
+    - identite: cde-arts-o047
+      code: ARTS-O047
+      libelle: Adapter son geste pour produire un son en fonction d’une consigne
+      niveau: MS
+    - identite: cde-arts-o048
+      code: ARTS-O048
+      libelle: Reproduire un rythme simple collectivement
+      niveau: MS
+    - identite: cde-arts-o049
+      code: ARTS-O049
+      libelle: Explorer le lien entre le son et le geste.
+      niveau: GS
+    - identite: cde-arts-o050
+      code: ARTS-O050
+      libelle: Créer un paysage sonore en répondant à une consigne simple avec son corps, des objets
+        ou des instruments.
+      niveau: GS
+    - identite: cde-arts-o051
+      code: ARTS-O051
+      libelle: Créer collectivement une production musicale.
+      niveau: GS
+  - code: S07
+    nom: Affiner son écoute
+    competences:
+    - identite: cde-arts-o052
+      code: ARTS-O052
+      libelle: Traduire la musique entendue en mouvement
+      niveau: PS
+    - identite: cde-arts-o053
+      code: ARTS-O053
+      libelle: Développer une posture d’écoute
+      niveau: PS
+    - identite: cde-arts-o054
+      code: ARTS-O054
+      libelle: Traduire la musique entendue en mouvements et en mots
+      niveau: MS
+    - identite: cde-arts-o055
+      code: ARTS-O055
+      libelle: Exprimer ses émotions après l’écoute d’un extrait musical
+      niveau: MS
+    - identite: cde-arts-o056
+      code: ARTS-O056
+      libelle: Découvrir au moins 2 œuvres musicales patrimoniales
+      niveau: MS
+    - identite: cde-arts-o057
+      code: ARTS-O057
+      libelle: Traduire la musique entendue en dessin.
+      niveau: GS
+    - identite: cde-arts-o058
+      code: ARTS-O058
+      libelle: Ecouter une œuvre musicale patrimoniale pour repérer des éléments musicaux significatifs.
+      niveau: GS
+    - identite: cde-arts-o059
+      code: ARTS-O059
+      libelle: Connaître au moins 3 œuvres musicales patrimoniales.
+      niveau: GS
+  - code: S08
+    nom: Pratiquer
+    competences:
+    - identite: cde-arts-o060
+      code: ARTS-O060
+      libelle: Découvrir différentes façons d’exprimer ses émotions par le corps
+      niveau: PS
+    - identite: cde-arts-o061
+      code: ARTS-O061
+      libelle: Découvrir des rôles simples
+      niveau: PS
+    - identite: cde-arts-o062
+      code: ARTS-O062
+      libelle: Découvrir le jeu dans une mise en scène collective
+      niveau: PS
+    - identite: cde-arts-o063
+      code: ARTS-O063
+      libelle: Se familiariser avec l’expression des émotions par le corps et la voix
+      niveau: MS
+    - identite: cde-arts-o064
+      code: ARTS-O064
+      libelle: Se familiariser avec des rôles simples
+      niveau: MS
+    - identite: cde-arts-o065
+      code: ARTS-O065
+      libelle: Se familiariser avec le jeu dans une mise en scène collective
+      niveau: MS
+    - identite: cde-arts-o066
+      code: ARTS-O066
+      libelle: Explorer des enchainements d’émotions par le corps et la voix.
+      niveau: GS
+    - identite: cde-arts-o067
+      code: ARTS-O067
+      libelle: Explorer des rôles simples.
+      niveau: GS
+    - identite: cde-arts-o068
+      code: ARTS-O068
+      libelle: Explorer le jeu dans une mise en scène collective.
+      niveau: GS
+  - code: S09
+    nom: Fréquenter et devenir spectateur et spectatrice
+    competences:
+    - identite: cde-arts-o069
+      code: ARTS-O069
+      libelle: Découvrir des œuvres adaptées
+      niveau: PS
+    - identite: cde-arts-o070
+      code: ARTS-O070
+      libelle: Découvrir l’’espace scénique
+      niveau: PS
+    - identite: cde-arts-o071
+      code: ARTS-O071
+      libelle: Se familiariser avec l’espace scénique
+      niveau: MS
+    - identite: cde-arts-o072
+      code: ARTS-O072
+      libelle: Se familiariser avec des œuvres adaptées
+      niveau: MS
+    - identite: cde-arts-o073
+      code: ARTS-O073
+      libelle: Rencontrer des artistes
+      niveau: MS
+    - identite: cde-arts-o074
+      code: ARTS-O074
+      libelle: Explorer l’espace scénique
+      niveau: GS
+    - identite: cde-arts-o075
+      code: ARTS-O075
+      libelle: Explorer des œuvres adaptées
+      niveau: GS
+    - identite: cde-arts-o076
+      code: ARTS-O076
+      libelle: Rencontrer des artistes et es professionnels.
+      niveau: GS
+- code: MATH
+  nom: L’acquisition des premiers outils mathématiques
+  sous_domaines:
+  - code: S01
+    nom: Exprimer une quantité par un nombre
+    competences:
+    - identite: cde-math-o001
+      code: MATH-O001
+      libelle: Comprendre qu’une quantité d’objets ne dépend ni de la nature de ces objets ni de
+        leur organisation spatiale.
+      niveau: PS
+    - identite: cde-math-o002
+      code: MATH-O002
+      libelle: 'Comprendre que : Si on ajoute un objet à une collection, le nombre qui désigne sa
+        quantité est le suivant dans la suite orale des noms des nombres ; Dans la suite orale des
+        noms des nombres, chaque nombre s’obtient en ajoutant un au nombre précédent.'
+      niveau: PS
+    - identite: cde-math-o003
+      code: MATH-O003
+      libelle: Dénombrer une collection d’objets (jusqu’à trois, voire quatre).
+      niveau: PS
+    - identite: cde-math-o004
+      code: MATH-O004
+      libelle: Constituer une collection (jusqu’à trois, voire quatre objets) d’un cardinal donné.
+      niveau: PS
+    - identite: cde-math-o005
+      code: MATH-O005
+      libelle: Comparer des quantités.
+      niveau: PS
+    - identite: cde-math-o006
+      code: MATH-O006
+      libelle: Composer et décomposer des nombres (deux, trois, voire quatre).
+      niveau: PS
+    - identite: cde-math-o007
+      code: MATH-O007
+      libelle: Manipuler et verbaliser des compositions et des décompositions de nombres. Cela permet
+        d’installer le fait que, dans une composition, l’ordre ne compte pas ; ces compositions et
+        décompositions permettent de dénombrer plus efficacement que par le comptage un à un.
+      niveau: PS
+    - identite: cde-math-o008
+      code: MATH-O008
+      libelle: Associer une quantité, le nom d’un nombre et une écriture chiffrée.
+      niveau: PS
+    - identite: cde-math-o009
+      code: MATH-O009
+      libelle: Connaitre la comptine numérique de un à six
+      niveau: PS
+    - identite: cde-math-o010
+      code: MATH-O010
+      libelle: Poursuivre la compréhension qu’une quantité d’objets ne dépend ni de leur nature ni
+        de leur organisation spatiale.
+      niveau: MS
+    - identite: cde-math-o011
+      code: MATH-O011
+      libelle: 'Poursuivre la compréhension des faits suivants : Si on ajoute un objet à une collection,
+        le nombre qui désigne sa quantité est le suivant dans la suite orale des noms des nombres
+        ; Dans la suite orale des noms des nombres, chaque nombre s’obtient en ajoutant un au nombre
+        précédent.'
+      niveau: MS
+    - identite: cde-math-o012
+      code: MATH-O012
+      libelle: Parcourir une collection en passant une et une seule fois par chacun de ses éléments.
+      niveau: MS
+    - identite: cde-math-o013
+      code: MATH-O013
+      libelle: Dénombrer une collection d’objets (jusqu’à six).
+      niveau: MS
+    - identite: cde-math-o014
+      code: MATH-O014
+      libelle: Constituer une collection d’un cardinal donné (jusqu’à six objets).
+      niveau: MS
+    - identite: cde-math-o015
+      code: MATH-O015
+      libelle: Comparer des quantités.
+      niveau: MS
+    - identite: cde-math-o016
+      code: MATH-O016
+      libelle: Composer et décomposer des nombres inférieurs ou égaux à six.
+      niveau: MS
+    - identite: cde-math-o017
+      code: MATH-O017
+      libelle: Manipuler et verbaliser des compositions et des décompositions de nombres. Cela permet
+        d’installer le fait que, dans une composition, l’ordre ne compte pas ; ces compositions et
+        décompositions permettent de dénombrer plus efficacement que par le comptage un à un.
+      niveau: MS
+    - identite: cde-math-o018
+      code: MATH-O018
+      libelle: Associer une quantité, le nom d’un nombre et une écriture chiffrée.
+      niveau: MS
+    - identite: cde-math-o019
+      code: MATH-O019
+      libelle: Écrire en chiffres les nombres de un à six.
+      niveau: MS
+    - identite: cde-math-o020
+      code: MATH-O020
+      libelle: Connaitre la comptine numérique de un à douze.
+      niveau: MS
+    - identite: cde-math-o021
+      code: MATH-O021
+      libelle: Poursuivre la compréhension qu’une quantité d’objets ne dépend ni de la nature de
+        ces objets ni de leur organisation spatiale.
+      niveau: GS
+    - identite: cde-math-o022
+      code: MATH-O022
+      libelle: 'Poursuivre la compréhension des faits suivants : Si on ajoute un objet à une collection,
+        le nombre qui désigne sa quantité est le suivant dans la suite orale des noms des nombres
+        ; Dans la suite orale des noms des nombres, chaque nombre s’obtient en ajoutant un au nombre
+        précédent.'
+      niveau: GS
+    - identite: cde-math-o023
+      code: MATH-O023
+      libelle: Poursuivre les stratégies de parcours d’une collection en passant une et une seule
+        fois par chacun de ses éléments.
+      niveau: GS
+    - identite: cde-math-o024
+      code: MATH-O024
+      libelle: Dénombrer une collection d’objets (jusqu’à dix, voire au-delà).
+      niveau: GS
+    - identite: cde-math-o025
+      code: MATH-O025
+      libelle: Constituer une collection d’un cardinal donné (jusqu’à dix, voire au-delà).
+      niveau: GS
+    - identite: cde-math-o026
+      code: MATH-O026
+      libelle: Comparer des quantités.
+      niveau: GS
+    - identite: cde-math-o027
+      code: MATH-O027
+      libelle: Composer et décomposer des nombres inférieurs ou égaux à dix, voire au-delà.
+      niveau: GS
+    - identite: cde-math-o028
+      code: MATH-O028
+      libelle: Manipuler et verbaliser des compositions et des décompositions de nombres. Cela permet
+        d’installer le fait que, dans une composition, l’ordre ne compte pas.
+      niveau: GS
+    - identite: cde-math-o029
+      code: MATH-O029
+      libelle: Surcompter (c’est-à-dire compter de un en un à partir d’un nombre donné).
+      niveau: GS
+    - identite: cde-math-o030
+      code: MATH-O030
+      libelle: Associer une quantité, le nom d’un nombre et une écriture chiffrée.
+      niveau: GS
+    - identite: cde-math-o031
+      code: MATH-O031
+      libelle: Écrire en chiffres les nombres de un à dix.
+      niveau: GS
+    - identite: cde-math-o032
+      code: MATH-O032
+      libelle: Connaitre et utiliser la comptine numérique jusqu’à trente.
+      niveau: GS
+  - code: S02
+    nom: Exprimer un rang ou une position par un nombre
+    competences:
+    - identite: cde-math-o033
+      code: MATH-O033
+      libelle: Comprendre la notion de rang.
+      niveau: MS
+    - identite: cde-math-o034
+      code: MATH-O034
+      libelle: Déterminer l’effet d’un déplacement sur une position.
+      niveau: MS
+    - identite: cde-math-o035
+      code: MATH-O035
+      libelle: Se familiariser avec le début de la bande numérique.
+      niveau: MS
+    - identite: cde-math-o036
+      code: MATH-O036
+      libelle: Comprendre la notion de rang d’un objet.
+      niveau: GS
+    - identite: cde-math-o037
+      code: MATH-O037
+      libelle: Déterminer l’effet d’un déplacement sur une position.
+      niveau: GS
+    - identite: cde-math-o038
+      code: MATH-O038
+      libelle: Comprendre le lien entre un ajout et un avancement et celui entre un retrait et un
+        recul.
+      niveau: GS
+    - identite: cde-math-o039
+      code: MATH-O039
+      libelle: Construire la bande numérique jusqu’à dix.
+      niveau: GS
+  - code: S03
+    nom: Utiliser les nombres pour résoudre des problèmes
+    competences:
+    - identite: cde-math-o040
+      code: MATH-O040
+      libelle: Recherche du tout ou d’une partie dans un problème de parties-tout.
+      niveau: PS
+    - identite: cde-math-o041
+      code: MATH-O041
+      libelle: Rechercher le tout ou une partie dans un problème de parties-tout.
+      niveau: MS
+    - identite: cde-math-o042
+      code: MATH-O042
+      libelle: Trouver une position finale à partir d’une position initiale et d’un déplacement sur
+        une piste du type du jeu de l’oie ou sur la bande numérique.
+      niveau: MS
+    - identite: cde-math-o043
+      code: MATH-O043
+      libelle: Rechercher le tout dans un problème de groupements.
+      niveau: MS
+    - identite: cde-math-o044
+      code: MATH-O044
+      libelle: Rechercher la valeur d’une part dans un problème de partage équitable.
+      niveau: MS
+    - identite: cde-math-o045
+      code: MATH-O045
+      libelle: Déterminer le tout ou une partie dans un problème de parties-tout (d’abord deux parties,
+        puis éventuellement trois).
+      niveau: GS
+    - identite: cde-math-o046
+      code: MATH-O046
+      libelle: Déterminer la quantité d’objets ayant été ajoutée ou retirée à une collection à partir
+        de ses quantités initiale et finale.
+      niveau: GS
+    - identite: cde-math-o047
+      code: MATH-O047
+      libelle: Déterminer la position finale (respectivement initiale) à partir de la position initiale
+        (respectivement finale) et d’un déplacement sur une piste du type du jeu de l’oie ou sur
+        la bande numérique.
+      niveau: GS
+    - identite: cde-math-o048
+      code: MATH-O048
+      libelle: Déterminer le cardinal d’une collection à partir de celui d’une autre collection et
+        de l’écart entre les deux.
+      niveau: GS
+    - identite: cde-math-o049
+      code: MATH-O049
+      libelle: Déterminer le tout dans un problème de groupement d’objets.
+      niveau: GS
+    - identite: cde-math-o050
+      code: MATH-O050
+      libelle: Déterminer la valeur d’une part dans un problème de partage équitable (avec éventuellement
+        un reste).
+      niveau: GS
+  - code: S04
+    nom: Explorer les solides et les formes planes
+    competences:
+    - identite: cde-math-o051
+      code: MATH-O051
+      libelle: Reconnaitre, trier et classer des objets selon leur forme.
+      niveau: PS
+    - identite: cde-math-o052
+      code: MATH-O052
+      libelle: Percevoir l’invariance de la forme d’un objet par rapport aux déplacements qu’il peut
+        subir.
+      niveau: PS
+    - identite: cde-math-o053
+      code: MATH-O053
+      libelle: Reproduire des assemblages de solides ou de formes planes.
+      niveau: PS
+    - identite: cde-math-o054
+      code: MATH-O054
+      libelle: Reconnaitre et classer des solides (cube, boule, pyramide à base carrée, cylindre)
+        et des formes géométriques planes (triangle, carré, disque).
+      niveau: MS
+    - identite: cde-math-o055
+      code: MATH-O055
+      libelle: Reproduire des assemblages de solides ou de formes planes (au maximum cinq).
+      niveau: MS
+    - identite: cde-math-o056
+      code: MATH-O056
+      libelle: 'Décrire quelques solides simples : cube, pavé, boule, pyramides à base carrée ou
+        triangulaire, cylindre, cône.'
+      niveau: GS
+    - identite: cde-math-o057
+      code: MATH-O057
+      libelle: Reconnaitre, trier et classer des formes géométriques planes, indépendamment d’autres
+        critères comme la couleur, la taille, l’orientation.
+      niveau: GS
+    - identite: cde-math-o058
+      code: MATH-O058
+      libelle: 'Décrire et nommer quelques figures géométriques simples : carré, rectangle, triangle,
+        disque.'
+      niveau: GS
+    - identite: cde-math-o059
+      code: MATH-O059
+      libelle: Reproduire des assemblages de solides (au maximum cinq) et de formes planes (au maximum
+        huit).
+      niveau: GS
+    - identite: cde-math-o060
+      code: MATH-O060
+      libelle: S’approprier la règle comme outil de tracé.
+      niveau: GS
+  - code: S05
+    nom: 'Explorer des grandeurs : la longueur, la masse'
+    competences:
+    - identite: cde-math-o061
+      code: MATH-O061
+      libelle: Reconnaitre un objet de même longueur qu’un objet donné.
+      niveau: PS
+    - identite: cde-math-o062
+      code: MATH-O062
+      libelle: Comparer des objets selon leur longueur.
+      niveau: PS
+    - identite: cde-math-o063
+      code: MATH-O063
+      libelle: Comparer directement des longueurs d’objets rectilignes et verbaliser le résultat.
+      niveau: MS
+    - identite: cde-math-o064
+      code: MATH-O064
+      libelle: Classer des objets rectilignes selon leur longueur.
+      niveau: MS
+    - identite: cde-math-o065
+      code: MATH-O065
+      libelle: Ordonner des objets rectilignes selon leur longueur et verbaliser le résultat.
+      niveau: MS
+    - identite: cde-math-o066
+      code: MATH-O066
+      libelle: Comparer les masses de deux objets.
+      niveau: MS
+    - identite: cde-math-o067
+      code: MATH-O067
+      libelle: Comparer indirectement des longueurs d’objets rectilignes.
+      niveau: GS
+    - identite: cde-math-o068
+      code: MATH-O068
+      libelle: Ordonner des objets rectilignes selon leur longueur (au maximum cinq).
+      niveau: GS
+    - identite: cde-math-o069
+      code: MATH-O069
+      libelle: Produire un objet rectiligne de même longueur qu’un objet donné.
+      niveau: GS
+    - identite: cde-math-o070
+      code: MATH-O070
+      libelle: Ordonner les masses de trois objets. Verbaliser les résultats.
+      niveau: GS
+    - identite: cde-math-o071
+      code: MATH-O071
+      libelle: Reconnaitre l’égalité de deux masses et verbaliser le résultat.
+      niveau: GS
+  - code: S06
+    nom: Se familiariser avec les motifs organisés
+    competences:
+    - identite: cde-math-o072
+      code: MATH-O072
+      libelle: Mémoriser un motif répétitif très simple.
+      niveau: PS
+    - identite: cde-math-o073
+      code: MATH-O073
+      libelle: Reproduire un motif répétitif à l’identique.
+      niveau: PS
+    - identite: cde-math-o074
+      code: MATH-O074
+      libelle: Mémoriser un motif répétitif simple.
+      niveau: MS
+    - identite: cde-math-o075
+      code: MATH-O075
+      libelle: Reconnaitre un motif répétitif à ses régularités.
+      niveau: MS
+    - identite: cde-math-o076
+      code: MATH-O076
+      libelle: Décrire oralement des motifs répétitifs simples de différentes natures, sans nécessairement
+        recourir au vocabulaire spécialisé.
+      niveau: MS
+    - identite: cde-math-o077
+      code: MATH-O077
+      libelle: Prolonger l’amorce d’un motif répétitif et verbaliser la règle de prolongement utilisée.
+      niveau: MS
+    - identite: cde-math-o078
+      code: MATH-O078
+      libelle: Repérer et décrire oralement la structure d’un motif évolutif (par exemple relevant
+        de la transcription formelle ABAABBAAABBB).
+      niveau: GS
+    - identite: cde-math-o079
+      code: MATH-O079
+      libelle: Identifier la structure d’un motif répétitif ou évolutif indépendamment des éléments
+        physiques qui le composent.
+      niveau: GS
+    - identite: cde-math-o080
+      code: MATH-O080
+      libelle: Créer des motifs de différentes natures.
+      niveau: GS
+- code: TEMPS
+  nom: Se repérer dans le temps et l’espace
+  sous_domaines:
+  - code: S01
+    nom: Se repérer dans le temps
+    competences:
+    - identite: cde-temps-o001
+      code: TEMPS-O001
+      libelle: Acquérir les premiers repères temporels
+      niveau: PS
+    - identite: cde-temps-o002
+      code: TEMPS-O002
+      libelle: Identifier les principaux moments d’une journée
+      niveau: PS
+    - identite: cde-temps-o003
+      code: TEMPS-O003
+      libelle: Connaître quelques marqueurs temporels
+      niveau: PS
+    - identite: cde-temps-o004
+      code: TEMPS-O004
+      libelle: Aborder la notion de saison à partir de quelques faits observables
+      niveau: PS
+    - identite: cde-temps-o005
+      code: TEMPS-O005
+      libelle: Enoncer le moment de la journée où l’on se situe
+      niveau: MS
+    - identite: cde-temps-o006
+      code: TEMPS-O006
+      libelle: Etablir des jours qui servent de repère dans la semaine
+      niveau: MS
+    - identite: cde-temps-o007
+      code: TEMPS-O007
+      libelle: Savoir que la semaine est une suite de 7 jours
+      niveau: MS
+    - identite: cde-temps-o008
+      code: TEMPS-O008
+      libelle: Employer le présent, le futur, le passé composé et commencer éventuellement à employer
+        l’imparfait pour évoquer des évènements et les restituer dans le temps
+      niveau: MS
+    - identite: cde-temps-o009
+      code: TEMPS-O009
+      libelle: Approfondir la notion de saison par des observations sur la végétation et le climat
+      niveau: MS
+    - identite: cde-temps-o010
+      code: TEMPS-O010
+      libelle: Situer un évènement dans la semaine
+      niveau: GS
+    - identite: cde-temps-o011
+      code: TEMPS-O011
+      libelle: Continuer à s’approprier les temps conjugués (futur simple et futur antérieur) et
+        les jours pour situer les évènements dans la semaine et situer un évènement qui va se produire
+      niveau: GS
+    - identite: cde-temps-o012
+      code: TEMPS-O012
+      libelle: Enoncer la date
+      niveau: GS
+    - identite: cde-temps-o013
+      code: TEMPS-O013
+      libelle: Utiliser des mois qui servent de repères pour se situer dans l’année
+      niveau: GS
+    - identite: cde-temps-o014
+      code: TEMPS-O014
+      libelle: Nommer la plupart des mois de l’année
+      niveau: GS
+    - identite: cde-temps-o015
+      code: TEMPS-O015
+      libelle: Connaître les saisons
+      niveau: GS
+  - code: S02
+    nom: S’approprier la notion de chronologie
+    competences:
+    - identite: cde-temps-o016
+      code: TEMPS-O016
+      libelle: Situer des moments de la journée les uns par rapport aux autres et commencer à utiliser
+        le présent, le passé composé, le présent à valeur de futur proche
+      niveau: PS
+    - identite: cde-temps-o017
+      code: TEMPS-O017
+      libelle: Ordonner entre eux des moments rituels vécus
+      niveau: PS
+    - identite: cde-temps-o018
+      code: TEMPS-O018
+      libelle: Comprendre et restituer le déroulement d’évènements quotidiens au sein d’une histoire
+        simple
+      niveau: PS
+    - identite: cde-temps-o019
+      code: TEMPS-O019
+      libelle: Se projeter dans l’action que l’on choisit d’effectuer
+      niveau: PS
+    - identite: cde-temps-o020
+      code: TEMPS-O020
+      libelle: Commencer à planifier deux activités
+      niveau: PS
+    - identite: cde-temps-o021
+      code: TEMPS-O021
+      libelle: Restituer la chronologie des actions majeures d’une histoire simple
+      niveau: MS
+    - identite: cde-temps-o022
+      code: TEMPS-O022
+      libelle: Relater et expliquer une action, une procédure en utilisant de premiers connecteurs
+        structurants afin d’inscrire les activités récurrentes de leur vie quotidienne dans le temps
+      niveau: MS
+    - identite: cde-temps-o023
+      code: TEMPS-O023
+      libelle: Repérer les différentes étapes d’un processus ou d’un évènement vécu et les ordonner
+      niveau: GS
+    - identite: cde-temps-o024
+      code: TEMPS-O024
+      libelle: 'Repérer l’antériorité d’une action par rapport à une autre dans un scénario : imparfait,
+        plus que parfait, imparfait du verbe « aller » à valeur de futur proche dans le passé'
+      niveau: GS
+    - identite: cde-temps-o025
+      code: TEMPS-O025
+      libelle: Ordonner des événements passé les uns par rapport aux autres, dans l’année scolaire
+      niveau: GS
+    - identite: cde-temps-o026
+      code: TEMPS-O026
+      libelle: Relater des évènements passés ou à venir qui indiquent la succession, l’antériorité,
+        la postériorité et la simultanéité
+      niveau: GS
+  - code: S03
+    nom: Construire la notion de durée
+    competences:
+    - identite: cde-temps-o027
+      code: TEMPS-O027
+      libelle: Attendre avant d’obtenir ce que l’on souhaite
+      niveau: PS
+    - identite: cde-temps-o028
+      code: TEMPS-O028
+      libelle: Repérer le début et la fin d’une activité
+      niveau: PS
+    - identite: cde-temps-o029
+      code: TEMPS-O029
+      libelle: Connaître quelques mots qui font référence à la durée
+      niveau: PS
+    - identite: cde-temps-o030
+      code: TEMPS-O030
+      libelle: Percevoir que certaines durées sont stables
+      niveau: MS
+    - identite: cde-temps-o031
+      code: TEMPS-O031
+      libelle: Enrichir le répertoire de mots qui font référence à la durée
+      niveau: MS
+    - identite: cde-temps-o032
+      code: TEMPS-O032
+      libelle: Commencer à utiliser les repères donnés par les professeurs pour organiser son activité
+        dans un temps imparti
+      niveau: GS
+    - identite: cde-temps-o033
+      code: TEMPS-O033
+      libelle: Comparer des durées
+      niveau: GS
+    - identite: cde-temps-o034
+      code: TEMPS-O034
+      libelle: Comprendre progressivement qu’il existe un temps long, un passé très éloigné, des
+        évènements antérieurs à notre propre vie
+      niveau: GS
+  - code: S04
+    nom: Faire l’expérience de l’espace
+    competences:
+    - identite: cde-temps-o035
+      code: TEMPS-O035
+      libelle: Réaliser des constructions simples à partir de pièces solides ou de formes planes
+      niveau: PS
+    - identite: cde-temps-o036
+      code: TEMPS-O036
+      libelle: Orienter un objet ou une forme
+      niveau: PS
+    - identite: cde-temps-o037
+      code: TEMPS-O037
+      libelle: Manipuler des objets volumineux
+      niveau: PS
+    - identite: cde-temps-o038
+      code: TEMPS-O038
+      libelle: Orienter un livre ou un autre support d’écrit
+      niveau: PS
+    - identite: cde-temps-o039
+      code: TEMPS-O039
+      libelle: Réaliser un trajet, un parcours simple dans l’école
+      niveau: PS
+    - identite: cde-temps-o040
+      code: TEMPS-O040
+      libelle: Expérimenter les effets sensoriels de la proximité et de l’éloignement
+      niveau: PS
+    - identite: cde-temps-o041
+      code: TEMPS-O041
+      libelle: Acquérir les premiers marqueurs qui permettent de se repérer dans l’espace
+      niveau: PS
+    - identite: cde-temps-o042
+      code: TEMPS-O042
+      libelle: Réaliser des constructions de pièces solides ou de formes planes à partir d’une contrainte
+      niveau: MS
+    - identite: cde-temps-o043
+      code: TEMPS-O043
+      libelle: Situer des objets entre eux
+      niveau: MS
+    - identite: cde-temps-o044
+      code: TEMPS-O044
+      libelle: Situer des objets par rapport à soi, différencier la proximité de l’éloignement
+      niveau: MS
+    - identite: cde-temps-o045
+      code: TEMPS-O045
+      libelle: Orienter et utiliser correctement une feuille de papier
+      niveau: MS
+    - identite: cde-temps-o046
+      code: TEMPS-O046
+      libelle: Se situer par rapport aux autres
+      niveau: MS
+    - identite: cde-temps-o047
+      code: TEMPS-O047
+      libelle: Employer les marqueurs spatiaux précédemment acquis et en acquérir de nouveaux
+      niveau: MS
+    - identite: cde-temps-o048
+      code: TEMPS-O048
+      libelle: Réaliser des assemblages complexes
+      niveau: GS
+    - identite: cde-temps-o049
+      code: TEMPS-O049
+      libelle: Situer des objets dans un ensemble ordonné
+      niveau: GS
+    - identite: cde-temps-o050
+      code: TEMPS-O050
+      libelle: Situer des objets par rapport à soi, construire une image orientée de son corps
+      niveau: GS
+    - identite: cde-temps-o051
+      code: TEMPS-O051
+      libelle: Réaliser un trajet, un parcours dans un environnement connu
+      niveau: GS
+    - identite: cde-temps-o052
+      code: TEMPS-O052
+      libelle: Utiliser une page en respectant les normes d’écriture
+      niveau: GS
+    - identite: cde-temps-o053
+      code: TEMPS-O053
+      libelle: Reconnaître quelques espaces géographiques sur un planisphère
+      niveau: GS
+    - identite: cde-temps-o054
+      code: TEMPS-O054
+      libelle: Enrichir le lexique relatif à l’espace de mots plus complexes ou désignant un espace
+        plus éloigné
+      niveau: GS
+  - code: S05
+    nom: Représenter l’espace
+    competences:
+    - identite: cde-temps-o055
+      code: TEMPS-O055
+      libelle: Reproduire un parcours simple
+      niveau: PS
+    - identite: cde-temps-o056
+      code: TEMPS-O056
+      libelle: Restituer un déplacement à l’aide de représentations diverses
+      niveau: PS
+    - identite: cde-temps-o057
+      code: TEMPS-O057
+      libelle: Représenter un espace inconnu
+      niveau: MS
+    - identite: cde-temps-o058
+      code: TEMPS-O058
+      libelle: Restituer oralement un déplacement à partir d’une représentation
+      niveau: MS
+    - identite: cde-temps-o059
+      code: TEMPS-O059
+      libelle: Représenter un déplacement
+      niveau: MS
+    - identite: cde-temps-o060
+      code: TEMPS-O060
+      libelle: Composer et représenter divers éléments
+      niveau: MS
+    - identite: cde-temps-o061
+      code: TEMPS-O061
+      libelle: Reproduire un parcours sur une représentation plane
+      niveau: GS
+    - identite: cde-temps-o062
+      code: TEMPS-O062
+      libelle: Représenter l’environnement proche
+      niveau: GS
+    - identite: cde-temps-o063
+      code: TEMPS-O063
+      libelle: Restituer oralement un déplacement mémorisé
+      niveau: GS
+    - identite: cde-temps-o064
+      code: TEMPS-O064
+      libelle: Représenter un déplacement
+      niveau: GS
+    - identite: cde-temps-o065
+      code: TEMPS-O065
+      libelle: Représenter la proximité ou l’éloignement d’un sujet
+      niveau: GS
+    - identite: cde-temps-o066
+      code: TEMPS-O066
+      libelle: Représenter divers éléments sur un plan
+      niveau: GS
+  - code: S06
+    nom: Découvrir l’environnement proche
+    competences:
+    - identite: cde-temps-o067
+      code: TEMPS-O067
+      libelle: Explorer les différents lieux de l’école et leur associer des éléments caractéristiques
+        observés
+      niveau: PS
+    - identite: cde-temps-o068
+      code: TEMPS-O068
+      libelle: Caractériser l’environnement extérieur proche de l’école
+      niveau: MS
+    - identite: cde-temps-o069
+      code: TEMPS-O069
+      libelle: Découvrir des espaces moins familiers
+      niveau: MS
+    - identite: cde-temps-o070
+      code: TEMPS-O070
+      libelle: Reconnaître les espaces proches de l’école et leurs usages
+      niveau: GS
+    - identite: cde-temps-o071
+      code: TEMPS-O071
+      libelle: Reconnaître des espaces moins familiers
+      niveau: GS
+    - identite: cde-temps-o072
+      code: TEMPS-O072
+      libelle: Observer l’habitat proche de l’école
+      niveau: GS
+- code: VIVANT
+  nom: Découvrir le monde du vivant, de la matière et des objets
+  sous_domaines:
+  - code: S01
+    nom: Découvrir les animaux et les végétaux
+    competences:
+    - identite: cde-vivant-o001
+      code: VIVANT-O001
+      libelle: Repérer et nommer les caractéristiques morphologiques générales des plantes et des
+        animaux observés avec la classe.
+      niveau: PS
+    - identite: cde-vivant-o002
+      code: VIVANT-O002
+      libelle: Reconnaitre et nommer le mâle et la femelle, le jeune et l'adulte pour plusieurs espèces
+        animales.
+      niveau: PS
+    - identite: cde-vivant-o003
+      code: VIVANT-O003
+      libelle: Prodiguer des soins nécessaires aux élevages et aux cultures.
+      niveau: PS
+    - identite: cde-vivant-o004
+      code: VIVANT-O004
+      libelle: Reconnaitre une ou plusieurs étapes d’un cycle de vie à partir de l’observation d’animaux
+        et de plantes.
+      niveau: MS
+    - identite: cde-vivant-o005
+      code: VIVANT-O005
+      libelle: Identifier et décrire les besoins essentiels de quelques animaux et de végétaux à
+        partir d'observations d'élevage, de cultures de plantes, et des soins prodigués.
+      niveau: MS
+    - identite: cde-vivant-o006
+      code: VIVANT-O006
+      libelle: Observer et nommer le mode de déplacement de quelques animaux en relation avec leur
+        milieu de vie.
+      niveau: MS
+    - identite: cde-vivant-o007
+      code: VIVANT-O007
+      libelle: Respecter la vie sous toutes ses formes.
+      niveau: MS
+    - identite: cde-vivant-o008
+      code: VIVANT-O008
+      libelle: Identifier des éléments morphologiques spécifiques à une espèce végétale ou animale.
+      niveau: GS
+    - identite: cde-vivant-o009
+      code: VIVANT-O009
+      libelle: Reconnaitre les étapes de la vie d'un animal ou d'une plante.
+      niveau: GS
+    - identite: cde-vivant-o010
+      code: VIVANT-O010
+      libelle: Décrire les besoins essentiels de quelques animaux ou de végétaux.
+      niveau: GS
+    - identite: cde-vivant-o011
+      code: VIVANT-O011
+      libelle: Contribuer à une action collective favorable à la préservation de la biodiversité
+        dans un milieu proche de l’école.
+      niveau: GS
+  - code: S02
+    nom: Découvrir le corps humain et la santé
+    competences:
+    - identite: cde-vivant-o012
+      code: VIVANT-O012
+      libelle: Nommer et représenter quelques parties du corps humain.
+      niveau: PS
+    - identite: cde-vivant-o013
+      code: VIVANT-O013
+      libelle: Découvrir les sens utilisés lors d’expériences sensorielles variées.
+      niveau: PS
+    - identite: cde-vivant-o014
+      code: VIVANT-O014
+      libelle: Respecter quelques règles d’hygiène de vie, à l’invitation de l’adulte.
+      niveau: PS
+    - identite: cde-vivant-o015
+      code: VIVANT-O015
+      libelle: Identifier et nommer les parties du corps humain.
+      niveau: MS
+    - identite: cde-vivant-o016
+      code: VIVANT-O016
+      libelle: Identifier et nommer des organes sensoriels et les modalités de perception associées.
+      niveau: MS
+    - identite: cde-vivant-o017
+      code: VIVANT-O017
+      libelle: Observer des changements liés à sa croissance.
+      niveau: MS
+    - identite: cde-vivant-o018
+      code: VIVANT-O018
+      libelle: Connaitre quelques règles d’hygiène corporelle et de propreté.
+      niveau: MS
+    - identite: cde-vivant-o019
+      code: VIVANT-O019
+      libelle: Identifier et nommer quelques articulations et la segmentation des membres.
+      niveau: GS
+    - identite: cde-vivant-o020
+      code: VIVANT-O020
+      libelle: Se représenter avec un corps articulé en mouvement.
+      niveau: GS
+    - identite: cde-vivant-o021
+      code: VIVANT-O021
+      libelle: Connaitre quelques étapes de la vie d’un enfant jusqu’à six ans.
+      niveau: GS
+  - code: S03
+    nom: Découvrir les objets et les matériaux
+    competences:
+    - identite: cde-vivant-o022
+      code: VIVANT-O022
+      libelle: Reconnaitre et comparer des matériaux usuels à partir de perceptions sensorielles.
+      niveau: PS
+    - identite: cde-vivant-o023
+      code: VIVANT-O023
+      libelle: Repérer des transformations de matériaux sous l’effet d’actions mécaniques avec les
+        mains ou avec des outils.
+      niveau: PS
+    - identite: cde-vivant-o024
+      code: VIVANT-O024
+      libelle: Utiliser des objets, connaitre leur nom et leur fonction.
+      niveau: PS
+    - identite: cde-vivant-o025
+      code: VIVANT-O025
+      libelle: Réaliser une construction, fabriquer un objet librement ou par un guidage pas à pas.
+      niveau: PS
+    - identite: cde-vivant-o026
+      code: VIVANT-O026
+      libelle: Différencier des matériaux en fonction de leurs propriétés et différencier un objet
+        du matériau qui le constitue.
+      niveau: MS
+    - identite: cde-vivant-o027
+      code: VIVANT-O027
+      libelle: Désigner et utiliser des outils ou des objets adaptés à une situation et à une action
+        technique.
+      niveau: MS
+    - identite: cde-vivant-o028
+      code: VIVANT-O028
+      libelle: Réaliser une construction, fabriquer un objet à partir d’un modèle.
+      niveau: MS
+    - identite: cde-vivant-o029
+      code: VIVANT-O029
+      libelle: Reproduire quelques gestes respectueux de l’environnement montrés par l’adulte.
+      niveau: MS
+    - identite: cde-vivant-o030
+      code: VIVANT-O030
+      libelle: Associer une solution technique à une fonction technique.
+      niveau: GS
+    - identite: cde-vivant-o031
+      code: VIVANT-O031
+      libelle: Fabriquer un objet en réponse à un besoin en exploitant des propriétés de matériaux
+        ou des phénomènes physiques (équilibre, magnétisme, perméabilité, opacité ou transparence).
+      niveau: GS
+    - identite: cde-vivant-o032
+      code: VIVANT-O032
+      libelle: 'Explorer la notion de flottabilité avec des objets pleins constitués d’une seule
+        et même matière : observer que, plongés dans l’eau, ils flottent tous ou coulent tous.'
+      niveau: GS
+    - identite: cde-vivant-o033
+      code: VIVANT-O033
+      libelle: Construire, fabriquer, réaliser en suivant une recette ou une fiche technique.
+      niveau: GS
+    - identite: cde-vivant-o034
+      code: VIVANT-O034
+      libelle: Élaborer une suite d’instructions pour réaliser une tâche simple.
+      niveau: GS
+    - identite: cde-vivant-o035
+      code: VIVANT-O035
+      libelle: Identifier et prévenir les risques liés à certains objets.
+      niveau: GS
+  - code: S04
+    nom: Découvrir les états de la matière et les mélanges
+    competences:
+    - identite: cde-vivant-o036
+      code: VIVANT-O036
+      libelle: Explorer quelques caractéristiques des solides et des liquides.
+      niveau: PS
+    - identite: cde-vivant-o037
+      code: VIVANT-O037
+      libelle: Constater les effets d’un déplacement d’air sur des objets ou sur soi-même.
+      niveau: PS
+    - identite: cde-vivant-o038
+      code: VIVANT-O038
+      libelle: Réaliser et observer des mélanges.
+      niveau: PS
+    - identite: cde-vivant-o039
+      code: VIVANT-O039
+      libelle: Découvrir et observer la fusion et la solidification de l’eau.
+      niveau: PS
+    - identite: cde-vivant-o040
+      code: VIVANT-O040
+      libelle: Identifier une condition favorable à la fusion de la glace.
+      niveau: MS
+    - identite: cde-vivant-o041
+      code: VIVANT-O041
+      libelle: Mettre en évidence la présence d’air en le mettant en mouvement.
+      niveau: MS
+    - identite: cde-vivant-o042
+      code: VIVANT-O042
+      libelle: Distinguer les solides qui se dissolvent dans l’eau de ceux qui ne se dissolvent pas.
+      niveau: MS
+    - identite: cde-vivant-o043
+      code: VIVANT-O043
+      libelle: Identifier et nommer l’état de l’eau dans différentes situations.
+      niveau: GS
+    - identite: cde-vivant-o044
+      code: VIVANT-O044
+      libelle: Identifier la présence de l’air quand il est perceptible par les sens.
+      niveau: GS
+    - identite: cde-vivant-o045
+      code: VIVANT-O045
+      libelle: Distinguer, parmi quelques solides, ceux qui peuvent se dissoudre dans l’eau.
+      niveau: GS
+    - identite: cde-vivant-o046
+      code: VIVANT-O046
+      libelle: Commencer à agir de manière autonome pour le respect de l’environnement.
+      niveau: GS
+    - identite: cde-vivant-o047
+      code: VIVANT-O047
+      libelle: Prendre en compte les risques de l’environnement familier.
+      niveau: GS

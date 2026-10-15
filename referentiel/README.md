@@ -74,9 +74,10 @@ accompagnent les YAML. Ces éditions restent provisoires pour relecture.
 
 ## Tableaux Chat d’école
 
-L’[édition pilote Chat d’école 2026.1](chatdecole/NOTICE.org) ajoute
+L’[édition pilote Chat d’école 2026.2](chatdecole/NOTICE.org) ajoute
 [417 entrées importables](chatdecole/tableaux-cycle1.yaml) dans les six domaines,
-sans EVAR, illustration ni phrase ajoutée. Son [registre](chatdecole/REGISTRE.csv)
+sans EVAR ni phrase ajoutée. La version 2026.2 ajoute six associations d’images,
+sans modifier les textes ; la version 2026.1 reste conservée sous `editions/`. Son [registre](chatdecole/REGISTRE.csv)
 conserve les fichiers sources et les repères de transcription. Les conditions
 publiées par Chat d’école et les crédits restent distincts de la licence du
 logiciel. La classe fictive des Pinsons permet de l’essayer dans la démonstration.

@@ -41,3 +41,10 @@ for source in tableaux-cycle1.yaml NOTICE.org REGISTRE.csv; do
 done
 
 echo "Documents Org publics préparés dans ${destination#"$racine/"}/."
+
+# Associations explicites et anciennes éditions, pour une adoption reproductible.
+cp "$racine/referentiel/images-proposees/associations-im4.yaml" "$contenus/ASSOCIATIONS-IM4.yaml"
+cp "$racine/referentiel/images-proposees/associations-im4.yaml" "$chatdecole/ASSOCIATIONS-IM4.yaml"
+mkdir -p "$contenus/editions" "$chatdecole/editions"
+cp "$racine/referentiel/cycle1/editions/"*.yaml "$contenus/editions/"
+cp "$racine/referentiel/chatdecole/editions/"*.yaml "$chatdecole/editions/"

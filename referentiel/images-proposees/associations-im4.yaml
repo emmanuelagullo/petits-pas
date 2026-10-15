@@ -1,0 +1,87 @@
+format: 1
+statut: Associations intégrées aux éditions 2026.2 ; aucune adoption automatique
+associations:
+- source: cycle1-objectifs-programmes
+  version: '2026.2'
+  identite: lang-o080
+  code: LANG-O080
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: cycle1-objectifs-programmes
+  version: '2026.2'
+  identite: lang-o084
+  code: LANG-O084
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: cycle1-objectifs-programmes
+  version: '2026.2'
+  identite: arts-o002
+  code: ARTS-O002
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: cycle1-objectifs-programmes
+  version: '2026.2'
+  identite: arts-o004
+  code: ARTS-O004
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: cycle1-objectifs-programmes
+  version: '2026.2'
+  identite: arts-o006
+  code: ARTS-O006
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: cycle1-objectifs-programmes
+  version: '2026.2'
+  identite: o-enoncer-date
+  code: TEMPS-O012
+  image: om-calendrier
+  portee: activite
+  raison: Le calendrier situe l’activité de dire la date ; aucune réussite n’est déduite.
+- source: chatdecole-tableaux-cycle1
+  version: '2026.2'
+  identite: cde-lang-o080
+  code: LANG-O080
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: chatdecole-tableaux-cycle1
+  version: '2026.2'
+  identite: cde-lang-o084
+  code: LANG-O084
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: chatdecole-tableaux-cycle1
+  version: '2026.2'
+  identite: cde-arts-o002
+  code: ARTS-O002
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: chatdecole-tableaux-cycle1
+  version: '2026.2'
+  identite: cde-arts-o004
+  code: ARTS-O004
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: chatdecole-tableaux-cycle1
+  version: '2026.2'
+  identite: cde-arts-o006
+  code: ARTS-O006
+  image: om-crayon
+  portee: activite
+  raison: Le crayon évoque le geste et son outil ; le texte précise l’apprentissage.
+- source: chatdecole-tableaux-cycle1
+  version: '2026.2'
+  identite: cde-temps-o012
+  code: TEMPS-O012
+  image: om-calendrier
+  portee: activite
+  raison: Le calendrier situe l’activité de dire la date ; aucune réussite n’est déduite.
