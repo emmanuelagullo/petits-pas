@@ -44,3 +44,16 @@ le hachage Django par défaut ; les sous-processus d'export utilisent
 distingue notamment la préparation des bases de leur utilisation. Les fixtures
 de classe ne sont pas attribuées à chaque durée individuelle. Comparer les
 durées à environnement équivalent.
+
+Les tests de scripts ne sont pas découverts par `manage.py test`. La CI
+exécute leurs commandes dédiées : notamment
+`python3 -m unittest discover -s scripts -p test_version_application.py`
+dans les jobs Django, et
+`node --test scripts/test_transport_pwa.cjs scripts/test_recherche_referentiel.cjs`
+dans le job PWA, qui dispose déjà de Node.
+
+Les vérifications GitLab marquées `interruptible` peuvent être annulées
+lorsqu'un nouveau commit arrive sur la même branche. Les déploiements de
+vérification et les publications ne le sont pas. Sur GitHub, une nouvelle
+construction de la même branche remplace la précédente ; les constructions
+de tags ne sont pas annulées automatiquement.
