@@ -135,8 +135,8 @@ présentation adoptée ; ceux des classes closes ne changent pas.
 * Essayer sur la démonstration
 
 Les [[{{< relref "/referentiels/cycle1" >}}][deux offres cycle 1]] sont présentes :
-Rémi / Les Mésanges utilise l’édition étayée 2026.2 (438 entrées) ; Nadia /
-Les Hirondelles utilise les objectifs officiels 2026.1 (426 entrées).
+Rémi / Les Mésanges utilise l’édition étayée 2026.3 (438 entrées) ; Nadia /
+Les Hirondelles utilise les objectifs officiels 2026.3 (426 entrées).
 Les données sont entièrement fictives. L’application y permet les exceptions
 pour 2026-2027, mais les permissions de l’école et des classes sont initialement
 fermées. Diane ouvre la permission de l’école ; Rémi ou Nadia ouvre celle de sa

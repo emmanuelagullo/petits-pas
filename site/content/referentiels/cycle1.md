@@ -1,6 +1,6 @@
 +++
 title = "Cycle 1 : trois référentiels à essayer"
-description = "Objectifs des programmes, repères proposés et essai avec deux classes fictives."
+description = "Objectifs des programmes, repères proposés et essai avec trois classes fictives."
 +++
 
 Deux offres couvrent l’inventaire des objectifs explicites des programmes
@@ -10,9 +10,9 @@ approuvées par le ministère ou par une équipe pédagogique.
 
 | Offre | Édition | Contenu | Classe fictive prête à essayer |
 |---|---|---|---|
-| Cycle 1 — Objectifs des programmes | 2026.2 | 426 objectifs inchangés et six associations d’images | Les Hirondelles, avec Nadia |
-| Petits Pas — Cycle 1, objectifs et repères (pilote) | 2026.2 | Les mêmes 426 objectifs, 12 repères ciblés et 17 associations d’illustrations | Les Mésanges, avec Rémi |
-| Chat d’école — Tableaux cycle 1 (pilote) | 2026.2 | 417 entrées inchangées, six domaines, sans EVAR et six associations d’images | Les Pinsons, avec Rémi |
+| Cycle 1 — Objectifs des programmes | 2026.3 | 426 objectifs inchangés et 30 associations d’images | Les Hirondelles, avec Nadia |
+| Petits Pas — Cycle 1, objectifs et repères (pilote) | 2026.3 | Les mêmes 426 objectifs, 12 repères ciblés et 38 associations d’illustrations | Les Mésanges, avec Rémi |
+| Chat d’école — Tableaux cycle 1 (pilote) | 2026.3 | 417 entrées inchangées, six domaines, sans EVAR et 30 associations d’images | Les Pinsons, avec Rémi |
 
 Dans l’offre étayée, **Objectif :** annonce le texte officiel et **Repère :**
 une reformulation Petits Pas. Les douze repères seuls ne couvrent pas tout le
@@ -70,7 +70,7 @@ Pour essayer **Chat d’école**, rester connecté avec Rémi et ouvrir
 **Les Pinsons — 2026-2027** : 12 autres élèves fictifs, quatre PS, quatre MS et
 quatre GS. Consulter le référentiel de la classe, les observations d’Ada E.
 et son carnet. Cette base conserve les textes des tableaux, sans EVAR ni
-phrase ajoutée ; six images OpenMoji sont proposées dans l’édition 2026.2. La [notice et les crédits](../../referentiels/chatdecole/NOTICE.org)
+phrase ajoutée ; 30 associations d’images OpenMoji sont proposées dans l’édition 2026.3. La [notice et les crédits](../../referentiels/chatdecole/NOTICE.org)
 et le [registre de transcription](../../referentiels/chatdecole/REGISTRE.csv)
 accompagnent son essai. Aucun suivi n’est copié depuis les autres classes.
 
@@ -89,11 +89,11 @@ expliquent les actions possibles.
 
 ## Trois classes prêtes à essayer
 
-{{< capture-guide src="captures/referentiels/cycle1/mesanges.png" alt="Référentiel de la classe fictive des Mésanges, édition étayée 2026.2" caption="Rémi suit les Mésanges avec l’offre étayée. Données fictives." >}}
+{{< capture-guide src="captures/referentiels/cycle1/mesanges.png" alt="Référentiel de la classe fictive des Mésanges, édition étayée 2026.3" caption="Rémi suit les Mésanges avec l’offre étayée. Données fictives." >}}
 
-{{< capture-guide src="captures/referentiels/cycle1/hirondelles.png" alt="Référentiel de la classe fictive des Hirondelles, objectifs officiels 2026.2" caption="Nadia suit les Hirondelles avec les objectifs officiels seuls. Données fictives." >}}
+{{< capture-guide src="captures/referentiels/cycle1/hirondelles.png" alt="Référentiel de la classe fictive des Hirondelles, objectifs officiels 2026.3" caption="Nadia suit les Hirondelles avec les objectifs officiels seuls. Données fictives." >}}
 
-{{< capture-guide src="captures/referentiels/cycle1/pinsons.png" alt="Référentiel de la classe fictive des Pinsons, tableaux Chat d’école 2026.2" caption="Rémi suit les Pinsons avec les tableaux Chat d’école. Données fictives." >}}
+{{< capture-guide src="captures/referentiels/cycle1/pinsons.png" alt="Référentiel de la classe fictive des Pinsons, tableaux Chat d’école 2026.3" caption="Rémi suit les Pinsons avec les tableaux Chat d’école. Données fictives." >}}
 
 ## Sources et droits
 
@@ -122,7 +122,7 @@ du logiciel. Aucun référentiel ITICarnet n’est inclus.
 Illustrations : **OpenMoji — HfG Schwäbisch Gmünd et contributeurs**, version
 17.0.0, **CC-BY-SA-4.0**, sans retouche. [Crédits détaillés](../../referentiels/cycle1/ILLUSTRATIONS-CR5.yaml),
 [notice](../../referentiels/cycle1/ILLUSTRATIONS-CR5.org) et
-[associations proposées](../../referentiels/cycle1/ASSOCIATIONS-CR5.yaml).
+[associations actuelles](../../referentiels/cycle1/ASSOCIATIONS-IM6.yaml).
 Une association illustre un thème, pas l’ensemble des critères de réussite.
 
 
@@ -139,10 +139,10 @@ permet pas de transférer automatiquement une réussite.
 
 ## Télécharger les fichiers
 
-- [Objectifs officiels, YAML 2026.2](../../referentiels/cycle1/objectifs-programmes.yaml)
-- [Édition étayée, YAML 2026.2](../../referentiels/cycle1/cycle1-etaye.yaml)
+- [Objectifs officiels, YAML 2026.3](../../referentiels/cycle1/objectifs-programmes.yaml)
+- [Édition étayée, YAML 2026.3](../../referentiels/cycle1/cycle1-etaye.yaml)
 - [Registre de provenance et de sens, CSV](../../referentiels/cycle1/REGISTRE.csv)
-- [Chat d’école, YAML 2026.2](../../referentiels/chatdecole/tableaux-cycle1.yaml)
+- [Chat d’école, YAML 2026.3](../../referentiels/chatdecole/tableaux-cycle1.yaml)
 
 Les fichiers utilisent l’import versionné de Petits Pas. Télécharger ou importer
 une source ne change pas automatiquement le référentiel d’une classe.
@@ -155,3 +155,17 @@ montre 16 usages, avec un aperçu à petite taille. Les
 [auteurs, versions et crédits détaillés](../../referentiels/images-proposees/collection-im5.yaml)
 accompagnent les fichiers. Les dessins sont facultatifs : certains servent
 seulement aux choix locaux et ne sont associés à aucun objectif fourni.
+
+Les éditions **2026.3** enrichissent seulement les associations d’images. Les
+textes et identités pédagogiques restent inchangés. Six associations moins
+précises sont retirées de l’offre étayée : quatre bouliers pour la numération,
+la palette pour une production en volume, la pousse pour élevages et cultures.
+Les apprentissages restent présents ; les images choisies localement restent
+prioritaires. Les éditions précédentes restent téléchargeables :
+[objectifs 2026.2](../../referentiels/cycle1/editions/objectifs-programmes-2026.2.yaml),
+[étayée 2026.2](../../referentiels/cycle1/editions/cycle1-etaye-2026.2.yaml),
+[Chat d’école 2026.2](../../referentiels/chatdecole/editions/tableaux-cycle1-2026.2.yaml).
+
+Les nouveaux dessins peuvent être choisis directement dans **Présentation du
+carnet → Image fournie**, sans changer le référentiel de la classe. L’adoption
+d’une édition plus récente reste une action séparée et explicite.

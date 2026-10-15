@@ -1,5 +1,5 @@
-#+TITLE: Chat d’école — Tableaux cycle 1 (pilote), édition 2026.2
-#+DATE: 2026-10-01
+#+TITLE: Chat d’école — Tableaux cycle 1 (pilote), édition 2026.3
+#+DATE: 2026-10-15
 #+LANGUAGE: fr
 
 * Origine et conditions d’usage
@@ -55,7 +55,7 @@ Les documents tiers Word/PDF ne sont pas joints à la conversion.
 
 * Identités et versions
 
-Source =chatdecole-tableaux-cycle1= ; version =2026.2= ; statut pilote.
+Source =chatdecole-tableaux-cycle1= ; version =2026.3= ; statut pilote.
 Chaque identité =cde-…= est attribuée une fois dans cette première édition,
 indépendamment de son ordre dans une prochaine version. Les codes facilitent
 la lecture, mais ne prouvent pas une identité commune entre sources.
@@ -90,3 +90,17 @@ d’École au porteur du projet ; il ne vaut pas autorisation pour des images
 tierces. Les conditions et la provenance des textes restent distinctes.
 La version =2026.1= est conservée dans =editions/tableaux-cycle1-2026.1.yaml=.
 Importer la nouvelle version ne l’adopte pour aucune classe.
+
+* Associations relues — #IM6
+
+L’édition =2026.3= propose 30 associations explicites pour la lecture de récits,
+le dessin et l’écriture, la course, l’écoute musicale, les rythmes, la comparaison
+des masses et la date. Aucune entrée, formulation, identité, niveau ou position
+n’est modifiée. Les images ne proviennent pas de Chat d’École : elles relèvent
+d’OpenMoji 17.0.0 et de sa licence propre, décrits dans le manifeste de collection.
+
+La version =2026.2= est conservée dans =editions/tableaux-cycle1-2026.2.yaml=.
+Le manifeste =../images-proposees/associations-im6.yaml= déclare chaque association
+indépendamment des autres sources. Les outils plus généraux restent au choix
+local, sans association automatique. Aucune classe ne change de version lors
+d’un simple import.

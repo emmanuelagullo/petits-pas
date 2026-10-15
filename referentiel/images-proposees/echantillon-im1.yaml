@@ -14,7 +14,7 @@ associations:
   portee: activite
   statut: existante
   raison: Le livre évoque le support du récit ; le texte précise la narration.
-- fichier_referentiel: referentiel/cycle1/cycle1-etaye.yaml
+- fichier_referentiel: referentiel/cycle1/editions/cycle1-etaye-2026.2.yaml
   empreinte_referentiel: 8cc5cb54748c59ad1678ea90ba9871ca9b3b28cde61a4f131491dee39847db19
   source: petits-pas-cycle1-etaye
   version: '2026.2'
@@ -26,7 +26,7 @@ associations:
   statut: existante
   raison: Les plantations correspondent à cette activité ; le soin reste décrit dans
     le texte.
-- fichier_referentiel: referentiel/cycle1/cycle1-etaye.yaml
+- fichier_referentiel: referentiel/cycle1/editions/cycle1-etaye-2026.2.yaml
   empreinte_referentiel: 8cc5cb54748c59ad1678ea90ba9871ca9b3b28cde61a4f131491dee39847db19
   source: petits-pas-cycle1-etaye
   version: '2026.2'

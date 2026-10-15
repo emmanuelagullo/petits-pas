@@ -31,3 +31,15 @@ Pour essayer l'interface dans une démonstration fictive, ouvrir **Présentation
 du carnet → Images proposées et photos**, changer le choix, enregistrer, puis
 rouvrir le carnet et télécharger le PDF. À l'école, la direction prépare le
 défaut ; dans la classe, son responsable peut le garder ou faire un autre choix.
+
+Pour vérifier aussi les associations des trois éditions fournies :
+
+```sh
+python scripts/recetter-images-proposees.py --avec-associations --destination /tmp/carnets-associations-fictifs
+```
+
+Le script ajoute trois carnets de Camille Fictif, avec cinq apprentissages de
+chaque source : récit, écriture, course, rythme et comparaison de masses. Il
+importe et adopte les vraies éditions dans sa seule base temporaire. Vérifier
+les cinq illustrations, leurs textes et le crédit OpenMoji unique en fin de
+carnet. Il n’importe aucune photographie réelle.

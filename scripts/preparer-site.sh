@@ -55,3 +55,6 @@ mkdir -p "$images"
 for source in collection-im5.yaml planche-im5.svg; do
     cp "$racine/referentiel/images-proposees/$source" "$images/$source"
 done
+
+cp "$racine/referentiel/images-proposees/associations-im6.yaml" "$contenus/ASSOCIATIONS-IM6.yaml"
+cp "$racine/referentiel/images-proposees/associations-im6.yaml" "$chatdecole/ASSOCIATIONS-IM6.yaml"

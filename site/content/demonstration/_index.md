@@ -128,5 +128,5 @@ que les anciennes observations restent dans les carnets et qu’aucune réussite
 n’est copiée vers une compétence d’une autre identité. L’autorisation de classe
 est alors refermée ; un retour demandera une nouvelle ouverture.
 
-L’édition étayée des Mésanges reste en 2026.2 avec 438 entrées ; les objectifs
+L’édition étayée des Mésanges passe en 2026.3 avec 438 entrées ; les objectifs
 seuls des Hirondelles restent en 2026.1 avec 426 entrées au démarrage.

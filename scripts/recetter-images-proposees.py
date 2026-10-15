@@ -22,6 +22,8 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--destination', type=Path, required=True)
+    parser.add_argument('--avec-associations', action='store_true',
+                        help='Ajouter un carnet fictif pour chacune des trois éditions fournies.')
     args = parser.parse_args()
     destination = args.destination.resolve()
     if destination.exists():
@@ -128,6 +130,13 @@ def main():
             return 'src="data:' + mime + ';base64,' + base64.b64encode(contenu).decode() + '"'
 
         rapport, liens = [], []
+
+        def apercu_autonome(html, nom, prenom):
+            article = re.search(r'<article class="carnet .*?</article>', html, flags=re.S).group()
+            article = re.sub(r'src="([^"]+)"', incorporer, article)
+            (destination / (nom+'.html')).write_text('<!doctype html><html lang="fr"><meta charset="utf-8">'
+                '<title>Carnet fictif de '+prenom+'</title><style>'+css+'</style>'+article+'</html>')
+
         for avec_photos in (False, True):
             enregistrer_affichage(responsable, ecole, classe, avec_photos=avec_photos)
             for prenom, eleve in eleves.items():
@@ -144,24 +153,66 @@ def main():
                 assert photos == attendu, (prenom, photos)
                 assert images == int(avec_photos or not photos), (prenom, images)
                 assert html.count('>OpenMoji</a>') == images
-                article = re.search(r'<article class="carnet .*?</article>', html, flags=re.S).group()
-                article = re.sub(r'src="([^"]+)"', incorporer, article)
-                (destination / (nom+'.html')).write_text('<!doctype html><html lang="fr"><meta charset="utf-8">'
-                    '<title>Carnet fictif de '+prenom+'</title><style>'+css+'</style>'+article+'</html>')
+                apercu_autonome(html, nom, prenom)
                 pdf = client.get(reverse('carnet_pdf', args=[eleve.pk]), options)
                 assert pdf.status_code == 200 and pdf.content.startswith(b'%PDF')
                 (destination / (nom+'.pdf')).write_bytes(pdf.content)
                 rapport.append({'prenom_fictif': prenom, 'avec_image_et_photos': avec_photos,
                     'photos': photos, 'illustrations': images, 'pdf_octets': len(pdf.content)})
                 liens.append(f'<li>{nom} : <a href="{nom}.html">carnet web</a> · <a href="{nom}.pdf">PDF</a></li>')
+        if args.avec_associations:
+            from suivi.models import ChoixApplicationAnnuel
+            from suivi.referentiels import contenu_adoption
+            from suivi.services.import_sources_referentiels import importer_source
+            from suivi.services.choix_bases_referentiels import publier_choix_application
+            from suivi.services.adoption_bases_referentiels import apercu_adoption, adopter_base
+            versions = []
+            for fichier, nom in [('cycle1/objectifs-programmes.yaml', 'objectifs'),
+                                 ('cycle1/cycle1-etaye.yaml', 'etaye'),
+                                 ('chatdecole/tableaux-cycle1.yaml', 'chatdecole')]:
+                version = importer_source((ROOT / 'referentiel' / fichier).read_text())[0]
+                versions.append((version, nom))
+            politique = ChoixApplicationAnnuel.objects.filter(annee_scolaire=classe.annee_scolaire).first()
+            publier_choix_application(annee=classe.annee_scolaire, versions_ids=[v.pk for v, _ in versions],
+                proposee_id=versions[0][0].pk, revision_attendue=politique.revision if politique else 0)
+            for version, nom in versions:
+                exemple = Classe.objects.create(ecole=ecole, nom='Exemple fictif '+nom,
+                    annee_scolaire=classe.annee_scolaire)
+                AffectationClasse.objects.create(appartenance=membre, classe=exemple, type='responsable')
+                exemple.activer()
+                apercu = apercu_adoption(utilisateur=responsable, classe=exemple, version_id=version.pk)
+                adoption = adopter_base(utilisateur=responsable, classe=exemple, version_id=version.pk,
+                    revisions_attendues=apercu['revisions'], adoption_attendue=apercu['adoption_id'],
+                    garde_attendue=apercu['garde']['empreinte'])
+                eleve = Eleve.objects.create(ecole=ecole, prenom='Camille', nom='Fictif')
+                Scolarite.objects.create(eleve=eleve, classe=exemple, annee_scolaire=classe.annee_scolaire, niveau='MS')
+                selection = {'LANG-O062', 'LANG-O080', 'PHYS-O002', 'ARTS-O048', 'MATH-O066'}
+                definitions = [c for c in contenu_adoption(adoption)['competences'] if c['code'] in selection]
+                assert len(definitions) == 5
+                for definition in definitions:
+                    modifier_etat(utilisateur=responsable, eleve=eleve,
+                        competence=Competence.objects.get(pk=definition['id']), statut='en_cours')
+                options = {'contenu': 'observes', 'colonnes': '2'}
+                web = client.get(reverse('carnet', args=[eleve.pk]), options)
+                assert web.status_code == 200
+                html = web.content.decode()
+                assert html.count('class="icone-competence"') == 5
+                assert html.count('>OpenMoji</a>') == 1
+                apercu_autonome(html, nom, eleve.prenom)
+                pdf = client.get(reverse('carnet_pdf', args=[eleve.pk]), options)
+                assert pdf.status_code == 200 and pdf.content.startswith(b'%PDF')
+                (destination / (nom+'.pdf')).write_bytes(pdf.content)
+                rapport.append({'source': version.source.identifiant, 'version': version.numero,
+                    'photos': 0, 'illustrations': 5, 'credits_openmoji': 1, 'pdf_octets': len(pdf.content)})
+                liens.append(f'<li>{nom}, édition {version.numero} : <a href="{nom}.html">carnet web</a> · <a href="{nom}.pdf">PDF</a></li>')
         (destination / 'rapport.json').write_text(json.dumps(rapport, ensure_ascii=False, indent=2))
         (destination / 'index.html').write_text('<!doctype html><html lang="fr"><meta charset="utf-8">'
             '<title>Comparer les images proposées</title><h1>Carnets entièrement fictifs</h1>'
             '<p>Alix : sans photo. Lou : photo commune et photo personnelle dans deux traces. '
             'Noé : version personnelle avec photo remplacée. Inès : version personnelle sans photo.</p>'
-            '<p>Les huit carnets utilisent les vrais parcours web et PDF. Les aperçus HTML sont autonomes.</p><ul>'
+            '<p>Les carnets utilisent les vrais parcours web et PDF. Les aperçus HTML sont autonomes.</p><ul>'
             + ''.join(liens) + '</ul></html>')
-    print('Huit carnets HTML/PDF fictifs vérifiés : ' + str(destination))
+    print(str(len(rapport))+' carnets HTML/PDF fictifs vérifiés : ' + str(destination))
 
 
 if __name__ == '__main__':

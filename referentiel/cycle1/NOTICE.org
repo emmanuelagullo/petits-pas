@@ -1,5 +1,5 @@
 #+TITLE: Cycle 1 — objectifs des programmes et édition étayée
-#+DATE: 2026-10-01
+#+DATE: 2026-10-15
 #+LANGUAGE: fr
 
 * Deux offres pour la relecture
@@ -134,3 +134,18 @@ explicites, sans modification des apprentissages : dessin et tracé de lettres
 Le manifeste =../images-proposees/associations-im4.yaml= conserve les identités
 et justifications ; les crédits OpenMoji 17.0.0 restent dans les fichiers #CR5.
 Aucune classe existante n’adopte automatiquement ces associations.
+
+* Associations relues — #IM6
+
+Les deux offres passent en =2026.3= : 30 associations dans les objectifs des
+programmes, 38 dans l’édition étayée. Seuls les champs d’image et le numéro
+d’édition changent ; aucun texte, identité, niveau, ordre ou phrase ne change.
+Le manifeste =../images-proposees/associations-im6.yaml= conserve les choix,
+leurs justifications et les six retraits d’associations de l’édition étayée.
+Les dessins non retouchés proviennent d’OpenMoji 17.0.0 ; les auteurs, le commit
+amont et les empreintes sont dans =../images-proposees/collection-im5.yaml=.
+
+Les deux versions =2026.2= sont conservées dans =editions/=. Les classes déjà
+préparées ne changent pas de version automatiquement ; les images adaptées
+localement restent prioritaires. Les nouveaux dessins peuvent aussi être
+choisis directement dans le menu Image fournie, sans changer de base.

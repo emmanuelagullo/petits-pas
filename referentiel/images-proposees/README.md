@@ -61,3 +61,28 @@ automatiquement à des objectifs plus généraux. Le dessin d'un pinceau ne
 représente pas toute la création plastique, ni celui du lavage des mains
 toutes les règles d'hygiène de vie. Aucun dessin n'est imposé pour coller,
 enfiler, modeler ou construire avec des blocs.
+
+## Associations disponibles dans les éditions 2026.3 — #IM6
+
+Les objectifs des programmes et les tableaux Chat d’École proposent chacun
+30 associations ; l’édition étayée Petits Pas en propose 38. Les textes,
+identités, niveaux, ordre et phrases sont inchangés. Le
+[manifeste explicite](associations-im6.yaml) conserve séparément chaque source,
+version, identité, libellé et justification ; une image commune n’établit
+aucune équivalence entre apprentissages. La plupart des entrées restent sans image.
+
+La sélection porte sur la lecture de récits, le dessin et l’écriture, la
+course, l’écoute musicale, les rythmes et la comparaison des masses. Certaines
+images représentent un outil ou un support : le tambour ne rend pas son usage
+obligatoire pour reproduire un rythme, et le livre ne prouve pas la compréhension
+d’un récit. Aucune image de domaine n’est propagée aux apprentissages.
+
+Dans la nouvelle édition étayée, six associations moins précises sont retirées :
+le boulier de quatre entrées de numération, la palette de la production en volume,
+et la pousse de l’objectif couvrant élevages et cultures. Aucun apprentissage
+ni aucune donnée d’élève n’est retiré. Les dessins restent disponibles au choix
+local ; les adaptations école/classe restent prioritaires.
+
+Les éditions 2026.2 sont conservées sous `editions/`. Les classes déjà préparées
+gardent leur version jusqu’à une adoption explicite. Les nouveaux dessins sont
+néanmoins disponibles dans **Image fournie**, sans changer de base.
