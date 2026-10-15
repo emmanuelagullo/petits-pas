@@ -14,9 +14,9 @@ statut = "disponible"
 
 Le **second facteur** est un code à six chiffres, qui change toutes les trente
 secondes et s’ajoute au mot de passe. Chaque personne le produit avec un
-**générateur de codes** : de préférence un appareil distinct de son poste de
-travail (un téléphone, un petit jeton matériel), à défaut un logiciel sur ce
-poste. Aucun matériel n’est imposé. Les personnes concernées le configurent elles-mêmes, à partir de leur page **Mon compte**
+**générateur de codes** : le plus souvent une application sur un téléphone, mais
+un petit jeton ou un logiciel sur l’ordinateur conviennent aussi. Aucun matériel
+n’est imposé. Les personnes concernées le configurent elles-mêmes, à partir de leur page **Mon compte**
 (voir la [fiche destinée à toute l’équipe]({{< relref "/guide/equipe/second-facteur/" >}})).
 
 Deux niveaux décident de qui doit l’utiliser :
@@ -62,10 +62,11 @@ voient un bandeau les invitant à le faire.
 ## Avant d’exiger le second facteur
 
 - Prévenir l’équipe à l’avance : chacun doit disposer d’un moyen de produire les
-  codes, de préférence un appareil distinct de son poste de travail.
-- Penser aux personnes qui ne souhaitent pas utiliser leur téléphone personnel :
-  un générateur de codes matériel, ou à défaut un logiciel sur le poste de
-  travail, conviennent aussi. Le logiciel sur un poste partagé est à éviter.
+  codes. Tout le monde n’a pas de téléphone ou d’appareil à soi, surtout en
+  classe : un logiciel sur l’ordinateur de travail est une solution acceptable
+  (à éviter sur un poste partagé). Pour la direction et les personnes qui gèrent
+  l’école, dont le compte donne le plus d’accès, un appareil distinct est
+  particulièrement conseillé.
 - Rappeler de **noter les codes de secours** au moment de la configuration : ils
   évitent de solliciter la direction à chaque perte de l’appareil qui produit les
   codes.
@@ -102,7 +103,7 @@ l’école.
   **direction**, dans cette école comme dans une autre : cela revient à
   l’hébergeur de l’application.
 - La réinitialisation **ne lève jamais l’obligation**.
-- Les sessions que la personne aurait déjà ouvertes sur un autre appareil ne sont
-  pas fermées par cette opération.
+- Les sessions que la personne aurait déjà ouvertes (sur un autre appareil,
+  notamment) sont fermées par cette opération : elle doit se reconnecter.
 - Une personne qui doit changer d’appareil alors que le second facteur lui est
   imposé passe par la même réinitialisation.

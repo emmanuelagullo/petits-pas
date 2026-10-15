@@ -194,11 +194,12 @@ n'existe que si l'hébergeur installe une extension de dépendances
 change pour personne. Le programme installé sur un seul poste ne le propose pas.
 
 Les codes sont des codes temporaires standard (six chiffres, trente secondes,
-SHA-1) : tout générateur compatible convient, sans matériel imposé. Chaque
-personne le produit de préférence sur un **appareil distinct** de son poste de
-travail (téléphone, jeton matériel programmable) ; à défaut, par un logiciel du
-poste de travail, ce qui protège moins (un poste ouvert donne accès aux deux) et
-est à éviter sur un poste partagé.
+SHA-1) : tout générateur compatible convient, sans matériel imposé : application
+sur téléphone, jeton matériel programmable ou logiciel du poste de travail. Un
+appareil distinct protège mieux (un poste ouvert donne accès aux deux facteurs
+quand le logiciel est sur le poste, et ce dernier est à éviter sur un poste
+partagé) ; il est surtout conseillé pour les comptes de direction. Les
+réinitialisations du second facteur ferment les sessions ouvertes du compte.
 
 L'hébergeur fixe un cadre pour toutes ses écoles : le 2FA peut être rendu
 obligatoire jusqu'à une fonction donnée, ou retiré à partir d'une fonction. Dans
