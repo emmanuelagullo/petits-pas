@@ -10,6 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 from zipfile import ZipFile
 
+from django.conf.global_settings import PASSWORD_HASHERS as HASHERS_DJANGO
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
@@ -65,6 +66,8 @@ class ExportEcoleTests(TransactionTestCase):
             mot_de_passe_local=make_password("Copie!Fictive2026"),
             expire_le=timezone.now() + timedelta(hours=24))
 
+    # Le setUp a pu créer des comptes MD5 fictifs avant ce décorateur.
+    @override_settings(PASSWORD_HASHERS=[*HASHERS_DJANGO, "django.contrib.auth.hashers.MD5PasswordHasher"])
     def test_projection_complete_isolee_et_secrets_exclus(self):
         call_command("charger_referentiel", "referentiel/trame-cycle1.yaml", ecole=self.ecole.pk, verbosity=0)
         from .services.reprise_referentiels import preparer_nouvelle_ecole
@@ -114,7 +117,10 @@ class ExportEcoleTests(TransactionTestCase):
             self.assertEqual(db.execute("select prenom from suivi_eleve").fetchall(), [("Fictif",)])
             comptes = dict((nom, (pwd, active, staff, admin)) for nom, pwd, active, staff, admin in
                 db.execute("select username,password,is_active,is_staff,is_superuser from comptes_utilisateur"))
-            self.assertTrue(check_password("Copie!Fictive2026", comptes["direction"][0]))
+            # Le compte exporté doit fonctionner avec les seuls lecteurs
+            # ordinaires de la distribution, sans le hachage rapide des tests.
+            with override_settings(PASSWORD_HASHERS=HASHERS_DJANGO):
+                self.assertTrue(check_password("Copie!Fictive2026", comptes["direction"][0]))
             self.assertFalse(check_password("Serveur!Fictif2026", comptes["direction"][0]))
             self.assertEqual(comptes["direction"][1:], (1, 0, 0))
             self.assertEqual(comptes["enseignant"], ("!", 0, 0, 0))
