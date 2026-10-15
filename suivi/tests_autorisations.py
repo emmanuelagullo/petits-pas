@@ -44,7 +44,7 @@ from .models import (
 )
 
 
-class PolitiqueAutorisations(TestCase):
+class BaseAutorisations(TestCase):
     def setUp(self):
         self.aujourdhui = timezone.localdate()
         self.ecole_a = Ecole.objects.create(nom="École A")
@@ -95,6 +95,8 @@ class PolitiqueAutorisations(TestCase):
             appartenance=appartenance, classe=classe, type=type, **champs
         )
 
+
+class PolitiqueAutorisations(BaseAutorisations):
     def test_t002_compte_desactive_est_refuse(self):
         self.remi.is_active = False
         self.remi.save(update_fields=["is_active"])
@@ -234,7 +236,8 @@ class PolitiqueAutorisations(TestCase):
         self.assertNotIn(self.b1, classes_accessibles(self.remi, VOIR_CLASSE))
 
 
-class LecturesCloisonnees(PolitiqueAutorisations):
+
+class BaseLectures(BaseAutorisations):
     def setUp(self):
         super().setUp()
         self.alice = self._eleve("Alice", "Dupont", "PS", self.a1)
@@ -262,6 +265,19 @@ class LecturesCloisonnees(PolitiqueAutorisations):
         )
         return eleve
 
+    def _ajouter_trace(self, utilisateur, commentaire="Une contribution"):
+        self.client.force_login(utilisateur)
+        return self.client.post(
+            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/trace/",
+            {
+                "commentaire": commentaire,
+                "date_observation": self.aujourdhui.isoformat(),
+                "visible_carnet": "on",
+            },
+        )
+
+
+class LecturesCloisonnees(BaseLectures):
     def test_t040_contributeur_ne_voit_que_identite_minimale(self):
         self.client.force_login(self.cora)
 
@@ -329,17 +345,6 @@ class LecturesCloisonnees(PolitiqueAutorisations):
 
         self.assertEqual(reponse.status_code, 404)
         self.assertFalse(Observation.objects.exists())
-
-    def _ajouter_trace(self, utilisateur, commentaire="Une contribution"):
-        self.client.force_login(utilisateur)
-        return self.client.post(
-            f"/eleve/{self.alice.pk}/competence/{self.competence.pk}/trace/",
-            {
-                "commentaire": commentaire,
-                "date_observation": self.aujourdhui.isoformat(),
-                "visible_carnet": "on",
-            },
-        )
 
     def test_t062_associe_ajoute_trace_sans_fixer_etat(self):
         reponse = self._ajouter_trace(self.amina)
@@ -502,7 +507,8 @@ class LecturesCloisonnees(PolitiqueAutorisations):
         self.assertNotContains(reponse, "B1")
 
 
-class AdministrationCouranteEleves(LecturesCloisonnees):
+
+class AdministrationCouranteEleves(BaseLectures):
     def _ancien_dossier(self, suffixe=""):
         ancienne_classe = Classe.objects.create(
             ecole=self.ecole_a,
