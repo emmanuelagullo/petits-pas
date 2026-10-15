@@ -83,6 +83,11 @@ MIDDLEWARE = [
     "suivi.acces_double_facteur.DoubleFacteurMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+# Plafond de longueur du mot de passe, puis backend standard.
+AUTHENTICATION_BACKENDS = [
+    "comptes.backends.PlafondMotDePasse",
+    "django.contrib.auth.backends.ModelBackend",
+]
 if ANTIBRUTEFORCE_ACTIF:
     # Recommandation django-axes : dernier middleware de la liste.
     MIDDLEWARE.append("axes.middleware.AxesMiddleware")
@@ -90,7 +95,7 @@ if ANTIBRUTEFORCE_ACTIF:
     # l'authentification tant que le couple adresse/identifiant est bloqué.
     AUTHENTICATION_BACKENDS = [
         "axes.backends.AxesStandaloneBackend",
-        "django.contrib.auth.backends.ModelBackend",
+        *AUTHENTICATION_BACKENDS,
     ]
 
 ROOT_URLCONF = "carnet.urls"
@@ -151,6 +156,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {"NAME": "comptes.validators.MaximumLengthValidator"},
 ]
 
 LANGUAGE_CODE = "fr-fr"
@@ -350,6 +356,12 @@ AXES_COOLOFF_TIME = timedelta(
             "CARNET_CONNEXION_BLOCAGE_MINUTES", "5" if ENVIRONNEMENT_EPHEMERE else "15"
         )
     )
+)
+# Plafond d'échecs de connexion par adresse, tous identifiants confondus : très
+# au-dessus de l'usage normal, y compris pour une école derrière une seule
+# adresse (seuls les échecs comptent, pas les connexions réussies).
+RATELIMIT_CONNEXION_IP = os.environ.get(
+    "CARNET_RATELIMIT_CONNEXION_IP", "200/15m" if ENVIRONNEMENT_EPHEMERE else "60/15m"
 )
 # Le blocage porte sur le couple adresse + identifiant : un incident sur un
 # poste partagé (salle des maîtres) ne bloque pas les autres comptes qui s'y
