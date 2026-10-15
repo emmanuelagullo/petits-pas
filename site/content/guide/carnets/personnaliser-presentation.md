@@ -47,6 +47,13 @@ Les images importées doivent être au format JPEG, PNG ou WebP, et ne pas dépa
 
 Désactiver la photo de couverture ne retire pas la page de couverture. Une compétence peut très bien ne pas avoir d’image : les illustrations fournies sont facultatives et ne couvrent actuellement que quelques compétences.
 
+Le menu **Image fournie** propose notamment un livre, un crayon, un pinceau,
+des ciseaux, un tambour, une balance, une loupe et des gestes de la vie de
+classe. Ces images évoquent une activité ou son support ; elles ne représentent
+pas nécessairement tout un objectif. Choisissez une image seulement si elle
+aide à comprendre l’apprentissage. Une absence d’image est tout à fait possible.
+Le choix d’une image dans ce menu ne change pas le référentiel de la classe.
+
 Les petites icônes apparaissent aussi dans les listes de compétences. Elles sont placées à côté du niveau et avant le texte ; les boutons de photo à droite signalent, eux, des photos dans les traces de l’élève.
 
 ## Quand une photo est déjà affichée

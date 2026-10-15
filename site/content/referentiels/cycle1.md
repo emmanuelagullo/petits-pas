@@ -146,3 +146,12 @@ permet pas de transférer automatiquement une réussite.
 
 Les fichiers utilisent l’import versionné de Petits Pas. Télécharger ou importer
 une source ne change pas automatiquement le référentiel d’une classe.
+
+## Dessins disponibles pour la classe
+
+Le menu **Image fournie** propose 22 images, dont 19 OpenMoji homogènes.
+La [planche de sélection](../../referentiels/images-proposees/planche-im5.svg)
+montre 16 usages, avec un aperçu à petite taille. Les
+[auteurs, versions et crédits détaillés](../../referentiels/images-proposees/collection-im5.yaml)
+accompagnent les fichiers. Les dessins sont facultatifs : certains servent
+seulement aux choix locaux et ne sont associés à aucun objectif fourni.

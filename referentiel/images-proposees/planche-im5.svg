@@ -1,0 +1,714 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1010" viewBox="0 0 1280 1010">
+<rect width="1280" height="1010" fill="#f3f5f0"/>
+<g font-family="DejaVu Sans, sans-serif" fill="#243c35">
+<text x="30" y="42" font-size="28" font-weight="bold">Images proposées · sélection #IM5</text>
+<text x="30" y="73" font-size="17">16 usages illustrés · même collection OpenMoji 17.0.0 · grand aperçu et taille de liste (32 px)</text>
+<rect x="30" y="100" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="48" y="112" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#fff" d="m17.09 50.75c-3.184-4.073-5.088-9.191-5.088-14.75 0-13.23 10.77-24 24-24s24 10.77 24 24-10.77 24-24 24c-1.955 0-3.855-0.2406-5.676-0.6839-5.919-1.481-10.33-4.341-13.24-8.567z" />
+    <ns0:circle cx="23.48" cy="54.97" r="5" fill="#fff" />
+    <ns0:circle cx="-15.8" cy="62.94" r="2.5" transform="scale(-1,1)" fill="#fff" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="m31.54 58.56c1.442 0.2858 2.93 0.4391 4.455 0.4391 12.68 0 23-10.32 23-23s-10.32-23-23-23-23 10.32-23 23c0 4.913 1.552 9.467 4.187 13.21" />
+    <ns0:circle cx="26.79" cy="36" r="2" />
+    <ns0:circle cx="36" cy="36" r="2" />
+    <ns0:circle cx="45.21" cy="36" r="2" />
+    <ns0:circle cx="-4.026" cy="64.73" r="2.5" transform="matrix(-.9831 .1829 .1829 .9831 0 0)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:circle cx="-13.58" cy="57.88" r="4.981" transform="matrix(-.9831 .1829 .1829 .9831 0 0)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="183" y="165" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#fff" d="m17.09 50.75c-3.184-4.073-5.088-9.191-5.088-14.75 0-13.23 10.77-24 24-24s24 10.77 24 24-10.77 24-24 24c-1.955 0-3.855-0.2406-5.676-0.6839-5.919-1.481-10.33-4.341-13.24-8.567z" />
+    <ns0:circle cx="23.48" cy="54.97" r="5" fill="#fff" />
+    <ns0:circle cx="-15.8" cy="62.94" r="2.5" transform="scale(-1,1)" fill="#fff" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="m31.54 58.56c1.442 0.2858 2.93 0.4391 4.455 0.4391 12.68 0 23-10.32 23-23s-10.32-23-23-23-23 10.32-23 23c0 4.913 1.552 9.467 4.187 13.21" />
+    <ns0:circle cx="26.79" cy="36" r="2" />
+    <ns0:circle cx="36" cy="36" r="2" />
+    <ns0:circle cx="45.21" cy="36" r="2" />
+    <ns0:circle cx="-4.026" cy="64.73" r="2.5" transform="matrix(-.9831 .1829 .1829 .9831 0 0)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:circle cx="-13.58" cy="57.88" r="4.981" transform="matrix(-.9831 .1829 .1829 .9831 0 0)" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="46" y="237" font-size="17" font-weight="bold">Parler</text>
+<text x="46" y="258" font-size="12" fill="#61756b">1F4AC · déjà fourni</text>
+<rect x="345" y="100" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="363" y="112" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#9b9b9a" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41,56c0,2.7614-2.2386,5-5,5s-5-2.2386-5-5" />
+    <ns0:path fill="#d0cfce" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M67.0015,56H4.9985C4.447,56,4,55.553,4,55.0015v-38.003C4,16.447,4.447,16,4.9985,16h62.003C67.553,16,68,16.447,68,16.9985 v38.003C68,55.553,67.553,56,67.0015,56z" />
+    <ns0:path fill="#FFFFFF" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M64.0015,51.625H7.9985C7.447,51.625,7,51.178,7,50.6265v-29.253c0-0.5514,0.447-0.9985,0.9985-0.9985h56.003 C64.553,20.375,65,20.822,65,21.3735v29.253C65,51.178,64.553,51.625,64.0015,51.625z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41,56c0,2.7614-2.2386,5-5,5s-5-2.2386-5-5" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M67.0015,56H4.9985C4.447,56,4,55.553,4,55.0015v-38.003C4,16.447,4.447,16,4.9985,16h62.003C67.553,16,68,16.447,68,16.9985 v38.003C68,55.553,67.553,56,67.0015,56z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M64.0015,51.625H7.9985C7.447,51.625,7,51.178,7,50.6265v-29.253c0-0.5514,0.447-0.9985,0.9985-0.9985h56.003 C64.553,20.375,65,20.822,65,21.3735v29.253C65,51.178,64.553,51.625,64.0015,51.625z" />
+    <ns0:line x1="36" x2="36" y1="17" y2="55" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="27" y2="27" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="33" y2="33" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="39" y2="39" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="45" y2="45" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="27" y2="27" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="33" y2="33" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="39" y2="39" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="45" y2="45" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="498" y="165" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#9b9b9a" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41,56c0,2.7614-2.2386,5-5,5s-5-2.2386-5-5" />
+    <ns0:path fill="#d0cfce" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M67.0015,56H4.9985C4.447,56,4,55.553,4,55.0015v-38.003C4,16.447,4.447,16,4.9985,16h62.003C67.553,16,68,16.447,68,16.9985 v38.003C68,55.553,67.553,56,67.0015,56z" />
+    <ns0:path fill="#FFFFFF" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M64.0015,51.625H7.9985C7.447,51.625,7,51.178,7,50.6265v-29.253c0-0.5514,0.447-0.9985,0.9985-0.9985h56.003 C64.553,20.375,65,20.822,65,21.3735v29.253C65,51.178,64.553,51.625,64.0015,51.625z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41,56c0,2.7614-2.2386,5-5,5s-5-2.2386-5-5" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M67.0015,56H4.9985C4.447,56,4,55.553,4,55.0015v-38.003C4,16.447,4.447,16,4.9985,16h62.003C67.553,16,68,16.447,68,16.9985 v38.003C68,55.553,67.553,56,67.0015,56z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M64.0015,51.625H7.9985C7.447,51.625,7,51.178,7,50.6265v-29.253c0-0.5514,0.447-0.9985,0.9985-0.9985h56.003 C64.553,20.375,65,20.822,65,21.3735v29.253C65,51.178,64.553,51.625,64.0015,51.625z" />
+    <ns0:line x1="36" x2="36" y1="17" y2="55" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="27" y2="27" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="33" y2="33" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="39" y2="39" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="11" x2="31" y1="45" y2="45" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="27" y2="27" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="33" y2="33" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="39" y2="39" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="41" x2="61" y1="45" y2="45" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="361" y="237" font-size="17" font-weight="bold">Lire et raconter</text>
+<text x="361" y="258" font-size="12" fill="#61756b">1F4D6 · nouveau</text>
+<rect x="660" y="100" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="678" y="112" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:polygon fill="#3F3F3F" stroke="none" points="14.5943,53.154 18.2544,56.814 12.6242,59.0928" />
+    <ns0:polyline fill="#f4aa41" stroke="none" points="18.0381,41.8761 36.8684,23.0457 48.1813,34.3586 29.5108,53.0291" />
+    <ns0:polyline fill="#a57939" stroke="none" points="14.4132,52.5663 17.9281,43.3946 27.8278,53.2939 18.6558,56.809" />
+    <ns0:polyline fill="#EA5A47" stroke="none" points="42.9209,16.9933 50.4228,9.4913 61.7357,20.8042 54.2975,28.2424" />
+    <ns0:polyline fill="#9b9b9a" stroke="none" points="35.6498,24.2643 43.3318,16.5823 54.6447,27.8952 47.0278,35.512" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="18.6304,56.8203 27.8278,53.2939 53.8207,27.301 43.9212,17.4015 17.9281,43.3946 14.3904,52.6032" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="47.3354,13.9873 50.8388,10.4839 60.7383,20.3834 57.2645,23.8572" />
+    <ns0:line x1="18.5562" x2="28.4557" y1="42.7665" y2="52.6659" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="14.3979,52.5817 11.9073,59.3148 18.6558,56.809" />
+    <ns0:line x1="36.9099" x2="46.4225" y1="25.0073" y2="34.5199" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="813" y="165" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:polygon fill="#3F3F3F" stroke="none" points="14.5943,53.154 18.2544,56.814 12.6242,59.0928" />
+    <ns0:polyline fill="#f4aa41" stroke="none" points="18.0381,41.8761 36.8684,23.0457 48.1813,34.3586 29.5108,53.0291" />
+    <ns0:polyline fill="#a57939" stroke="none" points="14.4132,52.5663 17.9281,43.3946 27.8278,53.2939 18.6558,56.809" />
+    <ns0:polyline fill="#EA5A47" stroke="none" points="42.9209,16.9933 50.4228,9.4913 61.7357,20.8042 54.2975,28.2424" />
+    <ns0:polyline fill="#9b9b9a" stroke="none" points="35.6498,24.2643 43.3318,16.5823 54.6447,27.8952 47.0278,35.512" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="18.6304,56.8203 27.8278,53.2939 53.8207,27.301 43.9212,17.4015 17.9281,43.3946 14.3904,52.6032" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="47.3354,13.9873 50.8388,10.4839 60.7383,20.3834 57.2645,23.8572" />
+    <ns0:line x1="18.5562" x2="28.4557" y1="42.7665" y2="52.6659" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="14.3979,52.5817 11.9073,59.3148 18.6558,56.809" />
+    <ns0:line x1="36.9099" x2="46.4225" y1="25.0073" y2="34.5199" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="676" y="237" font-size="17" font-weight="bold">Dessiner et tracer</text>
+<text x="676" y="258" font-size="12" fill="#61756b">270F · déjà fourni</text>
+<rect x="975" y="100" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="993" y="112" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#a57939" stroke="#a57939" stroke-miterlimit="10" stroke-width="2.0863" d="M27.4213,52.1412 c-1.1308,3.0553-2.6697,4.5942-5.6852,6.1955s-11.2248-0.0889-9.5042-1.8095c2.3084-2.3084,3.6596-3.1597,3.2026-6.031 c-0.5824-3.6603,4.2087-6.1331,4.2087-6.1331s2.0935-1.1422,4.1931-0.8545c2.2812,0.3125,4.9498,4.9497,4.9498,4.9497 L27.4213,52.1412z" />
+    <ns0:path fill="#92d3f5" stroke="none" d="M45.8565,36.851c-7.0488,6.5155-12.4768,10.4313-15.8703,12.6073l-7.6389-7.6751 c2.1789-3.3949,6.0918-8.8147,12.5932-15.8482c4.7694-5.1598,9.7635-9.9137,13.8015-12.4485 c2.9438-1.8479,6.597-1.5717,8.8659,0.6971l0,0c2.2688,2.2688,2.5449,5.9222,0.697,8.8659 C55.7702,27.0875,51.0162,32.0816,45.8565,36.851" />
+    <ns0:polygon fill="#61b2e4" stroke="none" points="26.8108,35.5092 36.0461,44.7445 30.2121,48.8995 22.9382,41.5646" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M45.8565,36.851c-7.0488,6.5155-12.4768,10.4313-15.8703,12.6073l-7.6389-7.6751c2.1789-3.3949,6.0918-8.8147,12.5932-15.8482 c4.7694-5.1598,9.7635-9.9137,13.8015-12.4485c2.9438-1.8479,6.597-1.5717,8.8659,0.6971l0,0 c2.2688,2.2688,2.5449,5.9222,0.697,8.8659C55.7702,27.0875,51.0162,32.0816,45.8565,36.851" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M19.6432,44.3631c0,0-4.7911,2.4728-4.2087,6.1331c0.457,2.8713-0.8942,3.7226-3.2026,6.031 c-1.7206,1.7206,6.4887,3.4108,9.5042,1.8095s4.5544-3.1402,5.6852-6.1955" />
+    <ns0:line x1="27.4304" x2="36.5691" y1="35.2569" y2="44.3958" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="1128" y="165" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#a57939" stroke="#a57939" stroke-miterlimit="10" stroke-width="2.0863" d="M27.4213,52.1412 c-1.1308,3.0553-2.6697,4.5942-5.6852,6.1955s-11.2248-0.0889-9.5042-1.8095c2.3084-2.3084,3.6596-3.1597,3.2026-6.031 c-0.5824-3.6603,4.2087-6.1331,4.2087-6.1331s2.0935-1.1422,4.1931-0.8545c2.2812,0.3125,4.9498,4.9497,4.9498,4.9497 L27.4213,52.1412z" />
+    <ns0:path fill="#92d3f5" stroke="none" d="M45.8565,36.851c-7.0488,6.5155-12.4768,10.4313-15.8703,12.6073l-7.6389-7.6751 c2.1789-3.3949,6.0918-8.8147,12.5932-15.8482c4.7694-5.1598,9.7635-9.9137,13.8015-12.4485 c2.9438-1.8479,6.597-1.5717,8.8659,0.6971l0,0c2.2688,2.2688,2.5449,5.9222,0.697,8.8659 C55.7702,27.0875,51.0162,32.0816,45.8565,36.851" />
+    <ns0:polygon fill="#61b2e4" stroke="none" points="26.8108,35.5092 36.0461,44.7445 30.2121,48.8995 22.9382,41.5646" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M45.8565,36.851c-7.0488,6.5155-12.4768,10.4313-15.8703,12.6073l-7.6389-7.6751c2.1789-3.3949,6.0918-8.8147,12.5932-15.8482 c4.7694-5.1598,9.7635-9.9137,13.8015-12.4485c2.9438-1.8479,6.597-1.5717,8.8659,0.6971l0,0 c2.2688,2.2688,2.5449,5.9222,0.697,8.8659C55.7702,27.0875,51.0162,32.0816,45.8565,36.851" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M19.6432,44.3631c0,0-4.7911,2.4728-4.2087,6.1331c0.457,2.8713-0.8942,3.7226-3.2026,6.031 c-1.7206,1.7206,6.4887,3.4108,9.5042,1.8095s4.5544-3.1402,5.6852-6.1955" />
+    <ns0:line x1="27.4304" x2="36.5691" y1="35.2569" y2="44.3958" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="991" y="237" font-size="17" font-weight="bold">Peindre</text>
+<text x="991" y="258" font-size="12" fill="#61756b">1F58C · nouveau</text>
+<rect x="30" y="290" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="48" y="302" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:polygon fill="#3F3F3F" stroke="none" points="26.324,22.8117 51.6188,17.5516 51.5493,12.875 26.105,18.5407" />
+    <ns0:circle cx="20.7561" cy="51.59" r="5.7867" fill="#3F3F3F" stroke="none" />
+    <ns0:circle cx="46.2061" cy="46.0127" r="5.787" fill="#3F3F3F" stroke="none" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="51.6188,17.5516 26.1735,23.2225 26.105,18.5407 51.5493,12.875" />
+    <ns0:circle cx="20.7563" cy="51.5901" r="5.7868" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="26.105" x2="26.5431" y1="18.5407" y2="51.5901" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:circle cx="46.2063" cy="46.0129" r="5.7868" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="51.555" x2="51.9931" y1="12.9635" y2="46.0129" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="183" y="355" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:polygon fill="#3F3F3F" stroke="none" points="26.324,22.8117 51.6188,17.5516 51.5493,12.875 26.105,18.5407" />
+    <ns0:circle cx="20.7561" cy="51.59" r="5.7867" fill="#3F3F3F" stroke="none" />
+    <ns0:circle cx="46.2061" cy="46.0127" r="5.787" fill="#3F3F3F" stroke="none" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="51.6188,17.5516 26.1735,23.2225 26.105,18.5407 51.5493,12.875" />
+    <ns0:circle cx="20.7563" cy="51.5901" r="5.7868" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="26.105" x2="26.5431" y1="18.5407" y2="51.5901" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:circle cx="46.2063" cy="46.0129" r="5.7868" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="51.555" x2="51.9931" y1="12.9635" y2="46.0129" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="46" y="427" font-size="17" font-weight="bold">Écouter la musique</text>
+<text x="46" y="448" font-size="12" fill="#61756b">1F3B5 · déjà fourni</text>
+<rect x="345" y="290" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="363" y="302" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#EA5A47" stroke="none" d="M58.7568,59.0674V37.2188H13.0186v21.8486H58.7568z" />
+    <ns0:path fill="#a57939" stroke="none" d="M23.9005,30.2761c0.29,0.3853,0.7142,0.6346,1.1935,0.7018c0.4827,0.0603,0.9547-0.0583,1.3402-0.3482 c0,0,0,0,0-0.0018c0.7974-0.5995,0.9565-1.7382,0.3554-2.5346c-0.3554-0.4713-0.8982-0.7197-1.4463-0.7197 c-0.3802,0-0.762,0.1186-1.0874,0.3643C23.4585,28.339,23.2994,29.4786,23.9005,30.2761z" />
+    <ns0:path fill="#a57939" stroke="none" d="M46.5235,30.5392c0.6857-0.8679,0.5369-2.1317-0.3291-2.8185c-0.3683-0.2909-0.8073-0.432-1.2443-0.432 c-0.5917,0-1.1793,0.2617-1.5752,0.7613c-0.6857,0.8669-0.5389,2.1307,0.3293,2.8185c0.4231,0.331,0.9502,0.4897,1.4772,0.4193 C45.7143,31.225,46.1904,30.9585,46.5235,30.5392z" />
+    <ns0:path fill="#D22F27" stroke="none" d="M47.6811,54.4482l-0.0571,4.6192h11.1328V37.2188H47.894l-0.0804,6.5125l0.08-0.0038c0.5527,0,1,0.4473,1,1 v8.7442c0,0.5527-0.4473,1-1,1L47.6811,54.4482z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:line x1="35.8153" x2="35.8153" y1="44.728" y2="53.4721" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="23.7365" x2="23.7365" y1="44.728" y2="53.4721" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="47.894" x2="47.894" y1="44.728" y2="53.4721" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:ellipse cx="25.3401" cy="29.1791" rx="2" ry="2" transform="matrix(0.7984 -0.6021 0.6021 0.7984 -12.4611 21.141)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="38.7754" x2="50.2932" y1="19.0461" y2="10.3592" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="26.9369" x2="31.9778" y1="27.9748" y2="24.1728" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:ellipse cx="44.9438" cy="29.2341" rx="2" ry="2" transform="matrix(0.6204 -0.7843 0.7843 0.6204 -5.8665 46.3483)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="21.3373" x2="43.3752" y1="10.5619" y2="27.9934" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:rect x="12.0184" y="36.2187" width="47.7389" height="23.8488" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="498" y="355" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#EA5A47" stroke="none" d="M58.7568,59.0674V37.2188H13.0186v21.8486H58.7568z" />
+    <ns0:path fill="#a57939" stroke="none" d="M23.9005,30.2761c0.29,0.3853,0.7142,0.6346,1.1935,0.7018c0.4827,0.0603,0.9547-0.0583,1.3402-0.3482 c0,0,0,0,0-0.0018c0.7974-0.5995,0.9565-1.7382,0.3554-2.5346c-0.3554-0.4713-0.8982-0.7197-1.4463-0.7197 c-0.3802,0-0.762,0.1186-1.0874,0.3643C23.4585,28.339,23.2994,29.4786,23.9005,30.2761z" />
+    <ns0:path fill="#a57939" stroke="none" d="M46.5235,30.5392c0.6857-0.8679,0.5369-2.1317-0.3291-2.8185c-0.3683-0.2909-0.8073-0.432-1.2443-0.432 c-0.5917,0-1.1793,0.2617-1.5752,0.7613c-0.6857,0.8669-0.5389,2.1307,0.3293,2.8185c0.4231,0.331,0.9502,0.4897,1.4772,0.4193 C45.7143,31.225,46.1904,30.9585,46.5235,30.5392z" />
+    <ns0:path fill="#D22F27" stroke="none" d="M47.6811,54.4482l-0.0571,4.6192h11.1328V37.2188H47.894l-0.0804,6.5125l0.08-0.0038c0.5527,0,1,0.4473,1,1 v8.7442c0,0.5527-0.4473,1-1,1L47.6811,54.4482z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:line x1="35.8153" x2="35.8153" y1="44.728" y2="53.4721" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="23.7365" x2="23.7365" y1="44.728" y2="53.4721" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="47.894" x2="47.894" y1="44.728" y2="53.4721" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:ellipse cx="25.3401" cy="29.1791" rx="2" ry="2" transform="matrix(0.7984 -0.6021 0.6021 0.7984 -12.4611 21.141)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="38.7754" x2="50.2932" y1="19.0461" y2="10.3592" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="26.9369" x2="31.9778" y1="27.9748" y2="24.1728" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:ellipse cx="44.9438" cy="29.2341" rx="2" ry="2" transform="matrix(0.6204 -0.7843 0.7843 0.6204 -5.8665 46.3483)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="21.3373" x2="43.3752" y1="10.5619" y2="27.9934" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:rect x="12.0184" y="36.2187" width="47.7389" height="23.8488" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="361" y="427" font-size="17" font-weight="bold">Jouer un rythme</text>
+<text x="361" y="448" font-size="12" fill="#61756b">1F941 · nouveau</text>
+<rect x="660" y="290" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="678" y="302" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#EA5A47" stroke="none" d="M24.4876,52.1172c-0.5439,2.6905-0.4393,4.9935,0.3049,6.6602c2.0541,4.6004,7.4659,6.6766,12.0697,4.6202 c2.2292-0.9951,3.9378-2.7983,4.8096-5.0782c0.873-2.2798,0.8058-4.7633-0.1893-6.9926c-1.0976-2.4583-2.4708-4.353-5.0665-5.1028 c-0.3095-0.0891-0.0393-1.1312,0.0839-1.4273l0.8396-2.8127l-7.5987-2.5299C26.3194,47.1831,24.6362,51.3774,24.4876,52.1172z M34.5204,50.1116c1.2255,0.2796,2.2689,1.0194,2.9376,2.0835c0.6685,1.0642,0.8821,2.3254,0.6024,3.5509 c-0.2797,1.2255-1.0195,2.269-2.0837,2.9376c-0.7596,0.4767-1.6194,0.7224-2.494,0.7224c-0.3518,0-0.7059-0.0397-1.0568-0.12 c-1.2255-0.2797-2.2689-1.0194-2.9376-2.0836c-0.6686-1.0642-0.8821-2.3253-0.6024-3.5508 c0.2796-1.2256,1.0195-2.269,2.0837-2.9376C32.0354,50.0453,33.2998,49.8327,34.5204,50.1116z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M37.0087,42.0773l12.1334-30.0448c-2.1868,0.6951-4.5552,1.2401-6.5,3.2139 c-2.4429,2.4793-4.2251,6.3918-4.2251,6.3918s-7.5842,16.5213-7.9522,17.3439C30.4514,39.0121,37.0087,42.0773,37.0087,42.0773z" />
+    <ns0:path fill="#9b9b9a" stroke="none" d="M61.0114,24.5002c0,0-15.2911,5.18-14.8124,4.9513c-0.0013-0.0006-0.0027-0.0042-0.0039-0.0047 l-3.9462,1.6485l-5.1362,12.9661l5.7091-2.7443l0.0016-0.0152c-0.1026,0.034,9.4146-5.6414,9.5884-5.731 C56.4362,33.4927,59.4391,29.427,61.0114,24.5002z" />
+    <ns0:path fill="#D22F27" stroke="none" d="M21.8327,32.8842c-4.082-1.8222-10.3997,0.2072-12.2219,4.2873c-1.8223,4.083-0.1787,10.4317,3.9033,12.254 c1.4775,0.6601,3.9424,1.0561,6.3301,0.5737c0.1025-0.0205,3.3664-0.2273,2.9776,0.0254l2.2852-1.0631 c1.1782-2.9712,4.7164-11.342,5.0059-11.9878l-2.738,1.3137l-0.0062,0.0115C27.3511,38.5827,23.8913,33.8042,21.8327,32.8842z M21.5842,43.2347c-0.6457,1.0277-1.6534,1.7422-2.837,2.0124c-0.3389,0.0775-0.6777,0.115-1.0118,0.115 c-2.0731,0-3.9503-1.4297-4.4298-3.5339c-0.2709-1.1836-0.064-2.4015,0.5818-3.4293c0.6457-1.0277,1.6535-1.7422,2.837-2.0123 c1.182-0.2701,2.4008-0.0631,3.4293,0.5819c1.0277,0.6456,1.7422,1.6534,2.0123,2.837 C22.4361,40.989,22.2299,42.207,21.5842,43.2347z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M29.5835,39.6214c3.0581-6.8803,6.6525-14.6439,7.7996-16.8652c2.0717-4.012,5.7336-10.1903,12.5418-11.1943L37.2636,42.1156" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.4622,50.9758c-1.1378-2.5493-3.3045-4.3145-5.7916-5.0337l1.593-3.8265l-7.6801-2.4942 c-2.5052,5.6398-4.8798,11.2159-5.0918,12.2646c-0.3613,1.7873-0.6165,4.374,0.3383,6.5134 c2.0499,4.5928,7.435,6.6542,12.0278,4.6044C41.4507,60.9539,43.5121,55.5687,41.4622,50.9758z M37.9123,55.712 c-0.5596,2.4517-3.0009,3.9855-5.4525,3.4258c-2.4517-0.5597-3.9856-3.0008-3.4259-5.4525 c0.5597-2.4518,3.0009-3.9856,5.4526-3.4259C36.9382,50.8191,38.472,53.2603,37.9123,55.712z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M26.3726,38.2375c-0.7838-2.3259-2.4964-4.3306-4.9143-5.4099c-4.5928-2.0498-9.9779,0.0115-12.0279,4.6045 c-2.0499,4.5928,0.0116,9.9778,4.6044,12.0277c2.1394,0.955,4.7261,0.6996,6.5134,0.3384 c0.2928-0.0592,0.8983-0.2697,1.7418-0.5971 M18.749,45.256c-2.4518,0.5597-4.893-0.9741-5.4526-3.4259 c-0.5597-2.4517,0.974-4.8928,3.4258-5.4525c2.4517-0.5597,4.8929,0.974,5.4526,3.4257 C22.7344,42.2551,21.2007,44.6963,18.749,45.256z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M46.6251,30.3466l14.2472-5.9816c-1.004,6.8082-7.1823,10.4701-11.1943,12.5418c-1.3118,0.6774-3.3115,1.6931-7.1655,3.463" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="813" y="355" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#EA5A47" stroke="none" d="M24.4876,52.1172c-0.5439,2.6905-0.4393,4.9935,0.3049,6.6602c2.0541,4.6004,7.4659,6.6766,12.0697,4.6202 c2.2292-0.9951,3.9378-2.7983,4.8096-5.0782c0.873-2.2798,0.8058-4.7633-0.1893-6.9926c-1.0976-2.4583-2.4708-4.353-5.0665-5.1028 c-0.3095-0.0891-0.0393-1.1312,0.0839-1.4273l0.8396-2.8127l-7.5987-2.5299C26.3194,47.1831,24.6362,51.3774,24.4876,52.1172z M34.5204,50.1116c1.2255,0.2796,2.2689,1.0194,2.9376,2.0835c0.6685,1.0642,0.8821,2.3254,0.6024,3.5509 c-0.2797,1.2255-1.0195,2.269-2.0837,2.9376c-0.7596,0.4767-1.6194,0.7224-2.494,0.7224c-0.3518,0-0.7059-0.0397-1.0568-0.12 c-1.2255-0.2797-2.2689-1.0194-2.9376-2.0836c-0.6686-1.0642-0.8821-2.3253-0.6024-3.5508 c0.2796-1.2256,1.0195-2.269,2.0837-2.9376C32.0354,50.0453,33.2998,49.8327,34.5204,50.1116z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M37.0087,42.0773l12.1334-30.0448c-2.1868,0.6951-4.5552,1.2401-6.5,3.2139 c-2.4429,2.4793-4.2251,6.3918-4.2251,6.3918s-7.5842,16.5213-7.9522,17.3439C30.4514,39.0121,37.0087,42.0773,37.0087,42.0773z" />
+    <ns0:path fill="#9b9b9a" stroke="none" d="M61.0114,24.5002c0,0-15.2911,5.18-14.8124,4.9513c-0.0013-0.0006-0.0027-0.0042-0.0039-0.0047 l-3.9462,1.6485l-5.1362,12.9661l5.7091-2.7443l0.0016-0.0152c-0.1026,0.034,9.4146-5.6414,9.5884-5.731 C56.4362,33.4927,59.4391,29.427,61.0114,24.5002z" />
+    <ns0:path fill="#D22F27" stroke="none" d="M21.8327,32.8842c-4.082-1.8222-10.3997,0.2072-12.2219,4.2873c-1.8223,4.083-0.1787,10.4317,3.9033,12.254 c1.4775,0.6601,3.9424,1.0561,6.3301,0.5737c0.1025-0.0205,3.3664-0.2273,2.9776,0.0254l2.2852-1.0631 c1.1782-2.9712,4.7164-11.342,5.0059-11.9878l-2.738,1.3137l-0.0062,0.0115C27.3511,38.5827,23.8913,33.8042,21.8327,32.8842z M21.5842,43.2347c-0.6457,1.0277-1.6534,1.7422-2.837,2.0124c-0.3389,0.0775-0.6777,0.115-1.0118,0.115 c-2.0731,0-3.9503-1.4297-4.4298-3.5339c-0.2709-1.1836-0.064-2.4015,0.5818-3.4293c0.6457-1.0277,1.6535-1.7422,2.837-2.0123 c1.182-0.2701,2.4008-0.0631,3.4293,0.5819c1.0277,0.6456,1.7422,1.6534,2.0123,2.837 C22.4361,40.989,22.2299,42.207,21.5842,43.2347z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M29.5835,39.6214c3.0581-6.8803,6.6525-14.6439,7.7996-16.8652c2.0717-4.012,5.7336-10.1903,12.5418-11.1943L37.2636,42.1156" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M41.4622,50.9758c-1.1378-2.5493-3.3045-4.3145-5.7916-5.0337l1.593-3.8265l-7.6801-2.4942 c-2.5052,5.6398-4.8798,11.2159-5.0918,12.2646c-0.3613,1.7873-0.6165,4.374,0.3383,6.5134 c2.0499,4.5928,7.435,6.6542,12.0278,4.6044C41.4507,60.9539,43.5121,55.5687,41.4622,50.9758z M37.9123,55.712 c-0.5596,2.4517-3.0009,3.9855-5.4525,3.4258c-2.4517-0.5597-3.9856-3.0008-3.4259-5.4525 c0.5597-2.4518,3.0009-3.9856,5.4526-3.4259C36.9382,50.8191,38.472,53.2603,37.9123,55.712z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M26.3726,38.2375c-0.7838-2.3259-2.4964-4.3306-4.9143-5.4099c-4.5928-2.0498-9.9779,0.0115-12.0279,4.6045 c-2.0499,4.5928,0.0116,9.9778,4.6044,12.0277c2.1394,0.955,4.7261,0.6996,6.5134,0.3384 c0.2928-0.0592,0.8983-0.2697,1.7418-0.5971 M18.749,45.256c-2.4518,0.5597-4.893-0.9741-5.4526-3.4259 c-0.5597-2.4517,0.974-4.8928,3.4258-5.4525c2.4517-0.5597,4.8929,0.974,5.4526,3.4257 C22.7344,42.2551,21.2007,44.6963,18.749,45.256z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M46.6251,30.3466l14.2472-5.9816c-1.004,6.8082-7.1823,10.4701-11.1943,12.5418c-1.3118,0.6774-3.3115,1.6931-7.1655,3.463" />
+  </ns0:g>
+</ns0:svg>
+<text x="676" y="427" font-size="17" font-weight="bold">Découper</text>
+<text x="676" y="448" font-size="12" fill="#61756b">2702 · nouveau</text>
+<rect x="975" y="290" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="993" y="302" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#92d3f5" d="M39.7792,57.8819H52.77V44.851c5.2976,0,11.6314,1.4,11.6314-6.1934,0-6.7613-6.3338-5.8535-11.6314-5.8535V19.5133H39.7792c1.8239-5.8157,1.8239-11.6314-4.9774-11.6314s-6.73,6.3338-6.73,11.6314H14.4016V33.5239c4.2433-1.5715,11.6314-4.4184,11.6314,5.1737s-8.48,6.5814-11.6314,5.1737V57.8819H26.3729c0-5.2976,0-12.383,7.213-12.3112C40.3686,45.6382,39.7792,52.5843,39.7792,57.8819Z" />
+    <ns0:path fill="#61b2e4" d="M39.0542,51.0992c1.7359,1.7359,1.11,4.1339,1.11,6.7827H52.77V43.8713c5.8157,1.0357,10.9968,3.6045,10.9968-5.2137,0-5.2976-4.9743-6.1934-10.2719-6.1934V19.8154H49.3788" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="14.402 33.524 14.402 19.513 29.628 19.513" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="28 57.882 14.402 57.882 14.402 43.871" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="52.77 43.871 52.77 57.882 38.348 57.882" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="39.976 19.513 52.77 19.513 52.77 33.524" />
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.4016,33.5239c2.6813-2.3413,11.6314-3.2873,11.6314,5.1737" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.4016,43.8713c2.6813,2.3413,11.6314,3.2873,11.6314-5.1737" />
+    </ns0:g>
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M28.0005,57.8819c-2.3414-2.6814-3.2873-11.6314,5.1737-11.6314" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M38.3479,57.8819c2.3413-2.6814,3.2873-11.6314-5.1737-11.6314" />
+    </ns0:g>
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M29.6281,19.5133c-2.3414-2.6814-3.2873-11.6314,5.1737-11.6314" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M39.9755,19.5133c2.3413-2.6814,3.2873-11.6314-5.1737-11.6314" />
+    </ns0:g>
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M52.77,43.8713c2.6813,2.3413,11.6314,3.2873,11.6314-5.1737" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M52.77,33.5239c2.6813-2.3413,11.6314-3.2873,11.6314,5.1737" />
+    </ns0:g>
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="1128" y="355" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#92d3f5" d="M39.7792,57.8819H52.77V44.851c5.2976,0,11.6314,1.4,11.6314-6.1934,0-6.7613-6.3338-5.8535-11.6314-5.8535V19.5133H39.7792c1.8239-5.8157,1.8239-11.6314-4.9774-11.6314s-6.73,6.3338-6.73,11.6314H14.4016V33.5239c4.2433-1.5715,11.6314-4.4184,11.6314,5.1737s-8.48,6.5814-11.6314,5.1737V57.8819H26.3729c0-5.2976,0-12.383,7.213-12.3112C40.3686,45.6382,39.7792,52.5843,39.7792,57.8819Z" />
+    <ns0:path fill="#61b2e4" d="M39.0542,51.0992c1.7359,1.7359,1.11,4.1339,1.11,6.7827H52.77V43.8713c5.8157,1.0357,10.9968,3.6045,10.9968-5.2137,0-5.2976-4.9743-6.1934-10.2719-6.1934V19.8154H49.3788" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="14.402 33.524 14.402 19.513 29.628 19.513" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="28 57.882 14.402 57.882 14.402 43.871" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="52.77 43.871 52.77 57.882 38.348 57.882" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="39.976 19.513 52.77 19.513 52.77 33.524" />
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.4016,33.5239c2.6813-2.3413,11.6314-3.2873,11.6314,5.1737" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.4016,43.8713c2.6813,2.3413,11.6314,3.2873,11.6314-5.1737" />
+    </ns0:g>
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M28.0005,57.8819c-2.3414-2.6814-3.2873-11.6314,5.1737-11.6314" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M38.3479,57.8819c2.3413-2.6814,3.2873-11.6314-5.1737-11.6314" />
+    </ns0:g>
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M29.6281,19.5133c-2.3414-2.6814-3.2873-11.6314,5.1737-11.6314" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M39.9755,19.5133c2.3413-2.6814,3.2873-11.6314-5.1737-11.6314" />
+    </ns0:g>
+    <ns0:g>
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M52.77,43.8713c2.6813,2.3413,11.6314,3.2873,11.6314-5.1737" />
+      <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M52.77,33.5239c2.6813-2.3413,11.6314-3.2873,11.6314,5.1737" />
+    </ns0:g>
+  </ns0:g>
+</ns0:svg>
+<text x="991" y="427" font-size="17" font-weight="bold">Assembler un puzzle</text>
+<text x="991" y="448" font-size="12" fill="#61756b">1F9E9 · déjà fourni</text>
+<rect x="30" y="480" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="48" y="492" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#B1CC33" stroke="none" d="M51.935,35.8718c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226 s-6.7648-5.4824-6.7648-5.4824S47.7371,34.9462,51.935,35.8718z" />
+    <ns0:path fill="#5C9E31" stroke="none" d="M22.3618,19.992c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149 s-6.0978-6.2158-6.0978-6.2158S18.2963,18.5952,22.3618,19.992z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="36,63.1661 36,51.1661 31,29.1661" />
+    <ns0:line x1="36" x2="41" y1="51.1661" y2="41.1661" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22.3618,19.992 c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149s-6.0978-6.2158-6.0978-6.2158 S18.2963,18.5952,22.3618,19.992z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M51.935,35.8718 c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226s-6.7648-5.4824-6.7648-5.4824 S47.7371,34.9462,51.935,35.8718z" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="183" y="545" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#B1CC33" stroke="none" d="M51.935,35.8718c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226 s-6.7648-5.4824-6.7648-5.4824S47.7371,34.9462,51.935,35.8718z" />
+    <ns0:path fill="#5C9E31" stroke="none" d="M22.3618,19.992c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149 s-6.0978-6.2158-6.0978-6.2158S18.2963,18.5952,22.3618,19.992z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:polyline fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="36,63.1661 36,51.1661 31,29.1661" />
+    <ns0:line x1="36" x2="41" y1="51.1661" y2="41.1661" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22.3618,19.992 c4.067,1.3991,6.0978,6.2158,6.0978,6.2158s-4.5639,2.5478-8.6315,1.149s-6.0978-6.2158-6.0978-6.2158 S18.2963,18.5952,22.3618,19.992z" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M51.935,35.8718 c4.1996,0.9278,6.7648,5.4824,6.7648,5.4824s-4.2448,3.05-8.4449,2.1226s-6.7648-5.4824-6.7648-5.4824 S47.7371,34.9462,51.935,35.8718z" />
+  </ns0:g>
+</ns0:svg>
+<text x="46" y="617" font-size="17" font-weight="bold">Soigner les plantations</text>
+<text x="46" y="638" font-size="12" fill="#61756b">1F331 · déjà fourni</text>
+<rect x="345" y="480" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="363" y="492" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#fff" d="m12,28.1224l-.003,31.9694,31.6594-.0054,16.0898-12.0482c-.0072-.0488.2538-3.9464.2538-3.9464l-.003-16-47.997.0306Z" />
+    <ns0:path fill="#ea5a47" d="m12.1937,28.2921l47.8033-.2003.003-16.4694s-6.5361.0002-5.9834.0002h-3.5569l.0526,5.272c1.7272.4562,2.1504,3.0869,2.1504,3.0874-.0225,2.1919-2.6783,2.5299-2.6907,2.5274-1.8479-.3787-2.4888-1.2828-2.4683-2.8021.0144-1.0682.046-1.3296.8087-2.0781.5122-.5019.6338-.6085,1.3107-.7802l-.0279-5.2264h-3.5395c.261,0-20.6026,0-20.0498,0h-3.6621l.071,5.2264c1.7272.4562,2.2925.8529,2.2752,2.7188-.0205,2.1929-2.706,3.2811-2.7187,3.2811-2.2051-.0215-2.9918-1.0379-2.9713-3.243.0098-1.0683.8766-1.8637,1.6393-2.6122.5122-.5019.6989-.822,1.3758-.9937l-.2395-4.3774h-3.7434c.2142,0-6.0322-.0002-6.0322-.0002l.1937,16.6697Z" />
+    <ns0:path fill="#d0cfce" d="m59.997,48.0382h-16.8586s-.8989,6.1042-.9709,5.6225v5.4255l1.4889,1.0002,16.3406-12.0482Z" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:circle cx="22.0016" cy="19.8486" r="3.0001" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.0001" />
+    <ns0:line x1="26.0057" x2="46.0558" y1="12.1224" y2="12.1224" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="54.0163 12.1224 60 12.1224 60 28.1224 12 28.1224 12 12.1224 18.0318 12.1224" />
+    <ns0:line x1="22.0151" x2="22.0151" y1="8.6884" y2="18.9976" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:circle cx="50.0032" cy="19.8474" r="3.0001" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.0001" />
+    <ns0:line x1="50.0158" x2="50.0158" y1="8.6884" y2="18.9976" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m34.3355,38.092c.5248-2.5644,2.7937-4.4936,5.5134-4.4936h0c1.5539,0,2.9609.63,3.9793,1.6484,1.5843,1.5842,1.438,4.2167-.0484,5.8928l-9.5586,10.7799h4.7601" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="23.2764 37.3982 28.3485 33.5984 28.3485 51.9195" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="11.997 28.0918 11.997 60.0918 43.6564 60.0864 59.997 48.0382 59.997 28.0918" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="59.7462 48.0382 43.1384 48.0382 43.1384 53.5175" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="498" y="545" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#fff" d="m12,28.1224l-.003,31.9694,31.6594-.0054,16.0898-12.0482c-.0072-.0488.2538-3.9464.2538-3.9464l-.003-16-47.997.0306Z" />
+    <ns0:path fill="#ea5a47" d="m12.1937,28.2921l47.8033-.2003.003-16.4694s-6.5361.0002-5.9834.0002h-3.5569l.0526,5.272c1.7272.4562,2.1504,3.0869,2.1504,3.0874-.0225,2.1919-2.6783,2.5299-2.6907,2.5274-1.8479-.3787-2.4888-1.2828-2.4683-2.8021.0144-1.0682.046-1.3296.8087-2.0781.5122-.5019.6338-.6085,1.3107-.7802l-.0279-5.2264h-3.5395c.261,0-20.6026,0-20.0498,0h-3.6621l.071,5.2264c1.7272.4562,2.2925.8529,2.2752,2.7188-.0205,2.1929-2.706,3.2811-2.7187,3.2811-2.2051-.0215-2.9918-1.0379-2.9713-3.243.0098-1.0683.8766-1.8637,1.6393-2.6122.5122-.5019.6989-.822,1.3758-.9937l-.2395-4.3774h-3.7434c.2142,0-6.0322-.0002-6.0322-.0002l.1937,16.6697Z" />
+    <ns0:path fill="#d0cfce" d="m59.997,48.0382h-16.8586s-.8989,6.1042-.9709,5.6225v5.4255l1.4889,1.0002,16.3406-12.0482Z" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:circle cx="22.0016" cy="19.8486" r="3.0001" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.0001" />
+    <ns0:line x1="26.0057" x2="46.0558" y1="12.1224" y2="12.1224" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="54.0163 12.1224 60 12.1224 60 28.1224 12 28.1224 12 12.1224 18.0318 12.1224" />
+    <ns0:line x1="22.0151" x2="22.0151" y1="8.6884" y2="18.9976" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:circle cx="50.0032" cy="19.8474" r="3.0001" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.0001" />
+    <ns0:line x1="50.0158" x2="50.0158" y1="8.6884" y2="18.9976" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m34.3355,38.092c.5248-2.5644,2.7937-4.4936,5.5134-4.4936h0c1.5539,0,2.9609.63,3.9793,1.6484,1.5843,1.5842,1.438,4.2167-.0484,5.8928l-9.5586,10.7799h4.7601" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="23.2764 37.3982 28.3485 33.5984 28.3485 51.9195" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="11.997 28.0918 11.997 60.0918 43.6564 60.0864 59.997 48.0382 59.997 28.0918" />
+    <ns0:polyline fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" points="59.7462 48.0382 43.1384 48.0382 43.1384 53.5175" />
+  </ns0:g>
+</ns0:svg>
+<text x="361" y="617" font-size="17" font-weight="bold">Dire la date</text>
+<text x="361" y="638" font-size="12" fill="#61756b">1F4C5 · déjà fourni</text>
+<rect x="660" y="480" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="678" y="492" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#D0CFCE" stroke="none" d="M13.5626,18.7338l34.6292,42.2421l10.5838-8.1699L24.0535,10.1925L13.5626,18.7338z" />
+    <ns0:polygon fill="#9B9B9A" stroke="none" points="23.8877,10.4284 21.2868,12.4577 55.8483,55.137 58.2678,52.5901" />
+    <ns0:line x1="19.7269" x2="21.2785" y1="20.9377" y2="19.6758" fill="#d0cfce" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:rect x="29.2167" y="8.2339" width="13.6862" height="54.9324" transform="matrix(-0.7776 0.6288 -0.6288 -0.7776 86.547 40.7853)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="47.4897" x2="49.0413" y1="55.0731" y2="53.8112" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="44.9658" x2="46.5175" y1="51.9699" y2="50.708" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="42.442" x2="43.9935" y1="48.8667" y2="47.6048" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="37.3941" x2="38.9457" y1="42.6602" y2="41.3983" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="34.8702" x2="36.4219" y1="39.5571" y2="38.2952" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="32.3464" x2="33.898" y1="36.4538" y2="35.1919" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="29.8225" x2="31.374" y1="33.3506" y2="32.0887" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="24.7746" x2="26.3263" y1="27.1442" y2="25.8823" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="22.2508" x2="23.8024" y1="24.041" y2="22.779" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="19.7269" x2="21.2785" y1="20.9377" y2="19.6758" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="39.8121" x2="42.46" y1="45.8496" y2="43.6961" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="27.1926" x2="29.8405" y1="30.3335" y2="28.18" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="813" y="545" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#D0CFCE" stroke="none" d="M13.5626,18.7338l34.6292,42.2421l10.5838-8.1699L24.0535,10.1925L13.5626,18.7338z" />
+    <ns0:polygon fill="#9B9B9A" stroke="none" points="23.8877,10.4284 21.2868,12.4577 55.8483,55.137 58.2678,52.5901" />
+    <ns0:line x1="19.7269" x2="21.2785" y1="20.9377" y2="19.6758" fill="#d0cfce" stroke="none" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:rect x="29.2167" y="8.2339" width="13.6862" height="54.9324" transform="matrix(-0.7776 0.6288 -0.6288 -0.7776 86.547 40.7853)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="47.4897" x2="49.0413" y1="55.0731" y2="53.8112" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="44.9658" x2="46.5175" y1="51.9699" y2="50.708" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="42.442" x2="43.9935" y1="48.8667" y2="47.6048" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="37.3941" x2="38.9457" y1="42.6602" y2="41.3983" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="34.8702" x2="36.4219" y1="39.5571" y2="38.2952" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="32.3464" x2="33.898" y1="36.4538" y2="35.1919" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="29.8225" x2="31.374" y1="33.3506" y2="32.0887" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="24.7746" x2="26.3263" y1="27.1442" y2="25.8823" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="22.2508" x2="23.8024" y1="24.041" y2="22.779" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="19.7269" x2="21.2785" y1="20.9377" y2="19.6758" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="39.8121" x2="42.46" y1="45.8496" y2="43.6961" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:line x1="27.1926" x2="29.8405" y1="30.3335" y2="28.18" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="676" y="617" font-size="17" font-weight="bold">Utiliser une règle</text>
+<text x="676" y="638" font-size="12" fill="#61756b">1F4CF · nouveau</text>
+<rect x="975" y="480" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="993" y="492" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#9B9B9A" stroke="none" d="M48.0626,62.92c0-3.3137-5.5964-6-12.5-6s-12.5,2.6863-12.5,6H48.0626z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M24.9006,46.9656c0,2.1938-2.1985,3.9723-4.9106,3.9723s-4.9106-1.7785-4.9106-3.9723H24.9006z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M57.9006,46.9248c0,2.1938-2.1985,3.9723-4.9106,3.9723c-2.712,0-4.9106-1.7785-4.9106-3.9723H57.9006z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M15.9996,25.1697c2.6667,0.0001,8.9544-5.3333,20.0002-5.3333S50.6666,23.8365,56,25.1697" />
+    <ns0:line x1="35.9998" x2="35.9998" y1="23.9064" y2="51.9064" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:circle cx="35.9998" cy="13.895" r="3" fill="#000000" stroke="none" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M48,61.9064c0-3.3137-5.5964-6-12.5-6s-12.5,2.6863-12.5,6" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M26,45.9064c0,3.3137-2.6863,6-6,6s-6-2.6863-6-6H26z" />
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="20,27.9064 15,45.9064 25,45.9064" />
+    <ns0:line x1="20" x2="20" y1="27.9064" y2="45.9064" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M59,45.9064c0,3.3137-2.6863,6-6,6s-6-2.6863-6-6H59z" />
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="53,27.9064 48,45.9064 58,45.9064" />
+    <ns0:line x1="53" x2="53" y1="27.9064" y2="45.9064" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="1128" y="545" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#9B9B9A" stroke="none" d="M48.0626,62.92c0-3.3137-5.5964-6-12.5-6s-12.5,2.6863-12.5,6H48.0626z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M24.9006,46.9656c0,2.1938-2.1985,3.9723-4.9106,3.9723s-4.9106-1.7785-4.9106-3.9723H24.9006z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M57.9006,46.9248c0,2.1938-2.1985,3.9723-4.9106,3.9723c-2.712,0-4.9106-1.7785-4.9106-3.9723H57.9006z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M15.9996,25.1697c2.6667,0.0001,8.9544-5.3333,20.0002-5.3333S50.6666,23.8365,56,25.1697" />
+    <ns0:line x1="35.9998" x2="35.9998" y1="23.9064" y2="51.9064" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:circle cx="35.9998" cy="13.895" r="3" fill="#000000" stroke="none" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M48,61.9064c0-3.3137-5.5964-6-12.5-6s-12.5,2.6863-12.5,6" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M26,45.9064c0,3.3137-2.6863,6-6,6s-6-2.6863-6-6H26z" />
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="20,27.9064 15,45.9064 25,45.9064" />
+    <ns0:line x1="20" x2="20" y1="27.9064" y2="45.9064" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M59,45.9064c0,3.3137-2.6863,6-6,6s-6-2.6863-6-6H59z" />
+    <ns0:polygon fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" points="53,27.9064 48,45.9064 58,45.9064" />
+    <ns0:line x1="53" x2="53" y1="27.9064" y2="45.9064" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="991" y="617" font-size="17" font-weight="bold">Comparer des masses</text>
+<text x="991" y="638" font-size="12" fill="#61756b">2696 · nouveau</text>
+<rect x="30" y="670" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="48" y="682" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:ellipse cx="29.5854" cy="24.8305" rx="11.1656" ry="11.1657" transform="matrix(0.8006 -0.5992 0.5992 0.8006 -8.979 22.6777)" fill="#FFFFFF" stroke="none" />
+    <ns0:path fill="#92D3F5" stroke="none" d="M39,19c-1.6269-2.1743-5.3114-4.6131-8-5c-1.841-0.2648-5,0-5.3126,1.4508 c2.432,0.2232,6.261,1.3933,9.4483,6.0391c2.7047,3.9427,2.9098,7.2606,2.5092,9.5215C40,31,41.7867,22.7243,39,19z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M20.717,13.2532c-3.1395,2.3517-5.1766,5.7832-5.7372,9.6663c-0.5584,3.883,0.4286,7.7514,2.7785,10.8927 c4.8528,6.4827,14.0758,7.8101,20.5595,2.9577c6.4832-4.8514,7.8112-14.073,2.9587-20.5591 c-2.3504-3.1402-5.7839-5.1778-9.6668-5.7362C27.7267,9.9161,23.8587,10.9022,20.717,13.2532z M38.1933,18.3883 c2.2813,3.0482,2.696,6.924,1.4434,10.248c-0.6965,1.8514-1.9113,3.5306-3.6095,4.8016c-4.7463,3.5525-11.498,2.58-15.0496-2.166 c-1.7206-2.2992-2.4437-5.1309-2.0341-7.9731c0.41-2.8429,1.8999-5.3554,4.2002-7.0765c2.2984-1.721,5.1298-2.4433,7.9731-2.0341 C33.9592,14.5969,36.4719,16.0889,38.1933,18.3883z" />
+    <ns0:path fill="#3F3F3F" stroke="none" d="M39,42l10,14c0,0,3,4,5,2s0-5,0-5L43,39L39,42z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:ellipse cx="29.5854" cy="24.8305" rx="14.6372" ry="14.6372" transform="matrix(0.8006 -0.5992 0.5992 0.8006 -8.979 22.6778)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:ellipse cx="29.5854" cy="24.8305" rx="11.1656" ry="11.1657" transform="matrix(0.8006 -0.5992 0.5992 0.8006 -8.979 22.6777)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M38.6805,41.7876l4.1839-3.1316l11.6927,15.622c0.8354,1.1162,0.5758,2.7219-0.5795,3.5867l0,0 c-1.1554,0.8647-2.7691,0.661-3.6045-0.4551L38.6805,41.7876z" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="183" y="735" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:ellipse cx="29.5854" cy="24.8305" rx="11.1656" ry="11.1657" transform="matrix(0.8006 -0.5992 0.5992 0.8006 -8.979 22.6777)" fill="#FFFFFF" stroke="none" />
+    <ns0:path fill="#92D3F5" stroke="none" d="M39,19c-1.6269-2.1743-5.3114-4.6131-8-5c-1.841-0.2648-5,0-5.3126,1.4508 c2.432,0.2232,6.261,1.3933,9.4483,6.0391c2.7047,3.9427,2.9098,7.2606,2.5092,9.5215C40,31,41.7867,22.7243,39,19z" />
+    <ns0:path fill="#D0CFCE" stroke="none" d="M20.717,13.2532c-3.1395,2.3517-5.1766,5.7832-5.7372,9.6663c-0.5584,3.883,0.4286,7.7514,2.7785,10.8927 c4.8528,6.4827,14.0758,7.8101,20.5595,2.9577c6.4832-4.8514,7.8112-14.073,2.9587-20.5591 c-2.3504-3.1402-5.7839-5.1778-9.6668-5.7362C27.7267,9.9161,23.8587,10.9022,20.717,13.2532z M38.1933,18.3883 c2.2813,3.0482,2.696,6.924,1.4434,10.248c-0.6965,1.8514-1.9113,3.5306-3.6095,4.8016c-4.7463,3.5525-11.498,2.58-15.0496-2.166 c-1.7206-2.2992-2.4437-5.1309-2.0341-7.9731c0.41-2.8429,1.8999-5.3554,4.2002-7.0765c2.2984-1.721,5.1298-2.4433,7.9731-2.0341 C33.9592,14.5969,36.4719,16.0889,38.1933,18.3883z" />
+    <ns0:path fill="#3F3F3F" stroke="none" d="M39,42l10,14c0,0,3,4,5,2s0-5,0-5L43,39L39,42z" />
+  </ns0:g>
+  <ns0:g id="hair" />
+  <ns0:g id="skin" />
+  <ns0:g id="skin-shadow" />
+  <ns0:g id="line">
+    <ns0:ellipse cx="29.5854" cy="24.8305" rx="14.6372" ry="14.6372" transform="matrix(0.8006 -0.5992 0.5992 0.8006 -8.979 22.6778)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:ellipse cx="29.5854" cy="24.8305" rx="11.1656" ry="11.1657" transform="matrix(0.8006 -0.5992 0.5992 0.8006 -8.979 22.6777)" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="2" d="M38.6805,41.7876l4.1839-3.1316l11.6927,15.622c0.8354,1.1162,0.5758,2.7219-0.5795,3.5867l0,0 c-1.1554,0.8647-2.7691,0.661-3.6045-0.4551L38.6805,41.7876z" />
+  </ns0:g>
+</ns0:svg>
+<text x="46" y="807" font-size="17" font-weight="bold">Observer des détails</text>
+<text x="46" y="828" font-size="12" fill="#61756b">1F50D · nouveau</text>
+<rect x="345" y="670" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="363" y="682" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:path fill="#92d3f5" d="m 52.22 43.35 a 2.05 2.05 0 1 1 -1.7 3.72 8.43 8.43 0 0 1 -3.03 -3.26 s -.36 -.52 .24 -.61 a 8.85 8.85 0 0 1 4.5 .15" />
+    <ns0:path fill="#61b2e4" d="m 47.6 44 a 5.62 5.62 0 0 1 3.79 -.25 1.7 1.7 0 0 1 1.07 2.32 s -1.22 -1.77 -4.86 -2.07" />
+    <ns0:path fill="#92d3f5" d="m 32.74 45.44 a 9.12 9.12 0 0 1 4.17 -2.03 c .6 -.18 .48 .47 .48 .47 a 8.7 8.7 0 0 1 -1.48 4.34 2.11 2.11 0 1 1 -3.17 -2.78" />
+    <ns0:path fill="#61b2e4" d="m 37 44 c -3.2 1.76 -3.59 3.87 -3.59 3.87 a 1.71 1.71 0 0 1 .03 -2.55 5.62 5.62 0 0 1 3.56 -1.32" />
+    <ns0:path fill="#d0cfce" d="M 39,40 11,28.4 16,15 46,22 z" />
+    <ns0:path fill="#92d3f5" d="m 20.13 32.3 a 2.81 2.81 0 0 1 2.89 -.77 c 1.59 .64 2.52 .43 3.82 .94 a 50.21 50.21 0 0 0 4.83 2.14 c 1.8 .53 2.5 1.21 3.9 1.63 a 27.74 27.74 0 0 1 3.87 1.44 9.23 9.23 0 0 1 3.45 3.27 c 1.06 1.45 1 2.3 1.59 3.93 a 20.71 20.71 0 0 1 .42 3.64 c .39 2.15 -.25 1.6 .48 2.4 .41 .45 1.33 -.18 2.11 -.13 a 26.47 26.47 0 0 1 4.08 .59 c 2.01 .37 5.46 1.47 5.64 2.89 .13 1 -1.53 2.83 -2.13 2.95 -7.06 1.46 -22.38 1.16 -23.79 -.8 -1.58 -2.2 1.01 -3.53 2.21 -4.08 a 22.59 22.59 0 0 1 7.38 -1.55 c .72 -.07 .47 -1.04 .48 -1.53 a 11.34 11.34 0 0 0 -.48 -3.52 23.44 23.44 0 0 0 -.88 -3.2 4.85 4.85 0 0 0 -2.37 -2.74 z" />
+    <ns0:path fill="#61b2e4" d="m 34.38 57.21 s 9.97 .38 14.84 -.45 a 13.72 13.72 0 0 0 6.84 -2.98 s 1.84 -.08 .87 2.09 c -.46 1.04 -2.94 2.01 -4.41 2.31 -1.48 .3 -8.88 .92 -8.88 .92 l -3.51 -.62 -5.49 -1.04 z" />
+    <ns0:path fill="#61b2e4" d="m 35.82 36.58 a 41.32 41.32 0 0 1 3.74 2.37 8.58 8.58 0 0 1 3.02 3.45 c .69 1.58 1.35 7.46 1.61 8.47 1 3.84 1.77 3.42 1.77 3.42 s -1.65 -10.04 -2.02 -11.32 a 7.32 7.32 0 0 0 -1.93 -3.28 c -.76 -.63 -2.98 -2.68 -3.8 -2.79 s -2.4 -.31 -2.4 -.31 z" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 45.29 50.68 c 6.92 .14 12.06 1.96 12.06 4.2 0 2.33 -5.92 4.22 -13.23 4.22 s -13.23 -1.89 -13.23 -4.22 c 0 -2.11 3.86 -3.98 10.55 -4.18" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 45.97 53.77 c -1.1 -2.68 -1.24 -9.34 -2.33 -11.67 a 9.62 9.62 0 0 0 -4.2 -4.42 c -1.75 -.92 -5.72 -2.24 -7.38 -2.88 s -6.74 -2.58 -9.04 -3.27 a 3.1 3.1 0 0 0 -2.89 .77 s 13.15 5.59 17.52 7.5 a 5.08 5.08 0 0 1 2.53 3.63 c .72 3.1 1.73 8.32 1.23 10.33" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M 38,40 11,28.4 16,15 45,22 40.7,33" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 52.22 43.35 a 2.05 2.05 0 1 1 -1.7 3.72 8.43 8.43 0 0 1 -3.03 -3.26 s -.36 -.52 .24 -.61 a 8.85 8.85 0 0 1 4.5 .15" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 32.74 45.44 a 9.12 9.12 0 0 1 4.17 -2.03 c .6 -.18 .48 .47 .48 .47 a 8.7 8.7 0 0 1 -1.48 4.34 2.11 2.11 0 1 1 -3.17 -2.78" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="498" y="735" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:path fill="#92d3f5" d="m 52.22 43.35 a 2.05 2.05 0 1 1 -1.7 3.72 8.43 8.43 0 0 1 -3.03 -3.26 s -.36 -.52 .24 -.61 a 8.85 8.85 0 0 1 4.5 .15" />
+    <ns0:path fill="#61b2e4" d="m 47.6 44 a 5.62 5.62 0 0 1 3.79 -.25 1.7 1.7 0 0 1 1.07 2.32 s -1.22 -1.77 -4.86 -2.07" />
+    <ns0:path fill="#92d3f5" d="m 32.74 45.44 a 9.12 9.12 0 0 1 4.17 -2.03 c .6 -.18 .48 .47 .48 .47 a 8.7 8.7 0 0 1 -1.48 4.34 2.11 2.11 0 1 1 -3.17 -2.78" />
+    <ns0:path fill="#61b2e4" d="m 37 44 c -3.2 1.76 -3.59 3.87 -3.59 3.87 a 1.71 1.71 0 0 1 .03 -2.55 5.62 5.62 0 0 1 3.56 -1.32" />
+    <ns0:path fill="#d0cfce" d="M 39,40 11,28.4 16,15 46,22 z" />
+    <ns0:path fill="#92d3f5" d="m 20.13 32.3 a 2.81 2.81 0 0 1 2.89 -.77 c 1.59 .64 2.52 .43 3.82 .94 a 50.21 50.21 0 0 0 4.83 2.14 c 1.8 .53 2.5 1.21 3.9 1.63 a 27.74 27.74 0 0 1 3.87 1.44 9.23 9.23 0 0 1 3.45 3.27 c 1.06 1.45 1 2.3 1.59 3.93 a 20.71 20.71 0 0 1 .42 3.64 c .39 2.15 -.25 1.6 .48 2.4 .41 .45 1.33 -.18 2.11 -.13 a 26.47 26.47 0 0 1 4.08 .59 c 2.01 .37 5.46 1.47 5.64 2.89 .13 1 -1.53 2.83 -2.13 2.95 -7.06 1.46 -22.38 1.16 -23.79 -.8 -1.58 -2.2 1.01 -3.53 2.21 -4.08 a 22.59 22.59 0 0 1 7.38 -1.55 c .72 -.07 .47 -1.04 .48 -1.53 a 11.34 11.34 0 0 0 -.48 -3.52 23.44 23.44 0 0 0 -.88 -3.2 4.85 4.85 0 0 0 -2.37 -2.74 z" />
+    <ns0:path fill="#61b2e4" d="m 34.38 57.21 s 9.97 .38 14.84 -.45 a 13.72 13.72 0 0 0 6.84 -2.98 s 1.84 -.08 .87 2.09 c -.46 1.04 -2.94 2.01 -4.41 2.31 -1.48 .3 -8.88 .92 -8.88 .92 l -3.51 -.62 -5.49 -1.04 z" />
+    <ns0:path fill="#61b2e4" d="m 35.82 36.58 a 41.32 41.32 0 0 1 3.74 2.37 8.58 8.58 0 0 1 3.02 3.45 c .69 1.58 1.35 7.46 1.61 8.47 1 3.84 1.77 3.42 1.77 3.42 s -1.65 -10.04 -2.02 -11.32 a 7.32 7.32 0 0 0 -1.93 -3.28 c -.76 -.63 -2.98 -2.68 -3.8 -2.79 s -2.4 -.31 -2.4 -.31 z" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 45.29 50.68 c 6.92 .14 12.06 1.96 12.06 4.2 0 2.33 -5.92 4.22 -13.23 4.22 s -13.23 -1.89 -13.23 -4.22 c 0 -2.11 3.86 -3.98 10.55 -4.18" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 45.97 53.77 c -1.1 -2.68 -1.24 -9.34 -2.33 -11.67 a 9.62 9.62 0 0 0 -4.2 -4.42 c -1.75 -.92 -5.72 -2.24 -7.38 -2.88 s -6.74 -2.58 -9.04 -3.27 a 3.1 3.1 0 0 0 -2.89 .77 s 13.15 5.59 17.52 7.5 a 5.08 5.08 0 0 1 2.53 3.63 c .72 3.1 1.73 8.32 1.23 10.33" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M 38,40 11,28.4 16,15 45,22 40.7,33" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 52.22 43.35 a 2.05 2.05 0 1 1 -1.7 3.72 8.43 8.43 0 0 1 -3.03 -3.26 s -.36 -.52 .24 -.61 a 8.85 8.85 0 0 1 4.5 .15" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m 32.74 45.44 a 9.12 9.12 0 0 1 4.17 -2.03 c .6 -.18 .48 .47 .48 .47 a 8.7 8.7 0 0 1 -1.48 4.34 2.11 2.11 0 1 1 -3.17 -2.78" />
+  </ns0:g>
+</ns0:svg>
+<text x="361" y="807" font-size="17" font-weight="bold">Verser un liquide</text>
+<text x="361" y="828" font-size="12" fill="#61756b">1FAD7 · nouveau</text>
+<rect x="660" y="670" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="678" y="682" width="92" height="92">
+  <ns0:g id="color">
+    <ns0:ellipse cx="32.2442" cy="29.3592" rx="4.2321" ry="4.0631" fill="#fff" />
+    <ns0:path fill="#92d3f5" d="m35.2742,43.5463l-15.1657-.1792,4.2215-10.6842-.8418-1.6218s2.691-2.5672,5.8842-1.6706,5.07,2.8526,5.1005,5.681c.0567,1.614-.6189,3.1673-1.8382,4.2263,1.8592.3753,3.0621,2.1868,2.6868,4.046-.0137.068-.0295.1355-.0473.2025Z" />
+    <ns0:circle cx="38.7404" cy="26.4445" r="1.5788" fill="#92d3f5" />
+    <ns0:path fill="#d0cfce" d="m53.0251,16.0509h-3.0736c-6.32,0-6.8361,5.03-6.8361,6.8361-.0203.3359.2356.6246.5715.6449.0244.0015.049.0015.0734,0h3.2246c.3255-.0156.595-.258.6449-.58.0214-1.3197,1.0675-2.3941,2.3862-2.4507h10.3391l.085-.6449.56-3.16-.15-.645h-7.825v-.0004Z" />
+    <ns0:circle cx="29.7967" cy="22.2945" r="2.6809" fill="#92d3f5" />
+  </ns0:g>
+  <ns0:g id="skin-shadow">
+    <ns0:path fill="#fcea2b" d="m21.631,31.7458l-10.8654,13.7133s-3.6843,9.4143,1.1337,12.0724c4.818,2.6581,8.2092,2.25,8.2092,2.25h8.8757s4.9868.962,4.734-3.2595l1.6224-.305c1.2655-.7428,1.6892-2.3708.9464-3.6363-.1739-.2963-.4036-.556-.6764-.7648,0,0,4.7615-1.6526.72-4.1828.5279-1.3223.2477-2.8303-.72-3.8747l-15.5022-.3165,4.2216-10.6845c.3069-.504.1472-1.1613-.3567-1.4682-.147-.0895-.3134-.1422-.4851-.1536-1.5112-.2895-1.8572.6102-1.8572.6102Z" />
+    <ns0:path fill="#fcea2b" d="m34.8217,33.5449l9.7166-4.47s3.1648.2048,1.9371,2.3351l-8.7885,7.3548,12.7931,7.0122s1.7953,1.49.7548,2.5888c-.4589.5875-1.1132.9909-1.8442,1.137,0,0,1.8908,1.5454.9069,2.8953s-1.991,1.123-1.991,1.123c0,0-.9585,2.3751-1.1472,2.621-1.0198.1913-2.0579.2676-3.0947.2276h-1.2355l-.48,2.2173-1.22.4809-6.0583-2.6426,1.58-2.9045-.32-1.9776,1.3564-3.1243-1.3567-1.7129-.1784-2.6347-.8375-.8494-.7917-2.7659-1.8881-1.1582,1.6336-2.9151.5533-2.8378Z" />
+    <ns0:path fill="#61b2e4" d="m33.7182,32.449s-1.36,6.7243-10.2878,6.8488h9.8965" />
+    <ns0:path fill="#61b2e4" d="m38.2052,24.3732s2.0631,2.2854.8174,4.0108l1.8153-1.107-.4556-2.2435-2.1771-.6603Z" />
+    <ns0:path fill="#61b2e4" d="m29.7967,19.6136s2.3457,2.9762,0,5.3617-.3833.2952-.3833.2952l3.4032-1.4647-.0994-2.2658-1.088-1.6343-1.8325-.2921Z" />
+    <ns0:path fill="#9b9b9a" d="m50.26,16.8731c-1.8348-.1563-3.6487.4807-4.9829,1.75-1.3349,1.439-1.3349,4.2-1.3349,4.2.5493-1.492,1.418-2.8459,2.5454-3.9669.9636-1.1115,2.3104-1.8195,3.7724-1.9831Z" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6969" d="m51.282,11.2537h8.4751" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6969" d="m55.52,16.0509v-4.7972" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6969" d="m60.5705,16.0509h-10.619c-6.32,0-6.8361,5.03-6.8361,6.8361-.0203.3359.2356.6246.5715.6449.0244.0015.049.0015.0734,0h3.2246c.3255-.0156.595-.258.6449-.58.0214-1.3197,1.0675-2.3941,2.3862-2.4507h9.7792" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m22.3057,43.46l-2.1972-.0179,4.2215-10.6847s.2165-2.3313-2.3853-1.3887l-10.0868,12.8513c-1.446,1.7962-2.3465,3.9694-2.595,6.2619-.1743,1.6202.0553,3.2584.6683,4.7683,1.969,4.7126,9.05,4.7192,10.9623,4.6249" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m22.0851,43.4667h13.2555s2.3684.7844.99,3.2393" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m24.5867,47.5478h11.5411s1.5118.5235,1.5118,1.8715-1.5118,1.9124-1.5118,1.9124" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m24.555,51.8335h10.7856s1.6246-.3709,1.6246,1.6247c.1265,1.0355-.541,2.0022-1.5542,2.2506h-10.5377" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m32.8166,56.0638c.5441.5827.7785,1.3896.6313,2.1731-.0173.8255-.6279,1.518-1.4447,1.6386h-6.635" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m25.7505,29.8135c1.8281-.9278,4.0043-.8531,5.7644.1979,1.6539.827,3.4629,3.4935,2.9111,5.862-.4233,1.2561-1.0849,2.4188-1.9485,3.4244.8535.2903,1.5426.9312,1.8938,1.7615" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m30.49,33.2178c-1.2149-.4363-2.5585-.3312-3.6907.2887" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m37.1616,32.5014l7.2316-3.136s1.9978-.3741,1.9809,1.1825c-.029.6479-.3357,1.252-.8417,1.6578l-7.8924,6.7043,4.2228,2.3918" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m41.4471,41.0756l8.9029,4.8488c.6263.3188,1.0331.9493,1.0656,1.6513.0033.2739-.0584.5446-.18.79-.5359,1.088-2.2139,1.0566-2.2139,1.0566" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m39.6555,44.503l9.3653,4.9194c.6896.3434,1.2035.9604,1.4164,1.7007.1499.5175.0645,1.0748-.2335,1.5236-.9176,1.39-2.8989,1.0031-2.8989,1.0031" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m39.75,49.8512l7.3481,3.6688c.9327.4014,1.3635,1.4829.9622,2.4156-.0675.1568-.1565.3035-.2645.4358-.4482.7731-1.4382,1.0365-2.2113.5884-.0249-.0145-.0495-.0296-.0736-.0454l-6.7306-2.98" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m43.0189,55.8106s.5473,1.9473-.3485,2.74c-.2034.1803-.4387.3211-.6937.4152-.5915.2004-1.2382.1597-1.8-.1132l-3.4154-1.5581" />
+    <ns0:circle cx="38.7404" cy="26.4445" r="2.1972" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:circle cx="29.7967" cy="22.2945" r="2.8655" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="813" y="735" width="32" height="32">
+  <ns0:g id="color">
+    <ns0:ellipse cx="32.2442" cy="29.3592" rx="4.2321" ry="4.0631" fill="#fff" />
+    <ns0:path fill="#92d3f5" d="m35.2742,43.5463l-15.1657-.1792,4.2215-10.6842-.8418-1.6218s2.691-2.5672,5.8842-1.6706,5.07,2.8526,5.1005,5.681c.0567,1.614-.6189,3.1673-1.8382,4.2263,1.8592.3753,3.0621,2.1868,2.6868,4.046-.0137.068-.0295.1355-.0473.2025Z" />
+    <ns0:circle cx="38.7404" cy="26.4445" r="1.5788" fill="#92d3f5" />
+    <ns0:path fill="#d0cfce" d="m53.0251,16.0509h-3.0736c-6.32,0-6.8361,5.03-6.8361,6.8361-.0203.3359.2356.6246.5715.6449.0244.0015.049.0015.0734,0h3.2246c.3255-.0156.595-.258.6449-.58.0214-1.3197,1.0675-2.3941,2.3862-2.4507h10.3391l.085-.6449.56-3.16-.15-.645h-7.825v-.0004Z" />
+    <ns0:circle cx="29.7967" cy="22.2945" r="2.6809" fill="#92d3f5" />
+  </ns0:g>
+  <ns0:g id="skin-shadow">
+    <ns0:path fill="#fcea2b" d="m21.631,31.7458l-10.8654,13.7133s-3.6843,9.4143,1.1337,12.0724c4.818,2.6581,8.2092,2.25,8.2092,2.25h8.8757s4.9868.962,4.734-3.2595l1.6224-.305c1.2655-.7428,1.6892-2.3708.9464-3.6363-.1739-.2963-.4036-.556-.6764-.7648,0,0,4.7615-1.6526.72-4.1828.5279-1.3223.2477-2.8303-.72-3.8747l-15.5022-.3165,4.2216-10.6845c.3069-.504.1472-1.1613-.3567-1.4682-.147-.0895-.3134-.1422-.4851-.1536-1.5112-.2895-1.8572.6102-1.8572.6102Z" />
+    <ns0:path fill="#fcea2b" d="m34.8217,33.5449l9.7166-4.47s3.1648.2048,1.9371,2.3351l-8.7885,7.3548,12.7931,7.0122s1.7953,1.49.7548,2.5888c-.4589.5875-1.1132.9909-1.8442,1.137,0,0,1.8908,1.5454.9069,2.8953s-1.991,1.123-1.991,1.123c0,0-.9585,2.3751-1.1472,2.621-1.0198.1913-2.0579.2676-3.0947.2276h-1.2355l-.48,2.2173-1.22.4809-6.0583-2.6426,1.58-2.9045-.32-1.9776,1.3564-3.1243-1.3567-1.7129-.1784-2.6347-.8375-.8494-.7917-2.7659-1.8881-1.1582,1.6336-2.9151.5533-2.8378Z" />
+    <ns0:path fill="#61b2e4" d="m33.7182,32.449s-1.36,6.7243-10.2878,6.8488h9.8965" />
+    <ns0:path fill="#61b2e4" d="m38.2052,24.3732s2.0631,2.2854.8174,4.0108l1.8153-1.107-.4556-2.2435-2.1771-.6603Z" />
+    <ns0:path fill="#61b2e4" d="m29.7967,19.6136s2.3457,2.9762,0,5.3617-.3833.2952-.3833.2952l3.4032-1.4647-.0994-2.2658-1.088-1.6343-1.8325-.2921Z" />
+    <ns0:path fill="#9b9b9a" d="m50.26,16.8731c-1.8348-.1563-3.6487.4807-4.9829,1.75-1.3349,1.439-1.3349,4.2-1.3349,4.2.5493-1.492,1.418-2.8459,2.5454-3.9669.9636-1.1115,2.3104-1.8195,3.7724-1.9831Z" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6969" d="m51.282,11.2537h8.4751" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6969" d="m55.52,16.0509v-4.7972" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6969" d="m60.5705,16.0509h-10.619c-6.32,0-6.8361,5.03-6.8361,6.8361-.0203.3359.2356.6246.5715.6449.0244.0015.049.0015.0734,0h3.2246c.3255-.0156.595-.258.6449-.58.0214-1.3197,1.0675-2.3941,2.3862-2.4507h9.7792" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m22.3057,43.46l-2.1972-.0179,4.2215-10.6847s.2165-2.3313-2.3853-1.3887l-10.0868,12.8513c-1.446,1.7962-2.3465,3.9694-2.595,6.2619-.1743,1.6202.0553,3.2584.6683,4.7683,1.969,4.7126,9.05,4.7192,10.9623,4.6249" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m22.0851,43.4667h13.2555s2.3684.7844.99,3.2393" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m24.5867,47.5478h11.5411s1.5118.5235,1.5118,1.8715-1.5118,1.9124-1.5118,1.9124" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m24.555,51.8335h10.7856s1.6246-.3709,1.6246,1.6247c.1265,1.0355-.541,2.0022-1.5542,2.2506h-10.5377" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m32.8166,56.0638c.5441.5827.7785,1.3896.6313,2.1731-.0173.8255-.6279,1.518-1.4447,1.6386h-6.635" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m25.7505,29.8135c1.8281-.9278,4.0043-.8531,5.7644.1979,1.6539.827,3.4629,3.4935,2.9111,5.862-.4233,1.2561-1.0849,2.4188-1.9485,3.4244.8535.2903,1.5426.9312,1.8938,1.7615" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m30.49,33.2178c-1.2149-.4363-2.5585-.3312-3.6907.2887" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m37.1616,32.5014l7.2316-3.136s1.9978-.3741,1.9809,1.1825c-.029.6479-.3357,1.252-.8417,1.6578l-7.8924,6.7043,4.2228,2.3918" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m41.4471,41.0756l8.9029,4.8488c.6263.3188,1.0331.9493,1.0656,1.6513.0033.2739-.0584.5446-.18.79-.5359,1.088-2.2139,1.0566-2.2139,1.0566" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m39.6555,44.503l9.3653,4.9194c.6896.3434,1.2035.9604,1.4164,1.7007.1499.5175.0645,1.0748-.2335,1.5236-.9176,1.39-2.8989,1.0031-2.8989,1.0031" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m39.75,49.8512l7.3481,3.6688c.9327.4014,1.3635,1.4829.9622,2.4156-.0675.1568-.1565.3035-.2645.4358-.4482.7731-1.4382,1.0365-2.2113.5884-.0249-.0145-.0495-.0296-.0736-.0454l-6.7306-2.98" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m43.0189,55.8106s.5473,1.9473-.3485,2.74c-.2034.1803-.4387.3211-.6937.4152-.5915.2004-1.2382.1597-1.8-.1132l-3.4154-1.5581" />
+    <ns0:circle cx="38.7404" cy="26.4445" r="2.1972" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+    <ns0:circle cx="29.7967" cy="22.2945" r="2.8655" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+  </ns0:g>
+</ns0:svg>
+<text x="676" y="807" font-size="17" font-weight="bold">Se laver les mains</text>
+<text x="676" y="828" font-size="12" fill="#61756b">E0B2 · nouveau</text>
+<rect x="975" y="670" width="290" height="170" rx="14" fill="white" stroke="#d7ded6"/>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="993" y="682" width="92" height="92">
+  <ns0:g id="color" />
+  <ns0:g id="skin">
+    <ns0:circle cx="26.9688" cy="13.0938" r="3" fill="#fcea2b" />
+    <ns0:path fill="#fcea2b" d="M26.665,22.585s.3038,3.708,3.3038,9.042C30.2129,32.0615,31,33.335,31,33.335L25,45l-.25,18h3.4238L30,48l6-6,6-5V33L36,22" />
+    <ns0:polyline fill="#fcea2b" points="42 36 49 46 59.167 52 58.167 55 46 50 37 42" />
+    <ns0:path fill="#fcea2b" d="M36,22c-2-4-4.3594-4.2329-6.0312-3.583A4.1078,4.1078,0,0,0,28,24" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:circle cx="26.9688" cy="13.0938" r="3" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M42,36l5.8535,8.3613a11.0249,11.0249,0,0,0,2.8692,2.6553l6.7216,3.9668A2.3633,2.3633,0,0,1,58.667,53.5a1.69,1.69,0,0,1-2.35.74L47.85,50.76a14.1043,14.1043,0,0,1-3.3447-2.0889L37,42" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.8477,31.3594s.26.5937.5761,1.32a3.7314,3.7314,0,0,1-.498,3.0078l-4.8516,7.625A8.3233,8.3233,0,0,0,24.9727,47l-.1954,14a1.8486,1.8486,0,0,0,1.6846,2,2.1751,2.1751,0,0,0,1.9541-1.9854l1.3418-11.0292a6.789,6.789,0,0,1,1.6563-3.3995l3.1718-3.1718c.7774-.7774,2.1055-1.99,2.95-2.6944L40.4639,38.28A4.8637,4.8637,0,0,0,42,35h0a9.3085,9.3085,0,0,0-.958-3.7559L36,22" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M36,22c-2-4-4.3594-4.2329-6.0312-3.583A3.859,3.859,0,0,0,27.6,22.251" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.9375,22l-1.4189,5.0771A2.7758,2.7758,0,0,1,27,29H20" />
+  </ns0:g>
+</ns0:svg>
+<ns0:svg xmlns:ns0="http://www.w3.org/2000/svg" id="emoji" viewBox="0 0 72 72" x="1128" y="735" width="32" height="32">
+  <ns0:g id="color" />
+  <ns0:g id="skin">
+    <ns0:circle cx="26.9688" cy="13.0938" r="3" fill="#fcea2b" />
+    <ns0:path fill="#fcea2b" d="M26.665,22.585s.3038,3.708,3.3038,9.042C30.2129,32.0615,31,33.335,31,33.335L25,45l-.25,18h3.4238L30,48l6-6,6-5V33L36,22" />
+    <ns0:polyline fill="#fcea2b" points="42 36 49 46 59.167 52 58.167 55 46 50 37 42" />
+    <ns0:path fill="#fcea2b" d="M36,22c-2-4-4.3594-4.2329-6.0312-3.583A4.1078,4.1078,0,0,0,28,24" />
+  </ns0:g>
+  <ns0:g id="line">
+    <ns0:circle cx="26.9688" cy="13.0938" r="3" fill="none" stroke="#000" stroke-miterlimit="10" stroke-width="2" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M42,36l5.8535,8.3613a11.0249,11.0249,0,0,0,2.8692,2.6553l6.7216,3.9668A2.3633,2.3633,0,0,1,58.667,53.5a1.69,1.69,0,0,1-2.35.74L47.85,50.76a14.1043,14.1043,0,0,1-3.3447-2.0889L37,42" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.8477,31.3594s.26.5937.5761,1.32a3.7314,3.7314,0,0,1-.498,3.0078l-4.8516,7.625A8.3233,8.3233,0,0,0,24.9727,47l-.1954,14a1.8486,1.8486,0,0,0,1.6846,2,2.1751,2.1751,0,0,0,1.9541-1.9854l1.3418-11.0292a6.789,6.789,0,0,1,1.6563-3.3995l3.1718-3.1718c.7774-.7774,2.1055-1.99,2.95-2.6944L40.4639,38.28A4.8637,4.8637,0,0,0,42,35h0a9.3085,9.3085,0,0,0-.958-3.7559L36,22" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M36,22c-2-4-4.3594-4.2329-6.0312-3.583A3.859,3.859,0,0,0,27.6,22.251" />
+    <ns0:path fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M30.9375,22l-1.4189,5.0771A2.7758,2.7758,0,0,1,27,29H20" />
+  </ns0:g>
+</ns0:svg>
+<text x="991" y="807" font-size="17" font-weight="bold">Courir</text>
+<text x="991" y="828" font-size="12" fill="#61756b">1F3C3 · nouveau</text>
+<text x="30" y="889" font-size="17">Pas de dessin assez précis retenu pour coller, enfiler, modeler ou construire avec des blocs.</text>
+<text x="30" y="919" font-size="16">Ces images évoquent une activité ou son support ; elles ne montrent pas une production de l’enfant.</text>
+<text x="30" y="953" font-size="13">OpenMoji — HfG Schwäbisch Gmünd et contributeurs · CC BY-SA 4.0 · Dessins repris sans retouche.</text>
+<text x="30" y="978" font-size="12">https://openmoji.org/ · https://creativecommons.org/licenses/by-sa/4.0/</text>
+</g></svg>

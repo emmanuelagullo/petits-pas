@@ -34,3 +34,6 @@ site/static/essais/
 
 # Catalogue de releases publiques observé en CI, hors sources.
 /site/data/publications_generees.json
+
+# Dessins et métadonnées copiés par preparer-site.sh
+/site/static/referentiels/images-proposees/
