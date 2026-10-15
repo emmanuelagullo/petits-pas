@@ -7,6 +7,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Images proposées : éditions 2026.3 des trois référentiels, avec 30 associations
+  pour les objectifs des programmes, 30 pour Chat d’École et 38 pour Petits Pas
+  étayé. Textes, identités, niveaux et ordre inchangés ; six associations moins
+  précises retirées de l’édition étayée, sans retirer d’apprentissage. Les
+  anciennes éditions restent disponibles ; aucune adoption automatique. Une
+  recette fictive montre les associations dans les carnets web et PDF.
+
 - Images proposées : dix dessins OpenMoji supplémentaires dans le menu de
   choix local (livre, pinceau, tambour, ciseaux, règle, balance, loupe, liquide
   versé, lavage des mains et course). Provenance, auteurs et empreintes du tag

@@ -12,7 +12,7 @@ source:
     réussite non transformés en objectifs.'
   licence: Etalab-2.0
   provisoire: true
-version: '2026.2'
+version: '2026.3'
 domaines:
 - code: LANG
   nom: Le développement et la structuration du langage oral et écrit
@@ -299,6 +299,7 @@ domaines:
       libelle: Comprendre des histoires où l’enchainement des actions peut être rattaché à des expériences
         connues de la vie quotidienne (le bain, le coucher, etc.).
       niveau: PS
+      icone: om-livre
     - identite: lang-o063
       code: LANG-O063
       libelle: Reconnaitre, nommer et identifier la fonction de différents écrits rencontrés dans la vie
@@ -324,6 +325,7 @@ domaines:
         (rencontres successives) et commencer à comprendre les informations implicites (émotions, états
         et sentiments des personnages).
       niveau: MS
+      icone: om-livre
     - identite: lang-o068
       code: LANG-O068
       libelle: Différencier les types d’écrits et associer un écrit à un projet d’écriture ou de communication.
@@ -344,6 +346,7 @@ domaines:
       libelle: Comprendre des histoires où l’enchainement des actions est lié au destin de personnages
         centraux ou secondaires qui évoluent et interagissent, dans des lieux diversifiés.
       niveau: GS
+      icone: om-livre
     - identite: lang-o072
       code: LANG-O072
       libelle: Comprendre les émotions, les intentions et les sentiments qui animent les personnages.
@@ -352,6 +355,7 @@ domaines:
       code: LANG-O073
       libelle: Établir un lien entre la lecture effectuée et sa propre expérience.
       niveau: GS
+      icone: om-livre
   - code: S08
     nom: Apprendre le geste d’écriture
     competences:
@@ -364,10 +368,12 @@ domaines:
       code: LANG-O075
       libelle: Guider son geste par le regard lorsqu’il trace ou écrit ;
       niveau: PS
+      icone: om-crayon
     - identite: lang-o076
       code: LANG-O076
       libelle: Prendre des repères spatiaux sur le support utilisé pour tracer.
       niveau: PS
+      icone: om-crayon
     - identite: lang-o077
       code: LANG-O077
       libelle: Adopter une posture adaptée au geste d’écriture.
@@ -376,11 +382,13 @@ domaines:
       code: LANG-O078
       libelle: Adopter une préhension correcte du stylo et s’entrainer à ne pas le lever en écrivant.
       niveau: MS
+      icone: om-crayon
     - identite: lang-o079
       code: LANG-O079
       libelle: Utiliser de façon coordonnée les quatre articulations qui servent à tenir et guider le
         crayon (épaule, coude, poignet, doigts).
       niveau: MS
+      icone: om-crayon
     - identite: lang-o080
       code: LANG-O080
       libelle: Tracer des lettres capitales.
@@ -390,15 +398,18 @@ domaines:
       code: LANG-O081
       libelle: S’initier aux tracés de l’écriture cursive.
       niveau: MS
+      icone: om-crayon
     - identite: lang-o082
       code: LANG-O082
       libelle: Tenir correctement son stylo par la pince des doigts et utiliser de façon coordonnée les
         quatre articulations (épaule, coude, poignet, doigts).
       niveau: GS
+      icone: om-crayon
     - identite: lang-o083
       code: LANG-O083
       libelle: Travailler la ligature entre deux lettres.
       niveau: GS
+      icone: om-crayon
     - identite: lang-o084
       code: LANG-O084
       libelle: Tracer des lettres en écriture cursive, les enchainer.
@@ -420,11 +431,13 @@ domaines:
       libelle: Mimer la posture et les gestes d’écriture de l’adulte lors de la production de traces qui
         s’apparentent à de l’écriture.
       niveau: PS
+      icone: om-crayon
     - identite: lang-o088
       code: LANG-O088
       libelle: Tracer volontairement des signes abstraits dont on comprend qu’il ne s’agit pas de dessins,
         mais de lettres.
       niveau: PS
+      icone: om-crayon
     - identite: lang-o089
       code: LANG-O089
       libelle: Comprendre que lorsque l’adulte lit un même écrit plusieurs fois, ce qu’il lit est toujours
@@ -509,6 +522,7 @@ domaines:
       code: PHYS-O002
       libelle: Courir de manière variée et coordonnée.
       niveau: PS
+      icone: om-courir
     - identite: o-saut-obstacle-sans-elan
       code: PHYS-O003
       libelle: Sauter sans élan un obstacle.
@@ -525,6 +539,7 @@ domaines:
       code: PHYS-O006
       libelle: Courir vite en ligne droite sur une distance ou une durée courte.
       niveau: MS
+      icone: om-courir
     - identite: phys-o007
       code: PHYS-O007
       libelle: Sauter sans élan plusieurs obstacles.
@@ -541,6 +556,7 @@ domaines:
       code: PHYS-O010
       libelle: Courir de plus en plus longtemps sans s’arrêter.
       niveau: GS
+      icone: om-courir
     - identite: phys-o011
       code: PHYS-O011
       libelle: Courir vite et franchir un obstacle sur une distance courte.
@@ -681,6 +697,7 @@ domaines:
       code: ARTS-O001
       libelle: S’exercer au dessin pour développer son habileté motrice.
       niveau: PS
+      icone: om-crayon
     - identite: arts-o002
       code: ARTS-O002
       libelle: S’exercer progressivement au dessin avec une intention de représentation.
@@ -699,6 +716,7 @@ domaines:
       code: ARTS-O005
       libelle: Dessiner pour représenter sur la base d’un modèle.
       niveau: GS
+      icone: om-crayon
     - identite: arts-o006
       code: ARTS-O006
       libelle: Dessiner pour représenter un personnage ou un évènement fictif.
@@ -895,6 +913,7 @@ domaines:
       code: ARTS-O048
       libelle: Reproduire un rythme simple collectivement.
       niveau: MS
+      icone: om-tambour
     - identite: arts-o049
       code: ARTS-O049
       libelle: Explorer le lien entre le son et le geste.
@@ -927,6 +946,7 @@ domaines:
       code: ARTS-O055
       libelle: Exprimer ses émotions après l’écoute d’un extrait musical.
       niveau: MS
+      icone: om-musique
     - identite: arts-o056
       code: ARTS-O056
       libelle: Découvrir au moins deux œuvres musicales patrimoniales.
@@ -939,6 +959,7 @@ domaines:
       code: ARTS-O058
       libelle: Écouter une œuvre musicale patrimoniale pour repérer des éléments musicaux significatifs.
       niveau: GS
+      icone: om-musique
     - identite: arts-o059
       code: ARTS-O059
       libelle: Connaitre au moins trois œuvres musicales patrimoniales.
@@ -1326,6 +1347,7 @@ domaines:
       code: MATH-O066
       libelle: Comparer les masses de deux objets.
       niveau: MS
+      icone: om-balance
     - identite: math-o067
       code: MATH-O067
       libelle: Comparer indirectement des longueurs d’objets rectilignes.
@@ -1342,10 +1364,12 @@ domaines:
       code: MATH-O070
       libelle: Ordonner les masses de trois objets. Verbaliser les résultats.
       niveau: GS
+      icone: om-balance
     - identite: math-o071
       code: MATH-O071
       libelle: Reconnaitre l’égalité de deux masses et verbaliser le résultat.
       niveau: GS
+      icone: om-balance
   - code: S06
     nom: Se familiariser avec les motifs organisés
     competences:
