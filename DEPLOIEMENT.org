@@ -218,7 +218,10 @@ Les seuils par défaut dépendent du profil de déploiement :
 | Déploiement persistant            |              5 | 15 minutes       |
 
 Ils se surchargent avec =CARNET_CONNEXION_TENTATIVES_MAX= et
-=CARNET_CONNEXION_BLOCAGE_MINUTES=. =CARNET_ANTIBRUTEFORCE=non= désactive
+=CARNET_CONNEXION_BLOCAGE_MINUTES=. Un plafond d'échecs par adresse, tous
+identifiants confondus, s'y ajoute (=CARNET_RATELIMIT_CONNEXION_IP=, =60/15m= par
+défaut, =200/15m= en démonstration éphémère) ; seuls les échecs comptent, et il
+est très au-dessus de l'usage normal d'une école derrière une seule adresse. =CARNET_ANTIBRUTEFORCE=non= désactive
 explicitement la protection. Le diagnostic de déploiement affiche l'état et les
 seuils effectifs et refuse les profils persistants lorsqu'elle est désactivée.
 
@@ -297,13 +300,14 @@ choisit pour elle-même.
 *Quel générateur de codes ?* Les codes sont des codes temporaires standard
 (TOTP, RFC 6238 : six chiffres, pas de trente secondes, SHA-1) ; la clé s'affiche
 sous forme de QR code et en texte. Tout générateur compatible convient : aucun
-téléphone ni matériel n'est imposé. On recommande à chaque personne un *appareil
-distinct* de son poste de travail (téléphone, tablette, jeton matériel
-programmable avec la clé affichée) ; à défaut, une extension de navigateur ou un
-gestionnaire de mots de passe sur le poste protège moins bien (un poste ouvert
-donne accès aux deux facteurs) et est à éviter sur un poste partagé. Avant
-d'imposer le 2FA, prévoir une solution pour les personnes qui ne souhaitent pas
-utiliser leur téléphone personnel.
+téléphone ni matériel n'est imposé : application sur téléphone ou tablette, jeton
+matériel programmable (avec la clé affichée), ou à défaut extension de navigateur
+ou gestionnaire de mots de passe sur le poste. Un *appareil distinct* du poste
+protège mieux (un poste ouvert donne accès aux deux facteurs quand le générateur
+y est installé) et est conseillé en priorité pour les comptes de direction ; le
+logiciel sur le poste reste préférable à un mot de passe seul, mais est à éviter
+sur un poste partagé. Avant d'imposer le 2FA, prévoir une solution pour les
+personnes sans téléphone personnel ni appareil dédié, notamment en classe.
 
 *Vérifier la configuration.* =python manage.py diagnostiquer_deploiement= décrit
 l'état du 2FA : disponible ou absent (et pourquoi), politique du déployeur,

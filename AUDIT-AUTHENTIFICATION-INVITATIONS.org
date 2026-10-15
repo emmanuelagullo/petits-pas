@@ -272,9 +272,8 @@ documentation de déploiement.
 - Cache partagé pour les compteurs de limitation de fréquence : non
   configurable aujourd'hui (§ 6.4), à traiter seulement si un hébergeur
   impose plusieurs workers.
-- 2FA (§ 6.7) : une réinitialisation ne ferme pas les sessions déjà ouvertes
-  du compte : elle efface la clé et les codes, pas les sessions (à traiter si
-  le besoin apparaît). Sort de la clé d'une personne dont la fonction devient
+- 2FA (§ 6.7) : la réinitialisation ferme désormais les sessions ouvertes du
+  compte ; lier un premier appareil redemande le mot de passe si la connexion date de plus de cinq minutes. Sort de la clé d'une personne dont la fonction devient
   désactivée : elle est conservée, inactive (le code n'est plus demandé). Le
   job de CI =deploiement-ephemere= exerce le 2FA de bout en bout
   (=scripts/exercer-double-facteur.py=, voir § 6.7) ; les autres jobs de

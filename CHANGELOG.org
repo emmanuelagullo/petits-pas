@@ -7,6 +7,15 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Second facteur : la réinitialisation ferme les sessions ouvertes du compte ;
+  le mot de passe est redemandé pour configurer un premier appareil si la
+  connexion date de plus de cinq minutes ; une inscription non confirmée est
+  reprise après un changement de clé de chiffrement. Mots de passe limités à
+  1 024 caractères ; plafond d’échecs de connexion par adresse
+  (=CARNET_RATELIMIT_CONNEXION_IP=). Guide du second facteur allégé : un appareil
+  distinct est conseillé, notamment à la direction, sans être présenté comme la
+  règle.
+
 - Images proposées : éditions 2026.4, avec quatre associations supplémentaires
   par source pour les personnages des récits et les repères dans la semaine.
   Aucun nouveau dessin ni changement pédagogique. Les éditions 2026.3 restent
@@ -48,7 +57,6 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   directement, sans confirmation séparée. Un autre choix reste une action
   avancée, signalée comme risquée et confirmée par mot de passe. L’origine du
   premier choix est conservée, sans héritage automatique ni modification des classes existantes (migration 0031).
-
 - Démarrage d’école : choisir ou valider les propositions annuelles avant
   de créer les classes et inviter l’équipe. Présentation initiale positive,
   sans assimiler la trame préchargée à une saisie. Les restrictions et les
