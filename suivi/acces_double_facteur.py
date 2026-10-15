@@ -29,8 +29,7 @@ SESSION_ATTENTE = "double_facteur_attente"
 SESSION_EXIGENCE = "double_facteur_exigence"
 DELAI_ATTENTE_SECONDES = 300
 SESSION_CONNEXION_LE = "connexion_le"
-# Au-delà, lier un premier appareil redemande le mot de passe (une session
-# volée ne doit pas pouvoir enrôler son propre authentificateur).
+# Au-delà, lier un premier appareil redemande le mot de passe.
 CONNEXION_RECENTE_SECONDES = 300
 # Pages restant accessibles à un compte qui doit encore s'inscrire.
 PAGES_INSCRIPTION = {"double_facteur", "deconnexion"}
