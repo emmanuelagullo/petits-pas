@@ -7,6 +7,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- #SOC4a : primitives TOTP, plafonds de mots de passe et outils de session
+  partagés via Pas communs 0.3.0. Les modèles, transactions, politiques et
+  écrans restent dans Petits Pas. Une attente de second facteur est abandonnée
+  si le mot de passe change ou si son backend est retiré. Une attente commencée
+  avant mise à jour doit être recommencée ; les sessions déjà authentifiées
+  restent valides. Aucun changement des obligations en mode autonome.
+
 - #SOC3 : serveur local, verrou, copie du paquet, protection avant migration,
   journaux Windows et assemblage PyInstaller partagés via Pas communs 0.2.0.
   Les chemins, installateurs, espaces d'essai, aperçus ZIP et confirmations
