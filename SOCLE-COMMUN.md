@@ -1,6 +1,6 @@
-# Pas communs — #SOC2 à #SOC4a
+# Pas communs — #SOC2 à #SOC5a
 
-Petits Pas dépend maintenant de `pas-communs` 0.3.0 pour le moteur ZIP/SQLite.
+Petits Pas dépend maintenant de `pas-communs` 0.4.0 pour le moteur ZIP/SQLite.
 La façade `suivi.paquet_local` conserve l'API, les confirmations en mémoire,
 le rappel d'export local et les métadonnées de projection. Droits, exports,
 imports et sélection des secrets restent dans Petits Pas. Aucun modèle Django,
@@ -11,12 +11,12 @@ format historique ou nom de stockage navigateur n'est déplacé.
 Le wheel public est fixé par URL et SHA-256 dans `requirements-communs.txt`,
 inclus par les profils serveur, bureau et navigateur. Installer les dépendances
 habituelles suffit. Pas de service additionnel, de Git ni de PyPI à configurer.
-La première publication du wheel `0.3.0` de Pas communs doit précéder l'adoption
+La première publication du wheel `0.4.0` de Pas communs doit précéder l'adoption
 et le déploiement de ce patch. Un téléchargement manquant ou altéré est refusé.
 
 Avant cette publication, les essais peuvent employer le wheel local candidat :
 installer les autres dépendances avec un fichier temporaire privé d'inclusion du
-socle, puis `pip install /chemin/pas_communs-0.3.0-py3-none-any.whl`.
+socle, puis `pip install /chemin/pas_communs-0.4.0-py3-none-any.whl`.
 Ne pas committer de chemin local ni de dépendance à une branche mobile.
 En développement conjoint : `pip install -e ../pas-communs` après préparation du
 backend de construction. Les releases utilisent toujours le wheel fixé.
@@ -71,3 +71,20 @@ Une attente en cours avant mise à jour est abandonnée : ressaisir le mot de pa
 Les sessions déjà authentifiées restent valides. Les noms historiques de cookies
 et le backend standard mémorisé par Django restent inchangés.
 Le parcours CHRS renforcé reste à intégrer sous #SOC4b.
+
+## Première extraction navigateur (#SOC5a)
+
+Le wheel 0.4.0 embarque les modules JavaScript copiés dans `socle/` au build :
+stockage OPFS/IndexedDB, transport et vérification des capacités. Les façades
+historiques `pwa/storage.js`, `transport.js` et `capabilities.js` gardent leur API.
+Les primitives WSGI, crypto WASM et téléchargement viennent aussi du socle.
+Les noms de stockage, espaces essai/aperçu, formats anciens et limites restent
+inchangés. Les nouveaux manifestes internes indiquent le produit ; les anciens
+manifestes Petits Pas restent lisibles. Les ZIP publics ne changent pas.
+
+Coque, Service Worker, Worker, transferts, inventaire, restaurations et métier
+restent ici. Aucun flux scolaire ne migre dans le prototype CHRS. Construire
+avec le wheel épinglé ; ne pas aller chercher des sources JavaScript sur main.
+Une modification de ressource commune exige nouvelle version et nouvelle
+qualification PWA du produit, comme une modification Python du socle.
+Cette livraison ne publie aucun bundle ni release Petits Pas.

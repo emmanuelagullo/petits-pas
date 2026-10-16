@@ -286,23 +286,8 @@ def handle(encoded, raw_body=None):
     input_file = OpfsFile("request") if body is None else io.BytesIO(body)
     input_size = input_file.seek(0, 2) if body is None else len(body)
     input_file.seek(0)
-    environ = {
-        "REQUEST_METHOD": request["method"], "PATH_INFO": path,
-        "QUERY_STRING": url.query, "SCRIPT_NAME": SCRIPT_NAME,
-        "SERVER_NAME": url.hostname, "SERVER_PORT": str(url.port or 443),
-        "SERVER_PROTOCOL": "HTTP/1.1", "REMOTE_ADDR": "127.0.0.1",
-        "wsgi.version": (1, 0), "wsgi.url_scheme": url.scheme,
-        "wsgi.input": input_file, "wsgi.errors": sys.stderr,
-        "wsgi.multithread": False, "wsgi.multiprocess": False, "wsgi.run_once": False,
-        "CONTENT_LENGTH": str(input_size),
-        "HTTP_COOKIE": "; ".join(f"{k}={v}" for k, v in COOKIES.items()),
-    }
-    for key, value in request["headers"]:
-        key = key.upper().replace("-", "_")
-        if key in {"COOKIE", "HOST", "CONTENT_LENGTH"}:
-            continue
-        environ[key if key == "CONTENT_TYPE" else "HTTP_" + key] = value
-    environ["HTTP_HOST"] = url.netloc
+    from pas_communs.navigateur.http import environnement, retenir_cookies
+    environ = environnement(request, SCRIPT_NAME, COOKIES, input_file, input_size)
     response = {}
 
     def start_response(status, headers, exc_info=None):
@@ -320,17 +305,7 @@ def handle(encoded, raw_body=None):
         input_file.close()
         if not job and hasattr(iterable, "close"):
             iterable.close()
-    headers = []
-    for key, value in response["headers"]:
-        if key.lower() == "set-cookie":
-            cookies = SimpleCookie(value)
-            for name, morsel in cookies.items():
-                if morsel["max-age"] == "0":
-                    COOKIES.pop(name, None)
-                else:
-                    COOKIES[name] = morsel.value
-        else:
-            headers.append([key, value])
+    headers = retenir_cookies(response["headers"], COOKIES)
     # Token CSRF virtuel ; aucune clé de session dans le DOM/localStorage.
     if any(k.lower() == "content-type" and v.startswith("text/html") for k, v in headers):
         injection = ('<script>document.addEventListener("htmx:configRequest",function(e){'

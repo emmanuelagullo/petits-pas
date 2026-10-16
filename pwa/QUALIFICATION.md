@@ -465,3 +465,24 @@ les parcours racine/HTTPS et le contrôle de distribution. Ce constat complète
 le périmètre Linux mesuré ; il n'attribue pas les mesures PSS Linux à Windows.
 Les versions exactes des navigateurs sont enregistrées dans les artefacts CI.
 La release 0.9 doit encore être construite et promue depuis son pipeline tagué.
+
+### Première extraction du socle — #SOC5a (16 octobre 2026)
+
+Pas communs 0.4.0 : ressources JavaScript du wheel copiées dans le bundle,
+primitives WSGI et crypto WASM communes. Le banc `verifier-pwa.cjs` a été
+exécuté sous Linux avec Chromium Headless Shell 151, à la racine et sous
+`/petits-pas-pwa/` en HTTPS. Ce second passage démarre avec un bundle construit
+sur le commit `289ee045a33382a5260ca4936b0272883e76b118`, avant extraction,
+puis adopte le nouveau : base, connexion et média conservés. Les anciens noms
+et manifestes OPFS restent lisibles.
+
+Les parcours couvrent CSRF, HTMX, médias, exports/restaurations progressifs,
+aperçu indépendant, second onglet, relance hors connexion, interruption avant
+activation, quota simulé, mise à jour explicite, refus de base future et
+récupération. Les tests Django (944, dont un ignoré), scripts Python (83),
+JavaScript (5) et le banc réel Pyodide du socle passent aussi.
+
+Il s'agit d'une qualification automatisée Linux sur des données fictives.
+Aucun bundle `--test` n'est à distribuer. Pas de nouveau passage Windows,
+Firefox, Safari/iOS ou appareil d'école, ni de publication depuis cette session.
+Les coques, mises à jour et transferts métier restent dans Petits Pas.

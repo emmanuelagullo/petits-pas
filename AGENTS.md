@@ -167,3 +167,8 @@ installateurs et callbacks métier Petits Pas ; tester arrêt et restauration.
 historiques. Le moteur TOTP ne consomme rien : persister les pas sous transaction
 et conserver limites de tentatives, politiques et confirmations dans Petits Pas.
 Tester aussi les attentes expirées, révoquées et les parcours de secours.
+
+#SOC5a : les ressources JavaScript du socle sont copiées depuis le wheel dans
+le bundle PWA. Garder les façades, noms historiques et états essai/aperçu.
+Tester scripts Python, transport et banc Chromium. Ne pas remplacer les
+transferts ou restaurations métier par les adaptateurs minimaux du CHRS.
