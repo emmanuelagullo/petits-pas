@@ -1,6 +1,6 @@
-# Pas communs — #SOC2 et #SOC3
+# Pas communs — #SOC2 à #SOC4a
 
-Petits Pas dépend maintenant de `pas-communs` 0.2.0 pour le moteur ZIP/SQLite.
+Petits Pas dépend maintenant de `pas-communs` 0.3.0 pour le moteur ZIP/SQLite.
 La façade `suivi.paquet_local` conserve l'API, les confirmations en mémoire,
 le rappel d'export local et les métadonnées de projection. Droits, exports,
 imports et sélection des secrets restent dans Petits Pas. Aucun modèle Django,
@@ -11,12 +11,12 @@ format historique ou nom de stockage navigateur n'est déplacé.
 Le wheel public est fixé par URL et SHA-256 dans `requirements-communs.txt`,
 inclus par les profils serveur, bureau et navigateur. Installer les dépendances
 habituelles suffit. Pas de service additionnel, de Git ni de PyPI à configurer.
-La première publication du wheel `0.2.0` de Pas communs doit précéder l'adoption
+La première publication du wheel `0.3.0` de Pas communs doit précéder l'adoption
 et le déploiement de ce patch. Un téléchargement manquant ou altéré est refusé.
 
 Avant cette publication, les essais peuvent employer le wheel local candidat :
 installer les autres dépendances avec un fichier temporaire privé d'inclusion du
-socle, puis `pip install /chemin/pas_communs-0.2.0-py3-none-any.whl`.
+socle, puis `pip install /chemin/pas_communs-0.3.0-py3-none-any.whl`.
 Ne pas committer de chemin local ni de dépendance à une branche mobile.
 En développement conjoint : `pip install -e ../pas-communs` après préparation du
 backend de construction. Les releases utilisent toujours le wheel fixé.
@@ -46,7 +46,7 @@ La CI `0.10` et sa publication doivent rester sur le commit préparé avant #SOC
 
 ## Runtime local et construction (#SOC3)
 
-La dépendance 0.2.0 ajoute `pas_communs.local` et `pas_communs.construction`.
+La version 0.2.0 a ajouté `pas_communs.local` et `pas_communs.construction`.
 Le lanceur Petits Pas conserve ses options, ses chemins et ses parcours métier.
 Ses fonctions publiques restent des façades ; les mécanismes communs sont
 utilisés aussi par Pas à Pas — Accompagnement. Les callbacks de changement
@@ -57,3 +57,17 @@ l'assemblage des plateformes est désormais commun. Les scripts de construction,
 installateurs Inno Setup et archives et gestion de versions ne sont pas renommés.
 La PWA embarque le nouveau wheel, mais n'importe pas les modules bureau.
 Qualifier les deux programmes avant une publication ; conserver 0.10 inchangée.
+
+## Authentification : première extraction (#SOC4a)
+
+Le wheel 0.3.0 fournit les primitives TOTP, mots de passe et sessions. Les
+façades comptes.totp, comptes.validators et comptes.backends restent en place.
+Aucun modèle, migration, rôle ou parcours scolaire n’est déplacé. Les clés,
+politiques d’obligation, tentatives, transactions et secours restent propres
+à Petits Pas ; les profils autonomes ne changent pas de politique 2FA.
+
+L’attente avant second facteur est désormais liée au mot de passe et au backend.
+Une attente en cours avant mise à jour est abandonnée : ressaisir le mot de passe.
+Les sessions déjà authentifiées restent valides. Les noms historiques de cookies
+et le backend standard mémorisé par Django restent inchangés.
+Le parcours CHRS renforcé reste à intégrer sous #SOC4b.

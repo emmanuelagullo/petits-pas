@@ -1,87 +1,51 @@
-"""TOTP (RFC 6238) : clé chiffrée en base, vérification sans rejeu, QR.
+"""Stockage et consommation TOTP Petits Pas ; primitives dans Pas communs.
 
-django-otp ne sert qu'au calcul (django_otp.oath) : la clé étant chiffrée,
-son modèle de dispositif ne convient pas. Les importations de cryptography,
-qrcode et django_otp sont paresseuses : sans requirements-2fa.txt, ce module
-s'importe quand même et la fonction reste simplement indisponible.
+Les modèles, transactions et échéances restent dans comptes. Les dépendances
+crypto sont paresseuses et les parcours/politiques restent dans suivi.
 """
-import base64
-import hashlib
 import logging
 import secrets
-from io import BytesIO
-from urllib.parse import quote
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from pas_communs.authentification import totp as moteur
+
 from .models import CodeSecoursDoubleFacteur, DoubleFacteurCompte
 
 logger = logging.getLogger(__name__)
 
-PAS = 30
-CHIFFRES = 6
+PAS = moteur.PAS
+CHIFFRES = moteur.CHIFFRES
 # Plus ou moins un pas : absorbe une dérive d'horloge raisonnable.
-TOLERANCE = 1
-OCTETS_CLE = 20
-
-
-def _fernet():
-    from cryptography.fernet import Fernet, MultiFernet
-
-    return MultiFernet([Fernet(cle) for cle in settings.DOUBLE_FACTEUR_CLES])
+TOLERANCE = moteur.TOLERANCE
+OCTETS_CLE = moteur.OCTETS_CLE
 
 
 def chiffrer(cle):
-    return _fernet().encrypt(cle).decode()
+    return moteur.chiffrer(cle, cles=settings.DOUBLE_FACTEUR_CLES)
 
 
 def dechiffrer(jeton):
-    return _fernet().decrypt(jeton.encode())
+    return moteur.dechiffrer(jeton, cles=settings.DOUBLE_FACTEUR_CLES)
 
 
-def cle_en_base32(cle):
-    return base64.b32encode(cle).decode().rstrip("=")
+cle_en_base32 = moteur.cle_en_base32
+qr_svg = moteur.qr_svg
 
 
 def uri_otpauth(utilisateur, cle):
-    emetteur = settings.DOUBLE_FACTEUR_EMETTEUR
-    libelle = quote(f"{emetteur}:{utilisateur.get_username()}")
-    return (
-        f"otpauth://totp/{libelle}?secret={cle_en_base32(cle)}"
-        f"&issuer={quote(emetteur)}&algorithm=SHA1&digits={CHIFFRES}&period={PAS}"
-    )
-
-
-def qr_svg(uri):
-    """QR code en SVG, sans Pillow ; la déclaration XML est retirée pour
-    pouvoir l'inclure directement dans une page HTML."""
-    import qrcode
-    import qrcode.image.svg
-
-    image = qrcode.make(uri, image_factory=qrcode.image.svg.SvgPathImage, box_size=10)
-    sortie = BytesIO()
-    image.save(sortie)
-    svg = sortie.getvalue().decode()
-    return svg[svg.index("<svg"):]
-
-
-def _normaliser(code):
-    chiffres = "".join(str(code).split())
-    if len(chiffres) != CHIFFRES or not chiffres.isascii() or not chiffres.isdigit():
-        return None
-    return int(chiffres)
+    return moteur.uri_otpauth(utilisateur.get_username(), cle,
+        emetteur=settings.DOUBLE_FACTEUR_EMETTEUR)
 
 
 def _verifier_verrouille(compte, code, instant):
     """Vérifie un code sur une ligne déjà verrouillée ; refuse un pas déjà utilisé."""
     from cryptography.fernet import InvalidToken
-    from django_otp.oath import TOTP
 
-    jeton = _normaliser(code)
-    if jeton is None or not compte.cle_chiffree:
+    if not compte.cle_chiffree:
         return False
     try:
         cle = dechiffrer(compte.cle_chiffree)
@@ -91,12 +55,10 @@ def _verifier_verrouille(compte, code, instant):
             compte.utilisateur_id,
         )
         return False
-    totp = TOTP(cle, step=PAS, digits=CHIFFRES)
-    if instant is not None:
-        totp.time = instant
-    if not totp.verify(jeton, tolerance=TOLERANCE, min_t=compte.dernier_pas + 1):
+    pas = moteur.verifier_pas(cle, code, dernier_pas=compte.dernier_pas, instant=instant)
+    if pas is None:
         return False
-    compte.dernier_pas = totp.t()
+    compte.dernier_pas = pas
     return True
 
 
@@ -189,25 +151,12 @@ def reinitialiser(utilisateur):
 # --- Codes de secours -------------------------------------------------------
 # Seize caractères d'un alphabet de 32 sans ambiguïté (80 bits) : assez pour
 # qu'une simple empreinte SHA-256 résiste à une fuite de la base.
-ALPHABET_SECOURS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-LONGUEUR_CODE_SECOURS = 16
-NOMBRE_CODES_SECOURS = 10
-
-
-def _empreinte(code_normalise):
-    return hashlib.sha256(code_normalise.encode()).hexdigest()
-
-
-def normaliser_code_secours(saisie):
-    """Majuscules, sans espaces ni tirets ; None si la forme est impossible."""
-    code = "".join(c for c in str(saisie or "").upper() if c not in " -")
-    if len(code) != LONGUEUR_CODE_SECOURS or any(c not in ALPHABET_SECOURS for c in code):
-        return None
-    return code
-
-
-def presenter_code_secours(code):
-    return "-".join(code[i:i + 4] for i in range(0, LONGUEUR_CODE_SECOURS, 4))
+ALPHABET_SECOURS = moteur.ALPHABET_SECOURS
+LONGUEUR_CODE_SECOURS = moteur.LONGUEUR_CODE_SECOURS
+NOMBRE_CODES_SECOURS = moteur.NOMBRE_CODES_SECOURS
+_empreinte = moteur.empreinte_code_secours
+normaliser_code_secours = moteur.normaliser_code_secours
+presenter_code_secours = moteur.presenter_code_secours
 
 
 def generer_codes_secours(utilisateur):
@@ -220,7 +169,7 @@ def generer_codes_secours(utilisateur):
         CodeSecoursDoubleFacteur.objects.filter(utilisateur=utilisateur).delete()
         codes = []
         while len(codes) < NOMBRE_CODES_SECOURS:
-            code = "".join(secrets.choice(ALPHABET_SECOURS) for _ in range(LONGUEUR_CODE_SECOURS))
+            code = moteur.nouveau_code_secours()
             if code not in codes:
                 codes.append(code)
         CodeSecoursDoubleFacteur.objects.bulk_create(

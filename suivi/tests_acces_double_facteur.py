@@ -155,6 +155,22 @@ class ConnexionEnDeuxEtapes(BaseAcces):
         self.client.get(reverse("connexion"))
         self.assertNotIn(SESSION_ATTENTE, self.client.session)
 
+    def test_changement_mot_de_passe_pendant_attente_exige_nouvelle_connexion(self):
+        self.connecter(self.enseignant)
+        self.enseignant.set_password("Autre phrase fictive-874")
+        self.enseignant.save()
+        reponse = self.client.post(reverse("connexion_verification"), {"code": self.code(self.cle)})
+        self.assertRedirects(reponse, reverse("connexion"), fetch_redirect_response=False)
+        self.assertFalse(self.est_connecte())
+        self.assertNotIn(SESSION_ATTENTE, self.client.session)
+
+    def test_backend_retire_pendant_attente_exige_nouvelle_connexion(self):
+        self.connecter(self.enseignant)
+        with override_settings(AUTHENTICATION_BACKENDS=[]):
+            reponse = self.client.post(reverse("connexion_verification"), {"code": self.code(self.cle)})
+        self.assertRedirects(reponse, reverse("connexion"), fetch_redirect_response=False)
+        self.assertFalse(self.est_connecte())
+
     def test_compte_desactive_entre_temps(self):
         self.connecter(self.enseignant)
         self.enseignant.is_active = False

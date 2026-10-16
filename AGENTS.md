@@ -162,3 +162,8 @@ explicitement les vérifications non exécutées et leur raison.
 #SOC3 : les mécanismes du lanceur et l’assemblage PyInstaller viennent de
 `pas_communs.local` et `pas_communs.construction`. Conserver les chemins,
 installateurs et callbacks métier Petits Pas ; tester arrêt et restauration.
+
+#SOC4a : conserver les façades comptes.totp/validators/backends et les modèles
+historiques. Le moteur TOTP ne consomme rien : persister les pas sous transaction
+et conserver limites de tentatives, politiques et confirmations dans Petits Pas.
+Tester aussi les attentes expirées, révoquées et les parcours de secours.

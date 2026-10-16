@@ -21,6 +21,7 @@ from django.shortcuts import redirect
 from django.utils import timezone
 
 from comptes.models import DoubleFacteurCompte
+from pas_communs.authentification import sessions as mecanismes_sessions
 
 from .double_facteur import Exigence, exigence_double_facteur
 
@@ -151,30 +152,13 @@ def _noter_la_connexion(sender, request=None, **kwargs):
 
 
 def noter_authentification(request):
-    request.session[SESSION_CONNEXION_LE] = int(time.time())
+    mecanismes_sessions.noter_authentification(request.session, cle=SESSION_CONNEXION_LE)
 
 
 def connexion_recente(request):
-    """Vrai si le mot de passe a été saisi pour cette session il y a peu.
-
-    Une session sans horodatage (antérieure à ce contrôle) n'est pas récente :
-    le mot de passe est demandé une fois.
-    """
-    depuis = request.session.get(SESSION_CONNEXION_LE)
-    return (
-        isinstance(depuis, int)
-        and 0 <= time.time() - depuis <= CONNEXION_RECENTE_SECONDES
-    )
+    return mecanismes_sessions.connexion_recente(request.session,
+        cle=SESSION_CONNEXION_LE, delai=CONNEXION_RECENTE_SECONDES)
 
 
 def fermer_sessions_compte(utilisateur):
-    """Une promotion sensible exige une nouvelle connexion (sessions DB).
-
-    Le déploiement utilise les sessions Django en base. La suppression évite
-    qu'une exigence mise en cache avant la promotion garde un délai de grâce.
-    """
-    from django.contrib.sessions.models import Session
-
-    for session in Session.objects.filter(expire_date__gt=timezone.now()).iterator():
-        if session.get_decoded().get("_auth_user_id") == str(utilisateur.pk):
-            session.delete()
+    return mecanismes_sessions.fermer_sessions_compte(utilisateur)

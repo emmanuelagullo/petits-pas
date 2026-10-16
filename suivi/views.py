@@ -2,7 +2,6 @@ from functools import wraps
 from io import StringIO
 import tempfile
 import logging
-import time
 import mimetypes
 from pathlib import Path
 import re
@@ -24,6 +23,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django_ratelimit.core import is_ratelimited
 from carnet.reseau import adresse_client, cle_ip
 from comptes import totp
+from pas_communs.authentification import sessions as mecanismes_sessions
 from comptes.validators import LONGUEUR_MAX_MOT_DE_PASSE
 from django.conf import settings
 from django.contrib.staticfiles import finders
@@ -280,11 +280,8 @@ def connexion(request):
         if utilisateur:
             if verification_requise_a_la_connexion(utilisateur):
                 # Aucune session n'est ouverte avant le second facteur.
-                request.session[SESSION_ATTENTE] = {
-                    "pk": utilisateur.pk,
-                    "backend": utilisateur.backend,
-                    "jusqua": time.time() + DELAI_ATTENTE_SECONDES,
-                }
+                mecanismes_sessions.commencer_attente(request.session, utilisateur,
+                    cle=SESSION_ATTENTE, delai=DELAI_ATTENTE_SECONDES)
                 return redirect("connexion_verification")
             login(request, utilisateur)
             return _suite_connexion(request, utilisateur, nom_utilisateur)
@@ -302,12 +299,8 @@ def connexion(request):
 
 
 def _compte_en_attente(request):
-    attente = request.session.get(SESSION_ATTENTE)
-    if not attente or attente.get("jusqua", 0) < time.time():
-        request.session.pop(SESSION_ATTENTE, None)
-        return None, None
-    utilisateur = Utilisateur.objects.filter(pk=attente["pk"], is_active=True).first()
-    return utilisateur, attente
+    return mecanismes_sessions.compte_en_attente(request.session,
+        cle=SESSION_ATTENTE, delai=DELAI_ATTENTE_SECONDES)
 
 
 def _cle_compte_double_facteur(groupe, request):
