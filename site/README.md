@@ -137,3 +137,15 @@ restent exclus. Une lecture indisponible conserve le catalogue connu ;
 la date affichée précise l’observation. Après une release GitHub, relancer
 les captures et la construction du site pour actualiser la liste. La PWA
 garde son lien stable ; sa version et ses notes se lisent dans son aide.
+
+## Notes de toutes les versions
+
+`scripts/preparer-site.sh` extrait les rubriques numérotées de `CHANGELOG.org`
+dans `content/notes-versions/*.org` (fichiers générés ignorés par Git).
+Le journal reste l’unique source ; la rubrique À venir n’est pas publiée.
+Les URL, par exemple `notes-versions/0.9/`, restent disponibles même si cette
+étape n’a pas donné lieu à une release. Le catalogue de téléchargements continue
+à ne proposer que les fichiers des releases publiques effectivement observées.
+Après une release, actualiser aussi le catalogue conservé dans
+`site/data/publications.yaml` à partir des fichiers publics, afin que les
+constructions sans accès à l’API restent à jour.
