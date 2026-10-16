@@ -37,3 +37,6 @@ site/static/essais/
 
 # Dessins et métadonnées copiés par preparer-site.sh
 /site/static/referentiels/images-proposees/
+
+# Rubriques copiées depuis CHANGELOG.org par preparer-site.sh
+/site/content/notes-versions/*.org

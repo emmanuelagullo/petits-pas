@@ -14,6 +14,15 @@ statut = "disponible"
 
 {{< publications >}}
 
+## Notes et historique des changements
+
+Consultez les [notes de toutes les versions]({{< relref "/notes-versions/" >}}),
+y compris les étapes qui n’ont pas donné lieu à un programme publié.
+Pour la version 0.9.1, lisez aussi les [changements de 0.9]({{< relref "/notes-versions/0.9.org" >}}) :
+0.9.1 corrige sa publication et en reprend les nouveautés.
+Les notes de [0.10]({{< relref "/notes-versions/0.10.org" >}}) présentent les changements
+et les précautions de mise à jour de la version actuelle.
+
 ## Choisir un téléchargement
 
 Ouvrez les [versions de Petits Pas](https://github.com/emmanuelagullo/petits-pas/releases)

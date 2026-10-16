@@ -61,3 +61,31 @@ cp "$racine/referentiel/images-proposees/associations-im6.yaml" "$chatdecole/ASS
 
 cp "$racine/referentiel/images-proposees/associations-im8.yaml" "$contenus/ASSOCIATIONS-IM8.yaml"
 cp "$racine/referentiel/images-proposees/associations-im8.yaml" "$chatdecole/ASSOCIATIONS-IM8.yaml"
+
+# Notes de chaque étape, même sans release : CHANGELOG.org reste l’unique source.
+notes="$racine/site/content/notes-versions"
+mkdir -p "$notes"
+find "$notes" -maxdepth 1 -type f -name '*.org' -delete
+awk -v destination="$notes" '
+/^\* / {
+    if (fichier != "") close(fichier)
+    fichier = ""
+    if ($2 !~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/) next
+    titre = substr($0, 3)
+    slug = $2
+    if ($3 == "à") slug = slug "-a-" $4
+    fichier = destination "/" slug ".org"
+    poids++
+    print "+++" > fichier
+    print "title = \"" titre "\"" > fichier
+    print "weight = " poids > fichier
+    print "+++" > fichier
+    print "" > fichier
+    next
+}
+fichier != "" {
+    ligne = $0
+    if (ligne ~ /^\*\*/) sub(/^\*/, "", ligne)
+    print ligne > fichier
+}
+' "$racine/CHANGELOG.org"
