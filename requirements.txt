@@ -1,3 +1,4 @@
+-r requirements-communs.txt
 Django>=5.2,<7
 dj-database-url>=2
 psycopg[binary]>=3.1

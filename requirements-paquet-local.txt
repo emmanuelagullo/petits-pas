@@ -1,3 +1,4 @@
+-r requirements-communs.txt
 # Dépendances de l'application autonome (sans PostgreSQL, S3 ni Gunicorn).
 Django>=5.2,<7
 dj-database-url>=2

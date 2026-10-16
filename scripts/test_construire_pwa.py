@@ -92,5 +92,32 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual({p.name for p in runtime.iterdir()}, expected)
 
 
+
+class SocleTests(unittest.TestCase):
+    def test_cache_wheel_socle_sans_reseau_et_refus_alteration(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            (root / "pwa").mkdir()
+            cache = root / "cache"; cache.mkdir()
+            sortie = root / "sortie"; sortie.mkdir()
+            contenu = b"wheel-fictif-pour-verification-de-cache"
+            nom = "pas_communs-0.1.0-py3-none-any.whl"
+            (cache / nom).write_bytes(contenu)
+            (root / "requirements-communs.txt").write_text(
+                "pas-communs @ https://fictif.invalid/" + nom + "#sha256=" + hashlib.sha256(contenu).hexdigest())
+            (root / "pwa/requirements.txt").write_text("-r ../requirements-communs.txt\nDjango==6.1.1\n")
+            (sortie / "pas_communs-0.0.1-py3-none-any.whl").write_bytes(b"ancien")
+            with patch.object(builder, "ROOT", root), patch.object(builder, "telecharger") as reseau, patch.object(builder.subprocess, "run") as pip:
+                builder.preparer_wheels(sortie, cache)
+                reseau.assert_not_called()
+                self.assertIn("--no-index", pip.call_args.args[0])
+                self.assertEqual((sortie / nom).read_bytes(), contenu)
+                self.assertFalse((sortie / "pas_communs-0.0.1-py3-none-any.whl").exists())
+                (cache / nom).write_bytes(b"altere")
+                with self.assertRaisesRegex(ValueError, "altéré"):
+                    builder.preparer_wheels(sortie, cache)
+                reseau.assert_not_called()
+
+
 if __name__ == '__main__':
     unittest.main()

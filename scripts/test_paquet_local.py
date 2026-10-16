@@ -40,6 +40,15 @@ spec.loader.exec_module(local)
 
 
 class PaquetLocalTests(unittest.TestCase):
+
+    def test_archive_historique_avant_soc2(self):
+        with tempfile.TemporaryDirectory() as temp:
+            archive = Path(__file__).parent / "fixtures/paquet-local-avant-soc2.zip"
+            copie = preparer_restauration(archive, Path(temp),
+                migrations_connues={("suivi", "0001_fictive")})
+            self.assertEqual((copie.etape / "secret-key").read_text(), "cle-fictive-avant-soc2")
+            self.assertEqual((copie.etape / "media/photo.bin").read_bytes(), b"media-fictif-historique")
+
     def test_medias_externes_progressifs_empreinte_et_changement(self):
         with tempfile.TemporaryDirectory() as temp:
             paquet = Path(temp) / "paquet"

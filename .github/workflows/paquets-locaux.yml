@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/paquets-locaux.yml
       - requirements-paquet-local.txt
+      - requirements-communs.txt
       - scripts/**
       - carnet/**
       - comptes/**
@@ -41,6 +42,8 @@ jobs:
       - name: Tester les données autonomes
         shell: pwsh
         run: |
+          python -m pip install --no-deps -r requirements-communs.txt
+          if ($LASTEXITCODE -ne 0) { throw "Installation du socle impossible" }
           python -m unittest discover -s scripts -p test_paquet_local.py
           if ($LASTEXITCODE -ne 0) { throw "Échec des tests paquet_local" }
           python -m unittest discover -s scripts -p test_essai_local.py
@@ -144,12 +147,14 @@ jobs:
             libpango-1.0-0 libpangoft2-1.0-0
       - name: Construire avec le Python lié à PyGObject
         run: |
+          /usr/bin/python3 -m venv .venv
+          .venv/bin/python -m pip install --no-deps -r requirements-communs.txt
           /usr/bin/python3 -c 'import gi; gi.require_version("WebKit2", "4.1")'
-          /usr/bin/python3 -m unittest discover -s scripts -p test_paquet_local.py
-          /usr/bin/python3 -m unittest discover -s scripts -p test_essai_local.py
-          /usr/bin/python3 -m unittest discover -s scripts -p test_ecole_fictive.py
-          /usr/bin/python3 -m unittest discover -s scripts -p test_apercu_local.py
-          /usr/bin/python3 -m unittest discover -s scripts -p test_manifestes_publication.py
+          .venv/bin/python -m unittest discover -s scripts -p test_paquet_local.py
+          .venv/bin/python -m unittest discover -s scripts -p test_essai_local.py
+          .venv/bin/python -m unittest discover -s scripts -p test_ecole_fictive.py
+          .venv/bin/python -m unittest discover -s scripts -p test_apercu_local.py
+          .venv/bin/python -m unittest discover -s scripts -p test_manifestes_publication.py
           PATH="/usr/bin:$PATH" bash scripts/construire-paquet-linux.sh
       - name: Préparer le manifeste Linux
         run: /usr/bin/python3 scripts/manifeste-publication.py --mode programme --target linux-ubuntu24.04-x86_64 --destination dist/publication-linux.json dist/PetitsPas-linux.tar.gz
