@@ -424,3 +424,12 @@ complets et le bundle distribué sur trois navigateurs Windows. Il se lance
 automatiquement sur main pour les changements concernés, ou depuis Actions
 avec **Run workflow**. Consulter les trois résultats et leurs artefacts avant
 de déclarer cette version vérifiée sous Windows ; voir QUALIFICATION.md.
+
+## Socle PWA partagé (#SOC5a)
+
+Voir ../SOCLE-COMMUN.md. Pas communs 0.4.0 fournit les primitives de stockage,
+transport, capacités, crypto WASM et environnement WSGI. Ses modules JavaScript
+sont copiés depuis le wheel installé, puis inclus dans les empreintes du bundle.
+Les noms historiques de stockage, anciens manifestes et formats publics restent
+compatibles. Les Workers, coques, mises à jour, transferts et confirmations métier
+restent dans Petits Pas. La publication et la recette de production ne changent pas.

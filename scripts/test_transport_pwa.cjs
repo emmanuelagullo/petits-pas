@@ -1,8 +1,11 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
-const source = fs.readFileSync(require('node:path').join(__dirname, '../pwa/transport.js'), 'utf8');
-const moduleReady = import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
+const {execFileSync} = require('node:child_process');
+const {pathToFileURL} = require('node:url');
+const assets = execFileSync(process.env.PYTHON || 'python3', ['-c',
+  'from importlib.resources import files; print(files("pas_communs.navigateur"))'], {encoding:'utf8'}).trim();
+const moduleReady = import(pathToFileURL(require('node:path').join(assets,'transport.mjs')).href);
 test('Une réponse après deux minutes reste acceptée ; le budget reste borné', async () => {
   const {requestWorker, OPERATION_MS} = await moduleReady;
   const original = global.setTimeout, clear = global.clearTimeout;
@@ -41,8 +44,7 @@ test('Erreur du Worker et erreur de transport sont transmises sans attendre', as
 });
 
 test('Préflight OPFS ferme et supprime sa sonde, y compris après lecture incorrecte', async () => {
-  const content = fs.readFileSync(require('node:path').join(__dirname, '../pwa/capabilities.js'), 'utf8');
-  const {checkStorage} = await import('data:text/javascript;base64,' + Buffer.from(content).toString('base64'));
+  const {checkStorage} = await import(pathToFileURL(require('node:path').join(assets,'capacites.mjs')).href);
   const names = ['navigator', 'FileReaderSync', 'indexedDB', 'crypto'];
   const descriptors = names.map(name => Object.getOwnPropertyDescriptor(global, name));
   let created, closed = 0, removed = [], wrong = false;

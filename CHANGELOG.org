@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- #SOC5a : stockage OPFS/IndexedDB, transport et primitives navigateur partagés
+  via Pas communs 0.4.0, ressources embarquées dans le bundle. Les noms et états
+  historiques, essais, aperçus et sauvegardes Petits Pas sont conservés. Aucun
+  modèle métier déplacé ni changement du parcours de connexion.
+
 - #SOC4a : primitives TOTP, plafonds de mots de passe et outils de session
   partagés via Pas communs 0.3.0. Les modèles, transactions, politiques et
   écrans restent dans Petits Pas. Une attente de second facteur est abandonnée
