@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- #SOC3 : serveur local, verrou, copie du paquet, protection avant migration,
+  journaux Windows et assemblage PyInstaller partagés via Pas communs 0.2.0.
+  Les chemins, installateurs, espaces d'essai, aperçus ZIP et confirmations
+  Petits Pas restent conservés. L'arrêt attend les requêtes actives avant
+  toute restauration. Aucun modèle ni migration supplémentaire.
+
 - #SOC2 : moteur des paquets ZIP/SQLite partagé avec Pas communs 0.1.0,
   installé avec les dépendances serveur, programme et navigateur. Les anciennes
   sauvegardes, les confirmations et les droits Petits Pas sont conservés.

@@ -4,92 +4,24 @@
 import argparse
 import ctypes
 import os
-import secrets
-import shutil
-import sqlite3
 import sys
-import tempfile
 import time
-from contextlib import closing, contextmanager, redirect_stderr, redirect_stdout
-from datetime import datetime
+from contextlib import contextmanager
 from pathlib import Path
-from socketserver import ThreadingMixIn
 from threading import Event, RLock, Thread
-import traceback
-from urllib.request import urlopen
-from wsgiref.simple_server import WSGIServer, make_server
 
-if os.name == "nt":
-    import msvcrt
-else:
-    import fcntl
-
-
-class ServeurLocal(ThreadingMixIn, WSGIServer):
-    daemon_threads = True
-    allow_reuse_address = False
+from pas_communs import local as bureau
 
 
 def paquet_par_defaut():
-    if os.name == "nt":
-        racine = Path(os.environ.get("LOCALAPPDATA") or Path.home() / "AppData/Local")
-    else:
-        racine = Path(os.environ.get("XDG_DATA_HOME") or Path.home() / ".local/share")
-    return racine.expanduser() / "petits-pas" / "paquet-autonome"
+    return bureau.paquet_par_defaut("petits-pas", environnement=os.environ, plateforme=os.name)
 
 
-@contextmanager
-def verrouiller(paquet):
-    # Le verrou doit survivre au renommage du paquet lors d'une restauration.
-    with (paquet.parent / f".{paquet.name}.verrou").open("a+b") as verrou:
-        try:
-            if os.name == "nt":
-                verrou.seek(0)
-                if not verrou.read(1):
-                    verrou.seek(0)
-                    verrou.write(b"\0")
-                    verrou.flush()
-                verrou.seek(0)
-                msvcrt.locking(verrou.fileno(), msvcrt.LK_NBLCK, 1)
-            else:
-                fcntl.flock(verrou, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except (BlockingIOError, OSError) as exc:
-            raise SystemExit(f"Ce paquet est déjà ouvert : {paquet}") from exc
-        try:
-            yield
-        finally:
-            if os.name == "nt":
-                verrou.seek(0)
-                msvcrt.locking(verrou.fileno(), msvcrt.LK_UNLCK, 1)
-            else:
-                fcntl.flock(verrou, fcntl.LOCK_UN)
+verrouiller = bureau.verrouiller
 
 
 def copier_paquet(source, destination):
-    if not (source / "carnet.sqlite3").is_file() or not (source / "secret-key").is_file():
-        raise SystemExit(f"Paquet source incomplet : {source}")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    if destination.exists():
-        raise SystemExit(f"Destination déjà présente : {destination}")
-    with verrouiller(source):
-        temporaire = Path(tempfile.mkdtemp(prefix=".paquet-autonome-", dir=destination.parent))
-        try:
-            shutil.copy2(source / "secret-key", temporaire / "secret-key")
-            if (source / "media").is_dir():
-                shutil.copytree(source / "media", temporaire / "media")
-            else:
-                (temporaire / "media").mkdir()
-            with closing(sqlite3.connect(source / "carnet.sqlite3")) as ancienne:
-                with closing(sqlite3.connect(temporaire / "carnet.sqlite3")) as nouvelle:
-                    ancienne.backup(nouvelle)
-                    if nouvelle.execute("PRAGMA quick_check").fetchone()[0] != "ok":
-                        raise RuntimeError("La copie SQLite ne passe pas le contrôle d'intégrité.")
-            temporaire.rename(destination)
-        finally:
-            if temporaire.exists():
-                shutil.rmtree(temporaire)
-    print(f"Paquet copié : {destination}")
-    print(f"L'original a été conservé : {source}")
+    return bureau.copier_paquet(source, destination, nom_base="carnet.sqlite3")
 
 
 def configurer_environnement(paquet, cle):
@@ -114,34 +46,11 @@ def configurer_environnement(paquet, cle):
 
 
 def migration_necessaire(paquet):
-    """Repérer un schéma existant à faire évoluer avant d'ouvrir la progression."""
-    base = paquet / "carnet.sqlite3"
-    if not base.is_file():
-        return False
-    with closing(sqlite3.connect(base)) as connexion:
-        if not connexion.execute(
-            "SELECT 1 FROM sqlite_master WHERE name = 'django_migrations'"
-        ).fetchone():
-            return False
-    from django.db import connection
-    from django.db.migrations.executor import MigrationExecutor
-
-    executeur = MigrationExecutor(connection)
-    return bool(executeur.migration_plan(executeur.loader.graph.leaf_nodes()))
+    return bureau.migration_necessaire(paquet, nom_base="carnet.sqlite3")
 
 
 def proteger_avant_migration(paquet):
-    """Copier la base avant de modifier son schéma."""
-    base = paquet / "carnet.sqlite3"
-    sauvegardes = paquet / "sauvegardes-migrations"
-    sauvegardes.mkdir(exist_ok=True)
-    chemin = sauvegardes / f"avant-{datetime.now().strftime('%Y%m%d-%H%M%S-%f')}.sqlite3"
-    with closing(sqlite3.connect(base)) as origine, closing(sqlite3.connect(chemin)) as copie:
-        origine.backup(copie)
-        if copie.execute("PRAGMA quick_check").fetchone()[0] != "ok":
-            chemin.unlink()
-            raise RuntimeError("La sauvegarde avant migration est invalide.")
-    print(f"Copie de la base avant migration : {chemin}")
+    return bureau.proteger_avant_migration(paquet, nom_base="carnet.sqlite3")
 
 
 @contextmanager
@@ -383,20 +292,10 @@ def main():
         if not archive.exists():
             raise SystemExit("L'école fictive manque. Depuis les sources, lancez scripts/construire-ecole-fictive.py.")
         installer_ecole_fictive(archive, paquet)
-    # Un paquet regroupe la base, les médias et la clé des sessions.
-    paquet.mkdir(parents=True, exist_ok=True)
-    (paquet / "media").mkdir(exist_ok=True)
-    chemin_cle = paquet / "secret-key"
-    try:
-        with chemin_cle.open("x", encoding="utf-8") as fichier:
-            fichier.write(secrets.token_urlsafe(48))
-    except FileExistsError:
-        pass
-    cle = chemin_cle.read_text(encoding="utf-8").strip()
-    if not cle:
-        raise SystemExit(f"Clé locale vide : {chemin_cle}")
-
+    # Le verrou protège aussi la première écriture de la clé.
+    paquet.parent.mkdir(parents=True, exist_ok=True)
     with verrouiller(paquet):
+        cle = bureau.initialiser_paquet(paquet, nom_base="carnet.sqlite3")
         configurer_environnement(paquet, cle)
         redemarrer = executer(paquet, projet, arguments)
     if redemarrer:
@@ -508,50 +407,24 @@ def executer(paquet, projet, arguments):
 
     commandes = CommandesFenetre()
 
-    def application_locale(environ, start_response):
-        # Un export attend la fin des écritures en cours, y compris les médias.
-        with requetes:
-            if (
-                restauration_en_attente() is not None
-                and environ.get("REQUEST_METHOD") not in {"GET", "HEAD", "OPTIONS"}
-            ):
-                start_response("423 Locked", [("Content-Type", "text/plain; charset=utf-8")])
-                yield "Restauration prête : appliquez et redémarrez Petits Pas.\n".encode("utf-8")
-                return
-            iterable = application(environ, start_response)
-            try:
-                yield from iterable
-            finally:
-                if hasattr(iterable, "close"):
-                    iterable.close()
-
-    serveur = make_server("127.0.0.1", 0, application_locale, server_class=ServeurLocal)
-    thread = Thread(target=serveur.serve_forever, name="petits-pas-local", daemon=True)
-    thread.start()
+    serveur = bureau.ServeurBureau(application, verrou=requetes,
+        ecritures_bloquees=lambda: restauration_en_attente() is not None,
+        message_blocage="Restauration prête : appliquez et redémarrez Petits Pas.\n")
+    serveur.__enter__()
     try:
-        # PyWebView désactive les téléchargements par défaut. Sans cette
-        # option, une réponse ZIP valide n'ouvre aucune boîte d'enregistrement.
-        webview.settings["ALLOW_DOWNLOADS"] = True
         try:
-            with urlopen(
-                f"http://127.0.0.1:{serveur.server_port}/static/suivi/carnet.css",
-                timeout=5,
-            ) as reponse:
-                if "text/css" not in reponse.headers.get("Content-Type", ""):
-                    raise RuntimeError("Le CSS local n'est pas servi correctement.")
+            serveur.verifier_css("static/suivi/carnet.css")
         except Exception as exc:
             raise SystemExit(f"Échec du chargement du CSS local : {exc}") from exc
         # Ne pas placer l'objet fenêtre sur js_api : PyWebView parcourt les
         # attributs publics de cet objet et récursait dans fenetre.native.
-        fenetre = webview.create_window(
-            "Petits Pas — ZIP à vérifier" if arguments.apercu else ("Petits Pas — espace d’essai" if arguments.essai else "Petits Pas"), f"http://127.0.0.1:{serveur.server_port}/",
-            js_api=commandes,
+        fenetre = bureau.creer_fenetre(
+            "Petits Pas — ZIP à vérifier" if arguments.apercu else ("Petits Pas — espace d’essai" if arguments.essai else "Petits Pas"), serveur.url,
+            commandes=commandes,
         )
         webview.start()
     finally:
-        serveur.shutdown()
-        thread.join(timeout=5)
-        serveur.server_close()
+        serveur.fermer()
         etape = restauration_en_attente()
         if etape is not None:
             with requetes:
@@ -574,40 +447,10 @@ def afficher_erreur_windows(message):
 
 
 def demarrer_windows():
-    """Conserver le diagnostic sans console, y compris en cas d'échec initial."""
-    journal = paquet_par_defaut().parent / "logs" / "dernier-demarrage.log"
-    interactif = "--verifier-distribution" not in sys.argv
-    try:
-        journal.parent.mkdir(parents=True, exist_ok=True)
-        sortie = journal.open("w", encoding="utf-8", buffering=1)
-    except OSError as exc:
-        if interactif:
-            afficher_erreur_windows(
-                "Petits Pas n'a pas pu démarrer et n'a pas pu écrire son journal.\n\n"
-                f"Emplacement prévu : {journal}\nErreur : {exc}"
-            )
-        raise SystemExit(1) from exc
-    with sortie, redirect_stdout(sortie), redirect_stderr(sortie):
-        try:
-            main()
-        except SystemExit as exc:
-            if exc.code is None or exc.code == 0:
-                return
-            traceback.print_exc()
-            if interactif:
-                afficher_erreur_windows(
-                    "Petits Pas n'a pas pu démarrer.\n\n"
-                    f"Un diagnostic a été enregistré ici :\n{journal}"
-                )
-            raise
-        except Exception:
-            traceback.print_exc()
-            if interactif:
-                afficher_erreur_windows(
-                    "Petits Pas n'a pas pu démarrer.\n\n"
-                    f"Un diagnostic a été enregistré ici :\n{journal}"
-                )
-            raise SystemExit(1)
+    return bureau.demarrer_avec_journal(main,
+        paquet_par_defaut().parent / "logs" / "dernier-demarrage.log",
+        application="Petits Pas", notifier=afficher_erreur_windows,
+        interactif="--verifier-distribution" not in sys.argv)
 
 
 if __name__ == "__main__":

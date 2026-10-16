@@ -158,3 +158,7 @@ Exécuter les vérifications pertinentes pour les fichiers modifiés. Les comman
 de référence sont dans `CONTRIBUTING.md` : tests Django, contrôle des migrations,
 syntaxe des scripts shell, construction Hugo et `git diff --check`. Signaler
 explicitement les vérifications non exécutées et leur raison.
+
+#SOC3 : les mécanismes du lanceur et l’assemblage PyInstaller viennent de
+`pas_communs.local` et `pas_communs.construction`. Conserver les chemins,
+installateurs et callbacks métier Petits Pas ; tester arrêt et restauration.

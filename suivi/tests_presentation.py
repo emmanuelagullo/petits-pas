@@ -124,7 +124,7 @@ class HeritagePresentation(Base):
             with self.subTest(icone=cle):
                 self.assertTrue(finders.find(icone["fichier"]))
         spec = (Path(__file__).resolve().parents[1] / "scripts" / "PetitsPas.spec").read_text()
-        self.assertIn('str(racine / "referentiel")', spec)
+        self.assertIn('("referentiel", "referentiel")', spec)
 
 
 class ParcoursPresentation(Base):
