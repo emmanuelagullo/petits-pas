@@ -1,0 +1,2 @@
+# Version et octets du socle explicitement adoptés par cette application.
+pas-communs @ https://github.com/emmanuelagullo/pas-communs/releases/download/0.1.0/pas_communs-0.1.0-py3-none-any.whl#sha256=5fcdc4d6aa38ade26600af2a15ca8e7c6a6a75708d391f5d3326b5331405400a

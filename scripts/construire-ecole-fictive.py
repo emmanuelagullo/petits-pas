@@ -35,6 +35,7 @@ def construire(destination):
                 empreinte.update(fichier.relative_to(ROOT).as_posix().encode())
                 empreinte.update(fichier.read_bytes())
     empreinte.update(Path(__file__).read_bytes())
+    empreinte.update((ROOT / "requirements-communs.txt").read_bytes())
     revision = empreinte.hexdigest()
     commit = commit_sources()
     notice = destination.with_suffix(".json")

@@ -30,6 +30,7 @@ imports = [
     # Django importe ces modules via des chaînes dans MIDDLEWARE et STORAGES.
     "whitenoise.middleware", "whitenoise.storage",
 ]
+imports += collect_submodules("pas_communs")
 imports += collect_submodules("comptes", filter=lambda nom: not nom.endswith(".tests"))
 imports += collect_submodules("suivi", filter=lambda nom: not nom.endswith(".tests"))
 if os.name == "nt":

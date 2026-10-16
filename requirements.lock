@@ -1,3 +1,4 @@
+-r requirements-communs.txt
 # Environnement Python non-Guix validé par la CI.
 # Ce fichier fige les versions déployées ; requirements.txt décrit séparément
 # les plages de versions avec lesquelles Petits Pas entend rester compatible.

@@ -15,6 +15,7 @@ import http.client
 import ssl
 import tempfile
 import time
+from urllib.parse import urldefrag, urlsplit
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from publication import identity, release_notes
@@ -72,6 +73,45 @@ def nettoyer_runtime(runtime, fichiers):
             fichier.unlink()
 
 
+def preparer_wheels(wheels, cache=None):
+    """Même wheel épinglé que serveur/bureau ; cache local sans accès à la release."""
+    lignes = [ligne.strip() for ligne in (ROOT / "requirements-communs.txt").read_text().splitlines()
+              if ligne.strip() and not ligne.lstrip().startswith("#")]
+    if len(lignes) != 1 or not lignes[0].startswith("pas-communs @ "):
+        raise ValueError("Dépendance du socle invalide.")
+    url, fragment = urldefrag(lignes[0].split(" @ ", 1)[1])
+    if not fragment.startswith("sha256=") or len(fragment[7:]) != 64:
+        raise ValueError("Empreinte du socle absente.")
+    empreinte = fragment[7:]
+    nom = Path(urlsplit(url).path).name
+    if not nom.startswith("pas_communs-") or not nom.endswith("-py3-none-any.whl"):
+        raise ValueError("Le socle doit être un wheel Python pur.")
+    cible = wheels / nom
+    if cache:
+        source = cache.resolve() / nom
+        if not source.is_file() or hashlib.sha256(source.read_bytes()).hexdigest() != empreinte:
+            raise ValueError("Wheel du socle absent ou altéré dans le cache.")
+        if source.resolve() != cible.resolve():
+            shutil.copyfile(source, cible)
+    else:
+        telecharger(url, cible, empreinte)
+    for ancien in wheels.glob("pas_communs-*.whl"):
+        if ancien != cible:
+            ancien.unlink()
+    # pip suit toujours une URL directe, même avec --no-index. Retirer seulement
+    # l'inclusion déjà traitée ci-dessus pour conserver un vrai mode hors réseau.
+    exigences = (ROOT / "pwa/requirements.txt").read_text().splitlines()
+    exigences = [ligne for ligne in exigences if ligne.strip() != "-r ../requirements-communs.txt"]
+    with tempfile.TemporaryDirectory() as dossier:
+        requirement = Path(dossier) / "pwa.txt"
+        requirement.write_text("\n".join(exigences) + "\n")
+        subprocess.run([
+            sys.executable, "-m", "pip", "download", "--only-binary=:all:", "--no-deps",
+            "--dest", str(wheels), "-r", str(requirement),
+            *(["--no-index", "--find-links", str(cache.resolve())] if cache else []),
+        ], check=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sortie", type=Path, default=ROOT / "dist/pwa")
@@ -125,11 +165,7 @@ def main():
     nettoyer_runtime(runtime, set(names) | {"pyodide-lock.json"})
     wheels = output / "wheels"
     wheels.mkdir(exist_ok=True)
-    subprocess.run([
-        sys.executable, "-m", "pip", "download", "--only-binary=:all:", "--no-deps",
-        "--dest", str(wheels), "-r", str(ROOT / "pwa/requirements.txt"),
-        *(["--no-index", "--find-links", str(args.wheels.resolve())] if args.wheels else []),
-    ], check=True)
+    preparer_wheels(wheels, args.wheels)
     subprocess.run([sys.executable, str(ROOT / "scripts/construire-ecole-fictive.py")], check=True)
     shutil.copyfile(ROOT / "referentiel/demo/ecole-fictive.zip", output / "ecole-fictive.zip")
     shutil.copyfile(ROOT / "referentiel/demo/ecole-fictive.json", output / "ecole-fictive.json")

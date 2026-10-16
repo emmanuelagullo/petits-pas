@@ -89,6 +89,14 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   Conserver les sauvegardes communes dans `suivi/paquet_local.py` et distinguer
   les bancs automatisés de la qualification sur appareils d'école.
 
+## Socle partagé (#SOC2)
+
+Lire `SOCLE-COMMUN.md`. Le moteur ZIP/SQLite vient de `pas_communs.paquets` ;
+conserver la façade `suivi.paquet_local`, ses confirmations et les droits métier.
+Ne pas réintroduire une copie du moteur. Toute évolution de la dépendance exige
+une version publiée et une empreinte dans `requirements-communs.txt`, avec les
+essais serveur/bureau/PWA pertinents. Préserver les anciens ZIP et plafonds OPFS.
+
 ## Travail dans le dépôt
 
 - Export d'école serveur → local : lire `EXPORT-ECOLE.org` et

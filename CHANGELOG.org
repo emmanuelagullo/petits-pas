@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- #SOC2 : moteur des paquets ZIP/SQLite partagé avec Pas communs 0.1.0,
+  installé avec les dépendances serveur, programme et navigateur. Les anciennes
+  sauvegardes, les confirmations et les droits Petits Pas sont conservés.
+  Les archives d'une autre application sont refusées avant extraction.
+  Publier d'abord le wheel du socle épinglé ; voir SOCLE-COMMUN.md.
+
 * 0.10 — 2026-10-16
 
 Cette version regroupe les améliorations des images proposées dans les carnets,

@@ -71,3 +71,10 @@ propre variante de paquet sans resserrer artificiellement le contrat Python.
 Le couple dépôt Git + =channels.scm= identifiera alors les sources et le graphe
 de construction complet. La reproductibilité bit à bit des artefacts devra
 néanmoins être vérifiée, et non déduite du seul usage de Guix.
+
+* Socle commun (#SOC2)
+
+=requirements-communs.txt= fixe le wheel Pas communs par URL de release et
+empreinte SHA-256. Les profils serveur, bureau et navigateur l'incluent.
+La publication du wheel précède son adoption ; aucune reconstruction du socle
+ni installation Git n'est effectuée lors du déploiement. Voir =SOCLE-COMMUN.md=.

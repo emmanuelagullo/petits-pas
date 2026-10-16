@@ -66,6 +66,7 @@ test:
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-communs.txt
         - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
@@ -132,6 +133,7 @@ deploiement-ephemere:
         - compose.local.yaml
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-communs.txt
         - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
@@ -238,6 +240,7 @@ deploiement-persistant-local:
         - "comptes/**/*"
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-communs.txt
         - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
@@ -355,6 +358,7 @@ pages:
         - "comptes/**/*"
         - "referentiel/**/*"
         - requirements.lock
+        - requirements-communs.txt
         - requirements-2fa.txt
         - requirements-anymail.txt
         - requirements.txt
@@ -393,6 +397,7 @@ pwa-prototype:
     - python3 -m unittest discover -s scripts -p test_construire_pwa.py
     - python3 -m unittest discover -s scripts -p test_ecole_fictive.py
     - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-314.0.7
+    - node scripts/verifier-socle-pyodide.mjs
     - node --test scripts/test_transport_pwa.cjs scripts/test_recherche_referentiel.cjs
     - python3 -m unittest discover -s scripts -p test_transferts_pwa.py
     - node scripts/verifier-pwa.cjs
