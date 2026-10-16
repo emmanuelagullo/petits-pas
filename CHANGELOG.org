@@ -7,6 +7,26 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+* 0.10 — 2026-10-16
+
+Cette version regroupe les améliorations des images proposées dans les carnets,
+du démarrage des écoles, des exports/imports et de la sécurité des comptes.
+Elle précède l’introduction du socle partagé Pas communs : aucune dépendance
+à ce projet n’est ajoutée dans cette version.
+
+** Mise à jour
+
+- Service : sauvegarder la base et les médias avant d’appliquer les migrations,
+  puis suivre la procédure de déploiement habituelle.
+- Programme et navigateur : conserver une copie ZIP hors appareil avant la
+  mise à jour. La publication des distributions est distincte du tag du code.
+- Les migrations conservent les choix existants des écoles et des classes.
+  Les nouvelles éditions de référentiels ne sont pas adoptées automatiquement.
+- Un retour au seul ancien programme ne remplace pas une restauration des
+  données compatibles avec cette ancienne version.
+
+** Changements
+
 - Démonstration éphémère : mode debug désactivé et clé secrète aléatoire par
   défaut lorsque l’environnement ne les définit pas.
 
