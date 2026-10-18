@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- #SOC6a : profil serveur HTTPS volontaire via Pas communs 0.5.0 ; aucun
+  basculement automatique des réglages historiques ou d'une instance.
+
 - #SOC5b : adoption des octets finaux du candidat Pas communs 0.4.0 avant
   publication ; même stockage, sauvegardes et parcours Petits Pas.
 
