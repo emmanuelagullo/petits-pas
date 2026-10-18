@@ -88,3 +88,13 @@ avec le wheel épinglé ; ne pas aller chercher des sources JavaScript sur main.
 Une modification de ressource commune exige nouvelle version et nouvelle
 qualification PWA du produit, comme une modification Python du socle.
 Cette livraison ne publie aucun bundle ni release Petits Pas.
+
+## Finalisation du candidat navigateur (#SOC5b)
+
+Le wheel 0.4.0 de #SOC5a n'avait pas été publié. #SOC5b adopte ses octets finaux
+et sa nouvelle empreinte, avec informations de secours et réécriture explicite
+pour la restauration CHRS. Les appels et comportements par défaut Petits Pas
+restent inchangés. Aucun nouveau modèle, migration ou parcours scolaire.
+Publier uniquement le candidat final avant de pousser les consommateurs.
+Les coques/Workers/transferts restent propres aux produits ; #SOC5 est clos
+sur les bancs Chromium/Linux, sans nouvelle qualification d'appareils terrain.

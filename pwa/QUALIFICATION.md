@@ -486,3 +486,15 @@ Il s'agit d'une qualification automatisée Linux sur des données fictives.
 Aucun bundle `--test` n'est à distribuer. Pas de nouveau passage Windows,
 Firefox, Safari/iOS ou appareil d'école, ni de publication depuis cette session.
 Les coques, mises à jour et transferts métier restent dans Petits Pas.
+
+### Finalisation du candidat partagé — #SOC5b (18 octobre 2026)
+
+Adoption du wheel final 0.4.0 non encore publié : information de secours et
+option de réécriture des blobs pour les restaurations CHRS. Les appels Petits
+Pas gardent leurs valeurs par défaut et leurs formats. Le banc Chromium/Linux
+HTTPS sous `/petits-pas-pwa/` est rejoué avec passage effectif depuis le bundle
+#SOC5a, médias, transferts/restaurations, hors ligne, interruptions, mises à
+jour et récupération. Les tests de scripts, transport et le vrai Pyodide
+utilisent aussi le wheel final. Aucun nouveau parcours scolaire ni migration.
+Les plateformes terrain et la CI distante restent à confirmer ; pas de
+publication PWA depuis cette livraison.
