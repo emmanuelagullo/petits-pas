@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- #SOC6b : recette Django CI et intégrité des candidats partagées via le wheel
+  final 0.5.0. Format des manifestes, notes et décisions de publication conservés.
+
 - #SOC6a : profil serveur HTTPS volontaire via Pas communs 0.5.0 ; aucun
   basculement automatique des réglages historiques ou d'une instance.
 

@@ -38,4 +38,9 @@ Le banc `python3 scripts/verifier-profil-serveur.py` prépare SQLite/statiques
 fictifs dans un dossier temporaire, puis vérifie WSGI/Host/CSRF/cookies et le
 proxy explicite. Il désactive les courriels dans cette seule fixture. Il ne
 qualifie ni PostgreSQL, ni un certificat public, ni l'exploitation d'une école.
-#SOC6b poursuivra les recettes CI et publication réutilisables.
+#SOC6b apporte les recettes CI et les primitives de publication réutilisables.
+
+Avec Gunicorn, utiliser --forwarded-allow-ips="" pour que son propre décodage
+des en-têtes de proxy ne précède pas le choix CARNET_PROXY_HTTPS de Django.
+Le banc #SOC6b vérifie ce contrat avec un vrai serveur loopback, puis s'arrête.
+La chaîne TLS et les adresses clientes de l'hébergeur restent à contrôler.

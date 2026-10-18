@@ -105,3 +105,13 @@ Le wheel 0.5.0 ajoute le contrat HTTPS de carnet.settings_serveur. Lire
 SERVEUR-SOCLE.md avant adoption. Les réglages historiques, bureau/PWA, bases,
 migrations et politiques métier restent inchangés. Aucun basculement de service
 n'est effectué par installation du patch. Les recettes restent #SOC6b.
+
+## Recettes CI et candidats (#SOC6b)
+
+La version finale 0.5.0 ajoute la recette Django et les primitives d'identité,
+empreinte et validation des artefacts/bundles. Les façades scripts/publication.py
+et preparer-publication-pwa.py gardent leur API et le format historique schema 1.
+Les notes, choix de job, contrôles de tag/origine/cible et promotion restent
+Petits Pas. Aucun publisher commun avec un jeton partagé n'est introduit.
+La CI conserve PostgreSQL et les validations scolaires ; le banc serveur
+ajoute Gunicorn loopback, sans connexion à une adresse publique.
