@@ -177,3 +177,8 @@ transferts ou restaurations métier par les adaptateurs minimaux du CHRS.
 carnet.settings par défaut ni la configuration d'une instance. Garder confiance
 HTTPS au proxy et confiance dans l'adresse cliente comme deux choix distincts.
 Exécuter scripts/verifier-profil-serveur.py.
+
+#SOC6b : la CI Django utilise la recette du wheel. Conserver les contrôles de
+référentiels, médias, shell et le service PostgreSQL propres au produit.
+Les façades scripts/publication.py et validate_bundle conservent leur contrat ;
+les notes, contrôles d'origine/job/tag et décisions de publication restent ici.

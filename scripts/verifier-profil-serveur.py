@@ -61,6 +61,8 @@ with tempfile.TemporaryDirectory(prefix='serveur-fictif-') as temp:
     controle=lancer('manage.py','check','--deploy','--fail-level','ERROR')
     sys.stdout.write(controle.stdout);sys.stderr.write(controle.stderr)
     resultat=lancer('-c',VERIFICATION);print(resultat.stdout.strip())
+    from pas_communs.qualification_http import verifier
+    verifier(ROOT,'carnet.wsgi:application',env,'CARNET_PROXY_HTTPS','/static/suivi/carnet.css')
     env['CARNET_HOSTS']='*'
     echec=lancer('manage.py','check',attendu=1)
     assert 'joker' in echec.stderr

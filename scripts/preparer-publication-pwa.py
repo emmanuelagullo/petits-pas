@@ -35,30 +35,9 @@ def sha256(path):
 
 
 def validate_bundle(root):
-    config = json.loads((root / "config.json").read_text())
-    if config.get("testMode") is not False:
-        raise ValueError("Bundle de test ou mode indéterminé : publication refusée.")
-    if not re.fullmatch(r"pwa(?:-prototype)?\.[a-f0-9]{16}", config.get("version", "")):
-        raise ValueError("Version du bundle invalide.")
-    expected = {"config.json"}
-    for asset in config["assets"]:
-        url = asset["url"]
-        parts = PurePosixPath(url.removeprefix("/")).parts
-        if (not url.startswith("/") or not parts or any(p in {".", ".."} for p in parts)
-                or "\\" in url or url != "/" + "/".join(parts)):
-            raise ValueError("Chemin d'asset invalide.")
-        name = "/".join(parts)
-        if name in expected or not re.fullmatch(r"[a-f0-9]{64}", asset["sha256"]):
-            raise ValueError("Asset répété ou empreinte invalide.")
-        expected.add(name)
-        if sha256(root.joinpath(*parts)) != asset["sha256"]:
-            raise ValueError(f"Asset altéré : {name}")
-    actual = {p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()}
-    if actual != expected or not {"index.html", "worker.js", "storage.js", "sw.js", "application.zip"} <= actual:
-        raise ValueError("Bundle incomplet ou fichiers non déclarés.")
-    if any(PurePosixPath(name).name == "secret-key" or name.endswith(".sqlite3") for name in actual):
-        raise ValueError("Données locales présentes dans le bundle.")
-    return config
+    from pas_communs.publication import verifier_bundle
+    return verifier_bundle(root, version=r"pwa(?:-prototype)?\.[a-f0-9]{16}",
+        requis={"index.html", "worker.js", "storage.js", "sw.js", "application.zip"})
 
 
 def extract_bundle(archive, parent):

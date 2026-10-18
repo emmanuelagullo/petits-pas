@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-TAG = re.compile(r'[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[A-Za-z0-9.-]+)?\Z')
 
 
 def git(*arguments):
@@ -22,19 +21,12 @@ def git(*arguments):
 FORMAT = 'petits-pas-publication'
 
 
-def sha256(path):
-    with Path(path).open('rb') as stream:
-        return hashlib.file_digest(stream, 'sha256').hexdigest()
+from pas_communs.publication import TAG, sha256, decrire as describe
+from pas_communs import publication as _publication
 
 
 def identity():
-    commit = os.environ.get('CI_COMMIT_SHA') or os.environ.get('GITHUB_SHA') or git('rev-parse', 'HEAD')
-    if not re.fullmatch(r'[a-fA-F0-9]{40,64}', commit or ''):
-        raise ValueError('Commit de construction introuvable.')
-    tag = os.environ.get('CI_COMMIT_TAG') or (os.environ.get('GITHUB_REF_NAME') if os.environ.get('GITHUB_REF_TYPE') == 'tag' else None)
-    if tag and not TAG.fullmatch(tag):
-        raise ValueError('Tag de version invalide.')
-    return {'commit': commit.lower(), 'tag': tag, 'application_version': tag or 'dev.' + commit[:8].lower()}
+    return _publication.identite(os.environ, lambda: git('rev-parse','HEAD'))
 
 
 def release_notes(tag=None, text=None):
@@ -56,42 +48,10 @@ def release_notes(tag=None, text=None):
     return notes + '\n'
 
 
-def describe(path):
-    path = Path(path)
-    if path.is_symlink() or not path.is_file():
-        raise ValueError('Fichier régulier requis : ' + str(path))
-    return {'name': path.name, 'size': path.stat().st_size, 'sha256': sha256(path)}
-
-
 def manifest(mode, target, files):
-    result = {'format': FORMAT, 'schema': 1, **identity(), 'mode': mode, 'target': target,
-        'built_at': datetime.now(timezone.utc).isoformat(), 'python': sys.version.split()[0],
-        'ci': {'provider': 'gitlab' if os.environ.get('CI_PIPELINE_ID') else 'github' if os.environ.get('GITHUB_RUN_ID') else 'local',
-               'run': os.environ.get('CI_PIPELINE_ID') or os.environ.get('GITHUB_RUN_ID'),
-               'job': os.environ.get('CI_JOB_ID') or os.environ.get('GITHUB_JOB'),
-               'attempt': os.environ.get('GITHUB_RUN_ATTEMPT')},
-        'files': [describe(p) for p in files]}
-    if len({f['name'] for f in result['files']}) != len(result['files']):
-        raise ValueError('Noms de fichiers répétés.')
-    return result
+    return _publication.manifeste(FORMAT, identity(), mode, target, files, os.environ)
 
 
 def verify(record, folder, commit=None, tag=None, mode=None, target=None):
-    if record.get('format') != FORMAT or record.get('schema') != 1:
-        raise ValueError('Manifeste de publication invalide.')
-    for key, expected in [('commit', commit), ('tag', tag), ('mode', mode), ('target', target)]:
-        if expected is not None and record.get(key) != expected:
-            raise ValueError('Manifeste incompatible : ' + key)
-    if tag and record.get('application_version') != tag:
-        raise ValueError('Version embarquée différente du tag.')
-    names = set()
-    if not isinstance(record.get('files'), list) or not record['files']:
-        raise ValueError('Liste des fichiers absente.')
-    for entry in record['files']:
-        name = entry['name']
-        if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]*', name) or name in names:
-            raise ValueError('Nom de fichier invalide ou répété.')
-        names.add(name)
-        if describe(Path(folder) / name) != entry:
-            raise ValueError('Fichier altéré : ' + name)
-    return names
+    return _publication.verifier(record, folder, format=FORMAT,
+        commit=commit, tag=tag, mode=mode, target=target)

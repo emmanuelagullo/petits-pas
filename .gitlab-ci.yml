@@ -117,9 +117,7 @@ test:
     - python3 -m unittest discover -s scripts -p test_version_application.py
     - python3 manage.py collectstatic --noinput
     - python3 scripts/valider-illustrations-statiques.py
-    - python3 scripts/verifier-profil-serveur.py
-    - python3 manage.py test --settings=carnet.settings_tests --durations 30 --timing
-    - python3 manage.py makemigrations --check --dry-run
+    - python3 -m pas_communs.ci django --settings-tests carnet.settings_tests --durations 30 --timing --controle scripts/verifier-profil-serveur.py
     - bash -n start-atelier.sh start-persistent.sh start-render.sh scripts/*.sh
 
 deploiement-ephemere:
