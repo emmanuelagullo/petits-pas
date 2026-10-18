@@ -172,3 +172,8 @@ Tester aussi les attentes expirées, révoquées et les parcours de secours.
 le bundle PWA. Garder les façades, noms historiques et états essai/aperçu.
 Tester scripts Python, transport et banc Chromium. Ne pas remplacer les
 transferts ou restaurations métier par les adaptateurs minimaux du CHRS.
+
+#SOC6a : lire SERVEUR-SOCLE.md pour le nouveau profil volontaire. Ne pas changer
+carnet.settings par défaut ni la configuration d'une instance. Garder confiance
+HTTPS au proxy et confiance dans l'adresse cliente comme deux choix distincts.
+Exécuter scripts/verifier-profil-serveur.py.

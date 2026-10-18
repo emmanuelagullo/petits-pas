@@ -98,3 +98,10 @@ restent inchangés. Aucun nouveau modèle, migration ou parcours scolaire.
 Publier uniquement le candidat final avant de pousser les consommateurs.
 Les coques/Workers/transferts restent propres aux produits ; #SOC5 est clos
 sur les bancs Chromium/Linux, sans nouvelle qualification d'appareils terrain.
+
+## Profil serveur volontaire (#SOC6a)
+
+Le wheel 0.5.0 ajoute le contrat HTTPS de carnet.settings_serveur. Lire
+SERVEUR-SOCLE.md avant adoption. Les réglages historiques, bureau/PWA, bases,
+migrations et politiques métier restent inchangés. Aucun basculement de service
+n'est effectué par installation du patch. Les recettes restent #SOC6b.
