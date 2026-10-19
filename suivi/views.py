@@ -1977,42 +1977,21 @@ SCHEMA_MEDIA_PDF = "petits-pas-media:"
 
 
 def _url_media_pdf(nom):
-    return SCHEMA_MEDIA_PDF + quote(nom, safe="")
+    from pas_communs.pdf import url_media
+    return url_media(nom, schema=SCHEMA_MEDIA_PDF)
 
 
 def _recuperateur_pdf(noms_media):
-    from weasyprint import default_url_fetcher
-
-    noms_autorises = set(noms_media)
-
-    def recuperer(url):
-        if not url.startswith(SCHEMA_MEDIA_PDF):
-            return default_url_fetcher(url)
-
-        nom = unquote(url.removeprefix(SCHEMA_MEDIA_PDF))
-        if nom not in noms_autorises:
-            raise ValueError("Média non autorisé dans ce carnet.")
-
-        return {
-            "file_obj": default_storage.open(nom, "rb"),
-            "mime_type": mimetypes.guess_type(nom)[0],
-            "redirected_url": url,
-        }
-
-    return recuperer
+    from pas_communs.pdf import recuperateur_medias
+    # Conserver l'API, le stockage et la politique historique des autres URL.
+    return recuperateur_medias(noms_media, schema=SCHEMA_MEDIA_PDF,
+                              ouvrir=default_storage.open)
 
 
 def _generer_pdf(html, base_url, feuille_style, noms_media=()):
-    # Le chargement tardif laisse les autres pages disponibles sur un ancien
-    # environnement de démonstration qui ne fournirait pas encore Pango.
-    from weasyprint import CSS, HTML
-
-    return HTML(
-        string=html,
-        base_url=base_url,
-        media_type="print",
-        url_fetcher=_recuperateur_pdf(noms_media),
-    ).write_pdf(stylesheets=[CSS(filename=feuille_style)])
+    from pas_communs.pdf import rendre_html
+    return rendre_html(html, base_url=base_url, feuille_style=feuille_style,
+                       recuperer=_recuperateur_pdf(noms_media))
 
 
 @acces_requis
