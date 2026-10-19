@@ -188,3 +188,8 @@ les façades du produit. Les droits, contenu et templates restent ici. Tester
 les vrais PDF, le téléchargement et les dépendances propres aux profils.
 Ne pas importer WeasyPrint/Pango dans le navigateur ni remplacer les carnets
 scolaires par le backend texte. Préserver le chargement autorisé des médias.
+
+#SOC3b : le setup Windows utilise pas_communs.installateur_windows et la
+configuration produit scripts/installateur-windows.json. Ne pas modifier
+l’AppId historique, les chemins installés ou le raccourci lors de l’extraction.
+Conserver le contrôle du journal et la promotion des octets validés.

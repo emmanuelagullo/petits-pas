@@ -187,7 +187,7 @@ Pour construire l'installateur après le paquet PyInstaller, installer Inno
 Setup, puis exécuter :
 
 ```powershell
-& "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=0.7-dev" "/DOutputDir=$((Resolve-Path dist).Path)" scripts\PetitsPas-Windows.iss
+python -m pas_communs.installateur_windows --configuration scripts/installateur-windows.json
 ```
 
 Pour diagnostiquer une version

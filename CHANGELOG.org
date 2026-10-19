@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Installateur Windows construit et contrôlé avec Pas communs 0.7.0 ;
+  identité et chemins des installations Petits Pas conservés.
+
 - #SOC7b : génération PDF native partagée avec Pas communs 0.6.0, sans changement des carnets ou de leur adaptation PWA.
 
 - #SOC6b : recette Django CI et intégrité des candidats partagées via le wheel

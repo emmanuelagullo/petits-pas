@@ -125,3 +125,12 @@ Le serveur et le programme gardent WeasyPrint/Pango ; la PWA conserve son
 adaptation d'impression existante. Les options de qualité scolaire ne deviennent
 pas des politiques CHRS. Les PDF texte du CHRS navigateur ne remplacent pas
 les carnets avec images. Publier d'abord le wheel 0.6.0 puis adopter son hash.
+
+## #SOC3b — installateur Windows (0.7.0)
+
+Le modèle Inno Setup et le banc PowerShell viennent du wheel ; seule
+scripts/installateur-windows.json décrit le produit. AppId, dossier installé,
+raccourci et données Petits Pas sont conservés. La CI compile, installe,
+contrôle le programme, réinstalle et désinstalle avec un témoin de données
+conservé. Les manifestes et la promotion du setup restent propres au produit.
+Publier le wheel 0.7.0 avant d’adopter cette dépendance.
