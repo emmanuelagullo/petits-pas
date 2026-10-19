@@ -7,6 +7,14 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+* 0.11 — 2026-10-19
+
+Cette version adopte Pas communs 0.7.0 pour les mécanismes techniques partagés,
+avec conservation des parcours scolaires, des chemins et des formats de données
+Petits Pas. Elle automatise les publications des programmes et de la PWA sur tag.
+Aucun modèle ni migration supplémentaire par rapport à 0.10 ; les mises à jour
+de services restent à effectuer séparément selon leur procédure habituelle.
+
 - Releases GitHub et publication PWA automatiques après qualification d’un
   tag commun aux deux forges ; reprise manuelle depuis les interfaces CI.
 
