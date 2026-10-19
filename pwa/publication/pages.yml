@@ -18,20 +18,25 @@ pages:
   stage: publication
   resource_group: pwa-pages
   script:
-    # Télécharger le préparateur du commit exact demandé, sans jeton personnel.
+    # Télécharger les scripts et le wheel épinglé au commit source, sans jeton personnel.
     - |
       python3 - <<'PY'
-      import os, re, urllib.request
+      import os, re, urllib.parse, urllib.request
       from pathlib import Path
       commit = os.environ['PWA_SOURCE_SHA']
       assert re.fullmatch(r'[a-f0-9]{40}', commit)
-      url = (os.environ['CI_API_V4_URL'] + '/projects/petits-pas%2Fpetits-pas'
-             + '/repository/files/scripts%2Fpreparer-publication-pwa.py/raw?ref=' + commit)
-      for filename in ['preparer-publication-pwa.py', 'publication.py']:
-          source_url = url.replace('preparer-publication-pwa.py', filename)
+      base = (os.environ['CI_API_V4_URL'] + '/projects/petits-pas%2Fpetits-pas'
+              + '/repository/files/')
+      for source_path, filename in [
+          ('scripts/preparer-publication-pwa.py', 'preparer-publication-pwa.py'),
+          ('scripts/publication.py', 'publication.py'),
+          ('requirements-communs.txt', 'requirements-communs.txt'),
+      ]:
+          source_url = base + urllib.parse.quote(source_path, safe='') + '/raw?ref=' + commit
           with urllib.request.urlopen(source_url, timeout=60) as source:
               Path(filename).write_bytes(source.read())
       PY
+    - python3 -m pip install --no-deps -r requirements-communs.txt
     - python3 preparer-publication-pwa.py --destination public --pages-url "$CI_PAGES_URL"
   pages:
     publish: public
