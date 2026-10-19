@@ -74,6 +74,9 @@ def json_request(url):
 
 
 def select_job(api, project, pipeline_id, commit, ref="main", tag=None):
+    # Canal habituel : les préversions restent des artefacts de qualification.
+    if tag and not re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?", tag):
+        raise ValueError("Le canal PWA habituel exige un tag stable sans suffixe.")
     """Ne jamais prendre le dernier artefact de main à la place de ce pipeline."""
     info, _ = json_request(api + "/projects/" + urllib.parse.quote(SOURCE, safe=""))
     if str(info["id"]) != project or info["path_with_namespace"] != SOURCE:
