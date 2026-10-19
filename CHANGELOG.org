@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Canal PWA habituel : publication automatique des seuls tags sans suffixe ;
+  préversions construites et qualifiées sans promotion Pages. Reprise manuelle
+  de main conservée ; releases des programmes et serveurs inchangés.
+
 - Compléments AUD : Python constructeur PWA >=3.12 affiché séparément du
   Python embarqué ; documentation des contrats et de la politique RC actuelle.
   Déclencheurs de publication et déploiements serveur inchangés.

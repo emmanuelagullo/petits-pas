@@ -67,7 +67,8 @@ les manifestes et les sources des sites se modifient dans le dépôt applicatif.
   à l'avance tout changement de profils d'installation ou de commandes de
   déploiement pour permettre la préparation des instances existantes.
 - Dans les deux applications, les tags numériques qualifiés déclenchent les
-  releases GitHub et les publications PWA, à partir des artefacts validés sans
+  releases GitHub ; seuls les tags sans suffixe publient automatiquement la PWA,
+  à partir des artefacts validés sans
   reconstruction ; la reprise manuelle reste disponible. Sur main, la publication
   PWA reste manuelle. Les déploiements serveur gardent leur procédure séparée
   et ne sont pas modifiés implicitement
@@ -274,7 +275,7 @@ l’AppId historique, les chemins installés ou le raccourci lors de l’extract
 Conserver le contrôle du journal et la promotion des octets validés.
 
 #SOC6c — publications automatiques : un tag numérique qualifié déclenche
-release GitHub et PWA. Le workflow de publication GitHub utilise le code de
+la release GitHub ; la PWA automatique exige un tag sans suffixe. Le workflow de publication GitHub utilise le code de
 main et les artefacts du run terminé ; ignorer branches, PR, forks et échecs.
 Conserver les vérifications des deux forges et la reprise manuelle. Les
 déploiements serveur restent indépendants, sans changement de déclenchement.
@@ -301,4 +302,8 @@ Compléments AUD : conserver les deux témoins historiques de scripts/fixtures ;
 le ZIP 0.10 représentatif reste fictif et immuable. Exécuter
 scripts/test_archive_historique.py via unittest sur les profils concernés.
 Python du constructeur PWA >=3.12 et Python embarqué Pyodide sont distincts.
-La politique RC proposée dans pwa/PUBLICATION.md ne change pas les déclencheurs.
+La politique du canal stable est décrite dans pwa/PUBLICATION.md.
+
+Politique PWA adoptée : seuls les tags sans suffixe publient automatiquement
+à l’adresse habituelle. Les préversions sont construites et testées, mais refusées
+par le préparateur Pages. La publication de main reste manuelle.
