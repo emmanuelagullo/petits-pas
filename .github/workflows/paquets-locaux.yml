@@ -157,7 +157,7 @@ jobs:
           .venv/bin/python -m unittest discover -s scripts -p test_manifestes_publication.py
           PATH="/usr/bin:$PATH" bash scripts/construire-paquet-linux.sh
       - name: Préparer le manifeste Linux
-        run: /usr/bin/python3 scripts/manifeste-publication.py --mode programme --target linux-ubuntu24.04-x86_64 --destination dist/publication-linux.json dist/PetitsPas-linux.tar.gz
+        run: .venv/bin/python scripts/manifeste-publication.py --mode programme --target linux-ubuntu24.04-x86_64 --destination dist/publication-linux.json dist/PetitsPas-linux.tar.gz
       - uses: actions/upload-artifact@v6
         with:
           name: PetitsPas-linux
