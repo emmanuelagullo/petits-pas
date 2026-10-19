@@ -8,7 +8,7 @@ import secrets
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import DatabaseError, transaction
 from django.utils import timezone
 
 from pas_communs.authentification import totp as moteur
@@ -109,26 +109,37 @@ def cle_en_cours(compte):
 
 def verifier_code(utilisateur, code, *, instant=None):
     """Vérifie un code d'un compte inscrit ; chaque pas ne sert qu'une fois."""
-    with transaction.atomic():
-        compte = DoubleFacteurCompte.objects.select_for_update().filter(
+    try:
+        compte = DoubleFacteurCompte.objects.filter(
             utilisateur=utilisateur, confirme_le__isnull=False).first()
+        ancien_pas = compte.dernier_pas if compte else None
         if compte is None or not _verifier_verrouille(compte, code, instant):
             return False
-        compte.save(update_fields=["dernier_pas"])
-        return True
+        # Une instruction compare-et-échange : SQLite n'a pas de verrou de ligne.
+        # La clé et la confirmation lient le calcul à l'inscription encore active.
+        return bool(DoubleFacteurCompte.objects.filter(pk=compte.pk,
+            cle_chiffree=compte.cle_chiffree, confirme_le=compte.confirme_le,
+            dernier_pas=ancien_pas).update(dernier_pas=compte.dernier_pas))
+    except DatabaseError:
+        logger.warning("Vérification 2FA refusée : stockage indisponible.")
+        return False
 
 
 def confirmer_inscription(utilisateur, code, *, instant=None):
     """Confirme l'inscription par un premier code valide ; retire l'échéance."""
-    with transaction.atomic():
-        compte = DoubleFacteurCompte.objects.select_for_update().filter(
+    try:
+        compte = DoubleFacteurCompte.objects.filter(
             utilisateur=utilisateur, confirme_le__isnull=True).exclude(cle_chiffree="").first()
+        ancien_pas = compte.dernier_pas if compte else None
         if compte is None or not _verifier_verrouille(compte, code, instant):
             return False
-        compte.confirme_le = timezone.now()
-        compte.echeance_le = None
-        compte.save(update_fields=["dernier_pas", "confirme_le", "echeance_le"])
-        return True
+        return bool(DoubleFacteurCompte.objects.filter(pk=compte.pk,
+            cle_chiffree=compte.cle_chiffree, confirme_le__isnull=True,
+            dernier_pas=ancien_pas).update(dernier_pas=compte.dernier_pas,
+                confirme_le=timezone.now(), echeance_le=None))
+    except DatabaseError:
+        logger.warning("Confirmation 2FA refusée : stockage indisponible.")
+        return False
 
 
 def retirer(utilisateur):
@@ -181,11 +192,21 @@ def generer_codes_secours(utilisateur):
 def utiliser_code_secours(utilisateur, saisie):
     """Consomme un code de secours ; chaque code ne sert qu'une fois."""
     code = normaliser_code_secours(saisie)
-    if code is None or not est_inscrit(utilisateur):
+    if code is None:
         return False
-    return bool(CodeSecoursDoubleFacteur.objects.filter(
-        utilisateur=utilisateur, empreinte=_empreinte(code), utilise_le__isnull=True,
-    ).update(utilise_le=timezone.now()))
+    try:
+        compte = DoubleFacteurCompte.objects.filter(utilisateur=utilisateur,
+            confirme_le__isnull=False).exclude(cle_chiffree='').first()
+        if compte is None:
+            return False
+        return bool(CodeSecoursDoubleFacteur.objects.filter(
+            utilisateur=utilisateur, empreinte=_empreinte(code), utilise_le__isnull=True,
+            utilisateur__double_facteur__cle_chiffree=compte.cle_chiffree,
+            utilisateur__double_facteur__confirme_le=compte.confirme_le,
+        ).update(utilise_le=timezone.now()))
+    except DatabaseError:
+        logger.warning("Code de secours refusé : stockage indisponible.")
+        return False
 
 
 def codes_secours_restants(utilisateur):

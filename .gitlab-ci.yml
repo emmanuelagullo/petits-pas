@@ -118,7 +118,7 @@ test:
     - python -m unittest discover -s scripts -p test_publication_automatique.py
     - python3 manage.py collectstatic --noinput
     - python3 scripts/valider-illustrations-statiques.py
-    - python3 -m pas_communs.ci django --settings-tests carnet.settings_tests --durations 30 --timing --controle scripts/verifier-profil-serveur.py
+    - python3 -m pas_communs.ci django --settings-tests carnet.settings_tests --durations 30 --timing --controle scripts/verifier-profil-serveur.py --controle scripts/qualifier-totp.py
     - bash -n start-atelier.sh start-persistent.sh start-render.sh scripts/*.sh
 
 deploiement-ephemere:
