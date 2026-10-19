@@ -288,24 +288,21 @@ git push inria 0.8
 git push github 0.8
 ```
 
-Le push du tag GitHub lance une nouvelle exécution du workflow des paquets :
-attendre qu'elle soit verte et utiliser **son numéro** pour publier le setup
-Windows `PetitsPas-Setup-0.8-x64.exe` et les archives. Le contrôle du manifeste refuse un
-setup `dev.*` provenant du push sur `main` :
+Le push du tag GitHub lance une construction des paquets. Après sa réussite,
+le workflow **Publier les programmes validés — Petits Pas** promeut
+automatiquement ses artefacts exacts : setup, archives, manifestes et notes.
+Il vérifie les tags des deux forges et les empreintes, crée un brouillon,
+retélécharge les fichiers pour les vérifier, puis publie la release. Il ne
+reconstruit rien et ne remplace aucune release existante.
 
-```sh
-bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG
-```
-
-Cette commande publie uniquement sur **GitHub**, avec `gh` authentifié
-(`gh auth login`). Elle exige une construction réussie du tag et les mêmes
-tags sur les deux forges. Elle sélectionne les identifiants exacts des
-artefacts, contrôle leurs manifestes et empreintes, puis vérifie les fichiers
-chargés dans un brouillon avant de le rendre public. Elle ne reconstruit rien
-et ne remplace pas une release existante. Une erreur de chargement laisse le
-brouillon à examiner ; ne pas le publier sans vérification. Aucune release
-GitLab n'est créée. Les artefacts candidats sont conservés 30 jours ; après
-expiration, reconstruire le tag et choisir la nouvelle exécution.
+Le workflow de publication doit être présent sur main avant le tag. Pour
+reprendre une publication interrompue, ouvrir ce workflow dans GitHub Actions,
+choisir **Run workflow** depuis main et fournir le numéro de la construction
+réussie et le tag. Aucun gh local n'est nécessaire. L'ancienne commande
+`bash scripts/publier-paquets.sh NUMERO_EXECUTION TAG` reste disponible.
+Un brouillon laissé après erreur doit être examiné avant reprise ; aucune
+reprise n'écrase une release existante. Aucune release GitLab n'est créée.
+Les candidats expirent après 30 jours ; reconstruire et requalifier si besoin.
 
 Avant le commit de préparation de version, renommer la rubrique **À venir**
 de `CHANGELOG.org` en **0.8 — YYYY-MM-DD** (exemple), puis ouvrir une nouvelle
@@ -322,13 +319,13 @@ manifeste Windows. Aucune empreinte ni aucun binaire candidat n’est modifié.
 Les releases conservent pour l'instant le statut de préversion ; la commande
 ne les marque pas automatiquement comme dernière release stable.
 
-Pour la PWA, conserver GitLab Pages et son adresse. Après réussite de
-`pwa-prototype` **et** `pwa-qualification`, lancer manuellement
-`pwa-publication` dans le pipeline de `main` ou du tag. Les fichiers servis
+Pour la PWA, conserver GitLab Pages et son adresse. Sur tag numérique,
+`pwa-publication` démarre automatiquement après les contrôles requis, dont
+`pwa-prototype` et `pwa-qualification`. Sur main, il reste manuel. Les fichiers servis
 proviennent de ce pipeline précis ; aucun bundle de qualification n'est
 publié. Les identités sont disponibles dans `publication.json`, les rapports
 sous `publication/`. Une release GitHub et une publication PWA sont deux
-décisions distinctes : un même tag n'implique pas leur disponibilité simultanée.
+chaînes indépendantes : un même tag n’implique pas leur disponibilité simultanée.
 Voir [la procédure PWA](pwa/PUBLICATION.md).
 
 Après publication des programmes, relancer la construction du site avec ses

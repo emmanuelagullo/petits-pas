@@ -53,6 +53,7 @@ jobs:
           python -m unittest discover -s scripts -p test_apercu_local.py
           if ($LASTEXITCODE -ne 0) { throw "Échec des tests apercu_local" }
           python -m unittest discover -s scripts -p test_manifestes_publication.py
+          python -m unittest discover -s scripts -p test_publication_automatique.py
           if ($LASTEXITCODE -ne 0) { throw "Échec des tests de publication" }
       - name: Construire et contrôler
         shell: pwsh

@@ -1,6 +1,6 @@
 # #PWA6a : publication à la demande sur GitLab Pages
 
-Le job manuel **pwa-publication** publie le bundle du job **pwa-prototype**
+Le job **pwa-publication**, automatique sur tag numérique et manuel sur main, publie le bundle du job **pwa-prototype**
 réussi dans le **même pipeline** de `main` ou d’un tag numérique commun aux deux forges. La qualification doit aussi réussir. Il ne reconstruit pas l'application
 et ne publie pas le bundle de `pwa-qualification`. Les données des essais ne
 sont pas incluses. Depuis #PWA13, les versions maintenues visent la production sur le périmètre
@@ -52,7 +52,9 @@ déployée n'est annoncée avant la première publication réussie.
 
 1. Après un push sur `main` ou du tag numérique, ouvrir son pipeline : **pwa-prototype** et
    **pwa-qualification** démarrent automatiquement.
-2. Attendre la réussite des deux jobs, puis lancer **pwa-publication** dans ce même pipeline.
+2. Sur tag, **pwa-publication** démarre automatiquement après les contrôles
+   requis. Sur main, le lancer manuellement dans ce même pipeline. Un échec
+   de publication du tag fait échouer le pipeline ; le job peut être retenté.
 3. Suivre le pipeline lié du projet PWA et son job **pages**. Le job source
    attend le résultat du pipeline destinataire (`strategy: depend`).
 4. Ouvrir l'adresse indiquée dans **Deploy → Pages** du projet PWA, ou dans

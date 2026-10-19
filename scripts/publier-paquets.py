@@ -2,6 +2,7 @@
 """Publier sur GitHub les artefacts exacts d'une construction de tag réussie."""
 import argparse
 import json
+import os
 import shutil
 from pathlib import Path
 import subprocess
@@ -23,7 +24,7 @@ def api(path):
 
 
 def verify_run(run, tag):
-    if (run.get('conclusion') != 'success' or run.get('status') != 'completed'
+    if (run.get('head_repository', {}).get('full_name') != DEPOT or run.get('conclusion') != 'success' or run.get('status') != 'completed'
             or run.get('path') != WORKFLOW or run.get('head_branch') != tag
             or run.get('event') not in ('push', 'workflow_dispatch')):
         raise ValueError('Choisir une construction réussie du tag, avec le workflow des programmes.')
@@ -132,12 +133,48 @@ def prepare(run_id, tag, folder):
     return files + [folder / 'SHA256SUMS'], commit
 
 
+def selectionner_evenement(evenement, nom_evenement, reference):
+    """Ne promouvoir automatiquement que les constructions de tag du dépôt."""
+    if nom_evenement == 'workflow_dispatch':
+        if reference != 'refs/heads/main':
+            raise ValueError('Lancer la reprise manuelle depuis main.')
+        valeurs = evenement.get('inputs', {})
+        run, tag = str(valeurs.get('run', '')), valeurs.get('tag', '')
+        if not run.isdecimal() or int(run) <= 0 or not TAG.fullmatch(tag):
+            raise ValueError('Construction positive et tag numérique requis.')
+        return run, tag
+    if nom_evenement != 'workflow_run':
+        raise ValueError('Événement de publication inattendu.')
+    run = evenement.get('workflow_run', {})
+    # Les pipelines de branche, PR, forks et les échecs ne publient rien.
+    if (evenement.get('action') != 'completed' or run.get('event') != 'push'
+            or run.get('conclusion') != 'success' or run.get('status') != 'completed'
+            or run.get('head_repository', {}).get('full_name') != DEPOT
+            or run.get('path') != WORKFLOW or not TAG.fullmatch(run.get('head_branch') or '')):
+        return None
+    tag = run['head_branch']
+    verify_run(run, tag)
+    identifiant = str(run.get('id', ''))
+    if not identifiant.isdecimal() or int(identifiant) <= 0:
+        raise ValueError('Identifiant de construction invalide.')
+    return identifiant, tag
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('run', type=int)
-    parser.add_argument('tag')
+    parser.add_argument('run', type=int, nargs='?')
+    parser.add_argument('tag', nargs='?')
+    parser.add_argument('--selectionner-evenement', type=Path)
     args = parser.parse_args()
-    if args.run <= 0 or not TAG.fullmatch(args.tag):
+    if args.selectionner_evenement:
+        candidat = selectionner_evenement(json.loads(args.selectionner_evenement.read_text(encoding='utf-8')),
+                                          os.environ['GITHUB_EVENT_NAME'], os.environ.get('GITHUB_REF', ''))
+        with Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8') as sortie:
+            sortie.write('eligible=' + ('true' if candidat else 'false') + '\n')
+            if candidat:
+                sortie.write(f'run={candidat[0]}\ntag={candidat[1]}\n')
+        return
+    if args.run is None or args.run <= 0 or not TAG.fullmatch(args.tag or ''):
         parser.error('Exécution positive et tag numérique requis.')
     with tempfile.TemporaryDirectory(prefix='petits-pas-release-') as temp:
         folder = Path(temp)
