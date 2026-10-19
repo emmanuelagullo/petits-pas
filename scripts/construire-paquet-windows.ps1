@@ -22,6 +22,8 @@ if (!(Test-Path .venv-paquet\Scripts\python.exe)) {
 $python = (Resolve-Path .venv-paquet\Scripts\python.exe).Path
 & $python -m pip install -r requirements-paquet-local.txt
 if ($LASTEXITCODE -ne 0) { throw 'Installation des dépendances impossible.' }
+& $python -m unittest discover -s scripts -p test_archive_historique.py
+if ($LASTEXITCODE -ne 0) { throw 'Qualification de la sauvegarde historique impossible.' }
 $env:DJANGO_SETTINGS_MODULE = 'carnet.settings'
 $ancienPath = $env:PATH
 if (!$env:PETITS_PAS_PANGO_BIN -or !(Test-Path (Join-Path $env:PETITS_PAS_PANGO_BIN 'libgobject-2.0-0.dll'))) {

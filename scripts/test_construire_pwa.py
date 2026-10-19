@@ -7,6 +7,7 @@ import ssl
 import tempfile
 import unittest
 import urllib.error
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
@@ -77,6 +78,19 @@ class DownloadTests(unittest.TestCase):
 
 
 class RuntimeTests(unittest.TestCase):
+    def test_python_trop_ancien_refuse_avant_construction(self):
+        with patch.object(builder.sys, 'version_info', (3, 11)), self.assertRaisesRegex(SystemExit, '3.12'):
+            builder.main()
+
+    def test_journal_distingue_constructeur_et_python_embarque(self):
+        sortie = io.StringIO()
+        with redirect_stdout(sortie):
+            builder.verifier_python_construction()
+        self.assertIn('Python constructeur :', sortie.getvalue())
+        self.assertIn(builder.sys.executable, sortie.getvalue())
+        self.assertIn('Python embarqué : ' + builder.RUNTIME.python, sortie.getvalue())
+        self.assertIn('Pyodide ' + builder.RUNTIME.version, sortie.getvalue())
+
     def test_cache_precedent_est_refuse_avant_selection_des_codecs(self):
         with self.assertRaisesRegex(ValueError, "dossier propre"):
             builder.verifier_runtime({"info": {"abi_version": "2025_0", "python": "3.13.2"}})

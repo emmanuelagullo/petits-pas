@@ -219,3 +219,31 @@ ZIP hors appareil ; aucun effacement du stockage n'est nécessaire.
 
 Les binaires autonomes issus du même tag suivent séparément la publication
 GitHub décrite dans le dépôt : publier la PWA ne publie pas ces archives.
+
+
+## Préversions : comportement actuel et décision proposée
+
+Le canal Pages actuel est unique. Le motif de tag de la CI et le préparateur
+acceptent un suffixe, par exemple `0.12.0-rc.1`. Après qualification du tag et
+vérification des deux forges, **un tel tag peut remplacer la PWA à l'adresse
+habituelle**. Il n'existe pas de routage automatique vers une adresse RC.
+Le marquage « prerelease » d'une release GitHub ne protège pas le canal Pages :
+les politiques programmes et PWA restent distinctes.
+
+Les tests de sélection des jobs couvrent désormais le tag sans suffixe et le
+tag RC. Ils caractérisent le comportement actuel ; ils ne simulent pas une
+publication réelle et ne qualifient pas un appareil utilisateur.
+
+**Décision proposée, non appliquée aux déclencheurs dans ce correctif :** réserver
+la promotion automatique vers l'adresse habituelle aux tags numériques sans
+suffixe. Construire et qualifier les RC en CI, puis les essayer via les artefacts
+ou, si nécessaire, une adresse d'essai distincte à cadrer. Ne pas créer un
+nouveau canal distant implicitement. Le chemin/origine d'essai ouvre un autre
+stockage : ce n'est pas une migration des données de la PWA habituelle.
+
+Une adoption de cette proposition devra modifier ensemble les règles du dépôt
+applicatif, celles de pwa/publication/pages.yml, le refus dans le préparateur
+et leurs tests. Les pipelines manuels de main restent un choix explicite,
+capable eux aussi de remplacer la PWA habituelle ; ils ne sont pas rendus
+« stables » par le seul filtrage des RC. Un tag sans suffixe ne qualifie pas
+un usage métier réel du prototype CHRS.

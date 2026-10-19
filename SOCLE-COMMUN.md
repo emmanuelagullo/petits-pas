@@ -1,7 +1,7 @@
 # Pas communs — état courant et historique des extractions
 
-La version cible de cette révision est `pas-communs` 0.8.0, candidate tant que
-son wheel n'est pas publié. L'URL et l'empreinte réellement adoptées sont celles
+La version `pas-communs` 0.8.0 est publiée et adoptée au 20 octobre 2026.
+Préserver ses octets et son tag ; une correction documentaire ne la republie pas. L'URL et l'empreinte réellement adoptées sont celles
 de requirements-communs.txt. Les sections #SOC ci-dessous sont historiques.
 Lire aussi QUALIFICATION.md dans le dépôt du socle.
 La façade `suivi.paquet_local` conserve l'API, les confirmations en mémoire,

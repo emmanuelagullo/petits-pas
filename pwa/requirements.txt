@@ -1,5 +1,6 @@
 -r ../requirements-communs.txt
-# Profil navigateur, distinct du lock serveur. CPython 3.14 / Pyodide 314.0.7.
+# Profil embarqué, distinct du lock serveur et du Python constructeur >=3.12.
+# Python 3.14.2 / Pyodide 314.0.7 ; qualification dans le vrai runtime WASM.
 Django==6.1.1
 asgiref==3.12.1
 sqlparse==0.6.0
