@@ -1,2 +1,2 @@
 # Version et octets explicitement adoptés.
-pas-communs @ https://github.com/emmanuelagullo/pas-communs/releases/download/0.6.0/pas_communs-0.6.0-py3-none-any.whl#sha256=29efafd2e426a4a67c59a521c0e3a8e842a349367a4747d9d0e1d3dbb36da2e2
+pas-communs @ https://github.com/emmanuelagullo/pas-communs/releases/download/0.7.0/pas_communs-0.7.0-py3-none-any.whl#sha256=b0f6c0354f53ea0ad44dd24e376419abb07b21cef70f88c041de3acaa951683d

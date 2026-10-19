@@ -76,42 +76,12 @@ jobs:
         run: |
           choco install innosetup --yes --no-progress
           if ($LASTEXITCODE -ne 0) { throw 'Installation du compilateur Inno Setup impossible.' }
-          $iscc = (Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
-          if (!$iscc) { throw 'Compilateur ISCC.exe introuvable.' }
-          $version = (Get-Content -LiteralPath version-application.txt -Raw).Trim()
-          $output = Join-Path (Get-Location) 'dist'
-          & $iscc "/DAppVersion=$version" "/DOutputDir=$output" scripts/PetitsPas-Windows.iss
-          if ($LASTEXITCODE -ne 0) { throw 'Construction du setup Windows impossible.' }
-          $setup = "dist/PetitsPas-Setup-$version-x64.exe"
-          if (!(Test-Path $setup)) { throw 'Setup Windows absent.' }
-          # Le setup est une application graphique : l'appel direct depuis
-          # PowerShell peut rendre la main avant la fin de l'installation.
-          $installation = Start-Process -FilePath (Resolve-Path $setup).Path -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
-          if ($installation.ExitCode -ne 0) { throw "Installation du setup Windows impossible (code $($installation.ExitCode))." }
-          $cle = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\PetitsPas.Local.EmmanuelAgullo_is1'
-          if (!(Test-Path $cle)) { throw "Installation terminée mais entrée Windows absente : $cle" }
-          $dossier = (Get-ItemProperty -Path $cle).InstallLocation
-          if (!$dossier) { throw 'Dossier installe absent de la fiche Windows.' }
-          $exe = Join-Path $dossier 'PetitsPas.exe'
-          if (!(Test-Path $exe)) { throw "Exécutable installé introuvable : $exe" }
-          $raccourci = Join-Path ([Environment]::GetFolderPath('Programs')) 'Petits Pas.lnk'
-          if (!(Test-Path $raccourci)) { throw 'Raccourci du menu Démarrer introuvable.' }
-          $cible = (New-Object -ComObject WScript.Shell).CreateShortcut($raccourci).TargetPath
-          if ($cible -ne $exe) { throw "Le raccourci ouvre $cible au lieu de $exe." }
-          $verification = Start-Process -FilePath $exe -ArgumentList '--verifier-distribution' -Wait -PassThru
-          if ($verification.ExitCode -ne 0) { throw 'Le paquet installé par le setup est invalide.' }
+          python -m pas_communs.installateur_windows --configuration scripts/installateur-windows.json --verifier
+          if ($LASTEXITCODE -ne 0) { throw 'Construction ou verification du setup Windows impossible.' }
           $journal = Join-Path $env:LOCALAPPDATA 'petits-pas\logs\dernier-demarrage.log'
           if (!(Test-Path $journal) -or !(Select-String -LiteralPath $journal -Pattern 'Django .*PyWebView' -Quiet)) {
             throw "Le controle du paquet Windows n'a pas ete journalise."
           }
-          $miseAJour = Start-Process -FilePath (Resolve-Path $setup).Path -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
-          if ($miseAJour.ExitCode -ne 0) { throw "Réinstallation du setup Windows impossible (code $($miseAJour.ExitCode))." }
-          $verification = Start-Process -FilePath $exe -ArgumentList '--verifier-distribution' -Wait -PassThru
-          if ($verification.ExitCode -ne 0) { throw 'Le paquet réinstallé par le setup est invalide.' }
-          $uninstall = Join-Path $dossier 'unins000.exe'
-          $desinstallation = Start-Process -FilePath $uninstall -ArgumentList @('/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART') -Wait -PassThru
-          if ($desinstallation.ExitCode -ne 0) { throw "Désinstallation du setup Windows impossible (code $($desinstallation.ExitCode))." }
-          if (Test-Path $exe) { throw 'Le programme est encore présent après désinstallation.' }
       - name: Préparer le manifeste Windows
         shell: pwsh
         run: |
