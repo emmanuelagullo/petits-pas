@@ -3,6 +3,8 @@ on:
   workflow_run:
     workflows: ['Paquets autonomes Linux et Windows (prototype)']
     types: [completed]
+    # Ne pas créer de publication ignorée après les builds de main.
+    branches-ignore: [main]
   workflow_dispatch:
     inputs:
       run:
