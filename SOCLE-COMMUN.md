@@ -115,3 +115,13 @@ Les notes, choix de job, contrôles de tag/origine/cible et promotion restent
 Petits Pas. Aucun publisher commun avec un jeton partagé n'est introduit.
 La CI conserve PostgreSQL et les validations scolaires ; le banc serveur
 ajoute Gunicorn loopback, sans connexion à une adresse publique.
+
+## Génération PDF native (#SOC7b)
+
+Pas communs 0.6.0 fournit les appels WeasyPrint et le récupérateur de médias.
+Les façades _generer_pdf/_recuperateur_pdf/_url_media_pdf conservent leurs
+signatures, les templates et les règles historiques de ressources et de droits.
+Le serveur et le programme gardent WeasyPrint/Pango ; la PWA conserve son
+adaptation d'impression existante. Les options de qualité scolaire ne deviennent
+pas des politiques CHRS. Les PDF texte du CHRS navigateur ne remplacent pas
+les carnets avec images. Publier d'abord le wheel 0.6.0 puis adopter son hash.
