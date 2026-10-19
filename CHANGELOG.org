@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Releases GitHub et publication PWA automatiques après qualification d’un
+  tag commun aux deux forges ; reprise manuelle depuis les interfaces CI.
+
 - Installateur Windows construit et contrôlé avec Pas communs 0.7.0 ;
   identité et chemins des installations Petits Pas conservés.
 

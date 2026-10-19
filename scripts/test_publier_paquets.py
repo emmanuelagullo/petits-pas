@@ -14,12 +14,12 @@ SHA='a'*40
 
 class PublicationTests(unittest.TestCase):
     def run_info(self):
-        return {'conclusion':'success','status':'completed','path':publisher.WORKFLOW,
+        return {'head_repository':{'full_name':publisher.DEPOT},'conclusion':'success','status':'completed','path':publisher.WORKFLOW,
                 'head_branch':'0.8','head_sha':SHA,'event':'push','run_attempt':1}
 
     def test_run_exact_tag_et_workflow(self):
         self.assertEqual(publisher.verify_run(self.run_info(),'0.8'),SHA)
-        for key,value in [('conclusion','failure'),('head_branch','main'),('path','autre.yml'),('status','in_progress')]:
+        for key,value in [('conclusion','failure'),('head_branch','main'),('path','autre.yml'),('status','in_progress'),('head_repository',{'full_name':'fictif/fork'})]:
             run=self.run_info();run[key]=value
             with self.assertRaises(ValueError):publisher.verify_run(run,'0.8')
 

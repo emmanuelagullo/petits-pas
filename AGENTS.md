@@ -193,3 +193,9 @@ scolaires par le backend texte. Préserver le chargement autorisé des médias.
 configuration produit scripts/installateur-windows.json. Ne pas modifier
 l’AppId historique, les chemins installés ou le raccourci lors de l’extraction.
 Conserver le contrôle du journal et la promotion des octets validés.
+
+#SOC6c — publications automatiques : un tag numérique qualifié déclenche
+release GitHub et PWA. Le workflow de publication GitHub utilise le code de
+main et les artefacts du run terminé ; ignorer branches, PR, forks et échecs.
+Conserver les vérifications des deux forges et la reprise manuelle. Les
+déploiements serveur restent indépendants, sans changement de déclenchement.

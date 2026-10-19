@@ -1,0 +1,50 @@
+name: Publier les programmes validés — Petits Pas
+on:
+  workflow_run:
+    workflows: ['Paquets autonomes Linux et Windows (prototype)']
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run:
+        description: Numéro de la construction du tag réussie (paquets-locaux)
+        required: true
+      tag:
+        description: Tag applicatif identique sur les deux forges
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: publication-programmes
+  cancel-in-progress: false
+jobs:
+  publier:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch != 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      # Le code de publication vient de main, jamais d'un artefact téléchargé.
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --no-deps -r requirements-communs.txt
+      - name: Sélectionner la construction terminée ou la reprise manuelle
+        id: candidat
+        run: python scripts/publier-paquets.py --selectionner-evenement "$GITHUB_EVENT_PATH"
+      - name: Promouvoir les octets vérifiés sans reconstruction
+        if: steps.candidat.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_RUN: ${{ steps.candidat.outputs.run }}
+          CANDIDATE_TAG: ${{ steps.candidat.outputs.tag }}
+        run: python scripts/publier-paquets.py "$CANDIDATE_RUN" "$CANDIDATE_TAG"
