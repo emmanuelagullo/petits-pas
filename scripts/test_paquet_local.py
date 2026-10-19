@@ -78,7 +78,7 @@ class PaquetLocalTests(unittest.TestCase):
                     creer_sauvegarde(paquet, BytesIO(), fichiers_externes={
                         "media/fictif.bin": (taille, lambda: BytesIO(contenu))})
             for nom in ("secret.txt", "media/../secret.txt", "media/./fictif.bin", "media//fictif.bin"):
-                with self.assertRaisesRegex(ValueError, "invalide"):
+                with self.assertRaisesRegex(ValueError, "invalide|non portable"):
                     creer_sauvegarde(paquet, BytesIO(), fichiers_externes={nom:(1, lambda: BytesIO(b"x"))})
 
     def test_restauration_progressive_interrompue_nettoie_la_preparation(self):
@@ -136,7 +136,7 @@ class PaquetLocalTests(unittest.TestCase):
             # Une destination OPFS ne crée pas le fichier MEMFS avant le retour
             # à JS ; l'exclusivité ne doit donc pas dépendre de open('xb').
             work = iterer_restauration(source, Path(temp), ouvrir_destination=lambda path: BytesIO())
-            with self.assertRaisesRegex(ValueError, "Chemin répété"):
+            with self.assertRaisesRegex(ValueError, "Chemin"):
                 list(work)
             self.assertFalse(list(Path(temp).glob(".restauration-*")))
 

@@ -57,3 +57,15 @@ lorsqu'un nouveau commit arrive sur la même branche. Les déploiements de
 vérification et les publications ne le sont pas. Sur GitHub, une nouvelle
 construction de la même branche remplace la précédente ; les constructions
 de tags ne sont pas annulées automatiquement.
+
+
+Pour une évolution du socle, utiliser aussi QUALIFICATION.md de pas-communs :
+la recette vérifie code et ressources importés contre le wheel et les deux
+adoptions épinglées. Elle ne fait aucune installation. Sous Guix, les outils
+peuvent venir de l'environnement et le candidat être extrait dans un dossier
+privé placé dans PYTHONPATH. Les versions Python des profils restent distinctes.
+
+Pour la consommation TOTP : `python3 scripts/qualifier-totp.py` crée une vraie
+SQLite temporaire et exerce deux connexions concurrentes, la réinitialisation
+pendant calcul et le verrouillage. Le job Django GitLab le lance dans les deux
+profils de dépendances ; les tests ordinaires exercent aussi PostgreSQL.

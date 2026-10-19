@@ -7,7 +7,7 @@ import shutil
 from pathlib import Path
 import subprocess
 import tempfile
-from zipfile import ZipFile
+from pas_communs import promotion
 from publication import TAG, verify, sha256
 
 DEPOT = 'emmanuelagullo/petits-pas'
@@ -24,40 +24,18 @@ def api(path):
 
 
 def verify_run(run, tag):
-    if (run.get('head_repository', {}).get('full_name') != DEPOT or run.get('conclusion') != 'success' or run.get('status') != 'completed'
-            or run.get('path') != WORKFLOW or run.get('head_branch') != tag
-            or run.get('event') not in ('push', 'workflow_dispatch')):
-        raise ValueError('Choisir une construction réussie du tag, avec le workflow des programmes.')
-    import re
-    if not re.fullmatch(r'[a-f0-9]{40}', run.get('head_sha', '')):
-        raise ValueError('Commit de construction invalide.')
-    return run['head_sha']
+    return promotion.verifier_execution(run, tag, depot=DEPOT, workflow=WORKFLOW)
 
 
 def verify_tags(tag, commit):
     for forge in FORGES:
-        lines = subprocess.check_output(['git', 'ls-remote', '--tags', forge, 'refs/tags/' + tag, 'refs/tags/' + tag + '^{}'], text=True, timeout=60).splitlines()
-        reverse = {ref: sha for sha, ref in (line.split('\t') for line in lines)}
-        if reverse.get('refs/tags/' + tag + '^{}', reverse.get('refs/tags/' + tag)) != commit:
-            raise ValueError('Tag absent ou différent sur ' + forge)
+        lignes = subprocess.check_output(['git', 'ls-remote', '--tags', forge,
+            'refs/tags/' + tag, 'refs/tags/' + tag + '^{}'], text=True, timeout=60)
+        promotion.verifier_tag_distant(lignes, tag, commit)
 
 
 def unpack(archive, folder):
-    with ZipFile(archive) as zipped:
-        entries = zipped.infolist()
-        if len(entries) > 20 or sum(x.file_size for x in entries) > 1024**3:
-            raise ValueError('Artefact trop volumineux.')
-        for entry in entries:
-            name = entry.filename
-            if entry.is_dir() or Path(name).name != name or '/' in name or '\\' in name or name in ('.', '..') or (entry.external_attr >> 16) & 0o170000 == 0o120000:
-                raise ValueError('Chemin non autorisé dans un artefact.')
-            destination = folder / name
-            contents = zipped.read(entry)
-            if destination.exists():
-                if destination.read_bytes() != contents:
-                    raise ValueError('Fichier divergent entre artefacts : ' + name)
-            else:
-                destination.write_bytes(contents)
+    return promotion.extraire_artefact(archive, folder)
 
 
 def prepare(run_id, tag, folder):
@@ -134,30 +112,8 @@ def prepare(run_id, tag, folder):
 
 
 def selectionner_evenement(evenement, nom_evenement, reference):
-    """Ne promouvoir automatiquement que les constructions de tag du dépôt."""
-    if nom_evenement == 'workflow_dispatch':
-        if reference != 'refs/heads/main':
-            raise ValueError('Lancer la reprise manuelle depuis main.')
-        valeurs = evenement.get('inputs', {})
-        run, tag = str(valeurs.get('run', '')), valeurs.get('tag', '')
-        if not run.isdecimal() or int(run) <= 0 or not TAG.fullmatch(tag):
-            raise ValueError('Construction positive et tag numérique requis.')
-        return run, tag
-    if nom_evenement != 'workflow_run':
-        raise ValueError('Événement de publication inattendu.')
-    run = evenement.get('workflow_run', {})
-    # Les pipelines de branche, PR, forks et les échecs ne publient rien.
-    if (evenement.get('action') != 'completed' or run.get('event') != 'push'
-            or run.get('conclusion') != 'success' or run.get('status') != 'completed'
-            or run.get('head_repository', {}).get('full_name') != DEPOT
-            or run.get('path') != WORKFLOW or not TAG.fullmatch(run.get('head_branch') or '')):
-        return None
-    tag = run['head_branch']
-    verify_run(run, tag)
-    identifiant = str(run.get('id', ''))
-    if not identifiant.isdecimal() or int(identifiant) <= 0:
-        raise ValueError('Identifiant de construction invalide.')
-    return identifiant, tag
+    return promotion.selectionner_evenement(evenement, nom_evenement, reference,
+        depot=DEPOT, workflow=WORKFLOW)
 
 
 def main():

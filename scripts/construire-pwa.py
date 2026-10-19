@@ -21,8 +21,10 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 from publication import identity, release_notes
 
 ROOT = Path(__file__).resolve().parent.parent
-PYODIDE = "314.0.7"
-BASE = f"https://cdn.jsdelivr.net/pyodide/v{PYODIDE}/full/"
+from pas_communs.construction_pwa import RUNTIME_314_0_7
+RUNTIME = RUNTIME_314_0_7
+PYODIDE = RUNTIME.version
+BASE = RUNTIME.base
 
 
 from pas_communs.construction_pwa import telecharger, verifier_runtime, nettoyer_runtime
@@ -99,7 +101,7 @@ def main():
 
     download("pyodide-lock.json")
     lock = json.loads((runtime / "pyodide-lock.json").read_text())
-    verifier_runtime(lock)
+    verifier_runtime(lock, runtime=RUNTIME)
     selected = set()
     def select(name):
         if name in selected:

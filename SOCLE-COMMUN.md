@@ -1,6 +1,9 @@
-# Pas communs — #SOC2 à #SOC5a
+# Pas communs — état courant et historique des extractions
 
-Petits Pas dépend maintenant de `pas-communs` 0.4.0 pour le moteur ZIP/SQLite.
+La version cible de cette révision est `pas-communs` 0.8.0, candidate tant que
+son wheel n'est pas publié. L'URL et l'empreinte réellement adoptées sont celles
+de requirements-communs.txt. Les sections #SOC ci-dessous sont historiques.
+Lire aussi QUALIFICATION.md dans le dépôt du socle.
 La façade `suivi.paquet_local` conserve l'API, les confirmations en mémoire,
 le rappel d'export local et les métadonnées de projection. Droits, exports,
 imports et sélection des secrets restent dans Petits Pas. Aucun modèle Django,
@@ -11,12 +14,12 @@ format historique ou nom de stockage navigateur n'est déplacé.
 Le wheel public est fixé par URL et SHA-256 dans `requirements-communs.txt`,
 inclus par les profils serveur, bureau et navigateur. Installer les dépendances
 habituelles suffit. Pas de service additionnel, de Git ni de PyPI à configurer.
-La première publication du wheel `0.4.0` de Pas communs doit précéder l'adoption
-et le déploiement de ce patch. Un téléchargement manquant ou altéré est refusé.
+La publication immuable du wheel candidat doit précéder le push des
+consommateurs qui le requièrent. Un téléchargement manquant ou altéré est refusé.
 
 Avant cette publication, les essais peuvent employer le wheel local candidat :
 installer les autres dépendances avec un fichier temporaire privé d'inclusion du
-socle, puis `pip install /chemin/pas_communs-0.4.0-py3-none-any.whl`.
+socle, puis `pip install /chemin/pas_communs-0.8.0-py3-none-any.whl`.
 Ne pas committer de chemin local ni de dépendance à une branche mobile.
 En développement conjoint : `pip install -e ../pas-communs` après préparation du
 backend de construction. Les releases utilisent toujours le wheel fixé.

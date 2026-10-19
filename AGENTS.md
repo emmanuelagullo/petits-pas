@@ -278,3 +278,18 @@ release GitHub et PWA. Le workflow de publication GitHub utilise le code de
 main et les artefacts du run terminé ; ignorer branches, PR, forks et échecs.
 Conserver les vérifications des deux forges et la reprise manuelle. Les
 déploiements serveur restent indépendants, sans changement de déclenchement.
+
+
+#AUD : lire les contrats actualisés et la recette QUALIFICATION.md de pas-communs.
+Le candidat 0.8.0 doit être publié immuablement avant de pousser ses consommateurs.
+Préserver les noms ZIP historiques portables ; refuser les alias Windows à
+l'export comme à l'import sans renommer les données. Le runtime Pyodide est
+sélectionné explicitement dans les constructeurs ; les politiques de promotion
+et de déploiement restent applicatives. Qualifier les octets du wheel et les
+deux consommateurs ; aucune installation pip n'est implicite dans cette recette.
+
+#AUD — TOTP : pas de verrou de ligne supposé sous SQLite. Conserver le
+compare-et-échange lié à la clé/confirmation et le refus sur erreur de stockage.
+Tester scripts/qualifier-totp.py (SQLite fichier), ainsi que les tests ordinaires
+sous PostgreSQL ; ne pas déplacer les modèles ou changer les sessions pour
+cette correction de consommation.
