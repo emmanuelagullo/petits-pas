@@ -14,6 +14,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from zipfile import BadZipFile, ZipFile
+from pas_communs.publication import sha256 as _empreinte_fichier
 
 from publication import TAG, verify
 
@@ -30,8 +31,7 @@ def require_pages_url(value):
 
 
 def sha256(path):
-    with path.open("rb") as source:
-        return hashlib.file_digest(source, "sha256").hexdigest()
+    return _empreinte_fichier(path)
 
 
 def validate_bundle(root):

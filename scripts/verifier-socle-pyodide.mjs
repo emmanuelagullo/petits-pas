@@ -5,6 +5,11 @@ const dossier = new URL('../dist/pwa/', import.meta.url);
 const racine = fileURLToPath(dossier);
 const { loadPyodide } = await import(new URL('runtime/pyodide.mjs', dossier));
 const python = await loadPyodide({indexURL: racine+'runtime/'});
+const attendu=JSON.parse(fs.readFileSync(new URL('runtime/pyodide-lock.json',dossier),'utf8')).info.python;
+const effectif=python.runPython("import sys; sys.version.split()[0]");
+if(effectif!==attendu)throw new Error(`Python embarqué ${effectif}, attendu ${attendu}`);
+console.log(`Python embarqué exécuté : ${effectif}`);
+
 await python.loadPackage('micropip');
 const config=JSON.parse(fs.readFileSync(new URL('config.json', dossier), 'utf8'));
 const candidats=config.wheels.filter(n => n.startsWith('pas_communs-'));

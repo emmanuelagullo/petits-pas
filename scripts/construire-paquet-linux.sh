@@ -12,6 +12,7 @@ python3 -m venv --system-site-packages "$venv_construction"
     exit 1
 }
 "$venv_construction/bin/python" -m pip install -r requirements-paquet-local.txt
+"$venv_construction/bin/python" -m unittest discover -s scripts -p test_archive_historique.py
 "$venv_construction/bin/python" scripts/construire-ecole-fictive.py
 "$venv_construction/bin/python" -m PyInstaller --noconfirm --clean scripts/PetitsPas.spec
 if ! ./dist/PetitsPas/PetitsPas --verifier-distribution; then

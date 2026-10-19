@@ -140,14 +140,14 @@ class PublicationTests(unittest.TestCase):
     def test_tag_common_to_both_forges(self):
         commit='b'*40
         jobs=[{'id':i,'name':name,'status':'success','commit':{'id':commit},'pipeline':{'id':56}} for i,name in [(34,'pwa-prototype'),(35,'pwa-qualification')]]
-        for github_sha in [commit,'c'*40]:
-            responses=[({'id':12,'path_with_namespace':publication.SOURCE,'default_branch':'main'},{}),({'sha':commit,'ref':'0.8'},{}),({'commit':{'id':commit}},{}),({'sha':github_sha},{}),(jobs,{})]
+        for tag, github_sha in [(tag, sha) for tag in ['0.8', '0.12.0-rc.1'] for sha in [commit, 'c'*40]]:
+            responses=[({'id':12,'path_with_namespace':publication.SOURCE,'default_branch':'main'},{}),({'sha':commit,'ref':tag},{}),({'commit':{'id':commit}},{}),({'sha':github_sha},{}),(jobs,{})]
             with patch.object(publication,'json_request',side_effect=responses):
                 if github_sha==commit:
-                    job,_=publication.select_job('https://fictif/api/v4','12','56',commit,'0.8','0.8')
+                    job,_=publication.select_job('https://fictif/api/v4','12','56',commit,tag,tag)
                     self.assertEqual(job['qualification']['id'],35)
                 else:
-                    with self.assertRaises(ValueError):publication.select_job('https://fictif/api/v4','12','56',commit,'0.8','0.8')
+                    with self.assertRaises(ValueError):publication.select_job('https://fictif/api/v4','12','56',commit,tag,tag)
 
     def test_preparer_publication_complete_avec_manifestes_et_qualification(self):
         import os, shutil

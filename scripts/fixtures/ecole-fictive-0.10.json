@@ -1,0 +1,19 @@
+{
+  "donnees": "fictives uniquement",
+  "source_tag": "0.10",
+  "source_commit": "fec9707b28df13115e22be6f894e0abc430390cc",
+  "generateur": "scripts/construire-ecole-fictive.py du tag 0.10, puis 3 photos synthétiques liées à des traces dans une copie temporaire",
+  "exporteur": "suivi.paquet_local.creer_sauvegarde du tag 0.10 (avant SOC2)",
+  "sha256": "95f40e00f4b502840fd3155c30e1b80e89e1494795faa94e37d28a5d5c686c5a",
+  "attendus": {
+    "comptes_utilisateur": 9,
+    "suivi_ecole": 1,
+    "suivi_classe": 14,
+    "suivi_eleve": 64,
+    "suivi_competence": 1341,
+    "suivi_observation": 747,
+    "suivi_trace": 173
+  },
+  "medias": 3,
+  "original_de_generation_preserve": true
+}

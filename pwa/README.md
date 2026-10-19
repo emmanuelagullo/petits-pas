@@ -1,4 +1,4 @@
-# Application navigateur — #PWA13
+# Application navigateur — contrat actuel et historique PWA
 
 Petits Pas fonctionne localement dans le navigateur, y compris hors ligne.
 La version maintenue a vocation à la production sur le périmètre déclaré dans
@@ -8,7 +8,16 @@ Les profils serveur et programme autonome restent disponibles.
 
 ## Construire et mettre à jour
 
-Python 3 avec pip et Internet sont nécessaires à la construction :
+Le **constructeur** utilise Python 3.12 ou plus récent, avec pip pour télécharger
+les wheels (les dépendances peuvent venir de Guix). Il affiche sa version exacte
+et son exécutable avant tout travail. Ce n'est pas le Python de l'application
+servie : **Pyodide 314.0.7 embarque Python 3.14.2, ABI 2026_0**. Le contrat du
+runtime vient de l'objet sélectionné dans pas-communs ; les profils de
+dépendances du constructeur et du navigateur ne se confondent pas.
+
+GitLab choisit python:3.12-slim-trixie et GitHub Python 3.12 ; la version
+corrective exacte figure dans les logs, elle n'est pas supposée par la doc.
+Internet est nécessaire à la construction hors caches :
 
 ```sh
 python3 scripts/construire-pwa.py

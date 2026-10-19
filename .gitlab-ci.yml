@@ -114,6 +114,7 @@ test:
               time.sleep(1)
       PY
   script:
+    - python3 -m unittest discover -s scripts -p test_archive_historique.py
     - python3 -m unittest discover -s scripts -p test_version_application.py
     - python -m unittest discover -s scripts -p test_publication_automatique.py
     - python3 manage.py collectstatic --noinput
@@ -390,6 +391,7 @@ pwa-prototype:
   before_script:
     - apt-get update
     - apt-get install --yes --no-install-recommends nodejs npm poppler-utils openssl libpango-1.0-0 libpangoft2-1.0-0
+    - python3 --version
     - python3 -m pip install --requirement requirements.lock
     - npm install --prefix pwa --ignore-scripts
     - node pwa/node_modules/playwright/cli.js install --with-deps chromium

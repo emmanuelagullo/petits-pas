@@ -70,7 +70,17 @@ def preparer_wheels(wheels, cache=None):
         ], check=True)
 
 
+def verifier_python_construction():
+    """Python hôte : distinct de celui du Worker Pyodide et de sa bibliothèque."""
+    if sys.version_info < (3, 12):
+        raise SystemExit("Construction PWA : Python 3.12 ou plus récent requis.")
+    print(f"Python constructeur : {sys.version.split()[0]} ({sys.executable}) ; "
+          f"Python embarqué : {RUNTIME.python} (Pyodide {RUNTIME.version}, ABI {RUNTIME.abi})",
+          flush=True)
+
+
 def main():
+    verifier_python_construction()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sortie", type=Path, default=ROOT / "dist/pwa")
     parser.add_argument("--runtime", type=Path, help="Cache Pyodide déjà téléchargé")

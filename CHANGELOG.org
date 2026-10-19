@@ -7,7 +7,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
-- #AUD : adoption candidate de pas-communs 0.8.0, chemins ZIP portables dans les
+- Compléments AUD : Python constructeur PWA >=3.12 affiché séparément du
+  Python embarqué ; documentation des contrats et de la politique RC actuelle.
+  Déclencheurs de publication et déploiements serveur inchangés.
+- Qualification d'une école fictive complète exportée par la version 0.10 :
+  reprise, nouvel export, restauration et migrations sur copies indépendantes.
+
+- #AUD : adoption de pas-communs 0.8.0 publiée, chemins ZIP portables dans les
   deux sens, contrôles de promotion partagés et contrat Pyodide explicite.
   Aucun changement du runtime, des formats de données ou des déploiements.
 - #AUD : consommation TOTP atomique sur SQLite et PostgreSQL, refus propre

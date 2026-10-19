@@ -281,7 +281,9 @@ déploiements serveur restent indépendants, sans changement de déclenchement.
 
 
 #AUD : lire les contrats actualisés et la recette QUALIFICATION.md de pas-communs.
-Le candidat 0.8.0 doit être publié immuablement avant de pousser ses consommateurs.
+La version 0.8.0 est publiée et adoptée ; préserver son tag et ses octets.
+Une modification documentaire seule ne demande pas de nouveau wheel. Les
+consommateurs peuvent conserver des versions différentes, explicitement épinglées.
 Préserver les noms ZIP historiques portables ; refuser les alias Windows à
 l'export comme à l'import sans renommer les données. Le runtime Pyodide est
 sélectionné explicitement dans les constructeurs ; les politiques de promotion
@@ -293,3 +295,10 @@ compare-et-échange lié à la clé/confirmation et le refus sur erreur de stock
 Tester scripts/qualifier-totp.py (SQLite fichier), ainsi que les tests ordinaires
 sous PostgreSQL ; ne pas déplacer les modèles ou changer les sessions pour
 cette correction de consommation.
+
+
+Compléments AUD : conserver les deux témoins historiques de scripts/fixtures ;
+le ZIP 0.10 représentatif reste fictif et immuable. Exécuter
+scripts/test_archive_historique.py via unittest sur les profils concernés.
+Python du constructeur PWA >=3.12 et Python embarqué Pyodide sont distincts.
+La politique RC proposée dans pwa/PUBLICATION.md ne change pas les déclencheurs.
