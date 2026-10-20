@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Correction des codes de secours concurrents sous PostgreSQL : conserver
+  le filtre de consommation sur la ligne mise à jour. Test avec deux écritures
+  effectivement bloquées sur le même code et reset concurrent ; aucun changement
+  de schéma, de clés, de codes existants ou de configuration de déploiement.
+
 - Canal PWA habituel : publication automatique des seuls tags sans suffixe ;
   préversions construites et qualifiées sans promotion Pages. Reprise manuelle
   de main conservée ; releases des programmes et serveurs inchangés.
