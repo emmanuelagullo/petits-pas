@@ -1,13 +1,15 @@
 """Consommations simultanées et reset avec connexions distinctes, sans migration."""
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
+from queue import Queue
+import time
 from unittest import skipUnless
 from unittest.mock import patch
 from django.contrib.auth import get_user_model
 from django.db import DatabaseError, close_old_connections, connections, connection, transaction
 from django.test import TransactionTestCase, override_settings
 from . import totp
-from .models import DoubleFacteurCompte
+from .models import DoubleFacteurCompte, CodeSecoursDoubleFacteur
 from .tests_totp import DEPENDANCES, cle_de_test, code_a
 
 
@@ -101,3 +103,48 @@ class ConsommationConcurrente(TransactionTestCase):
             self.assertFalse(totp.confirmer_inscription(self.user,
                 code_a(self.cle, self.instant), instant=self.instant))
         self.assertFalse(totp.est_inscrit(self.user))
+
+    @skipUnless(connection.vendor == 'postgresql', 'Attente de verrou PostgreSQL')
+    def test_secours_attendant_le_meme_verrou_ne_reussit_qu_une_fois(self):
+        # Les deux UPDATE ont pris leur instantané avant la libération du
+        # verrou : le perdant doit réévaluer utilise_le sur la ligne courante.
+        # Ce scénario reproduit le double succès de l’ancienne requête jointe.
+        identifiant = CodeSecoursDoubleFacteur.objects.filter(utilisateur=self.user, empreinte=totp._empreinte(totp.normaliser_code_secours(self.codes[0]))).get().pk
+        prets = Queue()
+        def consommer():
+            close_old_connections()
+            try:
+                with connection.cursor() as curseur:
+                    curseur.execute('SELECT pg_backend_pid()')
+                    prets.put(curseur.fetchone()[0])
+                return totp.utiliser_code_secours(self.user, self.codes[0])
+            finally:
+                connections.close_all()
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            with transaction.atomic():
+                CodeSecoursDoubleFacteur.objects.select_for_update().get(pk=identifiant)
+                clients = [pool.submit(consommer) for _ in range(2)]
+                pids = [prets.get(timeout=10) for _ in range(2)]
+                limite = time.monotonic() + 10
+                while True:
+                    with connection.cursor() as curseur:
+                        curseur.execute("SELECT count(DISTINCT pid) FROM pg_locks "
+                                        "WHERE pid IN (%s, %s) AND NOT granted", pids)
+                        bloques = curseur.fetchone()[0]
+                    if bloques == 2 or time.monotonic() >= limite:
+                        break
+                    time.sleep(0.01)
+                self.assertEqual(bloques, 2, 'Les deux UPDATE doivent attendre le verrou')
+            resultats = [client.result(timeout=10) for client in clients]
+        self.assertEqual(sum(resultats), 1)
+        self.assertFalse(totp.utiliser_code_secours(self.user, self.codes[0]))
+
+    def test_reset_commis_avant_update_refuse_ancien_secours(self):
+        empreinte = totp._empreinte
+        def calculer(code):
+            resultat = empreinte(code)
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                pool.submit(self.executer, lambda: totp.reinitialiser(self.user)).result(10)
+            return resultat
+        with patch.object(totp, '_empreinte', side_effect=calculer):
+            self.assertFalse(totp.utiliser_code_secours(self.user, self.codes[0]))

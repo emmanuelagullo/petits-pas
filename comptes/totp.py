@@ -199,11 +199,15 @@ def utiliser_code_secours(utilisateur, saisie):
             confirme_le__isnull=False).exclude(cle_chiffree='').first()
         if compte is None:
             return False
+        # Le prédicat de consommation doit rester sur la ligne UPDATE :
+        # une jointure directe déplacerait aussi utilise_le IS NULL dans une
+        # sous-requête, périmée après une attente de verrou PostgreSQL.
+        inscrits = DoubleFacteurCompte.objects.filter(pk=compte.pk,
+            cle_chiffree=compte.cle_chiffree,
+            confirme_le=compte.confirme_le).values("utilisateur_id")
         return bool(CodeSecoursDoubleFacteur.objects.filter(
-            utilisateur=utilisateur, empreinte=_empreinte(code), utilise_le__isnull=True,
-            utilisateur__double_facteur__cle_chiffree=compte.cle_chiffree,
-            utilisateur__double_facteur__confirme_le=compte.confirme_le,
-        ).update(utilise_le=timezone.now()))
+            utilisateur_id__in=inscrits, empreinte=_empreinte(code),
+            utilise_le__isnull=True).update(utilise_le=timezone.now()))
     except DatabaseError:
         logger.warning("Code de secours refusé : stockage indisponible.")
         return False
