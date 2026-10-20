@@ -312,3 +312,7 @@ par le préparateur Pages. La publication de main reste manuelle.
 Lire SAUVEGARDES.md dans pas-communs. Les ZIP restent privés, complets et propres
 au produit ; ne pas les transformer en démonstration distribuable. Conserver les
 sessions de la source et vider seulement celles de la préparation restaurée.
+
+#SOC — sites : lire site/README.md et site/theme-communs/HUGO.md. Initialiser
+le sous-module épinglé avant Hugo. Ne pas recopier les layouts/styles du thème.
+Conserver contenus, démonstration, URL et paramètres de couleur propres au produit.

@@ -149,3 +149,43 @@ Les URL, par exemple `notes-versions/0.9/`, restent disponibles même si cette
 Après une release, actualiser aussi le catalogue conservé dans
 `site/data/publications.yaml` à partir des fichiers publics, afin que les
 constructions sans accès à l’API restent à jour.
+
+## Thème commun et vérification (#SOC)
+
+Avant toute construction (clone neuf compris) :
+
+```sh
+git submodule update --init site/theme-communs
+```
+
+Le gitlink épingle un commit public de Pas communs, utilisé uniquement pour
+le thème Hugo. Lire `site/theme-communs/HUGO.md`. Ne pas utiliser `--remote`
+en CI. Aucun changement de wheel Python ou de déploiement applicatif.
+La CI initialise le sous-module dans les jobs Hugo ; les contenus et artefacts
+métier continuent d’être préparés par les jobs habituels.
+
+Menus : `site/hugo.toml`. Identité : `site/static/css/identite.css` et paramètre
+`themeColor`. Accueil, contenus, comptes fictifs et shortcodes métier restent
+locaux. Les layouts génériques, guide, navigation, encadrés et CSS viennent du
+thème : ne pas en réintroduire une copie locale.
+
+Après la préparation et la construction Hugo :
+
+```sh
+python3 site/theme-communs/hugo/verifier-site.py --sortie site/public --base-url https://example.invalid/produit/
+```
+
+Utiliser la même URL de base pour Hugo et le contrôle. Tester aussi la racine
+et le préfixe public. Le contrôle attend les captures et fichiers d’essai du
+produit lorsqu’ils sont référencés. Il ne remplace pas la revue clavier et
+mobile/ordinateur. Pour une évolution commune : publier d’abord le commit du
+socle sur GitLab Inria, puis avancer les sous-modules applicatifs, construire
+et publier les sites. Le miroir GitHub conserve son rôle de miroir ; il n’est
+pas utilisé pour récupérer le thème. Leurs URL restent inchangées.
+
+Le sous-module utilise l’URL HTTPS absolue de GitLab Inria déclarée dans
+`.gitmodules`. Cette déclaration fait foi pour la récupération du thème ;
+l’ancienne mention du miroir GitHub dans le contrat du commit importé est
+historique. Le commit adopté est celui effectivement publié sur Inria :
+`5d64e2487939093bd6378a8a1611da95d93830ca`. Aucune reproduction de SHA avec
+une commande spéciale `git am` n’est nécessaire.
