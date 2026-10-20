@@ -137,3 +137,17 @@ raccourci et données Petits Pas sont conservés. La CI compile, installe,
 contrôle le programme, réinstalle et désinstalle avec un témoin de données
 conservé. Les manifestes et la promotion du setup restent propres au produit.
 Publier le wheel 0.7.0 avant d’adopter cette dépendance.
+
+## Candidat 0.9.0 — copies communes
+
+L'état préparation/confirmation historique est extrait dans RestaurationLocale.
+La façade et les droits Petits Pas restent inchangés. Seules les sessions de
+la préparation sont retirées pour imposer une nouvelle connexion ; la source,
+les comptes, mots de passe, permissions, facteurs et clés restent intacts.
+Le même mécanisme de neutralisation est utilisé pour les aperçus. Ne pousser
+cette adoption qu'après publication du wheel 0.9.0 et contrôle de son empreinte.
+
+Après construction PWA : `PWA_BUNDLE=dist/pwa-candidat node scripts/verifier-paquet-pyodide.mjs`
+vérifie dans le vrai runtime la reprise du témoin 0.10, les migrations, les
+sessions et la réinitialisation des façades après activation. Ce banc Node
+ne remplace pas OPFS/Chromium et les essais sur appareils.

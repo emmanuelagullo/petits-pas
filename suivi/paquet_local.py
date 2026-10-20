@@ -1,7 +1,5 @@
 """Adaptation Petits Pas du moteur Pas communs ; API et état local conservés."""
 import json
-import shutil
-import threading
 from datetime import datetime, timezone
 
 from pas_communs import paquets as moteur
@@ -13,9 +11,7 @@ from pas_communs.paquets import (
 FORMAT = "petits-pas-paquet"
 PROFIL = ProfilPaquet("petits-pas", FORMAT, "carnet.sqlite3", accepter_sans_application=True)
 SUIVI_SAUVEGARDE = "suivi-sauvegarde.json"
-_attente = None
-_preparation = None
-_verrou_attente = threading.Lock()
+_restauration = moteur.RestaurationLocale()
 
 
 def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None,
@@ -67,37 +63,21 @@ def suivi_export(paquet, maintenant=None):
 
 
 def retenir_preparation(preparation):
-    global _preparation
-    with _verrou_attente:
-        if _attente is not None or _preparation is not None:
-            raise ValueError("Une restauration est déjà en préparation.")
-        _preparation = preparation
+    moteur.vider_tables_copie(preparation.etape / PROFIL.base, ("django_session",))
+    _restauration.retenir(preparation)
 
 
 def preparation_en_attente():
-    with _verrou_attente:
-        return _preparation
+    return _restauration.preparation()
 
 
 def annuler_preparation():
-    global _preparation
-    with _verrou_attente:
-        preparation = _preparation
-        _preparation = None
-    if preparation is not None:
-        shutil.rmtree(preparation.etape)
+    return _restauration.annuler()
 
 
 def confirmer_restauration():
-    global _preparation, _attente
-    with _verrou_attente:
-        if _preparation is None or _attente is not None:
-            raise ValueError("Aucune restauration à confirmer.")
-        _attente = _preparation
-        _preparation = None
-        return _attente
+    return _restauration.confirmer()
 
 
 def restauration_en_attente():
-    with _verrou_attente:
-        return _attente
+    return _restauration.attente()
