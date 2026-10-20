@@ -247,6 +247,7 @@ deploiement-persistant-local:
         - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
+        - .gitmodules
         - "site/**/*"
         - "start-*.sh"
         - "suivi/**/*"
@@ -311,6 +312,8 @@ captures-demonstration:
     expire_in: 1 week
 
 .hugo:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   image:
     # Immutable image currently providing Hugo Extended 0.140.2.
     name: registry.gitlab.com/pages/hugo/hugo_extended@sha256:ff07c15f0ff5876c7a737d07b906d48802e7fcd1bba02f648fae63fda57ddb56
@@ -336,10 +339,23 @@ site-public:
       - site/public
     expire_in: 1 week
 
+site-public-liens:
+  extends: .site-public-rules
+  stage: publication
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  needs:
+    - job: site-public
+      artifacts: true
+  script:
+    - python3 site/theme-communs/hugo/verifier-site.py --sortie site/public --base-url https://example.invalid/
+
 pages:
   extends: .hugo
   stage: publication
   needs:
+    - job: site-public-liens
+      artifacts: false
     - job: captures-demonstration
       artifacts: true
   script:
@@ -365,6 +381,7 @@ pages:
         - requirements-anymail.txt
         - requirements.txt
         - "scripts/**/*"
+        - .gitmodules
         - "site/**/*"
         - "start-*.sh"
         - "suivi/**/*"

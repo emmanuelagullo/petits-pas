@@ -1,10 +1,15 @@
+theme = "pas"
+themesDir = "theme-communs/hugo"
 baseURL = "/"
-locale = "fr-FR"
+languageCode = "fr-FR"
+defaultContentLanguage = "fr"
 title = "Petits Pas"
 enableRobotsTXT = true
 disableKinds = ["taxonomy", "term"]
 
 [params]
+  themeColor = "#285242"
+  projectPath = "projet/"
   description = "Un carnet numérique libre pour suivre les apprentissages en maternelle."
   repository = "https://gitlab.inria.fr/petits-pas/petits-pas"
 
@@ -16,3 +21,48 @@ disableKinds = ["taxonomy", "term"]
 [security]
   allowContent = ["^text/markdown$", "^text/org$"]
   enableInlineShortcodes = false
+
+[[menus.main]]
+  name = "Démarrer"
+  pageRef = "/demarrer/"
+  weight = 1
+
+[[menus.main]]
+  name = "Essayer"
+  pageRef = "/demonstration/"
+  weight = 2
+
+[[menus.main]]
+  name = "Guide pratique"
+  pageRef = "/guide/"
+  weight = 3
+
+[[menus.main]]
+  name = "Le projet"
+  pageRef = "/projet/"
+  weight = 4
+
+[[menus.main]]
+  name = "Contribuer"
+  pageRef = "/contribuer/"
+  weight = 5
+
+[[menus.footer]]
+  name = "Protéger les données"
+  pageRef = "/proteger-donnees/"
+  weight = 1
+
+[[menus.footer]]
+  name = "Institutions et hébergement"
+  pageRef = "/dsi/"
+  weight = 2
+
+[[menus.footer]]
+  name = "Rôles et accès"
+  pageRef = "/roles/"
+  weight = 3
+
+[[menus.footer]]
+  name = "Documentation technique"
+  pageRef = "/conception/"
+  weight = 4
