@@ -1,8 +1,6 @@
 """Copie validée indépendante : jamais une restauration de l'école courante."""
 import json
 import shutil
-import sqlite3
-from contextlib import closing
 from pathlib import Path
 from threading import RLock
 from .paquet_local import preparer_restauration
@@ -36,10 +34,8 @@ def retenir(copie):
         try:
             # Une copie exige sa propre connexion ; ne réutiliser aucune session
             # de l'école d'origine, même si un navigateur possède son cookie.
-            with closing(sqlite3.connect(copie.etape / "carnet.sqlite3")) as db:
-                if db.execute("SELECT 1 FROM sqlite_master WHERE name='django_session'").fetchone():
-                    db.execute("DELETE FROM django_session")
-                    db.commit()
+            from pas_communs.paquets import vider_tables_copie
+            vider_tables_copie(copie.etape / "carnet.sqlite3", ("django_session",))
             (copie.etape / MARQUEUR).write_text(json.dumps({"format": "petits-pas-apercu",
                 "archive": copie.nom_archive}), encoding="utf-8")
         except BaseException:

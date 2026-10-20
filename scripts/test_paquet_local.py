@@ -464,10 +464,25 @@ class PaquetLocalTests(unittest.TestCase):
                 self.assertIsNone(preparation_en_attente())
                 self.assertTrue((paquet / "carnet.sqlite3").exists())
             finally:
-                module._attente = None
+                module._restauration = module.moteur.RestaurationLocale()
                 if preparation.etape.exists():
                     import shutil
                     shutil.rmtree(preparation.etape)
+
+    def test_facades_importees_suivent_la_reinitialisation_worker(self):
+        # Le Worker recharge le module après activation, alors que les vues ont
+        # déjà importé ses fonctions : aucun alias lié à l'ancien état confirmé.
+        import importlib
+        import suivi.paquet_local as module
+        from suivi.paquet_local import restauration_en_attente as attente_vue
+        ancien = module._restauration
+        ancien._attente = object()
+        try:
+            self.assertIsNotNone(attente_vue())
+            importlib.reload(module)
+            self.assertIsNone(attente_vue())
+        finally:
+            importlib.reload(module)
 
     def test_archive_invalide_ne_modifie_pas_le_paquet(self):
         with tempfile.TemporaryDirectory() as temporaire:

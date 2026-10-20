@@ -307,3 +307,8 @@ La politique du canal stable est décrite dans pwa/PUBLICATION.md.
 Politique PWA adoptée : seuls les tags sans suffixe publient automatiquement
 à l’adresse habituelle. Les préversions sont construites et testées, mais refusées
 par le préparateur Pages. La publication de main reste manuelle.
+
+#SOC — copies : adoption candidate de 0.9.0, à pousser après publication du wheel.
+Lire SAUVEGARDES.md dans pas-communs. Les ZIP restent privés, complets et propres
+au produit ; ne pas les transformer en démonstration distribuable. Conserver les
+sessions de la source et vider seulement celles de la préparation restaurée.
