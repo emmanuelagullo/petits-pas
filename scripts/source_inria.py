@@ -2,6 +2,7 @@
 import json
 import re
 import stat
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import PurePosixPath
@@ -21,7 +22,35 @@ def json_request(url):
     return json.loads(raw)
 
 
-def selectionner_source(tag, commit, ref="main"):
+class SourceEnAttente(ValueError):
+    """Absence temporaire d'une validation, sans échec de publication."""
+
+
+def identite_source(url, *, distinguer_attente):
+    try:
+        return json_request(url)
+    except urllib.error.HTTPError as error:
+        if distinguer_attente and error.code == 404:
+            raise SourceEnAttente("Référence ou commit pas encore disponible sur Inria/GitHub.") from error
+        raise
+
+
+def pipeline_non_disponible(base, ref, commit):
+    query = urllib.parse.urlencode({"ref": ref, "sha": commit,
+                                   "order_by": "id", "sort": "desc", "per_page": 1})
+    candidates = json_request(base + "/pipelines?" + query)
+    if not candidates:
+        raise SourceEnAttente("Aucun pipeline Inria pour cette référence et ce commit. Pousser sur Inria puis attendre sa validation.")
+    pipeline = candidates[0]
+    if pipeline['sha'] != commit or pipeline['ref'] != ref:
+        raise ValueError("Pipeline Inria inattendu.")
+    if pipeline['status'] in {'created', 'pending', 'running', 'preparing',
+                              'waiting_for_resource', 'scheduled', 'manual'}:
+        raise SourceEnAttente("Validation Inria encore en attente : " + pipeline['status'])
+    raise ValueError("Aucune validation Inria réussie ; dernier pipeline : " + pipeline['status'])
+
+
+def selectionner_source(tag, commit, ref="main", *, distinguer_attente=False):
     if tag:
         if not re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[A-Za-z0-9.-]+)?", tag):
             raise ValueError("Un tag numérique est requis pour le miroir Éducation.")
@@ -36,20 +65,22 @@ def selectionner_source(tag, commit, ref="main"):
     base = API + "/projects/" + str(project["id"])
     if tag:
         encoded_tag = urllib.parse.quote(tag, safe="")
-        inria_tag = json_request(base + "/repository/tags/" + encoded_tag)
-        github_tag = json_request("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + encoded_tag)
+        inria_tag = identite_source(base + "/repository/tags/" + encoded_tag, distinguer_attente=distinguer_attente)
+        github_tag = identite_source("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + encoded_tag, distinguer_attente=distinguer_attente)
         if inria_tag["commit"]["id"] != commit or github_tag["sha"] != commit:
             raise ValueError("Le tag ne désigne pas le même commit sur les trois hébergements.")
     else:
         # Les branches peuvent avancer pendant la publication : vérifier le SHA,
         # puis sélectionner son pipeline exact, sans suivre leur dernière tête.
-        github_commit = json_request("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + commit)
+        github_commit = identite_source("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + commit, distinguer_attente=distinguer_attente)
         if github_commit["sha"] != commit:
             raise ValueError("Commit absent ou différent sur GitHub.")
     query = urllib.parse.urlencode({"ref": ref, "sha": commit, "status": "success",
                                    "order_by": "id", "sort": "desc", "per_page": 1})
     candidates = json_request(base + "/pipelines?" + query)
     if not candidates:
+        if distinguer_attente:
+            pipeline_non_disponible(base, ref, commit)
         raise ValueError("Aucun pipeline Inria réussi pour cette référence et ce commit. Attendre sa réussite puis relancer.")
     pipeline = json_request(base + "/pipelines/" + str(candidates[0]["id"]))
     if (pipeline["sha"] != commit or pipeline["ref"] != ref

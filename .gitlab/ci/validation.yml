@@ -118,6 +118,7 @@ test:
     - python -m unittest discover -s scripts -p test_publication_automatique.py
     - python -m unittest discover -s scripts -p test_canal_pwa.py
     - python -m unittest discover -s scripts -p test_source_inria.py
+    - python -m unittest discover -s scripts -p test_pipeline_education.py
     - python -m unittest discover -s scripts -p test_publications_site.py
     - python3 manage.py collectstatic --noinput
     - python3 scripts/valider-illustrations-statiques.py

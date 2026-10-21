@@ -192,7 +192,8 @@ une commande spéciale `git am` n’est nécessaire.
 
 ## Miroir Éducation
 
-Le profil `.gitlab/ci/publication-education.yml` importe captures et école
+Après le contrôle de disponibilité de `publication-education.yml`, le pipeline
+enfant `.gitlab/ci/publication-education-taches.yml` importe captures et école
 fictive du pipeline Inria réussi sur la même référence et au même commit, puis
 construit Hugo pour son URL Pages. Il ne relance pas le scénario Django/Chromium.
 Le catalogue des releases GitHub est actualisé ; sur tag, la version publiée

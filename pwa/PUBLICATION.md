@@ -251,6 +251,8 @@ identifient la nouvelle URL et la provenance (`source_api`).
 
 Attendre la CI Inria et, sur tag, la release GitHub, puis pousser la même
 branche ou le même tag sur Éducation. Sans tag, le catalogue des releases
-existantes est actualisé et le bundle PWA de développement qualifié est publié. Une publication trop précoce ou des artefacts expirés échouent
-explicitement ; voir `CONTRIBUTING.md` pour les commandes et la reprise.
+existantes est actualisé et le bundle PWA de développement qualifié est publié. Une publication trop précoce attend désormais une action manuelle dans le
+pipeline enfant : lancer `source-inria` après validation Inria. Les artefacts
+expirés et les erreurs de contrôle restent fatals ; voir `CONTRIBUTING.md` pour
+les commandes et la reprise.
 L'auxiliaire conserve son fichier d'inclusion actuel et n'exige aucun jeton.

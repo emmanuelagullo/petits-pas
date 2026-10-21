@@ -5,7 +5,6 @@ image: python:3.12-slim-bookworm
 
 stages:
   - preparation
-  - construction
   - publication
 
 # Chaque push de branche ou de tag lance le profil léger ; reprise manuelle possible.
@@ -15,79 +14,28 @@ workflow:
     - if: '$CI_COMMIT_BRANCH'
     - when: never
 
-source-inria:
+disponibilite-inria:
   stage: preparation
   script:
-    - python3 scripts/importer-site-inria.py
-    - |
-      if [ -n "$CI_COMMIT_TAG" ]; then
-        python3 scripts/preparer-publications-site.py --exiger-version "$CI_COMMIT_TAG"
-      else
-        python3 scripts/preparer-publications-site.py --strict
-      fi
+    - python3 scripts/preparer-pipeline-education.py --destination publication-education-enfant.yml
   artifacts:
     expire_in: 1 week
     paths:
-      - site/static/captures/
-      - site/static/essais/
-      - site/data/publications_generees.json
-      - source-inria.json
+      - publication-education-enfant.yml
 
-site-public:
-  stage: construction
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-    HUGO_PARAMS_PWAURL: "/petits-pas-pwa/"
-  image:
-    name: registry.gitlab.com/pages/hugo/hugo_extended@sha256:ff07c15f0ff5876c7a737d07b906d48802e7fcd1bba02f648fae63fda57ddb56
-    entrypoint: [""]
-  needs:
-    - job: source-inria
-      artifacts: true
-  script:
-    - sh scripts/preparer-site.sh
-    - hugo --source site --baseURL "$CI_PAGES_URL/" --cleanDestinationDir --minify --panicOnWarning
-  artifacts:
-    expire_in: 1 week
-    paths:
-      - site/public/
-
-pages:
+publication:
   stage: publication
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
   needs:
-    - job: site-public
+    - job: disponibilite-inria
       artifacts: true
-  script:
-    - python3 site/theme-communs/hugo/verifier-site.py --sortie site/public --base-url "$CI_PAGES_URL/"
-  pages:
-    publish: site/public
-  resource_group: site-pages
-
-pwa-publication:
-  stage: publication
-  rules:
-    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
-    - if: '$CI_COMMIT_BRANCH'
-    - when: never
-  needs:
-    - job: pages
-      artifacts: false
   inherit:
     default: false
     variables: false
-  variables:
-    PWA_SOURCE_PROJECT: "$CI_PROJECT_PATH"
-    PWA_SOURCE_PROJECT_ID: "$CI_PROJECT_ID"
-    PWA_SOURCE_PIPELINE_ID: "$CI_PIPELINE_ID"
-    PWA_SOURCE_SHA: "$CI_COMMIT_SHA"
-    PWA_SOURCE_REF: "$CI_COMMIT_REF_NAME"
-    PWA_SOURCE_TAG: "$CI_COMMIT_TAG"
   trigger:
-    project: petits-pas/petits-pas-pwa
-    branch: main
-    strategy: depend
+    include:
+      - artifact: publication-education-enfant.yml
+        job: disponibilite-inria
+    strategy: mirror
     forward:
-      yaml_variables: true
+      yaml_variables: false
       pipeline_variables: false

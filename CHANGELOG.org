@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Forge Éducation : validation Inria absente ou encore en cours représentée
+  par une publication en attente manuelle, sans avertissement d'échec.
+  Les véritables erreurs et les contrôles d'intégrité restent bloquants.
+
 - Forge Éducation : pipeline léger aussi lors d’un push sans tag, avec les
   artefacts Inria validés de la même référence et du même commit. Catalogue
   des releases existantes actualisé sans exiger une nouvelle version.
