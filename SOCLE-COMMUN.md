@@ -1,6 +1,6 @@
 # Pas communs — état courant et historique des extractions
 
-La version `pas-communs` 0.8.0 est publiée et adoptée au 20 octobre 2026.
+La version `pas-communs` 0.9.0 est publiée et adoptée pour Petits Pas 0.12.
 Préserver ses octets et son tag ; une correction documentaire ne la republie pas. L'URL et l'empreinte réellement adoptées sont celles
 de requirements-communs.txt. Les sections #SOC ci-dessous sont historiques.
 Lire aussi QUALIFICATION.md dans le dépôt du socle.
