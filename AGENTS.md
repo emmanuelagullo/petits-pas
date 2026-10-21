@@ -17,12 +17,14 @@ Les mêmes commits et tags sont poussés sur les trois hébergements applicatifs
 Les profils `.gitlab/ci/runners-*.yml` choisissent les runners selon la forge :
 sans étiquette sur Éducation, `ci.inria.fr` / `small` ou `medium` sur Inria.
 La CI complète réside dans `.gitlab/ci/validation.yml`. Éducation utilise
-`.gitlab/ci/publication-education.yml` : tags stables uniquement, récupération
-des artefacts Inria du même tag/commit après réussite complète du pipeline,
+`.gitlab/ci/publication-education.yml` : pipeline à chaque push de branche ou
+de tag, récupération des artefacts Inria de la même référence et du même commit
+après réussite complète du pipeline,
 puis publication du site et de la PWA. Aucun test Django, déploiement, navigateur
 ou reconstruction PWA sur Éducation. Les contrôles de manifestes, empreintes et
 qualification restent obligatoires ; ne pas les remplacer par une confiance
-implicite dans le nom du tag. La reprise manuelle se fait sur le tag stable.
+implicite dans le nom du tag. La reprise manuelle se fait sur la branche ou le tag concerné. Les préversions
+ne publient pas la PWA habituelle.
 Le site Éducation conserve les téléchargements GitHub et pointe vers sa PWA.
 Ce miroir ne duplique pas les dépendances externes (wheel et thème commun).
 
@@ -86,7 +88,9 @@ les manifestes et les sources des sites se modifient dans le dépôt applicatif.
   releases GitHub ; seuls les tags sans suffixe publient automatiquement la PWA,
   à partir des artefacts validés sans
   reconstruction ; la reprise manuelle reste disponible. Sur main, la publication
-  PWA reste manuelle. Les déploiements serveur gardent leur procédure séparée
+  PWA reste manuelle sur Inria ; le miroir Éducation de Petits Pas la publie
+  automatiquement sur push de branche après validation Inria du même SHA.
+  Les déploiements serveur gardent leur procédure séparée
   et ne sont pas modifiés implicitement
   par une extraction du socle ou une publication de programme/PWA.
 
@@ -320,9 +324,10 @@ scripts/test_archive_historique.py via unittest sur les profils concernés.
 Python du constructeur PWA >=3.12 et Python embarqué Pyodide sont distincts.
 La politique du canal stable est décrite dans pwa/PUBLICATION.md.
 
-Politique PWA adoptée : seuls les tags sans suffixe publient automatiquement
+Politique PWA adoptée : parmi les tags, seuls ceux sans suffixe publient automatiquement
 à l’adresse habituelle. Les préversions sont construites et testées, mais refusées
-par le préparateur Pages. La publication de main reste manuelle.
+par le préparateur Pages. La publication de main reste manuelle sur Inria et est automatique sur
+push vers Éducation après qualification Inria du commit exact.
 
 #SOC — copies : adoption candidate de 0.9.0, à pousser après publication du wheel.
 Lire SAUVEGARDES.md dans pas-communs. Les ZIP restent privés, complets et propres

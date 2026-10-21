@@ -35,6 +35,7 @@ def catalogue(releases):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--exiger-version', help='Échouer si cette version stable est absente du catalogue.')
+    parser.add_argument('--strict', action='store_true', help='Échouer si le catalogue ne peut pas être actualisé.')
     args = parser.parse_args()
     try:
         request=urllib.request.Request('https://api.github.com/repos/emmanuelagullo/petits-pas/releases?per_page=20',headers={'User-Agent':'PetitsPas-site-public'})
@@ -50,7 +51,7 @@ def main():
         temporary.replace(DESTINATION)
         print('Catalogue des releases GitHub publiques actualisé.')
     except (OSError, ValueError, KeyError) as error:
-        if args.exiger_version:
+        if args.strict or args.exiger_version:
             raise SystemExit('Catalogue non actualisé : ' + str(error)) from error
         print('Catalogue non actualisé ; conserver les versions connues :',error)
 

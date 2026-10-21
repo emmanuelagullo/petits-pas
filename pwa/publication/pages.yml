@@ -14,8 +14,9 @@ stages:
 
 workflow:
   rules:
-    - if: '$CI_SERVER_HOST == "forge.apps.education.fr" && $PWA_SOURCE_TAG !~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
+    - if: '$CI_SERVER_HOST == "forge.apps.education.fr" && $PWA_SOURCE_TAG && $PWA_SOURCE_TAG !~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
       when: never
+    - if: '$CI_SERVER_HOST == "forge.apps.education.fr" && $CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "petits-pas/petits-pas" && $PWA_SOURCE_REF && $PWA_SOURCE_TAG == ""'
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "petits-pas/petits-pas" && ($PWA_SOURCE_REF == "main" || $PWA_SOURCE_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/)'
     - when: never
 

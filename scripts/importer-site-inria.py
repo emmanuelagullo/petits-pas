@@ -9,7 +9,8 @@ from source_inria import extraire_site, selectionner_source, telecharger, trouve
 
 
 def main():
-    source = selectionner_source(os.environ.get("CI_COMMIT_TAG"), os.environ.get("CI_COMMIT_SHA"))
+    source = selectionner_source(os.environ.get("CI_COMMIT_TAG"), os.environ.get("CI_COMMIT_SHA"),
+                                 os.environ.get("CI_COMMIT_REF_NAME", "main"))
     job, url = trouver_job(source, "captures-demonstration")
     with tempfile.TemporaryDirectory(prefix="site-inria-") as temporary:
         archive = Path(temporary) / "captures.zip"

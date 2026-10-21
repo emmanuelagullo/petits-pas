@@ -1,4 +1,4 @@
-"""Retrouver une version stable qualifiée, sans prendre le dernier main."""
+"""Retrouver les artefacts qualifiés d’une référence et d’un commit exacts."""
 import json
 import re
 import stat
@@ -21,31 +21,42 @@ def json_request(url):
     return json.loads(raw)
 
 
-def selectionner_source(tag, commit):
-    if not re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?", tag or ""):
-        raise ValueError("Un tag stable est requis pour le miroir Éducation.")
+def selectionner_source(tag, commit, ref="main"):
+    if tag:
+        if not re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?(?:-[A-Za-z0-9.-]+)?", tag):
+            raise ValueError("Un tag numérique est requis pour le miroir Éducation.")
+        ref = tag
+    elif not ref or len(ref) > 255 or any(ord(c) < 32 for c in ref):
+        raise ValueError("Branche source invalide.")
     if not re.fullmatch(r"[a-f0-9]{40}", commit or ""):
         raise ValueError("Commit source invalide.")
     project = json_request(API + "/projects/" + urllib.parse.quote(PROJECT, safe=""))
     if project["path_with_namespace"] != PROJECT or not str(project["id"]).isdecimal():
         raise ValueError("Projet Inria inattendu.")
     base = API + "/projects/" + str(project["id"])
-    encoded_tag = urllib.parse.quote(tag, safe="")
-    inria_tag = json_request(base + "/repository/tags/" + encoded_tag)
-    github_tag = json_request("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + encoded_tag)
-    if inria_tag["commit"]["id"] != commit or github_tag["sha"] != commit:
-        raise ValueError("Le tag ne désigne pas le même commit sur les trois hébergements.")
-    query = urllib.parse.urlencode({"ref": tag, "sha": commit, "status": "success",
+    if tag:
+        encoded_tag = urllib.parse.quote(tag, safe="")
+        inria_tag = json_request(base + "/repository/tags/" + encoded_tag)
+        github_tag = json_request("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + encoded_tag)
+        if inria_tag["commit"]["id"] != commit or github_tag["sha"] != commit:
+            raise ValueError("Le tag ne désigne pas le même commit sur les trois hébergements.")
+    else:
+        # Les branches peuvent avancer pendant la publication : vérifier le SHA,
+        # puis sélectionner son pipeline exact, sans suivre leur dernière tête.
+        github_commit = json_request("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + commit)
+        if github_commit["sha"] != commit:
+            raise ValueError("Commit absent ou différent sur GitHub.")
+    query = urllib.parse.urlencode({"ref": ref, "sha": commit, "status": "success",
                                    "order_by": "id", "sort": "desc", "per_page": 1})
     candidates = json_request(base + "/pipelines?" + query)
     if not candidates:
-        raise ValueError("Aucun pipeline Inria réussi pour ce tag et ce commit. Attendre sa réussite puis relancer.")
+        raise ValueError("Aucun pipeline Inria réussi pour cette référence et ce commit. Attendre sa réussite puis relancer.")
     pipeline = json_request(base + "/pipelines/" + str(candidates[0]["id"]))
-    if (pipeline["sha"] != commit or pipeline["ref"] != tag
+    if (pipeline["sha"] != commit or pipeline["ref"] != ref
             or pipeline["status"] != "success" or pipeline.get("source") not in ("push", "web", "api")):
         raise ValueError("Pipeline Inria inattendu ou non réussi.")
     return {"api": API, "project": PROJECT, "project_id": str(project["id"]),
-            "pipeline_id": str(pipeline["id"]), "commit": commit, "tag": tag}
+            "pipeline_id": str(pipeline["id"]), "commit": commit, "tag": tag or None, "ref": ref}
 
 
 def trouver_job(source, name):

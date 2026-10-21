@@ -73,7 +73,7 @@ def json_request(url):
         return json.load(response), response.headers
 
 
-def select_job(api, project, pipeline_id, commit, ref="main", tag=None):
+def select_job(api, project, pipeline_id, commit, ref="main", tag=None, qualified_branch=False):
     # Canal habituel : les préversions restent des artefacts de qualification.
     if tag and not re.fullmatch(r"[0-9]+\.[0-9]+(?:\.[0-9]+)?", tag):
         raise ValueError("Le canal PWA habituel exige un tag stable sans suffixe.")
@@ -90,7 +90,7 @@ def select_job(api, project, pipeline_id, commit, ref="main", tag=None):
         github_tag, _ = json_request("https://api.github.com/repos/emmanuelagullo/petits-pas/commits/" + urllib.parse.quote(tag, safe=""))
         if gitlab_tag['commit']['id'] != commit or github_tag['sha'] != commit:
             raise ValueError("Tag absent ou différent entre les forges.")
-    elif ref != info['default_branch']:
+    elif ref != info['default_branch'] and not qualified_branch:
         raise ValueError("Branche PWA inattendue.")
     if pipeline["sha"] != commit or pipeline["ref"] != ref:
         raise ValueError("Commit ou branche du pipeline inattendu.")
@@ -146,12 +146,13 @@ def main():
     tag = os.environ.get('PWA_SOURCE_TAG') or None
     api = os.environ["CI_API_V4_URL"]
     if args.source_inria:
-        if not tag or ref != tag:
-            raise ValueError("Le miroir Éducation publie uniquement un tag stable explicite.")
+        if tag and ref != tag:
+            raise ValueError("Le tag et la référence source diffèrent.")
         from source_inria import selectionner_source
-        source = selectionner_source(tag, commit)
+        source = selectionner_source(tag, commit, ref)
         api, project, pipeline = source["api"], source["project_id"], source["pipeline_id"]
-    job, url = select_job(api, project, pipeline, commit, ref, tag)
+    options = {"qualified_branch": True} if args.source_inria and not tag else {}
+    job, url = select_job(api, project, pipeline, commit, ref, tag, **options)
     with tempfile.TemporaryDirectory(prefix="publication-pwa-") as temp:
         parent = Path(temp)
         archive = parent / "artefact.zip"

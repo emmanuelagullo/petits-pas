@@ -137,6 +137,19 @@ class PublicationTests(unittest.TestCase):
             with self.subTest(status=status), patch.object(publication,'json_request',side_effect=responses), self.assertRaises(ValueError):
                 publication.select_job('https://fictif/api/v4','12','56',commit)
 
+    def test_branche_hors_main_exige_selection_inria_qualifiee(self):
+        commit='b'*40
+        ref='correction/pages'
+        responses=[({'id':12,'path_with_namespace':publication.SOURCE,'default_branch':'main'},{}),
+                   ({'sha':commit,'ref':ref},{}),
+                   ([{'id':i,'name':name,'status':'success','commit':{'id':commit},'pipeline':{'id':56}}
+                     for i,name in [(34,'pwa-prototype'),(35,'pwa-qualification')]],{})]
+        with patch.object(publication,'json_request',side_effect=responses), self.assertRaisesRegex(ValueError,'Branche PWA'):
+            publication.select_job('https://fictif/api/v4','12','56',commit,ref)
+        with patch.object(publication,'json_request',side_effect=responses):
+            job,_=publication.select_job('https://fictif/api/v4','12','56',commit,ref,qualified_branch=True)
+            self.assertEqual(job['qualification']['id'],35)
+
     def test_tag_common_to_both_forges(self):
         commit='b'*40
         jobs=[{'id':i,'name':name,'status':'success','commit':{'id':commit},'pipeline':{'id':56}} for i,name in [(34,'pwa-prototype'),(35,'pwa-qualification')]]
@@ -155,11 +168,15 @@ class PublicationTests(unittest.TestCase):
     def test_miroir_education_reutilise_bundle_et_controles_inria(self):
         self.exercer_publication_complete(education=True)
 
-    def exercer_publication_complete(self, education=False):
+    def test_miroir_education_publie_aussi_une_branche_qualifiee(self):
+        self.exercer_publication_complete(education=True, branch=True)
+
+    def exercer_publication_complete(self, education=False, branch=False):
         import os, shutil
         from publication import manifest
         commit='b'*40
-        tag = '0.12.0' if education else None
+        tag = '0.12.0' if education and not branch else None
+        ref = 'correction/pages' if branch else (tag or 'main')
         version = tag or 'dev.bbbbbbbb'
         self.config.update(commit=commit, tag=tag, application_version=version)
         self.write_config()
@@ -188,7 +205,7 @@ class PublicationTests(unittest.TestCase):
             env={'PWA_SOURCE_PROJECT':publication.SOURCE,'CI_API_V4_URL':'https://fictif/api/v4','PWA_SOURCE_PROJECT_ID':'12','PWA_SOURCE_PIPELINE_ID':'56','PWA_SOURCE_SHA':commit}
             if education:
                 env.update(PWA_SOURCE_PROJECT_ID='901', PWA_SOURCE_PIPELINE_ID='902',
-                           PWA_SOURCE_REF=tag, PWA_SOURCE_TAG=tag)
+                           PWA_SOURCE_REF=ref, PWA_SOURCE_TAG=tag or '')
             old=os.getcwd();os.chdir(base)
             try:
                 with patch.dict(os.environ,env,clear=True), patch.object(publication,'select_job',return_value=(job,'https://fictif/jobs/34/artifacts')) as selection, patch.object(publication,'download',side_effect=download), patch('sys.argv',['preparer','--destination',str(destination),'--pages-url','https://pwa-fictive.example/'] + (['--source-inria'] if education else [])), patch('source_inria.selectionner_source',return_value={'api':'https://gitlab.inria.fr/api/v4','project_id':'12','pipeline_id':'56'}):
@@ -198,7 +215,7 @@ class PublicationTests(unittest.TestCase):
                         self.assertEqual(report['qualification_job_id'],35)
                         self.assertEqual(report['application_version'],version)
                         if education:
-                            selection.assert_called_once_with('https://gitlab.inria.fr/api/v4', '12', '56', commit, tag, tag)
+                            selection.assert_called_once_with('https://gitlab.inria.fr/api/v4', '12', '56', commit, ref, tag, **({'qualified_branch': True} if branch else {}))
                             self.assertEqual(report['source_api'],'https://gitlab.inria.fr/api/v4')
                             for file in self.root.iterdir():
                                 self.assertEqual(file.read_bytes(), (destination/file.name).read_bytes())

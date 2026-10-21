@@ -28,12 +28,32 @@ class SourceInriaTests(unittest.TestCase):
         self.assertIn("status=success", query)
         self.assertIn("sort=desc", query)
 
-    def test_main_preversion_et_commit_invalide_sans_reseau(self):
+    def test_reference_et_commit_invalides_sans_reseau(self):
         with patch.object(source, "json_request") as request:
-            for tag, commit in [(None, SHA), ("main", SHA), ("0.12.0-rc.1", SHA), ("0.12", "invalide")]:
+            for tag, commit in [("main", SHA), ("0.12", "invalide")]:
                 with self.subTest(tag=tag), self.assertRaises(ValueError):
                     source.selectionner_source(tag, commit)
+            for ref in ('', 'main\ninvalide'):
+                with self.assertRaises(ValueError):
+                    source.selectionner_source(None, SHA, ref)
             request.assert_not_called()
+
+    def test_branche_commit_exact_sans_suivre_sa_tete(self):
+        for ref in ('main', 'correction/pages'):
+            responses = [self.responses()[0], {'sha': SHA}, [{'id': 56}],
+                         {'id': 56, 'sha': SHA, 'ref': ref, 'status': 'success', 'source': 'push'}]
+            with self.subTest(ref=ref), patch.object(source, 'json_request', side_effect=responses) as request:
+                result = source.selectionner_source(None, SHA, ref)
+                self.assertEqual(result['ref'], ref)
+                self.assertIsNone(result['tag'])
+                self.assertTrue(request.call_args_list[1].args[0].endswith('/commits/' + SHA))
+                self.assertIn('sha=' + SHA, request.call_args_list[2].args[0])
+
+    def test_branche_sans_pipeline_reussi_ou_commit_github_refuse(self):
+        for responses in ([self.responses()[0], {'sha': 'b'*40}],
+                          [self.responses()[0], {'sha': SHA}, []]):
+            with patch.object(source, 'json_request', side_effect=responses), self.assertRaises(ValueError):
+                source.selectionner_source(None, SHA, 'main')
 
     def test_tag_deplace_sur_inria_ou_github_refuse(self):
         for index, value in [(1, {"commit": {"id": "b" * 40}}), (2, {"sha": "b" * 40})]:

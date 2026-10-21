@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Forge Éducation : pipeline léger aussi lors d’un push sans tag, avec les
+  artefacts Inria validés de la même référence et du même commit. Catalogue
+  des releases existantes actualisé sans exiger une nouvelle version.
+
 - Forge Éducation : publication légère des tags stables depuis les artefacts
   Inria qualifiés du même commit ; captures et PWA réutilisées sans reconstruction.
   Catalogue GitHub actualisé et liens PWA adaptés à cet hébergement.
