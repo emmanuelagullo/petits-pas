@@ -17,7 +17,8 @@ Les mêmes commits et tags sont poussés sur les trois hébergements applicatifs
 Les profils `.gitlab/ci/runners-*.yml` choisissent les runners selon la forge :
 sans étiquette sur Éducation, `ci.inria.fr` / `small` ou `medium` sur Inria.
 La CI complète réside dans `.gitlab/ci/validation.yml`. Éducation utilise
-`.gitlab/ci/publication-education.yml` : pipeline à chaque push de branche ou
+`.gitlab/ci/publication-education.yml` : contrôle de disponibilité puis pipeline
+enfant (`publication-education-taches.yml`) à chaque push de branche ou
 de tag, récupération des artefacts Inria de la même référence et du même commit
 après réussite complète du pipeline,
 puis publication du site et de la PWA. Aucun test Django, déploiement, navigateur
@@ -26,6 +27,10 @@ qualification restent obligatoires ; ne pas les remplacer par une confiance
 implicite dans le nom du tag. La reprise manuelle se fait sur la branche ou le tag concerné. Les préversions
 ne publient pas la PWA habituelle.
 Le site Éducation conserve les téléchargements GitHub et pointe vers sa PWA.
+Si le commit ou la validation Inria manque encore, le pipeline enfant conserve
+`source-inria` en attente manuelle bloquante, sans échec toléré. Après validation,
+le lancement manuel refait les contrôles stricts. Ne pas transformer un pipeline
+Inria échoué, un artefact expiré, une incohérence ou une panne réseau en attente.
 Ce miroir ne duplique pas les dépendances externes (wheel et thème commun).
 
 Inria est la référence du code ; GitHub est le miroir utilisé notamment pour

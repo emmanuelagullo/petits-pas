@@ -171,8 +171,8 @@ Un artefact expiré, inaccessible ou altéré bloque la publication, sans retour
 silencieux à une autre version. Les captures expirent après une semaine, les
 artefacts PWA après trente jours : pour une publication tardive, relancer les
 jobs Inria du tag exact, attendre la réussite de son pipeline, puis relancer
-Éducation. Un push trop précoce sur Éducation se reprend de la même façon après
-réussite Inria et, sur tag, publication GitHub. Les sites Hugo et PWA sont deux
+Éducation. Un push trop précoce sur Éducation reste en attente manuelle, selon la procédure
+ci-dessous, jusqu'à réussite Inria et, sur tag, publication GitHub. Les sites Hugo et PWA sont deux
 publications successives : un échec PWA peut survenir après la mise à jour Hugo ;
 relancer alors `pwa-publication`.
 
@@ -197,3 +197,29 @@ sélectionné. Si les règles Inria n'ont pas généré les captures pour ce com
 lancer un pipeline manuel Inria sur la référence pour produire les artefacts,
 puis reprendre la publication Éducation. Cette possibilité de pousser sans tag
 est un choix d'usage, pas une restriction de la CI.
+
+### Attente Inria sans échec de publication
+
+Chaque push Éducation lance d'abord `disponibilite-inria`. S'il existe une
+validation Inria réussie du SHA et de la référence exacts, le job `publication`
+lance automatiquement les quatre tâches dans un pipeline enfant : import,
+construction Hugo, publication Pages, puis publication PWA.
+
+Si le commit ou le tag n'a pas encore été poussé, si aucun pipeline n'existe,
+ou s'il est encore en cours/en attente, le contrôle termine normalement. Le
+pipeline enfant affiche `source-inria` comme **manuel, non lancé**, et les
+publications ne démarrent pas. GitLab signale une action manuelle attendue
+(`blocked`), sans échec ni avertissement `allow_failure`. Le déclencheur utilise
+`strategy: mirror` pour refléter cet état dans le parent (GitLab >= 18.2). Aucun runner n'attend
+en boucle et aucune publication précédente n'est remplacée.
+
+Après réussite Inria (et présence de la release GitHub pour un tag), ouvrir le
+pipeline enfant depuis `publication`, puis lancer **source-inria** avec le
+bouton de lancement et confirmer. Aucun nouveau push n'est nécessaire. L'import
+et la publication refont leurs contrôles stricts ; lancer trop tôt peut donc
+encore échouer. Le contrôle ne s'actualise pas automatiquement après sa fin.
+
+Un pipeline Inria échoué/annulé, un SHA différent, une API inaccessible ou un
+artefact expiré/altéré restent de véritables erreurs. Le job manuel utilise
+`allow_failure: false` : son échec après lancement fait échouer la chaîne, au
+lieu de transformer toutes les erreurs de publication en avertissements.
