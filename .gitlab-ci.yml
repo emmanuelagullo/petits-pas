@@ -1,3 +1,11 @@
+include:
+  - local: /.gitlab/ci/runners-inria.yml
+    rules:
+      - if: '$CI_SERVER_HOST != "forge.apps.education.fr"'
+  - local: /.gitlab/ci/runners-education.yml
+    rules:
+      - if: '$CI_SERVER_HOST == "forge.apps.education.fr"'
+
 image: python:3.12-slim-bookworm
 
 stages:
@@ -15,11 +23,6 @@ workflow:
     - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
     - if: '$CI_COMMIT_BRANCH'
-
-default:
-  tags:
-    - ci.inria.fr
-    - small
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -60,6 +63,7 @@ test:
     - changes:
         - .env.example
         - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
         - "*.py"
         - "carnet/**/*"
         - "comptes/**/*"
@@ -124,11 +128,13 @@ test:
     - bash -n start-atelier.sh start-persistent.sh start-render.sh scripts/*.sh
 
 deploiement-ephemere:
+  extends: .runner-integration
   stage: integration
   rules:
     - changes:
         - .env.example
         - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
         - "*.py"
         - "carnet/**/*"
         - "comptes/**/*"
@@ -145,9 +151,6 @@ deploiement-ephemere:
         - "suivi/**/*"
         - trame-cycle1.yaml
     - when: never
-  tags:
-    - ci.inria.fr
-    - medium
   services:
     - name: postgres:15-alpine
       alias: postgresql
@@ -233,6 +236,7 @@ deploiement-persistant-local:
     - changes:
         - .env.example
         - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
         - MATRICE-AUTORISATIONS.org
         - MODELE-IDENTITES-ET-AFFECTATIONS.org
         - PLAN-IMPLEMENTATION-AUTORISATIONS.org
@@ -367,6 +371,7 @@ pages:
       changes:
         - .env.example
         - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
         - MATRICE-AUTORISATIONS.org
         - MODELE-IDENTITES-ET-AFFECTATIONS.org
         - PLAN-IMPLEMENTATION-AUTORISATIONS.org

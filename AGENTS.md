@@ -10,6 +10,15 @@ Ces dépôts forment un même écosystème, avec trois responsabilités distinct
 | `petits-pas` | Application métier : carnets de suivi en maternelle | <https://gitlab.inria.fr/petits-pas/petits-pas> | <https://github.com/emmanuelagullo/petits-pas> |
 | `pas-a-pas-accompagnement` | Application métier : accueil et accompagnement social, notamment CHRS | <https://gitlab.inria.fr/pas-a-pas-accompagnement/pas-a-pas-accompagnement> | <https://github.com/emmanuelagullo/pas-a-pas-accompagnement> |
 
+Petits Pas possède aussi un miroir sur la Forge Éducation :
+<https://forge.apps.education.fr/petits-pas/petits-pas>, avec son auxiliaire
+<https://forge.apps.education.fr/petits-pas/petits-pas-pwa>.
+Les mêmes commits et tags sont poussés sur les trois hébergements applicatifs.
+Les profils `.gitlab/ci/runners-*.yml` choisissent les runners selon la forge :
+sans étiquette sur Éducation, `ci.inria.fr` / `small` ou `medium` sur Inria.
+La publication PWA utilise l'auxiliaire et les artefacts de sa propre forge.
+Ce miroir ne duplique pas les dépendances externes (wheel et thème commun).
+
 Inria est la référence du code ; GitHub est le miroir utilisé notamment pour
 les constructions Windows/Linux et la publication des wheels et programmes.
 Examiner le main public récent avant de préparer un patch. Les miroirs d'un
