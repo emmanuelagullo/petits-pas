@@ -102,7 +102,7 @@ Ne pas copier le code de l'application dans cet auxiliaire.
 Vérifier que la branche par défaut des deux projets est `main`, que les deux
 projets et les artefacts CI nécessaires à la publication sont publics, puis
 suivre `pwa/PUBLICATION.md` pour les réglages Pages et la première publication
-manuelle depuis le pipeline applicatif réussi. Le pipeline initial de
+d’un nouveau tag stable qualifié sur Inria. Le pipeline initial de
 l'auxiliaire seul est volontairement filtré. Utiliser l'adresse réellement
 indiquée par Pages ; aucune adresse Éducation n'est présumée ici. Cette adresse
 possède son propre stockage navigateur : transférer une école par ZIP si besoin.
@@ -115,9 +115,64 @@ republier automatiquement chaque ancienne version lors de l'initialisation.
 Ne pas utiliser `git push --mirror` sur un dépôt de travail ordinaire.
 
 Les dépendances épinglées gardent leurs sources actuelles : wheel sur GitHub,
-thème Hugo sur Inria, images de conteneurs et runtime PWA externes. Les liens
-publics actuels restent ceux des publications existantes. Le miroir Éducation
+thème Hugo sur Inria, images de conteneurs et runtime PWA externes. Les téléchargements
+restent sur GitHub ; les liens PWA du site Éducation visent sa propre publication. Le miroir Éducation
 n'est donc pas encore un hébergement indépendant de ces services.
-La compatibilité effective des images, services PostgreSQL/MinIO, ressources
-mémoire et durées devra être vérifiée au premier pipeline Kubernetes ; une
+La compatibilité effective des images de publication, ressources mémoire et
+durées devra être vérifiée au premier pipeline Kubernetes ; une
 configuration valide ne vaut pas qualification du runner distant.
+
+### Publication légère sur Éducation
+
+La CI complète Inria est définie dans `.gitlab/ci/validation.yml` ;
+`.gitlab-ci.yml` choisit le profil selon la forge. Le profil Éducation ne se
+lance que pour un tag stable (par exemple `0.12.0`, sans suffixe). Un push de
+`main` n'y déclenche aucun pipeline. Pour une reprise manuelle, créer un
+pipeline en sélectionnant ce même tag dans **Build → Pipelines → New pipeline**,
+ou relancer ses jobs en échec. Ne pas déplacer un tag déjà publié.
+
+Ordre habituel :
+
+1. Pousser `main` et le tag de version sur Inria et GitHub.
+2. Attendre la réussite complète du pipeline Inria du tag et la publication
+   de la release GitHub avec ses binaires.
+3. Pousser `main`, puis ce seul tag, sur Éducation :
+
+   ```sh
+   git push education main
+   git push education 0.12.0
+   ```
+
+Éducation sélectionne le plus récent pipeline Inria **réussi du tag et du SHA
+exacts**, vérifie l'identité du tag GitHub, importe les captures et l'école
+fictive du job `captures-demonstration`, et actualise le catalogue GitHub.
+La release attendue doit y figurer : une erreur réseau ou une release absente
+fait échouer la préparation, sans publier un catalogue périmé.
+Hugo reconstruit le site pour son URL Pages et le vérificateur de liens contrôle
+cette sortie. Les liens d'ouverture de la PWA suivent le paramètre Hugo
+`pwaURL`, fixé à `/petits-pas-pwa/` sur Éducation (désactiver les domaines uniques
+des projets Pages pour cette configuration).
+
+L'auxiliaire PWA reçoit ensuite le tag et le SHA Éducation, retrouve le pipeline
+Inria qualifié correspondant, puis publie le **bundle existant**, sans le
+reconstruire. Le préparateur existant vérifie toujours jobs, candidat,
+qualification, rapports et empreintes. `publication.json` indique maintenant
+`source_api` afin de distinguer la provenance Inria de l'URL publiée Éducation.
+Aucun secret ni jeton interforge n'est nécessaire : les API et artefacts source
+doivent rester publics.
+
+Les sources sont les artefacts CI Inria, pas une copie de l'URL PWA courante.
+Un artefact expiré, inaccessible ou altéré bloque la publication, sans retour
+silencieux à une autre version. Les captures expirent après une semaine, les
+artefacts PWA après trente jours : pour une publication tardive, relancer les
+jobs Inria du tag exact, attendre la réussite de son pipeline, puis relancer
+Éducation. Un push trop précoce sur Éducation se reprend de la même façon après
+réussite Inria et publication GitHub. Les sites Hugo et PWA sont deux
+publications successives : un échec PWA peut survenir après la mise à jour Hugo ;
+relancer alors `pwa-publication`.
+
+Le fichier `.gitlab-ci.yml` de l'auxiliaire `petits-pas-pwa` ne change pas :
+il continue d'inclure `pwa/publication/pages.yml` depuis `main` de la même forge.
+Pousser le nouveau `main` sur Éducation avant le premier nouveau tag est donc
+nécessaire. Les anciens tags n'incluent pas ce profil : ne pas les pousser sans
+`ci.skip` pour initialiser l'archive du miroir.

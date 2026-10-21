@@ -14,6 +14,8 @@ stages:
 
 workflow:
   rules:
+    - if: '$CI_SERVER_HOST == "forge.apps.education.fr" && $PWA_SOURCE_TAG !~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
+      when: never
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "petits-pas/petits-pas" && ($PWA_SOURCE_REF == "main" || $PWA_SOURCE_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/)'
     - when: never
 
@@ -30,17 +32,25 @@ pages:
       assert re.fullmatch(r'[a-f0-9]{40}', commit)
       base = (os.environ['CI_API_V4_URL'] + '/projects/petits-pas%2Fpetits-pas'
               + '/repository/files/')
-      for source_path, filename in [
+      fichiers = [
           ('scripts/preparer-publication-pwa.py', 'preparer-publication-pwa.py'),
           ('scripts/publication.py', 'publication.py'),
           ('requirements-communs.txt', 'requirements-communs.txt'),
-      ]:
+      ]
+      if os.environ['CI_SERVER_HOST'] == 'forge.apps.education.fr':
+          fichiers.append(('scripts/source_inria.py', 'source_inria.py'))
+      for source_path, filename in fichiers:
           source_url = base + urllib.parse.quote(source_path, safe='') + '/raw?ref=' + commit
           with urllib.request.urlopen(source_url, timeout=60) as source:
               Path(filename).write_bytes(source.read())
       PY
     - python3 -m pip install --no-deps -r requirements-communs.txt
-    - python3 preparer-publication-pwa.py --destination public --pages-url "$CI_PAGES_URL"
+    - |
+      if [ "$CI_SERVER_HOST" = "forge.apps.education.fr" ]; then
+        python3 preparer-publication-pwa.py --source-inria --destination public --pages-url "$CI_PAGES_URL"
+      else
+        python3 preparer-publication-pwa.py --destination public --pages-url "$CI_PAGES_URL"
+      fi
   pages:
     publish: public
   artifacts:

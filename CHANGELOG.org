@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Forge Éducation : publication légère des tags stables depuis les artefacts
+  Inria qualifiés du même commit ; captures et PWA réutilisées sans reconstruction.
+  Catalogue GitHub actualisé et liens PWA adaptés à cet hébergement.
+
 - Sauvegardes locales : état de préparation/confirmation partagé avec Pas à Pas
   via le candidat pas-communs 0.9.0 ; sessions fermées dans la copie restaurée.
   Formats historiques, clés, identités et droits de direction conservés.

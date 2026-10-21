@@ -130,6 +130,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--pages-url", required=True)
+    parser.add_argument("--source-inria", action="store_true",
+                        help="Importer la version stable qualifiée sur Inria (miroir Éducation).")
     args = parser.parse_args()
     require_pages_url(args.pages_url.rstrip("/") + "/")
     if args.destination.exists():
@@ -142,7 +144,14 @@ def main():
         raise ValueError("Référence source invalide.")
     ref = os.environ.get('PWA_SOURCE_REF', 'main')
     tag = os.environ.get('PWA_SOURCE_TAG') or None
-    job, url = select_job(os.environ["CI_API_V4_URL"], project, pipeline, commit, ref, tag)
+    api = os.environ["CI_API_V4_URL"]
+    if args.source_inria:
+        if not tag or ref != tag:
+            raise ValueError("Le miroir Éducation publie uniquement un tag stable explicite.")
+        from source_inria import selectionner_source
+        source = selectionner_source(tag, commit)
+        api, project, pipeline = source["api"], source["project_id"], source["pipeline_id"]
+    job, url = select_job(api, project, pipeline, commit, ref, tag)
     with tempfile.TemporaryDirectory(prefix="publication-pwa-") as temp:
         parent = Path(temp)
         archive = parent / "artefact.zip"
@@ -189,7 +198,7 @@ def main():
             shutil.copyfile(parent / name, reports / name)
         (reports / 'qualification-pwa.json').write_bytes(qualification)
         qualification_hash = hashlib.sha256(qualification).hexdigest()
-    record = {"source_project": SOURCE, "pipeline_id": pipeline, "job_id": job["id"],
+    record = {"source_api": api, "source_project": SOURCE, "pipeline_id": pipeline, "job_id": job["id"],
         "commit": commit, "tag": tag, "application_version": config["application_version"], "version": config["version"],
         "qualification_job_id": job["qualification"]["id"], "qualification_sha256": qualification_hash, "tests_sha256": report_hash,
         "url": args.pages_url, "prepared_at": datetime.now(timezone.utc).isoformat()}

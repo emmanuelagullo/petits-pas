@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Lire les releases publiques GitHub ; ne jamais présenter un artefact CI comme publié."""
+import argparse
 import json
 from pathlib import Path
 import re
@@ -32,6 +33,9 @@ def catalogue(releases):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--exiger-version', help='Échouer si cette version stable est absente du catalogue.')
+    args = parser.parse_args()
     try:
         request=urllib.request.Request('https://api.github.com/repos/emmanuelagullo/petits-pas/releases?per_page=20',headers={'User-Agent':'PetitsPas-site-public'})
         with urllib.request.urlopen(request,timeout=10) as response:
@@ -39,11 +43,15 @@ def main():
         if len(raw)>2*1024**2:raise ValueError('Catalogue trop volumineux.')
         record=catalogue(json.loads(raw))
         if not record['versions']:raise ValueError('Aucune version téléchargeable observée.')
+        if args.exiger_version and not any(v['version'] == args.exiger_version for v in record['versions']):
+            raise ValueError('La release GitHub attendue est absente : ' + args.exiger_version)
         temporary=DESTINATION.with_suffix('.tmp')
         temporary.write_text(json.dumps(record,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
         temporary.replace(DESTINATION)
         print('Catalogue des releases GitHub publiques actualisé.')
     except (OSError, ValueError, KeyError) as error:
+        if args.exiger_version:
+            raise SystemExit('Catalogue non actualisé : ' + str(error)) from error
         print('Catalogue non actualisé ; conserver les versions connues :',error)
 
 

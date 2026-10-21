@@ -78,7 +78,7 @@ Le résultat est écrit dans `site/public/`, répertoire ignoré par Git.
 ## Construction en CI
 
 Les jobs `site-public` et `pages` héritent de la même définition Hugo dans
-`.gitlab-ci.yml`. L'image est référencée par son digest immuable et fournit
+`.gitlab/ci/validation.yml`. L'image est référencée par son digest immuable et fournit
 actuellement Hugo Extended 0.140.2. Une mise à niveau de Hugo doit donc être une
 modification explicite et validée, et non un effet de bord du tag `latest`.
 
@@ -189,3 +189,13 @@ l’ancienne mention du miroir GitHub dans le contrat du commit importé est
 historique. Le commit adopté est celui effectivement publié sur Inria :
 `5d64e2487939093bd6378a8a1611da95d93830ca`. Aucune reproduction de SHA avec
 une commande spéciale `git am` n’est nécessaire.
+
+## Miroir Éducation
+
+Le profil `.gitlab/ci/publication-education.yml` importe captures et école
+fictive du pipeline Inria réussi au même tag stable et au même commit, puis
+construit Hugo pour son URL Pages. Il ne relance pas le scénario Django/Chromium.
+Le catalogue des releases GitHub est actualisé et la version publiée doit être
+présente avant le déploiement. Le shortcode local `adresse-pwa` utilise `pwaURL`
+pour ouvrir la PWA du même hébergement sur Éducation ; Inria conserve son URL.
+Les réglages et la procédure de reprise sont dans `CONTRIBUTING.md`.

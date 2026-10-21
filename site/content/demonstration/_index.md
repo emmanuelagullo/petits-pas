@@ -24,7 +24,7 @@ Les autres visiteurs n’y ont pas accès.
 
 ### Dans votre navigateur
 
-[Ouvrir l’espace d’essai](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/essai.html).
+[Ouvrir l’espace d’essai]({{< adresse-pwa chemin="essai.html" >}}).
 
 ### Avec le programme à télécharger
 
