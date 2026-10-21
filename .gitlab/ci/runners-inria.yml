@@ -1,0 +1,10 @@
+# Profil historique, conservé hors de la Forge Éducation.
+default:
+  tags:
+    - ci.inria.fr
+    - small
+
+.runner-integration:
+  tags:
+    - ci.inria.fr
+    - medium

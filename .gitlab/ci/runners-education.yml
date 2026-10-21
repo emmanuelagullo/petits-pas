@@ -1,0 +1,6 @@
+# Les runners d'instance de la Forge Éducation acceptent les jobs sans étiquette.
+default:
+  tags: []
+
+.runner-integration:
+  tags: []

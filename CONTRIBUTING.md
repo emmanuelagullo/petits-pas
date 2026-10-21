@@ -69,3 +69,55 @@ Pour la consommation TOTP : `python3 scripts/qualifier-totp.py` crée une vraie
 SQLite temporaire et exerce deux connexions concurrentes, la réinitialisation
 pendant calcul et le verrouillage. Le job Django GitLab le lance dans les deux
 profils de dépendances ; les tests ordinaires exercent aussi PostgreSQL.
+
+## Troisième hébergement : Forge Éducation
+
+Inria reste la référence ; GitHub et la Forge Éducation reçoivent les mêmes
+commits et tags. Le dépôt applicatif Éducation est
+<https://forge.apps.education.fr/petits-pas/petits-pas> et son auxiliaire Pages
+est <https://forge.apps.education.fr/petits-pas/petits-pas-pwa>.
+
+Dans les deux projets, activer **Paramètres → CI/CD → Runners → Activer les
+runners d'instance pour ce projet** (et autoriser leur utilisation au niveau
+du groupe si nécessaire). Le runner d'instance #385 utilise Kubernetes sous
+Linux amd64, accepte les jobs sans étiquette et impose au plus deux heures
+par job. La CI sélectionne ce profil sur `forge.apps.education.fr` ; Inria
+conserve ses étiquettes `ci.inria.fr` et ses tailles `small` / `medium`.
+Aucune variable CI de sélection de runner n'est à créer.
+
+Pour initialiser le miroir vide, depuis le dépôt applicatif local complet,
+après application du patch et récupération du main courant :
+
+```sh
+git remote add education https://forge.apps.education.fr/petits-pas/petits-pas.git
+git push education main
+```
+
+Dans un clone de l'auxiliaire Inria `petits-pas-pwa`, ajouter de même le remote
+`https://forge.apps.education.fr/petits-pas/petits-pas-pwa.git` et pousser `main`.
+À défaut de clone existant, créer sa branche `main` avec uniquement le fichier
+`.gitlab-ci.yml` fourni dans `pwa/publication/gitlab-ci.yml` de l'application.
+Ne pas copier le code de l'application dans cet auxiliaire.
+
+Vérifier que la branche par défaut des deux projets est `main`, que les deux
+projets et les artefacts CI nécessaires à la publication sont publics, puis
+suivre `pwa/PUBLICATION.md` pour les réglages Pages et la première publication
+manuelle depuis le pipeline applicatif réussi. Le pipeline initial de
+l'auxiliaire seul est volontairement filtré. Utiliser l'adresse réellement
+indiquée par Pages ; aucune adresse Éducation n'est présumée ici. Cette adresse
+possède son propre stockage navigateur : transférer une école par ZIP si besoin.
+
+Pour les mises à jour, pousser `main` sur chaque remote. Pour une nouvelle
+version qualifiée, pousser son tag identique sur les trois hébergements. Les
+anciens tags peuvent être archivés avec `git push -o ci.skip education --tags`
+si cette option est autorisée par l'instance ; cela évite de reconstruire et
+republier automatiquement chaque ancienne version lors de l'initialisation.
+Ne pas utiliser `git push --mirror` sur un dépôt de travail ordinaire.
+
+Les dépendances épinglées gardent leurs sources actuelles : wheel sur GitHub,
+thème Hugo sur Inria, images de conteneurs et runtime PWA externes. Les liens
+publics actuels restent ceux des publications existantes. Le miroir Éducation
+n'est donc pas encore un hébergement indépendant de ces services.
+La compatibilité effective des images, services PostgreSQL/MinIO, ressources
+mémoire et durées devra être vérifiée au premier pipeline Kubernetes ; une
+configuration valide ne vaut pas qualification du runner distant.

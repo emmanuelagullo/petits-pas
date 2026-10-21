@@ -1,7 +1,7 @@
 # #PWA6a : publication à la demande sur GitLab Pages
 
 Le job **pwa-publication**, automatique sur tag numérique et manuel sur main, publie le bundle du job **pwa-prototype**
-réussi dans le **même pipeline** de `main` ou d’un tag numérique commun aux deux forges. La qualification doit aussi réussir. Il ne reconstruit pas l'application
+réussi dans le **même pipeline** de `main` ou d’un tag numérique commun aux hébergements du code. La qualification doit aussi réussir. Il ne reconstruit pas l'application
 et ne publie pas le bundle de `pwa-qualification`. Les données des essais ne
 sont pas incluses. Depuis #PWA13, les versions maintenues visent la production sur le périmètre
 décrit dans [PRODUCTION.md](PRODUCTION.md). Les bancs restent fictifs.
@@ -15,7 +15,9 @@ Ce choix ne dépend pas des déploiements Pages parallèles Premium/Ultimate.
 1. Créer le projet **petits-pas/petits-pas-pwa**, sur la même forge, avec une
    branche `main`. La personne lançant `pwa-publication` doit pouvoir lancer
    les pipelines de ce projet. Les runners Inria `ci.inria.fr` / `small`
-   doivent y être disponibles.
+   doivent y être disponibles. Sur la Forge Éducation, activer les runners
+   d'instance dans les deux projets ; ils exécutent les jobs sans étiquette.
+   Le profil est choisi automatiquement par `CI_SERVER_HOST`.
 2. Dans ce projet, créer `.gitlab-ci.yml` avec le contenu de
    [`publication/gitlab-ci.yml`](publication/gitlab-ci.yml) :
 
