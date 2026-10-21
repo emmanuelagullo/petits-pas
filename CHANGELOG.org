@@ -7,43 +7,47 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
-- Forge Éducation : validation Inria absente ou encore en cours représentée
-  par une publication en attente manuelle, sans avertissement d'échec.
-  Les véritables erreurs et les contrôles d'intégrité restent bloquants.
+* 0.12 — 2026-10-22
 
-- Forge Éducation : pipeline léger aussi lors d’un push sans tag, avec les
-  artefacts Inria validés de la même référence et du même commit. Catalogue
-  des releases existantes actualisé sans exiger une nouvelle version.
+Cette version consolide les sauvegardes locales, la consommation des codes de
+secours et les publications. Elle adopte Pas communs 0.9.0 et ajoute le miroir
+Forge Éducation, avec réutilisation des artefacts qualifiés sur Inria.
+Aucun modèle ni migration supplémentaire par rapport à 0.11 ; les mises à jour
+des services restent à effectuer selon leur procédure habituelle.
 
-- Forge Éducation : publication légère des tags stables depuis les artefacts
-  Inria qualifiés du même commit ; captures et PWA réutilisées sans reconstruction.
-  Catalogue GitHub actualisé et liens PWA adaptés à cet hébergement.
-
-- Sauvegardes locales : état de préparation/confirmation partagé avec Pas à Pas
-  via le candidat pas-communs 0.9.0 ; sessions fermées dans la copie restaurée.
+- Sauvegardes locales : état de préparation et de confirmation partagé avec
+  Pas à Pas via Pas communs 0.9.0 ; sessions fermées dans la copie restaurée.
   Formats historiques, clés, identités et droits de direction conservés.
-  L'adoption demande la publication préalable du nouveau wheel immuable.
 
-- Correction des codes de secours concurrents sous PostgreSQL : conserver
-  le filtre de consommation sur la ligne mise à jour. Test avec deux écritures
-  effectivement bloquées sur le même code et reset concurrent ; aucun changement
-  de schéma, de clés, de codes existants ou de configuration de déploiement.
+- Archives ZIP : durcissement des noms portables et refus des collisions entre
+  chemins ; conservation des sauvegardes historiques. Qualification de la
+  reprise, du nouvel export et de la restauration d'une école fictive 0.10.
 
-- Canal PWA habituel : publication automatique des seuls tags sans suffixe ;
-  préversions construites et qualifiées sans promotion Pages. Reprise manuelle
-  de main conservée ; releases des programmes et serveurs inchangés.
+- Codes de secours : consommation atomique qualifiée sous SQLite et PostgreSQL,
+  y compris lors d'accès concurrents et d'une réinitialisation. Aucun changement
+  des clés ou des codes existants.
 
-- Compléments AUD : Python constructeur PWA >=3.12 affiché séparément du
-  Python embarqué ; documentation des contrats et de la politique RC actuelle.
-  Déclencheurs de publication et déploiements serveur inchangés.
-- Qualification d'une école fictive complète exportée par la version 0.10 :
-  reprise, nouvel export, restauration et migrations sur copies indépendantes.
+- Forge Éducation : pipeline léger à chaque push de branche ou de tag,
+  réutilisation des captures et du bundle PWA du pipeline Inria réussi pour
+  la même référence et le même commit, sans reconstruction PWA. Catalogue des
+  binaires GitHub actualisé et documentation Hugo publiée sur Éducation.
 
-- #AUD : adoption de pas-communs 0.8.0 publiée, chemins ZIP portables dans les
-  deux sens, contrôles de promotion partagés et contrat Pyodide explicite.
-  Aucun changement du runtime, des formats de données ou des déploiements.
-- #AUD : consommation TOTP atomique sur SQLite et PostgreSQL, refus propre
-  sur stockage occupé et qualification avec connexions distinctes.
+- Validation Inria encore absente ou en cours : publication Éducation en attente
+  manuelle, sans avertissement d'échec. Les erreurs réelles, les artefacts
+  expirés et les contrôles d'intégrité restent bloquants.
+
+- Canal PWA : parmi les tags, seuls ceux sans suffixe publient automatiquement
+  à l'adresse habituelle ; les préversions restent construites et qualifiées.
+  Sur Inria, publication de main manuelle ; sur Éducation, publication sur push
+  après qualification du commit exact. Reprises manuelles conservées.
+
+- Construction PWA : Python constructeur >= 3.12 affiché séparément du Python
+  embarqué ; runtime Pyodide conservé. Contrôles des octets du socle et des
+  archives historiques renforcés.
+
+- Site public : thème Hugo commun épinglé, parcours scolaires conservés et liens
+  PWA adaptés à l'hébergement. Principes des aides contextuelles accessibles
+  précisés pour les évolutions à venir.
 
 * 0.11 — 2026-10-19
 
