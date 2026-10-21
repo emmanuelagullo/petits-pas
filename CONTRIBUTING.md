@@ -102,7 +102,7 @@ Ne pas copier le code de l'application dans cet auxiliaire.
 Vérifier que la branche par défaut des deux projets est `main`, que les deux
 projets et les artefacts CI nécessaires à la publication sont publics, puis
 suivre `pwa/PUBLICATION.md` pour les réglages Pages et la première publication
-d’un nouveau tag stable qualifié sur Inria. Le pipeline initial de
+d’une branche ou d’un nouveau tag qualifié sur Inria. Le pipeline initial de
 l'auxiliaire seul est volontairement filtré. Utiliser l'adresse réellement
 indiquée par Pages ; aucune adresse Éducation n'est présumée ici. Cette adresse
 possède son propre stockage navigateur : transférer une école par ZIP si besoin.
@@ -125,11 +125,13 @@ configuration valide ne vaut pas qualification du runner distant.
 ### Publication légère sur Éducation
 
 La CI complète Inria est définie dans `.gitlab/ci/validation.yml` ;
-`.gitlab-ci.yml` choisit le profil selon la forge. Le profil Éducation ne se
-lance que pour un tag stable (par exemple `0.12.0`, sans suffixe). Un push de
-`main` n'y déclenche aucun pipeline. Pour une reprise manuelle, créer un
-pipeline en sélectionnant ce même tag dans **Build → Pipelines → New pipeline**,
-ou relancer ses jobs en échec. Ne pas déplacer un tag déjà publié.
+`.gitlab-ci.yml` choisit le profil selon la forge. Tout push de branche ou de
+tag sur Éducation lance le profil léger. Pour une reprise manuelle, créer un
+pipeline en sélectionnant la branche ou le tag dans **Build → Pipelines → New
+pipeline**, ou relancer ses jobs en échec. Ne pas déplacer un tag déjà publié.
+Le site Hugo est publié sur branche ou tag numérique ; la PWA habituelle est
+publiée sur branche ou tag stable sans suffixe. Les préversions ne la remplacent
+pas.
 
 Ordre habituel :
 
@@ -143,17 +145,20 @@ Ordre habituel :
    git push education 0.12.0
    ```
 
-Éducation sélectionne le plus récent pipeline Inria **réussi du tag et du SHA
-exacts**, vérifie l'identité du tag GitHub, importe les captures et l'école
+Éducation sélectionne le plus récent pipeline Inria **réussi de la référence et
+du SHA exacts**, vérifie l'identité du tag GitHub (ou la présence du commit
+GitHub sans tag), importe les captures et l'école
 fictive du job `captures-demonstration`, et actualise le catalogue GitHub.
-La release attendue doit y figurer : une erreur réseau ou une release absente
-fait échouer la préparation, sans publier un catalogue périmé.
+Sur tag, la release attendue doit y figurer. Sans tag, le catalogue est
+actualisé avec les releases existantes, sans exiger de nouvelle release.
+Une erreur réseau, ou une release attendue absente sur tag, fait échouer la
+préparation sans publier un catalogue périmé.
 Hugo reconstruit le site pour son URL Pages et le vérificateur de liens contrôle
 cette sortie. Les liens d'ouverture de la PWA suivent le paramètre Hugo
 `pwaURL`, fixé à `/petits-pas-pwa/` sur Éducation (désactiver les domaines uniques
 des projets Pages pour cette configuration).
 
-L'auxiliaire PWA reçoit ensuite le tag et le SHA Éducation, retrouve le pipeline
+L'auxiliaire PWA reçoit ensuite la référence et le SHA Éducation, retrouve le pipeline
 Inria qualifié correspondant, puis publie le **bundle existant**, sans le
 reconstruire. Le préparateur existant vérifie toujours jobs, candidat,
 qualification, rapports et empreintes. `publication.json` indique maintenant
@@ -167,7 +172,7 @@ silencieux à une autre version. Les captures expirent après une semaine, les
 artefacts PWA après trente jours : pour une publication tardive, relancer les
 jobs Inria du tag exact, attendre la réussite de son pipeline, puis relancer
 Éducation. Un push trop précoce sur Éducation se reprend de la même façon après
-réussite Inria et publication GitHub. Les sites Hugo et PWA sont deux
+réussite Inria et, sur tag, publication GitHub. Les sites Hugo et PWA sont deux
 publications successives : un échec PWA peut survenir après la mise à jour Hugo ;
 relancer alors `pwa-publication`.
 
@@ -176,3 +181,19 @@ il continue d'inclure `pwa/publication/pages.yml` depuis `main` de la même forg
 Pousser le nouveau `main` sur Éducation avant le premier nouveau tag est donc
 nécessaire. Les anciens tags n'incluent pas ce profil : ne pas les pousser sans
 `ci.skip` pour initialiser l'archive du miroir.
+
+Pour publier ponctuellement sans créer de version, pousser la même branche sur
+Inria et GitHub, attendre son pipeline Inria réussi avec les artefacts requis,
+puis pousser cette branche sur Éducation :
+
+```sh
+git push education main
+```
+
+Le pipeline est automatique et met à jour Pages ainsi que la PWA du commit
+validé. Il ne prend jamais « le dernier main » à la place du SHA poussé.
+Si la branche Inria a avancé depuis, son pipeline réussi du SHA exact reste
+sélectionné. Si les règles Inria n'ont pas généré les captures pour ce commit,
+lancer un pipeline manuel Inria sur la référence pour produire les artefacts,
+puis reprendre la publication Éducation. Cette possibilité de pousser sans tag
+est un choix d'usage, pas une restriction de la CI.

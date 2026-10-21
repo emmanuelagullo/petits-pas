@@ -193,9 +193,10 @@ une commande spéciale `git am` n’est nécessaire.
 ## Miroir Éducation
 
 Le profil `.gitlab/ci/publication-education.yml` importe captures et école
-fictive du pipeline Inria réussi au même tag stable et au même commit, puis
+fictive du pipeline Inria réussi sur la même référence et au même commit, puis
 construit Hugo pour son URL Pages. Il ne relance pas le scénario Django/Chromium.
-Le catalogue des releases GitHub est actualisé et la version publiée doit être
-présente avant le déploiement. Le shortcode local `adresse-pwa` utilise `pwaURL`
+Le catalogue des releases GitHub est actualisé ; sur tag, la version publiée
+doit être présente avant le déploiement. Un push sans tag déclenche également
+le pipeline léger, sans exiger une nouvelle release. Le shortcode local `adresse-pwa` utilise `pwaURL`
 pour ouvrir la PWA du même hébergement sur Éducation ; Inria conserve son URL.
 Les réglages et la procédure de reprise sont dans `CONTRIBUTING.md`.

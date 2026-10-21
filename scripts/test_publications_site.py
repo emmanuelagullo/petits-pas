@@ -44,3 +44,9 @@ class CatalogueTests(unittest.TestCase):
                 request.return_value.__enter__.return_value.read.return_value = json.dumps([self.release()]).encode()
                 module.main()
             self.assertEqual(json.loads(destination.read_text())['versions'][0]['version'], '0.8')
+
+
+    def test_mode_strict_sans_tag_refuse_erreur_reseau(self):
+        with patch('sys.argv', ['catalogue', '--strict']), patch.object(module.urllib.request, 'urlopen', side_effect=OSError('réseau fictif')):
+            with self.assertRaises(SystemExit):
+                module.main()

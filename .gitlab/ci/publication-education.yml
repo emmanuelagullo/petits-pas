@@ -8,17 +8,23 @@ stages:
   - construction
   - publication
 
-# Une reprise manuelle se lance sur le tag stable, jamais sur main.
+# Chaque push de branche ou de tag lance le profil léger ; reprise manuelle possible.
 workflow:
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH'
     - when: never
 
 source-inria:
   stage: preparation
   script:
     - python3 scripts/importer-site-inria.py
-    - python3 scripts/preparer-publications-site.py --exiger-version "$CI_COMMIT_TAG"
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        python3 scripts/preparer-publications-site.py --exiger-version "$CI_COMMIT_TAG"
+      else
+        python3 scripts/preparer-publications-site.py --strict
+      fi
   artifacts:
     expire_in: 1 week
     paths:
@@ -61,6 +67,10 @@ pages:
 
 pwa-publication:
   stage: publication
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
+    - if: '$CI_COMMIT_BRANCH'
+    - when: never
   needs:
     - job: pages
       artifacts: false
