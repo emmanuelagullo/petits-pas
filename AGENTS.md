@@ -332,3 +332,29 @@ sessions de la source et vider seulement celles de la préparation restaurée.
 #SOC — sites : lire site/README.md et site/theme-communs/HUGO.md. Initialiser
 le sous-module épinglé avant Hugo. Ne pas recopier les layouts/styles du thème.
 Conserver contenus, démonstration, URL et paramètres de couleur propres au produit.
+
+
+## Aides contextuelles et erreurs compréhensibles
+
+Pour chaque champ ou action dont le sens n'est pas évident, expliquer l'intention,
+la cible (personne, groupe, période), l'effet et les limites utiles. Éviter les
+aides qui répètent simplement le libellé ; ne pas imposer une bulle à chaque item.
+Les informations indispensables à la saisie ou au consentement restent visibles,
+près du champ ou de la confirmation, avec `help_text` / `aria-describedby`.
+Les détails secondaires peuvent être dépliables (`details` / `summary` natifs),
+accessibles au clavier et au tactile, sans dépendance nouvelle par défaut.
+Une vraie info-bulle au survol doit aussi être accessible au focus, rester
+lisible quand on la survole et pouvoir être fermée avec Échap. Ne pas utiliser
+`title` comme unique aide. Référence :
+https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html .
+
+Une erreur de champ est rattachée au champ nommé, visible dans le choix de saisie
+actif, et associée à son contrôle. Un résumé d'erreurs renvoie aux champs ; ne
+pas aplatir une ValidationError structurée en message global anonyme. Préserver
+les valeurs saisies et la validation serveur sans JavaScript.
+
+Avant une nouvelle abstraction d'aide, examiner les mécanismes existants des
+deux produits. Les mots et règles métier restent dans chaque application ; le
+socle ne fournit un composant que si des usages réels justifient son extraction.
+Vérifier les parcours modifiés au clavier, sur écran étroit et sans JavaScript ;
+distinguer les tests du HTML des observations réelles en navigateur.
