@@ -21,7 +21,7 @@ utilisez des données fictives pour les essayer.
 
 ## Ouvrir et préparer l’école
 
-L'adresse d'essai est [Petits Pas dans le navigateur](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/).
+L'adresse d'essai est [Petits Pas dans le navigateur]({{< adresse-pwa >}}).
 Conservez cette adresse pour retrouver les données de ce navigateur.
 
 Ouvrez cette adresse dans un navigateur compatible, puis attendez le premier chargement.

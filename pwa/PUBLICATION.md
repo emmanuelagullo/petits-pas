@@ -231,3 +231,23 @@ aussi leur promotion manuelle vers ce canal. Les artefacts CI permettent leurs
 essais ; aucun nouveau site de préversions n’est créé. La publication de `main`
 reste une action manuelle explicite sur la même adresse. Cette règle ne change
 ni les releases des programmes, ni les déploiements serveur.
+
+## Miroir Éducation : publier les artefacts Inria qualifiés
+
+Sur `forge.apps.education.fr`, seuls les tags stables lancent la publication.
+Le pipeline applicatif importe les captures Inria, actualise les téléchargements
+GitHub, publie le site Hugo puis déclenche l'auxiliaire PWA. La publication de
+`main` reste disponible sur Inria ; sur Éducation, la reprise manuelle se lance
+sur un tag stable.
+
+Le préparateur Pages utilise `--source-inria` sur Éducation. Il recherche un
+pipeline Inria réussi du tag et du commit exacts, vérifie le tag GitHub, puis
+applique tous les contrôles habituels aux artefacts de ce pipeline. Ni copie de
+la dernière PWA en ligne, ni reconstruction, ni bundle de test. Les fichiers du
+bundle restent identiques ; seuls les rapports de publication ajoutés à côté
+identifient la nouvelle URL et la provenance (`source_api`).
+
+Attendre la CI Inria et la release GitHub, puis pousser le même `main` et le tag
+sur Éducation. Une publication trop précoce ou des artefacts expirés échouent
+explicitement ; voir `CONTRIBUTING.md` pour les commandes et la reprise.
+L'auxiliaire conserve son fichier d'inclusion actuel et n'exige aucun jeton.

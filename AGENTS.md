@@ -16,7 +16,14 @@ Petits Pas possède aussi un miroir sur la Forge Éducation :
 Les mêmes commits et tags sont poussés sur les trois hébergements applicatifs.
 Les profils `.gitlab/ci/runners-*.yml` choisissent les runners selon la forge :
 sans étiquette sur Éducation, `ci.inria.fr` / `small` ou `medium` sur Inria.
-La publication PWA utilise l'auxiliaire et les artefacts de sa propre forge.
+La CI complète réside dans `.gitlab/ci/validation.yml`. Éducation utilise
+`.gitlab/ci/publication-education.yml` : tags stables uniquement, récupération
+des artefacts Inria du même tag/commit après réussite complète du pipeline,
+puis publication du site et de la PWA. Aucun test Django, déploiement, navigateur
+ou reconstruction PWA sur Éducation. Les contrôles de manifestes, empreintes et
+qualification restent obligatoires ; ne pas les remplacer par une confiance
+implicite dans le nom du tag. La reprise manuelle se fait sur le tag stable.
+Le site Éducation conserve les téléchargements GitHub et pointe vers sa PWA.
 Ce miroir ne duplique pas les dépendances externes (wheel et thème commun).
 
 Inria est la référence du code ; GitHub est le miroir utilisé notamment pour

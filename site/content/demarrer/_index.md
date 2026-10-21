@@ -31,7 +31,7 @@ Les appareils ne se synchronisent pas. Le premier téléchargement et les mises
 
 ### Dans le navigateur de cet appareil
 
-[Ouvrir Petits Pas](https://petits-pas.gitlabpages.inria.fr/petits-pas-pwa/),
+[Ouvrir Petits Pas]({{< adresse-pwa >}}),
 puis suivre les [étapes de démarrage dans le navigateur]({{< relref "/guide/local/essayer-navigateur" >}}).
 L’application peut ensuite fonctionner hors ligne. L’ajout d’une icône est
 proposé selon le navigateur ; il n’est pas nécessaire pour utiliser l’onglet.

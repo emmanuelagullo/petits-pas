@@ -19,7 +19,7 @@ class CanalPwaTests(unittest.TestCase):
 
     def test_ci_construit_les_rc_et_reserve_pages_aux_tags_stables(self):
         root = Path(__file__).resolve().parent.parent
-        source = (root / '.gitlab-ci.yml').read_text()
+        source = (root / '.gitlab/ci/validation.yml').read_text()
         nom = 'pwa-publication' if 'pwa-publication:' in source else 'publier-pwa'
         workflow = source.split('workflow:', 1)[1].split('\ntest:', 1)[0]
         promotion = source.split('\n' + nom + ':', 1)[1].split('\n\n', 1)[0]

@@ -1,0 +1,499 @@
+include:
+  - local: /.gitlab/ci/runners-inria.yml
+
+image: python:3.12-slim-bookworm
+
+stages:
+  - test
+  - integration
+  - construction
+  - publication
+
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?(-[A-Za-z0-9.-]+)?$/'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  DEPENDANCES: verrouillees
+  POSTGRES_DB: petits_pas_ci
+  POSTGRES_USER: petits_pas_ci
+  POSTGRES_PASSWORD: petits_pas_ci
+  DATABASE_URL: "postgresql://petits_pas_ci:petits_pas_ci@postgresql:5432/petits_pas_ci"
+  CARNET_SECRET_KEY: "ci-only-secret-key-never-used-in-production"
+  CARNET_DEBUG: "1"
+  CARNET_HOSTS: "localhost,127.0.0.1"
+
+cache:
+  key:
+    prefix: "$DEPENDANCES"
+    files:
+      - requirements.txt
+      - requirements.lock
+  paths:
+    - .cache/pip
+
+qualite-depot:
+  interruptible: true
+  stage: test
+  cache: []
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends git
+  script:
+    - git show --check --format= --no-renames "$CI_COMMIT_SHA"
+
+test:
+  interruptible: true
+  stage: test
+  # Keep this list aligned with every file that can affect the application or
+  # its test environment. A CI change deliberately exercises the full matrix.
+  rules:
+    - changes:
+        - .env.example
+        - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
+        - "*.py"
+        - "carnet/**/*"
+        - "comptes/**/*"
+        - compose.local.yaml
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements-communs.txt
+        - requirements-2fa.txt
+        - requirements-anymail.txt
+        - requirements.txt
+        - "scripts/**/*"
+        - site/data/demonstration.yaml
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml
+    - when: never
+  parallel:
+    matrix:
+      - DEPENDANCES: verrouillees
+      - DEPENDANCES: django-5.2
+  services:
+    - name: postgres:16-alpine
+      alias: postgresql
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends git libpango-1.0-0 libpangoft2-1.0-0
+    - |
+      if [[ "$DEPENDANCES" == "verrouillees" ]]; then
+        python3 -m pip install --requirement requirements.lock
+      else
+        python3 -m pip install \
+          --requirement requirements.txt \
+          "Django>=5.2,<5.3"
+      fi
+    # Extension facultative du 2FA : installée ici pour que ses tests s'exécutent.
+    - python3 -m pip install --requirement requirements-2fa.txt
+    - python3 -m pip check
+    - |
+      python3 - <<'PY'
+      import os
+      import time
+
+      import psycopg
+
+      for tentative in range(30):
+          try:
+              with psycopg.connect(os.environ["DATABASE_URL"]):
+                  break
+          except psycopg.OperationalError:
+              if tentative == 29:
+                  raise
+              time.sleep(1)
+      PY
+  script:
+    - python3 -m unittest discover -s scripts -p test_archive_historique.py
+    - python3 -m unittest discover -s scripts -p test_version_application.py
+    - python -m unittest discover -s scripts -p test_publication_automatique.py
+    - python -m unittest discover -s scripts -p test_canal_pwa.py
+    - python -m unittest discover -s scripts -p test_source_inria.py
+    - python -m unittest discover -s scripts -p test_publications_site.py
+    - python3 manage.py collectstatic --noinput
+    - python3 scripts/valider-illustrations-statiques.py
+    - python3 -m pas_communs.ci django --settings-tests carnet.settings_tests --durations 30 --timing --controle scripts/verifier-profil-serveur.py --controle scripts/qualifier-totp.py
+    - bash -n start-atelier.sh start-persistent.sh start-render.sh scripts/*.sh
+
+deploiement-ephemere:
+  extends: .runner-integration
+  stage: integration
+  rules:
+    - changes:
+        - .env.example
+        - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
+        - "*.py"
+        - "carnet/**/*"
+        - "comptes/**/*"
+        - compose.local.yaml
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements-communs.txt
+        - requirements-2fa.txt
+        - requirements-anymail.txt
+        - requirements.txt
+        - "scripts/**/*"
+        - site/data/demonstration.yaml
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml
+    - when: never
+  services:
+    - name: postgres:15-alpine
+      alias: postgresql
+    # Image communautaire publiée sur Docker Hub : Quay renvoie 403 sur le runner Inria.
+    # Service réservé à ce test éphémère ; version figée pour éviter une dérive de la CI.
+    - name: alpine/minio:RELEASE.2025-10-15T17-29-55Z
+      alias: minio
+      command: ["server", "/tmp/minio"]
+  variables:
+    POSTGRES_DB: petits_pas_ci
+    POSTGRES_USER: petits_pas_ci
+    POSTGRES_PASSWORD: petits_pas_ci
+    DATABASE_URL: "postgresql://petits_pas_ci:petits_pas_ci@postgresql:5432/petits_pas_ci"
+    MINIO_ROOT_USER: petits_pas_ci
+    MINIO_ROOT_PASSWORD: petits_pas_ci_secret
+    CARNET_S3_BUCKET: petits-pas-ci
+    CARNET_S3_ENDPOINT_URL: "http://minio:9000"
+    CARNET_S3_REGION: us-east-1
+    CARNET_S3_ACCESS_KEY: petits_pas_ci
+    CARNET_S3_SECRET_KEY: petits_pas_ci_secret
+    CARNET_S3_URL_EXPIRATION: "300"
+    CARNET_SECRET_KEY: "ci-only-persistent-secret-key-never-used-in-production"
+    CARNET_DEBUG: "0"
+    CARNET_FORCER_HTTPS: "oui"
+    CARNET_HOSTS: "localhost,127.0.0.1"
+    CARNET_CSRF_ORIGINS: "https://localhost:8000,https://127.0.0.1:8000"
+    CARNET_ENVIRONNEMENT_EPHEMERE: "oui"
+    CARNET_EMAIL_DESACTIVE: "oui"
+    # Second facteur exercé par le scénario : clé de test, jamais utilisée ailleurs.
+    # Le plafond de saisies est relevé pour laisser passer le scénario, qui
+    # vérifie ensuite qu'il finit bien par être atteint.
+    CARNET_2FA_CLE: "qHjrMI_lFyq-A73Di6uTntYS6PGAENbfH_aASf086Kk="
+    CARNET_RATELIMIT_DOUBLE_FACTEUR: "12/15m"
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends curl git libpango-1.0-0 libpangoft2-1.0-0 postgresql-client
+    - python3 -m pip install --requirement requirements.lock
+    - python3 -m pip install --requirement requirements-2fa.txt
+    - python3 -m pip check
+  script:
+    - python3 -m unittest discover -s scripts -p test_exercer_double_facteur.py
+    - scripts/exercer-deploiement-ephemere.sh
+
+deploiement-persistant-local:
+  stage: integration
+  image: python:3.13-slim-bookworm
+  services:
+    - name: postgres:16-alpine
+      alias: postgresql
+  variables:
+    CARNET_DEBUG: "0"
+    CARNET_FORCER_HTTPS: "oui"
+    CARNET_CSRF_ORIGINS: "https://localhost:8000"
+    CARNET_EMAIL_DESACTIVE: "oui"
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0
+    - python -m pip install --requirement requirements.lock
+    - python -m pip check
+  script:
+    - |
+      export CARNET_MEDIA_ROOT="$(mktemp -d)"
+      trap 'rm -rf "$CARNET_MEDIA_ROOT"' EXIT
+      python - <<'PY'
+      import os
+      import time
+      import psycopg
+
+      for tentative in range(30):
+          try:
+              with psycopg.connect(os.environ["DATABASE_URL"]):
+                  break
+          except psycopg.OperationalError:
+              if tentative == 29:
+                  raise
+              time.sleep(1)
+      PY
+      bash scripts/preparer-deploiement-persistant-local.sh
+      python manage.py makemigrations --check --dry-run
+
+.site-public-rules:
+  rules:
+    - changes:
+        - .env.example
+        - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
+        - MATRICE-AUTORISATIONS.org
+        - MODELE-IDENTITES-ET-AFFECTATIONS.org
+        - PLAN-IMPLEMENTATION-AUTORISATIONS.org
+        - POLITIQUE-AUTORISATION.org
+        - "*.py"
+        - "carnet/**/*"
+        - "comptes/**/*"
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements-communs.txt
+        - requirements-2fa.txt
+        - requirements-anymail.txt
+        - requirements.txt
+        - "scripts/**/*"
+        - .gitmodules
+        - "site/**/*"
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml
+    - when: never
+
+captures-demonstration:
+  interruptible: true
+  extends: .site-public-rules
+  stage: test
+  image:
+    # Playwright 1.63.0 and its Chromium build, pinned by manifest digest.
+    name: mcr.microsoft.com/playwright/python@sha256:72bd171a9ffc2b4b59532aaa6210e21014d07093120dc25528870c0b840da1f0
+    entrypoint: [""]
+  cache: []
+  variables:
+    DATABASE_URL: ""
+    CARNET_S3_BUCKET: ""
+    CARNET_DEBUG: "1"
+    CARNET_HOSTS: "127.0.0.1,localhost"
+    PORT: "8000"
+  before_script:
+    - python3 -m pip install --requirement requirements.lock
+    - python3 -m pip install "playwright==1.63.0"
+    - python3 -m pip check
+  script:
+    - test ! -e carnet.sqlite3
+    - python3 -m unittest discover -s scripts -p test_publier_paquets.py
+    - python3 -m unittest discover -s scripts -p test_manifestes_publication.py
+    - python3 -m unittest discover -s scripts -p test_publications_site.py
+    - sh scripts/preparer-site.sh
+    - python3 scripts/preparer-publications-site.py
+    - python3 scripts/construire-ecole-fictive.py --destination site/static/essais/ecole-fictive.zip
+    - python3 scripts/verifier-guide-pratique.py
+    - |
+      bash ./start-render.sh >.ci-captures-demonstration.log 2>&1 &
+      application_pid=$!
+      trap 'kill "$application_pid" 2>/dev/null || true; wait "$application_pid" 2>/dev/null || true' EXIT
+      python3 scripts/capturer-demonstration.py \
+        --base-url "http://127.0.0.1:$PORT" \
+        --output site/static/captures
+      kill "$application_pid"
+      wait "$application_pid" || true
+      CARNET_MODE_LOCAL=oui gunicorn carnet.wsgi:application --bind "127.0.0.1:$PORT" >.ci-captures-local.log 2>&1 &
+      application_pid=$!
+      python3 scripts/capturer-demonstration.py \
+        --base-url "http://127.0.0.1:$PORT" \
+        --output site/static/captures --mode-local
+      python3 scripts/verifier-captures-demonstration.py \
+        --input site/static/captures
+      kill "$application_pid"
+      wait "$application_pid" || true
+      trap - EXIT
+  artifacts:
+    when: always
+    paths:
+      - site/static/captures
+      - site/static/essais
+      - site/data/publications_generees.json
+      - .ci-captures-demonstration.log
+      - .ci-captures-local.log
+    expire_in: 1 week
+
+.hugo:
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  image:
+    # Immutable image currently providing Hugo Extended 0.140.2.
+    name: registry.gitlab.com/pages/hugo/hugo_extended@sha256:ff07c15f0ff5876c7a737d07b906d48802e7fcd1bba02f648fae63fda57ddb56
+    entrypoint: [""]
+  cache: []
+  before_script:
+    - sh scripts/preparer-site.sh
+    - hugo version
+
+site-public:
+  interruptible: true
+  extends:
+    - .hugo
+    - .site-public-rules
+  stage: construction
+  needs:
+    - job: captures-demonstration
+      artifacts: true
+  script:
+    - hugo --source site --baseURL "https://example.invalid/" --cleanDestinationDir --minify --panicOnWarning
+  artifacts:
+    paths:
+      - site/public
+    expire_in: 1 week
+
+site-public-liens:
+  extends: .site-public-rules
+  stage: publication
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  needs:
+    - job: site-public
+      artifacts: true
+  script:
+    - python3 site/theme-communs/hugo/verifier-site.py --sortie site/public --base-url https://example.invalid/
+
+pages:
+  extends: .hugo
+  stage: publication
+  needs:
+    - job: site-public-liens
+      artifacts: false
+    - job: captures-demonstration
+      artifacts: true
+  script:
+    - hugo --source site --baseURL "$CI_PAGES_URL/" --cleanDestinationDir --minify --panicOnWarning
+  pages:
+    publish: site/public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      changes:
+        - .env.example
+        - .gitlab-ci.yml
+        - ".gitlab/ci/**/*"
+        - MATRICE-AUTORISATIONS.org
+        - MODELE-IDENTITES-ET-AFFECTATIONS.org
+        - PLAN-IMPLEMENTATION-AUTORISATIONS.org
+        - POLITIQUE-AUTORISATION.org
+        - "*.py"
+        - "carnet/**/*"
+        - "comptes/**/*"
+        - "referentiel/**/*"
+        - requirements.lock
+        - requirements-communs.txt
+        - requirements-2fa.txt
+        - requirements-anymail.txt
+        - requirements.txt
+        - "scripts/**/*"
+        - .gitmodules
+        - "site/**/*"
+        - "start-*.sh"
+        - "suivi/**/*"
+        - trame-cycle1.yaml
+
+# Essais automatiques, exécutés en parallèle des autres vérifications.
+# L'artefact final désactive impérativement le protocole Python des tests.
+pwa-prototype:
+  interruptible: true
+  # Trixie fournit Node >= 20, requis par Playwright 1.62.
+  image: python:3.12-slim-trixie
+  stage: construction
+  needs: []
+  rules:
+    - when: on_success
+  allow_failure: false
+  cache:
+    key: pwa-pyodide-314.0.7
+    paths:
+      - .cache/pwa/runtime-314.0.7/
+      - .cache/pip/
+  variables:
+    DATABASE_URL: ""
+    CARNET_ANTIBRUTEFORCE: "non"
+  before_script:
+    - apt-get update
+    - apt-get install --yes --no-install-recommends nodejs npm poppler-utils openssl libpango-1.0-0 libpangoft2-1.0-0
+    - python3 --version
+    - python3 -m pip install --requirement requirements.lock
+    - npm install --prefix pwa --ignore-scripts
+    - node pwa/node_modules/playwright/cli.js install --with-deps chromium
+  script:
+    - python3 -m unittest discover -s scripts -p test_construire_pwa.py
+    - python3 -m unittest discover -s scripts -p test_ecole_fictive.py
+    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-314.0.7
+    - node scripts/verifier-socle-pyodide.mjs
+    - node --test scripts/test_transport_pwa.cjs scripts/test_recherche_referentiel.cjs
+    - python3 -m unittest discover -s scripts -p test_transferts_pwa.py
+    - node scripts/verifier-pwa.cjs
+    - cp dist/pwa/resultats-tests.json resultats-pwa.json
+    - PWA_TEST_HTTPS=oui PWA_BASE_PATH=/petits-pas-pwa/ node scripts/verifier-pwa.cjs
+    - cp dist/pwa/resultats-tests.json resultats-pwa-sous-chemin.json
+    - python3 -m unittest discover -s scripts -p test_paquet_local.py
+    - python3 -m unittest discover -s scripts -p test_essai_local.py
+    - python3 -m unittest discover -s scripts -p test_apercu_local.py
+    - python3 -m unittest discover -s scripts -p test_publication_pwa.py
+    - python3 scripts/construire-pwa.py --runtime .cache/pwa/runtime-314.0.7 --wheels dist/pwa/wheels
+    - node scripts/verifier-distribution-pwa.cjs
+    - cp dist/pwa/config.json dist/pwa-config.json
+    - python3 scripts/manifeste-publication.py --mode navigateur --target navigateur --destination dist/publication-pwa-candidat.json dist/pwa-config.json resultats-pwa.json resultats-pwa-sous-chemin.json dist/resultats-distribution-pwa.json
+  artifacts:
+    when: on_success
+    expire_in: 30 days
+    paths:
+      - dist/pwa/
+      - resultats-pwa.json
+      - resultats-pwa-sous-chemin.json
+      - dist/resultats-distribution-pwa.json
+      - dist/pwa-config.json
+      - dist/publication-pwa-candidat.json
+      - dist/notes-version.md
+
+# Qualification Linux automatique : aucune école réelle ni bundle de test livré.
+pwa-qualification:
+  extends: pwa-prototype
+  script:
+    - python3 scripts/construire-pwa.py --test --runtime .cache/pwa/runtime-314.0.7
+    - node scripts/qualifier-pwa.cjs
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - dist/qualification-pwa.json
+
+# Publier automatiquement les tags vérifiés ; main reste à la demande.
+# Le projet destinataire contient le fichier décrit dans pwa/PUBLICATION.md.
+pwa-publication:
+  stage: publication
+  needs:
+    - job: qualite-depot
+      artifacts: false
+      optional: true
+    - job: test
+      artifacts: false
+      optional: true
+    - job: pwa-prototype
+      artifacts: false
+    - job: pwa-qualification
+      artifacts: false
+  inherit:
+    default: false
+    variables: false
+  variables:
+    PWA_SOURCE_PROJECT: "$CI_PROJECT_PATH"
+    PWA_SOURCE_PROJECT_ID: "$CI_PROJECT_ID"
+    PWA_SOURCE_PIPELINE_ID: "$CI_PIPELINE_ID"
+    PWA_SOURCE_SHA: "$CI_COMMIT_SHA"
+    PWA_SOURCE_REF: "$CI_COMMIT_REF_NAME"
+    PWA_SOURCE_TAG: "$CI_COMMIT_TAG"
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
+      when: on_success
+      allow_failure: false
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+      allow_failure: true
+  trigger:
+    project: petits-pas/petits-pas-pwa
+    branch: main
+    strategy: depend
+    forward:
+      yaml_variables: true
+      pipeline_variables: false

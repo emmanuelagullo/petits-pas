@@ -150,10 +150,18 @@ class PublicationTests(unittest.TestCase):
                     with self.assertRaises(ValueError):publication.select_job('https://fictif/api/v4','12','56',commit,tag,tag)
 
     def test_preparer_publication_complete_avec_manifestes_et_qualification(self):
+        self.exercer_publication_complete()
+
+    def test_miroir_education_reutilise_bundle_et_controles_inria(self):
+        self.exercer_publication_complete(education=True)
+
+    def exercer_publication_complete(self, education=False):
         import os, shutil
         from publication import manifest
         commit='b'*40
-        self.config.update(commit=commit, tag=None, application_version='dev.bbbbbbbb')
+        tag = '0.12.0' if education else None
+        version = tag or 'dev.bbbbbbbb'
+        self.config.update(commit=commit, tag=tag, application_version=version)
         self.write_config()
         base=Path(self.temp.name)
         metadata=base/'metadata';metadata.mkdir()
@@ -161,7 +169,7 @@ class PublicationTests(unittest.TestCase):
         for name in ['resultats-pwa.json','resultats-pwa-sous-chemin.json','resultats-distribution-pwa.json']:
             (metadata/name).write_text(json.dumps([{'test':'fictif réussi'}]))
         (metadata/'notes-version.md').write_text('Notes fictives')
-        env={'CI_COMMIT_SHA':commit,'CI_PIPELINE_ID':'56','CI_JOB_ID':'34'}
+        env={'CI_COMMIT_SHA':commit,'CI_PIPELINE_ID':'56','CI_JOB_ID':'34', 'CI_COMMIT_TAG': tag or ''}
         with patch.dict(os.environ,env,clear=True):
             record=manifest('navigateur','navigateur',list(metadata.iterdir()))
         (metadata/'publication-pwa-candidat.json').write_text(json.dumps(record))
@@ -178,14 +186,22 @@ class PublicationTests(unittest.TestCase):
             destination=base/status
             def download(url,path):shutil.copyfile(qualification if '/jobs/35/' in url else archive,path)
             env={'PWA_SOURCE_PROJECT':publication.SOURCE,'CI_API_V4_URL':'https://fictif/api/v4','PWA_SOURCE_PROJECT_ID':'12','PWA_SOURCE_PIPELINE_ID':'56','PWA_SOURCE_SHA':commit}
+            if education:
+                env.update(PWA_SOURCE_PROJECT_ID='901', PWA_SOURCE_PIPELINE_ID='902',
+                           PWA_SOURCE_REF=tag, PWA_SOURCE_TAG=tag)
             old=os.getcwd();os.chdir(base)
             try:
-                with patch.dict(os.environ,env,clear=True), patch.object(publication,'select_job',return_value=(job,'https://fictif/jobs/34/artifacts')), patch.object(publication,'download',side_effect=download), patch('sys.argv',['preparer','--destination',str(destination),'--pages-url','https://pwa-fictive.example/']):
+                with patch.dict(os.environ,env,clear=True), patch.object(publication,'select_job',return_value=(job,'https://fictif/jobs/34/artifacts')) as selection, patch.object(publication,'download',side_effect=download), patch('sys.argv',['preparer','--destination',str(destination),'--pages-url','https://pwa-fictive.example/'] + (['--source-inria'] if education else [])), patch('source_inria.selectionner_source',return_value={'api':'https://gitlab.inria.fr/api/v4','project_id':'12','pipeline_id':'56'}):
                     if status=='passed':
                         publication.main()
                         report=json.loads((destination/'publication.json').read_text())
                         self.assertEqual(report['qualification_job_id'],35)
-                        self.assertEqual(report['application_version'],'dev.bbbbbbbb')
+                        self.assertEqual(report['application_version'],version)
+                        if education:
+                            selection.assert_called_once_with('https://gitlab.inria.fr/api/v4', '12', '56', commit, tag, tag)
+                            self.assertEqual(report['source_api'],'https://gitlab.inria.fr/api/v4')
+                            for file in self.root.iterdir():
+                                self.assertEqual(file.read_bytes(), (destination/file.name).read_bytes())
                         self.assertTrue((destination/'publication/resultats-pwa-sous-chemin.json').exists())
                     else:
                         with self.assertRaises(ValueError):publication.main()
