@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Publication PWA Éducation : transmettre explicitement un tag vide sur les
+  branches pour éviter le refus du pipeline auxiliaire par ses règles.
+
 * 0.12.2 — 2026-10-22
 
 Cette version reprend la publication corrective 0.12.1, dont la construction
