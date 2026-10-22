@@ -63,6 +63,10 @@ pwa-publication:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
     - if: '$CI_COMMIT_BRANCH'
+      variables:
+        # CI_COMMIT_TAG est absent sur une branche : ne pas transmettre une
+        # référence non résolue que le workflow aval prendrait pour un tag.
+        PWA_SOURCE_TAG: ""
     - when: never
   needs:
     - job: pages
