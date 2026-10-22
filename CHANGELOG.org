@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Publication PWA Éducation : inscrire les valeurs explicites de provenance
+  dans le pipeline enfant, sans expansion différée entre déclenchements.
+
 - Publication PWA Éducation : transmettre explicitement un tag vide sur les
   branches pour éviter le refus du pipeline auxiliaire par ses règles.
 

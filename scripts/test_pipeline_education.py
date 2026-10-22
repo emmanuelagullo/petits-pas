@@ -63,25 +63,41 @@ class DisponibiliteTests(unittest.TestCase):
 
 
 class GenerationTests(unittest.TestCase):
-    def exercer(self, result):
+    def exercer(self, result, tag=None):
         with tempfile.TemporaryDirectory() as temporary:
             destination = Path(temporary) / 'enfant.yml'
-            env = {'CI_COMMIT_SHA': SHA, 'CI_COMMIT_REF_NAME': 'correction/pages'}
+            env = {'CI_COMMIT_SHA': SHA, 'CI_COMMIT_REF_NAME': 'correction/pages',
+                   'CI_PROJECT_PATH': source.PROJECT, 'CI_PROJECT_ID': '19945', 'CI_PIPELINE_ID': '123'}
+            if tag:
+                env.update(CI_COMMIT_TAG=tag, CI_COMMIT_REF_NAME=tag)
             options = {'side_effect': result} if isinstance(result, Exception) else {'return_value': result}
             with patch.dict(os.environ, env, clear=True), patch.object(pipeline, 'selectionner_source', **options) as selection:
                 pipeline.preparer(destination)
-                selection.assert_called_once_with(None, SHA, 'correction/pages', distinguer_attente=True)
+                selection.assert_called_once_with(tag, SHA, tag or 'correction/pages', distinguer_attente=True)
             return json.loads(destination.read_text())
 
     def test_pret_publication_automatique(self):
         config = self.exercer({'pipeline_id': '56'})
-        self.assertEqual(config, {'include': [{'local': '/.gitlab/ci/publication-education-taches.yml'}]})
+        self.assertEqual(config['include'], [{'local': '/.gitlab/ci/publication-education-taches.yml'}])
+        self.assertEqual(config['pwa-publication']['variables'], {
+            'PWA_SOURCE_PROJECT': source.PROJECT, 'PWA_SOURCE_PROJECT_ID': '19945',
+            'PWA_SOURCE_PIPELINE_ID': '123', 'PWA_SOURCE_SHA': SHA,
+            'PWA_SOURCE_REF': 'correction/pages', 'PWA_SOURCE_TAG': '',
+        })
+
+    def test_tag_explicite_sans_reference_de_variable(self):
+        config = self.exercer({'pipeline_id': '56'}, tag='0.12.2')
+        variables = config['pwa-publication']['variables']
+        self.assertEqual(variables['PWA_SOURCE_TAG'], '0.12.2')
+        self.assertEqual(variables['PWA_SOURCE_REF'], '0.12.2')
+        self.assertTrue(all('$CI_' not in value for value in variables.values()))
 
     def test_attente_source_manuelle_bloquante(self):
         config = self.exercer(source.SourceEnAttente('Inria encore en cours'))
         self.assertEqual(config['source-inria']['when'], 'manual')
         self.assertFalse(config['source-inria']['allow_failure'])
         self.assertIn('même commit', config['source-inria']['manual_confirmation'])
+        self.assertEqual(config['pwa-publication']['variables']['PWA_SOURCE_SHA'], SHA)
 
     def test_erreurs_fatales_ne_generent_aucune_publication(self):
         for error in (ValueError('commit différent'), URLError('réseau indisponible')):
