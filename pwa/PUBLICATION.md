@@ -241,6 +241,11 @@ GitHub, publie le site Hugo puis déclenche l'auxiliaire PWA. La publication de
 lors d’un push. La reprise manuelle se lance sur la branche ou le tag concerné.
 Les préversions ne remplacent pas la PWA habituelle.
 
+Sur Inria, `captures-demonstration` produit les captures et l'école fictive
+à chaque pipeline, y compris pour un commit limité aux notes de version.
+Éducation exige les artefacts du même commit : un pipeline réussi sans ce job
+ne suffit pas et aucun artefact d'un commit précédent n'est réutilisé.
+
 Le préparateur Pages utilise `--source-inria` sur Éducation. Il recherche un
 pipeline Inria réussi de la référence et du commit exacts, vérifie le tag GitHub
 (ou la présence du commit GitHub sans tag), puis

@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Publication Éducation : produire les captures Inria même pour un commit
+  limité à la documentation ou aux notes de version, afin de fournir les
+  artefacts du commit exact au miroir.
+
 * 0.12 — 2026-10-22
 
 Cette version consolide les sauvegardes locales, la consommation des codes de
