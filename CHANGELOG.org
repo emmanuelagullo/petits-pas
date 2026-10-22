@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+* 0.12.2 — 2026-10-22
+
+Cette version reprend la publication corrective 0.12.1, dont la construction
+s'est arrêtée faute de rubrique de notes de version. Elle contient le même
+correctif de CI, sans changement fonctionnel ni migration depuis 0.12.
+
 - Publication Éducation : produire les captures Inria même pour un commit
   limité à la documentation ou aux notes de version, afin de fournir les
   artefacts du commit exact au miroir.
