@@ -258,7 +258,10 @@ deploiement-persistant-local:
 
 captures-demonstration:
   interruptible: true
-  extends: .site-public-rules
+  # Éducation importe les artefacts du commit exact, même si seuls les
+  # documents de release ont changé. Ne pas filtrer ce job par changes.
+  rules:
+    - when: on_success
   stage: test
   image:
     # Playwright 1.63.0 and its Chromium build, pinned by manifest digest.
