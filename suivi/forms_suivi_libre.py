@@ -22,9 +22,9 @@ class ReussiteLibreForm(SelectionElevesForm):
     domaine = forms.TypedChoiceField(label="Domaine", coerce=int)
     sous_domaine = forms.TypedChoiceField(label="Sous-domaine", coerce=int, required=False, empty_value=None,
         help_text="Facultatif. Choisissez un sous-domaine du domaine indiqué ; les autres seront refusés.")
-    icone = forms.ChoiceField(label="Icône de la compétence", required=False)
+    icone = forms.ChoiceField(label="Icône", required=False)
     niveau = forms.ChoiceField(label="Repère de section", choices=NIVEAUX, initial="PS")
-    reussite = forms.BooleanField(label="Enregistrer également une réussite", required=False)
+    reussite = forms.BooleanField(label="Enregistrer une réussite", required=False)
     date_observation = forms.DateField(label="Date du constat", required=False, initial=timezone.localdate,
         widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"))
     commentaire = forms.CharField(label="Commentaire", required=False, widget=forms.Textarea(attrs={"rows": 3}))

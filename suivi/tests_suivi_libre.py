@@ -415,8 +415,10 @@ class ErgonomieLibre(Base):
         self.assertFalse(self.client.get(url).context["form"]["reussite"].value())
         page = self.client.get(url, {"eleve": self.eleve.pk})
         self.assertTrue(page.context["form"]["reussite"].value())
-        self.assertContains(page, "Ajouter une trace — facultatif")
-        self.assertContains(page, "Illustration de la compétence — facultatif")
+        self.assertContains(page, "Compléments facultatifs")
+        self.assertContains(page, "Réussite et trace")
+        self.assertContains(page, "Ajouter une trace")
+        self.assertContains(page, "Illustration de la compétence")
 
     def test_suivi_ferme_refuse_portee_et_date(self):
         a = self.creer()

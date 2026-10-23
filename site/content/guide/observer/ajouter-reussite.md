@@ -17,14 +17,15 @@ statut = "disponible"
 2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
    compétence déjà créée** aident à éviter les copies inutiles.
 3. Vérifier domaine, sous-domaine facultatif, section et élèves concernés.
-4. Dans l’encadré **Réussite — facultatif**, choisir **Enregistrer également une réussite** si le constat est déjà fait,
+4. Dans **Compléments facultatifs → Réussite et trace → Réussite**, choisir **Enregistrer une réussite** si le constat est déjà fait,
    pour placer la compétence à l’état **Réussi**. Cette option est présélectionnée
    depuis un élève et décochée depuis le collectif. Elle ne commande ni la trace
    ni l’illustration. Renseigner la **Date du constat** si vous enregistrez une
    réussite ou une trace ; la date n’est pas nécessaire pour ouvrir le suivi seul.
-5. Au besoin, ouvrir **Ajouter une trace — facultatif** pour un commentaire
+   Elle est commune à ces deux rubriques ; l’illustration possède un encadré séparé.
+5. Au besoin, ouvrir **Ajouter une trace** pour un commentaire
    et/ou une photo. Une trace seule ne valide pas la compétence.
-6. Au besoin, ouvrir **Illustration de la compétence — facultatif** pour choisir
+6. Au besoin, ouvrir **Illustration de la compétence** pour choisir
    une icône. Cette illustration commune reste distincte des photos des traces.
    Ensuite, cliquer sur l’illustration ou **Modifier l’illustration** dans la page
    de compétence permet de la changer ou d’importer une image pour cette classe.
