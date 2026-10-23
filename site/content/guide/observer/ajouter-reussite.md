@@ -16,7 +16,13 @@ statut = "disponible"
    le collectif, ou **Ajouter une compétence et une réussite** depuis un élève.
 2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
    compétence déjà créée** aident à éviter les copies inutiles.
-3. Vérifier domaine, sous-domaine facultatif, section et élèves concernés.
+3. Dans **Classement de la compétence**, choisir le domaine. La liste des
+   sous-domaines se limite à ce domaine ; **Sans sous-domaine** classe directement
+   la compétence dans le domaine. Un changement de domaine retire le sous-domaine
+   devenu incompatible. Si le domaine n’en possède pas, un message remplace la liste.
+   Sans JavaScript, les sous-domaines sont regroupés par domaine ; choisir dans
+   le groupe correspondant. Une association incohérente est refusée à l’enregistrement.
+   Vérifier aussi la section et les élèves concernés.
 4. Dans **Compléments facultatifs → Réussite et trace → Réussite**, choisir **Enregistrer une réussite** si le constat est déjà fait,
    pour placer la compétence à l’état **Réussi**. Cette option est présélectionnée
    depuis un élève et décochée depuis le collectif. Elle ne commande ni la trace

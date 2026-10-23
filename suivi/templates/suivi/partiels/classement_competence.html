@@ -1,0 +1,11 @@
+{% load static %}
+<fieldset class="encadre classement-competence" data-classement-competence>
+  <legend>Classement de la compétence</legend>
+  <p>{{ form.domaine.label_tag }} {{ form.domaine }} {{ form.domaine.errors }}</p>
+  <div class="sous-domaine" data-selecteur-sous-domaine>
+    <p>{{ form.sous_domaine.label_tag }} {{ form.sous_domaine }} {{ form.sous_domaine.errors }}<small class="aide" id="{{ form.sous_domaine.auto_id }}_helptext">{{ form.sous_domaine.help_text }}</small></p>
+  </div>
+  <p class="aide" role="status" aria-live="polite" data-message-classement></p>
+  <noscript><p class="aide">Les sous-domaines sont regroupés par domaine. Choisissez dans le groupe du domaine sélectionné, ou « Sans sous-domaine ».</p></noscript>
+</fieldset>
+<script src="{% static 'suivi/classement_competence.js' %}" defer></script>

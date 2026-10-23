@@ -429,3 +429,47 @@ class ErgonomieLibre(Base):
         self.assertEqual(self.client.post(url, {"action": "activer", "adoption": self.adoption.pk}).status_code, 403)
         url = reverse("date_reussite", args=[self.eleve.pk, a.competence_id])
         self.assertEqual(self.client.post(url, {"choix": "aujourdhui"}).status_code, 403)
+
+
+class ClassementLibre(Base):
+    setUp = SuiviLibre.setUp
+    adopter = SuiviLibre.adopter
+
+    def page(self, **params):
+        self.client.force_login(self.enseignant)
+        return self.client.get(reverse("ajouter_reussite", args=[self.classe.pk]), params)
+
+    def test_hierarchie_sans_js_et_preselection_depuis_sous_domaine(self):
+        sous = self.adoption.contenu["sous_domaines"][0]
+        page = self.page(domaine=sous["domaine_id"], sous_domaine=sous["id"])
+        self.assertContains(page, "Classement de la compétence")
+        self.assertContains(page, '<optgroup')
+        self.assertContains(page, f'data-domaine="{sous["domaine_id"]}"')
+        self.assertContains(page, "Les sous-domaines sont regroupés par domaine")
+        self.assertEqual(str(page.context["form"]["sous_domaine"].value()), str(sous["id"]))
+
+    def donnees(self, sous=None, domaine=None):
+        page = self.page()
+        return dict(libelle="Je classe des formes fictives", niveau="PS", eleves=[self.eleve.pk],
+            domaine=domaine or self.entree["domaine_id"], sous_domaine=sous or "",
+            jeton=page.context["form"].initial["jeton"])
+
+    def test_post_incoherent_refuse_sans_creation_et_conserve_texte(self):
+        sous = next(s for s in self.adoption.contenu["sous_domaines"] if s["domaine_id"] != self.entree["domaine_id"])
+        page = self.client.post(reverse("ajouter_reussite", args=[self.classe.pk]), self.donnees(sous=sous["id"]))
+        self.assertIn("sous_domaine", page.context["form"].errors)
+        self.assertContains(page, "Je classe des formes fictives")
+        self.assertFalse(CompetenceLocale.objects.exists())
+
+    def test_post_sans_js_sous_domaine_et_domaine_sans_sous_domaine(self):
+        sous = self.adoption.contenu["sous_domaines"][-1]
+        url = reverse("ajouter_reussite", args=[self.classe.pk])
+        page = self.client.post(url, self.donnees(sous=sous["id"], domaine=sous["domaine_id"]))
+        self.assertEqual(page.status_code, 302)
+        self.assertEqual(CompetenceLocale.objects.get().competence.sous_domaine_id, sous["id"])
+        parents = {s["domaine_id"] for s in self.adoption.contenu["sous_domaines"]}
+        domaine = next(d["id"] for d in self.adoption.contenu["domaines"] if d["id"] not in parents)
+        page = self.client.post(url, self.donnees(domaine=domaine))
+        self.assertEqual(page.status_code, 302)
+        self.assertTrue(CompetenceLocale.objects.order_by("pk").last().competence.sous_domaine_id is None)
+        self.assertFalse(Observation.objects.exists())

@@ -11,8 +11,7 @@
 <p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}<small>{{ form.libelle.help_text }}</small></p>
 <details><summary>Exemples de compétences</summary><p>« Je raconte les étapes de ma construction » ; « Je reproduis une suite de couleurs ». Décrivez ce que l’élève sait faire ; le commentaire d’une observation et sa photo se placent dans la trace.</p></details>
 {% if reprises %}<details><summary>Retrouver une compétence déjà créée</summary><p>Reprenez son identité sans recopier les anciennes réussites.</p><ul>{% for a in reprises %}<li><a href="{% url 'eleves_apprentissage' classe.pk a.pk %}">{{ a.competence.libelle }}</a></li>{% endfor %}</ul></details>{% endif %}
-<p>{{ form.domaine.label_tag }} {{ form.domaine }} {{ form.domaine.errors }}</p>
-<p>{{ form.sous_domaine.label_tag }} {{ form.sous_domaine }} {{ form.sous_domaine.errors }}</p>
+{% include "suivi/partiels/classement_competence.html" %}
 <p>{{ form.niveau.label_tag }} {{ form.niveau }} {{ form.niveau.errors }}</p>
 {% endif %}
 <fieldset><legend>Élèves concernés</legend>{{ form.eleves }}{{ form.eleves.errors }}<p>{{ form.eleves.help_text }}</p></fieldset>
