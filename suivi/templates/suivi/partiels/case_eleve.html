@@ -1,5 +1,6 @@
 {% comment %}Une ligne « enfant » dans la saisie éclair d'une compétence.{% endcomment %}
 <div class="ligne" id="e{{ eleve.pk }}">
+  {% if eleve.hors_suivi %}<span class="bascule">{{ eleve.nom_court }} — Hors du suivi</span>{% else %}
   {% if responsable and eleve.peut_saisir_dans_classe %}
   <form hx-post="{% url 'basculer' eleve.pk competence.pk %}?vue=classe"
         hx-target="#e{{ eleve.pk }}" hx-swap="outerHTML">
@@ -30,4 +31,5 @@
     </span>
     {% else %}+{% endif %}
   </a>
+  {% endif %}
 </div>

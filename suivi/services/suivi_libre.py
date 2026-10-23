@@ -11,6 +11,9 @@ from suivi.services.pedagogie import modifier_etat
 
 @transaction.atomic
 def associer(*, utilisateur, classe, locale, ids, adoption_attendue, retirer=False):
+    from suivi.autorisations import MODIFIER_ETAT, autorise
+    if not autorise(utilisateur, MODIFIER_ETAT, classe):
+        raise PermissionDenied
     _verrouiller(utilisateur, classe.ecole, classe.annee_scolaire, classe, adoption_attendue)
     if not locale.suivi_libre or locale.ecole_id != classe.ecole_id:
         raise PermissionDenied
@@ -18,7 +21,8 @@ def associer(*, utilisateur, classe, locale, ids, adoption_attendue, retirer=Fal
     # usage antérieur, jamais le seul accès au catalogue de l'école.
     from suivi.autorisations import VOIR_SUIVI, autorise
     sources = locale.disponibilites.select_related("classe")
-    if not any(d.classe and autorise(utilisateur, VOIR_SUIVI, d.classe) for d in sources):
+    if not any(d.classe and d.classe.annee_scolaire <= classe.annee_scolaire
+               and autorise(utilisateur, VOIR_SUIVI, d.classe) for d in sources):
         raise PermissionDenied
     selection = _scolarites(classe, ids)
     d, _ = DisponibiliteCompetenceLocale.objects.get_or_create(locale=locale, classe=classe,
@@ -48,15 +52,15 @@ def ajouter_reussite(*, utilisateur, classe, ids, domaine_id, libelle, niveau,
         niveau=niveau, suivi_libre=True)
     associer(utilisateur=utilisateur, classe=classe, locale=locale, ids=ids,
              adoption_attendue=adoption_attendue)
-    commune = enregistrer_commune(utilisateur=utilisateur, classe=classe,
-        competence=locale.competence, ids=ids, valeurs={"date_observation": date_observation,
-        "commentaire": commentaire, "photo": photo, "reussite": True})
+    valeurs = {"date_observation": date_observation, "commentaire": commentaire,
+               "photo": photo, "reussite": True}
     if len(selection) == 1:
-        # Même service de trace, avec une attribution autonome pour l'individuel.
-        t = commune.attributions.get()
-        t.commune = None
-        t.origine_commune = commune
-        t.save(update_fields=["commune", "origine_commune"])
+        from .pedagogie import enregistrer_trace
+        enregistrer_trace(utilisateur=utilisateur, eleve=selection[0].eleve,
+            competence=locale.competence, scolarite=selection[0], valeurs=valeurs)
+    else:
+        enregistrer_commune(utilisateur=utilisateur, classe=classe,
+            competence=locale.competence, ids=ids, valeurs=valeurs)
     for sc in selection:
         modifier_etat(utilisateur=utilisateur, eleve=sc.eleve, competence=locale.competence,
                       statut=Observation.REUSSI, date_observation=date_observation)

@@ -44,7 +44,7 @@ class InstallationLocaleForm(InitialisationEcoleForm):
     """Préparer aussi le référentiel annuel et, si souhaité, la première classe."""
 
     preparer_classe = forms.BooleanField(label="Préparer aussi ma première classe", initial=True, required=False)
-    referentiel = forms.ChoiceField(label="Référentiel de départ", initial="trame")
+    referentiel = forms.ChoiceField(label="Façon de commencer", initial="trame")
     annee_scolaire = forms.CharField(label="Année scolaire", max_length=9)
     classe_nom = forms.CharField(label="Nom de la classe", max_length=100, required=False)
 
@@ -53,7 +53,9 @@ class InstallationLocaleForm(InitialisationEcoleForm):
         from suivi.forms import ClasseForm
         from suivi.services.installation_locale import REFERENTIELS_DEPART
         classe = ClasseForm()
-        self.fields["referentiel"].choices = [(cle, titre) for cle, titre, _ in REFERENTIELS_DEPART]
+        self.fields["referentiel"].choices = [
+            ("Démarrer sans compétences prédéfinies", [("libre", "Catégories du cycle 1, sans compétences")]),
+            ("Partir d’un référentiel", [(cle, titre) for cle, titre, _ in REFERENTIELS_DEPART if cle != "libre"])]
         self.fields["annee_scolaire"] = classe.fields["annee_scolaire"]
         self.fields["classe_nom"] = classe.fields["nom"]
         self.fields["classe_nom"].required = False

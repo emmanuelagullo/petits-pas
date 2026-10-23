@@ -89,6 +89,8 @@ def enregistrer_trace(
         raise PermissionDenied
     if not autorise(utilisateur, CONTRIBUER, scolarite.classe):
         raise PermissionDenied
+    if "reussite" in valeurs and not _est_responsable(utilisateur, scolarite.classe):
+        raise PermissionDenied
     creation = trace is None
     if trace is not None and not _peut_corriger_trace(utilisateur, trace):
         raise PermissionDenied

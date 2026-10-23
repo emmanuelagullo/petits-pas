@@ -1,7 +1,7 @@
 {% comment %}Une ligne « compétence » dans l'écran d'un enfant.{% endcomment %}
 {% load illustrations %}
 <div class="ligne" id="c{{ competence.pk }}">
-  {% if responsable %}
+  {% if responsable and competence.saisie_ouverte != False %}
   <form hx-post="{% url 'basculer' eleve.pk competence.pk %}"
         hx-target="#c{{ competence.pk }}" hx-swap="outerHTML">
     {% csrf_token %}
