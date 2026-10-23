@@ -42,6 +42,7 @@
             {% if obs.historique_inconnu %}<span class="etat-competence">État de cette année non retrouvé</span>{% endif %}
             {% if obs.statut == 'en_cours' %}<span class="etat-competence">En cours d'apprentissage</span>{% endif %}
             {% for trace in obs.traces_carnet %}
+              {% if trace.reussite %}<span class="date-reussite">Réussite observée le {{ trace.date_observation|date:"j F Y" }}</span>{% endif %}
               {% if trace.commentaire %}<span class="mot">« {{ trace.commentaire }} »</span>{% endif %}
               {% if trace.photo %}<img class="trace-photo" src="{% if generation_pdf %}{{ trace.url_photo_pdf }}{% else %}{% url 'afficher_media_trace' trace.pk %}{% endif %}" alt="Trace associée à {{ competence.libelle }}">{% endif %}
             {% endfor %}

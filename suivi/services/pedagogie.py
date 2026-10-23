@@ -9,6 +9,7 @@ from .contextes_referentiels import usage_pour_saisie, enregistrer_etat_annuel
 
 
 CHAMPS_TRACE = (
+    "reussite",
     "date_observation",
     "commentaire",
     "photo",

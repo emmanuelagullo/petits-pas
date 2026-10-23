@@ -15,12 +15,16 @@ def repartition_competences(classe, competences):
     competences = list(competences)
     eleves = classe.eleves.filter(ecole_id=classe.ecole_id)
     total = eleves.count()
+    conditions = Q(competence_id__in=[c.pk for c in competences if not getattr(c, "suivi_libre", False)])
+    for c in competences:
+        if getattr(c, "suivi_libre", False):
+            conditions |= Q(competence_id=c.pk, eleve_id__in=c.eleves_suivis_ids)
     comptes = {
         ligne["competence_id"]: ligne
         for ligne in (observations_classe(classe).filter(
             eleve_id__in=eleves.values("pk"),
             competence_id__in=[c.pk for c in competences],
-        ).order_by().values("competence_id").annotate(
+        ).filter(conditions).order_by().values("competence_id").annotate(
             reussites=Count("pk", filter=Q(statut_lecture=Observation.REUSSI)),
             en_cours=Count("pk", filter=Q(statut_lecture=Observation.EN_COURS)),
             inconnus=Count("pk", filter=Q(connu_lecture=False) | Q(connu_lecture__isnull=True)),
