@@ -17,7 +17,7 @@
 {% endif %}
 <fieldset><legend>Élèves concernés</legend>{{ form.eleves }}{{ form.eleves.errors }}<p>{{ form.eleves.help_text }}</p></fieldset>
 {% if not locale %}
-<p>{{ form.reussite }} {{ form.reussite.label_tag }} {{ form.reussite.errors }}</p>
+<p><label class="choix-simple" for="{{ form.reussite.id_for_label }}">{{ form.reussite }} {{ form.reussite.label }}</label>{{ form.reussite.errors }}<small class="aide">Cette option place la compétence à l’état « Réussi ». Vous pouvez ajouter une trace sans enregistrer de réussite ; l’illustration reste indépendante.</small></p>
 <p>{{ form.date_observation.label_tag }} {{ form.date_observation }} {{ form.date_observation.errors }}<small>Date de la réussite ou de la trace, si vous en ajoutez une.</small></p>
 <details{% if form.commentaire.value or form.photo.errors %} open{% endif %}><summary>Ajouter une trace — facultatif</summary>
 <p>Documentez le constat pour les élèves sélectionnés. Pour plusieurs élèves, la trace est commune ; elle pourra ensuite devenir personnelle.</p>
