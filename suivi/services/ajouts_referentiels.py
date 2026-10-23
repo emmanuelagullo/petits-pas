@@ -39,13 +39,13 @@ def catalogue_reprises(*, utilisateur, ecole, annee, classe):
         raise PermissionDenied
     classes = [c.pk for c in Classe.objects.filter(ecole=ecole, annee_scolaire__lte=annee)
                if autorise(utilisateur, GERER_REFERENTIEL_CLASSE, c)]
-    return CompetenceLocale.objects.filter(ecole=ecole).filter(
+    return CompetenceLocale.objects.filter(ecole=ecole, suivi_libre=False).filter(
         Q(disponibilites__annee_scolaire=annee, disponibilites__classe__isnull=True) |
         Q(disponibilites__classe_id__in=classes)).distinct().order_by("pk")
 
 
 @transaction.atomic
-def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None):
+def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None):
     adoption = _verrouiller(utilisateur, ecole, annee, classe, adoption_attendue)
     contenus = [contenu_origine(adoption)] if classe else [c for _, c in contenus_ecole(ecole, annee)]
     domaine = next((d for c in contenus for d in c.get("domaines", []) if d["id"] == domaine_id), None)
@@ -57,18 +57,31 @@ def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, class
         raise ValidationError("Choisissez une section.")
     # Un groupe distinct garde son nom lors des changements de base. Réutiliser
     # un Domaine source aurait rendu l'ajout dépendant d'une version particulière.
+    sous = None
+    if suivi_libre:
+        if classe is None:
+            raise PermissionDenied
+        from suivi.models import SousDomaine
+        if sous_domaine_id:
+            sous = next((s for s in contenu_origine(adoption).get("sous_domaines", [])
+                         if s["id"] == sous_domaine_id and s["domaine_id"] == domaine_id), None)
+            if sous is None:
+                raise ValidationError("Choisissez un sous-domaine de ce domaine.")
+        groupe = Domaine.objects.get(pk=domaine_id, ecole=ecole)
     nom = "Ajouts — " + domaine["nom"][:191]
-    groupe = Domaine.objects.filter(ecole=ecole, code__startswith="ajout-", nom=nom).first()
+    if not suivi_libre:
+        groupe = Domaine.objects.filter(ecole=ecole, code__startswith="ajout-", nom=nom).first()
     if groupe is None:
         groupe = Domaine.objects.create(ecole=ecole, code="ajout-" + uuid4().hex[:14], nom=nom, ordre=domaine["ordre"])
-    competence = Competence(domaine=groupe, code="local-" + uuid4().hex[:24], libelle=libelle.strip(), niveau=niveau)
+    competence = Competence(domaine=groupe, sous_domaine_id=sous_domaine_id if sous else None, code="local-" + uuid4().hex[:24], libelle=libelle.strip(), niveau=niveau)
     competence.full_clean()
     competence.save()
     definition = {"domaines": [{"id": groupe.pk, "code": groupe.code, "nom": groupe.nom, "ordre": groupe.ordre}],
-        "competences": [{"id": competence.pk, "domaine_id": groupe.pk, "sous_domaine_id": None,
+        "competences": [{"id": competence.pk, "domaine_id": groupe.pk, "sous_domaine_id": sous_domaine_id if sous else None,
             "code": competence.code, "libelle": competence.libelle, "niveau": niveau, "icone": "", "ordre": 0,
             "active": True, "cle_definition": f"locale-{competence.pk}"}]}
-    locale = CompetenceLocale(ecole=ecole, competence=competence, classe_origine=classe,
+    definition["sous_domaines"] = [sous] if sous else []
+    locale = CompetenceLocale(suivi_libre=suivi_libre, ecole=ecole, competence=competence, classe_origine=classe,
                              auteur=utilisateur, definition=definition)
     locale.full_clean()
     locale.save()
@@ -83,7 +96,7 @@ def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, class
 @transaction.atomic
 def proposer_ajout(*, utilisateur, ecole, annee, locale):
     _verrouiller(utilisateur, ecole, annee)
-    if locale.ecole_id != ecole.pk:
+    if locale.ecole_id != ecole.pk or locale.suivi_libre:
         raise PermissionDenied
     choix, nouveau = DisponibiliteCompetenceLocale.objects.get_or_create(locale=locale, annee_scolaire=annee,
         classe=None, defaults={"auteur": utilisateur})

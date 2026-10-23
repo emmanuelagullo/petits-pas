@@ -249,7 +249,7 @@ class Projection:
             from .services.import_sources_referentiels import normaliser
             normaliser({k: v for k, v in valeur.items() if k != 'origine'})
             return resultat
-        if set(valeur) - set(RUBRIQUES) - {'format', 'origine', 'source'}:
+        if set(valeur) - set(RUBRIQUES) - {'format', 'origine', 'source', 'structure_seule'}:
             raise ValidationError("Structure de référentiel non prise en charge.")
         for rubrique, model in RUBRIQUES.items():
             if rubrique in valeur:

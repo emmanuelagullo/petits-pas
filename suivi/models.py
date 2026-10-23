@@ -756,6 +756,7 @@ class Observation(models.Model):
 
 
 class TraceCommune(models.Model):
+    reussite = models.BooleanField(default=False)
     usage_referentiel = models.ForeignKey("UsageCompetence", on_delete=models.PROTECT, null=True, blank=True)
     classe = models.ForeignKey(Classe, on_delete=models.PROTECT, related_name="traces_communes")
     competence = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="traces_communes")
@@ -776,6 +777,7 @@ class TraceCommune(models.Model):
 
 
 class Trace(models.Model):
+    reussite = models.BooleanField(default=False)
     usage_referentiel = models.ForeignKey("UsageCompetence", on_delete=models.PROTECT, null=True, blank=True)
     observation = models.ForeignKey(
         Observation, on_delete=models.CASCADE, related_name="traces"
@@ -1091,6 +1093,7 @@ class AdaptationCompetence(models.Model):
 
 
 class CompetenceLocale(models.Model):
+    suivi_libre = models.BooleanField(default=False)
     """Identité locale et définition d'origine, indépendantes des bases fournies."""
     ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT)
     competence = models.OneToOneField(Competence, on_delete=models.PROTECT, related_name="origine_locale")
@@ -1110,7 +1113,7 @@ class CompetenceLocale(models.Model):
         from django.core.exceptions import ValidationError
         if self.pk:
             ancienne = type(self).objects.get(pk=self.pk)
-            champs = ("ecole_id", "competence_id", "classe_origine_id", "auteur_id", "cree_le", "definition")
+            champs = ("ecole_id", "competence_id", "classe_origine_id", "auteur_id", "cree_le", "definition", "suivi_libre")
             if any(getattr(self, c) != getattr(ancienne, c) for c in champs):
                 raise ValidationError("L'origine d'un ajout est conservée. Utilisez les adaptations annuelles.")
         return super().save(*args, **kwargs)
@@ -1215,3 +1218,24 @@ class CorrespondanceCompetence(models.Model):
             if any(getattr(self, c) != getattr(ancienne, c) for c in champs):
                 raise ValidationError("Ce lien est conservé. Retirez-le puis créez un lien corrigé.")
         return super().save(*args, **kwargs)
+
+
+class EleveApprentissage(models.Model):
+    """Disponibilité annuelle explicite ; ne constitue ni état ni réussite."""
+    disponibilite = models.ForeignKey(DisponibiliteCompetenceLocale, on_delete=models.PROTECT,
+                                     related_name="eleves_suivis")
+    scolarite = models.ForeignKey(Scolarite, on_delete=models.PROTECT)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["disponibilite", "scolarite"],
+                                               name="eleve_apprentissage_unique")]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.disponibilite_id and self.scolarite_id:
+            d = self.disponibilite
+            if (not d.locale.suivi_libre or d.classe_id != self.scolarite.classe_id
+                    or d.annee_scolaire != self.scolarite.annee_scolaire
+                    or d.locale.ecole_id != self.scolarite.eleve.ecole_id):
+                raise ValidationError("Le suivi doit concerner un élève de la classe et de l’année de cet apprentissage libre.")

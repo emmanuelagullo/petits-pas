@@ -37,6 +37,9 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
     if not debut <= date_observation <= fin:
         raise ValidationError("La date doit appartenir à l'année scolaire de la classe.")
     selection = _scolarites(classe, ids)
+    from suivi.suivi_libre import verifier_portee
+    for sc in selection:
+        verifier_portee(classe, competence, eleve=sc.eleve)
     # _scolarites a vérifié chaque enfant dans cette classe et cette année.
     # CONTRIBUER porte sur la classe : le même contrôle suffit pour toute la
     # sélection, sans cache des droits ni suppression de ce contrôle.
@@ -70,7 +73,7 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         raise ValidationError(
             f"Des versions personnelles existent pour {noms} : retirez-les avant de réassocier ces élèves."
         )
-    for champ in ("date_observation", "commentaire", "photo"):
+    for champ in ("date_observation", "commentaire", "photo", "reussite"):
         if champ in valeurs:
             setattr(commune, champ, valeurs[champ])
     commune.dernier_editeur = utilisateur
@@ -89,6 +92,7 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         if trace is None:
             trace = Trace(observation=observation, scolarite=sc, commune=commune,
                           auteur=utilisateur, usage_referentiel=commune.usage_referentiel)
+        trace.reussite = commune.reussite
         trace.date_observation = commune.date_observation
         trace.commentaire = personnaliser_texte(commune.commentaire, sc.eleve.prenom)
         trace.photo = commune.photo.name if commune.photo else None
