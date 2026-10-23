@@ -141,7 +141,9 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         **({"classe": classe} if classe else {})).exists())
     courante = next((l["definition"] for l in lignes if locale and l["locale"].pk == locale.pk), None)
     origine = locale.definition["competences"][0] if locale else None
+    from .autorisations import MODIFIER_ETAT
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
+        "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
         "direction": direction, "ouvert": ouvert, "form": form, "lignes": lignes, "locale": locale,
         "origine": origine, "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
         "visibilite_directe": visibilite_directe, "adaptable": adaptable, "index_url": index_url, "erreur": erreur,

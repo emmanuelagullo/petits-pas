@@ -62,6 +62,6 @@ et les [règles d’accès aux médias]({{< relref "/conception/documents/matric
 
 ## Une nouvelle compétence
 
-Si la compétence n’existe pas, partir de **Ajouter une compétence** dans sa catégorie. La création est réservée au responsable ; les contributions sur les traces gardent leurs droits habituels.
+Si la compétence n’existe pas, partir de **Ajouter une compétence hors référentiel** dans sa catégorie. La création est réservée au responsable ; les contributions sur les traces gardent leurs droits habituels.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

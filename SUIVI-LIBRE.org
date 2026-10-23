@@ -12,7 +12,7 @@ Les compétences ciblées ne sont pas proposés au catalogue commun d’école.
 * Événement et état
 
 Créer une compétence ouvre son suivi pour les élèves sélectionnés. La réussite
-est optionnelle, présélectionnée depuis un élève ; elle crée une trace datée
+est optionnelle, présélectionnée dans les deux parcours de création ; elle crée une trace datée
 qualifiée reussite et place l’état courant à réussi. Une trace sans réussite
 ne valide pas la compétence. L’illustration réutilise le réglage de classe.
 Il reste modifiable. Les traces suivantes et les versions personnelles utilisent

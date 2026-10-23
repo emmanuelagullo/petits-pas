@@ -409,10 +409,10 @@ class ErgonomieLibre(Base):
         self.assertEqual(self.client.post(url, {"choix": "aujourdhui"}).status_code, 403)
         self.assertEqual(Observation.objects.get(competence=a.competence).date_derniere_reussite, date(2026, 10, 1))
 
-    def test_formulaire_individuel_preselectionne_et_collectif_non(self):
+    def test_reussite_preselectionnee_en_individuel_et_collectif(self):
         self.client.force_login(self.enseignant)
         url = reverse("ajouter_reussite", args=[self.classe.pk])
-        self.assertFalse(self.client.get(url).context["form"]["reussite"].value())
+        self.assertTrue(self.client.get(url).context["form"]["reussite"].value())
         page = self.client.get(url, {"eleve": self.eleve.pk})
         self.assertTrue(page.context["form"]["reussite"].value())
         self.assertContains(page, "Compléments facultatifs")
@@ -472,4 +472,35 @@ class ClassementLibre(Base):
         page = self.client.post(url, self.donnees(domaine=domaine))
         self.assertEqual(page.status_code, 302)
         self.assertTrue(CompetenceLocale.objects.order_by("pk").last().competence.sous_domaine_id is None)
+        self.assertFalse(Observation.objects.exists())
+
+
+class IntitulesHorsReferentiel(Base):
+    setUp = SuiviLibre.setUp
+    adopter = SuiviLibre.adopter
+
+    def test_liens_distinguent_les_parcours_sans_elargir_les_droits(self):
+        self.client.force_login(self.enseignant)
+        libre = reverse("ajouter_reussite", args=[self.classe.pk])
+        commun = reverse("ajouts_classe", args=[self.classe.pk])
+        page = self.client.get(libre)
+        self.assertContains(page, "Ajouter une compétence hors du référentiel de la classe")
+        self.assertContains(page, f'href="{commun}"')
+        self.assertContains(self.client.get(commun), f'href="{libre}"')
+        self.client.force_login(self.direction)
+        self.assertNotContains(self.client.get(commun), f'href="{libre}"')
+
+    def test_reussite_preselectionnee_sans_selection_collective_et_decochage_conserve(self):
+        self.client.force_login(self.enseignant)
+        url = reverse("ajouter_reussite", args=[self.classe.pk])
+        page = self.client.get(url)
+        self.assertTrue(page.context["form"]["reussite"].value())
+        self.assertFalse(page.context["form"]["eleves"].value())
+        donnees = dict(domaine=self.entree["domaine_id"], niveau="PS", eleves=[self.eleve.pk],
+            jeton=page.context["form"].initial["jeton"])
+        page = self.client.post(url, donnees)
+        self.assertIn("libelle", page.context["form"].errors)
+        self.assertFalse(page.context["form"]["reussite"].value())
+        donnees["libelle"] = "Je raconte un souvenir fictif"
+        self.assertEqual(self.client.post(url, donnees).status_code, 302)
         self.assertFalse(Observation.objects.exists())

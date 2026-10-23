@@ -52,7 +52,7 @@ consultation du suivi de la modification des états.
 
 ## Compétences de certains élèves
 
-**Ajouter une compétence** est indépendant des compétences existantes. Une compétence ciblée indique le nombre d’élèves suivis ; les autres restent **Hors du suivi**. Sa répartition porte seulement sur les élèves encore concernés.
+**Ajouter une compétence hors référentiel** est indépendant des compétences existantes. Une compétence ciblée indique le nombre d’élèves suivis ; les autres restent **Hors du suivi**. Sa répartition porte seulement sur les élèves encore concernés.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).
 

@@ -79,7 +79,7 @@ L’école propose une façon de commencer pour ses nouvelles classes :
   sans liste de compétences ; les apprentissages sont créés au fil des réussites.
 - **Partir d’un référentiel** : choisir une base dans le catalogue disponible.
 
-Dans les deux cas, **Ajouter une compétence** reste accessible dans chaque
+Dans les deux cas, **Ajouter une compétence hors référentiel** reste accessible dans chaque
 catégorie, même vide. Cette action concerne les seuls élèves sélectionnés.
 Le choix pédagogique est indépendant du navigateur, du programme ou du service.
 

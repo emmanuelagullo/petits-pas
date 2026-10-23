@@ -8,6 +8,6 @@ dépendent de la fonction exercée dans la classe et de la période d’affectat
 
 ## Créer au fil des réussites
 
-Le suivi individuel et collectif propose **Ajouter une compétence** dans les domaines et sous-domaines, même vides.
+Le suivi individuel et collectif propose **Ajouter une compétence hors référentiel** dans les domaines et sous-domaines, même vides.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).
