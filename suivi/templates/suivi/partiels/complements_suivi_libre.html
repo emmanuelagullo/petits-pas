@@ -6,7 +6,7 @@
     <fieldset class="option-constat">
       <legend>Réussite</legend>
       <label class="choix-simple" for="{{ form.reussite.id_for_label }}">{{ form.reussite }} {{ form.reussite.label }}</label>{{ form.reussite.errors }}
-      <p class="aide">Place la compétence à l’état « Réussi », à la date indiquée.</p>
+      <p class="aide">La réussite sera enregistrée à la date indiquée pour les élèves sélectionnés. Décochez cette option pour commencer leur suivi sans les marquer comme ayant réussi.</p>
     </fieldset>
     <details class="option-constat"{% if form.commentaire.value or form.commentaire.errors or form.photo.errors %} open{% endif %}>
       <summary>Ajouter une trace</summary>

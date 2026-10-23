@@ -1,10 +1,12 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Compétences ajoutées — {{ annee }}{% endblock %}
+{% block titre %}{% if locale.suivi_libre %}Compétence hors référentiel{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %} — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
-<h1>Compétences ajoutées</h1>
-<p>Créez une compétence pour une compétence supplémentaire, ou reprenez un ajout disponible. Les ajouts gardent leur propre suivi ; ils ne remplacent pas automatiquement les compétences de la base.</p>
+<h1>{% if locale.suivi_libre %}Compétence hors référentiel{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>
+{% if locale.suivi_libre %}<p>Modifiez cette compétence hors du référentiel de la classe en conservant son suivi et ses observations.</p>
+{% else %}<p>{% if classe %}Ajoutez une compétence au référentiel pour la rendre disponible à toute la classe, ou reprenez un ajout disponible.{% else %}Proposez une compétence supplémentaire à l’école. Chaque classe choisit les ajouts qu’elle reprend.{% endif %} Chaque compétence garde son propre suivi ; aucune réussite n’est attribuée automatiquement.</p>
+{% if peut_suivi_libre and not locale %}<p>Pour suivre seulement un élève ou un groupe, utilisez <a href="{% url 'ajouter_reussite' classe.pk %}">Ajouter une compétence hors référentiel</a>.</p>{% endif %}{% endif %}
 <p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Propositions de l'école pour {{ annee }}. Chaque classe choisit les ajouts qu'elle reprend.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not ouvert %}<p>Choisissez une base pour une classe ouverte avant d'ajouter ou de reprendre une compétence. Les choix d'une classe close restent consultables.</p>{% endif %}

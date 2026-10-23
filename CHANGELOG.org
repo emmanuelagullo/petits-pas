@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Distinguer « Ajouter une compétence hors référentiel » de l’ajout au
+  référentiel commun, avec des liens entre les parcours. Présélectionner la
+  réussite à la création individuelle et collective ; l’extension du suivi
+  à d’autres élèves continue de n’attribuer aucune réussite automatiquement.
+
+
 - Création d’une compétence : lier la liste des sous-domaines au domaine choisi,
   expliciter les catégories sans sous-domaines et conserver une saisie regroupée
   sans JavaScript, avec validation de la cohérence côté serveur.

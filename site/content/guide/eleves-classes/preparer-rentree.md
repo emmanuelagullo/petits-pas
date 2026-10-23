@@ -44,6 +44,6 @@ et les [situations de continuité du parcours]({{< relref "/roles/situations/" >
 
 ## Reprendre une compétence ciblée
 
-Dans la nouvelle classe, **Ajouter une compétence → Retrouver une compétence déjà créée** permet une reprise explicite pour les élèves choisis, sans nouvelle réussite ni ancienne trace attribuée.
+Dans la nouvelle classe, **Ajouter une compétence hors référentiel → Retrouver une compétence déjà créée** permet une reprise explicite pour les élèves choisis, sans nouvelle réussite ni ancienne trace attribuée.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

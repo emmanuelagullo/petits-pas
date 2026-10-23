@@ -85,6 +85,6 @@ et [choisir une base]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}
 
 ## Ajouter seulement pour certains élèves
 
-Cette fiche concerne les compétences disponibles pour une classe entière. Pour créer une compétence pour un élève ou un groupe choisi, utiliser **Ajouter une compétence** depuis le suivi.
+Cette fiche concerne les compétences disponibles pour une classe entière. Pour créer une compétence pour un élève ou un groupe choisi, utiliser **Ajouter une compétence hors référentiel** depuis le suivi.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

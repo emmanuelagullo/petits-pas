@@ -32,6 +32,8 @@ def suivi_libre(request, pk, locale_pk=None):
         if competence_classe(classe, locale.competence):
             return redirect("saisie_competence", pk=classe.pk, competence_pk=locale.competence_id)
     initial = {"domaine": request.GET.get("domaine"), "sous_domaine": request.GET.get("sous_domaine")}
+    if not locale:
+        initial["reussite"] = True
     eleve = None
     if request.GET.get("eleve"):
         eleve = charger_eleve_autorise(request.user, request.GET["eleve"], MODIFIER_ETAT, ecole=classe.ecole)

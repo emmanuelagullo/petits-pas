@@ -1,9 +1,10 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Ajouter une compétence{% endblock %}
+{% block titre %}{% if locale %}Reprendre une compétence hors référentiel{% else %}Ajouter une compétence hors référentiel{% endif %}{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'choisir_competence' classe.pk %}">Suivi collectif</a></p>
-<h1>{% if locale %}Reprendre une compétence{% elif eleve %}Ajouter une compétence et une réussite{% else %}Ajouter une compétence{% endif %}</h1>
-<p>Le suivi concerne seulement les élèves sélectionnés. Son activation n’attribue aucune réussite. Les états restent modifiables.</p>
+<h1>{% if locale %}Reprendre une compétence hors du référentiel de la classe{% else %}Ajouter une compétence hors du référentiel de la classe{% endif %}</h1>
+<p>{% if locale %}Reprenez cette compétence{% else %}Créez une compétence{% endif %} pour suivre les progrès d’un élève ou d’un groupe, sans l’ajouter au référentiel commun de la classe. Vous pourrez aussi enregistrer une réussite et ajouter une trace.</p>
+<p>Pour rendre une compétence disponible à toute la classe, utilisez <a href="{% url 'ajouts_classe' classe.pk %}">Ajouter une compétence au référentiel de la classe</a>.</p>
 <form method="post" enctype="multipart/form-data" id="formulaire-reussite">
 {% csrf_token %}
 {% if form.errors %}<div role="alert"><p>Vérifiez les informations suivantes :</p><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }} : {{ error }}</a></li>{% endfor %}{% endfor %}</ul>{{ form.non_field_errors }}</div>{% endif %}

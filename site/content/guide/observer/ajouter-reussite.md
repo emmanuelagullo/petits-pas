@@ -1,19 +1,23 @@
 +++
-title = "Ajouter une compétence et suivre ses réussites"
+title = "Ajouter une compétence hors référentiel"
 description = "Créer une compétence pour un élève ou un groupe, avec ou sans référentiel."
 fiche = true
 categorie = "observer"
 publics = ["responsable"]
 intentions = ["réussite", "apprentissage", "libre", "groupe", "sans référentiel", "sous-domaine"]
 prerequis = "Vous êtes responsable d’une classe active dont les choix sont ouverts."
-depart = "Suivi d’un élève, ou Saisir pour toute la classe → catégorie → Ajouter une compétence"
+depart = "Suivi d’un élève, ou Saisir pour toute la classe → catégorie → Ajouter une compétence hors référentiel"
 statut = "disponible"
 +++
 
+Cette création concerne seulement les élèves sélectionnés et ne modifie pas le
+référentiel commun. Pour rendre une compétence disponible à toute la classe,
+utiliser [Ajouter une compétence au référentiel de la classe]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
+
 ## Créer une compétence et commencer son suivi
 
-1. Dans une catégorie, même vide, choisir **Ajouter une compétence** depuis
-   le collectif, ou **Ajouter une compétence et une réussite** depuis un élève.
+1. Dans une catégorie, même vide, choisir **Ajouter une compétence hors référentiel**
+   depuis le suivi collectif ou celui d’un élève.
 2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
    compétence déjà créée** aident à éviter les copies inutiles.
 3. Dans **Classement de la compétence**, choisir le domaine. La liste des
@@ -25,7 +29,8 @@ statut = "disponible"
    Vérifier aussi la section et les élèves concernés.
 4. Dans **Compléments facultatifs → Réussite et trace → Réussite**, choisir **Enregistrer une réussite** si le constat est déjà fait,
    pour placer la compétence à l’état **Réussi**. Cette option est présélectionnée
-   depuis un élève et décochée depuis le collectif. Elle ne commande ni la trace
+   dans les suivis individuel et collectif. Décochez-la pour ouvrir le suivi sans
+   attribuer de réussite. Elle ne commande ni la trace
    ni l’illustration. Renseigner la **Date du constat** si vous enregistrez une
    réussite ou une trace ; la date n’est pas nécessaire pour ouvrir le suivi seul.
    Elle est commune à ces deux rubriques ; l’illustration possède un encadré séparé.

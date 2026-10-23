@@ -393,7 +393,7 @@ scenarios:
       - { action: classe, classe: cerfs_volants }
       - { action: lien, nom: "Saisir pour toute la classe" }
       - { action: selecteur, selecteur: 'a[href*="/reussite/?domaine="]' }
-      - { action: titre, nom: "Ajouter une compétence" }
+      - { action: titre, nom: "Ajouter une compétence hors du référentiel de la classe" }
     cible: "#formulaire-reussite"
     capture: guide/observer/ajouter-reussite.png
     titre: Créer une compétence et commencer son suivi

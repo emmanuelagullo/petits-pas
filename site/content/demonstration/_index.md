@@ -144,7 +144,7 @@ avec des domaines et sous-domaines seuls. Les classes existantes gardent leurs b
 - Zoé : la même compétence est proposé à son suivi, **sans réussite attribuée**.
 - Mila et Ana : une réussite collective de motricité sans photo.
 
-Ouvrir **Saisir pour toute la classe**, puis **Ajouter une compétence** dans un
+Ouvrir **Saisir pour toute la classe**, puis **Ajouter une compétence hors référentiel** dans un
  domaine ou un sous-domaine. Vérifier les élèves concernés et leurs carnets.
 Comparer avec **Les Mésanges**, dont les sous-domaines du référentiel étayé sont
 visibles dans le suivi. Les images des Cerfs-volants représentent des réalisations
