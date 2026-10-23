@@ -970,3 +970,11 @@ textarea { min-height: 7rem; resize: vertical; }
 .complements-facultatifs .groupe-constat { margin-top: 0; }
 .complements-facultatifs .choix-simple { margin-top: 0; }
 .complements-facultatifs .aide:last-child { margin-bottom: 0; }
+
+.classement-competence { min-width: 0; margin: 1.25rem 0; }
+.classement-competence legend { padding: 0 .4rem; font-weight: 550; }
+.classement-competence .sous-domaine {
+  margin-left: .5rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--trait);
+}

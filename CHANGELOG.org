@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Création d’une compétence : lier la liste des sous-domaines au domaine choisi,
+  expliciter les catégories sans sous-domaines et conserver une saisie regroupée
+  sans JavaScript, avec validation de la cohérence côté serveur.
+
+
 - Création d’une compétence : regrouper les compléments facultatifs, avec une
   date commune à la réussite et à la trace, et une illustration séparée.
 

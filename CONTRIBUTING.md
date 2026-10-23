@@ -49,7 +49,7 @@ Les tests de scripts ne sont pas découverts par `manage.py test`. La CI
 exécute leurs commandes dédiées : notamment
 `python3 -m unittest discover -s scripts -p test_version_application.py`
 dans les jobs Django, et
-`node --test scripts/test_transport_pwa.cjs scripts/test_recherche_referentiel.cjs`
+`node --test scripts/test_transport_pwa.cjs scripts/test_recherche_referentiel.cjs scripts/test_classement_competence.cjs`
 dans le job PWA, qui dispose déjà de Node.
 
 Les vérifications GitLab marquées `interruptible` peuvent être annulées
