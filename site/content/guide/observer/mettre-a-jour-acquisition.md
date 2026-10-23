@@ -18,7 +18,21 @@ statut = "disponible"
 4. La sélectionner une deuxième fois pour la marquer **en cours**.
 5. La sélectionner une troisième fois pour revenir à **pas encore observée**.
 
-La date affichée à droite de la compétence est actualisée à chaque changement.
+Le clic rapide utilise la date du jour pour le nouvel état. La dernière date de
+réussite est conservée séparément lorsque l’état change.
+
+## Choisir ou corriger la date de réussite
+
+Ouvrir **Réussi · date**, ou **Date de la réussite**, dans la ligne de suivi :
+
+- **Aujourd’hui** convient pour un nouveau constat ;
+- **Conserver la précédente réussite** corrige une dévalidation accidentelle ;
+- **Choisir une date** permet de saisir un constat fait un autre jour de l’année scolaire.
+
+Après une revalidation, le panneau s’ouvre pour permettre ce choix sans imposer
+une confirmation à chaque clic. Cliquer sur **Enregistrer la réussite** place
+la compétence à l’état **Réussi** avec la date choisie. Cela ne modifie aucune
+date de trace, de commentaire ou de photo. Les années closes restent en lecture seule.
 
 {{< capture-guide src="captures/acquisitions.png" alt="Liste des acquisitions d’une élève fictive, organisée par domaines" caption="La fiche d’un élève fictif, produite automatiquement depuis la démonstration." >}}
 

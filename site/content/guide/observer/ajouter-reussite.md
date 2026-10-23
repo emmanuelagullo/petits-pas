@@ -18,12 +18,16 @@ statut = "disponible"
    compétence déjà créée** aident à éviter les copies inutiles.
 3. Vérifier domaine, sous-domaine facultatif, section et élèves concernés.
 4. Choisir **Enregistrer également une réussite** si le constat est déjà fait,
-   puis sa **Date du constat**. Cette option est présélectionnée depuis un élève,
-   et décochée depuis le collectif.
+   pour placer la compétence à l’état **Réussi**. Cette option est présélectionnée
+   depuis un élève et décochée depuis le collectif. Elle ne commande ni la trace
+   ni l’illustration. Renseigner la **Date du constat** si vous enregistrez une
+   réussite ou une trace ; la date n’est pas nécessaire pour ouvrir le suivi seul.
 5. Au besoin, ouvrir **Ajouter une trace — facultatif** pour un commentaire
    et/ou une photo. Une trace seule ne valide pas la compétence.
 6. Au besoin, ouvrir **Illustration de la compétence — facultatif** pour choisir
    une icône. Cette illustration commune reste distincte des photos des traces.
+   Ensuite, cliquer sur l’illustration ou **Modifier l’illustration** dans la page
+   de compétence permet de la changer ou d’importer une image pour cette classe.
 7. Cliquer sur **Enregistrer**. La page habituelle de compétence permet ensuite
    de modifier les états, d’ajouter des traces et de régler le suivi par élève.
 
@@ -31,12 +35,12 @@ La compétence possède une identité durable. Une réussite est un événement 
 l’état courant **Réussi** reste modifiable. Une réussite passée et ses traces
 ne sont pas effacées lorsque l’état redevient **En cours**.
 
-{{< capture-guide src="captures/guide/observer/ajouter-reussite.png" alt="Formulaire fictif d’ajout d’une réussite" caption="Le libellé, la catégorie, les élèves et la date précèdent le commentaire et la photo facultatifs." >}}
+{{< capture-guide src="captures/guide/observer/ajouter-reussite.png" alt="Formulaire fictif de création d’une compétence" caption="La réussite est optionnelle ; la trace et l’illustration disposent de dépliables indépendants." >}}
 
 ## Partager et personnaliser
 
 Plusieurs élèves partagent la même identité de compétence, son libellé et
-son classement. Leur état reste individuel. Leur première trace partage date,
+son classement. Leur état reste individuel. Si une trace est enregistrée pour le groupe, elle partage date,
 commentaire et photo selon le [parcours des traces communes]({{< relref "/guide/observer/traces-communes" >}}).
 **Personnaliser pour cet élève** détache la trace : ses modifications ne suivent
 plus celles de la trace commune. Cela ne change ni l’identité ni le libellé de
@@ -51,7 +55,8 @@ Masquer une trace dans le carnet concerne sa diffusion seulement.
 La page habituelle de compétence affiche **Activer le suivi** pour un élève
 hors du suivi et **Désactiver le suivi** pour un élève déjà concerné.
 L’activation n’attribue aucune réussite, trace ni photo. La réactivation retrouve
-les observations conservées, sans nouvelle réussite automatique.
+les observations conservées, sans nouvelle réussite automatique. Désactiver le
+suivi retire la compétence du compteur actif de cet élève sans effacer son parcours.
 
 Le dépliable **Retrouver une compétence déjà créée**, près de sa description,
 permet aussi de reprendre une compétence dans une nouvelle classe ou année.
@@ -73,7 +78,10 @@ Dans le collectif, **Compétence suivie pour … élèves** précise sa portée.
 Les autres élèves sont **Hors du suivi**, sans être considérés comme en attente
 de réussite. Chaque compteur d’élève inclut les compétences communes et ses compétences
 ciblées dont le suivi est actif, selon le filtre de section choisi. Une compétence
-ciblée ne compte jamais pour les élèves hors de son suivi. Elles restent distinctes des compétences
+ciblée ne compte jamais pour les élèves hors de son suivi. Dans une classe sans
+compétence prédéfinie, Ana affiche ainsi **1/1** pour sa seule compétence réussie,
+ou **0/1** si elle n’est pas réussie ; un autre élève hors de ce suivi reste à
+**0/0**. Ces compétences restent distinctes des compétences
 [ajoutées pour une classe entière]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
 
 Choisir ensuite une base conserve ces compétences et leurs traces. Changer
