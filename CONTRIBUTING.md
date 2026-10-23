@@ -223,3 +223,12 @@ Un pipeline Inria échoué/annulé, un SHA différent, une API inaccessible ou u
 artefact expiré/altéré restent de véritables erreurs. Le job manuel utilise
 `allow_failure: false` : son échec après lancement fait échouer la chaîne, au
 lieu de transformer toutes les erreurs de publication en avertissements.
+
+### Téléchargement des dépendances en CI
+
+Les profils GitLab et de publication PWA fixent `PIP_RETRIES=10` et
+`PIP_TIMEOUT=60` pour mieux supporter les réponses HTTP 502 intermittentes.
+Les reprises sont celles du client réseau pip ; aucun test échoué n’est relancé
+automatiquement. Les versions et empreintes de `requirements-communs.txt`
+restent verrouillées. Si le serveur reste inaccessible après les reprises,
+le job échoue normalement : ne pas désactiver HTTPS ni le contrôle du SHA-256.

@@ -9,6 +9,10 @@ include:
 # Configuration incluse par le petit projet Pages destinataire.
 image: python:3.12-slim-bookworm
 
+variables:
+  PIP_RETRIES: "10"
+  PIP_TIMEOUT: "60"
+
 stages:
   - publication
 

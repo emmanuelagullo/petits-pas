@@ -21,6 +21,10 @@ workflow:
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  # Les téléchargements GitHub peuvent répondre 502 avant même les tests.
+  # Reprises réseau bornées par pip ; aucun nouvel essai des tests en échec.
+  PIP_RETRIES: "10"
+  PIP_TIMEOUT: "60"
   DEPENDANCES: verrouillees
   POSTGRES_DB: petits_pas_ci
   POSTGRES_USER: petits_pas_ci
