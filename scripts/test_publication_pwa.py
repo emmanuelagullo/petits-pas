@@ -226,5 +226,68 @@ class PublicationTests(unittest.TestCase):
             finally:os.chdir(old)
 
 
+
+
+class ContexteDeclenchementTests(unittest.TestCase):
+    """Exercer le vrai préflight YAML avant tout accès réseau ou écriture."""
+    @classmethod
+    def setUpClass(cls):
+        import textwrap
+        yml = Path(__file__).resolve().parents[1] / 'pwa/publication/pages.yml'
+        bloc = yml.read_text().split("      python3 - <<'PY'\n", 1)[1].split('\n      PY', 1)[0]
+        cls.code = compile(textwrap.dedent(bloc), str(yml), 'exec')
+
+    def exercer(self, valeurs=None, erreur=None):
+        import io
+        import os
+        from contextlib import redirect_stdout
+        env = {'CI_PIPELINE_SOURCE': 'pipeline', 'CI_SERVER_HOST': 'forge.apps.education.fr',
+               'CI_API_V4_URL': 'https://fictif/api/v4', 'PWA_SOURCE_PROJECT': publication.SOURCE,
+               'PWA_SOURCE_PROJECT_ID': '19945', 'PWA_SOURCE_PIPELINE_ID': '577929',
+               'PWA_SOURCE_SHA': 'a' * 40, 'PWA_SOURCE_REF': 'main', 'PWA_SOURCE_TAG': ''}
+        env.update(valeurs or {})
+        sortie = io.StringIO()
+        with patch.dict(os.environ, env, clear=True), redirect_stdout(sortie), \
+                patch('urllib.request.urlopen') as reseau, patch.object(Path, 'write_bytes') as ecrire:
+            reseau.return_value.__enter__.return_value.read.return_value = b'fictif'
+            if erreur:
+                with self.assertRaisesRegex(ValueError, erreur):
+                    exec(self.code, {})
+                reseau.assert_not_called()
+                ecrire.assert_not_called()
+            else:
+                exec(self.code, {})
+                nombre = 4 if env['CI_SERVER_HOST'] == 'forge.apps.education.fr' else 3
+                self.assertEqual(reseau.call_count, nombre)
+                self.assertEqual(ecrire.call_count, nombre)
+                for appel in reseau.call_args_list:
+                    self.assertTrue(appel.args[0].endswith('/raw?ref=' + env['PWA_SOURCE_SHA']))
+        self.assertIn('Provenance PWA reçue', sortie.getvalue())
+
+    def test_branche_et_tag_stable_sur_les_deux_forges(self):
+        for host in ('forge.apps.education.fr', 'gitlab.inria.fr'):
+            for tag in ('', '0.13', '0.13.0'):
+                with self.subTest(host=host, tag=tag):
+                    self.exercer({'CI_SERVER_HOST': host, 'PWA_SOURCE_TAG': tag,
+                                  'PWA_SOURCE_REF': tag or 'main'})
+        self.exercer({'PWA_SOURCE_REF': 'correction/publication'})
+
+    def test_provenance_absente_ou_invalide_refuse_avant_reseau(self):
+        for nom in ('PWA_SOURCE_PROJECT', 'PWA_SOURCE_PROJECT_ID', 'PWA_SOURCE_PIPELINE_ID',
+                    'PWA_SOURCE_SHA', 'PWA_SOURCE_REF'):
+            with self.subTest(nom=nom):
+                self.exercer({nom: ''}, erreur='Provenance PWA')
+        for valeurs in ({'PWA_SOURCE_PROJECT': 'autre/projet'}, {'PWA_SOURCE_SHA': '$CI_COMMIT_SHA'},
+                        {'CI_PIPELINE_SOURCE': 'push'}, {'PWA_SOURCE_PIPELINE_ID': '../56'}):
+            with self.subTest(valeurs=valeurs):
+                self.exercer(valeurs, erreur='Provenance PWA')
+
+    def test_preversion_et_tag_incoherent_refuses_avant_reseau(self):
+        for tag, ref in (('0.13.0-rc1', '0.13.0-rc1'), ('$CI_COMMIT_TAG', 'main'), ('0.13.0', 'main')):
+            with self.subTest(tag=tag, ref=ref):
+                self.exercer({'PWA_SOURCE_TAG': tag, 'PWA_SOURCE_REF': ref}, erreur='Tag PWA')
+        self.exercer({'CI_SERVER_HOST': 'gitlab.inria.fr', 'PWA_SOURCE_REF': 'autre'}, erreur='Branche PWA')
+
+
 if __name__ == "__main__":
     unittest.main()
