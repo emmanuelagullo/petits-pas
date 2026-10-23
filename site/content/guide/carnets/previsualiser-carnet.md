@@ -66,3 +66,9 @@ La clôture des choix n'a pas encore de bouton dans l'interface.
 
 Ce parcours ne garantit pas une copie exacte d'un carnet déjà remis : les
 commentaires, photographies et options d'édition peuvent avoir été corrigés.
+
+## Relire une réussite libre
+
+Vérifier l’élève concerné, le libellé, le sous-domaine et la date de réussite. Une version personnelle doit conserver son propre commentaire et sa propre photo.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

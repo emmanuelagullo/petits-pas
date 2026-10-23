@@ -291,3 +291,20 @@ sont lus à la demande dans OPFS ; depuis #PWA12, les ZIP sont aussi transféré
 progressivement. SQLite et le traitement de chaque image utilisent encore la mémoire. Vérifier la version effectivement publiée.
 Voir le [parcours navigateur]({{< relref "/guide/local/essayer-navigateur" >}})
 et les [vérifications sur appareil]({{< relref "/guide/local/verifier-appareil" >}}).
+
+## Activer le départ sans compétences prédéfinies
+
+Le chantier Suivi libre ajoute une migration métier. Les mêmes migrations
+s’appliquent au service, au programme et à la PWA. Les anciennes archives restent
+lisibles après migration ; ne pas ouvrir une archive récente avec un ancien programme.
+
+Après mise à jour, l’exploitant peut publier la structure seule pour une année :
+`python manage.py preparer_suivi_libre --annee 2026-2027`.
+La commande conserve le défaut et les autres bases du catalogue annuel déjà
+configuré. Sans catalogue explicite, elle refuse : publier les bases souhaitées
+ou utiliser `--creer-catalogue` pour créer volontairement un catalogue limité
+à la structure seule. Les restrictions d’école restent applicables.
+La direction choisit ensuite sa proposition ; aucune classe existante ne bascule.
+
+Les exports incluent explicitement les rattachements aux scolarités et les
+réussites datées. Le moteur de sauvegarde commun n’est pas dupliqué.

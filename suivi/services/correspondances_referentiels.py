@@ -33,7 +33,7 @@ def catalogue_liens(*, utilisateur, ecole, annee, classe=None):
                 "libelle": c["libelle"], "code": c["code"], "niveau": c["niveau"],
                 "origine": f"{version.source.titre} ({version.source.identifiant}) — version {version.numero}", "locale_id": None}
     locales = catalogue_reprises(utilisateur=utilisateur, ecole=ecole, annee=annee, classe=classe) if classe else (
-        CompetenceLocale.objects.filter(ecole=ecole, disponibilites__annee_scolaire__lte=annee).distinct())
+        CompetenceLocale.objects.filter(ecole=ecole, suivi_libre=False, disponibilites__annee_scolaire__lte=annee).distinct())
     for locale in locales.select_related("classe_origine"):
         c = locale.definition["competences"][0]
         reference = f"ajout:{locale.pk}"

@@ -72,3 +72,9 @@ La copie et le service évoluent indépendamment. Pour changer définitivement d
 mode, convenez avec l’équipe du moment où les saisies cessent dans l’ancien
 emplacement. L’import, le remplacement ou la fusion dans le service partagé
 ne sont pas proposés par cette fonction.
+
+## Suivi libre
+
+L’export complet conserve aussi les catégories, les apprentissages libres, leurs élèves concernés et leurs réussites datées.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

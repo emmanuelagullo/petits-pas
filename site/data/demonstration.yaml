@@ -23,6 +23,9 @@ classes:
   pinsons:
     nom: Les Pinsons
     annee_scolaire: 2026-2027
+  cerfs_volants:
+    nom: Les Cerfs-volants
+    annee_scolaire: 2026-2027
   lucioles:
     nom: Les Lucioles — rentrée suivante
     annee_scolaire: 2027-2028
@@ -53,13 +56,14 @@ profils:
     nom_famille: Responsable
     fonction: Responsable de classe
     nom: Rémi — responsable de classe
-    resume: Assume la responsabilité pédagogique des Coccinelles, des Mésanges et des Pinsons.
+    resume: Assume la responsabilité pédagogique des Coccinelles, des Mésanges, des Pinsons et des Cerfs-volants.
     affectations:
       - { classe: coccinelles, type: responsable, periode: active }
       - { classe: mesanges, type: responsable, periode: active }
       - { classe: pinsons, type: responsable, periode: active }
+      - { classe: cerfs_volants, type: responsable, periode: active }
     peut:
-      - consulter et modifier le suivi des élèves de ses trois classes
+      - consulter et modifier le suivi des élèves de ses quatre classes
       - relire les contributions de l'équipe et préparer les carnets
       - générer les PDF et télécharger les médias originaux autorisés
     ne_peut_pas:
@@ -370,3 +374,36 @@ scenarios:
     capture: referentiels/cycle1/pinsons.png
     titre: Les tableaux Chat d’école des Pinsons
     legende: La classe fictive utilise l’édition pilote Chat d’école 2026.1, dans les six domaines, sans EVAR.
+
+  - id: suivi-libre-collectif
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: cerfs_volants }
+      - { action: lien, nom: "Saisir pour toute la classe" }
+      - { action: titre, nom: "Quelle compétence venez-vous d'observer ?", exact: false }
+    capture: guide/observer/suivi-libre.png
+    capture_mobile: guide/observer/suivi-libre-mobile.png
+    titre: Les apprentissages créés au fil des réussites
+    legende: Les Cerfs-volants ont commencé avec des catégories seules. Chaque apprentissage reste réservé aux élèves choisis.
+  - id: suivi-libre-formulaire
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: cerfs_volants }
+      - { action: lien, nom: "Saisir pour toute la classe" }
+      - { action: selecteur, selecteur: 'a[href*="/reussite/?domaine="]' }
+      - { action: titre, nom: "Ajouter une réussite" }
+    cible: "#formulaire-reussite"
+    capture: guide/observer/ajouter-reussite.png
+    titre: Créer un apprentissage et sa première réussite
+    legende: Le libellé, la catégorie, les élèves et la date suffisent. Photo et commentaire restent facultatifs.
+  - id: sous-domaines-mesanges
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: mesanges }
+      - { action: lien, nom: "Saisir pour toute la classe" }
+    capture: referentiels/cycle1/sous-domaines.png
+    titre: Les sous-domaines dans un référentiel fourni
+    legende: Les Mésanges conservent leur édition étayée et son classement en sous-domaines.

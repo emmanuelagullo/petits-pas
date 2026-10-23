@@ -51,3 +51,5 @@ def preparer_referentiels(ecole, classes, utilisateurs):
 
     from suivi.demo_contenus_cycle1 import preparer_contenus_cycle1
     preparer_contenus_cycle1(ecole, utilisateurs, [version.pk, deux.pk], 1)
+    from suivi.demo_suivi_libre import preparer_suivi_libre
+    preparer_suivi_libre(ecole, utilisateurs)

@@ -94,3 +94,9 @@ périodes, les cumuls et les refus significatifs.
 L’[inventaire des tâches et de leur disponibilité](inventaire/) constitue la
 référence éditoriale du guide. Il évite de documenter comme accessible une
 fonction qui n’existe encore que dans le modèle ou dans un service interne.
+
+## Deux façons de commencer
+
+L’école peut proposer des catégories sans compétences prédéfinies ou un référentiel fourni. Les deux parcours permettent ensuite d’ajouter des apprentissages pour certains élèves.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

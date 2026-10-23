@@ -48,3 +48,9 @@ Selon la version et l'autorisation du service, un responsable actif peut
 [exporter une copie indépendante de sa classe]({{< relref "/guide/eleves-classes/exporter-classe/" >}}).
 Le même parcours est disponible dans les modes locaux. Il ne donne accès à
 aucun contenu supplémentaire dans la source et ne remplace pas une sauvegarde.
+
+## Quatrième classe de Rémi
+
+Rémi est aussi responsable des Cerfs-volants, qui illustrent le suivi sans compétences prédéfinies. Ses droits restent limités aux classes de ses affectations.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

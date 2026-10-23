@@ -194,6 +194,40 @@ class ParcoursLibre(Base):
         self.assertEqual(page.status_code, 200)
         self.assertFalse(CompetenceLocale.objects.exists())
 
+    def test_editeur_existant_reformule_libelle_sans_nouvelle_identite(self):
+        a = self.creer()
+        self.client.force_login(self.enseignant)
+        url = reverse("ajout_classe", args=[self.classe.pk, a.pk])
+        page = self.client.get(url)
+        self.assertEqual(page.status_code, 200)
+        page = self.client.post(url, {"action": "adapter", "jeton": page.context["jeton"],
+            "libelle": "Je décris les étapes de ma construction", "visibilite": "on"})
+        self.assertEqual(page.status_code, 302)
+        self.assertEqual(CompetenceLocale.objects.count(), 1)
+        page = self.client.get(reverse("saisie_eleve", args=[self.eleve.pk]))
+        self.assertContains(page, "Je décris les étapes de ma construction")
+        self.client.force_login(self.direction)
+        self.assertIn(self.client.get(url).status_code, (403, 404))
+        self.assertNotContains(self.client.get(reverse("ajouts_ecole")), a.competence.libelle)
+
+    def test_retrait_ne_cree_pas_de_rattachement(self):
+        a = self.creer()
+        with self.assertRaises(ValidationError):
+            associer(utilisateur=self.enseignant, classe=self.classe, locale=a,
+                ids=[self.autre.pk], adoption_attendue=self.adoption.pk, retirer=True)
+        self.assertEqual(EleveApprentissage.objects.count(), 1)
+
+    def test_fin_affectation_refuse_un_formulaire_deja_ouvert(self):
+        from comptes.models import AffectationClasse
+        self.client.force_login(self.enseignant)
+        url = reverse("ajouter_reussite", args=[self.classe.pk])
+        page = self.client.get(url)
+        AffectationClasse.objects.filter(appartenance__utilisateur=self.enseignant).update(etat=AffectationClasse.TERMINEE)
+        page = self.client.post(url, dict(libelle="Essai après fin de droit", domaine=self.entree["domaine_id"],
+            eleves=[self.eleve.pk], niveau="PS", date_observation="2026-10-01", jeton=page.context["form"].initial["jeton"]))
+        self.assertIn(page.status_code, (302, 403, 404))
+        self.assertFalse(CompetenceLocale.objects.exists())
+
 
 class CarnetsLibres(Base):
     setUp = SuiviLibre.setUp
@@ -256,3 +290,35 @@ class CarnetsLibres(Base):
         associer(utilisateur=self.enseignant, classe=c, locale=a, ids=[enfant.pk], adoption_attendue=ad.pk)
         self.assertFalse(Observation.objects.filter(eleve=enfant).exists())
         self.assertFalse(EtatAnnuelObservation.objects.filter(annee_scolaire=c.annee_scolaire).exists())
+
+
+class DeplacementsLibres(Base):
+    setUp = SuiviLibre.setUp
+    adopter = SuiviLibre.adopter
+    creer = SuiviLibre.creer
+
+    def test_deplacement_conserve_origine_sans_ouvrir_le_suivi_destination(self):
+        from .models import Classe
+        from .suivi_libre import eleves_suivis
+        a = self.creer()
+        destination = Classe.objects.create(ecole=self.ecole, nom="Destination fictive",
+                                            annee_scolaire=self.classe.annee_scolaire)
+        self.scolarite.classe = destination
+        self.scolarite.save(update_fields=["classe"])
+        lien = EleveApprentissage.objects.get()
+        lien.full_clean()
+        self.assertEqual(lien.disponibilite.classe_id, self.classe.pk)
+        self.assertNotIn(self.eleve.pk, eleves_suivis(self.classe, a.competence))
+        self.assertNotIn(self.eleve.pk, eleves_suivis(destination, a.competence))
+        self.assertEqual(Trace.objects.get().usage_referentiel.adoption.classe_id, self.classe.pk)
+
+    def test_retrait_scolarite_avec_simple_disponibilite_est_explique(self):
+        a = self.creer()
+        associer(utilisateur=self.enseignant, classe=self.classe, locale=a,
+            ids=[self.autre.pk], adoption_attendue=self.adoption.pk)
+        self.client.force_login(self.direction)
+        page = self.client.post(reverse("importer_eleves", args=[self.classe.pk]),
+            {"action": "retirer", "eleve": self.autre.pk}, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertTrue(Scolarite.objects.filter(pk=self.sc_autre.pk).exists())
+        self.assertContains(page, "apprentissages suivis")

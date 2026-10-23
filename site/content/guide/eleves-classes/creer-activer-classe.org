@@ -56,3 +56,13 @@ Voir les [[{{< relref "/roles/" >}}][règles détaillées des rôles et affectat
 
 Vous pouvez ensuite
 [[{{< relref "/guide/eleves-classes/choisir-referentiel" >}}][consulter le référentiel de la classe]].
+
+* Commencer avec des catégories seules
+
+La proposition annuelle peut être *Démarrer sans compétences prédéfinies* :
+domaines et sous-domaines sans compétences. *Partir d’un référentiel* conserve
+le catalogue existant. Les nouvelles classes reprennent la proposition de
+l’école ; les classes existantes ne basculent pas automatiquement.
+L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
+Adopter ensuite une base reste avancé et conserve ces apprentissages et traces.
+Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].

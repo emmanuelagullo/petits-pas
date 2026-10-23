@@ -15,6 +15,7 @@
 </form>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if form %}
+<p><strong>Deux façons de commencer :</strong> démarrer sans compétences prédéfinies, avec des catégories seules, ou partir d’un référentiel du catalogue. Les deux permettent ensuite d’ajouter des réussites pour certains élèves.</p>
 <h2>Choix actuels — {{ annee }}</h2>
 <ul>{% for version in choix.versions %}<li>{{ version.source.titre }} — version {{ version.numero }}{% if choix.proposee.pk == version.pk %} · choix proposé{% endif %}</li>{% empty %}<li>Aucune base autorisée pour un nouveau choix de classe.</li>{% endfor %}</ul>
 {% if not choix.proposee %}<p>Aucune base n'est proposée par défaut.</p>{% endif %}

@@ -49,3 +49,9 @@ individuelle de l’élève.
 
 La [matrice des autorisations]({{< relref "/conception/documents/matrice-autorisations.org" >}}) distingue la
 consultation du suivi de la modification des états.
+
+## Apprentissages de certains élèves
+
+**Ajouter une réussite** est indépendant des compétences existantes. Un apprentissage ciblé indique le nombre d’élèves suivis ; les autres restent **Hors du suivi**. Sa répartition porte seulement sur les élèves encore concernés.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

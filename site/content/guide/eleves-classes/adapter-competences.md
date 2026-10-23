@@ -67,3 +67,9 @@ compétence masquée par l’école : le masquage n’est pas une interdiction i
 Ces adaptations ne remplacent pas les [choix des bases autorisées par l’école]({{< relref "/guide/eleves-classes/referentiels-ecole" >}}).
 Les images et phrases se règlent séparément dans la
 [présentation du carnet]({{< relref "/guide/carnets/personnaliser-presentation" >}}).
+
+## Apprentissages libres
+
+Depuis un apprentissage libre du suivi collectif, le responsable peut modifier son libellé ou le masquer avec l’éditeur existant. Une reformulation fidèle garde son identité ; son domaine et sous-domaine de création restent conservés.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

@@ -86,3 +86,9 @@ Faites vos essais avec des données fictives. Avant d’utiliser des données
 réelles, préparez avec l’école la [protection des données]({{< relref "/proteger-donnees/" >}})
 et vérifiez le fonctionnement sur votre appareil. Le programme autonome ne synchronise pas l’école entre plusieurs
 ordinateurs.
+
+## Choisir le départ pédagogique
+
+Les versions intégrant Suivi libre permettent aussi de démarrer avec des catégories seules. Ce choix concerne l’école et sa première classe ; il est indépendant du programme utilisé.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

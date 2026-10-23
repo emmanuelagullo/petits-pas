@@ -70,3 +70,21 @@ avant toute utilisation de données réelles.
 
 [Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}})
 et consulter [l’aide de démarrage]({{< relref "/guide/demarrage-aide" >}}).
+
+## Deux façons de commencer le suivi
+
+L’école propose une façon de commencer pour ses nouvelles classes :
+
+- **Démarrer sans compétences prédéfinies** : des domaines et sous-domaines,
+  sans liste de compétences ; les apprentissages sont créés au fil des réussites.
+- **Partir d’un référentiel** : choisir une base dans le catalogue disponible.
+
+Dans les deux cas, **Ajouter une réussite** reste accessible dans chaque
+catégorie, même vide. Cette action concerne les seuls élèves sélectionnés.
+Le choix pédagogique est indépendant du navigateur, du programme ou du service.
+
+Les nouvelles classes reprennent la proposition de l’école. Un changement de
+base de classe reste avancé, avec aperçu et confirmations ; il conserve les
+apprentissages libres et leurs traces sans transférer de réussite à une autre
+compétence. Voir [le parcours de suivi libre]({{< relref "/guide/observer/ajouter-reussite" >}}).
+Ces fonctions nécessitent une publication intégrant le chantier Suivi libre.

@@ -44,6 +44,14 @@ class ArchiveHistoriqueTests(unittest.TestCase):
                 for table, nombre in NOTICE['attendus'].items():
                     self.assertEqual(db.execute('SELECT COUNT(*) FROM '+table).fetchone()[0], nombre)
             avant = contenu(copie)
+            # Comparer les colonnes historiques, indépendamment des opérations
+            # de reconstruction de tables de SQLite et des colonnes nouvelles.
+            with closing(sqlite3.connect(copie/'carnet.sqlite3')) as db:
+                historiques = {}
+                for (table,) in db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'suivi_%'"):
+                    colonnes = [r[1] for r in db.execute('PRAGMA table_info("'+table+'")')]
+                    requete = 'SELECT '+','.join('"'+c+'"' for c in colonnes)+' FROM "'+table+'" ORDER BY id'
+                    historiques[table] = (requete, db.execute(requete).fetchall())
             self.assertEqual(len([n for n in avant[1] if n.startswith('media/')]), NOTICE['medias'])
             export = parent/'nouvel-export.zip'
             creer_sauvegarde(copie, export)
@@ -60,6 +68,11 @@ class ArchiveHistoriqueTests(unittest.TestCase):
                 CARNET_ANTIBRUTEFORCE='non', CARNET_EMAIL_DESACTIVE='oui')
             subprocess.run([sys.executable, str(ROOT/'manage.py'), 'migrate', '--noinput'],
                 cwd=ROOT, env=env, check=True, stdout=subprocess.DEVNULL)
-            # Les modèles scolaires et migrations n'ont pas changé depuis 0.10.
-            self.assertEqual(contenu(reprise), avant)
+            with closing(sqlite3.connect(reprise/'carnet.sqlite3')) as db:
+                for table, (requete, lignes) in historiques.items():
+                    self.assertEqual(db.execute(requete).fetchall(), lignes, table)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM suivi_eleveapprentissage').fetchone()[0], 0)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM suivi_trace WHERE reussite != 0').fetchone()[0], 0)
+                self.assertEqual(db.execute('SELECT COUNT(*) FROM suivi_competencelocale WHERE suivi_libre != 0').fetchone()[0], 0)
+            self.assertEqual(contenu(reprise)[1], avant[1])
         self.assertEqual(empreinte(FIXTURE), NOTICE['sha256'])

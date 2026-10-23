@@ -1,0 +1,54 @@
+#+title: Contrat du suivi libre — #SL1–4
+
+* Identité et portée
+
+Une CompetenceLocale marquée suivi_libre est un apprentissage durable, réservé
+aux élèves explicitement rattachés par EleveApprentissage à sa disponibilité
+annuelle. Les ajouts précédents restent communs à leur classe. La portée ne se
+déduit ni d’une trace ni d’un état. Le libellé et le classement sont communs ;
+les adaptations annuelles existantes servent les reformulations et masquages.
+Les apprentissages libres ne sont pas proposés au catalogue commun d’école.
+
+* Événement et état
+
+Ajouter une réussite crée atomiquement l’apprentissage, les rattachements et
+une trace datée qualifiée reussite ; l’état courant initial devient réussi.
+Il reste modifiable. Les traces suivantes et les versions personnelles utilisent
+les services existants. Une trace commune copie sa qualification aux attributions.
+Les corrections d’une version personnelle ne suivent plus le contenu commun.
+Ajouter des élèves au suivi ne crée aucun état, trace ni réussite.
+Retirer une attribution collective ne retire ni la disponibilité ni l’état.
+Fermer la disponibilité ne supprime pas l’historique ; masquer une trace règle
+seulement sa diffusion. Une classe close refuse les changements de portée.
+
+Le déplacement d’une scolarité conserve le contexte d’origine de la
+ disponibilité et des traces. Il n’ouvre pas le suivi dans la destination ;
+les effectifs excluent l’élève parti. Un retrait administratif garde le parcours
+par déplacement ou archivage, même si seule une disponibilité sans trace existe.
+
+* Structure, années et transports
+
+La structure_seule est un contenu source explicite sans compétence. Les sources
+ordinaires restent refusées si elles sont vides. Les domaines et sous-domaines
+sont de vraies catégories, jamais des compétences séparatrices. Le lecteur
+commun conserve leurs définitions annuelles et affiche leurs groupes vides.
+Adopter une base conserve les ajouts libres ; aucun rapprochement par texte ni
+transfert d’acquis. Reprendre l’apprentissage dans une nouvelle classe est
+explicite, exige l’accès à un usage pédagogique antérieur et ne crée aucun état.
+Le carnet filtre la portée par élève, y compris le contenu complet. Le filtre
+réussites inclut les événements qualifiés visibles et distingue l’état courant.
+Les pourcentages du référentiel commun excluent les apprentissages ciblés.
+Les projections d’école et classe transportent explicitement EleveApprentissage ;
+l’import remappe les FK et les catégories des définitions JSON. Les sauvegardes
+restent celles du socle existant, sans nouvelle version de wheel.
+
+* Démonstration et déploiement
+
+Les Cerfs-volants sont créés après la reprise du scénario historique, puis
+adoptent directement une structure sans compétence. Les classes existantes et
+leurs sources sont conservées ; les sous-domaines fournis des Mésanges sont
+rendus visibles. Le même générateur produit Render et le ZIP fictif utilisé
+par les essais bureau/PWA. Les captures restent des artefacts CI non versionnés.
+Après migration serveur, preparer_suivi_libre --annee publie la structure dans
+un catalogue explicite, sans modifier son défaut ni les classes. La création
+d’un catalogue limité à cette structure exige --creer-catalogue.

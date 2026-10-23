@@ -173,3 +173,13 @@ pas rétablies ; aucun apprentissage n’avait été retiré.
 Les nouveaux dessins peuvent être choisis directement dans **Présentation du
 carnet → Image fournie**, sans changer le référentiel de la classe. L’adoption
 d’une édition plus récente reste une action séparée et explicite.
+
+## Des catégories sans compétences prédéfinies
+
+Le suivi libre peut commencer avec une structure de domaines et sous-domaines,
+sans liste d’attendus ni compétences artificielles. Il coexiste avec chacune
+des bases fournies : une réussite peut concerner seulement quelques élèves.
+Voir [le parcours]({{< relref "/guide/observer/ajouter-reussite" >}}).
+Les Mésanges permettent de comparer les sous-domaines d’une base fournie.
+
+{{< capture-guide src="captures/referentiels/cycle1/sous-domaines.png" alt="Sous-domaines du référentiel étayé dans la classe fictive des Mésanges" caption="Le classement du référentiel reste visible dans le suivi." >}}

@@ -38,7 +38,13 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     contenus = [contenu_origine(adoption)] if adoption else ([] if classe else [c for _, c in contenus_ecole(ecole, annee)])
     domaines = {d["id"]: d for c in contenus for d in c.get("domaines", [])}
     index_url = reverse("ajouts_classe", args=[classe.pk]) if classe else reverse("ajouts_ecole") + "?annee=" + annee
-    catalogue = catalogue_reprises(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe) if classe else CompetenceLocale.objects.filter(ecole=ecole).order_by("pk")
+    catalogue = catalogue_reprises(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe) if classe else CompetenceLocale.objects.filter(ecole=ecole, suivi_libre=False).order_by("pk")
+    if locale_pk and classe:
+        from .autorisations import MODIFIER_ETAT
+        from django.db.models import Q
+        if autorise(request.user, MODIFIER_ETAT, classe):
+            catalogue = CompetenceLocale.objects.filter(Q(pk__in=catalogue.values("pk")) |
+                Q(pk=locale_pk, suivi_libre=True, ecole=ecole, disponibilites__classe=classe)).distinct()
     if adoption and adoption.clos:
         catalogue = catalogue.filter(competence_id__in=[c["id"] for c in adoption.etat_final.get("contenu", {}).get("competences", [])])
     locale = next((l for l in catalogue if l.pk == locale_pk), None) if locale_pk else None

@@ -40,3 +40,13 @@ pas nécessaires pour les adaptations courantes.
 
 - [[{{< relref "/guide/eleves-classes/choisir-referentiel" >}}][Choisir ou changer la base d’une classe]] : lire les conséquences et les confirmations nécessaires, notamment après des saisies. Aucune réussite n’est transférée automatiquement.
 - [[{{< relref "/guide/eleves-classes/relier-competences" >}}][Relier deux compétences]] : laisser un repère facultatif à l’équipe. Une correspondance ne rend pas les réussites équivalentes.
+
+* Commencer avec des catégories seules
+
+La proposition annuelle peut être *Démarrer sans compétences prédéfinies* :
+domaines et sous-domaines sans compétences. *Partir d’un référentiel* conserve
+le catalogue existant. Les nouvelles classes reprennent la proposition de
+l’école ; les classes existantes ne basculent pas automatiquement.
+L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
+Adopter ensuite une base reste avancé et conserve ces apprentissages et traces.
+Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].
