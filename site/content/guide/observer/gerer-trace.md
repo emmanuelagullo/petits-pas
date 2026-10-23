@@ -49,3 +49,9 @@ inclusion dans les carnets.
 - Retirer une trace ne change pas l’état d’acquisition de la compétence.
 
 Voir les [situations de contribution et d’historique]({{< relref "/roles/situations/" >}}).
+
+## Réussites conservées
+
+Une trace peut porter une réussite datée, indépendante de l’état courant. Son retrait et sa visibilité suivent les commandes habituelles ; ils ne retirent pas l’apprentissage du suivi.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

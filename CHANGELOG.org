@@ -7,6 +7,15 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Suivi libre (#SL1–4) : démarrer avec des domaines et sous-domaines seuls,
+  créer des apprentissages et réussites datées pour les élèves choisis,
+  réutiliser les traces collectives et leurs versions personnelles. Ajouter
+  des élèves au suivi sans acquis automatique ; conserver les carnets,
+  catégories annuelles et transports. Les sous-domaines sont visibles dans
+  les saisies, y compris aux Mésanges. Quatrième classe de Rémi : Les Cerfs-volants.
+  Migration métier requise ; publication volontaire de la structure serveur
+  avec preparer_suivi_libre --annee. Les classes existantes gardent leur base.
+
 - Publication PWA Éducation : inscrire les valeurs explicites de provenance
   dans le pipeline enfant, sans expansion différée entre déclenchements.
 

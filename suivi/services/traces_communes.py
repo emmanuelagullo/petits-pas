@@ -37,9 +37,12 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
     if not debut <= date_observation <= fin:
         raise ValidationError("La date doit appartenir à l'année scolaire de la classe.")
     selection = _scolarites(classe, ids)
-    from suivi.suivi_libre import verifier_portee
-    for sc in selection:
-        verifier_portee(classe, competence, eleve=sc.eleve)
+    from suivi.suivi_libre import est_libre, eleves_suivis
+    if est_libre(competence):
+        usage_pour_saisie(classe, competence)  # Verrous école/classe avant lecture de la portée.
+        actifs = eleves_suivis(classe, competence)
+        if any(sc.eleve_id not in actifs for sc in selection):
+            raise PermissionDenied("Un élève sélectionné est hors du suivi de cet apprentissage.")
     # _scolarites a vérifié chaque enfant dans cette classe et cette année.
     # CONTRIBUER porte sur la classe : le même contrôle suffit pour toute la
     # sélection, sans cache des droits ni suppression de ce contrôle.

@@ -123,3 +123,9 @@ et mises à jour**, puis **Voir les nouveautés**. Ces notes accompagnent la
 version chargée ; elles ne changent pas seulement parce qu’une nouvelle
 version du code a été préparée. La publication dans le navigateur et celle
 des programmes à télécharger peuvent avoir lieu à des dates différentes.
+
+## Choisir le départ pédagogique
+
+Lors d’une nouvelle installation, **Façon de commencer** distingue les catégories sans compétences et les référentiels fournis. Les sous-domaines sont visibles dans le suivi.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

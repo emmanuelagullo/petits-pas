@@ -19,7 +19,9 @@ def lignes_consultation(version, adoption=None):
             for groupe, competences in [("", d["competences"])] + [(s["nom"], s["competences"]) for s in d["sous_domaines"]]:
                 for c in competences:
                     lignes.append({**c, "domaine": d["nom"], "groupe": groupe, "active": True})
-    return lignes
+    from .models import CompetenceLocale
+    libres = set(CompetenceLocale.objects.filter(suivi_libre=True).values_list("competence_id", flat=True))
+    return [c for c in lignes if c.get("id") not in libres]
 
 
 def _normaliser(texte):

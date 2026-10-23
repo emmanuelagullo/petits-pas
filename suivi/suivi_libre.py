@@ -12,26 +12,13 @@ def eleves_suivis(classe, competence, *, actifs=True):
         disponibilite__locale__competence_id=competence.pk,
         disponibilite__annee_scolaire=classe.annee_scolaire)
     if actifs:
-        q = q.filter(active=True)
+        q = q.filter(active=True, scolarite__classe=classe)
     return set(q.values_list("scolarite__eleve_id", flat=True))
 
 
 def verifier_portee(classe, competence, *, eleve=None):
     if est_libre(competence) and eleve is not None and eleve.pk not in eleves_suivis(classe, competence):
         raise PermissionDenied("Cet apprentissage n’est pas proposé à cet élève.")
-
-
-def filtrer_arbre(arbre, classe, eleve):
-    """Le lecteur commun fournit les définitions ; seule la portée est filtrée."""
-    libres = set(CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True)
-                 .values_list("competence_id", flat=True))
-    admis = set(EleveApprentissage.objects.filter(disponibilite__classe=classe,
-        scolarite__eleve=eleve).values_list("disponibilite__locale__competence_id", flat=True))
-    # Conserver l’historique même après retrait des prochaines saisies.
-    admis.update(eleve.observations.values_list("competence_id", flat=True))
-    for domaine in arbre:
-        domaine.visibles = [c for c in domaine.visibles if c.pk not in libres or c.pk in admis]
-    return arbre
 
 
 def preparer_arbre(arbre, classe, eleve=None):
@@ -42,9 +29,10 @@ def preparer_arbre(arbre, classe, eleve=None):
     liens = list(EleveApprentissage.objects.filter(disponibilite__classe=classe).values_list(
         "disponibilite__locale__competence_id", "scolarite__eleve_id", "active"))
     admis, actifs = {}, {}
+    presents = set(classe.eleves.values_list("pk", flat=True))
     for cid, eid, active in liens:
         admis.setdefault(cid, set()).add(eid)
-        if active:
+        if active and eid in presents:
             actifs.setdefault(cid, set()).add(eid)
     historiques = set(eleve.observations.values_list("competence_id", flat=True)) if eleve else set()
     for d in arbre:

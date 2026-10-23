@@ -46,3 +46,9 @@ avec l'application afin de toujours montrer le parcours proposé aujourd'hui.
 Sélectionnez une image pour l'afficher en grand.
 
 {{< captures-demonstration >}}
+
+## Avec ou sans compétences prédéfinies
+
+Les deux parcours conservent catégories et sous-domaines. Les apprentissages libres concernent les seuls élèves choisis, même dans une classe qui utilise un référentiel.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

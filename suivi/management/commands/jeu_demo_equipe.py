@@ -90,6 +90,8 @@ class Command(BaseCommand):
 
         for identifiant, profil in profils.items():
             for affectation in profil["affectations"]:
+                if affectation["classe"] == "cerfs_volants":
+                    continue  # Préparée après la reprise historique, avec sa structure seule.
                 self._affecter_depuis_configuration(
                     utilisateurs[identifiant],
                     classes[affectation["classe"]],
@@ -124,6 +126,8 @@ class Command(BaseCommand):
     def _classes_configuration(self, ecole, configuration):
         classes = {}
         for identifiant, donnees in configuration["classes"].items():
+            if identifiant == "cerfs_volants":
+                continue
             classe = ecole.classes.filter(
                 nom=donnees["nom"], annee_scolaire=donnees["annee_scolaire"]
             ).first()

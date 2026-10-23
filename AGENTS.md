@@ -368,3 +368,16 @@ deux produits. Les mots et règles métier restent dans chaque application ; le
 socle ne fournit un composant que si des usages réels justifient son extraction.
 Vérifier les parcours modifiés au clavier, sur écran étroit et sans JavaScript ;
 distinguer les tests du HTML des observations réelles en navigateur.
+
+## Suivi libre (#SL1–4)
+
+Lire SUIVI-LIBRE.org. CompetenceLocale.suivi_libre distingue les apprentissages
+ciblés des ajouts au référentiel commun ; EleveApprentissage rattache leur
+ disponibilité annuelle aux scolarités, sans réussite implicite. Ne pas proposer
+ces identités au catalogue d’école ni les fusionner par libellé. Le suivi libre
+réutilise les services d’observations et de traces communes/personnelles.
+La qualification Trace.reussite est un événement daté, distinct de l’état courant.
+Les sous-domaines se lisent dans les définitions annuelles ; aucun séparateur
+n’est une compétence. La commande preparer_suivi_libre publie volontairement la
+structure vide, sans changer les classes. Préserver les projections d’export,
+le remappage d’import et le scénario fictif commun des Cerfs-volants.

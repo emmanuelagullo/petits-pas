@@ -20,6 +20,7 @@
     {% icone_liste competence classe %}<span class="libelle">{{ competence.libelle }}</span>
   </span>
   {% endif %}
+  {% if responsable and competence.saisie_ouverte == False %}<small>Suivi fermé pour cet élève ; ses traces restent conservées.</small>{% endif %}
   <a class="trace-lien {% if obs.a_un_commentaire or obs.a_une_photo %}pleine{% endif %}"
      href="{% url 'trace' eleve.pk competence.pk %}"
      aria-label="{% if obs.a_un_commentaire or obs.a_une_photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}"

@@ -1,8 +1,7 @@
 """Orchestration métier du suivi libre autour des services éprouvés."""
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from suivi.models import (CompetenceLocale, DisponibiliteCompetenceLocale, EleveApprentissage,
-                          Observation, Trace, Scolarite)
+from suivi.models import DisponibiliteCompetenceLocale, EleveApprentissage, Observation
 from suivi.audit import journaliser
 from suivi.services.ajouts_referentiels import creer_ajout, _verrouiller
 from suivi.services.traces_communes import _scolarites, enregistrer_commune
@@ -25,10 +24,20 @@ def associer(*, utilisateur, classe, locale, ids, adoption_attendue, retirer=Fal
                and autorise(utilisateur, VOIR_SUIVI, d.classe) for d in sources):
         raise PermissionDenied
     selection = _scolarites(classe, ids)
-    d, _ = DisponibiliteCompetenceLocale.objects.get_or_create(locale=locale, classe=classe,
-        defaults={"annee_scolaire": classe.annee_scolaire, "auteur": utilisateur})
+    if retirer:
+        d = DisponibiliteCompetenceLocale.objects.filter(locale=locale, classe=classe).first()
+        if d is None:
+            raise ValidationError("Cet apprentissage n’est pas proposé dans cette classe.")
+    else:
+        d, _ = DisponibiliteCompetenceLocale.objects.get_or_create(locale=locale, classe=classe,
+            defaults={"annee_scolaire": classe.annee_scolaire, "auteur": utilisateur})
     for sc in selection:
-        lien, _ = EleveApprentissage.objects.get_or_create(disponibilite=d, scolarite=sc)
+        if retirer:
+            lien = EleveApprentissage.objects.filter(disponibilite=d, scolarite=sc).first()
+            if lien is None:
+                raise ValidationError("Cet apprentissage n’est pas proposé à un des élèves sélectionnés.")
+        else:
+            lien, _ = EleveApprentissage.objects.get_or_create(disponibilite=d, scolarite=sc)
         lien.active = not retirer
         lien.full_clean()
         lien.save()

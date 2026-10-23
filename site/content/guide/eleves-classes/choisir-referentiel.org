@@ -142,3 +142,13 @@ Les données sont entièrement fictives. L’application y permet les exceptions
 pour 2026-2027, mais les permissions de l’école et des classes sont initialement
 fermées. Diane ouvre la permission de l’école ; Rémi ou Nadia ouvre celle de sa
 classe. Le changement demande ensuite sa propre confirmation.
+
+* Commencer avec des catégories seules
+
+La proposition annuelle peut être *Démarrer sans compétences prédéfinies* :
+domaines et sous-domaines sans compétences. *Partir d’un référentiel* conserve
+le catalogue existant. Les nouvelles classes reprennent la proposition de
+l’école ; les classes existantes ne basculent pas automatiquement.
+L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
+Adopter ensuite une base reste avancé et conserve ces apprentissages et traces.
+Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].

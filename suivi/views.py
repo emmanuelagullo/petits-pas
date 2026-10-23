@@ -3022,13 +3022,13 @@ def importer_eleves(request, pk):
             eleve__ecole=ecole,
             classe=classe,
         )
-        if scolarite.bilans.exists() or scolarite.traces.exists():
+        if scolarite.bilans.exists() or scolarite.traces.exists() or scolarite.eleveapprentissage_set.exists():
             messages.error(
                 request,
-                f"{scolarite.eleve.prenom} a des bilans ou des observations "
+                f"{scolarite.eleve.prenom} a des bilans, des apprentissages suivis ou des observations "
                 f"datées enregistrés pour {classe.annee_scolaire} : "
                 "utilisez plutôt « Déplacer vers une autre classe », ou "
-                "supprimez d'abord ces éléments.",
+                "utilisez « Retirer et archiver » pour conserver son parcours.",
             )
         else:
             prenom = scolarite.eleve.prenom

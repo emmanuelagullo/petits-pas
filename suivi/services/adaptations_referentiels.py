@@ -14,6 +14,10 @@ from .choix_bases_referentiels import verifier_annee
 def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, visible,
                            revision_attendue, classe=None, adoption_attendue=None):
     verifier_annee(annee)
+    from suivi.suivi_libre import est_libre
+    from suivi.autorisations import MODIFIER_ETAT
+    if est_libre(competence) and (not classe or not autorise(utilisateur, MODIFIER_ETAT, classe)):
+        raise PermissionDenied
     if competence.domaine.ecole_id != ecole.pk:
         raise PermissionDenied
     if not autorise(utilisateur, GERER_REFERENTIEL_CLASSE if classe else GERER_REFERENTIEL_ECOLE,

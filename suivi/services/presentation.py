@@ -24,7 +24,10 @@ def enregistrer_affichage(utilisateur, ecole, classe=None, *, avec_photos):
     return cible
 
 
-def verifier_droit(utilisateur, ecole, classe=None):
+def verifier_droit(utilisateur, ecole, classe=None, competence=None):
+    from suivi.suivi_libre import est_libre
+    if competence and est_libre(competence) and classe is None:
+        raise PermissionDenied
     if classe is not None and classe.ecole_id != ecole.pk:
         raise PermissionDenied
     if classe:
@@ -39,7 +42,7 @@ def verifier_droit(utilisateur, ecole, classe=None):
 
 @transaction.atomic
 def enregistrer_reglage(utilisateur, reglage):
-    verifier_droit(utilisateur, reglage.ecole, reglage.classe)
+    verifier_droit(utilisateur, reglage.ecole, reglage.classe, reglage.competence)
     precedent = ReglagePresentation.objects.filter(pk=reglage.pk).first() if reglage.pk else None
     champs = ("mode", "icone", "photo")
     anciennes = instantane(precedent, champs) if precedent else {}
@@ -54,7 +57,7 @@ def enregistrer_reglage(utilisateur, reglage):
 @transaction.atomic
 def enregistrer_formulation(*, utilisateur, competence, classe=None, cle=None, mode="remplacer", texte=""):
     ecole = competence.domaine.ecole
-    verifier_droit(utilisateur, ecole, classe)
+    verifier_droit(utilisateur, ecole, classe, competence)
     filtres = {"ecole": ecole, "classe": classe, "competence": competence}
     locale = None
     if cle:

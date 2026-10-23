@@ -82,3 +82,9 @@ de l’école ne modifient plus ce carnet.
 
 Voir aussi [adapter les libellés et masquer]({{< relref "/guide/eleves-classes/adapter-competences" >}})
 et [choisir une base]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
+
+## Ajouter seulement pour certains élèves
+
+Cette fiche concerne les compétences disponibles pour une classe entière. Pour créer un apprentissage pour un élève ou un groupe choisi, utiliser **Ajouter une réussite** depuis le suivi.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

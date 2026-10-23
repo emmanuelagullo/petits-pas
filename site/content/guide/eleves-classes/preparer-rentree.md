@@ -41,3 +41,9 @@ conservées.
 
 Voir [Créer puis activer une classe]({{< relref "creer-activer-classe" >}})
 et les [situations de continuité du parcours]({{< relref "/roles/situations/" >}}).
+
+## Reprendre un apprentissage libre
+
+Dans la nouvelle classe, **Ajouter une réussite → Retrouver un apprentissage déjà créé** permet une reprise explicite pour les élèves choisis, sans nouvelle réussite ni ancienne trace attribuée.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

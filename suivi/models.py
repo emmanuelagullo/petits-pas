@@ -1235,7 +1235,12 @@ class EleveApprentissage(models.Model):
         from django.core.exceptions import ValidationError
         if self.disponibilite_id and self.scolarite_id:
             d = self.disponibilite
-            if (not d.locale.suivi_libre or d.classe_id != self.scolarite.classe_id
+            # Comme l'usage d'une trace, la disponibilité garde sa classe
+            # d'origine quand la scolarité est déplacée dans la même année.
+            # Les services vérifient la classe courante lors de l'association.
+            if (not d.locale.suivi_libre or not d.classe_id
                     or d.annee_scolaire != self.scolarite.annee_scolaire
+                    or d.classe.annee_scolaire != d.annee_scolaire
+                    or d.classe.ecole_id != d.locale.ecole_id
                     or d.locale.ecole_id != self.scolarite.eleve.ecole_id):
                 raise ValidationError("Le suivi doit concerner un élève de la classe et de l’année de cet apprentissage libre.")

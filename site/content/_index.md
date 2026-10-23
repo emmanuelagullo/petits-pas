@@ -8,3 +8,8 @@ carnet individuel remis aux familles.
 
 Le projet est en cours de construction. Les démonstrations publiques utilisent
 exclusivement des personnes, classes et observations fictives.
+
+Vous pouvez **démarrer sans compétences prédéfinies**, avec des catégories à
+compléter au fil des réussites, ou **partir d’un référentiel**. Dans les deux
+cas, un apprentissage peut être ajouté pour un élève ou quelques élèves,
+sans devenir un objectif attendu pour toute la classe.

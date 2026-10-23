@@ -3670,18 +3670,31 @@ class JeuDemoLarge(TestCase):
         coccinelles = self.ecole.classes.get(nom="Les Coccinelles", annee_scolaire="2026-2027")
         adoption = AdoptionReferentiel.objects.get(classe=coccinelles, courante=True)
         self.assertEqual(adoption.version.source.identifiant, f"reprise-ecole-{self.ecole.pk}")
-        self.assertEqual(CompetenceLocale.objects.filter(ecole=self.ecole).count(), 3)
+        self.assertEqual(CompetenceLocale.objects.filter(ecole=self.ecole, suivi_libre=False).count(), 3)
         masque = CompetenceLocale.objects.get(
             competence__libelle="Je présente un objet de notre boîte à histoires")
         self.assertFalse(next(c["active"] for c in contenu_adoption(adoption)["competences"]
             if c["id"] == masque.competence_id))
         self.assertTrue(AdaptationCompetence.objects.filter(
             classe__isnull=True, annee_scolaire="2026-2027").exists())
+        libres = CompetenceLocale.objects.filter(ecole=self.ecole, suivi_libre=True)
+        self.assertEqual(libres.count(), 4)
+        cerfs = self.ecole.classes.get(nom="Les Cerfs-volants")
+        depart = AdoptionReferentiel.objects.get(classe=cerfs)
+        self.assertTrue(depart.version.contenu["structure_seule"])
+        self.assertEqual(depart.contenu["competences"], [])
+        self.assertEqual(cerfs.scolarites.count(), 6)
+        groupe = libres.get(competence__libelle="Je poursuis une alternance de trois couleurs")
+        from suivi.models import EleveApprentissage
+        self.assertEqual(EleveApprentissage.objects.filter(disponibilite__locale=groupe).count(), 4)
+        self.assertEqual(Observation.objects.filter(competence=groupe.competence).count(), 3)
+        self.assertTrue(Trace.objects.filter(observation__competence=groupe.competence,
+            observation__eleve__prenom="Sami", commune__isnull=True, origine_commune__isnull=False, reussite=True).exists())
         self.assertEqual(CorrespondanceCompetence.objects.count(), 1)
         choix = ChoixApplicationAnnuel.objects.get(annee_scolaire="2026-2027")
         self.assertEqual(choix.version_proposee.source.identifiant, "petits-pas-cycle1-etaye")
         self.assertFalse(Observation.objects.filter(competence__in=
-            CompetenceLocale.objects.values("competence_id")).exists())
+            CompetenceLocale.objects.filter(suivi_libre=False).values("competence_id")).exists())
 
         Utilisateur = get_user_model()
         nadia = Utilisateur.objects.get(username="nadia-demo")
@@ -3735,7 +3748,7 @@ class JeuDemoLarge(TestCase):
             self.ecole.classes.filter(
                 annee_scolaire="2026-2027", etat=Classe.ACTIVE
             ).count(),
-            5,
+            6,
         )
         self.assertFalse(
             Trace.objects.filter(
@@ -3800,14 +3813,14 @@ class JeuDemoLarge(TestCase):
             profil for profil in configuration["profils"] if profil["id"] == "alice"
         )
         self.assertEqual(alice["affectations"][0]["periode"], "terminee")
-        self.assertEqual(len(configuration["scenarios"]), 20)
+        self.assertEqual(len(configuration["scenarios"]), 23)
         self.assertEqual(
             {scenario["profil"] for scenario in configuration["scenarios"]},
             {"diane", "remi", "nadia", "cora", "samir"},
         )
         self.assertEqual(
             sum("capture_mobile" in scenario for scenario in configuration["scenarios"]),
-            3,
+            4,
         )
         self.assertEqual(
             {
@@ -3816,6 +3829,7 @@ class JeuDemoLarge(TestCase):
                 if "cible" in scenario
             },
             {
+                "#formulaire-reussite",
                 "#membre-lea-demo",
                 "#membre-alice-demo",
                 "#membre-marc-demo",

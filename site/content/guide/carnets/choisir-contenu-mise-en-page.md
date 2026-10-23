@@ -44,3 +44,9 @@ génération.
 
 Pour les valeurs proposées à toute l’école, voir
 [Définir les paramètres habituels des carnets]({{< relref "parametrer-carnets.md" >}}).
+
+## Réussites datées
+
+Une réussite libre datée et visible peut figurer dans le contenu « réussites » même si l’état courant a ensuite changé. Le carnet indique la date de l’événement et garde l’état courant distinct. Les apprentissages libres d’autres élèves ne figurent pas dans le carnet complet.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

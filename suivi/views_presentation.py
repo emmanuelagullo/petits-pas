@@ -1,7 +1,7 @@
 import mimetypes
 
 from django.contrib import messages
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import default_storage
 from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -50,6 +50,10 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
                       {"destinations": destinations}, status=403)
     ecole, classe = _perimetre(request, classe_pk)
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole) if competence_pk else None
+    if competence:
+        from .suivi_libre import est_libre
+        if est_libre(competence) and (not classe or not autorise(request.user, MODIFIER_ETAT, classe)):
+            raise PermissionDenied
     if classe and competence:
         competence = competence_classe(classe, competence) or competence
     filtres = {"ecole": ecole, "classe": classe, "competence": competence}

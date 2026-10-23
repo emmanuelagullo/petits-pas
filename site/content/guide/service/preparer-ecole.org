@@ -55,3 +55,13 @@ de poursuivre ; ne pas recréer l’école pour résoudre un problème de connex
 Le mail porte les instructions essentielles de la version qui l’émet.
 Le Guide en ligne peut être plus récent ; vérifier la version affichée dans
 l’application et demander conseil à la direction si les écrans diffèrent.
+
+* Commencer avec des catégories seules
+
+La proposition annuelle peut être *Démarrer sans compétences prédéfinies* :
+domaines et sous-domaines sans compétences. *Partir d’un référentiel* conserve
+le catalogue existant. Les nouvelles classes reprennent la proposition de
+l’école ; les classes existantes ne basculent pas automatiquement.
+L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
+Adopter ensuite une base reste avancé et conserve ces apprentissages et traces.
+Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].

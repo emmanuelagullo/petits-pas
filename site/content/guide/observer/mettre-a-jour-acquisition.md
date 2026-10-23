@@ -38,3 +38,9 @@ ensuite cet état.
 
 Voir les [règles détaillées des rôles]({{< relref "/roles/" >}}) et les
 [situations de cumul ou de fin d’affectation]({{< relref "/roles/situations/" >}}).
+
+## Réussite datée et état courant
+
+Une réussite saisie librement place initialement l’état sur **Réussi**. Le changer ensuite conserve l’événement daté ; une trace ordinaire ne change toujours pas cet état.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

@@ -131,3 +131,25 @@ est alors refermée ; un retour demandera une nouvelle ouverture.
 Au démarrage du jeu fictif, les Mésanges utilisent l’édition étayée 2026.4
 (438 entrées), les Hirondelles les objectifs des programmes 2026.4 (426 entrées),
 et les Pinsons les tableaux Chat d’École 2026.4 (417 entrées).
+
+## Essayer sans compétences prédéfinies
+
+Avec **Rémi**, ouvrir sa quatrième classe, **Les Cerfs-volants**. Elle a commencé
+avec des domaines et sous-domaines seuls. Les classes existantes gardent leurs bases.
+
+- Mila : un apprentissage individuel de langage, sans photo.
+- Noé : une réalisation individuelle avec une image fictive.
+- Inès, Noé et Sami : une alternance de trois couleurs, avec une trace commune.
+  Sami possède une version personnelle de son commentaire.
+- Zoé : le même apprentissage est proposé à son suivi, **sans réussite attribuée**.
+- Mila et Ana : une réussite collective de motricité sans photo.
+
+Ouvrir **Saisir pour toute la classe**, puis **Ajouter une réussite** dans un
+ domaine ou un sous-domaine. Vérifier les élèves concernés et leurs carnets.
+Comparer avec **Les Mésanges**, dont les sous-domaines du référentiel étayé sont
+visibles dans le suivi. Les images des Cerfs-volants représentent des réalisations
+schématiques ; aucune photographie d’enfant n’est utilisée.
+
+Le scénario est commun à Render et aux espaces d’essai du navigateur et du
+programme. Il apparaît après leur mise à jour ; un ancien espace d’essai déjà
+préparé conserve son jeu précédent jusqu’à sa réinitialisation explicite.

@@ -23,7 +23,7 @@
     {% endif %}
   {% endfor %}
   {% if choix.proposee %}
-    <p>Référentiel de l’école : <strong>{{ choix.proposee.source.titre }} — version {{ choix.proposee.numero }}</strong>.</p>
+    <p>Point de départ de l’école : <strong>{{ choix.proposee.source.titre }} — version {{ choix.proposee.numero }}</strong>.</p>
     <p>Cette base est préparée avec la classe, sans confirmation supplémentaire. Si l’école change ensuite sa proposition, cette classe conserve sa base.</p>
   {% else %}
     <p class="message">Aucun référentiel n’est proposé pour cette année. <a href="{% url 'referentiels_ecole' %}?annee={{ formulaire.annee }}">Vérifier les propositions de l’école</a>. Vous pouvez aussi créer la classe sans base et préparer son référentiel avant les premières saisies.</p>

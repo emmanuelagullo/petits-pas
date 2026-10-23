@@ -45,3 +45,9 @@ L’école fictive ne devient pas automatiquement votre école réelle. Revenez 
 fictive à zéro. Une restauration dans l’un des espaces remplace uniquement
 les données de cet espace, sans fusion. L’ouverture temporaire de votre propre
 ZIP avant restauration suit [le parcours de vérification séparée]({{< relref "/guide/local/verifier-zip" >}}), dans une version qui le propose.
+
+## Les Cerfs-volants
+
+Une version intégrant le chantier Suivi libre propose la quatrième classe de Rémi, démarrée sans compétences prédéfinies. Le même scénario est utilisé par le ZIP, le navigateur et le programme.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

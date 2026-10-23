@@ -8,7 +8,6 @@ from .models import CompetenceLocale
 from .forms_suivi_libre import ReussiteLibreForm, SelectionElevesForm
 from .referentiels import adoption_courante, contenu_origine, classe_historique
 from .services.suivi_libre import ajouter_reussite, associer
-from .services.ajouts_referentiels import catalogue_reprises
 from .services.medias_django import preparer_image
 from .views import acces_requis
 from .contexte_ecole import ecole_courante

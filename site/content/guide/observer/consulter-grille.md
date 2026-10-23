@@ -40,3 +40,9 @@ Un **état non retrouvé** est signalé à part : cela ne signifie pas que l'él
 n'avait pas réussi. Les réussites enregistrées plus tard ne sont pas reportées
 dans cette grille. La saisie d'un élève passé dans une nouvelle année se fait
 depuis sa classe actuelle.
+
+## Portée limitée
+
+Pour un apprentissage libre, les élèves non sélectionnés sont **Hors du suivi**, et ne sont pas comptés comme en attente d’observation.
+
+Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).
