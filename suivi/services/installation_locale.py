@@ -14,6 +14,7 @@ from comptes.models import AffectationClasse
 
 # Liste publique explicite, commune à l'interface et au chargement.
 REFERENTIELS_DEPART = (
+    ("libre", "Démarrer sans compétences prédéfinies", "referentiel/structure-cycle1.yaml"),
     ("trame", "Trame de démarrage Petits Pas — sélection provisoire", None),
     ("objectifs", "Cycle 1 — objectifs des programmes", "referentiel/cycle1/objectifs-programmes.yaml"),
     ("etaye", "Cycle 1 — édition étayée", "referentiel/cycle1/cycle1-etaye.yaml"),

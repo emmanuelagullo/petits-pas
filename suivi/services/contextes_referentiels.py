@@ -9,7 +9,9 @@ from suivi.models import (
 
 
 @transaction.atomic
-def usage_pour_saisie(classe, competence):
+def usage_pour_saisie(classe, competence, *, eleve=None):
+    from suivi.suivi_libre import verifier_portee
+    verifier_portee(classe, competence, eleve=eleve)
     if competence.domaine.ecole_id != classe.ecole_id:
         raise PermissionDenied
     # Écoles non reprises : compatibilité avec l'installation et les ateliers.

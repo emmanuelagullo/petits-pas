@@ -90,6 +90,7 @@ def selections(ecole_id):
         m.RessourceReferentiel: Q(annuel__ecole_id=ecole_id),
         m.AdaptationCompetence: e, m.CompetenceLocale: e,
         m.DisponibiliteCompetenceLocale: Q(locale__ecole_id=ecole_id),
+        m.EleveApprentissage: Q(disponibilite__locale__ecole_id=ecole_id),
         m.CorrespondanceCompetence: e,
         apps.get_model("comptes", "AppartenanceEcole"): e,
         apps.get_model("comptes", "ResponsabiliteEcole"): Q(appartenance__ecole_id=ecole_id),

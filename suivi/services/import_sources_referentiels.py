@@ -55,7 +55,7 @@ def liste(valeur, chemin):
 
 
 def normaliser(document):
-    document = objet(document, ("format", "source", "version", "domaines"), "Document")
+    document = objet(document, ("format", "source", "version", "domaines", "structure_seule"), "Document")
     if type(document.get("format")) is not int or document["format"] != 1:
         raise ValidationError("Format attendu : 1.")
     source = objet(document.get("source"), ("identifiant", "titre", "provenance", "licence", "provisoire"), "Source")
@@ -116,9 +116,15 @@ def normaliser(document):
                                             "nom": texte(s.get("nom"), "Nom de sous-domaine"),
                                             "competences": competences(s.get("competences", []), "Compétences du sous-domaine")})
         domaines.append(domaine)
-    if not domaines or not identites:
+    structure = document.get("structure_seule", False)
+    if type(structure) is not bool or (structure and identites):
+        raise ValidationError("Une structure seule ne contient aucune compétence.")
+    if not domaines or (not structure and not identites):
         raise ValidationError("Au moins un domaine et une compétence sont nécessaires.")
-    return {"format": 1, "origine": "source_declaree", "source": source, "version": numero, "domaines": domaines}, identites
+    contenu = {"format": 1, "origine": "source_declaree", "source": source, "version": numero, "domaines": domaines}
+    if structure:
+        contenu["structure_seule"] = True
+    return contenu, identites
 
 
 def lire_source(contenu_yaml):

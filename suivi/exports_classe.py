@@ -93,6 +93,7 @@ def selection_classe(classe, utilisateur):
         m.AdoptionReferentiel: Q(classe=classe), m.UsageCompetence: Q(adoption__classe=classe),
         m.EtatAnnuelObservation: Q(observation_id__in=etats, annee_scolaire=classe.annee_scolaire),
         m.AdaptationCompetence: perimetre & Q(ecole_id=classe.ecole_id, annee_scolaire=classe.annee_scolaire, competence_id__in=competences),
+        m.EleveApprentissage: Q(scolarite__classe=classe, disponibilite__classe=classe),
         m.CompetenceLocale: Q(ecole_id=classe.ecole_id, competence_id__in=competences),
         m.DisponibiliteCompetenceLocale: perimetre & Q(locale__competence_id__in=competences, annee_scolaire=classe.annee_scolaire),
         m.CorrespondanceCompetence: Q(pk__in=correspondances.values("pk")),

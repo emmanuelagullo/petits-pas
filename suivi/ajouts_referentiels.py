@@ -7,7 +7,7 @@ def contenu_avec_ajouts(contenu, classe):
     resultat = deepcopy(contenu)
     for choix in DisponibiliteCompetenceLocale.objects.filter(classe=classe,
             annee_scolaire=classe.annee_scolaire, locale__ecole_id=classe.ecole_id).select_related("locale").order_by("pk"):
-        for rubrique in ("domaines", "competences"):
+        for rubrique in ("domaines", "sous_domaines", "competences"):
             ids = {c["id"] for c in resultat.setdefault(rubrique, [])}
-            resultat[rubrique].extend(deepcopy(c) for c in choix.locale.definition[rubrique] if c["id"] not in ids)
+            resultat[rubrique].extend(deepcopy(c) for c in choix.locale.definition.get(rubrique, []) if c["id"] not in ids)
     return resultat

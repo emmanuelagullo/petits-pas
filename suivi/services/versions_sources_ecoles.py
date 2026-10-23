@@ -23,6 +23,8 @@ def definir_version_ecole(ecole, version):
         return deepcopy(existante.contenu)
     contenu = {"format": 1, "origine": "source_declaree", "source": deepcopy(version.contenu["source"]),
                "domaines": [], "sous_domaines": [], "attendus": [], "competences": [], "formulations": []}
+    if version.contenu.get("structure_seule"):
+        contenu["structure_seule"] = True
     identites = {d.identite.identifiant: d.identite for d in version.definitions.select_related("identite")}
 
     def ajouter_competences(valeurs, domaine, sous_domaine=None):

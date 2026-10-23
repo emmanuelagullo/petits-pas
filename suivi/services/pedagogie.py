@@ -31,13 +31,16 @@ def _peut_corriger_trace(utilisateur, trace):
 
 
 @transaction.atomic
-def modifier_etat(*, utilisateur, eleve, competence, statut):
+def modifier_etat(*, utilisateur, eleve, competence, statut, date_observation=None):
     if not autorise(utilisateur, MODIFIER_ETAT, eleve):
         raise PermissionDenied
+    if statut not in (None, "", *dict(Observation.STATUTS)):
+        from django.core.exceptions import ValidationError
+        raise ValidationError("État inconnu.")
     scolarite = eleve.scolarite_courante()
     if scolarite is None or competence.domaine.ecole_id != eleve.ecole_id:
         raise PermissionDenied
-    usage = usage_pour_saisie(scolarite.classe, competence)
+    usage = usage_pour_saisie(scolarite.classe, competence, eleve=eleve)
     observation = Observation.objects.select_for_update().filter(
         eleve=eleve, competence=competence
     ).first()
@@ -45,7 +48,15 @@ def modifier_etat(*, utilisateur, eleve, competence, statut):
     if observation is None:
         observation = Observation(eleve=eleve, competence=competence)
     observation.statut = statut
-    observation.date_observation = timezone.localdate()
+    from suivi.models import bornes_annee_scolaire
+    from django.core.exceptions import ValidationError
+    date_observation = date_observation or timezone.localdate()
+    debut, fin = bornes_annee_scolaire(scolarite.annee_scolaire)
+    from suivi.suivi_libre import est_libre
+    if est_libre(competence):
+        if not debut <= date_observation <= fin:
+            raise ValidationError("La date doit appartenir à l’année scolaire.")
+    observation.date_observation = date_observation
     observation.save()
     enregistrer_etat_annuel(observation, usage)
     journaliser(
@@ -85,7 +96,7 @@ def enregistrer_trace(
         raise PermissionDenied
     # Une correction conserve le contexte de recueil. Une création doit être
     # autorisée par la base courante ; elle n'attribue pas de réussite.
-    usage = trace.usage_referentiel if trace is not None else usage_pour_saisie(scolarite.classe, competence)
+    usage = trace.usage_referentiel if trace is not None else usage_pour_saisie(scolarite.classe, competence, eleve=eleve)
     observation, _ = Observation.objects.get_or_create(
         eleve=eleve,
         competence=competence,

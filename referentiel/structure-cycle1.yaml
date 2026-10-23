@@ -1,0 +1,23 @@
+format: 1
+structure_seule: true
+source:
+  identifiant: petits-pas-categories-cycle1
+  titre: Sans compétences prédéfinies — catégories du cycle 1
+  provenance: Structure proposée par Petits Pas pour organiser les saisies libres ; sans liste de compétences ni portée normative.
+  licence: CC-BY-SA-4.0
+  provisoire: true
+version: '1'
+domaines:
+  - code: LANG
+    nom: Langage oral et écrit
+    sous_domaines:
+      - {code: ORAL, nom: Langage oral}
+      - {code: ECRIT, nom: Découverte de l’écrit}
+  - code: MATH
+    nom: Premiers outils mathématiques
+    sous_domaines:
+      - {code: NOMBRES, nom: Nombres et quantités}
+      - {code: FORMES, nom: Formes et organisations}
+  - {code: CORPS, nom: Activités physiques}
+  - {code: ARTS, nom: Activités artistiques}
+  - {code: MONDE, nom: Explorer le monde}
