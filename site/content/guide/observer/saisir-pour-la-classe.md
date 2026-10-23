@@ -55,3 +55,10 @@ consultation du suivi de la modification des états.
 **Ajouter une compétence** est indépendant des compétences existantes. Une compétence ciblée indique le nombre d’élèves suivis ; les autres restent **Hors du suivi**. Sa répartition porte seulement sur les élèves encore concernés.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).
+
+## Date du constat
+
+Le clic rapide utilise aujourd’hui. La commande **Réussi · date** ou **Date de
+la réussite**, sur chaque ligne d’élève, permet de conserver la précédente
+réussite ou de choisir une date de l’année scolaire. Les dates des traces
+restent indépendantes. Voir [corriger une date de réussite]({{< relref "/guide/observer/mettre-a-jour-acquisition" >}}).
