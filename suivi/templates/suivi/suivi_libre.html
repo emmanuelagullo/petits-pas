@@ -17,8 +17,12 @@
 {% endif %}
 <fieldset><legend>Élèves concernés</legend>{{ form.eleves }}{{ form.eleves.errors }}<p>{{ form.eleves.help_text }}</p></fieldset>
 {% if not locale %}
-<p><label class="choix-simple" for="{{ form.reussite.id_for_label }}">{{ form.reussite }} {{ form.reussite.label }}</label>{{ form.reussite.errors }}<small class="aide">Cette option place la compétence à l’état « Réussi ». Vous pouvez ajouter une trace sans enregistrer de réussite ; l’illustration reste indépendante.</small></p>
-<p>{{ form.date_observation.label_tag }} {{ form.date_observation }} {{ form.date_observation.errors }}<small>Date de la réussite ou de la trace, si vous en ajoutez une.</small></p>
+<fieldset class="encadre choix-reussite" aria-describedby="aide-reussite">
+<legend>Réussite — facultatif</legend>
+<label class="choix-simple" for="{{ form.reussite.id_for_label }}">{{ form.reussite }} {{ form.reussite.label }}</label>{{ form.reussite.errors }}
+<p class="aide" id="aide-reussite">Cocher cette case place la compétence à l’état « Réussi » pour les élèves sélectionnés, à la date du constat indiquée ci-dessous. Sans cette option, leur suivi est ouvert sans validation.</p>
+</fieldset>
+<p>{{ form.date_observation.label_tag }} {{ form.date_observation }} {{ form.date_observation.errors }}<small>Cette date sert à la réussite et/ou à la trace que vous enregistrez. La trace et l’illustration ci-dessous restent facultatives, même sans réussite.</small></p>
 <details{% if form.commentaire.value or form.photo.errors %} open{% endif %}><summary>Ajouter une trace — facultatif</summary>
 <p>Documentez le constat pour les élèves sélectionnés. Pour plusieurs élèves, la trace est commune ; elle pourra ensuite devenir personnelle.</p>
 <p>{{ form.commentaire.label_tag }} {{ form.commentaire }} {{ form.commentaire.errors }}</p>

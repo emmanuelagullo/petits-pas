@@ -956,3 +956,8 @@ textarea { min-height: 7rem; resize: vertical; }
 }
 
 .illustration-competence { display: flex; align-items: center; padding: .5rem; }
+
+.choix-reussite { min-width: 0; border: 1px solid var(--trait); border-radius: var(--rayon); }
+.choix-reussite legend { padding: 0 .4rem; font-weight: 550; }
+.choix-reussite .choix-simple { margin-top: 0; }
+.choix-reussite .aide { margin-bottom: 0; }

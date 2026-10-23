@@ -17,7 +17,7 @@ statut = "disponible"
 2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
    compétence déjà créée** aident à éviter les copies inutiles.
 3. Vérifier domaine, sous-domaine facultatif, section et élèves concernés.
-4. Choisir **Enregistrer également une réussite** si le constat est déjà fait,
+4. Dans l’encadré **Réussite — facultatif**, choisir **Enregistrer également une réussite** si le constat est déjà fait,
    pour placer la compétence à l’état **Réussi**. Cette option est présélectionnée
    depuis un élève et décochée depuis le collectif. Elle ne commande ni la trace
    ni l’illustration. Renseigner la **Date du constat** si vous enregistrez une
