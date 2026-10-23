@@ -23,7 +23,7 @@ séparés. Vérifiez images et pagination avant transmission.
 
 1. Ouvrir la classe et sélectionner **Préparer les carnets PDF**.
 2. Cocher les élèves concernés, ou **Sélectionner toute la classe**.
-3. Choisir les apprentissages, le regroupement, le nombre de colonnes et les
+3. Choisir les compétences, le regroupement, le nombre de colonnes et les
    éléments complémentaires.
 4. Sélectionner **Télécharger l’archive ZIP**.
 5. Décompresser l’archive et contrôler quelques fichiers avant diffusion.

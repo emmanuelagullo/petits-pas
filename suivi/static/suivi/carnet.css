@@ -940,3 +940,19 @@ textarea { min-height: 7rem; resize: vertical; }
 
 .credits-illustrations { font-size: .65rem; color: #525b55; margin-top: .5rem; }
 @media print { .credits-illustrations { font-size: 7pt; } }
+
+/* Les commandes secondaires restent repliées et se rangent sous la ligne sur mobile. */
+.ligne { flex-wrap: wrap; }
+.ligne > form:first-of-type { min-width: 0; flex: 1 1 15rem; }
+.ligne .date-reussite { flex: 0 1 14rem; align-self: center; padding: .5rem; font-size: .85rem; }
+.ligne .date-reussite[open] { flex-basis: 100%; order: 3; border-top: 1px solid var(--trait); }
+.ligne .date-reussite form { display: block; }
+.date-reussite label { display: block; margin: .4rem 0; }
+.date-reussite input[type="date"] { max-width: 100%; }
+.ligne > form.portee-suivi { flex: 0 1 auto; align-items: center; padding: .4rem; }
+@media (max-width: 600px) {
+  .ligne .date-reussite { flex-basis: 100%; order: 3; }
+  .ligne > form.portee-suivi { flex-basis: 100%; order: 4; }
+}
+
+.illustration-competence { display: flex; align-items: center; padding: .5rem; }

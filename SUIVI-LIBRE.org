@@ -2,17 +2,19 @@
 
 * Identité et portée
 
-Une CompetenceLocale marquée suivi_libre est un apprentissage durable, réservé
+Une CompetenceLocale marquée suivi_libre est une compétence durable, réservé
 aux élèves explicitement rattachés par EleveApprentissage à sa disponibilité
 annuelle. Les ajouts précédents restent communs à leur classe. La portée ne se
 déduit ni d’une trace ni d’un état. Le libellé et le classement sont communs ;
 les adaptations annuelles existantes servent les reformulations et masquages.
-Les apprentissages libres ne sont pas proposés au catalogue commun d’école.
+Les compétences ciblées ne sont pas proposés au catalogue commun d’école.
 
 * Événement et état
 
-Ajouter une réussite crée atomiquement l’apprentissage, les rattachements et
-une trace datée qualifiée reussite ; l’état courant initial devient réussi.
+Créer une compétence ouvre son suivi pour les élèves sélectionnés. La réussite
+est optionnelle, présélectionnée depuis un élève ; elle crée une trace datée
+qualifiée reussite et place l’état courant à réussi. Une trace sans réussite
+ne valide pas la compétence. L’illustration réutilise le réglage de classe.
 Il reste modifiable. Les traces suivantes et les versions personnelles utilisent
 les services existants. Une trace commune copie sa qualification aux attributions.
 Les corrections d’une version personnelle ne suivent plus le contenu commun.
@@ -33,11 +35,13 @@ ordinaires restent refusées si elles sont vides. Les domaines et sous-domaines
 sont de vraies catégories, jamais des compétences séparatrices. Le lecteur
 commun conserve leurs définitions annuelles et affiche leurs groupes vides.
 Adopter une base conserve les ajouts libres ; aucun rapprochement par texte ni
-transfert d’acquis. Reprendre l’apprentissage dans une nouvelle classe est
+transfert d’acquis. Reprendre la compétence dans une nouvelle classe est
 explicite, exige l’accès à un usage pédagogique antérieur et ne crée aucun état.
 Le carnet filtre la portée par élève, y compris le contenu complet. Le filtre
 réussites inclut les événements qualifiés visibles et distingue l’état courant.
-Les pourcentages du référentiel commun excluent les apprentissages ciblés.
+Les compteurs individuels incluent les compétences communes et les compétences
+ciblées actives pour cet élève, selon le filtre habituel. La désactivation retire
+la compétence du compteur actif sans supprimer son historique.
 Les projections d’école et classe transportent explicitement EleveApprentissage ;
 l’import remappe les FK et les catégories des définitions JSON. Les sauvegardes
 restent celles du socle existant, sans nouvelle version de wheel.
@@ -52,3 +56,13 @@ par les essais bureau/PWA. Les captures restent des artefacts CI non versionnés
 Après migration serveur, preparer_suivi_libre --annee publie la structure dans
 un catalogue explicite, sans modifier son défaut ni les classes. La création
 d’un catalogue limité à cette structure exige --creer-catalogue.
+
+* Dates de réussite (#SL2c)
+
+Observation et EtatAnnuelObservation conservent la dernière date de réussite et
+la précédente, indépendamment des changements d’état. Le clic rapide utilise
+aujourd’hui ; le panneau de date permet aujourd’hui, la précédente réussite ou
+une date libre de l’année scolaire. Les traces gardent leurs dates propres.
+La migration ne reprend que les dates des états réussis effectivement connus.
+Aucune réussite antérieure n’est reconstruite pour un état en cours ou inconnu.
+La clôture et les transports conservent ces repères sans exposer une année future.

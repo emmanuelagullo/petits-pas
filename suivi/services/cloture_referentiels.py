@@ -101,10 +101,14 @@ def clore(*, utilisateur, classe):
                     etat.connu = True
                     etat.statut = observation.statut
                     etat.date_observation = observation.date_observation
+                    etat.date_derniere_reussite = observation.date_derniere_reussite
+                    etat.date_reussite_precedente = observation.date_reussite_precedente
                 etat.full_clean()
                 etat.save()
             final["etats"].append({"observation_id": etat.observation_id, "statut": etat.statut,
                 "date_observation": etat.date_observation.isoformat() if etat.date_observation else None,
+                "date_derniere_reussite": etat.date_derniere_reussite.isoformat() if etat.date_derniere_reussite else None,
+                "date_reussite_precedente": etat.date_reussite_precedente.isoformat() if etat.date_reussite_precedente else None,
                 "connu": etat.connu})
     final["ressources"] = ressources
     adoption.etat_final = final

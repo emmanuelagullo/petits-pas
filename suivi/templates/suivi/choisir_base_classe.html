@@ -4,19 +4,19 @@
 <div class="page-referentiel">
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
 <h1>Compétences de {{ classe.libelle_avec_annee }}</h1>
-<p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des apprentissages sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
+<p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des compétences sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
 <p><a href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels sans modifier les choix →</a></p>
 <section class="encadre adaptations-courantes" aria-labelledby="adaptations-courantes">
 <h2 id="adaptations-courantes">Adapter au quotidien</h2>
 <p>Ces réglages conservent les compétences et les observations. Ils ne demandent pas de confirmation par mot de passe.</p>
 <div class="menus-referentiel">
 <a href="{% url 'presentation_classe' classe.pk %}" aria-labelledby="menu-presentation" aria-describedby="aide-presentation"><strong id="menu-presentation">Illustrations et phrases proposées</strong><span id="aide-presentation">Choisir les images du carnet et les suggestions pour rédiger de nouvelles traces.</span></a>
-<a href="{% url 'adaptations_classe' classe.pk %}" aria-labelledby="menu-libelles" aria-describedby="aide-libelles"><strong id="menu-libelles">Libellés et compétences masquées</strong><span id="aide-libelles">Reformuler un apprentissage, le masquer pour les prochaines saisies ou le montrer à nouveau.</span></a>
-<a href="{% url 'ajouts_classe' classe.pk %}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Créer un apprentissage propre à la classe ou reprendre un ajout proposé par l’école.</span></a>
+<a href="{% url 'adaptations_classe' classe.pk %}" aria-labelledby="menu-libelles" aria-describedby="aide-libelles"><strong id="menu-libelles">Libellés et compétences masquées</strong><span id="aide-libelles">Reformuler une compétence, la masquer pour les prochaines saisies ou la montrer à nouveau.</span></a>
+<a href="{% url 'ajouts_classe' classe.pk %}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Créer une compétence propre à la classe ou reprendre un ajout proposé par l’école.</span></a>
 </div>
 </section>
 <details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary>
-<p>Pour expliquer à l’équipe comment deux apprentissages se rapprochent. Ces repères facultatifs ne changent pas la liste de saisie et ne transfèrent aucune réussite. Vous pouvez utiliser les autres réglages sans en créer.</p>
+<p>Pour expliquer à l’équipe comment deux compétences se rapprochent. Ces repères facultatifs ne changent pas la liste de saisie et ne transfèrent aucune réussite. Vous pouvez utiliser les autres réglages sans en créer.</p>
 <p><a class="bouton discret" href="{% url 'correspondances_classe' classe.pk %}">Correspondances entre compétences</a></p>
 </details>
 {% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% if actuelle.initialisee_depuis_ecole %}<p>Cette base a été préparée depuis la proposition de l’école lors de la création de la classe. Elle reste conservée si l’école change ensuite sa proposition.</p>{% endif %}{% endif %}

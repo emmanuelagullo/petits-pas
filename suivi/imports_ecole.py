@@ -209,7 +209,7 @@ class Projection:
         permis = ({f.attname for f in model._meta.concrete_fields} | {'cle_definition', 'type_libelle'}
                   if model else set(REFERENCES) | {
                       'reference', 'libelle', 'code', 'niveau', 'origine',
-                      'provenance', 'icone', 'photo', 'credit', 'statut', 'date_observation', 'connu'})
+                      'provenance', 'icone', 'photo', 'credit', 'statut', 'date_observation', 'date_derniere_reussite', 'date_reussite_precedente', 'connu'})
         if set(valeur) - permis:
             raise ValidationError("Champs d'instantané non pris en charge.")
         if model:

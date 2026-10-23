@@ -52,6 +52,6 @@ Voir les [situations de contribution et d’historique]({{< relref "/roles/situa
 
 ## Réussites conservées
 
-Une trace peut porter une réussite datée, indépendante de l’état courant. Son retrait et sa visibilité suivent les commandes habituelles ; ils ne retirent pas l’apprentissage du suivi.
+Une trace peut porter une réussite datée, indépendante de l’état courant. Son retrait et sa visibilité suivent les commandes habituelles ; ils ne retirent pas la compétence du suivi.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

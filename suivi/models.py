@@ -127,7 +127,7 @@ class ParametresCarnet(models.Model):
         max_length=10,
         choices=[
             ("reussites", "Réussites"),
-            ("observes", "Réussites et apprentissages en cours"),
+            ("observes", "Compétences réussies ou en cours"),
             ("tout", "Référentiel complet"),
         ],
         default="observes",
@@ -693,6 +693,8 @@ class Observation(models.Model):
         max_length=10, choices=STATUTS, default=REUSSI, blank=True, null=True
     )
     date_observation = models.DateField(default=timezone.localdate)
+    date_derniere_reussite = models.DateField(null=True, blank=True)
+    date_reussite_precedente = models.DateField(null=True, blank=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -1032,6 +1034,8 @@ class EtatAnnuelObservation(models.Model):
     usage = models.ForeignKey(UsageCompetence, on_delete=models.PROTECT, null=True, blank=True)
     statut = models.CharField(max_length=10, choices=Observation.STATUTS, null=True, blank=True)
     date_observation = models.DateField(null=True, blank=True)
+    date_derniere_reussite = models.DateField(null=True, blank=True)
+    date_reussite_precedente = models.DateField(null=True, blank=True)
     # Inconnu permet de conserver un contexte annuel sans fabriquer un état passé.
     connu = models.BooleanField(default=False)
 
@@ -1041,7 +1045,7 @@ class EtatAnnuelObservation(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
 
-        if not self.connu and (self.statut is not None or self.date_observation is not None):
+        if not self.connu and (self.statut is not None or self.date_observation is not None or self.date_derniere_reussite is not None or self.date_reussite_precedente is not None):
             raise ValidationError("Un état historique inconnu ne peut pas porter une réussite ou une date.")
         if self.usage_id and self.observation_id and (
             self.usage.competence_id != self.observation.competence_id

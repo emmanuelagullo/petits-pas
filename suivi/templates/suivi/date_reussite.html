@@ -1,0 +1,7 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Date de la réussite{% endblock %}
+{% block contenu %}
+<h1>Date de la réussite</h1><p>{{ eleve.nom_court }} — {{ competence.libelle }}</p>
+<p>Ce choix place la compétence à l’état « Réussi ». Les dates des traces restent inchangées.</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="bouton">Enregistrer la réussite</button></form>
+{% endblock %}

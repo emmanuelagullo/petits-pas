@@ -40,10 +40,10 @@ l’élève sont conservés.
 Pour préparer une année différente, voir
 [Préparer la rentrée suivante]({{< relref "preparer-rentree.md" >}}).
 
-## Apprentissages libres
+## Compétences ciblées
 
-Un déplacement conserve l’origine des apprentissages et des traces. Il ne
-propose pas automatiquement ces apprentissages dans la classe de destination.
+Un déplacement conserve l’origine des compétences et des traces. Il ne
+propose pas automatiquement ces compétences dans la classe de destination.
 Le responsable peut les reprendre explicitement pour les élèves concernés.
 Une disponibilité sans réussite suffit à conserver un élément du parcours :
 utiliser le déplacement ou l’archivage plutôt que supprimer la scolarité.

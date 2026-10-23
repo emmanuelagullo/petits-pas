@@ -1,6 +1,6 @@
 +++
 title = "Relier deux compétences"
-description = "Expliquer une correspondance entre apprentissages, sans fusionner les suivis ni copier une réussite."
+description = "Expliquer une correspondance entre compétences, sans fusionner les suivis ni copier une réussite."
 fiche = true
 categorie = "eleves-classes"
 publics = ["responsable", "direction", "associe"]
@@ -11,8 +11,8 @@ statut = "disponible"
 +++
 
 Cette page sert à laisser un repère à l’équipe, par exemple pour comprendre
-comment une compétence ajoutée se situe par rapport à un apprentissage plus
-général. « Je reconnais mon prénom » est plus ciblé que « Je reconnais des
+comment une compétence ajoutée se situe par rapport à une compétence plus
+générale. « Je reconnais mon prénom » est plus ciblé que « Je reconnais des
 mots écrits » ; noter ce rapport aide à lire les deux compétences, sans
 conclure qu’une réussite vaut pour les deux. Vous pouvez utiliser les
 référentiels sans renseigner cette page.
@@ -22,12 +22,12 @@ référentiels sans renseigner cette page.
 1. Depuis le référentiel de la classe ou de l’école, ouvrir **Avancé —
    correspondances entre compétences**, puis **Correspondances entre compétences**.
    À l’école, vérifier l’année.
-   Lire l’exemple, puis ouvrir **Ajouter un repère entre deux apprentissages**
+   Lire l’exemple, puis ouvrir **Ajouter un repère entre deux compétences**
    si une explication est utile à l’équipe.
-2. Choisir **L’apprentissage que je veux situer**, puis **L’autre apprentissage**, en
+2. Choisir **La compétence que je veux situer**, puis **L’autre compétence**, en
    vérifiant les bases, versions ou ajouts indiqués dans leurs origines.
-3. Choisir le rapport : **Les deux apprentissages se rapprochent**,
-   **Il décrit une partie plus ciblée de l’autre** ou
+3. Choisir le rapport : **Les deux compétences se rapprochent**,
+   **Elle décrit une partie plus ciblée de l’autre** ou
    **Je prévois de l’utiliser à la place de l’autre**.
 4. Expliquer pourquoi vous les reliez. Confirmer que ce lien ne copie aucune
    réussite et ne change pas les compétences proposées à la saisie.
@@ -51,17 +51,17 @@ restent inchangés.
 
 ## Choisir le sens du lien
 
-- **En lien avec** rapproche des apprentissages. Réussir l’un ne signifie pas
+- **En lien avec** rapproche des compétences. Réussir l’une ne signifie pas
   réussir l’autre ; aucun lien inverse n’est créé automatiquement.
-- **Précise** indique que le premier apprentissage est plus ciblé que le second.
+- **Précise** indique que la première compétence est plus ciblée que la seconde.
   Exemple fictif : découper un prénom en syllabes précise découper des mots en
   syllabes. Cela n’affirme pas que les deux réussites sont équivalentes.
-- **Remplace** explique l’intention d’utiliser le premier à la place du second.
+- **Remplace** explique l’intention d’utiliser la première à la place de la seconde.
   Il faut encore choisir la base ou reprendre l’ajout concerné et, si souhaité,
-  masquer l’ancien. Le lien n’effectue aucune de ces actions.
+  masquer l’ancienne. Le lien n’effectue aucune de ces actions.
 
-Pour le même apprentissage, [adapter son libellé]({{< relref "/guide/eleves-classes/adapter-competences" >}})
-suffit. Pour un autre apprentissage, [créer une compétence distincte]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
+Pour la même compétence, [adapter son libellé]({{< relref "/guide/eleves-classes/adapter-competences" >}})
+suffit. Pour une autre compétence, [créer une compétence distincte]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
 est possible sans lien obligatoire.
 
 ## Retirer, clôturer et changer d’année

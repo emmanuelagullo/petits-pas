@@ -384,8 +384,8 @@ scenarios:
       - { action: titre, nom: "Quelle compétence venez-vous d'observer ?", exact: false }
     capture: guide/observer/suivi-libre.png
     capture_mobile: guide/observer/suivi-libre-mobile.png
-    titre: Les apprentissages créés au fil des réussites
-    legende: Les Cerfs-volants ont commencé avec des catégories seules. Chaque apprentissage reste réservé aux élèves choisis.
+    titre: Les compétences créées au fil des réussites
+    legende: Les Cerfs-volants ont commencé avec des catégories seules. Chaque compétence reste réservée aux élèves choisis.
   - id: suivi-libre-formulaire
     profil: remi
     parcours: guide
@@ -393,11 +393,11 @@ scenarios:
       - { action: classe, classe: cerfs_volants }
       - { action: lien, nom: "Saisir pour toute la classe" }
       - { action: selecteur, selecteur: 'a[href*="/reussite/?domaine="]' }
-      - { action: titre, nom: "Ajouter une réussite" }
+      - { action: titre, nom: "Ajouter une compétence" }
     cible: "#formulaire-reussite"
     capture: guide/observer/ajouter-reussite.png
-    titre: Créer un apprentissage et sa première réussite
-    legende: Le libellé, la catégorie, les élèves et la date suffisent. Photo et commentaire restent facultatifs.
+    titre: Créer une compétence et commencer son suivi
+    legende: La réussite est optionnelle. La trace et l’illustration disposent chacune d’une aide dépliable.
   - id: sous-domaines-mesanges
     profil: remi
     parcours: guide

@@ -56,6 +56,6 @@ l’exploitation : procédure et limites dans `IMPORT-ECOLE.org` du dépôt.
 
 ## Suivi libre importé
 
-Les apprentissages libres gardent leur identité dans la copie, leur portée et leurs traces. Les références sont remappées comme les autres données ; aucun droit pédagogique n’est repris du ZIP.
+Les compétences ciblées gardent leur identité dans la copie, leur portée et leurs traces. Les références sont remappées comme les autres données ; aucun droit pédagogique n’est repris du ZIP.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

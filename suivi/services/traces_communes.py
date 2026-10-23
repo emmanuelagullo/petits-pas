@@ -42,7 +42,7 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         usage_pour_saisie(classe, competence)  # Verrous école/classe avant lecture de la portée.
         actifs = eleves_suivis(classe, competence)
         if any(sc.eleve_id not in actifs for sc in selection):
-            raise PermissionDenied("Un élève sélectionné est hors du suivi de cet apprentissage.")
+            raise PermissionDenied("Un élève sélectionné est hors du suivi de cette compétence.")
     # _scolarites a vérifié chaque enfant dans cette classe et cette année.
     # CONTRIBUER porte sur la classe : le même contrôle suffit pour toute la
     # sélection, sans cache des droits ni suppression de ce contrôle.

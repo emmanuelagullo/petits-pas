@@ -5,7 +5,7 @@
 <div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'accueil' %}">Accueil</a>{% endif %}</p>
 <h1>Consulter les référentiels</h1>
-<p>Parcourez les apprentissages, recherchez un texte et filtrez par domaine ou section. Vous pouvez aussi consulter la provenance et les droits de réutilisation de chaque base.</p>
+<p>Parcourez les compétences, recherchez un texte et filtrez par domaine ou section. Vous pouvez aussi consulter la provenance et les droits de réutilisation de chaque base.</p>
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="info" titre="Lecture seule" resume="Cette consultation ne change ni les compétences proposées ni les parcours." %}
 <p class="aide">Année {{ annee }}.</p>
 <form method="get" class="filtres-referentiel">
@@ -31,12 +31,12 @@
 <label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Toutes les sections</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
 <p class="aide">Les sections de classement ne remplacent pas les repères d'âge des programmes.</p>
 <div class="recherche-referentiel">
-<div class="champ-recherche"><label for="q">Rechercher un apprentissage</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300"></div>
+<div class="champ-recherche"><label for="q">Rechercher une compétence</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300"></div>
 <button class="bouton discret">Filtrer les compétences</button>
 </div>
 </form>
 <p data-compteur-referentiel role="status" aria-live="polite">{{ page.paginator.count }} résultat{{ page.paginator.count|pluralize }}.</p>
-<ul class="liste" data-resultats-referentiel>{% for ligne in page %}<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{{ ligne.domaine }}{% if ligne.groupe %} · {{ ligne.groupe }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>{% empty %}<li>Aucun apprentissage ne correspond à ces filtres.</li>{% endfor %}</ul>
+<ul class="liste" data-resultats-referentiel>{% for ligne in page %}<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{{ ligne.domaine }}{% if ligne.groupe %} · {{ ligne.groupe }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>{% empty %}<li>Aucune compétence ne correspond à ces filtres.</li>{% endfor %}</ul>
 {% if page.has_other_pages %}<nav data-pagination-serveur aria-label="Pages des compétences">{% if page.has_previous %}<a href="?{{ params }}&amp;page={{ page.previous_page_number }}">Page précédente</a>{% endif %} · Page {{ page.number }} sur {{ page.paginator.num_pages }} · {% if page.has_next %}<a href="?{{ params }}&amp;page={{ page.next_page_number }}">Page suivante</a>{% endif %}</nav>{% endif %}
 <nav data-pagination-locale hidden aria-label="Pages des compétences"><button type="button" class="bouton discret" data-precedent>Page précédente</button> <span data-position></span> <button type="button" class="bouton discret" data-suivant>Page suivante</button></nav>
 {{ catalogue|json_script:"catalogue-referentiel" }}

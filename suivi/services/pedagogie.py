@@ -32,7 +32,7 @@ def _peut_corriger_trace(utilisateur, trace):
 
 
 @transaction.atomic
-def modifier_etat(*, utilisateur, eleve, competence, statut, date_observation=None):
+def modifier_etat(*, utilisateur, eleve, competence, statut, date_observation=None, conserver_date=False):
     if not autorise(utilisateur, MODIFIER_ETAT, eleve):
         raise PermissionDenied
     if statut not in (None, "", *dict(Observation.STATUTS)):
@@ -45,18 +45,32 @@ def modifier_etat(*, utilisateur, eleve, competence, statut, date_observation=No
     observation = Observation.objects.select_for_update().filter(
         eleve=eleve, competence=competence
     ).first()
-    anciennes = {"statut": observation.statut if observation else None}
+    anciennes = instantane(observation, ("statut", "date_observation", "date_derniere_reussite", "date_reussite_precedente")) if observation else {}
     if observation is None:
         observation = Observation(eleve=eleve, competence=competence)
+    ancien_statut = observation.statut
     observation.statut = statut
     from suivi.models import bornes_annee_scolaire
     from django.core.exceptions import ValidationError
     date_observation = date_observation or timezone.localdate()
     debut, fin = bornes_annee_scolaire(scolarite.annee_scolaire)
-    from suivi.suivi_libre import est_libre
-    if est_libre(competence):
-        if not debut <= date_observation <= fin:
-            raise ValidationError("La date doit appartenir à l’année scolaire.")
+    if observation.pk and ancien_statut == Observation.REUSSI and not observation.date_derniere_reussite and debut <= observation.date_observation <= fin:
+        observation.date_derniere_reussite = observation.date_observation
+    precedente = (observation.date_reussite_precedente or observation.date_derniere_reussite) if ancien_statut == Observation.REUSSI else observation.date_derniere_reussite
+    if conserver_date:
+        if statut != Observation.REUSSI or not precedente or not debut <= precedente <= fin:
+            raise ValidationError("Aucune précédente réussite de cette année à conserver.")
+        date_observation = precedente
+    if not debut <= date_observation <= fin:
+        raise ValidationError("La date doit appartenir à l’année scolaire.")
+    if precedente and not debut <= precedente <= fin:
+        observation.date_derniere_reussite = None
+        observation.date_reussite_precedente = None
+    if statut == Observation.REUSSI:
+        derniere = observation.date_derniere_reussite
+        if not conserver_date and derniere and derniere != date_observation:
+            observation.date_reussite_precedente = derniere
+        observation.date_derniere_reussite = date_observation
     observation.date_observation = date_observation
     observation.save()
     enregistrer_etat_annuel(observation, usage)
@@ -65,7 +79,7 @@ def modifier_etat(*, utilisateur, eleve, competence, statut, date_observation=No
         "observation.etat_modifie",
         observation,
         anciennes,
-        {"statut": statut},
+        instantane(observation, ("statut", "date_observation", "date_derniere_reussite", "date_reussite_precedente")),
     )
     return observation
 

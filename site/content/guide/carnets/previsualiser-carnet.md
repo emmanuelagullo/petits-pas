@@ -56,7 +56,7 @@ Une année précédente utilise les états d'apprentissage conservés pour cette
 année. Une réussite enregistrée plus tard n'y est pas ajoutée. Si l'ancien état
 n'a pas pu être retrouvé lors de la reprise des données, un message l'indique :
 les traces conservées restent consultables, mais aucune réussite n'est inventée.
-Pour voir ces traces, utiliser **Réussites et apprentissages en cours** ou
+Pour voir ces traces, utiliser **Compétences réussies ou en cours** ou
 **Référentiel complet**.
 
 La présentation d'une classe close garde ses derniers choix. Pour des données

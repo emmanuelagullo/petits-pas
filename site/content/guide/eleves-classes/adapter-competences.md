@@ -68,8 +68,8 @@ Ces adaptations ne remplacent pas les [choix des bases autorisées par l’écol
 Les images et phrases se règlent séparément dans la
 [présentation du carnet]({{< relref "/guide/carnets/personnaliser-presentation" >}}).
 
-## Apprentissages libres
+## Compétences ciblées
 
-Depuis un apprentissage libre du suivi collectif, le responsable peut modifier son libellé ou le masquer avec l’éditeur existant. Une reformulation fidèle garde son identité ; son domaine et sous-domaine de création restent conservés.
+Depuis une compétence ciblée du suivi collectif, le responsable peut modifier son libellé ou le masquer avec l’éditeur existant. Une reformulation fidèle garde son identité ; son domaine et sous-domaine de création restent conservés.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

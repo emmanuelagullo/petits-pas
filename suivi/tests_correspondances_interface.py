@@ -42,7 +42,7 @@ class InterfaceCorrespondances(Base):
         self.assertFalse(Observation.objects.exists())
         self.assertContains(self.client.get(self.url), "Choix fictif de l&#x27;équipe.")
         page = self.client.get(reverse("saisie_competence", args=[self.classe.pk, lien.depart_id]))
-        self.assertContains(page, "Correspondances entre apprentissages")
+        self.assertContains(page, "Correspondances entre compétences")
         self.assertContains(page, "Choix fictif de l&#x27;équipe.")
         page = self.client.post(reverse("referentiel_classe", args=[self.classe.pk]), {"action": "apercu", "version": self.a.pk})
         self.assertContains(page, "Choix fictif de l&#x27;équipe.")

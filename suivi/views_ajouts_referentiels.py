@@ -96,7 +96,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                         adoption_attendue=contexte["adoption"], domaine_id=form.cleaned_data["domaine"],
                         libelle=form.cleaned_data["libelle"], niveau=form.cleaned_data["niveau"])
                 else:
-                    raise ValidationError("Vérifiez l'apprentissage, sa section et son domaine.")
+                    raise ValidationError("Vérifiez la compétence, sa section et son domaine.")
             elif action in ("reprendre", "proposer") and locale is None:
                 try:
                     cible = catalogue.get(pk=int(request.POST.get("locale", "")))

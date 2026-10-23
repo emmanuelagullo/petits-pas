@@ -22,9 +22,9 @@ base ou de présentation source/classe demande de valider le choix.
 
 Ces réglages conservent les observations et l’identité des compétences.
 
-- [[{{< relref "/guide/eleves-classes/adapter-competences" >}}][Adapter les libellés et masquer des compétences]] : reformuler un apprentissage ou le retirer des prochaines saisies. Il reste possible de revenir au libellé proposé ou de le démasquer.
+- [[{{< relref "/guide/eleves-classes/adapter-competences" >}}][Adapter les libellés et masquer des compétences]] : reformuler une compétence ou la retirer des prochaines saisies. Il reste possible de revenir au libellé proposé ou de la démasquer.
 - [[{{< relref "/guide/carnets/personnaliser-presentation" >}}][Choisir les illustrations et les phrases proposées]] : préparer les images et les suggestions de rédaction, sans réécrire les commentaires existants.
-- [[{{< relref "/guide/eleves-classes/ajouter-competences" >}}][Ajouter des compétences]] : compléter la base avec des apprentissages propres à l’école ou à la classe.
+- [[{{< relref "/guide/eleves-classes/ajouter-competences" >}}][Ajouter des compétences]] : compléter la base avec des compétences propres à l’école ou à la classe.
 
 * Préparer les propositions de l’école
 
@@ -48,5 +48,5 @@ domaines et sous-domaines sans compétences. *Partir d’un référentiel* conse
 le catalogue existant. Les nouvelles classes reprennent la proposition de
 l’école ; les classes existantes ne basculent pas automatiquement.
 L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
-Adopter ensuite une base reste avancé et conserve ces apprentissages et traces.
+Adopter ensuite une base reste avancé et conserve ces compétences et traces.
 Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].

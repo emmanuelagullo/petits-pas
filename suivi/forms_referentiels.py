@@ -74,7 +74,7 @@ class AdaptationCompetenceForm(forms.Form):
 
 
 class AjoutCompetenceForm(forms.Form):
-    libelle = forms.CharField(label="Apprentissage", max_length=300,
+    libelle = forms.CharField(label="Description de la compétence", max_length=300,
                              widget=forms.Textarea(attrs={"rows": 2}))
     niveau = forms.ChoiceField(label="Section", choices=[("PS", "Petite section"),
                               ("MS", "Moyenne section"), ("GS", "Grande section")])
@@ -86,12 +86,12 @@ class AjoutCompetenceForm(forms.Form):
 
 
 class CorrespondanceCompetenceForm(forms.Form):
-    depart = forms.ChoiceField(label="L’apprentissage que je veux situer")
-    type_lien = forms.ChoiceField(label="Comment se situe-t-il par rapport à l’autre ?", choices=[
-        ("lien", "Les deux apprentissages se rapprochent"), ("precise", "Il décrit une partie plus ciblée de l’autre"),
+    depart = forms.ChoiceField(label="La compétence que je veux situer")
+    type_lien = forms.ChoiceField(label="Comment se situe-t-elle par rapport à l’autre ?", choices=[
+        ("lien", "Les deux compétences se rapprochent"), ("precise", "Elle décrit une partie plus ciblée de l’autre"),
         ("remplace", "Je prévois de l’utiliser à la place de l’autre")])
-    arrivee = forms.ChoiceField(label="L’autre apprentissage")
-    justification = forms.CharField(label="Pourquoi relier ces apprentissages ?", max_length=1000,
+    arrivee = forms.ChoiceField(label="L’autre compétence")
+    justification = forms.CharField(label="Pourquoi relier ces compétences ?", max_length=1000,
                                    widget=forms.Textarea(attrs={"rows": 3}))
     consequences = forms.BooleanField(label="Ce lien ne copie aucune réussite et ne change pas les compétences proposées à la saisie.")
 

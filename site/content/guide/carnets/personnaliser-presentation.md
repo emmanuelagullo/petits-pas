@@ -14,7 +14,7 @@ statut = "disponible"
 
 | Je souhaite… | J’utilise… | Ce qui apparaîtra dans le carnet |
 | --- | --- | --- |
-| Illustrer une compétence de la même façon pour la classe | L’image proposée pour l’apprentissage | L’image accompagne cette compétence, lorsqu’elle figure dans le carnet. |
+| Illustrer une compétence de la même façon pour la classe | L’image proposée pour la compétence | L’image accompagne cette compétence, lorsqu’elle figure dans le carnet. |
 | Raconter une activité avec une date et une photo pour certains enfants | Une [trace commune]({{< relref "/guide/observer/traces-communes/" >}}) | La trace apparaît uniquement pour les enfants choisis, si elle est affichée dans leur carnet. |
 | Préparer une phrase pour aider à rédiger les observations | Une formulation proposée | Rien n’est ajouté automatiquement : la phrase sert de point de départ lors de la saisie d’une trace. |
 
@@ -32,7 +32,7 @@ La liste des compétences suit les mêmes domaines et le même ordre que le carn
 ## Choisir la photo de couverture ou l’image d’une compétence
 
 1. Pour la couverture, rester sur la page **Présentation du carnet**. Pour une compétence, ouvrir sa ligne dans la liste.
-2. Regarder l’image actuellement utilisée et l’indication **École**, **Classe** ou **Référentiel importé**. Le référentiel est la liste d’apprentissages chargée pour l’école ; il peut aussi fournir quelques images et exemples de phrases.
+2. Regarder l’image actuellement utilisée et l’indication **École**, **Classe** ou **Référentiel importé**. Le référentiel est la liste de compétences chargée pour l’école ; il peut aussi fournir quelques images et exemples de phrases.
 3. Choisir l’une des possibilités ci-dessous, puis enregistrer.
 
 | Choix dans l’écran | Conséquence |
@@ -56,11 +56,11 @@ Le menu **Image fournie** propose notamment un livre, un crayon, un pinceau,
 des ciseaux, un tambour, une balance, une loupe et des gestes de la vie de
 classe. Ces images évoquent une activité ou son support ; elles ne représentent
 pas nécessairement tout un objectif. Choisissez une image seulement si elle
-aide à comprendre l’apprentissage. Une absence d’image est tout à fait possible.
+aide à comprendre la compétence. Une absence d’image est tout à fait possible.
 Le choix d’une image dans ce menu ne change pas le référentiel de la classe.
 Les nouveaux dessins restent disponibles même si la classe garde une ancienne
 édition. Les éditions 2026.4 proposent davantage d’associations fournies, sans
-modifier les apprentissages. Les quatre ajouts de cette édition concernent les
+modifier les compétences. Les quatre ajouts de cette édition concernent les
 personnages des récits et les repères dans la semaine ; leur adoption reste séparée du choix local d’image.
 
 Les petites icônes apparaissent aussi dans les listes de compétences. Elles sont placées à côté du niveau et avant le texte ; les boutons de photo à droite signalent, eux, des photos dans les traces de l’élève.
@@ -70,7 +70,7 @@ Les petites icônes apparaissent aussi dans les listes de compétences. Elles so
 Sur **Présentation du carnet**, la rubrique **Images proposées et photos**
 permet de choisir :
 
-- **Cacher l’image proposée** lorsqu’au moins une photo de cet apprentissage
+- **Cacher l’image proposée** lorsqu’au moins une photo de cette compétence
   figure dans le carnet de l’élève ;
 - **Garder aussi l’image proposée** pour l’afficher avec les photos.
 
@@ -85,7 +85,7 @@ La photo de la dernière trace ne suffit pas à décider : une trace plus ancien
 peut aussi comporter une photo.
 
 Sans photo, l’image proposée reste visible si elle existe. **Désactiver** dans
-les réglages d’un apprentissage retire cette image, même si le choix général
+les réglages d’une compétence retire cette image, même si le choix général
 est de la garder avec les photos. La couverture et les petits repères dans
 les listes de suivi restent indépendants.
 

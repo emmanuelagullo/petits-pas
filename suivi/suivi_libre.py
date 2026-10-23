@@ -18,7 +18,7 @@ def eleves_suivis(classe, competence, *, actifs=True):
 
 def verifier_portee(classe, competence, *, eleve=None):
     if est_libre(competence) and eleve is not None and eleve.pk not in eleves_suivis(classe, competence):
-        raise PermissionDenied("Cet apprentissage n’est pas proposé à cet élève.")
+        raise PermissionDenied("Cette compétence n’est pas proposée à cet élève.")
 
 
 def preparer_arbre(arbre, classe, eleve=None):
@@ -46,3 +46,11 @@ def preparer_arbre(arbre, classe, eleve=None):
             c.nombre_suivis = len(c.eleves_suivis_ids)
             c.saisie_ouverte = not (c.suivi_libre and eleve and eleve.pk not in c.eleves_suivis_ids)
     return arbre
+
+
+def peut_reprendre(utilisateur, classe, locale):
+    from .autorisations import VOIR_SUIVI, autorise
+    return locale.suivi_libre and locale.ecole_id == classe.ecole_id and any(
+        d.classe and d.classe.annee_scolaire <= classe.annee_scolaire
+        and autorise(utilisateur, VOIR_SUIVI, d.classe)
+        for d in locale.disponibilites.select_related("classe"))

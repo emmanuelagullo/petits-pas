@@ -13,7 +13,7 @@ statut = "disponible"
 * Consulter et adapter au quotidien
 
 *Consulter les référentiels* permet de parcourir les bases disponibles,
-rechercher un apprentissage et filtrer par domaine ou section. La provenance
+rechercher une compétence et filtrer par domaine ou section. La provenance
 et les droits de réutilisation sont dépliables. Cette consultation ne change
 aucune donnée. Pour une base déjà utilisée, vous pouvez afficher les textes de
 la source ou la présentation de la classe avec ses adaptations et ajouts.
@@ -150,5 +150,5 @@ domaines et sous-domaines sans compétences. *Partir d’un référentiel* conse
 le catalogue existant. Les nouvelles classes reprennent la proposition de
 l’école ; les classes existantes ne basculent pas automatiquement.
 L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
-Adopter ensuite une base reste avancé et conserve ces apprentissages et traces.
+Adopter ensuite une base reste avancé et conserve ces compétences et traces.
 Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].
