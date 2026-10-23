@@ -1,6 +1,6 @@
 +++
 title = "Choisir le contenu et la mise en page d’un carnet"
-description = "Comparer les apprentissages, regroupements et compléments avant de produire le carnet."
+description = "Comparer les compétences, regroupements et compléments avant de produire le carnet."
 fiche = true
 categorie = "carnets"
 publics = ["responsable", "associe"]
@@ -10,10 +10,10 @@ depart = "Carnet de l’élève → panneau Contenu du carnet à prévisualiser"
 statut = "disponible"
 +++
 
-## Choisir les apprentissages
+## Choisir les compétences
 
 - **Réussites** ne conserve que les compétences réussies.
-- **Réussites et apprentissages en cours** ajoute les compétences en cours.
+- **Compétences réussies ou en cours** ajoute les compétences en cours.
 - **Référentiel complet** présente aussi ce qui reste à découvrir.
 
 ## Choisir la présentation
@@ -47,6 +47,6 @@ Pour les valeurs proposées à toute l’école, voir
 
 ## Réussites datées
 
-Une réussite libre datée et visible peut figurer dans le contenu « réussites » même si l’état courant a ensuite changé. Le carnet indique la date de l’événement et garde l’état courant distinct. Les apprentissages libres d’autres élèves ne figurent pas dans le carnet complet.
+Une réussite libre datée et visible peut figurer dans le contenu « réussites » même si l’état courant a ensuite changé. Le carnet indique la date de l’événement et garde l’état courant distinct. Les compétences ciblées d’autres élèves ne figurent pas dans le carnet complet.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

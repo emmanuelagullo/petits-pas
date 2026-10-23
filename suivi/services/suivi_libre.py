@@ -18,16 +18,14 @@ def associer(*, utilisateur, classe, locale, ids, adoption_attendue, retirer=Fal
         raise PermissionDenied
     # La reprise hors de la classe d'origine exige un accès pédagogique à un
     # usage antérieur, jamais le seul accès au catalogue de l'école.
-    from suivi.autorisations import VOIR_SUIVI, autorise
-    sources = locale.disponibilites.select_related("classe")
-    if not any(d.classe and d.classe.annee_scolaire <= classe.annee_scolaire
-               and autorise(utilisateur, VOIR_SUIVI, d.classe) for d in sources):
+    from suivi.suivi_libre import peut_reprendre
+    if not peut_reprendre(utilisateur, classe, locale):
         raise PermissionDenied
     selection = _scolarites(classe, ids)
     if retirer:
         d = DisponibiliteCompetenceLocale.objects.filter(locale=locale, classe=classe).first()
         if d is None:
-            raise ValidationError("Cet apprentissage n’est pas proposé dans cette classe.")
+            raise ValidationError("Cette compétence n’est pas proposée dans cette classe.")
     else:
         d, _ = DisponibiliteCompetenceLocale.objects.get_or_create(locale=locale, classe=classe,
             defaults={"annee_scolaire": classe.annee_scolaire, "auteur": utilisateur})
@@ -35,7 +33,7 @@ def associer(*, utilisateur, classe, locale, ids, adoption_attendue, retirer=Fal
         if retirer:
             lien = EleveApprentissage.objects.filter(disponibilite=d, scolarite=sc).first()
             if lien is None:
-                raise ValidationError("Cet apprentissage n’est pas proposé à un des élèves sélectionnés.")
+                raise ValidationError("Cette compétence n’est pas proposée à un des élèves sélectionnés.")
         else:
             lien, _ = EleveApprentissage.objects.get_or_create(disponibilite=d, scolarite=sc)
         lien.active = not retirer
@@ -49,11 +47,11 @@ def associer(*, utilisateur, classe, locale, ids, adoption_attendue, retirer=Fal
 @transaction.atomic
 def ajouter_reussite(*, utilisateur, classe, ids, domaine_id, libelle, niveau,
                      date_observation, adoption_attendue, sous_domaine_id=None,
-                     commentaire="", photo=None):
+                     commentaire="", photo=None, reussite=True, icone=""):
     selection = _scolarites(classe, ids)
     from suivi.models import bornes_annee_scolaire
     debut, fin = bornes_annee_scolaire(classe.annee_scolaire)
-    if not debut <= date_observation <= fin:
+    if (reussite or commentaire or photo) and (not date_observation or not debut <= date_observation <= fin):
         raise ValidationError("La date doit appartenir à l’année scolaire de la classe.")
     locale = creer_ajout(utilisateur=utilisateur, ecole=classe.ecole,
         annee=classe.annee_scolaire, classe=classe, adoption_attendue=adoption_attendue,
@@ -61,8 +59,15 @@ def ajouter_reussite(*, utilisateur, classe, ids, domaine_id, libelle, niveau,
         niveau=niveau, suivi_libre=True)
     associer(utilisateur=utilisateur, classe=classe, locale=locale, ids=ids,
              adoption_attendue=adoption_attendue)
+    if icone:
+        from suivi.models import ReglagePresentation
+        from .presentation import enregistrer_reglage
+        enregistrer_reglage(utilisateur, ReglagePresentation(ecole=classe.ecole,
+            classe=classe, competence=locale.competence, mode=ReglagePresentation.REMPLACER, icone=icone))
+    if not reussite and not (commentaire or photo):
+        return locale
     valeurs = {"date_observation": date_observation, "commentaire": commentaire,
-               "photo": photo, "reussite": True}
+               "photo": photo, "reussite": reussite}
     if len(selection) == 1:
         from .pedagogie import enregistrer_trace
         enregistrer_trace(utilisateur=utilisateur, eleve=selection[0].eleve,
@@ -70,7 +75,7 @@ def ajouter_reussite(*, utilisateur, classe, ids, domaine_id, libelle, niveau,
     else:
         enregistrer_commune(utilisateur=utilisateur, classe=classe,
             competence=locale.competence, ids=ids, valeurs=valeurs)
-    for sc in selection:
+    for sc in selection if reussite else []:
         modifier_etat(utilisateur=utilisateur, eleve=sc.eleve, competence=locale.competence,
                       statut=Observation.REUSSI, date_observation=date_observation)
     return locale

@@ -1,76 +1,90 @@
 +++
-title = "Ajouter une réussite et un apprentissage libre"
-description = "Créer un apprentissage pour un élève ou un groupe, avec ou sans référentiel."
+title = "Ajouter une compétence et suivre ses réussites"
+description = "Créer une compétence pour un élève ou un groupe, avec ou sans référentiel."
 fiche = true
 categorie = "observer"
 publics = ["responsable"]
 intentions = ["réussite", "apprentissage", "libre", "groupe", "sans référentiel", "sous-domaine"]
 prerequis = "Vous êtes responsable d’une classe active dont les choix sont ouverts."
-depart = "Suivi d’un élève, ou Saisir pour toute la classe → catégorie → Ajouter une réussite"
+depart = "Suivi d’un élève, ou Saisir pour toute la classe → catégorie → Ajouter une compétence"
 statut = "disponible"
 +++
 
-## Saisir une réussite
+## Créer une compétence et commencer son suivi
 
-1. Dans le suivi individuel ou collectif, ouvrir un domaine ou un sous-domaine,
-   même vide, puis **Ajouter une réussite**.
-2. Décrire l’**Apprentissage**, vérifier le domaine et le sous-domaine facultatif.
-   Choisir le repère de section pour le retrouver avec les filtres habituels.
-3. Sélectionner uniquement les **Élèves concernés** et la **Date de la réussite**.
-   Le commentaire et la photo de réalisation sont facultatifs.
-4. Cliquer sur **Enregistrer la réussite**.
+1. Dans une catégorie, même vide, choisir **Ajouter une compétence** depuis
+   le collectif, ou **Ajouter une compétence et une réussite** depuis un élève.
+2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
+   compétence déjà créée** aident à éviter les copies inutiles.
+3. Vérifier domaine, sous-domaine facultatif, section et élèves concernés.
+4. Choisir **Enregistrer également une réussite** si le constat est déjà fait,
+   puis sa **Date du constat**. Cette option est présélectionnée depuis un élève,
+   et décochée depuis le collectif.
+5. Au besoin, ouvrir **Ajouter une trace — facultatif** pour un commentaire
+   et/ou une photo. Une trace seule ne valide pas la compétence.
+6. Au besoin, ouvrir **Illustration de la compétence — facultatif** pour choisir
+   une icône. Cette illustration commune reste distincte des photos des traces.
+7. Cliquer sur **Enregistrer**. La page habituelle de compétence permet ensuite
+   de modifier les états, d’ajouter des traces et de régler le suivi par élève.
 
-L’apprentissage possède une identité durable ; une réussite est un événement
- daté de son suivi. L’état initial devient **Réussi**, puis reste modifiable
-avec les commandes habituelles. Les traces suivantes complètent ce même
-apprentissage. Une réussite passée reste datée dans le carnet selon les options
-de visibilité, même si l’état courant redevient **En cours**.
+La compétence possède une identité durable. Une réussite est un événement daté ;
+l’état courant **Réussi** reste modifiable. Une réussite passée et ses traces
+ne sont pas effacées lorsque l’état redevient **En cours**.
 
 {{< capture-guide src="captures/guide/observer/ajouter-reussite.png" alt="Formulaire fictif d’ajout d’une réussite" caption="Le libellé, la catégorie, les élèves et la date précèdent le commentaire et la photo facultatifs." >}}
 
 ## Partager et personnaliser
 
-Plusieurs élèves partagent la même identité d’apprentissage, son libellé et
+Plusieurs élèves partagent la même identité de compétence, son libellé et
 son classement. Leur état reste individuel. Leur première trace partage date,
 commentaire et photo selon le [parcours des traces communes]({{< relref "/guide/observer/traces-communes" >}}).
 **Personnaliser pour cet élève** détache la trace : ses modifications ne suivent
 plus celles de la trace commune. Cela ne change ni l’identité ni le libellé de
-l’apprentissage. Un libellé individuel différent n’est pas proposé.
+la compétence. Un libellé individuel différent n’est pas proposé.
 
-Retirer un élève d’une trace commune retire cette attribution seulement. Ne plus
-proposer un apprentissage à un élève ferme les prochaines saisies et conserve
-son historique. Masquer une trace dans le carnet concerne sa diffusion seulement.
+Retirer un élève d’une trace commune retire cette attribution seulement.
+Désactiver son suivi ferme les prochaines saisies et conserve l’historique.
+Masquer une trace dans le carnet concerne sa diffusion seulement.
 
-## Ajouter des élèves sans réussite
+## Activer ou désactiver le suivi
 
-Depuis l’apprentissage dans le suivi collectif, ouvrir **Ajouter des élèves ou
-ne plus proposer cet apprentissage**. Sélectionner les élèves puis **Ajouter au
-suivi sans réussite**. Aucune ancienne réussite, trace ou photo ne leur est
-attribuée. Pour fermer leurs prochaines saisies, utiliser **Ne plus proposer
-aux élèves sélectionnés** ; les observations et carnets restent conservés.
+La page habituelle de compétence affiche **Activer le suivi** pour un élève
+hors du suivi et **Désactiver le suivi** pour un élève déjà concerné.
+L’activation n’attribue aucune réussite, trace ni photo. La réactivation retrouve
+les observations conservées, sans nouvelle réussite automatique.
 
-Dans **Ajouter une réussite**, le dépliable **Retrouver un apprentissage déjà
-créé** permet aussi sa reprise dans une classe gérée, notamment à la rentrée.
-Elle demande un accès pédagogique à une classe qui l’utilisait ; aucun catalogue
-public des apprentissages d’élèves n’est créé.
+Le dépliable **Retrouver une compétence déjà créée**, près de sa description,
+permet aussi de reprendre une compétence dans une nouvelle classe ou année.
+Cette reprise exige un accès pédagogique à un usage antérieur ; elle ouvre
+le suivi des élèves sélectionnés sans recopier leurs anciennes réussites.
+
+## Corriger la date d’une réussite
+
+Le clic rapide reste inchangé : il utilise aujourd’hui. Ouvrir ensuite
+**Réussi · date**, ou **Date de la réussite**, permet de choisir **Aujourd’hui**,
+de conserver la précédente réussite ou de choisir librement une date de l’année.
+La précédente date est proposée après une revalidation : utilisez-la si la
+dévalidation était accidentelle. Un nouveau constat peut garder aujourd’hui.
+Ce choix ne modifie aucune date de trace. Les années closes restent consultables.
 
 ## Coexister avec un référentiel
 
-Dans le collectif, **Apprentissage suivi pour … élèves** précise sa portée.
+Dans le collectif, **Compétence suivie pour … élèves** précise sa portée.
 Les autres élèves sont **Hors du suivi**, sans être considérés comme en attente
-de réussite. Ces apprentissages ne sont pas comptés dans les pourcentages du
-référentiel commun. Ils restent distincts des compétences
+de réussite. Chaque compteur d’élève inclut les compétences communes et ses compétences
+ciblées dont le suivi est actif, selon le filtre de section choisi. Une compétence
+ciblée ne compte jamais pour les élèves hors de son suivi. Elles restent distinctes des compétences
 [ajoutées pour une classe entière]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
 
-Choisir ensuite une base conserve ces apprentissages et leurs traces. Changer
+Choisir ensuite une base conserve ces compétences et leurs traces. Changer
 la base reste une opération avancée. Un libellé ressemblant à celui d’un
 référentiel ne fusionne aucune identité et ne transfère aucune réussite.
-Le libellé peut être reformulé pour le même apprentissage ; son classement est
-conservé à la création. Décrire un autre apprentissage demande une nouvelle identité.
+Le libellé peut être reformulé pour la même compétence ; son classement est
+conservé à la création. Décrire une autre compétence demande une nouvelle identité.
 
 ## Vérifier le carnet et les droits
 
-Le carnet complet n’affiche pas les apprentissages libres des autres élèves.
+Le carnet complet n’affiche pas les compétences ciblées des autres élèves.
 La clôture conserve les définitions annuelles ; la reprise à la rentrée ne crée
 pas de nouvel acquis. Les exports et imports conservent les rattachements et
 les réussites datées ; un export de classe conserve son périmètre propre.
@@ -83,6 +97,6 @@ les nouvelles saisies et changements de portée.
 Ces fonctions sont présentes dans le code du chantier Suivi libre. Vérifier
 que la version de votre application les intègre.
 
-{{< capture-guide src="captures/guide/observer/suivi-libre.png" alt="Apprentissages de la classe fictive des Cerfs-volants" caption="Le suivi collectif conserve les domaines et sous-domaines." >}}
+{{< capture-guide src="captures/guide/observer/suivi-libre.png" alt="Compétences de la classe fictive des Cerfs-volants" caption="Le suivi collectif conserve les domaines et sous-domaines." >}}
 
 {{< capture-guide src="captures/guide/observer/suivi-libre-mobile.png" alt="Suivi libre sur écran étroit" caption="Le même parcours sur un écran de téléphone." >}}

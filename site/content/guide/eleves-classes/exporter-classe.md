@@ -63,6 +63,6 @@ locale et ne renouvelle pas son rappel de sauvegarde.
 
 ## Suivi libre dans la copie
 
-L’export conserve les apprentissages ciblés et leurs rattachements de cette classe. Il ne les étend pas à tous les élèves ; les traces exportées gardent leurs réussites datées.
+L’export conserve les compétences ciblées et leurs rattachements de cette classe. Il ne les étend pas à tous les élèves ; les traces exportées gardent leurs réussites datées.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Suivi libre : vocabulaire unifié autour des compétences, compteurs propres à
+  chaque élève, activation du suivi dans la page habituelle, traces et
+  illustrations facultatives ; correction de la date de réussite sans changer
+  les traces ni les années closes.
+
+
 - Suivi libre (#SL1–4) : démarrer avec des domaines et sous-domaines seuls,
   créer des apprentissages et réussites datées pour les élèves choisis,
   réutiliser les traces collectives et leurs versions personnelles. Ajouter

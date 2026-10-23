@@ -36,7 +36,7 @@
         <li class="{% if obs %}{{ obs.statut }}{% else %}absent{% endif %}">
           <span class="puce" aria-hidden="true">{% if obs.statut == 'reussi' %}★{% elif obs.statut == 'en_cours' %}☆{% else %}·{% endif %}</span>
           <span class="contenu-competence">
-            {% if competence.afficher_illustration and competence.url_icone %}<img class="icone-competence" src="{% if generation_pdf %}{{ competence.url_icone_pdf }}{% else %}{{ competence.url_icone }}{% endif %}" alt="Illustration de l'apprentissage">{% endif %}
+            {% if competence.afficher_illustration and competence.url_icone %}<img class="icone-competence" src="{% if generation_pdf %}{{ competence.url_icone_pdf }}{% else %}{{ competence.url_icone }}{% endif %}" alt="Illustration de la compétence">{% endif %}
             <span class="libelle-competence">{{ competence.libelle }}</span>
             {% if afficher_sous_domaines and competence.sous_domaine %}<span class="sous-domaine-competence">{{ competence.sous_domaine.nom }}</span>{% endif %}
             {% if obs.historique_inconnu %}<span class="etat-competence">État de cette année non retrouvé</span>{% endif %}

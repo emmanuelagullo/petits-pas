@@ -41,7 +41,17 @@ def selection_classe(classe, utilisateur):
     resultat = {model: Q(pk__in=[]) for model in selection}
     eleves = _ids(classe.eleves)
     observations = observations_classe(classe).filter(eleve_id__in=eleves)
-    etats = {o.pk: (o.statut_lecture, o.date_lecture, bool(o.connu_lecture)) for o in observations}
+    dates_annuelles = {e.observation_id: e for e in m.EtatAnnuelObservation.objects.filter(
+        observation__in=observations, annee_scolaire=classe.annee_scolaire, connu=True)}
+    etats = {}
+    debut, fin = m.bornes_annee_scolaire(classe.annee_scolaire)
+    for o in observations:
+        annuel = dates_annuelles.get(o.pk)
+        dates = []
+        for nom in ("date_derniere_reussite", "date_reussite_precedente"):
+            valeur = getattr(annuel or o, nom)
+            dates.append(valeur if o.connu_lecture and valeur and debut <= valeur <= fin else None)
+        etats[o.pk] = (o.statut_lecture, o.date_lecture, bool(o.connu_lecture), *dates)
     textes = Q(pk__in=[])
     for eleve in classe.eleves:
         courante = eleve.scolarite_courante()
@@ -146,11 +156,15 @@ def _transformer(objet, fields, classe, utilisateur, etats, ids, photos_autorise
     elif model is m.ReglagePresentation and objet.mode != m.ReglagePresentation.REMPLACER:
         fields["photo"] = ""
     elif model is m.Observation:
-        statut, date, connu = etats[objet.pk]
+        statut, date, connu, derniere, precedente = etats[objet.pk]
+        fields.update(date_derniere_reussite=derniere.isoformat() if derniere else None,
+                      date_reussite_precedente=precedente.isoformat() if precedente else None)
         fields.update(statut=statut, date_observation=(date or m.bornes_annee_scolaire(classe.annee_scolaire)[0]).isoformat(),
                       modifie_le=instantane.isoformat())
     elif model is m.EtatAnnuelObservation:
-        statut, date, connu = etats[objet.observation_id]
+        statut, date, connu, derniere, precedente = etats[objet.observation_id]
+        fields.update(date_derniere_reussite=derniere.isoformat() if derniere else None,
+                      date_reussite_precedente=precedente.isoformat() if precedente else None)
         fields.update(statut=statut, date_observation=date.isoformat() if date else None, connu=connu)
     elif model is m.CompetenceLocale and objet.classe_origine_id != classe.pk:
         fields["classe_origine"] = None
@@ -241,8 +255,9 @@ def construire_classe(export, travail):
                     annee_scolaire=classe.annee_scolaire).values_list("observation_id", flat=True))
                 m.EtatAnnuelObservation.objects.using(alias).bulk_create([
                     m.EtatAnnuelObservation(observation_id=pk, annee_scolaire=classe.annee_scolaire,
-                        statut=statut, date_observation=date, connu=connu)
-                    for pk, (statut, date, connu) in etats.items() if pk not in annuels])
+                        statut=statut, date_observation=date, connu=connu,
+                        date_derniere_reussite=derniere, date_reussite_precedente=precedente)
+                    for pk, (statut, date, connu, derniere, precedente) in etats.items() if pk not in annuels])
                 identifiant = None
                 for personne in Utilisateur.objects.filter(pk__in=personnes).iterator(chunk_size=200):
                     courant = personne.pk == utilisateur.pk

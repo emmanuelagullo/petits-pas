@@ -5,6 +5,8 @@ from . import views_suivi_libre
 from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
+    path("eleve/<int:eleve_pk>/competence/<int:competence_pk>/date-reussite/", views.date_reussite, name="date_reussite"),
+    path("classe/<int:pk>/competence-libre/<int:locale_pk>/eleve/<int:eleve_pk>/suivi/", views_suivi_libre.activer_suivi, name="activer_suivi"),
     path("classe/<int:pk>/reussite/", views_suivi_libre.suivi_libre, name="ajouter_reussite"),
     path("classe/<int:pk>/apprentissage/<int:locale_pk>/eleves/", views_suivi_libre.suivi_libre, name="eleves_apprentissage"),
     path("classe/<int:pk>/export/", views_exports_classe.exporter_classe, name="exporter_classe"),

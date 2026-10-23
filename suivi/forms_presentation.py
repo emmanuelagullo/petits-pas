@@ -4,7 +4,7 @@ from .presentation import catalogue_icones
 
 
 class AffichageIllustrationForm(forms.Form):
-    choix = forms.ChoiceField(label="Quand une photo est affichée pour l'apprentissage…")
+    choix = forms.ChoiceField(label="Quand une photo est affichée pour la compétence…")
 
     def __init__(self, *args, classe=None, **kwargs):
         super().__init__(*args, **kwargs)

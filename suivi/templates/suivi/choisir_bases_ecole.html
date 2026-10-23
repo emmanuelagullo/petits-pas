@@ -70,7 +70,7 @@
 <div class="menus-referentiel">
 <a href="{% url 'presentation_ecole' %}" aria-labelledby="menu-presentation" aria-describedby="aide-presentation"><strong id="menu-presentation">Illustrations et phrases proposées</strong><span id="aide-presentation">Proposer des images et des suggestions de rédaction aux classes.</span></a>
 <a href="{% url 'adaptations_ecole' %}?annee={{ annee }}" aria-labelledby="menu-libelles" aria-describedby="aide-libelles"><strong id="menu-libelles">Libellés et compétences masquées</strong><span id="aide-libelles">Proposer des libellés et une visibilité pour cette année.</span></a>
-<a href="{% url 'ajouts_ecole' %}?annee={{ annee }}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Proposer des apprentissages supplémentaires que les classes peuvent reprendre.</span></a>
+<a href="{% url 'ajouts_ecole' %}?annee={{ annee }}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Proposer des compétences supplémentaires que les classes peuvent reprendre.</span></a>
 </div></section>
 <details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary><p>Des repères facultatifs pour expliquer des rapprochements à l’équipe, sans modifier les saisies ni transférer de réussite.</p><p><a href="{% url 'correspondances_ecole' %}?annee={{ annee }}">Correspondances entre compétences</a></p></details>{% endif %}
 </div>

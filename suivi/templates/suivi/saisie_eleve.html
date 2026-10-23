@@ -16,10 +16,10 @@
 {% for domaine, lignes in domaines %}
 <div class="domaine">
   <h3>{{ domaine.nom }}</h3>
-  {% if responsable %}<p><a class="bouton" href="{% url 'ajouter_reussite' classe.pk %}?domaine={{ domaine.pk }}&amp;eleve={{ eleve.pk }}">+ Ajouter une réussite</a></p>{% endif %}
+  {% if responsable %}<p><a class="bouton" href="{% url 'ajouter_reussite' classe.pk %}?domaine={{ domaine.pk }}&amp;eleve={{ eleve.pk }}">+ Ajouter une compétence et une réussite</a></p>{% endif %}
   {% groupes_suivi domaine lignes as groupes %}
   {% for sous_id, nom, sous_lignes in groupes %}
-  {% if nom %}<h4>{{ nom }}</h4>{% if responsable %}<p><a href="{% url 'ajouter_reussite' classe.pk %}?domaine={{ domaine.pk }}&amp;sous_domaine={{ sous_id }}&amp;eleve={{ eleve.pk }}">+ Ajouter une réussite dans ce sous-domaine</a></p>{% endif %}{% endif %}
+  {% if nom %}<h4>{{ nom }}</h4>{% if responsable %}<p><a href="{% url 'ajouter_reussite' classe.pk %}?domaine={{ domaine.pk }}&amp;sous_domaine={{ sous_id }}&amp;eleve={{ eleve.pk }}">+ Ajouter une compétence et une réussite dans ce sous-domaine</a></p>{% endif %}{% endif %}
   {% for competence, obs in sous_lignes %}{% include "suivi/partiels/case_competence.html" %}{% endfor %}
   {% endfor %}
 </div>

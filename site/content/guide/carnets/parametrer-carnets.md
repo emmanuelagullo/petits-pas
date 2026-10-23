@@ -13,8 +13,8 @@ statut = "disponible"
 ## Étapes
 
 1. Saisir le titre de couverture et, si nécessaire, un texte facultatif.
-2. Choisir le contenu proposé par défaut : **Réussites**, **Réussites
-   et apprentissages en cours** ou **Référentiel complet**.
+2. Choisir le contenu proposé par défaut : **Réussites**, **Compétences réussies
+   ou en cours** ou **Référentiel complet**.
 3. Choisir le regroupement temporel et une mise en page en une ou deux colonnes.
 4. Indiquer si les attendus, les sous-domaines et les bilans sont habituellement
    inclus.

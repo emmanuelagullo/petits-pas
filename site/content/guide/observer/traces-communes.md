@@ -72,11 +72,11 @@ Si plusieurs traces comportent des photos collectives ou personnelles, elles
 restent toutes dans le carnet selon leur visibilité. Le choix
 **Images proposées et photos**, dans
 [Présentation du carnet]({{< relref "/guide/carnets/personnaliser-presentation/" >}}),
-concerne seulement l’illustration supplémentaire de l’apprentissage.
+concerne seulement l’illustration supplémentaire de la compétence.
 Personnaliser une trace commune garde son fonctionnement habituel : la version
 conserve d’abord la photo, puis peut la remplacer ou la retirer.
 
-## Depuis un apprentissage libre
+## Depuis une compétence ciblée
 
 Une réussite libre collective réutilise ces mêmes traces et versions personnelles. Son libellé et sa catégorie restent communs. Ajouter un élève au suivi ne lui attribue pas les anciennes traces ; le sélectionner ensuite pour une trace est une autre action.
 

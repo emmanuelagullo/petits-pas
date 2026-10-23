@@ -4,7 +4,7 @@
 <div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Compétences ajoutées</h1>
-<p>Créez une compétence pour un apprentissage supplémentaire, ou reprenez un ajout disponible. Les ajouts gardent leur propre suivi ; ils ne remplacent pas automatiquement les compétences de la base.</p>
+<p>Créez une compétence pour une compétence supplémentaire, ou reprenez un ajout disponible. Les ajouts gardent leur propre suivi ; ils ne remplacent pas automatiquement les compétences de la base.</p>
 <p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Propositions de l'école pour {{ annee }}. Chaque classe choisit les ajouts qu'elle reprend.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not ouvert %}<p>Choisissez une base pour une classe ouverte avant d'ajouter ou de reprendre une compétence. Les choix d'une classe close restent consultables.</p>{% endif %}
@@ -12,7 +12,7 @@
 {% if locale %}
 <p><a href="{{ index_url }}">Revenir aux compétences ajoutées</a></p>
 <h2>{{ courante.libelle }}</h2>
-{% if ouvert and adaptable %}{% if form.libelle_direct %}<p>Vous avez créé cette compétence dans la classe : vous pouvez modifier son libellé ci-dessous. Ses observations restent associées à cette compétence. Pour décrire un autre apprentissage, créez une nouvelle compétence.</p>{% elif not libelle_ecole %}<p>« Garder le libellé d’origine » conserve le texte saisi lors de la création de cet ajout. « Utiliser mon libellé » permet de le reformuler, tout en gardant le même apprentissage et ses observations.</p>{% endif %}{% endif %}
+{% if ouvert and adaptable %}{% if form.libelle_direct %}<p>Vous avez créé cette compétence dans la classe : vous pouvez modifier son libellé ci-dessous. Ses observations restent associées à cette compétence. Pour décrire une autre compétence, créez une nouvelle compétence.</p>{% elif not libelle_ecole %}<p>« Garder le libellé d’origine » conserve le texte saisi lors de la création de cet ajout. « Utiliser mon libellé » permet de le reformuler, tout en gardant la même compétence et ses observations.</p>{% endif %}{% endif %}
 <details><summary>Origine de cet ajout</summary><p>Créé {% if locale.classe_origine %}pour {{ locale.classe_origine.libelle_avec_annee }}{% else %}pour l'école{% endif %}. Reprendre ou proposer cet ajout conserve la même compétence.</p><p>Libellé d'origine : {{ origine.libelle }}.</p></details>
 {% if ouvert and adaptable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="adapter">
 {% if form.libelle_direct %}
@@ -41,9 +41,9 @@
 {% endif %}
 {% if not jeton %}<p><a href="{{ index_url }}">Reconsulter les ajouts avant d'enregistrer</a></p>{% endif %}
 <details><summary>Créer, reprendre ou simplement reformuler ?</summary>
-<p>Pour le même apprentissage, adaptez le libellé de la compétence existante. Créer un ajout décrit un autre apprentissage : il commence avec son propre suivi, même si son texte ressemble à une autre compétence.</p>
+<p>Pour la même compétence, adaptez le libellé de la compétence existante. Créer un ajout décrit une autre compétence : il commence avec son propre suivi, même si son texte ressemble à une autre compétence.</p>
 <p>Reprendre conserve l'identité et l'origine d'un ajout. Cette action ne copie aucune réussite dans la nouvelle classe ou année. Une proposition de l'école reste un choix pour chaque classe.</p>
 <p>Les ajouts retenus restent présents lors d'un changement de base en cours d'année, dans un groupe « Ajouts » qui conserve le domaine choisi. À la rentrée, reprenez seulement ceux dont la nouvelle classe a besoin. Les libellés et masquages de l'année précédente ne sont pas recopiés.</p>
-<p>À la clôture, le carnet garde le dernier état de la classe. Les changements ultérieurs des propositions de l'école ne le modifient plus. Les correspondances entre apprentissages seront étudiées dans une étape suivante.</p></details>
+<p>À la clôture, le carnet garde le dernier état de la classe. Les changements ultérieurs des propositions de l'école ne le modifient plus. Les correspondances entre compétences expliquent un rapprochement sans transférer de réussite.</p></details>
 </div>
 {% endblock %}

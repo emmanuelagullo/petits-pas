@@ -26,8 +26,8 @@ L'outil doit rester au service de pratiques pédagogiques, pas leur imposer une
 administration supplémentaire. Le parcours visé tient en quelques gestes :
 
 1. retrouver une classe, un élève ou un petit groupe ;
-2. repérer un apprentissage dans le référentiel ;
-3. noter une acquisition ou un apprentissage en cours ;
+2. repérer une compétence dans le référentiel ;
+3. noter une acquisition ou une compétence en cours ;
 4. joindre, lorsque c'est utile, un commentaire ou une trace ;
 5. relire les progrès et préparer un carnet compréhensible par la famille.
 

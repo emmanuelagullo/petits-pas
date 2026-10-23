@@ -1,14 +1,17 @@
 {% extends "suivi/base.html" %}
+{% load illustrations %}
 {% block titre %}{{ competence.libelle }}{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'choisir_competence' classe.pk %}">Changer de compétence</a></p>
 <h1>{{ competence.libelle }}</h1>
+{% icone_liste competence classe as image_competence %}
+{% if responsable and image_competence %}<a href="{% url 'presentation_competence_classe' classe.pk competence.pk %}" aria-label="Modifier l’illustration de cette compétence">{{ image_competence }}</a>{% endif %}
 <p class="sous-titre">{{ competence.domaine.nom }}{% if competence.sous_domaine %} · {{ competence.sous_domaine.nom }}{% endif %} · repère {{ competence.get_niveau_display|lower }}</p>
 
 {% if historique %}<p>Consultation des états conservés pour cette année. Un état non retrouvé n’est pas remplacé par une réussite plus récente.</p>{% endif %}
 {% if not nouvelle_saisie_possible and not historique %}<p class="message">Cette compétence est masquée ou hors de la base actuelle. Les observations restent consultables. Pour saisir à nouveau, montrez-la ou choisissez une base autorisée qui la contient.</p>{% endif %}
-{% if competence.suivi_libre %}<p>Apprentissage suivi pour {{ competence.nombre_suivis }} élève{{ competence.nombre_suivis|pluralize }}. Les autres élèves sont hors du suivi.</p>
-{% if responsable %}<p><a href="{% url 'eleves_apprentissage' classe.pk competence.libre_id %}">Ajouter des élèves ou ne plus proposer cet apprentissage</a> · <a href="{% url 'ajout_classe' classe.pk competence.libre_id %}">Modifier le libellé ou masquer l’apprentissage</a></p>{% endif %}{% endif %}
+{% if competence.suivi_libre %}<p>Compétence suivie pour {{ competence.nombre_suivis }} élève{{ competence.nombre_suivis|pluralize }}. Les autres élèves sont hors du suivi.</p>
+{% if responsable %}<p><a href="{% url 'ajout_classe' classe.pk competence.libre_id %}">Modifier le libellé ou masquer la compétence</a> · <a href="{% url 'presentation_competence_classe' classe.pk competence.pk %}">Modifier l’illustration</a></p>{% endif %}{% endif %}
 {% include "suivi/partiels/correspondances_competences.html" %}
 <div class="actions">
   <a class="bouton" href="{% url 'traces_communes' classe.pk competence.pk %}">{% if responsable %}+ Ajouter ou modifier une trace commune{% else %}Consulter les traces communes{% endif %}</a>

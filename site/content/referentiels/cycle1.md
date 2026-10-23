@@ -168,7 +168,7 @@ locaux restent prioritaires ; les anciennes éditions restent téléchargeables 
 [étayée 2026.3](../../referentiels/cycle1/editions/cycle1-etaye-2026.3.yaml),
 [Chat d’école 2026.3](../../referentiels/chatdecole/editions/tableaux-cycle1-2026.3.yaml).
 Les six associations imprécises retirées en 2026.3 de l’offre étayée ne sont
-pas rétablies ; aucun apprentissage n’avait été retiré.
+pas rétablies ; aucune compétence n’avait été retirée.
 
 Les nouveaux dessins peuvent être choisis directement dans **Présentation du
 carnet → Image fournie**, sans changer le référentiel de la classe. L’adoption

@@ -334,7 +334,8 @@ class LecturesCloisonnees(BaseLectures):
         evenement = EvenementAudit.objects.get(action="observation.etat_modifie")
         self.assertEqual(observation.statut, Observation.REUSSI)
         self.assertEqual(evenement.acteur, self.remi)
-        self.assertEqual(evenement.anciennes_valeurs, {"statut": None})
+        self.assertEqual(evenement.anciennes_valeurs, {})
+        self.assertEqual(evenement.nouvelles_valeurs["date_derniere_reussite"], self.aujourdhui.isoformat())
 
     def test_t061_associe_ne_modifie_pas_etat(self):
         self.client.force_login(self.amina)

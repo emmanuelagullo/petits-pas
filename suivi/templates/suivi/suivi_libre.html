@@ -1,27 +1,32 @@
 {% extends "suivi/base.html" %}
-{% block titre %}{% if locale %}Élèves concernés{% else %}Ajouter une réussite{% endif %}{% endblock %}
+{% block titre %}Ajouter une compétence{% endblock %}
 {% block contenu %}
 <p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'choisir_competence' classe.pk %}">Suivi collectif</a></p>
-<h1>{% if locale %}Élèves concernés par cet apprentissage{% else %}Ajouter une réussite{% endif %}</h1>
-{% if locale %}
-<p>{{ locale.competence.libelle }}</p>
-<p>Ajouter des élèves ouvre leur suivi sans leur attribuer de réussite, de commentaire ni de photo. Ne plus proposer l’apprentissage conserve leurs observations et leurs carnets.</p>
-{% else %}
-<p>Créez un apprentissage pour les seuls élèves sélectionnés et enregistrez leur réussite datée. Leur état sera « Réussi » et restera modifiable. Commentaire et photo sont facultatifs.</p>
-{% endif %}
+<h1>{% if locale %}Reprendre une compétence{% elif eleve %}Ajouter une compétence et une réussite{% else %}Ajouter une compétence{% endif %}</h1>
+<p>Le suivi concerne seulement les élèves sélectionnés. Son activation n’attribue aucune réussite. Les états restent modifiables.</p>
 <form method="post" enctype="multipart/form-data" id="formulaire-reussite">
 {% csrf_token %}
 {% if form.errors %}<div role="alert"><p>Vérifiez les informations suivantes :</p><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }} : {{ error }}</a></li>{% endfor %}{% endfor %}</ul>{{ form.non_field_errors }}</div>{% endif %}
-{{ form.as_p }}
-<div class="actions">
-<button class="bouton" type="submit" name="action" value="ajouter">{% if locale %}Ajouter au suivi sans réussite{% else %}Enregistrer la réussite{% endif %}</button>
-{% if locale %}<button class="bouton discret" type="submit" name="action" value="retirer">Ne plus proposer aux élèves sélectionnés</button>{% endif %}
-</div>
-</form>
-{% if reprises and not locale %}
-<details><summary>Retrouver un apprentissage déjà créé</summary>
-<p>Réutiliser son identité permet de compléter le suivi sans recopier une ancienne réussite, y compris à la rentrée suivante.</p>
-<ul>{% for a in reprises %}<li><a href="{% url 'eleves_apprentissage' classe.pk a.pk %}">{{ a.competence.libelle }}</a></li>{% endfor %}</ul>
-</details>
+{% if locale %}<p>{{ locale.competence.libelle }}</p>{% else %}
+<p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}<small>{{ form.libelle.help_text }}</small></p>
+<details><summary>Exemples de compétences</summary><p>« Je raconte les étapes de ma construction » ; « Je reproduis une suite de couleurs ». Décrivez ce que l’élève sait faire ; le commentaire d’une observation et sa photo se placent dans la trace.</p></details>
+{% if reprises %}<details><summary>Retrouver une compétence déjà créée</summary><p>Reprenez son identité sans recopier les anciennes réussites.</p><ul>{% for a in reprises %}<li><a href="{% url 'eleves_apprentissage' classe.pk a.pk %}">{{ a.competence.libelle }}</a></li>{% endfor %}</ul></details>{% endif %}
+<p>{{ form.domaine.label_tag }} {{ form.domaine }} {{ form.domaine.errors }}</p>
+<p>{{ form.sous_domaine.label_tag }} {{ form.sous_domaine }} {{ form.sous_domaine.errors }}</p>
+<p>{{ form.niveau.label_tag }} {{ form.niveau }} {{ form.niveau.errors }}</p>
 {% endif %}
+<fieldset><legend>Élèves concernés</legend>{{ form.eleves }}{{ form.eleves.errors }}<p>{{ form.eleves.help_text }}</p></fieldset>
+{% if not locale %}
+<p>{{ form.reussite }} {{ form.reussite.label_tag }} {{ form.reussite.errors }}</p>
+<p>{{ form.date_observation.label_tag }} {{ form.date_observation }} {{ form.date_observation.errors }}<small>Date de la réussite ou de la trace, si vous en ajoutez une.</small></p>
+<details{% if form.commentaire.value or form.photo.errors %} open{% endif %}><summary>Ajouter une trace — facultatif</summary>
+<p>Documentez le constat pour les élèves sélectionnés. Pour plusieurs élèves, la trace est commune ; elle pourra ensuite devenir personnelle.</p>
+<p>{{ form.commentaire.label_tag }} {{ form.commentaire }} {{ form.commentaire.errors }}</p>
+<p>{{ form.photo.label_tag }} {{ form.photo }} {{ form.photo.errors }}</p>
+</details>
+<details{% if form.icone.errors %} open{% endif %}><summary>Illustration de la compétence — facultatif</summary><p>{{ form.icone.label_tag }} {{ form.icone }} {{ form.icone.errors }}</p><p>Cette illustration représente la compétence pour les élèves concernés dans la classe. Elle ne fait pas partie des traces. Vous pourrez la modifier ensuite ou importer une image.</p></details>
+{% endif %}
+{{ form.jeton }}
+<div class="actions"><button class="bouton" type="submit" name="action" value="ajouter">{% if locale %}Activer le suivi sans réussite{% else %}Enregistrer{% endif %}</button></div>
+</form>
 {% endblock %}

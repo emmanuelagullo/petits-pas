@@ -146,6 +146,8 @@ def observations_annee(eleve, scolarite):
         from types import SimpleNamespace
         annuels = {e["observation_id"]: SimpleNamespace(
             statut=e["statut"], connu=e["connu"],
+            date_derniere_reussite=date.fromisoformat(e["date_derniere_reussite"]) if e.get("date_derniere_reussite") else None,
+            date_reussite_precedente=date.fromisoformat(e["date_reussite_precedente"]) if e.get("date_reussite_precedente") else None,
             date_observation=date.fromisoformat(e["date_observation"]) if e["date_observation"] else None)
             for e in adoption.etat_final["etats"]}
     traces = list(Trace.objects.filter(scolarite=scolarite, observation__eleve=eleve,
@@ -163,6 +165,8 @@ def observations_annee(eleve, scolarite):
         copie.historique_inconnu = annuel is None or not annuel.connu
         inconnus = inconnus or copie.historique_inconnu
         copie.statut = annuel.statut if annuel and annuel.connu else None
+        copie.date_derniere_reussite = annuel.date_derniere_reussite if annuel and annuel.connu else None
+        copie.date_reussite_precedente = annuel.date_reussite_precedente if annuel and annuel.connu else None
         copie.date_observation = (annuel.date_observation if annuel and annuel.connu else
                                   max((t.date_observation for t in copie.traces_carnet), default=None))
         copie.annee_historique = scolarite.annee_scolaire
@@ -236,6 +240,9 @@ def projeter_etat_classe(observation):
     observation.statut = observation.statut_lecture
     observation.date_observation = observation.date_lecture
     observation.historique_inconnu = not observation.connu_lecture
+    if getattr(observation, "autre_annee", False):
+        observation.date_derniere_reussite = None
+        observation.date_reussite_precedente = None
     return observation
 
 

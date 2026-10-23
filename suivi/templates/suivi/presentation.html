@@ -15,18 +15,18 @@
 {% if not competence %}
 <section class="encadre">
   <h2>Images proposées et photos</h2>
-  <p>Les photos collectives et personnelles des traces affichées restent toutes dans le carnet. Ce choix concerne seulement l'image qui illustre l'apprentissage.</p>
+  <p>Les photos collectives et personnelles des traces affichées restent toutes dans le carnet. Ce choix concerne seulement l'image qui illustre la compétence.</p>
   <p>Choix utilisé : {% if illustration_avec_photos %}garder aussi l'image proposée{% else %}cacher l'image proposée lorsqu'une photo est affichée{% endif %} ({{ affichage_origine }}).</p>
   <form method="post">
     {% csrf_token %}<input type="hidden" name="action" value="affichage">
     {{ affichage_form.as_p }}
-    <p>Sans photo, l'image proposée reste visible si elle existe. Pour la retirer d'un apprentissage, choisissez « Désactiver » dans ses réglages. La couverture reste indépendante.</p>
+    <p>Sans photo, l'image proposée reste visible si elle existe. Pour la retirer d'une compétence, choisissez « Désactiver » dans ses réglages. La couverture reste indépendante.</p>
     <button class="bouton" type="submit">Enregistrer l'affichage des images</button>
   </form>
 </section>
 {% endif %}
 <section class="encadre">
-  <h2>{% if competence %}Image proposée pour cet apprentissage{% else %}Photo de couverture{% endif %}</h2>
+  <h2>{% if competence %}Image proposée pour cette compétence{% else %}Photo de couverture{% endif %}</h2>
   <p>Image utilisée : {{ illustration.provenance }}.{% if not illustration_url %} Aucune image affichée.{% endif %}</p>
   {% if illustration_url %}<img class="miniature" src="{{ illustration_url }}" alt="Illustration effective">{% endif %}
   <details class="aide-presentation">
@@ -45,7 +45,7 @@
     {% if champ.name == 'icone' %}
     <details class="galerie-images" data-galerie-images hidden>
       <summary>Voir les {{ images_fournies|length }} images fournies</summary>
-      <p>Choisissez un dessin, puis enregistrez l’illustration. Une image illustre l’apprentissage ; elle ne représente pas le travail d’un enfant.</p>
+      <p>Choisissez un dessin, puis enregistrez l’illustration. Une image illustre la compétence ; elle ne représente pas le travail d’un enfant.</p>
       <div class="grille-images">
         {% for cle, image in images_fournies.items %}
         <button type="button" data-choisir-image="{{ cle }}" aria-pressed="false">

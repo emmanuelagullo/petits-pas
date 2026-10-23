@@ -60,8 +60,8 @@ Pour illustrer la compétence sans raconter une activité datée, consulter
 Voir [Contribuer sans ouvrir tout le suivi]({{< relref "/roles/situations/" >}}#contribuer-sans-consulter-tout-le-suivi)
 et les [règles d’accès aux médias]({{< relref "/conception/documents/matrice-autorisations.org" >}}).
 
-## Un nouvel apprentissage
+## Une nouvelle compétence
 
-Si l’apprentissage n’existe pas, partir de **Ajouter une réussite** dans sa catégorie. La création est réservée au responsable ; les contributions sur les traces gardent leurs droits habituels.
+Si la compétence n’existe pas, partir de **Ajouter une compétence** dans sa catégorie. La création est réservée au responsable ; les contributions sur les traces gardent leurs droits habituels.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

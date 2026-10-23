@@ -133,7 +133,7 @@ class ParcoursLibre(Base):
         self.client.force_login(self.enseignant)
         for nom, args in (("saisie_eleve", [self.eleve.pk]), ("choisir_competence", [self.classe.pk])):
             page = self.client.get(reverse(nom, args=args))
-            self.assertContains(page, "Ajouter une réussite")
+            self.assertContains(page, "Ajouter une compétence")
             self.assertContains(page, "Langage oral")
             self.assertContains(page, "Découverte de l’écrit")
 
@@ -142,7 +142,7 @@ class ParcoursLibre(Base):
         url = reverse("ajouter_reussite", args=[self.classe.pk])
         page = self.client.get(url)
         d = dict(libelle="Je compose une suite fictive", domaine=self.entree["domaine_id"],
-            eleves=[self.eleve.pk], niveau="PS", date_observation="2026-10-01",
+            eleves=[self.eleve.pk], niveau="PS", date_observation="2026-10-01", reussite="on",
             jeton=page.context["form"].initial["jeton"])
         reponse = self.client.post(url, d)
         self.assertEqual(reponse.status_code, 302)
@@ -169,16 +169,16 @@ class ParcoursLibre(Base):
         self.assertNotContains(self.client.get(reverse("carnet", args=[self.autre.pk]), {"contenu": "tout"}), a.competence.libelle)
         page = self.client.get(reverse("saisie_competence", args=[self.classe.pk, a.competence_id]))
         self.assertContains(page, "Hors du suivi")
-        self.assertContains(page, "Ajouter des élèves")
+        self.assertContains(page, "Activer le suivi")
         self.assertEqual(self.client.post(reverse("basculer", args=[self.autre.pk, a.competence_id])).status_code, 403)
 
     def test_association_sans_reussite_et_refus_direction(self):
         a = self.creer()
         self.client.force_login(self.enseignant)
         url = reverse("eleves_apprentissage", args=[self.classe.pk, a.pk])
-        page = self.client.get(url)
-        self.assertEqual(self.client.post(url, {"eleves": [self.autre.pk], "action": "ajouter",
-            "jeton": page.context["form"].initial["jeton"]}).status_code, 302)
+        self.assertEqual(self.client.get(url).status_code, 302)
+        action = reverse("activer_suivi", args=[self.classe.pk, a.pk, self.autre.pk])
+        self.assertEqual(self.client.post(action, {"action": "activer", "adoption": self.adoption.pk}).status_code, 302)
         self.assertFalse(Observation.objects.filter(eleve=self.autre).exists())
         self.client.force_login(self.direction)
         self.assertIn(self.client.get(url).status_code, (403, 404))
@@ -321,4 +321,109 @@ class DeplacementsLibres(Base):
             {"action": "retirer", "eleve": self.autre.pk}, follow=True)
         self.assertEqual(page.status_code, 200)
         self.assertTrue(Scolarite.objects.filter(pk=self.sc_autre.pk).exists())
-        self.assertContains(page, "apprentissages suivis")
+        self.assertContains(page, "compétences suivies")
+
+
+class ErgonomieLibre(Base):
+    setUp = SuiviLibre.setUp
+    adopter = SuiviLibre.adopter
+    creer = SuiviLibre.creer
+
+    def test_compteurs_personnels_et_desactivation_conserve_historique(self):
+        from .views import _progression
+        a = self.creer()
+        associer(utilisateur=self.enseignant, classe=self.classe, locale=a,
+            ids=[self.autre.pk], adoption_attendue=self.adoption.pk)
+        eleves = [self.eleve, self.autre]
+        _progression(eleves, self.ecole, classe=self.classe)
+        self.assertEqual([(e.nb_reussies, e.total_competences) for e in eleves], [(1, 1), (0, 1)])
+        associer(utilisateur=self.enseignant, classe=self.classe, locale=a,
+            ids=[self.eleve.pk], adoption_attendue=self.adoption.pk, retirer=True)
+        _progression(eleves, self.ecole, classe=self.classe)
+        self.assertEqual([(e.nb_reussies, e.total_competences) for e in eleves], [(0, 0), (0, 1)])
+        self.assertTrue(Trace.objects.filter(observation__eleve=self.eleve, reussite=True).exists())
+
+    def test_creation_collective_sans_reussite_avec_icone(self):
+        from .presentation import catalogue_icones
+        from .models import ReglagePresentation
+        icone = next(iter(catalogue_icones()))
+        a = self.creer([self.eleve.pk, self.autre.pk], reussite=False, icone=icone)
+        self.assertFalse(Observation.objects.filter(competence=a.competence).exists())
+        self.assertEqual(a.disponibilites.get().eleves_suivis.count(), 2)
+        self.assertEqual(ReglagePresentation.objects.get(competence=a.competence).icone, icone)
+
+    def test_trace_sans_validation_et_retour_grille(self):
+        a = self.creer(reussite=False, commentaire="Essai observé")
+        self.assertFalse(Trace.objects.get().reussite)
+        self.assertNotEqual(Observation.objects.get().statut, "reussi")
+        self.client.force_login(self.enseignant)
+        page = self.client.get(reverse("saisie_competence", args=[self.classe.pk, a.competence_id]))
+        self.assertContains(page, "Activer le suivi")
+        self.assertContains(page, "Désactiver le suivi")
+        self.assertNotContains(page, "ne plus proposer")
+
+    def test_activation_sans_reussite_refuse_contributeur_et_get(self):
+        a = self.creer()
+        url = reverse("activer_suivi", args=[self.classe.pk, a.pk, self.autre.pk])
+        self.client.force_login(self.enseignant)
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertEqual(self.client.post(url, {"action": "activer", "adoption": self.adoption.pk}).status_code, 302)
+        self.assertFalse(Observation.objects.filter(eleve=self.autre).exists())
+        self.client.force_login(self.direction)
+        self.assertIn(self.client.post(url, {"action": "desactiver", "adoption": self.adoption.pk}).status_code, (403, 404))
+
+    def test_revalidation_conserve_date_precedente_et_traces(self):
+        a = self.creer()
+        options = dict(utilisateur=self.enseignant, eleve=self.eleve, competence=a.competence)
+        modifier_etat(**options, statut="en_cours", date_observation=date(2026, 10, 2))
+        obs = modifier_etat(**options, statut="reussi", date_observation=date(2026, 10, 3))
+        self.assertEqual(obs.date_reussite_precedente, date(2026, 10, 1))
+        obs = modifier_etat(**options, statut="reussi", conserver_date=True)
+        self.assertEqual(obs.date_observation, date(2026, 10, 1))
+        self.assertEqual(obs.etats_annuels.get().date_derniere_reussite, date(2026, 10, 1))
+        self.assertEqual(Trace.objects.get().date_observation, date(2026, 10, 1))
+
+    def test_date_libre_validation_serveur_et_interface_sans_js(self):
+        a = self.creer()
+        self.client.force_login(self.enseignant)
+        url = reverse("date_reussite", args=[self.eleve.pk, a.competence_id])
+        page = self.client.post(url, {"choix": "autre", "date": "2000-01-01"})
+        self.assertIn("date", page.context["form"].errors)
+        page = self.client.post(url, {"choix": "autre", "date": "2026-10-09"})
+        self.assertEqual(page.status_code, 302)
+        obs = Observation.objects.get(competence=a.competence)
+        self.assertEqual(obs.date_observation, date(2026, 10, 9))
+        self.assertEqual(Trace.objects.get().date_observation, date(2026, 10, 1))
+        page = self.client.get(reverse("saisie_eleve", args=[self.eleve.pk]))
+        self.assertContains(page, 'name="choix"')
+        self.assertContains(page, "Conserver la précédente réussite")
+        self.client.force_login(self.direction)
+        self.assertIn(self.client.post(url, {"choix": "aujourdhui"}).status_code, (403, 404))
+
+    def test_date_refuse_suivi_inactif(self):
+        a = self.creer()
+        self.client.force_login(self.enseignant)
+        url = reverse("date_reussite", args=[self.eleve.pk, a.competence_id])
+        associer(utilisateur=self.enseignant, classe=self.classe, locale=a,
+            ids=[self.eleve.pk], adoption_attendue=self.adoption.pk, retirer=True)
+        self.assertEqual(self.client.post(url, {"choix": "aujourdhui"}).status_code, 403)
+        self.assertEqual(Observation.objects.get(competence=a.competence).date_derniere_reussite, date(2026, 10, 1))
+
+    def test_formulaire_individuel_preselectionne_et_collectif_non(self):
+        self.client.force_login(self.enseignant)
+        url = reverse("ajouter_reussite", args=[self.classe.pk])
+        self.assertFalse(self.client.get(url).context["form"]["reussite"].value())
+        page = self.client.get(url, {"eleve": self.eleve.pk})
+        self.assertTrue(page.context["form"]["reussite"].value())
+        self.assertContains(page, "Ajouter une trace — facultatif")
+        self.assertContains(page, "Illustration de la compétence — facultatif")
+
+    def test_suivi_ferme_refuse_portee_et_date(self):
+        a = self.creer()
+        self.adoption.clos = True
+        self.adoption.save(update_fields=["clos"])
+        self.client.force_login(self.enseignant)
+        url = reverse("activer_suivi", args=[self.classe.pk, a.pk, self.autre.pk])
+        self.assertEqual(self.client.post(url, {"action": "activer", "adoption": self.adoption.pk}).status_code, 403)
+        url = reverse("date_reussite", args=[self.eleve.pk, a.competence_id])
+        self.assertEqual(self.client.post(url, {"choix": "aujourdhui"}).status_code, 403)

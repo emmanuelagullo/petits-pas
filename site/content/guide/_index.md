@@ -36,7 +36,7 @@ Pour choisir, commencer par [Démarrer]({{< relref "/demarrer/" >}}).
 ### [Préparer les carnets](carnets/)
 
 - prévisualiser le carnet d’un élève ;
-- choisir les apprentissages et leur regroupement ;
+- choisir les compétences et leur regroupement ;
 - générer un PDF individuel ;
 - préparer une archive de carnets pour toute une classe ;
 - définir les paramètres habituels de l’école.
@@ -55,9 +55,9 @@ Pour choisir, commencer par [Démarrer]({{< relref "/demarrer/" >}}).
 - consulter les bases disponibles et leurs sources ;
 - adapter les libellés, masquer ou démasquer des compétences ;
 - choisir les illustrations et les phrases proposées ;
-- ajouter des apprentissages propres à l’école ou à la classe ;
+- ajouter des compétences propres à l’école ou à la classe ;
 - comprendre les précautions avant un changement de base ;
-- expliquer, si utile, les liens entre deux apprentissages.
+- expliquer, si utile, les liens entre deux compétences.
 
 ### [Organiser l’équipe](equipe/)
 
@@ -97,6 +97,6 @@ fonction qui n’existe encore que dans le modèle ou dans un service interne.
 
 ## Deux façons de commencer
 
-L’école peut proposer des catégories sans compétences prédéfinies ou un référentiel fourni. Les deux parcours permettent ensuite d’ajouter des apprentissages pour certains élèves.
+L’école peut proposer des catégories sans compétences prédéfinies ou un référentiel fourni. Les deux parcours permettent ensuite d’ajouter des compétences pour certains élèves.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

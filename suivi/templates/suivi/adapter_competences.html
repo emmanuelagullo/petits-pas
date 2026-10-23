@@ -16,7 +16,7 @@
 <details><summary>Origine et libellé fourni</summary>
 <p>{{ version.source.titre }} — version {{ version.numero }}{% if version.source.provisoire %} · trame provisoire{% endif %}.</p>
 <p>Libellé fourni : <strong>{{ origine.libelle }}</strong>. Code dans cette base : {{ origine.code }}.</p>
-<p>Adapter le libellé conserve la même compétence et ses observations. Pour décrire un autre apprentissage, il faut une compétence distincte.</p></details>
+<p>Adapter le libellé conserve la même compétence et ses observations. Pour décrire une autre compétence, il faut une compétence distincte.</p></details>
 {% if not clos %}<p>Libellé proposé {% if classe %}par l'école{% else %}par la base{% endif %} : <strong>{{ proposee.libelle }}</strong>.</p>
 <p>Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
 {% if not clos %}
@@ -49,7 +49,7 @@
 {% endif %}
 <details><summary>Garder les choix proposés ou personnaliser ?</summary>
 <p>Pour commencer, gardez le libellé et la visibilité proposés. Les deux choix sont séparés : vous pouvez garder le libellé de l'école tout en montrant une compétence masquée par l'école.</p>
-<p>Un libellé personnel doit décrire le même apprentissage. Il s'applique aux présentations et aux anciens parcours de cette année. Revenir au libellé proposé retrouve les évolutions du niveau supérieur.</p>
+<p>Un libellé personnel doit décrire la même compétence. Il s'applique aux présentations et aux anciens parcours de cette année. Revenir au libellé proposé retrouve les évolutions du niveau supérieur.</p>
 <p>Ces choix concernent {% if classe %}cette classe{% else %}l'école{% endif %} pour {{ annee }}. À la clôture, le carnet garde le dernier état de la classe. La nouvelle année possède ses propres choix.</p></details>
 </div>
 {% endblock %}

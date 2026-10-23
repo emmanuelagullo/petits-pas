@@ -381,3 +381,11 @@ Les sous-domaines se lisent dans les définitions annuelles ; aucun séparateur
 n’est une compétence. La commande preparer_suivi_libre publie volontairement la
 structure vide, sans changer les classes. Préserver les projections d’export,
 le remappage d’import et le scénario fictif commun des Cerfs-volants.
+
+#SL2c : employer « compétence » pour l’identité durable, « réussite » pour le
+constat daté et l’état courant, « trace » pour son témoignage. Conserver les
+noms officiels « carnet de suivi des apprentissages » et domaines d’apprentissage.
+Les compteurs incluent les compétences ciblées actives pour chaque élève.
+Activation et désactivation passent par le service de portée ; elles ne créent
+ni réussite ni trace. Les dates de réussite sont annuelles et distinctes des
+changements d’état et des traces. Lire SUIVI-LIBRE.org avant leur évolution.

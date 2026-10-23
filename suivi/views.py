@@ -46,7 +46,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
-from django.views.decorators.http import require_safe
+from django.views.decorators.http import require_safe, require_http_methods
 
 from comptes.models import (
     AffectationClasse,
@@ -889,37 +889,21 @@ def _progression(eleves, ecole, filtre="classe", classe=None):
     l'affichage global), indépendamment du filtre appliqué par élève.
     """
     competences = [c for d in _arbre(ecole, classe=classe) for c in d.visibles]
-    competences = [c for c in competences if not getattr(c, "suivi_libre", False)]
-    niveaux_competences = {c.pk: c.niveau for c in competences}
-    totaux_par_niveau = {}
-    for competence in competences:
-        totaux_par_niveau[competence.niveau] = totaux_par_niveau.get(competence.niveau, 0) + 1
     total_cycle = len(competences)
-    reussies_par_eleve_et_niveau = {}
     queryset = observations_classe(classe) if classe else Observation.objects.annotate(statut_lecture=F("statut"))
-    lignes = queryset.filter(eleve__pk__in=[e.pk for e in eleves], statut_lecture="reussi",
-        competence_id__in=niveaux_competences).values("eleve_id", "competence_id")
-    for ligne in lignes:
-        niveau = niveaux_competences[ligne["competence_id"]]
-        par_niveau = reussies_par_eleve_et_niveau.setdefault(ligne["eleve_id"], {})
-        par_niveau[niveau] = par_niveau.get(niveau, 0) + 1
-
+    reussies = {}
+    for eid, cid in queryset.filter(eleve__pk__in=[e.pk for e in eleves],
+            statut_lecture="reussi", competence_id__in=[c.pk for c in competences]).values_list("eleve_id", "competence_id"):
+        reussies.setdefault(eid, set()).add(cid)
     for e in eleves:
-        par_niveau = reussies_par_eleve_et_niveau.get(e.pk, {})
-        if filtre == "tous":
-            e.nb_reussies = sum(par_niveau.values())
-            e.total_competences = total_cycle
-        elif filtre in {"PS", "MS", "GS"}:
-            e.nb_reussies = par_niveau.get(filtre, 0)
-            e.total_competences = totaux_par_niveau.get(filtre, 0)
-        else:  # "classe" : le niveau propre à l'élève
-            e.nb_reussies = par_niveau.get(e.niveau, 0)
-            e.total_competences = totaux_par_niveau.get(e.niveau, 0)
-        e.part_reussies = (
-            round(100 * e.nb_reussies / e.total_competences)
-            if e.total_competences
-            else 0
-        )
+        niveau = filtre if filtre in {"PS", "MS", "GS"} else e.niveau
+        concernees = {c.pk for c in competences
+            if (filtre == "tous" or c.niveau == niveau)
+            and (not getattr(c, "suivi_libre", False) or e.pk in c.eleves_suivis_ids)}
+        e.total_competences = len(concernees)
+        e.nb_reussies = len(concernees & reussies.get(e.pk, set()))
+        e.part_reussies = round(100 * e.nb_reussies / e.total_competences) if e.total_competences else 0
+
     return total_cycle
 
 
@@ -1181,6 +1165,7 @@ def saisie_competence(request, pk, competence_pk):
         request,
         "suivi/saisie_competence.html",
         {"classe": classe, "competence": competence, "lignes": lignes,
+         "adoption": adoption_courante(classe),
          "historique": classe_historique(classe),
          "nouvelle_saisie_possible": saisissable,
          "correspondances": correspondances_classe(classe, competence.pk),
@@ -1308,6 +1293,7 @@ def basculer(request, eleve_pk, competence_pk):
         competence=competence,
     ).first()
 
+    ouvrir_dates = bool(obs and obs.date_derniere_reussite and obs.statut != Observation.REUSSI)
     suivant = SUITE[obs.statut if obs else None]
 
     obs = modifier_etat(
@@ -1330,8 +1316,39 @@ def basculer(request, eleve_pk, competence_pk):
         request,
         gabarit,
         {"eleve": eleve, "classe": scolarite.classe if scolarite else None,
-         "competence": competence, "obs": obs, "responsable": True},
+         "competence": competence, "obs": obs, "responsable": True, "ouvrir_dates": ouvrir_dates,
+         "adoption": adoption_courante(scolarite.classe) if scolarite else None},
     )
+
+
+@acces_requis
+@require_http_methods(["GET", "POST"])
+def date_reussite(request, eleve_pk, competence_pk):
+    from .forms_dates import DateReussiteForm
+    eleve = charger_eleve_autorise(request.user, eleve_pk, MODIFIER_ETAT,
+        ecole=ecole_courante(request), actifs_seulement=True)
+    competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=eleve.ecole)
+    sc = eleve.scolarite_courante()
+    if not sc or not competence_saisissable(sc.classe, competence, eleve=eleve):
+        raise PermissionDenied
+    obs = get_object_or_404(Observation, eleve=eleve, competence=competence)
+    from .models import bornes_annee_scolaire
+    debut, fin = bornes_annee_scolaire(sc.annee_scolaire)
+    precedente = (obs.date_reussite_precedente or obs.date_derniere_reussite) if obs.statut == Observation.REUSSI else obs.date_derniere_reussite
+    if precedente and not debut <= precedente <= fin:
+        precedente = None
+    form = DateReussiteForm(request.POST if request.method == "POST" else None,
+        precedente=precedente, annee=sc.annee_scolaire)
+    if request.method == "POST" and form.is_valid():
+        try:
+            modifier_etat(utilisateur=request.user, eleve=eleve, competence=competence,
+                statut=Observation.REUSSI, date_observation=form.cleaned_data.get("date"),
+                conserver_date=form.cleaned_data["choix"] == "precedente")
+            return redirect("saisie_competence", pk=sc.classe_id, competence_pk=competence.pk) if request.GET.get("vue") == "classe" else redirect("saisie_eleve", pk=eleve.pk)
+        except ValidationError as exc:
+            form.add_error(None, exc)
+    return render(request, "suivi/date_reussite.html", {"form": form, "eleve": eleve,
+        "competence": competence, "precedente": precedente})
 
 
 @acces_requis
@@ -3025,7 +3042,7 @@ def importer_eleves(request, pk):
         if scolarite.bilans.exists() or scolarite.traces.exists() or scolarite.eleveapprentissage_set.exists():
             messages.error(
                 request,
-                f"{scolarite.eleve.prenom} a des bilans, des apprentissages suivis ou des observations "
+                f"{scolarite.eleve.prenom} a des bilans, des compétences suivies ou des observations "
                 f"datées enregistrés pour {classe.annee_scolaire} : "
                 "utilisez plutôt « Déplacer vers une autre classe », ou "
                 "utilisez « Retirer et archiver » pour conserver son parcours.",

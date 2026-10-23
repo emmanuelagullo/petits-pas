@@ -1,6 +1,6 @@
 +++
 title = "Ajouter ou reprendre une compétence"
-description = "Créer un apprentissage propre à l’école ou à une classe, puis le reprendre sans copier les réussites."
+description = "Créer une compétence propre à l’école ou à une classe, puis le reprendre sans copier les réussites."
 fiche = true
 categorie = "eleves-classes"
 publics = ["responsable", "direction"]
@@ -14,9 +14,9 @@ statut = "disponible"
 
 1. Ouvrir **Compétences ajoutées** dans le référentiel de la classe. La direction
    peut aussi partir des référentiels de l’école, en vérifiant l’année.
-2. Pour un nouvel apprentissage, saisir son texte, choisir la section et un
+2. Pour une nouvelle compétence, saisir son texte, choisir la section et un
    domaine, puis cliquer sur **Créer la compétence**. Image et phrase sont
-   facultatives. Pour reformuler le même apprentissage, adapter plutôt le
+   facultatives. Pour reformuler la même compétence, adapter plutôt le
    libellé de la compétence existante.
 3. Pour un ajout déjà proposé, cliquer sur **Reprendre dans cette classe**.
    Les propositions de l’école pour l’année et les ajouts déjà utilisés dans
@@ -41,7 +41,7 @@ les compétences de la base. Les ajouts sont rangés dans **Ajouts — nom du do
 un groupe qui conserve le domaine choisi même si la base change.
 
 Pour une compétence créée dans la classe, modifier directement **Libellé de
-la compétence**. Pour décrire un autre apprentissage, créer une nouvelle compétence.
+la compétence**. Pour décrire une autre compétence, créer une nouvelle compétence.
 Le texte à la création reste conservé dans **Origine de cet ajout**.
 
 Le bouton **Proposer cette compétence dans les prochaines saisies** indique si
@@ -85,6 +85,6 @@ et [choisir une base]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}
 
 ## Ajouter seulement pour certains élèves
 
-Cette fiche concerne les compétences disponibles pour une classe entière. Pour créer un apprentissage pour un élève ou un groupe choisi, utiliser **Ajouter une réussite** depuis le suivi.
+Cette fiche concerne les compétences disponibles pour une classe entière. Pour créer une compétence pour un élève ou un groupe choisi, utiliser **Ajouter une compétence** depuis le suivi.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

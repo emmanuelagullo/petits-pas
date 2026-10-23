@@ -75,6 +75,6 @@ ne sont pas proposés par cette fonction.
 
 ## Suivi libre
 
-L’export complet conserve aussi les catégories, les apprentissages libres, leurs élèves concernés et leurs réussites datées.
+L’export complet conserve aussi les catégories, les compétences ciblées, leurs élèves concernés et leurs réussites datées.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

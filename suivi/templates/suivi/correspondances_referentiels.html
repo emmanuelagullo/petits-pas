@@ -4,18 +4,18 @@
 <div class="page-referentiel">
 <p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% if modifier %} · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% endif %}{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
 <h1>Correspondances entre compétences</h1>
-<p>Cette page sert à expliquer à l’équipe comment deux apprentissages se rapprochent, par exemple lorsqu’on ajoute une compétence ou qu’on prépare un changement de référentiel.</p>
+<p>Cette page sert à expliquer à l’équipe comment deux compétences se rapprochent, par exemple lorsqu’on ajoute une compétence ou qu’on prépare un changement de référentiel.</p>
 <p>Cette démarche est facultative. Un lien ne transfère aucune réussite et ne change pas les compétences proposées à la saisie.</p>
 <details><summary>Quand utiliser une correspondance ?</summary>
-<p><strong>Exemple fictif :</strong> « Je reconnais mon prénom » décrit un apprentissage plus ciblé que « Je reconnais des mots écrits ». On peut noter ce rapport pour aider l’équipe à comprendre les deux compétences. Elles gardent chacune leurs observations et leurs réussites.</p>
+<p><strong>Exemple fictif :</strong> « Je reconnais mon prénom » décrit une compétence plus ciblée que « Je reconnais des mots écrits ». On peut noter ce rapport pour aider l’équipe à comprendre les deux compétences. Elles gardent chacune leurs observations et leurs réussites.</p>
 <p>Vous pouvez utiliser les référentiels et ajouter des compétences sans renseigner cette page. Un lien est seulement un repère pour l’équipe : il ne coche aucune réussite et ne modifie aucune liste de saisie.</p>
 </details>
 <p>{% if classe %}Repères de l’école et de {{ classe.libelle_avec_annee }}.{% else %}Repères proposés par l’école pour {{ annee }}.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if clos %}<p>Les choix de cette classe sont clos. Les liens conservés à la clôture restent consultables.</p>{% elif modifier and not ouvert %}<p>Choisissez d'abord une base pour la classe.</p>{% endif %}
 {% if not classe %}<form method="get"><label for="annee">Année scolaire</label><input id="annee" name="annee" value="{{ annee }}" required pattern="[0-9]{4}-[0-9]{4}"><button class="bouton discret" type="submit">Consulter l'année</button></form>{% endif %}
-{% if ouvert %}<details{% if erreur or form.depart.value %} open{% endif %}><summary>Ajouter un repère entre deux apprentissages</summary>
-<p>Situez un apprentissage par rapport à un autre, puis expliquez ce que l’équipe doit en retenir. Les choix indiquent les textes d’origine ; les reformulations de la classe restent consultables dans ses réglages.</p>
+{% if ouvert %}<details{% if erreur or form.depart.value %} open{% endif %}><summary>Ajouter un repère entre deux compétences</summary>
+<p>Situez une compétence par rapport à un autre, puis expliquez ce que l’équipe doit en retenir. Les choix indiquent les textes d’origine ; les reformulations de la classe restent consultables dans ses réglages.</p>
 <form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="relier">
 <p>{{ form.depart.label_tag }} {{ form.depart }} {{ form.depart.errors }}</p>
 <p>{{ form.arrivee.label_tag }} {{ form.arrivee }} {{ form.arrivee.errors }}</p>
@@ -24,15 +24,15 @@
 <label class="choix-confirmation" for="{{ form.consequences.id_for_label }}">{{ form.consequences }} <span>{{ form.consequences.label }}</span></label>{{ form.consequences.errors }}
 <button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Valider ce lien</button></form></details>{% endif %}
 <h2>Repères conservés{% if not clos %} pour cette année{% endif %}</h2>
-<ul class="liste">{% for lien in liens %}<li class="entree"><div class="principal"><strong>{{ lien.origine_depart.libelle }}</strong> — {% if lien.type_lien == "lien" %}est en lien avec{% elif lien.type_lien == "precise" %}décrit un apprentissage plus ciblé que{% else %}est prévu pour remplacer{% endif %} <strong>{{ lien.origine_arrivee.libelle }}</strong>.
+<ul class="liste">{% for lien in liens %}<li class="entree"><div class="principal"><strong>{{ lien.origine_depart.libelle }}</strong> — {% if lien.type_lien == "lien" %}est en lien avec{% elif lien.type_lien == "precise" %}décrit une compétence plus ciblée que{% else %}est prévu pour remplacer{% endif %} <strong>{{ lien.origine_arrivee.libelle }}</strong>.
 <p>{{ lien.justification }}</p><p>Lien {% if lien.classe_id %}de classe{% else %}d'école{% endif %}.</p>
-<details><summary>Origines et sens du lien</summary><p>Apprentissage situé : {{ lien.origine_depart.origine }} · {{ lien.origine_depart.niveau }} · texte d'origine : {{ lien.origine_depart.libelle }}.</p><p>Apprentissage de référence : {{ lien.origine_arrivee.origine }} · {{ lien.origine_arrivee.niveau }} · texte d'origine : {{ lien.origine_arrivee.libelle }}.</p><p>Le sens du repère est celui que son auteur a choisi. Il ne conclut pas qu’une réussite vaut pour les deux apprentissages.</p></details>
+<details><summary>Origines et sens du lien</summary><p>Compétence située : {{ lien.origine_depart.origine }} · {{ lien.origine_depart.niveau }} · texte d'origine : {{ lien.origine_depart.libelle }}.</p><p>Compétence de référence : {{ lien.origine_arrivee.origine }} · {{ lien.origine_arrivee.niveau }} · texte d'origine : {{ lien.origine_arrivee.libelle }}.</p><p>Le sens du repère est celui que son auteur a choisi. Il ne conclut pas qu’une réussite vaut pour les deux compétences.</p></details>
 {% if lien.retirable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="retirer"><input type="hidden" name="lien" value="{{ lien.id }}"><input type="hidden" name="revision" value="{{ lien.revision }}"><p>Retirer cesse de proposer ce lien. Ses origines restent conservées ; aucun suivi n'est modifié.</p><button class="bouton discret" type="submit"{% if not jeton %} disabled{% endif %}>Retirer ce lien</button></form>{% endif %}
 </div></li>{% empty %}<li>Aucun repère ajouté pour cette année. Vous n’avez rien à renseigner si vous n’en avez pas besoin.</li>{% endfor %}</ul>
 {% if ouvert and not jeton %}<p><a href="{% if classe %}{% url 'correspondances_classe' classe.pk %}{% else %}{% url 'correspondances_ecole' %}?annee={{ annee }}{% endif %}">Reconsulter les correspondances avant d'enregistrer</a></p>{% endif %}
-<details><summary>Autres cas : préciser un apprentissage ou prévoir son remplacement</summary>
-<p>Pour le même apprentissage, adaptez son libellé. Pour un autre apprentissage, créez une compétence distincte ; le lien reste facultatif.</p>
-<p>« En lien avec » rapproche deux apprentissages sans affirmer leur équivalence. « Précise » indique que le premier est plus ciblé que le second.</p>
+<details><summary>Autres cas : préciser une compétence ou prévoir son remplacement</summary>
+<p>Pour la même compétence, adaptez son libellé. Pour une autre compétence, créez une compétence distincte ; le lien reste facultatif.</p>
+<p>« En lien avec » rapproche deux compétences sans affirmer leur équivalence. « Précise » indique que le premier est plus ciblé que le second.</p>
 <p>« Remplace » explique l'intention d'utiliser le premier à la place du second. Il faut encore choisir la base ou reprendre l'ajout concerné et, si souhaité, masquer l'ancien. Ce lien ne fait aucune de ces actions.</p>
 <p>Plusieurs liens sont possibles ; aucun lien vers soi, lien inverse ou chaîne de liens ne fusionne les suivis. Les boucles de remplacement sont refusées. Une nouvelle année ne reprend pas automatiquement les liens. Pour corriger une explication, retirez le lien puis validez-en un nouveau.</p>
 <p>Les images et phrases peuvent être choisies séparément dans les réglages de présentation ; ce lien ne les réutilise pas. Les droits sur les élèves et photos restent inchangés.</p></details>

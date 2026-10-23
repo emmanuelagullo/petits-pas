@@ -63,5 +63,5 @@ domaines et sous-domaines sans compétences. *Partir d’un référentiel* conse
 le catalogue existant. Les nouvelles classes reprennent la proposition de
 l’école ; les classes existantes ne basculent pas automatiquement.
 L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
-Adopter ensuite une base reste avancé et conserve ces apprentissages et traces.
+Adopter ensuite une base reste avancé et conserve ces compétences et traces.
 Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].

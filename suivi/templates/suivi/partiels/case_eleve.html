@@ -20,6 +20,7 @@
     <span class="pastille">{{ eleve.niveau }}</span>
   </span>
   {% endif %}
+  {% include "suivi/partiels/date_reussite.html" with vue_dates="classe" %}
   <a class="trace-lien {% if obs.a_un_commentaire or obs.a_une_photo %}pleine{% endif %}"
      href="{% url 'trace' eleve.pk competence.pk %}"
      aria-label="{% if obs.a_un_commentaire or obs.a_une_photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}"
@@ -31,5 +32,11 @@
     </span>
     {% else %}+{% endif %}
   </a>
+  {% endif %}
+  {% if responsable and competence.suivi_libre %}
+  <form class="portee-suivi" method="post" action="{% url 'activer_suivi' classe.pk competence.libre_id eleve.pk %}">
+    {% csrf_token %}<input type="hidden" name="adoption" value="{{ adoption.pk }}">
+    <button class="bouton discret" name="action" value="{% if eleve.hors_suivi %}activer{% else %}desactiver{% endif %}">{% if eleve.hors_suivi %}Activer le suivi{% else %}Désactiver le suivi{% endif %}</button>
+  </form>
   {% endif %}
 </div>

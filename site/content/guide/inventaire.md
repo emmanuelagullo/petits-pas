@@ -35,7 +35,7 @@ Les statuts employés sont :
 | Voir les élèves d’une classe | Oui | Oui | Vue minimale | Vue administrative |
 | Consulter le suivi complet d’un élève | Oui | Oui | Non | Non |
 | Filtrer le suivi par niveau ou sur tout le cycle | Oui | Oui | Non | Non |
-| Créer un apprentissage et une réussite pour les élèves sélectionnés | Oui | Non | Non | Non |
+| Créer une compétence et une réussite pour les élèves sélectionnés | Oui | Non | Non | Non |
 | Ajouter des élèves au suivi libre sans réussite | Oui | Non | Non | Non |
 | Modifier l’état d’une acquisition | Oui | Non | Non | Non |
 | Choisir une compétence pour toute la classe | Oui | Oui | Non | Non |

@@ -59,6 +59,8 @@ def enregistrer_etat_annuel(observation, usage):
     etat.usage = usage
     etat.statut = observation.statut
     etat.date_observation = observation.date_observation
+    etat.date_derniere_reussite = observation.date_derniere_reussite
+    etat.date_reussite_precedente = observation.date_reussite_precedente
     etat.connu = True
     etat.full_clean()
     etat.save()

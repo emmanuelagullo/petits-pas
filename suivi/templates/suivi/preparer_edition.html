@@ -11,10 +11,10 @@
 
   <fieldset>
     <legend>Contenu</legend>
-    <label for="contenu">Apprentissages affichés</label>
+    <label for="contenu">Compétences affichées</label>
     <select id="contenu" name="contenu">
       <option value="reussites"{% if parametres_carnet.contenu_par_defaut == 'reussites' %} selected{% endif %}>Réussites</option>
-      <option value="observes"{% if parametres_carnet.contenu_par_defaut == 'observes' %} selected{% endif %}>Réussites et apprentissages en cours</option>
+      <option value="observes"{% if parametres_carnet.contenu_par_defaut == 'observes' %} selected{% endif %}>Compétences réussies ou en cours</option>
       <option value="tout"{% if parametres_carnet.contenu_par_defaut == 'tout' %} selected{% endif %}>Référentiel complet</option>
     </select>
 
