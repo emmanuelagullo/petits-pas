@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Création d’une compétence : regrouper les compléments facultatifs, avec une
+  date commune à la réussite et à la trace, et une illustration séparée.
+
+
 - Publication PWA Éducation : vérifier la provenance avant téléchargement dans
   le job auxiliaire et afficher les valeurs publiques reçues, au lieu de
   refuser sa création sans journal dans workflow:rules. Les contrôles de

@@ -1,0 +1,21 @@
+<fieldset class="encadre complements-facultatifs">
+  <legend>Compléments facultatifs</legend>
+  <fieldset class="groupe-constat">
+    <legend>Réussite et trace</legend>
+    <p>{{ form.date_observation.label_tag }} {{ form.date_observation }} {{ form.date_observation.errors }}<small class="aide">À renseigner si vous enregistrez une réussite ou une trace.</small></p>
+    <fieldset class="option-constat">
+      <legend>Réussite</legend>
+      <label class="choix-simple" for="{{ form.reussite.id_for_label }}">{{ form.reussite }} {{ form.reussite.label }}</label>{{ form.reussite.errors }}
+      <p class="aide">Place la compétence à l’état « Réussi », à la date indiquée.</p>
+    </fieldset>
+    <details class="option-constat"{% if form.commentaire.value or form.commentaire.errors or form.photo.errors %} open{% endif %}>
+      <summary>Ajouter une trace</summary>
+      <p>{{ form.commentaire.label_tag }} {{ form.commentaire }} {{ form.commentaire.errors }}</p>
+      <p>{{ form.photo.label_tag }} {{ form.photo }} {{ form.photo.errors }}</p>
+    </details>
+  </fieldset>
+  <details class="option-constat"{% if form.icone.errors %} open{% endif %}>
+    <summary>Illustration de la compétence</summary>
+    <p>{{ form.icone.label_tag }} {{ form.icone }} {{ form.icone.errors }}</p>
+  </details>
+</fieldset>

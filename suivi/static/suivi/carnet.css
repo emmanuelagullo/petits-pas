@@ -957,7 +957,16 @@ textarea { min-height: 7rem; resize: vertical; }
 
 .illustration-competence { display: flex; align-items: center; padding: .5rem; }
 
-.choix-reussite { min-width: 0; border: 1px solid var(--trait); border-radius: var(--rayon); }
-.choix-reussite legend { padding: 0 .4rem; font-weight: 550; }
-.choix-reussite .choix-simple { margin-top: 0; }
-.choix-reussite .aide { margin-bottom: 0; }
+.complements-facultatifs { min-width: 0; margin: 1.25rem 0; }
+.complements-facultatifs legend { padding: 0 .4rem; font-weight: 550; }
+.complements-facultatifs .groupe-constat,
+.complements-facultatifs .option-constat {
+  min-width: 0;
+  margin: 1rem 0 0;
+  padding: 1rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+.complements-facultatifs .groupe-constat { margin-top: 0; }
+.complements-facultatifs .choix-simple { margin-top: 0; }
+.complements-facultatifs .aide:last-child { margin-bottom: 0; }
