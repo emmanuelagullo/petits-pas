@@ -261,3 +261,19 @@ pipeline enfant : lancer `source-inria` après validation Inria. Les artefacts
 expirés et les erreurs de contrôle restent fatals ; voir `CONTRIBUTING.md` pour
 les commandes et la reprise.
 L'auxiliaire conserve son fichier d'inclusion actuel et n'exige aucun jeton.
+
+## Diagnostic du déclenchement Éducation
+
+Sur Éducation, le workflow auxiliaire accepte uniquement un déclenchement
+interprojets (`CI_PIPELINE_SOURCE=pipeline`). Il contrôle ensuite la provenance
+publique dans le job, avant tout téléchargement : projet, identifiants, SHA,
+référence et éventuel tag numérique stable. Les valeurs reçues figurent dans
+le journal, sans secret. Une valeur absente ou incorrecte fait échouer le job.
+Les contrôles du pipeline Inria réussi, du même SHA, des jobs qualifiés et des
+empreintes restent obligatoires avant publication.
+
+Un refus de `workflow:rules` ne crée aucun job et ne permet pas de lire cette
+provenance. Le contrôle dans le job évite ce refus opaque ; il ne rend pas
+publiable un artefact invalide. Sur Inria, les conditions de création restent
+limitées à main et aux tags numériques stables. L’auxiliaire continue d’inclure
+la configuration applicative depuis main, sans copie à maintenir.

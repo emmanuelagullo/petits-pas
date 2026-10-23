@@ -7,6 +7,12 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Publication PWA Éducation : vérifier la provenance avant téléchargement dans
+  le job auxiliaire et afficher les valeurs publiques reçues, au lieu de
+  refuser sa création sans journal dans workflow:rules. Les contrôles de
+  qualification, de commit et d’empreintes restent obligatoires.
+
+
 - Suivi libre : vocabulaire unifié autour des compétences, compteurs propres à
   chaque élève, activation du suivi dans la page habituelle, traces et
   illustrations facultatives ; correction de la date de réussite sans changer

@@ -14,9 +14,9 @@ stages:
 
 workflow:
   rules:
-    - if: '$CI_SERVER_HOST == "forge.apps.education.fr" && $PWA_SOURCE_TAG && $PWA_SOURCE_TAG !~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/'
-      when: never
-    - if: '$CI_SERVER_HOST == "forge.apps.education.fr" && $CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "petits-pas/petits-pas" && $PWA_SOURCE_REF && $PWA_SOURCE_TAG == ""'
+    # Les variables du déclencheur doivent être contrôlées dans le job :
+    # leur refus ici empêche la création du pipeline et masque le diagnostic.
+    - if: '$CI_SERVER_HOST == "forge.apps.education.fr" && $CI_PIPELINE_SOURCE == "pipeline"'
     - if: '$CI_PIPELINE_SOURCE == "pipeline" && $PWA_SOURCE_PROJECT == "petits-pas/petits-pas" && ($PWA_SOURCE_REF == "main" || $PWA_SOURCE_TAG =~ /^[0-9]+\.[0-9]+(\.[0-9]+)?$/)'
     - when: never
 
@@ -27,10 +27,26 @@ pages:
     # Télécharger les scripts et le wheel épinglé au commit source, sans jeton personnel.
     - |
       python3 - <<'PY'
-      import os, re, urllib.parse, urllib.request
+      import json, os, re, urllib.parse, urllib.request
       from pathlib import Path
-      commit = os.environ['PWA_SOURCE_SHA']
-      assert re.fullmatch(r'[a-f0-9]{40}', commit)
+      noms = ('PWA_SOURCE_PROJECT', 'PWA_SOURCE_PROJECT_ID', 'PWA_SOURCE_PIPELINE_ID',
+              'PWA_SOURCE_SHA', 'PWA_SOURCE_REF', 'PWA_SOURCE_TAG')
+      contexte = {nom: os.environ.get(nom, '') for nom in noms}
+      print('Provenance PWA reçue :', json.dumps(contexte, ensure_ascii=False), flush=True)
+      commit = contexte['PWA_SOURCE_SHA']
+      if (os.environ.get('CI_PIPELINE_SOURCE') != 'pipeline'
+              or contexte['PWA_SOURCE_PROJECT'] != 'petits-pas/petits-pas'
+              or not all(re.fullmatch(r'[1-9][0-9]*', contexte[nom])
+                         for nom in ('PWA_SOURCE_PROJECT_ID', 'PWA_SOURCE_PIPELINE_ID'))
+              or not re.fullmatch(r'[a-f0-9]{40}', commit)
+              or not contexte['PWA_SOURCE_REF']):
+          raise ValueError('Provenance PWA absente ou invalide ; aucun téléchargement ni publication.')
+      tag, ref = contexte['PWA_SOURCE_TAG'], contexte['PWA_SOURCE_REF']
+      if tag:
+          if not re.fullmatch(r'[0-9]+\.[0-9]+(\.[0-9]+)?', tag) or ref != tag:
+              raise ValueError('Tag PWA invalide ; seuls les tags numériques stables sont publiables.')
+      elif os.environ.get('CI_SERVER_HOST') != 'forge.apps.education.fr' and ref != 'main':
+          raise ValueError('Branche PWA inattendue hors du miroir Éducation.')
       base = (os.environ['CI_API_V4_URL'] + '/projects/petits-pas%2Fpetits-pas'
               + '/repository/files/')
       fichiers = [
