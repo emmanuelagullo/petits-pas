@@ -1,13 +1,15 @@
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 
-from suivi.models import Trace, TraceCommune, ReglagePresentation, RessourceReferentiel
+from suivi.models import Trace, TraceCommune, ReglagePresentation, RessourceReferentiel, EleveApprentissage
 
 
 class Command(BaseCommand):
     help = "Vérifie que les médias référencés par la base restaurée existent."
 
     def handle(self, *args, **options):
+        for lien in EleveApprentissage.objects.select_related("disponibilite__locale", "scolarite__eleve"):
+            lien.full_clean()
         references = set()
         for modele, champs in (
             (Trace, ("photo",)),

@@ -201,7 +201,7 @@ class InstallationLocaleTests(TestCase):
         self.assertEqual(adoption.version.numero, fourni["version"])
         self.assertEqual(adoption.version.contenu, fourni)
         self.assertFalse(ChoixEcoleAnnuel.objects.get().restreindre)
-        self.assertEqual(len(choix_bases(classe.ecole, classe.annee_scolaire).versions), 3)
+        self.assertEqual(len(choix_bases(classe.ecole, classe.annee_scolaire).versions), 4)
 
     @override_settings(MODE_LOCAL=True, MODE_PWA=True)
     def test_navigateur_utilise_le_meme_demarrage(self):

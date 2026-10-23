@@ -43,6 +43,35 @@ class ImportEcoleTests(TransactionTestCase):
     def importer(self, projection, nom='École importée fictive'):
         return projection.importer(self.compte, nom, 'Commune fictive', self.direction)
 
+    def test_suivi_libre_ecole_et_classe_conservent_portee_et_reussites(self):
+        from datetime import date
+        from .services.suivi_libre import ajouter_reussite
+        ad = m.AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        locale = ajouter_reussite(utilisateur=self.prof, classe=self.classe,
+            ids=[self.eleve.pk], domaine_id=(ad.contenu or ad.version.contenu)["domaines"][0]["id"],
+            libelle="APPRENTISSAGE_LIBRE_FICTIF", niveau="MS", date_observation=date(2026, 10, 1),
+            adoption_attendue=ad.pk)
+        m.ExportEcole.objects.filter(ecole=self.ecole).delete()
+        export = m.ExportEcole.objects.create(ecole=self.ecole, demande_par=self.direction,
+            mot_de_passe_local="!", expire_le=timezone.now() + timedelta(hours=24))
+        produire(export)
+        with verifier_zip(dossier(export) / "ecole.zip", self.root) as projection:
+            ecole = self.importer(projection, nom="Copie complète libre")
+        copie = m.CompetenceLocale.objects.get(ecole=ecole, suivi_libre=True)
+        lien = m.EleveApprentissage.objects.get(disponibilite__locale=copie)
+        self.assertEqual(lien.scolarite.eleve.prenom, self.eleve.prenom)
+        self.assertNotEqual(lien.scolarite.eleve_id, self.eleve.pk)
+        self.assertTrue(m.Trace.objects.get(observation__competence=copie.competence).reussite)
+        self.assertFalse(AffectationClasse.objects.filter(classe=lien.scolarite.classe).exists())
+        demande = m.ExportClasse.objects.create(classe=self.classe, demande_par=self.prof,
+            mot_de_passe_local="!", expire_le=timezone.now() + timedelta(hours=24))
+        produire_classe(demande)
+        with verifier_zip(dossier(demande) / "ecole.zip", self.root) as projection:
+            ecole = self.importer(projection, nom="Copie classe libre")
+        copie = m.CompetenceLocale.objects.get(ecole=ecole, suivi_libre=True)
+        self.assertEqual(m.EleveApprentissage.objects.filter(disponibilite__locale=copie).count(), 1)
+        self.assertTrue(m.Trace.objects.get(observation__competence=copie.competence).reussite)
+
     def test_images_regles_et_credits_conserves_et_classes_initiales_remappees(self):
         from .services.cloture_referentiels import clore
         self.ecole.illustration_avec_photos = True

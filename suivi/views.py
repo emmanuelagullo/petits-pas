@@ -1847,6 +1847,8 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         scolarites_bilans = scolarites_visibles.filter(pk=scolarite.pk)
     else:
         scolarites_bilans = scolarites_visibles
+    for observation in etats.values():
+        observation.a_reussite_datee = any(t.reussite for t in observation.traces_carnet)
     domaines = []
     # Une lecture commune pour tous les domaines et acquisitions. Les titres
     # annuels conservent les niveaux réellement inscrits, y compris hors des
@@ -1861,13 +1863,13 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if mode == "reussites":
             lignes = [
-                (c, o) for c, o in lignes if o and o.statut == Observation.REUSSI
+                (c, o) for c, o in lignes if o and (o.statut == Observation.REUSSI or o.a_reussite_datee)
             ]
         elif mode == "observes":
             lignes = [
                 (c, o)
                 for c, o in lignes
-                if o and (o.statut in (Observation.REUSSI, Observation.EN_COURS) or (historique and o.traces_carnet))
+                if o and (o.statut in (Observation.REUSSI, Observation.EN_COURS) or o.a_reussite_datee or (historique and o.traces_carnet))
             ]
         if lignes:
             domaines.append(

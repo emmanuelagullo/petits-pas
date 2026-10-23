@@ -193,3 +193,66 @@ class ParcoursLibre(Base):
             eleves=[self.eleve.pk], niveau="PS", date_observation="2026-10-01", jeton=jeton))
         self.assertEqual(page.status_code, 200)
         self.assertFalse(CompetenceLocale.objects.exists())
+
+
+class CarnetsLibres(Base):
+    setUp = SuiviLibre.setUp
+    adopter = SuiviLibre.adopter
+    creer = SuiviLibre.creer
+
+    def test_reussite_passee_reste_datee_apres_modification_etat(self):
+        a = self.creer()
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=a.competence, statut="en_cours")
+        self.client.force_login(self.enseignant)
+        page = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"contenu": "reussites"})
+        self.assertContains(page, "Réussite observée le 1 octobre 2026")
+        self.assertContains(page, "En cours d'apprentissage")
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            pdf = self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]), {"contenu": "reussites"})
+        self.assertEqual(pdf.status_code, 200)
+        self.assertTrue(pdf.content.startswith(b"%PDF"))
+        import shutil, subprocess
+        if shutil.which("pdftotext"):
+            texte = subprocess.run(["pdftotext", "-", "-"], input=pdf.content,
+                                   capture_output=True, check=True).stdout.decode()
+            self.assertIn("Je raconte ma construction", texte)
+            self.assertIn("Réussite observée", texte)
+
+    def test_masquage_et_cloture_conservent_le_carnet_et_le_sous_domaine(self):
+        from .services.adaptations_referentiels import enregistrer_adaptation
+        from .services.cloture_referentiels import clore
+        a = self.creer(sous_domaine_id=self.adoption.contenu["sous_domaines"][0]["id"])
+        enregistrer_adaptation(utilisateur=self.enseignant, ecole=self.ecole,
+            annee=self.classe.annee_scolaire, classe=self.classe, adoption_attendue=self.adoption.pk,
+            competence=a.competence, libelle="Je décris ma construction", visible=False, revision_attendue=0)
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            clore(utilisateur=self.enseignant, classe=self.classe)
+        self.client.force_login(self.enseignant)
+        page = self.client.get(reverse("carnet", args=[self.eleve.pk]),
+                               {"annee": self.classe.annee_scolaire, "sous_domaines": "1"})
+        self.assertContains(page, "Je décris ma construction")
+        self.assertContains(page, "Langage oral")
+        self.assertContains(page, "Réussite observée")
+
+    def test_statistique_limitee_aux_eleves_encore_suivis(self):
+        from .statistiques import repartition_competences
+        a = self.creer([self.eleve.pk, self.autre.pk])
+        associer(utilisateur=self.enseignant, classe=self.classe, locale=a,
+            ids=[self.autre.pk], adoption_attendue=self.adoption.pk, retirer=True)
+        c = next(c for d in arbre_competences(self.ecole, classe=self.classe) for c in d.visibles if c.pk == a.competence_id)
+        repartition_competences(self.classe, [c])
+        self.assertEqual(c.repartition["total"], 1)
+        self.assertEqual(c.repartition["reussites"], 1)
+
+    def test_nouvelle_annee_ouvre_suivi_sans_nouvel_etat(self):
+        from .models import Classe, ReferentielAnnuel
+        a = self.creer()
+        c = Classe.objects.create(ecole=self.ecole, nom="Suite fictive", annee_scolaire="2027-2028")
+        self.affecter_enseignant(c); c.activer()
+        enfant = Eleve.objects.create(ecole=self.ecole, prenom="Jade")
+        Scolarite.objects.create(eleve=enfant, classe=c, annee_scolaire=c.annee_scolaire, niveau="PS")
+        annuel = ReferentielAnnuel.objects.create(ecole=self.ecole, annee_scolaire=c.annee_scolaire, version_proposee=self.a)
+        ad = AdoptionReferentiel.objects.create(classe=c, annuel=annuel, version=self.a, contenu=self.adoption.contenu)
+        associer(utilisateur=self.enseignant, classe=c, locale=a, ids=[enfant.pk], adoption_attendue=ad.pk)
+        self.assertFalse(Observation.objects.filter(eleve=enfant).exists())
+        self.assertFalse(EtatAnnuelObservation.objects.filter(annee_scolaire=c.annee_scolaire).exists())
