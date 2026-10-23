@@ -23,7 +23,7 @@ class SuiviLibre(Base):
     adopter = AdoptionBases.adopter
 
     def setUp(self):
-        super().setUp()
+        Base.setUp(self)
         reprendre(self.ecole.pk)
         self.a = importer_source((settings.BASE_DIR / "referentiel/structure-cycle1.yaml").read_text())[0]
         self.b = importer(document("base-fictive"))[0]
@@ -122,3 +122,74 @@ class SuiviLibre(Base):
         with self.assertRaises(ValidationError):
             associer(utilisateur=self.enseignant, classe=self.classe, locale=a,
                 ids=[self.autre.pk], adoption_attendue=self.adoption.pk)
+
+
+class ParcoursLibre(Base):
+    setUp = SuiviLibre.setUp
+    adopter = SuiviLibre.adopter
+    creer = SuiviLibre.creer
+
+    def test_categories_vides_et_sous_domaines_visibles(self):
+        self.client.force_login(self.enseignant)
+        for nom, args in (("saisie_eleve", [self.eleve.pk]), ("choisir_competence", [self.classe.pk])):
+            page = self.client.get(reverse(nom, args=args))
+            self.assertContains(page, "Ajouter une réussite")
+            self.assertContains(page, "Langage oral")
+            self.assertContains(page, "Découverte de l’écrit")
+
+    def test_formulaire_sans_javascript_et_selection_expresse(self):
+        self.client.force_login(self.enseignant)
+        url = reverse("ajouter_reussite", args=[self.classe.pk])
+        page = self.client.get(url)
+        d = dict(libelle="Je compose une suite fictive", domaine=self.entree["domaine_id"],
+            eleves=[self.eleve.pk], niveau="PS", date_observation="2026-10-01",
+            jeton=page.context["form"].initial["jeton"])
+        reponse = self.client.post(url, d)
+        self.assertEqual(reponse.status_code, 302)
+        self.assertTrue(Trace.objects.get().reussite)
+        self.assertEqual(EleveApprentissage.objects.count(), 1)
+        self.assertFalse(Observation.objects.filter(eleve=self.autre).exists())
+
+    def test_erreurs_rattachees_aux_champs_et_valeurs_conservees(self):
+        self.client.force_login(self.enseignant)
+        url = reverse("ajouter_reussite", args=[self.classe.pk])
+        page = self.client.get(url)
+        page = self.client.post(url, dict(libelle="Texte conservé", domaine=self.entree["domaine_id"],
+            eleves=[self.eleve.pk], niveau="PS", date_observation="2000-01-01",
+            jeton=page.context["form"].initial["jeton"]))
+        self.assertIn("date_observation", page.context["form"].errors)
+        self.assertContains(page, "Texte conservé")
+        self.assertFalse(CompetenceLocale.objects.exists())
+
+    def test_portee_individuelle_carnet_complet_et_collectif(self):
+        a = self.creer()
+        self.client.force_login(self.enseignant)
+        self.assertContains(self.client.get(reverse("saisie_eleve", args=[self.eleve.pk])), a.competence.libelle)
+        self.assertNotContains(self.client.get(reverse("saisie_eleve", args=[self.autre.pk])), a.competence.libelle)
+        self.assertNotContains(self.client.get(reverse("carnet", args=[self.autre.pk]), {"contenu": "tout"}), a.competence.libelle)
+        page = self.client.get(reverse("saisie_competence", args=[self.classe.pk, a.competence_id]))
+        self.assertContains(page, "Hors du suivi")
+        self.assertContains(page, "Ajouter des élèves")
+        self.assertEqual(self.client.post(reverse("basculer", args=[self.autre.pk, a.competence_id])).status_code, 403)
+
+    def test_association_sans_reussite_et_refus_direction(self):
+        a = self.creer()
+        self.client.force_login(self.enseignant)
+        url = reverse("eleves_apprentissage", args=[self.classe.pk, a.pk])
+        page = self.client.get(url)
+        self.assertEqual(self.client.post(url, {"eleves": [self.autre.pk], "action": "ajouter",
+            "jeton": page.context["form"].initial["jeton"]}).status_code, 302)
+        self.assertFalse(Observation.objects.filter(eleve=self.autre).exists())
+        self.client.force_login(self.direction)
+        self.assertIn(self.client.get(url).status_code, (403, 404))
+
+    def test_formulaire_perime_ne_cree_rien(self):
+        self.client.force_login(self.enseignant)
+        url = reverse("ajouter_reussite", args=[self.classe.pk])
+        page = self.client.get(url)
+        jeton = page.context["form"].initial["jeton"]
+        self.adopter(self.b)
+        page = self.client.post(url, dict(libelle="Essai périmé", domaine=self.entree["domaine_id"],
+            eleves=[self.eleve.pk], niveau="PS", date_observation="2026-10-01", jeton=jeton))
+        self.assertEqual(page.status_code, 200)
+        self.assertFalse(CompetenceLocale.objects.exists())

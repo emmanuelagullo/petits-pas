@@ -31,9 +31,10 @@ def repartition_competences(classe, competences):
         reussites = compte.get("reussites", 0)
         en_cours = compte.get("en_cours", 0)
         inconnus = compte.get("inconnus", 0)
-        reste = total - reussites - en_cours - inconnus
+        total_competence = len(competence.eleves_suivis_ids) if getattr(competence, "suivi_libre", False) else total
+        reste = max(0, total_competence - reussites - en_cours - inconnus)
         competence.repartition = {
-            "total": total, "reussites": reussites, "en_cours": en_cours,
+            "total": total_competence, "reussites": reussites, "en_cours": en_cours,
             "non_observes": reste, "etats_inconnus": inconnus,
         }
     return total

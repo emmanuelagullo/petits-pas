@@ -1,0 +1,27 @@
+{% extends "suivi/base.html" %}
+{% block titre %}{% if locale %}Élèves concernés{% else %}Ajouter une réussite{% endif %}{% endblock %}
+{% block contenu %}
+<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'choisir_competence' classe.pk %}">Suivi collectif</a></p>
+<h1>{% if locale %}Élèves concernés par cet apprentissage{% else %}Ajouter une réussite{% endif %}</h1>
+{% if locale %}
+<p>{{ locale.competence.libelle }}</p>
+<p>Ajouter des élèves ouvre leur suivi sans leur attribuer de réussite, de commentaire ni de photo. Ne plus proposer l’apprentissage conserve leurs observations et leurs carnets.</p>
+{% else %}
+<p>Créez un apprentissage pour les seuls élèves sélectionnés et enregistrez leur réussite datée. Leur état sera « Réussi » et restera modifiable. Commentaire et photo sont facultatifs.</p>
+{% endif %}
+<form method="post" enctype="multipart/form-data" id="formulaire-reussite">
+{% csrf_token %}
+{% if form.errors %}<div role="alert"><p>Vérifiez les informations suivantes :</p><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }} : {{ error }}</a></li>{% endfor %}{% endfor %}</ul>{{ form.non_field_errors }}</div>{% endif %}
+{{ form.as_p }}
+<div class="actions">
+<button class="bouton" type="submit" name="action" value="ajouter">{% if locale %}Ajouter au suivi sans réussite{% else %}Enregistrer la réussite{% endif %}</button>
+{% if locale %}<button class="bouton discret" type="submit" name="action" value="retirer">Ne plus proposer aux élèves sélectionnés</button>{% endif %}
+</div>
+</form>
+{% if reprises and not locale %}
+<details><summary>Retrouver un apprentissage déjà créé</summary>
+<p>Réutiliser son identité permet de compléter le suivi sans recopier une ancienne réussite, y compris à la rentrée suivante.</p>
+<ul>{% for a in reprises %}<li><a href="{% url 'eleves_apprentissage' classe.pk a.pk %}">{{ a.competence.libelle }}</a></li>{% endfor %}</ul>
+</details>
+{% endif %}
+{% endblock %}

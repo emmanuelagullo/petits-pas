@@ -889,6 +889,7 @@ def _progression(eleves, ecole, filtre="classe", classe=None):
     l'affichage global), indépendamment du filtre appliqué par élève.
     """
     competences = [c for d in _arbre(ecole, classe=classe) for c in d.visibles]
+    competences = [c for c in competences if not getattr(c, "suivi_libre", False)]
     niveaux_competences = {c.pk: c.niveau for c in competences}
     totaux_par_niveau = {}
     for competence in competences:
@@ -1113,10 +1114,9 @@ def saisie_eleve(request, pk):
         etats = {o.competence_id: projeter_etat_classe(o)
                  for o in observations_classe(courante.classe).filter(eleve=eleve, competence_id__in=visibles)}
     classe = courante.classe if courante else None
-    for d in _arbre(ecole, niveaux, classe=classe):
+    for d in _arbre(ecole, niveaux, classe=classe, eleve=eleve):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
-        if lignes:
-            domaines.append((d, lignes))
+        domaines.append((d, lignes))
 
     return render(
         request,
@@ -1138,7 +1138,7 @@ def contribuer_eleve(request, pk):
     )
     courante = eleve.scolarite_courante()
     classe = courante.classe if courante else None
-    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=classe) if d.visibles]
+    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=classe, eleve=eleve)]
     return render(
         request,
         "suivi/contribuer_eleve.html",
@@ -1150,12 +1150,12 @@ def contribuer_eleve(request, pk):
 def choisir_competence(request, pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
-    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=classe) if d.visibles]
+    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=classe)]
     effectif = repartition_competences(classe, [c for _d, competences in domaines for c in competences])
     return render(
         request,
         "suivi/choisir_competence.html",
-        {"classe": classe, "domaines": domaines, "effectif": effectif},
+        {"classe": classe, "domaines": domaines, "effectif": effectif, "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
     )
 
 
@@ -1174,7 +1174,8 @@ def saisie_competence(request, pk, competence_pk):
     eleves = list(avec_scolarites_pour_lecture(
         classe.eleves.annotate(derniere_annee=Max("scolarites__annee_scolaire"))))
     for eleve in eleves:
-        eleve.peut_saisir_dans_classe = eleve.derniere_annee == classe.annee_scolaire
+        eleve.hors_suivi = competence.suivi_libre and eleve.pk not in competence.eleves_suivis_ids
+        eleve.peut_saisir_dans_classe = eleve.derniere_annee == classe.annee_scolaire and not eleve.hors_suivi
     lignes = [(e, etats.get(e.pk)) for e in eleves]
     return render(
         request,
@@ -1202,6 +1203,9 @@ def _contexte_grille_competence(
     lignes = []
     compteurs = {"a_observer": 0, "en_cours": 0, "reussi": 0, "non_retrouve": 0}
     for eleve in classe.eleves:
+        if competence.suivi_libre and eleve.pk not in competence.eleves_suivis_ids:
+            lignes.append((eleve, None, "hors_suivi"))
+            continue
         observation = etats.get(eleve.pk)
         if observation and observation.historique_inconnu:
             etat = "non_retrouve"
@@ -1389,6 +1393,10 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
         if not (autorise(request.user, MODIFIER_ETAT, classe) or commune.auteur_id == request.user.pk):
             raise Http404
     eleves = list(avec_scolarites_pour_lecture(classe.eleves))
+    from .suivi_libre import est_libre, eleves_suivis
+    if est_libre(competence):
+        ids_suivis = eleves_suivis(classe, competence)
+        eleves = [e for e in eleves if e.pk in ids_suivis]
     selection_ids = set(commune.attributions.filter(supprime_le__isnull=True).values_list(
         "observation__eleve_id", flat=True
     )) if commune else set()
@@ -1652,6 +1660,9 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
     scolarite_courante = eleve.scolarite_courante()
     if scolarite_courante:
         competence = competence_classe(scolarite_courante.classe, competence) or competence
+    if obs is None and trace_pk is None and scolarite_courante:
+        from .suivi_libre import verifier_portee
+        verifier_portee(scolarite_courante.classe, competence, eleve=eleve)
     trace_obj = None
     if trace_pk is not None:
         trace_obj = get_object_or_404(
@@ -1758,7 +1769,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             "competence": competence,
             "obs": obs,
             "trace_obj": trace_obj,
-            "peut_ajouter": bool(scolarite_courante and competence_saisissable(scolarite_courante.classe, competence)),
+            "peut_ajouter": bool(scolarite_courante and competence_saisissable(scolarite_courante.classe, competence, eleve=eleve)),
             "traces": traces,
             "traces_supprimees": traces_supprimees,
             "responsable": responsable,
@@ -1846,7 +1857,7 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         scolarite__eleve=eleve, scolarite__in=scolarites_bilans,
         supprime_le__isnull=True).select_related("scolarite").order_by("date_bilan"))
         if regroupement == "bilan" else [])
-    for d in _arbre(ecole, classe=classe_presentation, inclure_ids=etats):
+    for d in _arbre(ecole, classe=classe_presentation, inclure_ids=etats, eleve=eleve):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         if mode == "reussites":
             lignes = [

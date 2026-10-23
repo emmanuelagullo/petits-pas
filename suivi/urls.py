@@ -1,9 +1,12 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
+from . import views_suivi_libre
 from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
+    path("classe/<int:pk>/reussite/", views_suivi_libre.suivi_libre, name="ajouter_reussite"),
+    path("classe/<int:pk>/apprentissage/<int:locale_pk>/eleves/", views_suivi_libre.suivi_libre, name="eleves_apprentissage"),
     path("classe/<int:pk>/export/", views_exports_classe.exporter_classe, name="exporter_classe"),
     path("classe/<int:pk>/export/<uuid:identifiant>.zip", views_exports_classe.telecharger_export_classe, name="telecharger_export_classe"),
     path("gestion/export/", views_exports.exporter_ecole, name="exporter_ecole"),

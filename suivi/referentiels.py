@@ -79,11 +79,12 @@ def arbre_version(ecole, contenu, *, niveaux=None, inclure_ids=(), masquer=True,
         competence.sous_domaine = sous_domaines.get(ligne["sous_domaine_id"])
         domaines[ligne["domaine_id"]].visibles.append(competence)
     for domaine in domaines.values():
+        domaine.sous_domaines_lus = [s for s in sous_domaines.values() if s.domaine_id == domaine.pk]
         domaine.visibles.sort(key=lambda c: (c.ordre, c.pk))
     return sorted(domaines.values(), key=lambda d: (d.ordre, d.pk))
 
 
-def arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=()):
+def _arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=(), eleve=None):
     if classe is not None and classe.ecole_id != ecole.pk:
         raise ValueError("Classe d'une autre école.")
     adoption = adoption_courante(classe)
@@ -238,11 +239,20 @@ def projeter_etat_classe(observation):
     return observation
 
 
-def competence_saisissable(classe, competence):
+def competence_saisissable(classe, competence, *, eleve=None):
     """Lecture seule pour expliquer les refus avant une nouvelle saisie."""
+    from .suivi_libre import est_libre, eleves_suivis
+    if eleve is not None and est_libre(competence) and eleve.pk not in eleves_suivis(classe, competence):
+        return False
     adoption = adoption_courante(classe)
     if adoption:
         return not adoption.clos and any(c["id"] == competence.pk and c["active"]
             for c in contenu_adoption(adoption).get("competences", []))
     return any(c.pk == competence.pk and c.active
         for d in arbre_competences(classe.ecole, classe=classe) for c in d.visibles)
+
+
+def arbre_competences(ecole, niveaux=None, *, classe=None, inclure_ids=(), eleve=None):
+    from .suivi_libre import preparer_arbre
+    arbre = _arbre_competences(ecole, niveaux, classe=classe, inclure_ids=inclure_ids)
+    return preparer_arbre(list(arbre), classe, eleve)

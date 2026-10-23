@@ -30,7 +30,7 @@
     <tbody>
       {% for eleve, observation, etat in lignes %}
       <tr>
-        <th>{{ eleve.prenom }} {{ eleve.nom }}{% if etat == 'non_retrouve' %} — état non retrouvé{% endif %}</th>
+        <th>{{ eleve.prenom }} {{ eleve.nom }}{% if etat == 'hors_suivi' %} — Hors du suivi{% endif %}{% if etat == 'non_retrouve' %} — état non retrouvé{% endif %}</th>
         <td class="marque-etat">{% if etat == 'a_observer' %}●{% else %}○{% endif %}</td>
         <td class="marque-etat">{% if etat == 'en_cours' %}●{% else %}○{% endif %}</td>
         <td class="marque-etat">{% if etat == 'reussi' %}●{% else %}○{% endif %}</td>

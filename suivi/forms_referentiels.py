@@ -17,7 +17,14 @@ class ChoixEcoleForm(forms.Form):
         super().__init__(*args, **kwargs)
         choix = [(v.pk, f"{v.source.titre} — version {v.numero}") for v in versions]
         self.fields["versions"].choices = choix
-        self.fields["proposee"].choices = [("", "Garder le choix proposé par l'application")] + choix
+        self.fields["proposee"].label = "Façon de commencer proposée aux classes"
+        libres = [(v.pk, v.source.titre) for v in versions if v.contenu.get("structure_seule")]
+        bases = [(v.pk, f"{v.source.titre} — version {v.numero}") for v in versions if not v.contenu.get("structure_seule")]
+        self.fields["proposee"].choices = [("", "Garder le choix proposé par l'application")]
+        if libres:
+            self.fields["proposee"].choices.append(("Démarrer sans compétences prédéfinies", libres))
+        if bases:
+            self.fields["proposee"].choices.append(("Partir d’un référentiel", bases))
 
     def clean(self):
         donnees = super().clean()
