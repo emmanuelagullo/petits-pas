@@ -4,6 +4,27 @@ Merci de l'intérêt porté à Petits Pas. Le projet accueille les corrections,
 les propositions fonctionnelles, les retours d'usage et les contributions au
 code ou à la documentation.
 
+## Diagnostiquer un téléchargement du socle en CI
+
+En cas de HTTP 502 sur le wheel, lancer manuellement `diagnostic-wheel` dans
+le pipeline Inria concerné. Ce job utilise la même image Python et le même
+profil de runners que les tests, sans installation de dépendances. Il relève
+les DNS, la présence de variables proxy (sans leurs valeurs), les hôtes des
+redirections et quelques en-têtes HTTP. Il compare l’URL épinglée à une requête
+distincte avec `no-cache` et vérifie l’empreinte du wheel reçu. Les sondes PyPI
+et GitHub servent de témoins. Un échec DNS local peut coexister avec un accès
+HTTP fonctionnel lorsque le proxy résout lui-même les noms.
+
+Le job finit en échec si l’URL exacte ne fournit pas le wheel attendu, même si
+la requête distincte fonctionne. Il est facultatif et ne participe pas à la
+qualification ; les tests, constructions et contrôles de publication restent
+obligatoires. Une différence entre les deux requêtes suggère un effet de cache
+ou de routage, sans suffire à identifier son responsable. Ne pas adopter la
+variante de diagnostic comme URL de dépendance sans analyser les résultats.
+
+Le script s’exécute aussi depuis la racine :
+`python3 scripts/diagnostiquer-wheel.py`. Il ne conserve aucun téléchargement.
+
 ## Licence des contributions
 
 Sauf mention explicite acceptée avant la contribution, toute contribution au

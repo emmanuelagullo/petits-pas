@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Ajouter une sonde manuelle de diagnostic HTTP du wheel dans la CI Inria,
+  indépendante de la qualification et sans changer les dépendances installées.
+
 - Retirer l’aide ambiguë sur la sélection des élèves à la création d’une
   compétence ; le choix d’enregistrer une réussite reste explicite dans son cadre.
 

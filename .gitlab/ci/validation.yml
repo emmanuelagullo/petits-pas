@@ -43,6 +43,18 @@ cache:
   paths:
     - .cache/pip
 
+diagnostic-wheel:
+  stage: test
+  cache: []
+  timeout: 5 minutes
+  # Job facultatif hors qualification : rouge si l’URL épinglée reste inaccessible.
+  # Aucun échec des jobs obligatoires n’est toléré par cette sonde.
+  when: manual
+  allow_failure: true
+  script:
+    - python3 -m unittest discover -s scripts -p test_diagnostic_wheel.py
+    - python3 scripts/diagnostiquer-wheel.py
+
 qualite-depot:
   interruptible: true
   stage: test
