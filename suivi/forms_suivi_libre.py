@@ -18,8 +18,7 @@ class SousDomainesSelect(forms.Select):
 
 class SelectionElevesForm(forms.Form):
     eleves = forms.TypedMultipleChoiceField(label="Élèves concernés", coerce=int,
-        widget=forms.CheckboxSelectMultiple,
-        help_text="Seuls ces élèves seront concernés. L’activation du suivi n’attribue aucune réussite.")
+        widget=forms.CheckboxSelectMultiple)
     jeton = forms.CharField(widget=forms.HiddenInput)
 
     def __init__(self, *args, classe, **kwargs):

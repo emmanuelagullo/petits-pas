@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Retirer l’aide ambiguë sur la sélection des élèves à la création d’une
+  compétence ; le choix d’enregistrer une réussite reste explicite dans son cadre.
+
 - CI : augmenter les reprises réseau de pip et le délai de connexion pour
   les erreurs HTTP 502 de GitHub, sans changer le wheel épinglé ni son empreinte.
 
