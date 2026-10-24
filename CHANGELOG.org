@@ -7,57 +7,62 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
-- Ajouter une sonde manuelle de diagnostic HTTP du wheel dans la CI Inria,
-  indépendante de la qualification et sans changer les dépendances installées.
+* 0.13 — 2026-10-25
 
-- Retirer l’aide ambiguë sur la sélection des élèves à la création d’une
-  compétence ; le choix d’enregistrer une réussite reste explicite dans son cadre.
+Cette version introduit le suivi de compétences hors du référentiel commun de
+la classe. Les équipes peuvent démarrer avec une structure de domaines et
+sous-domaines sans compétences prédéfinies, ou enrichir le suivi d’une base
+existante pour certains élèves, sans changer le référentiel de toute la classe.
 
-- CI : augmenter les reprises réseau de pip et le délai de connexion pour
-  les erreurs HTTP 502 de GitHub, sans changer le wheel épinglé ni son empreinte.
+** Suivi individuel et collectif
 
+- Ajouter une compétence hors référentiel depuis une catégorie, même vide,
+  pour un élève ou un groupe explicitement sélectionné. Le parcours reste
+  distinct de l’ajout au référentiel commun, avec des liens entre les deux.
+- Enregistrer une réussite à la création, option cochée par défaut et
+  désactivable. Ajouter ensuite d’autres élèves au suivi sans leur attribuer
+  automatiquement de réussite ; activer ou désactiver leur suivi depuis
+  la page habituelle de la compétence, sans effacer son historique.
+- Réutiliser les traces collectives et leurs versions personnelles. Réunir
+  les compléments facultatifs dans un cadre : réussite et trace avec une date
+  commune, commentaire et photo facultatifs, illustration de la compétence
+  séparée. Conserver les contrôles de droits et de portée.
+- Inclure les compétences ciblées dans les compteurs des élèves concernés.
+  Corriger une date de réussite en choisissant aujourd’hui, la date précédente
+  ou une date de l’année scolaire, sans modifier les dates des traces.
+- Lier les sous-domaines au domaine choisi, avec validation côté serveur et
+  une saisie utilisable sans JavaScript. Unifier le vocabulaire autour des
+  compétences, des réussites et des traces.
 
-- Distinguer « Ajouter une compétence hors référentiel » de l’ajout au
-  référentiel commun, avec des liens entre les parcours. Présélectionner la
-  réussite à la création individuelle et collective ; l’extension du suivi
-  à d’autres élèves continue de n’attribuer aucune réussite automatiquement.
+** Carnets, conservation et démonstration
 
+- Conserver les compétences ciblées et leurs traces dans les carnets/PDF,
+  les lectures annuelles et les exports/imports, avec leur portée par élève.
+  Adopter ensuite une autre base sans perdre ce suivi ni transférer d’acquis.
+- Ajouter la quatrième classe fictive de Rémi, Les Cerfs-volants, démarrée
+  sans compétences prédéfinies ; illustrer les ajouts individuels, collectifs
+  et les versions personnelles. Montrer les sous-domaines aux Mésanges.
+- Actualiser le Guide pratique, les pages d’entrée du site et la génération
+  des captures pour présenter les deux façons de commencer et leur coexistence.
 
-- Création d’une compétence : lier la liste des sous-domaines au domaine choisi,
-  expliciter les catégories sans sous-domaines et conserver une saisie regroupée
-  sans JavaScript, avec validation de la cohérence côté serveur.
+** Publication et CI
 
+- Corriger la transmission et le contrôle de provenance de la publication PWA
+  sur la Forge Éducation, en conservant les vérifications de qualification,
+  de commit et d’empreintes.
+- Renforcer les reprises réseau bornées de pip et fournir une sonde HTTP
+  manuelle indépendante des contrôles obligatoires. Le wheel Pas communs
+  0.9.0 et son empreinte restent inchangés.
 
-- Création d’une compétence : regrouper les compléments facultatifs, avec une
-  date commune à la réussite et à la trace, et une illustration séparée.
+** Mise à jour d’un service existant
 
-
-- Publication PWA Éducation : vérifier la provenance avant téléchargement dans
-  le job auxiliaire et afficher les valeurs publiques reçues, au lieu de
-  refuser sa création sans journal dans workflow:rules. Les contrôles de
-  qualification, de commit et d’empreintes restent obligatoires.
-
-
-- Suivi libre : vocabulaire unifié autour des compétences, compteurs propres à
-  chaque élève, activation du suivi dans la page habituelle, traces et
-  illustrations facultatives ; correction de la date de réussite sans changer
-  les traces ni les années closes.
-
-
-- Suivi libre (#SL1–4) : démarrer avec des domaines et sous-domaines seuls,
-  créer des compétences ciblées et, facultativement, des réussites datées pour les élèves choisis,
-  réutiliser les traces collectives et leurs versions personnelles. Ajouter
-  des élèves au suivi sans acquis automatique ; conserver les carnets,
-  catégories annuelles et transports. Les sous-domaines sont visibles dans
-  les saisies, y compris aux Mésanges. Quatrième classe de Rémi : Les Cerfs-volants.
-  Migration métier requise ; publication volontaire de la structure serveur
-  avec preparer_suivi_libre --annee. Les classes existantes gardent leur base.
-
-- Publication PWA Éducation : inscrire les valeurs explicites de provenance
-  dans le pipeline enfant, sans expansion différée entre déclenchements.
-
-- Publication PWA Éducation : transmettre explicitement un tag vide sur les
-  branches pour éviter le refus du pipeline auxiliaire par ses règles.
+Cette version comporte des migrations métier : suivre la procédure habituelle
+avec sauvegarde, installation des dépendances, migrations et collecte des
+fichiers statiques. Pour proposer la structure sans compétences prédéfinies
+au catalogue, exécuter volontairement
+=python3 manage.py preparer_suivi_libre --annee AAAA-AAAA= avec l’année scolaire
+concernée. Cette commande ne change ni le choix de base des classes existantes
+ni le défaut de l’école.
 
 * 0.12.2 — 2026-10-22
 
