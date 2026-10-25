@@ -114,7 +114,8 @@ PyWebView. Django écoute sur `127.0.0.1` pendant l’utilisation ; il n’y a p
 de service distant à administrer. Le courrier est désactivé. Sous Linux, le
 paquet de données se trouve par défaut dans
 `~/.local/share/petits-pas/paquet-autonome/` (ou dans `$XDG_DATA_HOME`) ; sous
-Windows, dans `%LOCALAPPDATA%\petits-pas\paquet-autonome`. Le chemin peut être
+Windows, dans `%LOCALAPPDATA%\petits-pas\paquet-autonome` ; sous macOS, dans
+`~/Library/Application Support/petits-pas/paquet-autonome`. Le chemin peut être
 choisi au lancement. Le programme et les données sont installés séparément :
 une mise à jour du programme conserve le paquet de données.
 

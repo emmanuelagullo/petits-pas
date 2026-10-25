@@ -39,7 +39,7 @@ Les essais actuels utilisent uniquement des données fictives.
 
 ### Avec le programme à télécharger
 
-[Choisir le téléchargement Windows ou Linux]({{< relref "/guide/local/telecharger-programme" >}}),
+[Choisir le téléchargement Windows, Mac ou Linux]({{< relref "/guide/local/telecharger-programme" >}}),
 puis [installer et ouvrir le programme]({{< relref "/guide/local/installer-programme" >}}).
 
 ### Préparer l’école et la première classe

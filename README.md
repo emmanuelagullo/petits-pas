@@ -96,7 +96,8 @@ Le lanceur ouvre PyWebView sur Django, lié uniquement à `127.0.0.1` sur un
 port libre. Fermer la fenêtre arrête le serveur. Par défaut, les nouveaux
 paquets résident sous `~/.local/share/petits-pas/paquet-autonome/` (ou sous
 `$XDG_DATA_HOME/petits-pas/paquet-autonome/` si cette variable est définie),
-hors du dépôt : une nouvelle extraction ou mise à jour du code conserve ainsi
+hors du dépôt (sous macOS : `~/Library/Application Support/petits-pas/paquet-autonome/`) :
+une nouvelle extraction ou mise à jour du code conserve ainsi
 les données. Le chemin se règle par `PETITS_PAS_PAQUET_AUTONOME` ou `--paquet`
 (prioritaire). Un chemin relatif est interprété depuis le répertoire de
 lancement. Le paquet contient `carnet.sqlite3`, `media/`, `secret-key`, les
@@ -263,12 +264,27 @@ powershell -ExecutionPolicy Bypass -File scripts/construire-paquet-windows.ps1
 
 Le script produit `dist/PetitsPas-windows.zip` : décompresser **tout** le
 dossier `PetitsPas` sur le poste de destination, puis ouvrir `PetitsPas.exe`.
+Sous macOS (Apple Silicon seulement, **version d'essai non signée**), avec Homebrew et
+Pango (`brew install pango`), puis :
+
+```sh
+bash scripts/construire-paquet-macos.sh
+```
+
+Le script construit `dist/PetitsPas.app` avec les bibliothèques Pango embarquées, exige
+`--verifier-distribution` du vrai programme et produit `dist/PetitsPas-macos-arm64.dmg`.
+La version minimale de macOS est celle mesurée par la qualification du socle `pas-communs`
+(macOS 15 ou plus au 25 octobre 2026). macOS bloque au premier lancement un programme non
+signé : **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**. Les données
+sont dans `~/Library/Application Support/petits-pas/paquet-autonome`.
+
 Si le miroir GitHub contient ce changement et que ses Actions sont activées,
-l'action **Paquets autonomes Linux et Windows (prototype)** construit les deux
-dossiers à chaque modification du code sur `main`. Elle peut aussi être
+l'action **Paquets autonomes Linux et Windows (prototype)** (le nom n'est pas modifié : la
+publication le référence) construit les programmes à chaque modification du code sur `main`,
+dont le programme macOS dans un job non bloquant. Elle peut aussi être
 lancée depuis l'onglet **Actions → Run workflow**. Chaque exécution fournit
-les artefacts `PetitsPas-Setup-windows`, `PetitsPas-windows` et
-`PetitsPas-linux`. Pour essayer l'installation graphique Windows, télécharger
+les artefacts `PetitsPas-Setup-windows`, `PetitsPas-windows`,
+`PetitsPas-linux` et, si son job réussit, `PetitsPas-macos`. Pour essayer l'installation graphique Windows, télécharger
 `PetitsPas-Setup-windows` et extraire son ZIP enveloppe. L'artefact
 `PetitsPas-windows` fournit le dossier portable et l'ancien installateur
 en ligne de commande, après extraction de ses deux niveaux de ZIP.
@@ -345,6 +361,7 @@ besoin d'une installation Python ou MSYS2 sur ce poste.
 
 Linux : données dans `${XDG_DATA_HOME:-~/.local/share}/petits-pas/paquet-autonome`.
 Windows : données dans `%LOCALAPPDATA%\petits-pas\paquet-autonome`.
+macOS : données dans `~/Library/Application Support/petits-pas/paquet-autonome`.
 `--paquet CHEMIN` et `PETITS_PAS_PAQUET_AUTONOME` restent utilisables dans les
 deux constructions ; les ZIP de sauvegarde permettent de transférer une école
 entre les deux systèmes. Éviter d'ouvrir simultanément le même paquet sur un

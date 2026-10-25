@@ -117,7 +117,7 @@ Les statuts employés sont :
 
 | Je voudrais… | État | Point important |
 | --- | --- | --- |
-| Télécharger le programme Linux ou l'installateur Windows | Selon publication | Consulter la fiche de téléchargement pour les versions et fichiers effectivement publiés. |
+| Télécharger l'installateur Windows, le programme Mac (essai) ou le programme Linux | Selon publication | Consulter la fiche de téléchargement pour les versions et fichiers effectivement publiés. |
 | Installer ou mettre à jour le programme | Disponible | Le setup Windows guide l'installation et la mise à jour ; les données restent séparées du programme. |
 | Revenir à la version précédente du programme | Technique uniquement sous Windows | Pas de bouton dans le setup ; une migration de la base peut empêcher une ancienne version de relire l'école. |
 | Télécharger un ZIP du paquet local | Disponible en mode local | Direction ; conserve la base, les médias et la clé du paquet. |

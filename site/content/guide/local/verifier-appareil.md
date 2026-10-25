@@ -22,7 +22,7 @@ Notez appareil, système, navigateur, version de Petits Pas et résultat : réus
 difficile ou impossible. [Signaler une difficulté]({{< relref "/guide/demarrage-aide" >}}),
 sans joindre de données d’élèves.
 
-Les bancs automatisés Linux et Windows ne prouvent pas le fonctionnement sur
+Les bancs automatisés Linux, Windows et Mac ne prouvent pas le fonctionnement sur
 toutes les tablettes. Dans le navigateur, la limite actuelle de **256 Mio avant
 compression** est une limite de l’application, pas du disque : la base reste
 en mémoire. Depuis #PWA11, les photos enregistrées sont lues à la demande ;
