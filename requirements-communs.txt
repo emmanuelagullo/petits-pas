@@ -1,2 +1,2 @@
 # Version et octets explicitement adoptés ; publier le wheel avant les consommateurs.
-pas-communs @ https://github.com/emmanuelagullo/pas-communs/releases/download/0.9.0/pas_communs-0.9.0-py3-none-any.whl#sha256=fbf41c38b9826734d516590512f055aaa4d3d64a94f458fb81dbfdd51ee9b9c4
+pas-communs @ https://github.com/emmanuelagullo/pas-communs/releases/download/0.10.1/pas_communs-0.10.1-py3-none-any.whl#sha256=f0fc771feb012007f275a1df068abb685db5ab79bbb92434119ea8c95f883433

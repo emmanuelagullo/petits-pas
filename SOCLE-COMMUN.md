@@ -1,6 +1,8 @@
 # Pas communs — état courant et historique des extractions
 
-La version `pas-communs` 0.9.0 est publiée et adoptée pour Petits Pas 0.12.
+La version `pas-communs` 0.10.1 est adoptée pour préparer Petits Pas 0.14 : programmes macOS
+(Apple Silicon, non signés), alerte de démarrage macOS, sonde du moteur de fenêtre et aide à
+l'installation. 0.9.0 avait été adoptée pour Petits Pas 0.12 et reste immuable.
 Préserver ses octets et son tag ; une correction documentaire ne la republie pas. L'URL et l'empreinte réellement adoptées sont celles
 de requirements-communs.txt. Les sections #SOC ci-dessous sont historiques.
 Lire aussi QUALIFICATION.md dans le dépôt du socle.
