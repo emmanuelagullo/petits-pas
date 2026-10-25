@@ -4,8 +4,8 @@ description = "Trouver la version de test adaptée à son ordinateur."
 fiche = true
 categorie = "local"
 publics = ["direction"]
-intentions = ["télécharger", "version", "Linux", "Windows", "logiciel autonome"]
-prerequis = "Disposer d’un ordinateur sous Ubuntu ou Windows ; utiliser des données fictives pour les essais."
+intentions = ["télécharger", "version", "Windows", "Mac", "macOS", "Linux", "logiciel autonome"]
+prerequis = "Disposer d’un ordinateur sous Windows, d’un Mac à puce Apple ou d’un ordinateur sous Ubuntu ; utiliser des données fictives pour les essais."
 depart = "Versions publiées de Petits Pas sur GitHub"
 statut = "disponible"
 +++
@@ -32,7 +32,11 @@ ordinateur :
 | Votre ordinateur | Fichier à choisir | Que faire ensuite ? |
 | --- | --- | --- |
 | Windows (64 bits) | `PetitsPas-Setup-…-x64.exe`, s’il est proposé | Ouvrir ce fichier et suivre l’assistant d’installation. |
+| Mac à puce Apple (macOS 15 ou plus), version d’essai | `PetitsPas-macos-arm64.dmg`, s’il est proposé | Ouvrir l’image disque, glisser Petits Pas dans Applications ; suivre la fiche d’installation Mac. |
 | Ubuntu (Linux 64 bits) | `PetitsPas-linux.tar.gz` | Extraire le dossier ; suivre la fiche d’installation Ubuntu. |
+
+Le programme pour Mac est une version d’essai, non signée : toutes les versions
+n’en proposent pas encore. Il ne fonctionne pas sur les anciens Mac à processeur Intel.
 
 Si la version ne propose que `PetitsPas-windows.zip` pour Windows, il s’agit
 d’une ancienne méthode d’installation qui demande des manipulations

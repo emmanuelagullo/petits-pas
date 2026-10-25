@@ -136,3 +136,30 @@ d'un PDF sur le poste de destination.
 
 En cas d'échec, noter l'étape, le message et le moteur graphique ; ne jamais
 envoyer une base ou un ZIP contenant des données réelles dans un ticket public.
+
+## Programme macOS (version d'essai)
+
+Le programme macOS est construit en CI mais n'a pas été essayé sur un Mac réel. Cet essai,
+sur un Mac à puce Apple avec macOS 15 ou plus, valide ce que la CI ne peut pas prouver. Prendre
+l'artefact `PetitsPas-macos` d'une exécution Actions ou le fichier `PetitsPas-macos-arm64.dmg`
+d'une release ; données fictives seulement.
+
+1. Ouvrir le DMG, glisser Petits Pas dans Applications, éjecter l'image. Ouvrir l'application :
+   macOS doit la bloquer ; **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**
+   doit la débloquer. Noter les intitulés réels et corriger la fiche d'installation Mac si
+   besoin. Le nom affiché dans le Dock doit être « Petits Pas ».
+2. Pour un paquet isolé, depuis un terminal :
+   `/Applications/PetitsPas.app/Contents/MacOS/PetitsPas --paquet "$HOME/petits-pas-essai-L6"`.
+   Refaire les contrôles 1 à 3 ci-dessus.
+3. Ce que seul un Mac réel établit : le **téléchargement de la sauvegarde ZIP** s'enregistre
+   réellement (fenêtre d'enregistrement de macOS), la **sélection du ZIP à restaurer** ouvre
+   la boîte de fichiers, l'**image de l'observation** s'affiche, le **carnet PDF** s'ouvre avec
+   des polices lisibles (accents, titres), la fenêtre reste réactive à l'agrandissement.
+4. Provoquer un échec de démarrage (par exemple un chemin `--paquet` inaccessible) : une
+   alerte macOS doit indiquer le journal
+   `~/Library/Application Support/petits-pas/logs/dernier-demarrage.log`.
+5. Une mise à jour : installer une seconde version par glisser-remplacer ; l'école doit être
+   retrouvée. Tester aussi une migration longue : la fenêtre ne présente pas d'indicateur de
+   progression sous macOS (comme sous Linux) ; noter si l'attente paraît trompeuse.
+6. Rendre compte à l'équipe : version de macOS, modèle de Mac, résultat de chaque contrôle.
+   Retirer la mention « version d'essai » des fiches seulement après cet essai.

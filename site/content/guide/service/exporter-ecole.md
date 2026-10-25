@@ -54,7 +54,7 @@ La page indique si le volume respecte les limites actuelles du navigateur :
 256 Mio décompressés, 5 000 entrées et 64 Mio par fichier ou pour la base.
 Les transferts progressifs évitent de charger tous les médias en mémoire ;
 ces limites demeurent les volumes qualifiés. Un ZIP plus volumineux peut être
-ouvert avec le programme Windows/Linux, avec assez d’espace disque.
+ouvert avec le programme Windows, Mac ou Linux, avec assez d’espace disque.
 
 Utilisez une version locale identique ou compatible plus récente. Commencez
 par [vérifier le ZIP dans une copie indépendante]({{< relref "/guide/local/verifier-zip/" >}}).

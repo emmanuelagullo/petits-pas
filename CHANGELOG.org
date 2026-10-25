@@ -7,6 +7,24 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+** Programme pour Mac (version d’essai)
+
+- Proposer un programme pour les Mac à puce Apple (macOS 15 ou plus), construit
+  automatiquement et non signé : macOS demande de l’ouvrir une première fois depuis
+  Réglages Système, Confidentialité et sécurité. Il n’a pas encore été essayé sur
+  un Mac réel et ne fonctionne pas sur les anciens Mac à processeur Intel.
+- Conserver les données de l’école hors du programme, dans
+  ~/Library/Application Support/petits-pas, et signaler par une alerte un échec
+  de démarrage en indiquant le journal.
+- Inclure les bibliothèques nécessaires aux carnets PDF dans le programme Mac.
+
+** Aide à l’installation
+
+- Expliquer l’avertissement de Windows qui accompagne un installateur non signé
+  et la marche à suivre si le composant WebView2 manque.
+- Ajouter la fiche d’installation et de mise à jour sur Mac, et une colonne Mac
+  dans le tableau des téléchargements.
+
 * 0.13 — 2026-10-25
 
 Cette version introduit le suivi de compétences hors du référentiel commun de

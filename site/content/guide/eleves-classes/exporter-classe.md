@@ -14,7 +14,7 @@ statut = "disponible"
 
 Sur la page de votre classe, dépliez **Transférer cette classe**, puis ouvrez
 **Exporter cette classe**. Cette opération est également proposée dans le
-programme Windows/Linux et dans l’application navigateur. Sur un service,
+programme Windows, Mac ou Linux et dans l’application navigateur. Sur un service,
 son autorisation est indépendante de celle d’exporter l’école entière.
 
 La copie contient cette classe pour son année scolaire : enfants non archivés,
@@ -43,7 +43,7 @@ et gardez le nouveau mot de passe séparément.
 Dans une nouvelle installation locale de version compatible, ouvrez
 **Vérifier un ZIP sans remplacer mon école**, puis **Utiliser ce ZIP comme école
 sur cet appareil**. Vous pouvez d’abord [vérifier le ZIP dans une copie indépendante]({{< relref "/guide/local/verifier-zip/" >}}).
-La PWA conserve ses limites de volume ; utilisez le programme Windows/Linux si
+La PWA conserve ses limites de volume ; utilisez le programme Windows, Mac ou Linux si
 la copie les dépasse.
 
 Connectez-vous avec votre identifiant et le nouveau mot de passe. Vous êtes

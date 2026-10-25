@@ -299,6 +299,16 @@ configuration produit scripts/installateur-windows.json. Ne pas modifier
 l’AppId historique, les chemins installés ou le raccourci lors de l’extraction.
 Conserver le contrôle du journal et la promotion des octets validés.
 
+#SOC macOS : le programme macOS (Apple Silicon, non signé, DMG) est construit par
+scripts/construire-paquet-macos.sh et le job macos de paquets-locaux.yml, non bloquant : ne pas
+le rendre bloquant sans décision explicite, car sa conclusion déclenche la publication de
+Windows et Linux. L'identifiant de bundle fr.inria.petitspas (PetitsPas.spec) est stable :
+ne jamais le changer. Ne pas renommer ce workflow, que publier-programmes.yml et
+publier-paquets.py désignent par son nom. L'artefact PetitsPas-macos est optionnel à la
+publication ; présent, il est vérifié comme les autres. Dire « version d'essai » sur le site
+tant que VALIDATION-PAQUET-AUTONOME.md (programme macOS) n'a pas été déroulé sur un Mac réel.
+Le dossier de données se choisit par sys.platform, jamais par os.name seul.
+
 #SOC6c — publications automatiques : un tag numérique qualifié déclenche
 la release GitHub ; la PWA automatique exige un tag sans suffixe. Le workflow de publication GitHub utilise le code de
 main et les artefacts du run terminé ; ignorer branches, PR, forks et échecs.
