@@ -51,8 +51,12 @@ def prepare(run_id, tag, folder):
             break
         page += 1
     extracted = {}
-    for name in ('PetitsPas-linux', 'PetitsPas-windows', 'PetitsPas-Setup-windows'):
+    for name in ('PetitsPas-linux', 'PetitsPas-windows', 'PetitsPas-Setup-windows', 'PetitsPas-macos'):
         candidates = [a for a in artifacts if a['name'] == name]
+        if name == 'PetitsPas-macos' and not candidates:
+            # Le job macOS est non bloquant : sans artefact, la release sort sans macOS. Présent, il
+            # est vérifié comme les autres (ni expiré, ni ambigu, manifeste et octets exacts).
+            continue
         if len(candidates) != 1 or candidates[0]['expired']:
             raise ValueError('Artefact absent, ambigu ou expiré : ' + name)
         artifact = candidates[0]
@@ -74,8 +78,12 @@ def prepare(run_id, tag, folder):
     if not combined_setup.exists():
         shutil.copyfile(setup, combined_setup)
     manifests = []
-    for name, target, expected in [('linux', 'linux-ubuntu24.04-x86_64', {'PetitsPas-linux.tar.gz', 'notes-version.md'}),
-                                 ('windows', 'windows-x64', {'PetitsPas-windows.zip', f'PetitsPas-Setup-{tag}-x64.exe', 'notes-version.md'})]:
+    macos = 'PetitsPas-macos' in extracted
+    cibles = [('linux', 'linux-ubuntu24.04-x86_64', {'PetitsPas-linux.tar.gz', 'notes-version.md'}),
+              ('windows', 'windows-x64', {'PetitsPas-windows.zip', f'PetitsPas-Setup-{tag}-x64.exe', 'notes-version.md'})]
+    if macos:
+        cibles.append(('macos', 'macos-arm64', {'PetitsPas-macos-arm64.dmg', 'notes-version.md'}))
+    for name, target, expected in cibles:
         source = extracted['PetitsPas-' + name]
         path = source / ('publication-' + name + '.json')
         record = json.loads(path.read_text())
@@ -94,6 +102,10 @@ def prepare(run_id, tag, folder):
     windows_notes = (extracted['PetitsPas-windows'] / 'notes-version.md').read_bytes()
     if linux_notes.replace(b'\r\n', b'\n') != windows_notes.replace(b'\r\n', b'\n'):
         raise ValueError('Fichier divergent entre artefacts : notes-version.md')
+    if macos:
+        macos_notes = (extracted['PetitsPas-macos'] / 'notes-version.md').read_bytes()
+        if macos_notes.replace(b'\r\n', b'\n') != linux_notes.replace(b'\r\n', b'\n'):
+            raise ValueError('Fichier divergent entre artefacts : notes-version.md')
     # La note commune conserve les octets Linux ; garder aussi l’original Windows
     # si ses fins de ligne diffèrent, pour retrouver les empreintes du manifeste.
     (folder / 'notes-version.md').write_bytes(linux_notes)
@@ -106,9 +118,18 @@ def prepare(run_id, tag, folder):
     current = api('actions/runs/' + run_id)
     if verify_run(current, tag) != commit or current['run_attempt'] != run['run_attempt']:
         raise ValueError('Construction modifiée pendant le téléchargement.')
-    files = [folder / 'PetitsPas-linux.tar.gz', folder / 'PetitsPas-windows.zip', folder / f'PetitsPas-Setup-{tag}-x64.exe', *manifests, folder / 'notes-version.md', *extra_notes]
+    programmes = [folder / 'PetitsPas-linux.tar.gz', folder / 'PetitsPas-windows.zip', folder / f'PetitsPas-Setup-{tag}-x64.exe']
+    if macos:
+        programmes.append(folder / 'PetitsPas-macos-arm64.dmg')
+    files = [*programmes, *manifests, folder / 'notes-version.md', *extra_notes]
     (folder / 'SHA256SUMS').write_text(''.join(f'{sha256(p)}  {p.name}\n' for p in files), encoding='utf-8')
     return files + [folder / 'SHA256SUMS'], commit
+
+
+def systemes_publies(files):
+    macos = any(f.name == 'PetitsPas-macos-arm64.dmg' for f in files)
+    return ('Windows x64, Mac à puce Apple (version d’essai : macOS 15 ou plus, non signé) et Ubuntu 24.04 x86-64'
+            if macos else 'Windows x64 et Ubuntu 24.04 x86-64')
 
 
 def selectionner_evenement(evenement, nom_evenement, reference):
@@ -138,7 +159,7 @@ def main():
         if subprocess.run(['gh', 'release', 'view', args.tag, '--repo', DEPOT], capture_output=True).returncode == 0:
             raise ValueError('Cette release existe déjà ; aucun fichier ne sera remplacé.')
         notes = folder / 'release.md'
-        notes.write_text((folder / 'notes-version.md').read_text(encoding='utf-8') + f'\nCode : `{commit}`. Construction : https://github.com/{DEPOT}/actions/runs/{args.run}\n\nWindows x64 et Ubuntu 24.04 x86-64. Les données de l’école restent séparées du programme.\n', encoding='utf-8')
+        notes.write_text((folder / 'notes-version.md').read_text(encoding='utf-8') + f'\nCode : `{commit}`. Construction : https://github.com/{DEPOT}/actions/runs/{args.run}\n\n{systemes_publies(files)}. Les données de l’école restent séparées du programme.\n', encoding='utf-8')
         print('Publication des fichiers vérifiés :', args.tag, commit, flush=True)
         gh('release', 'create', args.tag, *map(str, files), '--repo', DEPOT, '--verify-tag', '--draft', '--prerelease', '--latest=false', '--title', 'Petits Pas ' + args.tag, '--notes-file', str(notes))
         downloaded = folder / 'uploaded'; downloaded.mkdir()

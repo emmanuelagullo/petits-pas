@@ -20,6 +20,21 @@ class CatalogueTests(unittest.TestCase):
         versions=module.catalogue([published,draft,candidate])['versions']
         self.assertEqual(len(versions),1);self.assertIn('windows',versions[0])
 
+    def test_macos_propose_seulement_depuis_la_release_publique(self):
+        release=self.release()
+        dmg='https://github.com/emmanuelagullo/petits-pas/releases/download/0.8/PetitsPas-macos-arm64.dmg'
+        release['assets'].append({'name':'PetitsPas-macos-arm64.dmg','size':10,'browser_download_url':dmg})
+        entree=module.catalogue([release])['versions'][0]
+        self.assertEqual(entree['macos'],dmg);self.assertIn('windows',entree);self.assertNotIn('linux',entree)
+        release['assets'][1]['browser_download_url']='https://ailleurs-fictif.example/PetitsPas-macos-arm64.dmg'
+        self.assertNotIn('macos',module.catalogue([release])['versions'][0])
+        release['assets'][1].update(size=0,browser_download_url=dmg)
+        self.assertNotIn('macos',module.catalogue([release])['versions'][0])
+
+    def test_release_sans_macos_reste_annoncee_comme_avant(self):
+        entree=module.catalogue([self.release()])['versions'][0]
+        self.assertNotIn('macos',entree);self.assertIn('windows',entree)
+
     def test_fichier_sur_une_autre_origine_non_propose(self):
         release=self.release();release['assets'][0]['browser_download_url']='https://ailleurs-fictif.example/setup.exe'
         self.assertEqual(module.catalogue([release])['versions'],[])
