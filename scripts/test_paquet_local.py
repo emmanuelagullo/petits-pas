@@ -318,6 +318,58 @@ class PaquetLocalTests(unittest.TestCase):
                 Path("C:/Users/test/AppData/Local/petits-pas/paquet-autonome"),
             )
 
+    def test_emplacement_macos_sous_library_application_support(self):
+        with tempfile.TemporaryDirectory() as personnel:
+            environnement = SimpleNamespace(name="posix", environ={"HOME": personnel, "XDG_DATA_HOME": "/ailleurs"})
+            with patch.object(local, "os", environnement), patch.object(sys, "platform", "darwin"):
+                self.assertEqual(
+                    local.paquet_par_defaut(),
+                    Path(personnel) / "Library/Application Support/petits-pas/paquet-autonome",
+                )
+
+    def test_emplacement_linux_reste_xdg(self):
+        with tempfile.TemporaryDirectory() as personnel:
+            environnement = SimpleNamespace(name="posix", environ={"HOME": personnel, "XDG_DATA_HOME": personnel + "/xdg"})
+            with patch.object(local, "os", environnement), patch.object(sys, "platform", "linux"):
+                self.assertEqual(local.paquet_par_defaut(), Path(personnel) / "xdg/petits-pas/paquet-autonome")
+
+    def test_notification_choisie_selon_le_systeme(self):
+        with patch.object(local, "os", SimpleNamespace(name="nt")):
+            self.assertIs(local.notifier_systeme(), local.afficher_erreur_windows)
+        with patch.object(local, "os", SimpleNamespace(name="posix")), patch.object(sys, "platform", "darwin"), \
+                patch.object(local.notification, "notifier_macos", return_value="alerte-macos") as fabrique:
+            self.assertEqual(local.notifier_systeme(), "alerte-macos")
+            fabrique.assert_called_once_with("Petits Pas")
+        with patch.object(local, "os", SimpleNamespace(name="posix")), patch.object(sys, "platform", "linux"):
+            self.assertTrue(callable(local.notifier_systeme()))
+
+    def test_demarrage_macos_alerte_avec_le_chemin_du_journal(self):
+        with tempfile.TemporaryDirectory() as temporaire:
+            paquet = Path(temporaire) / "paquet-autonome"
+            alerte = MagicMock()
+            with patch.object(local, "paquet_par_defaut", return_value=paquet), patch.object(
+                local, "main", side_effect=RuntimeError("échec fictif")
+            ), patch.object(local.notification, "notifier_macos", return_value=alerte), patch.object(
+                sys, "argv", ["PetitsPas"]
+            ):
+                with self.assertRaises(SystemExit) as sortie:
+                    local.demarrer_macos()
+            self.assertEqual(sortie.exception.code, 1)
+            journal = Path(temporaire) / "logs" / "dernier-demarrage.log"
+            self.assertIn("échec fictif", journal.read_text(encoding="utf-8"))
+            alerte.assert_called_once()
+            self.assertIn(str(journal), alerte.call_args.args[0])
+
+    def test_verification_pdf_macos_depuis_les_sources(self):
+        local.verifier_pdf_macos()  # WeasyPrint et ses polices du système, sans bundle
+
+    def test_verification_pdf_macos_refuse_un_bundle_sans_pango(self):
+        with tempfile.TemporaryDirectory() as bundle:
+            with patch.object(sys, "frozen", True, create=True), patch.object(sys, "_MEIPASS", bundle, create=True):
+                with self.assertRaises(RuntimeError) as erreur:
+                    local.verifier_pdf_macos()
+            self.assertIn("libgobject-2.0.0.dylib", str(erreur.exception))
+
     @unittest.skipIf(os.name == "nt", "Installateur Ubuntu")
     def test_installation_linux_conserve_les_donnees_et_la_version_precedente(self):
         racine = Path(__file__).resolve().parent.parent
