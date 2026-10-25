@@ -21,14 +21,15 @@ def catalogue(releases):
             continue
         assets={a['name']:a for a in release.get('assets',[])}
         windows=assets.get(f'PetitsPas-Setup-{tag}-x64.exe');linux=assets.get('PetitsPas-linux.tar.gz')
+        macos=assets.get('PetitsPas-macos-arm64.dmg')
         entry={'version':tag,'date':release['published_at'][:10],
                'notes':f'https://github.com/emmanuelagullo/petits-pas/releases/tag/{tag}'}
-        for mode,asset in [('windows',windows),('linux',linux)]:
+        for mode,asset in [('windows',windows),('macos',macos),('linux',linux)]:
             if asset and asset.get('size',0)>0:
                 expected=f'https://github.com/emmanuelagullo/petits-pas/releases/download/{tag}/{asset["name"]}'
                 if asset.get('browser_download_url') == expected:
                     entry[mode]=expected
-        if 'windows' in entry or 'linux' in entry:result.append(entry)
+        if 'windows' in entry or 'macos' in entry or 'linux' in entry:result.append(entry)
     return {'versions':result,'verified_at':datetime.now(timezone.utc).isoformat()}
 
 
