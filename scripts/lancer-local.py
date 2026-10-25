@@ -11,10 +11,13 @@ from pathlib import Path
 from threading import Event, RLock, Thread
 
 from pas_communs import local as bureau
+from pas_communs import moteur, notification, pango_macos
 
 
 def paquet_par_defaut():
-    return bureau.paquet_par_defaut("petits-pas", environnement=os.environ, plateforme=os.name)
+    # os.name vaut « posix » sous macOS comme sous Linux : sys.platform distingue le dossier des données.
+    plateforme = "nt" if os.name == "nt" else sys.platform
+    return bureau.paquet_par_defaut("petits-pas", environnement=os.environ, plateforme=plateforme)
 
 
 verrouiller = bureau.verrouiller
@@ -43,6 +46,8 @@ def configurer_environnement(paquet, cle):
         bibliotheques = Path(sys._MEIPASS)
         if (bibliotheques / "libgobject-2.0-0.dll").is_file():
             os.environ["WEASYPRINT_DLL_DIRECTORIES"] = str(bibliotheques)
+    # Sous macOS, les bibliothèques Pango du .app doivent être connues avant tout import de WeasyPrint.
+    pango_macos.preparer_pango_embarque()
 
 
 def migration_necessaire(paquet):
@@ -96,6 +101,27 @@ def progression_migration():
         fil.join(timeout=1)
 
 
+def verifier_pdf_macos():
+    """Le .app embarque Pango, WeasyPrint le charge par chemin absolu et trouve des polices."""
+    import warnings
+
+    if getattr(sys, "frozen", False):
+        for _, nom in pango_macos.BIBLIOTHEQUES:
+            if not (Path(sys._MEIPASS) / nom).is_file():
+                raise RuntimeError(f"Bibliothèque PDF absente du paquet macOS : {nom}")
+    pango_macos.preparer_pango_embarque()
+    from weasyprint import HTML
+
+    with warnings.catch_warnings(record=True) as avertissements:
+        warnings.simplefilter("always")
+        pdf = HTML(string="<p>Vérification PDF Petits Pas</p>").write_pdf()
+    polices = [str(a.message) for a in avertissements if "fontconfig" in str(a.message).lower()]
+    if polices:
+        raise RuntimeError("Polices introuvables pour le PDF macOS : " + polices[0])
+    if not pdf.startswith(b"%PDF-"):
+        raise RuntimeError("Le paquet macOS ne produit pas de PDF.")
+
+
 def verifier_distribution(projet):
     """Contrôler les ressources nécessaires avant toute création de paquet."""
     import django
@@ -130,6 +156,11 @@ def verifier_distribution(projet):
         pdf = HTML(string="<p>Vérification PDF Petits Pas</p>").write_pdf()
         if not pdf.startswith(b"%PDF-"):
             raise RuntimeError("Le paquet Windows ne produit pas de PDF.")
+    elif sys.platform == "darwin":
+        # WKWebView via PyObjC : l'import de webview seul ne charge pas le moteur Cocoa.
+        import webview.platforms.cocoa  # noqa: F401
+
+        verifier_pdf_macos()
     else:
         import gi
 
@@ -418,6 +449,9 @@ def executer(paquet, projet, arguments):
             raise SystemExit(f"Échec du chargement du CSS local : {exc}") from exc
         # Ne pas placer l'objet fenêtre sur js_api : PyWebView parcourt les
         # attributs publics de cet objet et récursait dans fenetre.native.
+        # Indice seulement : un composant absent n'interdit pas toujours la fenêtre, qui reste tentée.
+        if sys.platform != "linux":
+            moteur.signaler_moteur("Petits Pas", notifier=notifier_systeme())
         fenetre = bureau.creer_fenetre(
             "Petits Pas — ZIP à vérifier" if arguments.apercu else ("Petits Pas — espace d’essai" if arguments.essai else "Petits Pas"), serveur.url,
             commandes=commandes,
@@ -446,6 +480,22 @@ def afficher_erreur_windows(message):
     ctypes.windll.user32.MessageBoxW(None, message, "Petits Pas", 0x10)
 
 
+def notifier_systeme():
+    """Message pour l'utilisateur, selon le système : boîte Windows, alerte macOS, sinon sortie d'erreur."""
+    if os.name == "nt":
+        return afficher_erreur_windows
+    if sys.platform == "darwin":
+        return notification.notifier_macos("Petits Pas")
+    return lambda message: print(message, file=sys.stderr)
+
+
+def demarrer_macos():
+    return bureau.demarrer_avec_journal(main,
+        paquet_par_defaut().parent / "logs" / "dernier-demarrage.log",
+        application="Petits Pas", notifier=notification.notifier_macos("Petits Pas"),
+        interactif="--verifier-distribution" not in sys.argv)
+
+
 def demarrer_windows():
     return bureau.demarrer_avec_journal(main,
         paquet_par_defaut().parent / "logs" / "dernier-demarrage.log",
@@ -456,5 +506,7 @@ def demarrer_windows():
 if __name__ == "__main__":
     if os.name == "nt" and getattr(sys, "frozen", False):
         demarrer_windows()
+    elif sys.platform == "darwin" and getattr(sys, "frozen", False):
+        demarrer_macos()
     else:
         main()
