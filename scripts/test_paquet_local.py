@@ -16,6 +16,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from zipfile import ZipFile
 
+from pas_communs import pango_macos
 from suivi.paquet_local import (
     annuler_preparation,
     appliquer_restauration,
@@ -252,6 +253,8 @@ class PaquetLocalTests(unittest.TestCase):
             )
             for nom in dlls:
                 (Path(temporaire) / nom).touch()
+            for _, nom in pango_macos.BIBLIOTHEQUES:
+                (Path(temporaire) / nom).touch()  # dylibs fictives pour un essai sous macOS
             for emplacement in (racine, racine / "scripts"):
                 with self.subTest(emplacement=emplacement), patch.dict(sys.modules, modules), patch.dict(
                     os.environ, {"PETITS_PAS_PANGO_BIN": temporaire}
@@ -276,13 +279,49 @@ class PaquetLocalTests(unittest.TestCase):
                         "PYZ": lambda *args: None,
                         "EXE": lambda *args, **kwargs: consoles.append(kwargs["console"]),
                         "COLLECT": lambda *args, **kwargs: None,
+                        "BUNDLE": lambda *args, **kwargs: None,
                     }
                     code = (racine / "scripts" / "PetitsPas.spec").read_text()
                     exec(compile(code, "PetitsPas.spec", "exec"), espace)
                     self.assertEqual(appels, [str(racine / "scripts" / "lancer-local.py")])
-                    self.assertEqual(consoles, [os.name != "nt"])
+                    self.assertEqual(consoles, [sys.platform.startswith("linux")])
 
-    @unittest.skipIf(os.name == "nt", "WebKitGTK concerne Linux")
+    def test_spec_macos_nomme_le_bundle_et_embarque_pango(self):
+        racine = Path(__file__).resolve().parent.parent
+        with tempfile.TemporaryDirectory() as temporaire:
+            for _, nom in pango_macos.BIBLIOTHEQUES:
+                (Path(temporaire) / nom).touch()
+            hooks = ModuleType("PyInstaller.utils.hooks")
+            hooks.collect_data_files = lambda *args, **kwargs: []
+            hooks.collect_submodules = lambda *args, **kwargs: []
+            modules = {nom: ModuleType(nom) for nom in ("PyInstaller", "PyInstaller.utils")}
+            modules[hooks.__name__] = hooks
+            vus = {}
+
+            def analyser(scripts, **kwargs):
+                vus["binaries"] = kwargs["binaries"]
+                vus["imports"] = kwargs["hiddenimports"]
+                return SimpleNamespace(pure=[], scripts=[], binaries=[], datas=[])
+
+            espace = {
+                "SPECPATH": str(racine / "scripts"), "Analysis": analyser, "PYZ": lambda *args: None,
+                "EXE": lambda *args, **kwargs: vus.setdefault("exe", kwargs),
+                "COLLECT": lambda *args, **kwargs: "collecte",
+                "BUNDLE": lambda *args, **kwargs: vus.setdefault("bundle", kwargs),
+            }
+            with patch.dict(sys.modules, modules), patch.object(sys, "platform", "darwin"), patch.dict(
+                os.environ, {"PETITS_PAS_PANGO_BIN": temporaire}
+            ):
+                exec(compile((racine / "scripts" / "PetitsPas.spec").read_text(), "PetitsPas.spec", "exec"), espace)
+            self.assertEqual(vus["bundle"]["name"], "PetitsPas.app")
+            self.assertEqual(vus["bundle"]["bundle_identifier"], "fr.inria.petitspas")
+            self.assertEqual(vus["bundle"]["info_plist"]["CFBundleDisplayName"], "Petits Pas")
+            self.assertEqual(vus["exe"]["target_arch"], "arm64")
+            self.assertFalse(vus["exe"]["console"])
+            self.assertIn("webview.platforms.cocoa", vus["imports"])
+            self.assertEqual(len(vus["binaries"]), len(pango_macos.BIBLIOTHEQUES))
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "WebKitGTK concerne Linux")
     def test_spec_embarque_typelib_webkit(self):
         racine = Path(__file__).resolve().parent.parent
         with tempfile.TemporaryDirectory() as temporaire:
@@ -361,6 +400,10 @@ class PaquetLocalTests(unittest.TestCase):
             self.assertIn(str(journal), alerte.call_args.args[0])
 
     def test_verification_pdf_macos_depuis_les_sources(self):
+        try:
+            import weasyprint  # noqa: F401
+        except ImportError:
+            self.skipTest("WeasyPrint absent de cet environnement de test")
         local.verifier_pdf_macos()  # WeasyPrint et ses polices du système, sans bundle
 
     def test_verification_pdf_macos_refuse_un_bundle_sans_pango(self):
@@ -370,7 +413,7 @@ class PaquetLocalTests(unittest.TestCase):
                     local.verifier_pdf_macos()
             self.assertIn("libgobject-2.0.0.dylib", str(erreur.exception))
 
-    @unittest.skipIf(os.name == "nt", "Installateur Ubuntu")
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Installateur Ubuntu")
     def test_installation_linux_conserve_les_donnees_et_la_version_precedente(self):
         racine = Path(__file__).resolve().parent.parent
         with tempfile.TemporaryDirectory() as temporaire:

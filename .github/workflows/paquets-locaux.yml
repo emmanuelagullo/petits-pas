@@ -138,3 +138,37 @@ jobs:
             dist/notes-version.md
           if-no-files-found: error
           retention-days: 30
+
+  macos:
+    runs-on: macos-15
+    # Non bloquant : un échec macOS ne doit pas empêcher la publication de Windows et Linux, dont
+    # la conclusion déclenche publier-programmes.yml. Le retirer après plusieurs publications vertes.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Installer Pango (embarqué dans le .app)
+        run: brew install pango
+      - name: Tester les données autonomes
+        run: |
+          python -m pip install --no-deps -r requirements-communs.txt
+          python -m unittest discover -s scripts -p test_paquet_local.py
+          python -m unittest discover -s scripts -p test_essai_local.py
+          python -m unittest discover -s scripts -p test_ecole_fictive.py
+          python -m unittest discover -s scripts -p test_apercu_local.py
+          python -m unittest discover -s scripts -p test_manifestes_publication.py
+      - name: Construire et contrôler le programme macOS
+        run: bash scripts/construire-paquet-macos.sh
+      - name: Préparer le manifeste macOS
+        run: python scripts/manifeste-publication.py --mode programme --target macos-arm64 --destination dist/publication-macos.json dist/PetitsPas-macos-arm64.dmg
+      - uses: actions/upload-artifact@v6
+        with:
+          name: PetitsPas-macos
+          path: |
+            dist/PetitsPas-macos-arm64.dmg
+            dist/publication-macos.json
+            dist/notes-version.md
+          if-no-files-found: error
+          retention-days: 30

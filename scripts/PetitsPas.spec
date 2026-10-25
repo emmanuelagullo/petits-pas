@@ -12,4 +12,6 @@ collation = assembler(racine, globals(), nom="PetitsPas", settings="carnet.setti
     paquets=["comptes", "suivi"], paquets_ressources=["django.contrib.admin"],
     imports=["carnet.settings", "carnet.urls", "carnet.wsgi", "whitenoise.middleware", "whitenoise.storage"],
     pango_variable="PETITS_PAS_PANGO_BIN",
+    # macOS : identité stable du programme (ne jamais la changer) et nom affiché avec espace.
+    bundle_identifiant="fr.inria.petitspas", nom_affiche="Petits Pas",
     exclusions=["gunicorn", "psycopg", "storages", "boto3", "botocore"])
