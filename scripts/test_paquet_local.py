@@ -647,7 +647,8 @@ class PaquetLocalTests(unittest.TestCase):
         environnement = SimpleNamespace(
             name="posix", environ={"XDG_DATA_HOME": "/tmp/donnees-test"}
         )
-        with patch.object(local, "os", environnement):
+        # Le dossier se choisit par sys.platform hors Windows : le simuler, sinon l'essai ne vaut que sous Linux.
+        with patch.object(local, "os", environnement), patch.object(sys, "platform", "linux"):
             self.assertEqual(
                 local.paquet_par_defaut(),
                 Path("/tmp/donnees-test/petits-pas/paquet-autonome"),
