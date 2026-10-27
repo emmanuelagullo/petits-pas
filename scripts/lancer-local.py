@@ -504,6 +504,12 @@ def demarrer_windows():
 
 
 if __name__ == "__main__":
+    try:
+        import faulthandler
+
+        faulthandler.enable()  # Trace Python d'un plantage natif (SIGBUS, SIGSEGV) ; sans effet sans sortie d'erreur.
+    except Exception:
+        pass
     if os.name == "nt" and getattr(sys, "frozen", False):
         demarrer_windows()
     elif sys.platform == "darwin" and getattr(sys, "frozen", False):

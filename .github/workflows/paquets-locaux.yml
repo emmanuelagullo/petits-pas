@@ -161,6 +161,9 @@ jobs:
           python -m unittest discover -s scripts -p test_manifestes_publication.py
       - name: Construire et contrôler le programme macOS
         run: bash scripts/construire-paquet-macos.sh
+      - name: Diagnostiquer un plantage du programme macOS
+        if: failure()
+        run: bash scripts/diagnostiquer-plantage-macos.sh
       - name: Préparer le manifeste macOS
         run: python scripts/manifeste-publication.py --mode programme --target macos-arm64 --destination dist/publication-macos.json dist/PetitsPas-macos-arm64.dmg
       - uses: actions/upload-artifact@v6
