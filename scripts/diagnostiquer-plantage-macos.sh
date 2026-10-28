@@ -4,6 +4,11 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 programme="dist/PetitsPas.app/Contents/MacOS/PetitsPas"
+# Le job macOS est non bloquant : sans ce message, l'exécution reste verte alors que le job a échoué.
+echo "::warning::Le job macOS a échoué (non bloquant) : aucun programme macOS ne sera joint à la release."
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+    printf '## Job macOS en échec\n\nLe programme macOS ne sera pas publié ; Windows et Linux ne sont pas concernés. Voir les groupes ci-dessous.\n' >> "$GITHUB_STEP_SUMMARY"
+fi
 [ -x "$programme" ] || { echo "Programme absent : $programme"; exit 0; }
 
 echo "::group::Sortie directe avec trace Python"
