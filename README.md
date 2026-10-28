@@ -274,7 +274,8 @@ bash scripts/construire-paquet-macos.sh
 Le script construit `dist/PetitsPas.app` avec les bibliothèques Pango embarquées, exige
 `--verifier-distribution` du vrai programme et produit `dist/PetitsPas-macos-arm64.dmg`.
 La version minimale de macOS est celle mesurée par la qualification du socle `pas-communs`
-(macOS 15 ou plus au 25 octobre 2026). macOS bloque au premier lancement un programme non
+(macOS 15 ou plus au 25 octobre 2026) ; `scripts/mesurer-bundle-macos.py` la remesure sur
+le `.app` de Petits Pas dans le job macOS et signale tout écart avec la version annoncée. macOS bloque au premier lancement un programme non
 signé : **Réglages Système → Confidentialité et sécurité → Ouvrir quand même**. Les données
 sont dans `~/Library/Application Support/petits-pas/paquet-autonome`.
 

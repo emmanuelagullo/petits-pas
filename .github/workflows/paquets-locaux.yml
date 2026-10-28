@@ -161,6 +161,10 @@ jobs:
           python -m unittest discover -s scripts -p test_manifestes_publication.py
       - name: Construire et contrôler le programme macOS
         run: bash scripts/construire-paquet-macos.sh
+      - name: Mesurer le bundle macOS (version minimale annoncée sur le site, autonomie)
+        # Informatif : un écart se voit dans le journal sans empêcher le manifeste ni l'artefact.
+        continue-on-error: true
+        run: python scripts/mesurer-bundle-macos.py --annonce 15
       - name: Diagnostiquer un plantage du programme macOS
         if: failure()
         run: bash scripts/diagnostiquer-plantage-macos.sh

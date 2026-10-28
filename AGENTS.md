@@ -307,7 +307,9 @@ ne jamais le changer. Ne pas renommer ce workflow, que publier-programmes.yml et
 publier-paquets.py désignent par son nom. L'artefact PetitsPas-macos est optionnel à la
 publication ; présent, il est vérifié comme les autres. Dire « version d'essai » sur le site
 tant que VALIDATION-PAQUET-AUTONOME.md (programme macOS) n'a pas été déroulé sur un Mac réel.
-Le dossier de données se choisit par sys.platform, jamais par os.name seul.
+Le dossier de données se choisit par sys.platform, jamais par os.name seul. La version de macOS
+annoncée sur le site est mesurée par scripts/mesurer-bundle-macos.py (--annonce) : si le bundle
+exige plus, corriger les pages avant de publier.
 
 #SOC6c — publications automatiques : un tag numérique qualifié déclenche
 la release GitHub ; la PWA automatique exige un tag sans suffixe. Le workflow de publication GitHub utilise le code de
