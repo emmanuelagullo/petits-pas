@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+* 0.14 — 2026-10-29
+
+Cette version propose, à l’essai, un programme pour les Mac à puce Apple, à côté
+des programmes Windows et Ubuntu, et complète l’aide à l’installation sous Windows.
+
 ** Programme pour Mac (version d’essai)
 
 - Proposer un programme pour les Mac à puce Apple (macOS 15 ou plus), construit
