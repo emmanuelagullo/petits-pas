@@ -2,3 +2,8 @@
   --accent: #3f735e;
   --accent-dark: #285242;
 }
+
+/* Tableaux : ne pas couper les mots des en-têtes. Le thème partagé donne « overflow-wrap: anywhere »
+   à tout le contenu, ce qui réduit la largeur minimale des colonnes à une lettre et coupe
+   « Version » ou « Nouveautés » au milieu du mot dès que le tableau compte cinq colonnes. */
+.prose th, .prose td { overflow-wrap: break-word; }
