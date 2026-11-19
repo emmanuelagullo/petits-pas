@@ -3,6 +3,10 @@
 
 import argparse
 import ctypes
+import errno
+import shlex
+import shutil
+import subprocess
 import os
 import sys
 import time
@@ -204,6 +208,14 @@ def arguments_espace(arguments, espace, dossier=None):
     return resultat
 
 
+class DiagnosticDemarrage(RuntimeError):
+    """Message bref destiné à l’utilisateur, avec le dossier du paquet concerné."""
+
+    def __init__(self, message, paquet):
+        super().__init__(message)
+        self.paquet = paquet
+
+
 def main():
     projet = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
     ancien_paquet = projet / "paquet-autonome"
@@ -298,10 +310,10 @@ def main():
     if not paquet.exists():
         precedents = sorted(paquet.parent.glob(f".{paquet.name}-avant-restauration-*"))
         if precedents:
-            raise SystemExit(
-                f"Paquet absent : {paquet}. Une restauration a peut-être été interrompue.\n"
-                f"Paquet(s) précédent(s) conservé(s) : {', '.join(map(str, precedents))}\n"
-                "Vérifiez ces dossiers avant de relancer ou de restaurer depuis un ZIP."
+            raise DiagnosticDemarrage(
+                "Une restauration a peut-être été interrompue. Le dossier de l’école est absent. "
+                "Un paquet précédent est conservé à côté. Demandez de l’aide avant de le remplacer.",
+                paquet,
             )
     if (
         paquet == defaut.resolve() and not (paquet / "carnet.sqlite3").exists()
@@ -313,7 +325,10 @@ def main():
             f"{ancien_paquet} --copier-paquet {paquet}"
         )
     if paquet.exists() and (paquet / "secret-key").exists() != (paquet / "carnet.sqlite3").exists():
-        raise SystemExit(f"Paquet incomplet (base ou clé manquante) : {paquet}")
+        raise DiagnosticDemarrage(
+            "Le paquet est incomplet. La base ou sa clé manque. Retrouvez une copie complète avant de réessayer.",
+            paquet,
+        )
 
     os.chdir(projet)
     sys.path.insert(0, str(projet))
@@ -324,11 +339,18 @@ def main():
             raise SystemExit("L'école fictive manque. Depuis les sources, lancez scripts/construire-ecole-fictive.py.")
         installer_ecole_fictive(archive, paquet)
     # Le verrou protège aussi la première écriture de la clé.
-    paquet.parent.mkdir(parents=True, exist_ok=True)
-    with verrouiller(paquet):
-        cle = bureau.initialiser_paquet(paquet, nom_base="carnet.sqlite3")
-        configurer_environnement(paquet, cle)
-        redemarrer = executer(paquet, projet, arguments)
+    try:
+        paquet.parent.mkdir(parents=True, exist_ok=True)
+        with verrouiller(paquet):
+            cle = bureau.initialiser_paquet(paquet, nom_base="carnet.sqlite3")
+            configurer_environnement(paquet, cle)
+            redemarrer = executer(paquet, projet, arguments)
+    except PermissionError as cause:
+        raise DiagnosticDemarrage("L’accès au dossier des données est refusé. Vérifiez vos droits d’accès.", paquet) from cause
+    except OSError as cause:
+        if cause.errno == errno.ENOSPC:
+            raise DiagnosticDemarrage("Le disque des données est plein. Libérez de la place avant de relancer Petits Pas.", paquet) from cause
+        raise DiagnosticDemarrage("Petits Pas n’a pas pu accéder aux fichiers nécessaires.", paquet) from cause
     if redemarrer:
         if getattr(sys, "frozen", False):
             os.execv(sys.executable, [sys.executable, *sys.argv[1:]])
@@ -350,12 +372,29 @@ def executer(paquet, projet, arguments):
     # de la construction de l'application WSGI. Collecter d'abord et isoler
     # cette sortie du staticfiles des autres profils du projet.
     django.setup()
-    from suivi.paquet_local import verifier_migrations_paquet
-    verifier_migrations_paquet(paquet / "carnet.sqlite3")
+    from suivi.paquet_local import (
+        EspaceDisqueInsuffisant, SchemaPaquetIncompatible, verifier_espace_disque, verifier_migrations_paquet,
+    )
+
+    base = paquet / "carnet.sqlite3"
+    try:
+        verifier_migrations_paquet(base)
+    except SchemaPaquetIncompatible as cause:
+        raise DiagnosticDemarrage(
+            "Cette école a été utilisée avec une version plus récente ou incompatible. "
+            "Ouvrez-la avec une version compatible de Petits Pas.", paquet
+        ) from cause
+
+    migration = migration_necessaire(paquet)
+    if migration:
+        try:
+            # La copie SQLite est le minimum avant de commencer la migration.
+            verifier_espace_disque(paquet, base.stat().st_size, "préparer la copie avant la mise à jour")
+        except EspaceDisqueInsuffisant as cause:
+            raise DiagnosticDemarrage(str(cause), paquet) from cause
 
     call_command("collectstatic", interactive=False, verbosity=0)
     application = get_wsgi_application()
-    migration = migration_necessaire(paquet)
     if migration:
         with progression_migration():
             proteger_avant_migration(paquet)
@@ -492,18 +531,101 @@ def notifier_systeme():
     return lambda message: print(message, file=sys.stderr)
 
 
-def demarrer_macos():
-    return bureau.demarrer_avec_journal(main,
-        paquet_par_defaut().parent / "logs" / "dernier-demarrage.log",
-        application="Petits Pas", notifier=notification.notifier_macos("Petits Pas"),
-        interactif="--verifier-distribution" not in sys.argv)
+def environnement_outils_bureau():
+    environnement = os.environ.copy()
+    if sys.platform == "linux" and getattr(sys, "frozen", False):
+        original = environnement.get("LD_LIBRARY_PATH_ORIG")
+        if original is None:
+            environnement.pop("LD_LIBRARY_PATH", None)
+        else:
+            environnement["LD_LIBRARY_PATH"] = original
+    return environnement
 
 
-def demarrer_windows():
-    return bureau.demarrer_avec_journal(main,
-        paquet_par_defaut().parent / "logs" / "dernier-demarrage.log",
-        application="Petits Pas", notifier=afficher_erreur_windows,
-        interactif="--verifier-distribution" not in sys.argv)
+def ouvrir_dossier_diagnostic(dossier):
+    if os.name == "nt":
+        os.startfile(dossier)
+    else:
+        commande = "open" if sys.platform == "darwin" else "xdg-open"
+        subprocess.run([commande, str(dossier)], check=True, env=environnement_outils_bureau())
+
+
+def afficher_diagnostic(message, dossier):
+    chemin = dossier
+    while not chemin.is_dir() and chemin != chemin.parent:
+        chemin = chemin.parent
+    message = f"{message}\n\nDossier des données :\n{dossier}"
+    try:
+        if os.name == "nt":
+            # Ctrl+C copie le contenu d’une boîte de dialogue Windows standard.
+            texte = message + "\n\nCtrl+C pour copier ce diagnostic. Ouvrir le dossier ?"
+            if ctypes.windll.user32.MessageBoxW(None, texte, "Petits Pas", 0x134) == 6:
+                ouvrir_dossier_diagnostic(chemin)
+            return
+        if sys.platform == "darwin":
+            litteral = notification.litteral_applescript
+            script = (
+                f"set diagnostic to {litteral(message)}\n"
+                'set choix to button returned of (display alert "Petits Pas" message diagnostic '
+                'as critical buttons {"Fermer", "Copier le diagnostic", "Ouvrir le dossier"} default button "Fermer")\n'
+                'if choix is "Copier le diagnostic" then set the clipboard to diagnostic\n'
+                'return choix'
+            )
+            resultat = subprocess.run(["osascript", "-e", script], capture_output=True, text=True, check=True)
+            if resultat.stdout.strip() == "Ouvrir le dossier":
+                ouvrir_dossier_diagnostic(chemin)
+            return
+        if shutil.which("zenity") and (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
+            resultat = subprocess.run(
+                ["zenity", "--text-info", "--title=Petits Pas", "--width=600", "--height=315",
+                 "--ok-label=Fermer", "--extra-button=Ouvrir le dossier"],
+                input=message, capture_output=True, text=True, env=environnement_outils_bureau(),
+            )
+            if resultat.stdout.strip() == "Ouvrir le dossier":
+                ouvrir_dossier_diagnostic(chemin)
+            if resultat.returncode in (0, 1):
+                return
+    except (OSError, subprocess.SubprocessError):
+        pass
+    print(f"{message}\n\nOuvrir le dossier : {shlex.join(['xdg-open', str(chemin)])}"
+          if sys.platform == "linux" else message, file=sys.__stderr__)
+
+
+def demarrer_avec_diagnostic():
+    paquet = paquet_par_defaut()
+    journal = paquet.parent / "logs" / "dernier-demarrage.log"
+    erreur = None
+
+    def lancer():
+        nonlocal erreur
+        try:
+            return main()
+        except DiagnosticDemarrage as cause:
+            erreur = cause
+            raise
+        except SystemExit as cause:
+            if isinstance(cause.code, str) and cause.code.startswith("Ce paquet est déjà ouvert : "):
+                dossier = Path(cause.code.removeprefix("Ce paquet est déjà ouvert : "))
+                erreur = DiagnosticDemarrage("Ce paquet est déjà ouvert. Revenez à la fenêtre de Petits Pas.", dossier)
+            raise
+
+    def signaler(message):
+        if erreur is not None:
+            afficher_diagnostic(f"{erreur}\n\nJournal de démarrage :\n{journal}", erreur.paquet)
+        else:
+            afficher_diagnostic(message, paquet)
+
+    verifier = "--verifier-distribution" in sys.argv
+    try:
+        return bureau.demarrer_avec_journal(lancer, journal, application="Petits Pas",
+            notifier=signaler, interactif=not verifier)
+    except SystemExit:
+        if verifier:
+            try:
+                print(journal.read_text(encoding="utf-8"), file=sys.stderr, end="")
+            except OSError:
+                pass
+        raise
 
 
 if __name__ == "__main__":
@@ -513,9 +635,7 @@ if __name__ == "__main__":
         faulthandler.enable()  # Trace Python d'un plantage natif (SIGBUS, SIGSEGV) ; sans effet sans sortie d'erreur.
     except Exception:
         pass
-    if os.name == "nt" and getattr(sys, "frozen", False):
-        demarrer_windows()
-    elif sys.platform == "darwin" and getattr(sys, "frozen", False):
-        demarrer_macos()
+    if getattr(sys, "frozen", False):
+        demarrer_avec_diagnostic()
     else:
         main()

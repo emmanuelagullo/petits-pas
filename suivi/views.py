@@ -469,6 +469,8 @@ def verifier_zip_local(request):
                 limites = {"migrations_connues": MigrationLoader(None).disk_migrations}
                 if getattr(settings, "MODE_PWA", False):
                     limites.update(taille_max=64 * 1024**2, fichiers_max=5000)
+                else:
+                    limites["controler_disque"] = True
                 paquet = Path(settings.DATABASES["default"]["NAME"]).parent
                 apercu_local.preparer(archive, paquet.parent, **limites)
         except (ValueError, OSError, RuntimeError, KeyError, BadZipFile, sqlite3.DatabaseError) as erreur:
@@ -606,6 +608,8 @@ def sauvegardes_locales(request):
                     limites = {"migrations_connues": MigrationLoader(None).disk_migrations}
                     if getattr(settings, "MODE_PWA", False):
                         limites.update(taille_max=64 * 1024**2, fichiers_max=5000)
+                    else:
+                        limites["controler_disque"] = True
                     etape = preparer_restauration(archive, paquet.parent, paquet.name, **limites)
                     try:
                         retenir_preparation(etape)

@@ -42,6 +42,30 @@ spec.loader.exec_module(local)
 
 class PaquetLocalTests(unittest.TestCase):
 
+    def test_disque_insuffisant_refuse_la_preparation_avant_extraction(self):
+        with tempfile.TemporaryDirectory() as temp:
+            dossier = Path(temp)
+            archive = Path(__file__).parent / "fixtures/paquet-local-avant-soc2.zip"
+            with patch("suivi.paquet_local.shutil.disk_usage", return_value=SimpleNamespace(free=1)) as usage:
+                with self.assertRaisesRegex(ValueError, "Espace disque insuffisant"):
+                    preparer_restauration(archive, dossier, controler_disque=True)
+            usage.assert_called_once_with(dossier)
+            self.assertEqual(list(dossier.iterdir()), [])
+
+    def test_diagnostic_affiche_la_cause_et_le_paquet_selectionne(self):
+        with tempfile.TemporaryDirectory() as temp:
+            racine = Path(temp)
+            paquet = racine / "ecole-sur-un-autre-disque"
+            with patch.object(local, "paquet_par_defaut", return_value=racine / "paquet-autonome"), patch.object(
+                local, "main", side_effect=local.DiagnosticDemarrage("École issue d’une version plus récente.", paquet)
+            ), patch.object(local, "afficher_diagnostic") as afficher, patch.object(sys, "argv", ["PetitsPas"]):
+                with self.assertRaises(SystemExit):
+                    local.demarrer_avec_diagnostic()
+            message, dossier = afficher.call_args.args
+            self.assertIn("École issue d’une version plus récente.", message)
+            self.assertIn(str(racine / "logs" / "dernier-demarrage.log"), message)
+            self.assertEqual(dossier, paquet)
+
     def test_archive_historique_avant_soc2(self):
         with tempfile.TemporaryDirectory() as temp:
             archive = Path(__file__).parent / "fixtures/paquet-local-avant-soc2.zip"
@@ -198,10 +222,10 @@ class PaquetLocalTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporaire:
             with patch.object(local, "paquet_par_defaut", return_value=Path(temporaire) / "paquet-autonome"), patch.object(
                 local, "main", side_effect=lambda: print("démarrage fictif")
-            ), patch.object(local, "afficher_erreur_windows") as alerte, patch.object(
+            ), patch.object(local, "afficher_diagnostic") as alerte, patch.object(
                 sys, "argv", ["PetitsPas.exe"]
             ):
-                local.demarrer_windows()
+                local.demarrer_avec_diagnostic()
             journal = Path(temporaire) / "logs" / "dernier-demarrage.log"
             self.assertIn("démarrage fictif", journal.read_text(encoding="utf-8"))
             alerte.assert_not_called()
@@ -211,11 +235,11 @@ class PaquetLocalTests(unittest.TestCase):
             paquet = Path(temporaire) / "paquet-autonome"
             with patch.object(local, "paquet_par_defaut", return_value=paquet), patch.object(
                 local, "main", side_effect=RuntimeError("échec fictif")
-            ), patch.object(local, "afficher_erreur_windows") as alerte, patch.object(
+            ), patch.object(local, "afficher_diagnostic") as alerte, patch.object(
                 sys, "argv", ["PetitsPas.exe"]
             ):
                 with self.assertRaises(SystemExit) as sortie:
-                    local.demarrer_windows()
+                    local.demarrer_avec_diagnostic()
             self.assertEqual(sortie.exception.code, 1)
             journal = Path(temporaire) / "logs" / "dernier-demarrage.log"
             self.assertIn("échec fictif", journal.read_text(encoding="utf-8"))
@@ -226,11 +250,11 @@ class PaquetLocalTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporaire:
             with patch.object(local, "paquet_par_defaut", return_value=Path(temporaire) / "paquet-autonome"), patch.object(
                 local, "main", side_effect=RuntimeError("échec de vérification")
-            ), patch.object(local, "afficher_erreur_windows") as alerte, patch.object(
+            ), patch.object(local, "afficher_diagnostic") as alerte, patch.object(
                 sys, "argv", ["PetitsPas.exe", "--verifier-distribution"]
             ):
                 with self.assertRaises(SystemExit):
-                    local.demarrer_windows()
+                    local.demarrer_avec_diagnostic()
             alerte.assert_not_called()
 
     def test_spec_trouve_le_lanceur_depuis_la_racine_ou_scripts(self):
@@ -388,11 +412,11 @@ class PaquetLocalTests(unittest.TestCase):
             alerte = MagicMock()
             with patch.object(local, "paquet_par_defaut", return_value=paquet), patch.object(
                 local, "main", side_effect=RuntimeError("échec fictif")
-            ), patch.object(local.notification, "notifier_macos", return_value=alerte), patch.object(
+            ), patch.object(local, "afficher_diagnostic", alerte), patch.object(
                 sys, "argv", ["PetitsPas"]
             ):
                 with self.assertRaises(SystemExit) as sortie:
-                    local.demarrer_macos()
+                    local.demarrer_avec_diagnostic()
             self.assertEqual(sortie.exception.code, 1)
             journal = Path(temporaire) / "logs" / "dernier-demarrage.log"
             self.assertIn("échec fictif", journal.read_text(encoding="utf-8"))
@@ -475,7 +499,7 @@ class PaquetLocalTests(unittest.TestCase):
             ancien.mkdir()
             with patch.object(sys, "argv", ["lancer-local.py", "--paquet", str(paquet)]):
                 with patch.dict("os.environ", {"DATABASE_URL": "", "CARNET_S3_BUCKET": "", "CARNET_ENVIRONNEMENT_EPHEMERE": ""}):
-                    with self.assertRaisesRegex(SystemExit, "restauration a peut-être été interrompue"):
+                    with self.assertRaisesRegex(local.DiagnosticDemarrage, "restauration a peut-être été interrompue"):
                         local.main()
             self.assertFalse(paquet.exists())
 

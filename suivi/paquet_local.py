@@ -1,7 +1,10 @@
 """Adaptation Petits Pas du moteur Pas communs ; API et état local conservés."""
 import json
+import shutil
 import sqlite3
 from contextlib import closing
+from pathlib import Path
+from zipfile import ZipFile
 from datetime import datetime, timezone
 
 from pas_communs import paquets as moteur
@@ -14,6 +17,26 @@ FORMAT = "petits-pas-paquet"
 PROFIL = ProfilPaquet("petits-pas", FORMAT, "carnet.sqlite3", accepter_sans_application=True)
 SUIVI_SAUVEGARDE = "suivi-sauvegarde.json"
 _restauration = moteur.RestaurationLocale()
+
+
+class SchemaPaquetIncompatible(ValueError):
+    pass
+
+
+class EspaceDisqueInsuffisant(ValueError):
+    pass
+
+
+def verifier_espace_disque(dossier, octets, operation):
+    libre = shutil.disk_usage(dossier).free
+    if libre < octets:
+        def volume(valeur):
+            return f"{valeur / 1024**2:.1f}".replace(".", ",") + " Mio"
+        raise EspaceDisqueInsuffisant(
+            f"Espace disque insuffisant pour {operation}. "
+            f"Espace libre : {volume(libre)}. Espace minimum estimé : {volume(octets)}. "
+            "Libérez de la place sur le disque des données de Petits Pas, puis réessayez."
+        )
 
 
 def verifier_migrations_paquet(base):
@@ -29,7 +52,7 @@ def verifier_migrations_paquet(base):
     from django.db.migrations.loader import MigrationLoader
 
     if appliquees - set(MigrationLoader(None).disk_migrations):
-        raise ValueError("Base issue d'une version plus récente ou incompatible.")
+        raise SchemaPaquetIncompatible("Base issue d'une version plus récente ou incompatible.")
 
 
 def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None,
@@ -45,7 +68,12 @@ def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None
 
 def preparer_restauration(source, parent, nom_paquet="paquet-autonome", *,
                          taille_max=TAILLE_MAX, fichiers_max=FICHIERS_MAX,
-                         migrations_connues=None):
+                         migrations_connues=None, controler_disque=False):
+    if controler_disque:
+        with ZipFile(source) as archive:
+            taille = sum(entree.file_size for entree in archive.infolist())
+        if taille <= taille_max:
+            verifier_espace_disque(Path(parent), taille, "préparer la sauvegarde")
     return moteur.preparer_restauration(source, parent, nom_paquet, profil=PROFIL,
         taille_max=taille_max, fichiers_max=fichiers_max, migrations_connues=migrations_connues)
 
