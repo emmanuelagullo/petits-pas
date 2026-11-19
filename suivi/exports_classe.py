@@ -76,6 +76,8 @@ def selection_classe(classe, utilisateur):
     versions.update(v for pair in correspondances.values_list("version_depart_id", "version_arrivee_id") for v in pair if v)
     emprunts = m.AdaptationCompetence.objects.filter(classe=classe).exclude(ajout={})
     competences.update(emprunts.values_list("competence_id", flat=True))
+    competences.update(m.EleveCompetenceSelectionnee.objects.filter(
+        adaptation__classe=classe, scolarite__classe=classe).values_list("adaptation__competence_id", flat=True))
     origines = m.CompetenceSourceEcole.objects.filter(ecole_id=classe.ecole_id, competence_id__in=competences)
     definitions = m.DefinitionSourceCompetence.objects.filter(version_id__in=versions)
     identites = set(definitions.values_list("identite_id", flat=True))
@@ -121,6 +123,7 @@ def selection_classe(classe, utilisateur):
         m.AdoptionReferentiel: Q(classe=classe), m.UsageCompetence: Q(adoption__classe=classe),
         m.EtatAnnuelObservation: Q(observation_id__in=etats, annee_scolaire=classe.annee_scolaire),
         m.AdaptationCompetence: perimetre & Q(ecole_id=classe.ecole_id, annee_scolaire=classe.annee_scolaire, competence_id__in=competences),
+        m.EleveCompetenceSelectionnee: Q(adaptation__classe=classe, scolarite__classe=classe, scolarite__eleve_id__in=eleves),
         m.EleveApprentissage: Q(scolarite__classe=classe, disponibilite__classe=classe),
         m.CompetenceLocale: Q(pk__in=locales.values("pk")),
         m.DisponibiliteCompetenceLocale: perimetre & Q(locale__competence_id__in=competences, annee_scolaire=classe.annee_scolaire),

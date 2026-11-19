@@ -1432,7 +1432,7 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
             raise Http404
     eleves = list(avec_scolarites_pour_lecture(classe.eleves))
     from .suivi_libre import est_libre, eleves_suivis
-    if est_libre(competence):
+    if est_libre(competence, classe):
         ids_suivis = eleves_suivis(classe, competence)
         eleves = [e for e in eleves if e.pk in ids_suivis]
     selection_ids = set(commune.attributions.filter(supprime_le__isnull=True).values_list(
@@ -3156,7 +3156,8 @@ def importer_eleves(request, pk):
             eleve__ecole=ecole,
             classe=classe,
         )
-        if scolarite.bilans.exists() or scolarite.traces.exists() or scolarite.eleveapprentissage_set.exists():
+        if (scolarite.bilans.exists() or scolarite.traces.exists() or scolarite.eleveapprentissage_set.exists()
+                or scolarite.elevecompetenceselectionnee_set.exists()):
             messages.error(
                 request,
                 f"{scolarite.eleve.prenom} a des bilans, des compétences suivies ou des observations "

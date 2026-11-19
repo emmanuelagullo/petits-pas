@@ -4,7 +4,7 @@ from django.db import transaction
 
 from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, VOIR_SUIVI, autorise
-from suivi.models import AdaptationCompetence, Classe, CompetenceLocale
+from suivi.models import AdaptationCompetence, Classe, CompetenceLocale, CompetenceSourceEcole
 from suivi.referentiels import adoption_courante, contenu_adoption, contenu_origine
 from .ajouts_referentiels import _verrouiller, catalogue_reprises, reprendre_ajout
 from .choix_bases_referentiels import _application_verrouillee, choix_bases
@@ -47,6 +47,14 @@ def lignes_source(version, adoption, *, utilisateur, classe):
             yield str(c["id"]), c, domaines[c["domaine_id"]], sous_domaines.get(c["sous_domaine_id"], "")
 
 
+def competence_id_source(classe, version, reference, candidat):
+    if not version or version.source.ecole_id is not None:
+        return candidat["id"]
+    return CompetenceSourceEcole.objects.filter(ecole=classe.ecole,
+        identite__source=version.source, identite__identifiant=reference
+    ).values_list("competence_id", flat=True).first()
+
+
 def extrait(contenu, ligne):
     return {
         "domaines": [d for d in contenu["domaines"] if d["id"] == ligne["domaine_id"]],
@@ -57,7 +65,7 @@ def extrait(contenu, ligne):
 
 
 @transaction.atomic
-def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_attendue):
+def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_attendue, revision_attendue=None):
     if not autorise(utilisateur, GERER_REFERENTIEL_CLASSE, classe):
         raise PermissionDenied
     _application_verrouillee(classe.annee_scolaire)
@@ -79,11 +87,15 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
     else:
         contenu = contenu_adoption(autre)
         ligne = candidate
+    revision = AdaptationCompetence.objects.filter(classe=classe, competence_id=ligne["id"]
+        ).values_list("revision", flat=True).first() or 0
+    if revision_attendue is not None and revision != revision_attendue:
+        raise ValidationError("Le suivi a changé. Rechargez le formulaire de sélection.")
     locale = CompetenceLocale.objects.filter(ecole=classe.ecole, competence_id=ligne["id"]).first()
     if locale:
         reprendre_ajout(utilisateur=utilisateur, ecole=classe.ecole, annee=classe.annee_scolaire,
                        classe=classe, locale=locale, adoption_attendue=adoption.pk)
-        return
+        return locale.competence
     regle, _ = AdaptationCompetence.objects.get_or_create(classe=classe, competence_id=ligne["id"],
         defaults={"ecole": classe.ecole, "annee_scolaire": classe.annee_scolaire})
     dans_base = any(c["id"] == ligne["id"] for c in contenu_origine(adoption).get("competences", []))
@@ -95,3 +107,4 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
     regle.save()
     journaliser(utilisateur, "referentiel.competence_reprise", regle,
                 nouvelles={"version": (version or autre.version).pk, "classe_source": autre.classe_id if autre else None})
+    return regle.competence

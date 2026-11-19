@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from suivi.audit import journaliser
 from suivi.autorisations import CONTRIBUER, MODIFIER_ETAT, autorise
-from suivi.models import Observation, Scolarite, Trace, TraceCommune, bornes_annee_scolaire
+from suivi.models import Classe, Ecole, Observation, Scolarite, Trace, TraceCommune, bornes_annee_scolaire
 
 
 from .contextes_referentiels import usage_pour_saisie
@@ -37,12 +37,6 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
     if not debut <= date_observation <= fin:
         raise ValidationError("La date doit appartenir à l'année scolaire de la classe.")
     selection = _scolarites(classe, ids)
-    from suivi.suivi_libre import est_libre, eleves_suivis
-    if est_libre(competence):
-        usage_pour_saisie(classe, competence)  # Verrous école/classe avant lecture de la portée.
-        actifs = eleves_suivis(classe, competence)
-        if any(sc.eleve_id not in actifs for sc in selection):
-            raise PermissionDenied("Un élève sélectionné est hors du suivi de cette compétence.")
     # _scolarites a vérifié chaque enfant dans cette classe et cette année.
     # CONTRIBUER porte sur la classe : le même contrôle suffit pour toute la
     # sélection, sans cache des droits ni suppression de ce contrôle.
@@ -50,6 +44,14 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
         utilisateur, CONTRIBUER, classe
     ):
         raise PermissionDenied
+    Ecole.objects.select_for_update().get(pk=classe.ecole_id)
+    Classe.objects.select_for_update().get(pk=classe.pk)
+    from suivi.suivi_libre import est_libre, eleves_suivis
+    actifs = None
+    if est_libre(competence, classe):
+        actifs = eleves_suivis(classe, competence)
+        if any(sc.eleve_id not in actifs for sc in selection):
+            raise PermissionDenied("Un élève sélectionné est hors du suivi de cette compétence.")
     if commune is not None:
         commune = TraceCommune.objects.select_for_update().get(pk=commune.pk)
         if commune.classe_id != classe.pk or commune.competence_id != competence.pk or commune.supprime_le:
@@ -83,7 +85,8 @@ def enregistrer_commune(*, utilisateur, classe, competence, ids, valeurs, commun
     commune.save()
     anciennes = list(commune.attributions.filter(supprime_le__isnull=True).select_related("observation"))
     for trace in anciennes:
-        if trace.observation.eleve_id not in communes_ids:
+        eleve_id = trace.observation.eleve_id
+        if eleve_id not in communes_ids and (actifs is None or eleve_id in actifs):
             trace.supprime_le = timezone.now()
             trace.supprime_par = utilisateur
             trace.save(update_fields=["supprime_le", "supprime_par", "modifie_le"])

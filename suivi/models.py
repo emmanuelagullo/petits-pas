@@ -1073,6 +1073,7 @@ class AdaptationCompetence(models.Model):
                               related_name="adaptations_referentiel")
     competence = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="adaptations_annuelles")
     ajout = models.JSONField(default=dict, blank=True)
+    selection_eleves = models.BooleanField(default=False)
     # Chaque propriété laissée à None suit séparément le niveau supérieur.
     libelle = models.CharField(max_length=300, null=True, blank=True)
     visible = models.BooleanField(null=True, blank=True)
@@ -1096,6 +1097,24 @@ class AdaptationCompetence(models.Model):
             raise ValidationError("L'adaptation doit appartenir à l'école et à l'année de la classe.")
         if self.libelle is not None and not self.libelle.strip():
             raise ValidationError("Le libellé adapté ne peut pas être vide.")
+
+
+class EleveCompetenceSelectionnee(models.Model):
+    """Élèves ayant eu accès à une compétence ciblée de la classe."""
+    adaptation = models.ForeignKey(AdaptationCompetence, on_delete=models.PROTECT, related_name="eleves_selectionnes")
+    scolarite = models.ForeignKey(Scolarite, on_delete=models.PROTECT)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["adaptation", "scolarite"],
+                                               name="eleve_competence_selectionnee_unique")]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.adaptation_id and self.scolarite_id:
+            if (not self.adaptation.classe_id or self.adaptation.ecole_id != self.scolarite.eleve.ecole_id
+                    or self.adaptation.annee_scolaire != self.scolarite.annee_scolaire):
+                raise ValidationError("La sélection doit appartenir à l’école et à l’année de cette compétence.")
 
 
 class CompetenceLocale(models.Model):
