@@ -117,7 +117,7 @@ class AdoptionBases(Base):
         self.assertEqual(creation.context["form"].initial["libelle"], "zqjx inventée")
         self.assertContains(creation, f"{url}?q=")
         page = self.client.get(url, {"q": "parlé"})
-        self.assertContains(page, "Ouvrir le suivi")
+        self.assertContains(page, "Voir le suivi")
         detail = self.client.get(page.context["lignes"][0]["url"])
         self.assertEqual(detail.context["ariane"][-1][1],
                          page.context["url_resultats"] + f'#c{page.context["lignes"][0]["competence"].pk}')
@@ -134,7 +134,7 @@ class AdoptionBases(Base):
         self.assertIn("Petite section", nom)
         self.assertIn("niveau=PS", url)
         retrouvee = self.client.get(url)
-        self.assertContains(retrouvee, "Ouvrir le suivi")
+        self.assertContains(retrouvee, "Voir le suivi")
         self.assertIn("niveau=GS", retrouvee.context["recherche_initiale"])
         self.assertIn("niveau%3DGS", retrouvee.context["lignes"][0]["modifier"])
         self.assertContains(self.client.get(catalogue, {"q": "parlé"}), "Créer une compétence distincte")
@@ -164,7 +164,7 @@ class AdoptionBases(Base):
         self.assertRedirects(resultat, initiale + f"#c{locale.competence_id}")
         corrigee = self.client.get(initiale)
         self.assertContains(corrigee, f'id="c{locale.competence_id}"')
-        self.assertContains(corrigee, "Ouvrir le suivi")
+        self.assertContains(corrigee, "Voir le suivi")
 
     def test_rubriques_classe_activation_masquage_et_cloture(self):
         from .exports_classe import selection_classe

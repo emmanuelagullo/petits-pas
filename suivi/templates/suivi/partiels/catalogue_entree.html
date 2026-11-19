@@ -6,7 +6,7 @@
   {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.competence.active %}
   <div class="actions">
     {% if ligne.competence.active and not ligne.disponible and not ligne.rubrique_masquee %}
-    <a class="bouton discret" href="{{ ligne.url }}" aria-label="Ouvrir le suivi · {{ ligne.competence.libelle }}">Ouvrir le suivi</a>
+    <a class="bouton discret" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
     {% endif %}
     {% if ligne.choix_portee and not ligne.competence_masquee %}
     <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
