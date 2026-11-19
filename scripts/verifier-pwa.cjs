@@ -332,9 +332,12 @@ assert not p.exists() and not q.exists()
   await frame.locator('[name="mot_de_passe_local"]').fill('Copie!Classe2026');
   await frame.locator('[name="confirmation_locale"]').fill('Copie!Classe2026');
   await frame.locator('[name="confirme"]').check();
-  const classReady = page.waitForEvent('download', {timeout:120000});
-  await frame.getByRole('button', {name:'Créer la copie de cette classe',exact:true}).click();
-  const classDownload = await classReady;
+  const preparerCopie = frame.getByRole('button', {name: 'Préparer le ZIP', exact: true});
+  await preparerCopie.waitFor();
+  const [classDownload] = await Promise.all([
+    page.waitForEvent('download', {timeout: 120000}),
+    preparerCopie.click(),
+  ]);
   const classPath = await classDownload.path();
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,zipfile,json,hashlib,sqlite3,tempfile,pathlib
