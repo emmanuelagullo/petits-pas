@@ -20,7 +20,6 @@ from django.contrib.auth import authenticate, login, logout
 from django.core.management import call_command
 from django.contrib.auth import views as auth_views
 from django.contrib.messages.views import SuccessMessageMixin
-from django_ratelimit.core import is_ratelimited
 from carnet.reseau import adresse_client, cle_ip
 from comptes import totp
 from pas_communs.authentification import sessions as mecanismes_sessions
@@ -188,6 +187,13 @@ def health(request):
         return JsonResponse({"status": "unavailable"}, status=503)
 
     return JsonResponse({"status": "ok"})
+
+
+def is_ratelimited(request, **options):
+    if settings.MODE_LOCAL and not settings.ANTIBRUTEFORCE_ACTIF:
+        return False
+    from django_ratelimit.core import is_ratelimited as verifier_limite
+    return verifier_limite(request, **options)
 
 
 def acces_requis(vue):
