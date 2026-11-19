@@ -1,7 +1,8 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}Créer une classe{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
+{% ariane_gestion "Créer une classe" %}
 <h1>Créer une classe</h1>
 <p>Avant de créer les classes, <a href="{% url 'referentiels_ecole' %}">choisissez ou validez les propositions de référentiels de l’école</a> pour l’année souhaitée.</p>
 <form method="get">

@@ -19,15 +19,15 @@
     </div>
   </div>
   {% endif %}
-  <textarea id="commentaire" name="commentaire">{{ commentaire }}</textarea>
+  <textarea id="commentaire" name="commentaire">{% if saisie_trace %}{{ saisie_trace.commentaire }}{% else %}{{ commentaire }}{% endif %}</textarea>
 
   <label for="date_observation">Date</label>
-  <input type="date" id="date_observation" name="date_observation" value="{{ date_observation|date:'Y-m-d' }}" {% if date_requise %}required{% endif %}>
+  <input type="date" id="date_observation" name="date_observation" value="{% if saisie_trace %}{{ saisie_trace.date_observation }}{% else %}{{ date_observation|date:'Y-m-d' }}{% endif %}" {% if date_requise %}required{% endif %}>
 
   {% if photo_actuelle %}
   <label>Photo actuelle</label>
   {% if trace_media %}<img class="miniature" src="{% url 'afficher_media_trace' trace_media.pk %}" alt="">{% endif %}
-  <p><label class="choix-simple"><input type="checkbox" name="retirer_photo"> Retirer cette photo</label></p>
+  <p><label class="choix-simple"><input type="checkbox" name="retirer_photo"{% if saisie_trace.retirer_photo %} checked{% endif %}> Retirer cette photo</label></p>
   {% endif %}
 
   <label for="photo">{% if photo_actuelle %}Remplacer par une autre photo{% else %}Ajouter une photo{% endif %}

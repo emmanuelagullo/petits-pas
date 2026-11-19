@@ -1,7 +1,8 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}{% if locale %}Reprendre une compétence hors référentiel{% else %}Ajouter une compétence hors référentiel{% endif %}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a> · <a href="{% url 'choisir_competence' classe.pk %}">Suivi collectif</a></p>
+{% ariane_classe "Compétence hors référentiel" classe collectif=True %}
 <h1>{% if locale %}Reprendre une compétence hors du référentiel de la classe{% else %}Ajouter une compétence hors du référentiel de la classe{% endif %}</h1>
 <p>{% if locale %}Reprenez cette compétence{% else %}Créez une compétence{% endif %} pour suivre les progrès d’un élève ou d’un groupe, sans l’ajouter au référentiel commun de la classe. Vous pourrez aussi enregistrer une réussite et ajouter une trace.</p>
 <p>Pour rendre une compétence disponible à toute la classe, utilisez <a href="{% url 'ajouts_classe' classe.pk %}">Ajouter une compétence au référentiel de la classe</a>.</p>
@@ -15,11 +16,34 @@
 {% include "suivi/partiels/classement_competence.html" %}
 <p>{{ form.niveau.label_tag }} {{ form.niveau }} {{ form.niveau.errors }}</p>
 {% endif %}
-<fieldset><legend>Élèves concernés</legend>{{ form.eleves }}{{ form.eleves.errors }}<p>{{ form.eleves.help_text }}</p></fieldset>
+<fieldset><legend>Élèves concernés</legend>
+<button type="button" class="bouton discret" id="selection-classe" hidden>Sélectionner toute la classe</button>
+<p role="status" id="effectif-selection"></p>{{ form.eleves }}{{ form.eleves.errors }}<p>{{ form.eleves.help_text }}</p></fieldset>
 {% if not locale %}
 {% include "suivi/partiels/complements_suivi_libre.html" %}
 {% endif %}
 {{ form.jeton }}
 <div class="actions"><button class="bouton" type="submit" name="action" value="ajouter">{% if locale %}Activer le suivi sans réussite{% else %}Enregistrer{% endif %}</button></div>
 </form>
+<script>
+(() => {
+  const bouton = document.getElementById('selection-classe');
+  const caseEleves = Array.from(document.querySelectorAll('#formulaire-reussite input[name="eleves"]:not(:disabled)'));
+  if (!caseEleves.length) return;
+  const compteur = document.getElementById('effectif-selection');
+  const actualiser = () => {
+    const nombre = caseEleves.filter(champ => champ.checked).length;
+    bouton.textContent = nombre === caseEleves.length ? 'Tout désélectionner' : 'Sélectionner toute la classe';
+    compteur.textContent = nombre === 1 ? '1 élève sélectionné' : `${nombre} élèves sélectionnés`;
+  };
+  bouton.hidden = false;
+  bouton.addEventListener('click', () => {
+    const cocher = caseEleves.some(champ => !champ.checked);
+    caseEleves.forEach(champ => { champ.checked = cocher; });
+    actualiser();
+  });
+  caseEleves.forEach(champ => champ.addEventListener('change', actualiser));
+  actualiser();
+})();
+</script>
 {% endblock %}

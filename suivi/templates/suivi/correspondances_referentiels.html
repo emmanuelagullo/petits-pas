@@ -1,8 +1,9 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}Correspondances entre compétences — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-<p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% if modifier %} · <a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% endif %}{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
+{% if classe and not modifier %}{% ariane_classe "Correspondances entre compétences" classe %}{% else %}{% ariane_referentiel "Correspondances entre compétences" classe annee %}{% endif %}
 <h1>Correspondances entre compétences</h1>
 <p>Cette page sert à expliquer à l’équipe comment deux compétences se rapprochent, par exemple lorsqu’on ajoute une compétence ou qu’on prépare un changement de référentiel.</p>
 <p>Cette démarche est facultative. Un lien ne transfère aucune réussite et ne change pas les compétences proposées à la saisie.</p>

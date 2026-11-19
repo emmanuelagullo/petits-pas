@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Trace commune — {{ competence.libelle }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'traces_communes' classe.pk competence.pk %}">Traces communes · {{ competence.libelle }}</a></p>
+{% include "suivi/partiels/ariane.html" with page="Trace commune" %}
 <h1>{% if commune %}Modifier la trace commune{% else %}Ajouter une trace commune{% endif %}</h1>
 <p>Le commentaire et la photo seront partagés avec les enfants associés. &lt;prenom&gt; sera remplacé par le prénom de chacun dans son carnet.</p>
 {% if erreur %}<p class="erreur">{{ erreur }}</p>{% endif %}

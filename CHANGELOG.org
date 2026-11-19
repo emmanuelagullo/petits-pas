@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Retrouver sa place dans le suivi grâce au fil d’Ariane, filtrer le catalogue
+  collectif par section et enchaîner les traces dans l’ordre de la classe.
+
 - Afficher la progression des mises à jour de la PWA et reprendre les
   téléchargements interrompus à partir des ressources complètes.
 

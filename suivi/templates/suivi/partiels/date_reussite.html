@@ -1,7 +1,7 @@
   {% if responsable and obs and eleve.hors_suivi != True and competence.saisie_ouverte != False %}
   <details class="date-reussite"{% if obs.statut == 'reussi' and ouvrir_dates %} open{% endif %}>
     <summary>{% if obs.statut == 'reussi' %}Réussi · {{ obs.date_observation|date:"j F Y" }}{% else %}Date de la réussite{% endif %}</summary>
-    <form method="post" action="{% url 'date_reussite' eleve.pk competence.pk %}{% if vue_dates %}?vue={{ vue_dates }}{% endif %}">
+    <form method="post" action="{% url 'date_reussite' eleve.pk competence.pk %}{% if vue_dates or filtre and filtre != "tous" %}?{% endif %}{% if vue_dates %}vue={{ vue_dates }}{% endif %}{% if filtre and filtre != "tous" %}{% if vue_dates %}&amp;{% endif %}niveaux={{ filtre }}{% endif %}">
     {% csrf_token %}
     <fieldset><legend>Modifier la date de réussite</legend>
     <label><input type="radio" name="choix" value="aujourdhui" checked> Aujourd’hui</label>

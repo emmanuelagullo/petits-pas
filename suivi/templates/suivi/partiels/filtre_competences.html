@@ -1,0 +1,7 @@
+<nav class="filtres" aria-labelledby="titre-filtre-competences">
+  <strong id="titre-filtre-competences">Compétences à afficher</strong>
+  <a href="?niveaux=tous"{% if filtre == 'tous' %} aria-current="true"{% endif %}>Tout le cycle</a>
+  <a href="?niveaux=PS"{% if filtre == 'PS' %} aria-current="true"{% endif %}>Petite section</a>
+  <a href="?niveaux=MS"{% if filtre == 'MS' %} aria-current="true"{% endif %}>Moyenne section</a>
+  <a href="?niveaux=GS"{% if filtre == 'GS' %} aria-current="true"{% endif %}>Grande section</a>
+</nav>

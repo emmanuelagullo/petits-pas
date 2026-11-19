@@ -69,6 +69,9 @@ from .double_facteur import Exigence, exigence_double_facteur
 from .services.double_facteur import (
     journaliser_securite_compte, refus_reinitialisation, reinitialiser_par_la_direction,
 )
+from .navigation import (
+    chemin_classe, chemin_collectif, chemin_competence, filtre_competences, lien,
+)
 from .autorisations import (
     ACCEDER_APPLICATION,
     ADMINISTRER_ECOLE,
@@ -1087,7 +1090,7 @@ def saisie_eleve(request, pk):
         ecole=ecole,
         actifs_seulement=True,
     )
-    filtre = request.GET.get("niveaux", "tous")
+    filtre = filtre_competences(request)
     niveaux = None if filtre == "tous" else [filtre]
 
     etats = {o.competence_id: o for o in _observations_visibles(request.user, eleve)}
@@ -1134,12 +1137,15 @@ def contribuer_eleve(request, pk):
 def choisir_competence(request, pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
-    domaines = [(d, d.visibles) for d in _arbre(ecole, classe=classe)]
+    filtre = filtre_competences(request)
+    niveaux = None if filtre == "tous" else [filtre]
+    domaines = [(d, d.visibles) for d in _arbre(ecole, niveaux, classe=classe)]
     effectif = repartition_competences(classe, [c for _d, competences in domaines for c in competences])
     return render(
         request,
         "suivi/choisir_competence.html",
-        {"classe": classe, "domaines": domaines, "effectif": effectif, "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
+        {"classe": classe, "domaines": domaines, "effectif": effectif, "filtre": filtre,
+         "ariane": chemin_classe(classe), "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
     )
 
 
@@ -1152,6 +1158,7 @@ def saisie_competence(request, pk, competence_pk):
     competence = competence_classe(classe, competence)
     if competence is None:
         raise Http404
+    filtre = filtre_competences(request)
     saisissable = competence_saisissable(classe, competence)
     etats = {o.eleve_id: projeter_etat_classe(o)
              for o in observations_classe(classe).filter(competence=competence).prefetch_related("traces")}
@@ -1164,7 +1171,8 @@ def saisie_competence(request, pk, competence_pk):
     return render(
         request,
         "suivi/saisie_competence.html",
-        {"classe": classe, "competence": competence, "lignes": lignes,
+        {"classe": classe, "competence": competence, "lignes": lignes, "filtre": filtre,
+         "ariane": chemin_collectif(classe, filtre, competence),
          "adoption": adoption_courante(classe),
          "historique": classe_historique(classe),
          "nouvelle_saisie_possible": saisissable,
@@ -1202,7 +1210,9 @@ def _contexte_grille_competence(
             etat = "a_observer"
         compteurs[etat] += 1
         lignes.append((eleve, observation, etat))
+    filtre = filtre_competences(request)
     return {
+        "ariane": chemin_competence(classe, competence, filtre), "filtre": filtre,
         "classe": classe,
         "competence": competence,
         "lignes": lignes,
@@ -1316,7 +1326,7 @@ def basculer(request, eleve_pk, competence_pk):
         request,
         gabarit,
         {"eleve": eleve, "classe": scolarite.classe if scolarite else None,
-         "competence": competence, "obs": obs, "responsable": True, "ouvrir_dates": ouvrir_dates,
+         "competence": competence, "obs": obs, "filtre": filtre_competences(request), "responsable": True, "ouvrir_dates": ouvrir_dates,
          "adoption": adoption_courante(scolarite.classe) if scolarite else None},
     )
 
@@ -1344,7 +1354,10 @@ def date_reussite(request, eleve_pk, competence_pk):
             modifier_etat(utilisateur=request.user, eleve=eleve, competence=competence,
                 statut=Observation.REUSSI, date_observation=form.cleaned_data.get("date"),
                 conserver_date=form.cleaned_data["choix"] == "precedente")
-            return redirect("saisie_competence", pk=sc.classe_id, competence_pk=competence.pk) if request.GET.get("vue") == "classe" else redirect("saisie_eleve", pk=eleve.pk)
+            filtre = filtre_competences(request)
+            if request.GET.get("vue") == "classe":
+                return redirect(lien("saisie_competence", sc.classe_id, competence.pk, filtre=filtre, ancre=f"e{eleve.pk}"))
+            return redirect(lien("saisie_eleve", eleve.pk, filtre=filtre, ancre=f"c{competence.pk}"))
         except ValidationError as exc:
             form.add_error(None, exc)
     return render(request, "suivi/date_reussite.html", {"form": form, "eleve": eleve,
@@ -1372,6 +1385,7 @@ def _contexte_traces_communes(request, pk, competence_pk):
 @acces_requis
 def traces_communes(request, pk, competence_pk):
     classe, competence = _contexte_traces_communes(request, pk, competence_pk)
+    filtre = filtre_competences(request)
     communes = TraceCommune.objects.filter(
         classe=classe, competence=competence, supprime_le__isnull=True
     ).prefetch_related(Prefetch("attributions", queryset=Trace.objects.filter(
@@ -1379,6 +1393,7 @@ def traces_communes(request, pk, competence_pk):
     ), to_attr="attributions_actives"))
     return render(request, "suivi/traces_communes.html", {
         "classe": classe, "competence": competence, "communes": communes,
+        "ariane": chemin_competence(classe, competence, filtre), "filtre": filtre,
         "responsable": autorise(request.user, MODIFIER_ETAT, classe),
         "peut_ajouter": competence_saisissable(classe, competence),
     })
@@ -1389,6 +1404,7 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
     classe, competence = _contexte_traces_communes(request, pk, competence_pk)
     if not autorise(request.user, MODIFIER_ETAT, classe):
         raise Http404
+    filtre = filtre_competences(request)
     retour_eleve = None
     retour_url = None
     retour_id = request.POST.get("retour_eleve") or request.GET.get("retour_eleve")
@@ -1402,7 +1418,8 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
         )
         if not autorise(request.user, VOIR_SUIVI, retour_eleve, ecole=classe.ecole):
             raise Http404
-        retour_url = reverse("trace", args=[retour_eleve.pk, competence.pk])
+        retour_url = lien("trace", retour_eleve.pk, competence.pk, filtre=filtre,
+                           **({"classe": classe.pk} if request.GET.get("origine") == "classe" else {}))
     commune = None
     if commune_pk is not None:
         commune = get_object_or_404(TraceCommune, pk=commune_pk, classe=classe,
@@ -1449,13 +1466,16 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
             messages.success(request, "Trace commune enregistrée.")
             if retour_url:
                 return redirect(retour_url)
-            return redirect("traces_communes", pk=pk, competence_pk=competence_pk)
+            return redirect(lien("traces_communes", pk, competence_pk, filtre=filtre))
         except (ValueError, ValidationError) as exc:
             erreur = " ".join(exc.messages) if isinstance(exc, ValidationError) else str(exc)
             selection_ids = ids if "ids" in locals() else set()
     trace_media = commune.attributions.filter(supprime_le__isnull=True).first() if commune else None
     return render(request, "suivi/formulaire_trace_commune.html", {
-        "classe": classe, "competence": competence, "commune": commune,
+        "classe": classe, "competence": competence, "commune": commune, "filtre": filtre,
+        "ariane": chemin_competence(classe, competence, filtre) + [
+            ("Traces communes", lien("traces_communes", pk, competence_pk, filtre=filtre)),
+        ],
         "eleves": eleves, "selection_ids": selection_ids,
         "versions": versions, "versions_ids": {t.observation.eleve_id for t in versions},
         "commentaire": commentaire, "date_observation": date_observation,
@@ -1477,8 +1497,7 @@ def personnaliser_trace_commune(request, eleve_pk, competence_pk, trace_pk):
                                   supprime_le__isnull=True)
     personnaliser(utilisateur=request.user, trace=trace_obj)
     messages.success(request, "Version personnelle créée. Vous pouvez maintenant la modifier.")
-    return redirect("modifier_trace", eleve_pk=eleve_pk, competence_pk=competence_pk,
-                    trace_pk=trace_pk)
+    return redirect(_lien_trace(request, eleve_pk, competence_pk, trace_pk))
 
 
 @acces_requis
@@ -1490,7 +1509,7 @@ def retirer_trace_commune(request, pk, competence_pk, commune_pk):
                                 competence=competence, supprime_le__isnull=True)
     supprimer_commune(utilisateur=request.user, commune=commune)
     messages.success(request, "Trace commune retirée. Les versions personnelles sont conservées.")
-    return redirect("traces_communes", pk=pk, competence_pk=competence_pk)
+    return redirect(lien("traces_communes", pk, competence_pk, filtre=filtre_competences(request)))
 
 
 def _charger_trace_media(request, trace_pk, operation):
@@ -1614,7 +1633,7 @@ def supprimer_trace(request, eleve_pk, competence_pk, trace_pk):
     )
     supprimer_trace_logiquement(utilisateur=request.user, trace=trace_obj)
     messages.success(request, "Trace supprimée.")
-    return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
+    return redirect(_lien_trace(request, eleve_pk, competence_pk))
 
 
 @acces_requis
@@ -1633,7 +1652,7 @@ def restaurer_trace_vue(request, eleve_pk, competence_pk, trace_pk):
     )
     restaurer_trace(utilisateur=request.user, trace=trace_obj)
     messages.success(request, "Trace restaurée.")
-    return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
+    return redirect(_lien_trace(request, eleve_pk, competence_pk))
 
 
 @acces_requis
@@ -1659,7 +1678,16 @@ def basculer_visibilite_trace(request, eleve_pk, competence_pk, trace_pk):
     )
     etat = "affichée dans le carnet" if trace_obj.visible_carnet else "masquée du carnet"
     messages.success(request, f"Trace {etat}.")
-    return redirect("trace", eleve_pk=eleve_pk, competence_pk=competence_pk)
+    return redirect(_lien_trace(request, eleve_pk, competence_pk))
+
+
+def _lien_trace(request, eleve_pk, competence_pk, trace_pk=None):
+    classe = request.GET.get("classe", "")
+    args = (eleve_pk, competence_pk)
+    if trace_pk is not None:
+        args += (trace_pk,)
+    return lien("trace" if trace_pk is None else "modifier_trace", *args,
+                filtre=filtre_competences(request), **({"classe": classe} if classe.isdecimal() else {}))
 
 
 def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
@@ -1675,8 +1703,41 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
     competence = get_object_or_404(Competence, pk=competence_pk, domaine__ecole=ecole)
     obs = Observation.objects.filter(eleve=eleve, competence=competence).first()
     scolarite_courante = eleve.scolarite_courante()
-    if scolarite_courante:
-        competence = competence_classe(scolarite_courante.classe, competence) or competence
+    competence_collective = competence_classe(scolarite_courante.classe, competence) if scolarite_courante else None
+    competence = competence_collective or competence
+    filtre = filtre_competences(request)
+    suivi_complet = autorise(request.user, VOIR_SUIVI, eleve, ecole=ecole)
+    classe = scolarite_courante.classe if scolarite_courante else None
+    collectif = bool(
+        classe and request.GET.get("classe") == str(classe.pk)
+        and autorise(request.user, VOIR_SUIVI, classe, ecole=ecole)
+        and competence_collective
+    )
+    precedent = suivant = None
+    trace_query = lien("trace", eleve.pk, competence.pk, filtre=filtre).partition("?")[2]
+    if collectif:
+        ariane = chemin_competence(classe, competence, filtre, ancre=f"e{eleve.pk}")
+        retour = ariane[-1][1]
+        trace_query = lien("trace", eleve.pk, competence.pk, filtre=filtre, classe=classe.pk).partition("?")[2]
+        if (not classe_historique(classe) and competence_saisissable(classe, competence)
+                and autorise(request.user, CONTRIBUER, classe, ecole=ecole)):
+            # Même ordre que la liste collective, avec la scolarité active et les droits de contribution.
+            voisins = [
+                enfant for enfant in avec_scolarites_pour_lecture(classe.eleves)
+                if enfant.scolarite_courante() and enfant.scolarite_courante().classe_id == classe.pk
+                and (not competence.suivi_libre or enfant.pk in competence.eleves_suivis_ids)
+            ]
+            for position, enfant in enumerate(voisins):
+                if enfant.pk == eleve.pk:
+                    precedent = voisins[position - 1] if position else None
+                    suivant = voisins[position + 1] if position + 1 < len(voisins) else None
+                    break
+    else:
+        ariane = chemin_classe(classe) if classe and autorise(request.user, VOIR_CLASSE, classe, ecole=ecole) else []
+        retour = lien("saisie_eleve" if suivi_complet else "contribuer_eleve", eleve.pk,
+                      filtre=filtre, ancre=f"c{competence.pk}" if suivi_complet else "")
+        ariane.append((eleve.nom_court, retour))
+    saisie = None
     if obs is None and trace_pk is None and scolarite_courante:
         from .suivi_libre import verifier_portee
         verifier_portee(scolarite_courante.classe, competence, eleve=eleve)
@@ -1734,8 +1795,13 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
                 if ancien_nom_photo and ancien_nom_photo != nouveau_nom_photo:
                     _supprimer_media_apres_validation(ancien_nom_photo)
             messages.success(request, f"Trace enregistrée pour {eleve.prenom}.")
-            return redirect("trace", eleve_pk=eleve.pk, competence_pk=competence.pk)
+            if collectif:
+                if suivant and request.POST.get("navigation") == "suivant" and trace_pk is None:
+                    return redirect(lien("trace", suivant.pk, competence.pk, filtre=filtre, classe=classe.pk))
+                return redirect(retour)
+            return redirect(lien("trace", eleve.pk, competence.pk, filtre=filtre))
         except (ValueError, ValidationError) as exc:
+            saisie = request.POST
             messages.error(
                 request,
                 " ".join(exc.messages) if isinstance(exc, ValidationError) else str(exc),
@@ -1785,14 +1851,22 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             "eleve": eleve,
             "competence": competence,
             "obs": obs,
+            "ariane": ariane,
+            "retour_trace": retour,
+            "page_trace": f"Trace de {eleve.nom_court}",
+            "contexte_trace": "?" + trace_query if trace_query else "",
+            "collectif": collectif,
+            "filtre": filtre,
+            "precedent": precedent,
+            "suivant": suivant,
+            "saisie_trace": saisie,
+            "erreur_trace": saisie is not None,
             "trace_obj": trace_obj,
             "peut_ajouter": bool(scolarite_courante and competence_saisissable(scolarite_courante.classe, competence, eleve=eleve)),
             "traces": traces,
             "traces_supprimees": traces_supprimees,
             "responsable": responsable,
-            "suivi_complet": autorise(
-                request.user, VOIR_SUIVI, eleve, ecole=ecole
-            ),
+            "suivi_complet": suivi_complet,
             "formulations": [
                 personnaliser_texte(texte, eleve.prenom)
                 for texte in formulations_effectives(competence, scolarite_courante.classe if scolarite_courante else None)
@@ -2817,6 +2891,7 @@ def parcours_eleve(request, pk):
     ecole = ecole_courante(request)
     eleve = get_object_or_404(Eleve, pk=pk, ecole=ecole)
     retour_pk = request.POST.get("retour") or request.GET.get("retour")
+    retour_pk = retour_pk if retour_pk and retour_pk.isdecimal() else None
     retour_classe = (
         Classe.objects.filter(pk=retour_pk, ecole=ecole).first() if retour_pk else None
     )
@@ -2831,9 +2906,29 @@ def parcours_eleve(request, pk):
     ):
         raise Http404
 
+    params = {}
+    if retour_classe:
+        params["retour"] = retour_classe.pk
+        ariane = chemin_classe(retour_classe) + [
+            ("Gérer les enfants", lien("importer_eleves", retour_classe.pk, ancre=f"eleve-{eleve.pk}")),
+        ]
+    else:
+        ariane = [("Gérer l’école", lien("gestion"))] if direction else []
+        if direction and request.GET.get("origine") == "annuaire":
+            filtres = {}
+            annee = request.GET.get("annee", "")
+            if annee in _annees_disponibles(ecole):
+                filtres["annee"] = annee
+            for cle, valeurs in (("niveau", {"PS", "MS", "GS", "tous"}),
+                                 ("etat", {"actifs", "archives", "tous"})):
+                valeur = request.GET.get(cle)
+                if valeur in valeurs:
+                    filtres[cle] = valeur
+            params = {"origine": "annuaire", **filtres}
+            ariane.append(("Annuaire des élèves", lien("annuaire_eleves", **filtres)))
+
     def _retour_url():
-        url = reverse("parcours_eleve", args=[eleve.pk])
-        return f"{url}?retour={retour_classe.pk}" if retour_classe else url
+        return lien("parcours_eleve", eleve.pk, **params)
 
     if request.method == "POST" and request.POST.get("action") == "reactiver":
         desarchiver(utilisateur=request.user, eleve=eleve, classe=classe)
@@ -2898,6 +2993,7 @@ def parcours_eleve(request, pk):
             "classes": ecole.classes.all(),
             "scolarites": eleve.scolarites.select_related("classe"),
             "retour_classe": retour_classe,
+            "ariane": ariane,
             "direction": direction,
         },
     )

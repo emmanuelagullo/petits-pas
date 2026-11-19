@@ -1788,6 +1788,43 @@ class HistoriqueTraces(Base):
         self.entrer()
         self.url = reverse("trace", args=[self.eleve.pk, self.competence.pk])
 
+    def test_navigation_collective_conserve_section_ligne_et_voisins(self):
+        suivant = Eleve.objects.create(ecole=self.ecole, prenom="Nour")
+        Scolarite.objects.create(eleve=suivant, classe=self.classe,
+                                annee_scolaire=self.classe.annee_scolaire, niveau="MS")
+        autre = Competence.objects.create(domaine=self.competence.domaine, code="TEST-GS",
+                                          libelle="Compétence témoin GS", niveau="GS")
+        choix = reverse("choisir_competence", args=[self.classe.pk])
+        page = self.client.get(choix + "?niveaux=PS")
+        self.assertContains(page, self.competence.libelle)
+        self.assertNotContains(page, autre.libelle)
+        base = reverse("saisie_competence", args=[self.classe.pk, self.competence.pk])
+        query = f"?classe={self.classe.pk}&niveaux=PS"
+        trace_suivante = reverse("trace", args=[suivant.pk, self.competence.pk]) + query
+        self.assertContains(self.client.get(base + "?niveaux=PS"), "Nour")
+        sans_contexte = self.client.get(self.url + "?classe=99999&niveaux=PS")
+        self.assertNotContains(sans_contexte, "Élève suivant : Nour")
+        self.assertContains(self.client.get(self.url + query), "Élève suivant : Nour")
+        erreur = self.client.post(self.url + query, {
+            "date_observation": "2026-99-99", "commentaire": "Brouillon conservé", "navigation": "suivant",
+        })
+        self.assertContains(erreur, "Brouillon conservé")
+        self.assertFalse(Trace.objects.exists())
+        premier = self.client.post(self.url + query, {
+            "date_observation": "2026-10-03", "commentaire": "Premier élève", "navigation": "suivant",
+        })
+        self.assertRedirects(premier, trace_suivante, fetch_redirect_response=False)
+        dernier = self.client.get(trace_suivante)
+        self.assertContains(dernier, "Élève précédent : Lou")
+        self.assertNotContains(dernier, "Enregistrer et passer à l’élève suivant")
+        deuxieme = self.client.post(trace_suivante, {
+            "date_observation": "2026-10-03", "commentaire": "Deuxième élève",
+        })
+        self.assertRedirects(deuxieme, base + f"?niveaux=PS#e{suivant.pk}", fetch_redirect_response=False)
+        self.assertEqual(dict(Trace.objects.values_list("observation__eleve_id", "commentaire")),
+                         {self.eleve.pk: "Premier élève", suivant.pk: "Deuxième élève"})
+        self.assertContains(self.client.get(base + "?niveaux=PS"), choix + f"?niveaux=PS#c{self.competence.pk}")
+
     def test_plusieurs_traces_sont_conservees_pour_une_competence(self):
         self.client.post(
             self.url,
@@ -2540,7 +2577,7 @@ class CompositionClasse(Base):
         )
 
         self.assertContains(
-            r, f'href="{reverse("importer_eleves", args=[self.classe.pk])}"'
+            r, f'href="{reverse("importer_eleves", args=[self.classe.pk])}#eleve-{self.eleve.pk}"'
         )
         self.assertContains(r, self.classe.nom)
 

@@ -48,3 +48,26 @@
   actualiser();
 })();
 </script>
+<script>
+(() => {
+  const formulaire = document.getElementById('formulaire-trace');
+  if (!formulaire) return;
+  const initial = new FormData(formulaire);
+  const aChange = () => {
+    if (formulaire.hasAttribute('data-brouillon')) return true;
+    const courant = new FormData(formulaire);
+    return Array.from(courant).some(([nom, valeur]) => {
+      const avant = initial.get(nom);
+      return valeur instanceof File ? Boolean(valeur.name) : valeur !== avant;
+    }) || Array.from(initial.keys()).some(nom => !courant.has(nom));
+  };
+  document.querySelectorAll('[data-quitter-trace]').forEach(lien => {
+    lien.addEventListener('click', evenement => {
+      if (evenement.ctrlKey || evenement.metaKey || evenement.shiftKey || evenement.altKey) return;
+      if (aChange() && !window.confirm('Quitter cette trace sans enregistrer les modifications ?')) {
+        evenement.preventDefault();
+      }
+    });
+  });
+})();
+</script>

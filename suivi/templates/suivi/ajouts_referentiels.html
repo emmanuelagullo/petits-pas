@@ -1,8 +1,10 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}{% if locale.suivi_libre %}Compétence hors référentiel{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %} — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-<p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
+{% ariane_referentiel "Compétences ajoutées" classe annee %}
+{% if retour_suivi %}<p><a href="{{ retour_suivi }}">Revenir à la compétence</a></p>{% endif %}
 <h1>{% if locale.suivi_libre %}Compétence hors référentiel{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>
 {% if locale.suivi_libre %}<p>Modifiez cette compétence hors du référentiel de la classe en conservant son suivi et ses observations.</p>
 {% else %}<p>{% if classe %}Ajoutez une compétence au référentiel pour la rendre disponible à toute la classe, ou reprenez un ajout disponible.{% else %}Proposez une compétence supplémentaire à l’école. Chaque classe choisit les ajouts qu’elle reprend.{% endif %} Chaque compétence garde son propre suivi ; aucune réussite n’est attribuée automatiquement.</p>
