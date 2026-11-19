@@ -1,19 +1,25 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Petits Pas dans votre navigateur</title><link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#fff2c9"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#f6f7f8"><link rel="apple-touch-icon" href="icon-192.png">
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:16px system-ui;color:#234}body{display:flex;flex-direction:column;height:100dvh}
-header{padding:10px;background:#fff2c9;flex:none;max-height:45dvh;overflow:auto}#status{padding:8px;flex:none}iframe{border:0;width:100%;flex:1;min-height:0}button{margin:4px;min-height:44px;padding:6px 10px;font:inherit}summary{cursor:pointer;padding:8px 0}p{margin:8px 0}#version,#network{font-size:.85rem}#failure{padding:12px}#failure pre{white-space:pre-wrap;overflow-wrap:anywhere}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #345}
+header{padding:4px 12px;background:#f6f7f8;flex:none;max-height:45dvh;overflow:auto}#status{padding:6px 12px;flex:none}#status:empty{padding:0}.barre-pwa{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap}#tools summary{width:fit-content;min-height:36px}#outils-pwa{max-width:56em;padding:4px 0 8px}#update-status:empty{margin:0}#update-progress{max-width:100%}iframe{border:0;width:100%;flex:1;min-height:0}button{margin:4px;min-height:44px;padding:6px 10px;font:inherit}summary{cursor:pointer;padding:8px 0}p{margin:8px 0}#version,#network{font-size:.85rem}#failure{padding:12px}#failure pre{white-space:pre-wrap;overflow-wrap:anywhere}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #345}
 </style>
-</head><body><header><strong>Petits Pas — sur cet appareil.</strong>
-<p id="espace"></p><p id="comptes-essai" hidden></p><a id="changer-espace" href="essai.html">Essayer avec l’école fictive</a>
-<span id="version"></span> <span id="network"></span>
-<button id="install" hidden>Installer Petits Pas</button>
+</head><body><header>
+<div class="barre-pwa">
+<span id="espace" hidden></span><a id="retour-ecole" href="./" hidden>Revenir à mon école</a>
+<span id="network" hidden></span>
+</div>
+<details id="tools"><summary>Outils de l’application</summary>
+<div id="outils-pwa">
 <button id="backup" disabled>Sauvegardes / transfert</button>
 <button id="apercu" disabled>Vérifier un ZIP sans remplacer mon école</button>
 <a id="reprendre-apercu" href="apercu.html" hidden>Revenir à la copie de vérification</a>
-<details id="tools"><summary>Installation, stockage et mises à jour</summary><p><a id="nouveautes" href="nouveautes.html" target="_blank" rel="noopener">Voir les nouveautés</a> · <small id="details-version"></small></p>
+<p id="comptes-essai" hidden></p>
+<a id="changer-espace" href="essai.html">Essayer avec l’école fictive</a>
+<p><span id="version"></span> · <a id="nouveautes" href="nouveautes.html" target="_blank" rel="noopener">Voir les nouveautés</a> · <small id="details-version"></small></p>
+<button id="install" hidden>Installer Petits Pas</button>
 <p>Petits Pas fonctionne localement dans votre navigateur, même hors connexion après le premier téléchargement. Un contrôle au démarrage vérifie la compatibilité de votre appareil.</p>
 <p id="installation">Vous pouvez utiliser cette page directement. Pour ajouter une icône : dans Chrome ou Edge, cherchez « Installer » dans le menu du navigateur ; les autres navigateurs et appareils restent à qualifier. L’installation est facultative.</p>
 <p>Le premier chargement demande Internet. Attendez l’ouverture de l’application avant de fermer la page. Revenez à la même adresse et au même profil de navigateur ; les données ne sont pas partagées entre appareils.</p>
@@ -22,12 +28,16 @@ header{padding:10px;background:#fff2c9;flex:none;max-height:45dvh;overflow:auto}
 <p id="storage">Vérification de la protection du stockage…</p>
 <button id="persist">Protéger le stockage local</button>
 <button id="check-update">Vérifier les mises à jour</button>
-<button id="update" hidden>Appliquer la mise à jour</button>
-<p id="update-status" role="status"></p>
-<progress id="update-progress" aria-label="Ressources de la mise à jour vérifiées" hidden></progress>
 <button id="recovery">Exporter l’état de récupération</button>
 <p>La protection du stockage ne remplace pas une sauvegarde extérieure à l’appareil. Ne supprimez pas les données du site pour mettre à jour l’application.</p>
-</details></header>
+</div></details>
+<p id="storage-warning" role="status" hidden>Stockage presque plein. Téléchargez une sauvegarde.</p>
+<button id="storage-tools" hidden>Ouvrir les outils de stockage</button>
+<p id="update-status" role="status"></p>
+<progress id="update-progress" aria-label="Ressources de la mise à jour vérifiées" hidden></progress>
+<button id="update-retry" hidden></button>
+<button id="update" hidden>Appliquer la mise à jour</button>
+</header>
 <div id="status" role="status" aria-live="polite">Préparation de Petits Pas…</div>
 <section id="failure" hidden><h1>Petits Pas n’a pas pu démarrer</h1><p id="failure-help">Fermez les autres onglets de Petits Pas, puis réessayez. Au premier lancement, une connexion Internet est nécessaire. Ne supprimez pas les données du site.</p><button id="retry">Réessayer</button><button id="rescue">Récupérer un ZIP</button><details><summary>Détails à transmettre pour obtenir de l’aide</summary><pre id="diagnostic"></pre></details></section>
 <iframe id="app" title="Application Petits Pas" hidden></iframe>
