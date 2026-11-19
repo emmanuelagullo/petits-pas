@@ -16,7 +16,7 @@ PARCOURS_CAPTURE = {
     "collaborateurs",
     "guide",
 }
-ACTIONS_CAPTURE_GUIDE = {"classe", "lien", "selecteur", "titre"}
+ACTIONS_CAPTURE_GUIDE = {"classe", "lien", "selecteur", "titre", "visible"}
 
 
 def _exiger_chaine(valeur, chemin):
