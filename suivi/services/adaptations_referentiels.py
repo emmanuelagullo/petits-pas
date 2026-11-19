@@ -4,7 +4,7 @@ from django.db import transaction
 
 from suivi.audit import instantane, journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise
-from suivi.models import AdaptationCompetence, AdoptionReferentiel, Classe, Ecole
+from suivi.models import AdaptationCompetence, AdoptionReferentiel, Classe, Competence, Ecole
 from suivi.adaptations_referentiels import contenus_ecole
 from suivi.referentiels import contenu_origine
 from .choix_bases_referentiels import verifier_annee
@@ -67,3 +67,27 @@ def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, vi
     journaliser(utilisateur, "referentiel.competence_adaptee", regle, anciennes=anciennes,
                 nouvelles=instantane(regle, ("libelle", "visible", "revision")))
     return regle
+
+
+@transaction.atomic
+def ajouter_au_suivi(*, utilisateur, classe, competence_id, adoption_attendue, revision_attendue):
+    """Activer une compétence du catalogue adopté, sans saisir d'observation."""
+    if not autorise(utilisateur, GERER_REFERENTIEL_CLASSE, classe):
+        raise PermissionDenied
+    Ecole.objects.select_for_update().get(pk=classe.ecole_id)
+    classe = Classe.objects.select_for_update().get(pk=classe.pk)
+    adoption = AdoptionReferentiel.objects.filter(classe=classe, courante=True).select_related("version").first()
+    if not adoption or adoption.clos or adoption.pk != adoption_attendue:
+        raise ValidationError("Le catalogue de la classe a changé. Rechargez la page.")
+    if not any(c["id"] == competence_id for c in contenu_origine(adoption).get("competences", [])):
+        raise ValidationError("Cette compétence ne fait pas partie du catalogue adopté.")
+    competence = Competence.objects.filter(pk=competence_id, domaine__ecole=classe.ecole).first()
+    if competence is None:
+        raise ValidationError("Cette compétence est indisponible.")
+    regle = AdaptationCompetence.objects.filter(classe=classe, competence=competence,
+                                               annee_scolaire=classe.annee_scolaire).first()
+    if regle and regle.visible is True and regle.revision == revision_attendue:
+        return
+    enregistrer_adaptation(utilisateur=utilisateur, ecole=classe.ecole,
+        annee=classe.annee_scolaire, competence=competence, libelle=regle.libelle if regle else None,
+        visible=True, revision_attendue=revision_attendue, classe=classe, adoption_attendue=adoption.pk)

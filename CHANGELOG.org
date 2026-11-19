@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Garder le référentiel comme catalogue en partant d’un suivi vide, puis
+  ajouter ses compétences à l’unité pour toute la classe.
+
 - Retrouver les compétences de la classe dans un catalogue par domaine et
   sous-domaine, repérer un libellé identique avant de créer et corriger le
   classement d’un ajout en conservant les observations.

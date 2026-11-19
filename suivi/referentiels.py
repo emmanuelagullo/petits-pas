@@ -23,9 +23,10 @@ def contenu_adoption(adoption):
         return adoption.etat_final.get("contenu", contenu)
     from .adaptations_referentiels import contenu_adapte
     from .ajouts_referentiels import contenu_avec_ajouts
+    selection = {c["id"] for c in contenu.get("competences", [])} if adoption.selection_manuelle else ()
     contenu = contenu_avec_ajouts(contenu, adoption.classe)
     return contenu_adapte(adoption.classe.ecole, adoption.classe.annee_scolaire,
-                          contenu, adoption.classe)
+                          contenu, adoption.classe, selection_manuelle=selection)
 
 
 def definition_classe(classe, competence):

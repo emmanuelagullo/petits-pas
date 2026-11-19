@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import override_settings
 from django.urls import reverse
 
-from .models import AdoptionReferentiel, Classe, Competence, EtatAnnuelObservation, Observation, Trace, TraceCommune, VersionSourceEcole
+from .models import AdaptationCompetence, AdoptionReferentiel, Classe, Competence, EtatAnnuelObservation, Observation, Trace, TraceCommune, VersionSourceEcole
 from .presentation import illustration_effective, propositions
 from .referentiels import arbre_competences, observations_annee
 from .services.adoption_bases_referentiels import apercu_adoption, adopter_base
@@ -40,6 +40,46 @@ class AdoptionBases(Base):
         return adopter_base(utilisateur=self.enseignant, classe=self.classe, version_id=version.pk,
             revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
             garde_attendue=apercu["garde"]["empreinte"])
+
+    def test_catalogue_actif_a_la_carte_sans_creer_observation(self):
+        self.client.force_login(self.direction)
+        creation = reverse("creer_classe")
+        page = self.client.get(creation, {"annee_scolaire": self.classe.annee_scolaire})
+        self.assertContains(page, "Partir d’un suivi vide")
+        reponse = self.client.post(creation, {"nom": "Classe fictive à la carte",
+            "annee_scolaire": self.classe.annee_scolaire, "base": "ecole", "selection_manuelle": "on",
+            "jeton_choix": page.context["formulaire"]["jeton_choix"].value()})
+        self.assertEqual(reponse.status_code, 302)
+        self.classe = Classe.objects.get(nom="Classe fictive à la carte")
+        self.affecter_enseignant(self.classe)
+        self.classe.activer()
+        self.client.force_login(self.enseignant)
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        self.assertTrue(adoption.selection_manuelle)
+        competence = adoption.usages.get().competence
+        AdaptationCompetence.objects.create(ecole=self.ecole, annee_scolaire=self.classe.annee_scolaire,
+                                           competence=competence, visible=True)
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        page = self.client.get(catalogue, {"q": "Je parle"})
+        self.assertContains(page, "Ajouter au suivi")
+        self.assertFalse(any(d.visibles for d in arbre_competences(self.ecole, classe=self.classe)))
+        with self.assertRaises(PermissionDenied):
+            usage_pour_saisie(self.classe, competence)
+
+        donnees = {"action": "ajouter_au_suivi", "adoption": adoption.pk, "revision": 0}
+        self.client.post(catalogue, {**donnees, "competence": self.competence.pk})
+        self.assertFalse(any(d.visibles for d in arbre_competences(self.ecole, classe=self.classe)))
+        self.assertRedirects(self.client.post(catalogue + "?q=parle", {**donnees, "competence": competence.pk}),
+                             catalogue + "?q=parle")
+        self.assertEqual([c.pk for d in arbre_competences(self.ecole, classe=self.classe) for c in d.visibles],
+                         [competence.pk])
+        self.assertFalse(Observation.objects.exists())
+
+        autre = self.adopter(self.b)
+        self.assertTrue(autre.selection_manuelle)
+        self.assertFalse(any(d.visibles for d in arbre_competences(self.ecole, classe=self.classe)))
+        self.client.post(catalogue, {**donnees, "competence": competence.pk})
+        self.assertFalse(any(d.visibles for d in arbre_competences(self.ecole, classe=self.classe)))
 
     def test_apercu_sans_ecriture_puis_identites_et_contexte(self):
         nombre = Competence.objects.count()

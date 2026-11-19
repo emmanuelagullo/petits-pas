@@ -535,7 +535,8 @@ def installation_locale(request):
                         nom=formulaire.cleaned_data["classe_nom"],
                         annee_scolaire=formulaire.cleaned_data["annee_scolaire"])
                     preparer_premiere_classe(utilisateur=utilisateur, appartenance=appartenance,
-                                             classe=classe, version=version)
+                                             classe=classe, version=version,
+                                             selection_manuelle=formulaire.cleaned_data["selection_manuelle"])
         except ValidationError as erreur:
             formulaire.add_error(None, erreur)
             return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
@@ -1140,12 +1141,15 @@ def choisir_competence(request, pk):
     filtre = filtre_competences(request)
     niveaux = None if filtre == "tous" else [filtre]
     domaines = [(d, d.visibles) for d in _arbre(ecole, niveaux, classe=classe)]
-    effectif = repartition_competences(classe, [c for _d, competences in domaines for c in competences])
+    competences = [c for _d, lignes in domaines for c in lignes]
+    effectif = repartition_competences(classe, competences)
+    adoption = adoption_courante(classe)
     return render(
         request,
         "suivi/choisir_competence.html",
         {"classe": classe, "domaines": domaines, "effectif": effectif, "filtre": filtre,
-         "ariane": chemin_classe(classe), "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
+         "selection_manuelle": bool(adoption and adoption.selection_manuelle),
+         "effectif_competences": len(competences), "ariane": chemin_classe(classe), "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
     )
 
 
@@ -2855,7 +2859,8 @@ def creer_classe(request):
                 raise ValidationError("Vérifiez les propositions pour l’année choisie avant de créer la classe.")
             classe = creer_classe_avec_base(utilisateur=request.user, ecole=ecole,
                 nom=donnees["nom"], annee=donnees["annee_scolaire"], base=donnees["base"],
-                revisions_attendues=choix_lus["revisions"])
+                revisions_attendues=choix_lus["revisions"],
+                selection_manuelle=donnees.get("selection_manuelle", False))
             return redirect("importer_eleves", pk=classe.pk)
         except ValidationError as cause:
             formulaire.add_error(None, " ".join(cause.messages))

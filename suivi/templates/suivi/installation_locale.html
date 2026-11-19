@@ -8,7 +8,7 @@
   {% csrf_token %}
   {% if formulaire.non_field_errors %}<div class="messages erreur">{{ formulaire.non_field_errors }}</div>{% endif %}
   {% for champ in formulaire %}
-  {% if champ.name == "preparer_classe" %}
+  {% if champ.name == "preparer_classe" or champ.name == "selection_manuelle" %}
   <label for="{{ champ.id_for_label }}">{{ champ }} {{ champ.label }}</label>
   {% else %}
   <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
@@ -26,7 +26,8 @@
 (function () {
   const option = document.getElementById('id_preparer_classe');
   const nom = document.getElementById('id_classe_nom');
-  function afficher() { nom.disabled = !option.checked; nom.required = option.checked; }
+  const selection = document.getElementById('id_selection_manuelle');
+  function afficher() { nom.disabled = selection.disabled = !option.checked; nom.required = option.checked; }
   option.addEventListener('change', afficher); afficher();
 })();
 </script>

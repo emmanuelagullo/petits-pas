@@ -983,6 +983,7 @@ class ReferentielAnnuel(models.Model):
 
 
 class AdoptionReferentiel(models.Model):
+    selection_manuelle = models.BooleanField(default=False)
     contenu = models.JSONField(default=dict, blank=True)
     clos = models.BooleanField(default=False)
     etat_final = models.JSONField(default=dict, blank=True)

@@ -13,6 +13,9 @@
   <a href="{% url 'catalogue_competences' classe.pk %}">Rechercher une compétence</a>
   {% if responsable %}<a href="{% url 'catalogue_competences' classe.pk %}?ajouter=1">Ajouter une compétence</a>{% endif %}
 </div>
+{% if selection_manuelle and not effectif_competences %}
+<p>Aucune compétence dans le suivi pour cette section. <a href="{% url 'catalogue_competences' classe.pk %}">Choisir des compétences dans le catalogue</a>.</p>
+{% endif %}
 {% for domaine, competences in domaines %}
 <div class="domaine">
   <h3>{{ domaine.nom }}</h3>

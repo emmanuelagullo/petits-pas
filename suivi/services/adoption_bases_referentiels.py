@@ -54,7 +54,7 @@ def apercu_adoption(*, utilisateur, classe, version_id):
 
 
 @transaction.atomic
-def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None, initialisee_depuis_ecole=False):
+def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None, initialisee_depuis_ecole=False, selection_manuelle=False):
     classe_fournie = classe
     # Même ordre de coordination que les choix d'école.
     _application_verrouillee(classe.annee_scolaire)
@@ -80,13 +80,15 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     if not garde["permis"]:
         raise ValidationError("Le changement après saisies est interdit. Une autorisation explicite de l'application, de l'école et de la classe est nécessaire.")
     version = apercu["version"]
+    if adoption_attendue is not None:
+        selection_manuelle = AdoptionReferentiel.objects.get(pk=adoption_attendue).selection_manuelle
     contenu = definir_version_ecole(classe.ecole, version)
     annuel, _ = ReferentielAnnuel.objects.get_or_create(ecole=classe.ecole, annee_scolaire=classe.annee_scolaire,
                                                       defaults={"version_proposee": version})
     AdoptionReferentiel.objects.filter(classe=classe, courante=True).update(courante=False)
     adoption = AdoptionReferentiel(classe=classe, annuel=annuel, version=version, contenu=contenu,
                                    auteur=utilisateur, adopte_le=timezone.now(),
-                                   initialisee_depuis_ecole=initialisee_depuis_ecole)
+                                   initialisee_depuis_ecole=initialisee_depuis_ecole, selection_manuelle=selection_manuelle)
     adoption.full_clean()
     adoption.save()
     for c in contenu["competences"]:
@@ -94,7 +96,8 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
         usage.full_clean()
         usage.save()
     journaliser(utilisateur, "referentiel.base_classe", adoption,
-        anciennes={"adoption": apercu["adoption_id"]}, nouvelles={"version": version.pk, "initialisee_depuis_ecole": initialisee_depuis_ecole})
+        anciennes={"adoption": apercu["adoption_id"]}, nouvelles={"version": version.pk, "initialisee_depuis_ecole": initialisee_depuis_ecole,
+                    "selection_manuelle": selection_manuelle})
     if garde["permission"]["classe"]:
         consommer_permission(utilisateur, classe)
     classe_fournie._adoption_referentiel_lecture = adoption

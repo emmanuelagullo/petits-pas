@@ -9,7 +9,7 @@ from .adoption_bases_referentiels import adopter_base, apercu_adoption
 
 
 @transaction.atomic
-def creer_classe_avec_base(*, utilisateur, ecole, nom, annee, base, revisions_attendues):
+def creer_classe_avec_base(*, utilisateur, ecole, nom, annee, base, revisions_attendues, selection_manuelle=False):
     verifier_annee(annee)
     if not autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole):
         raise PermissionDenied
@@ -36,5 +36,6 @@ def creer_classe_avec_base(*, utilisateur, ecole, nom, annee, base, revisions_at
         apercu = apercu_adoption(utilisateur=utilisateur, classe=classe, version_id=version.pk)
         adopter_base(utilisateur=utilisateur, classe=classe, version_id=version.pk,
             revisions_attendues=apercu["revisions"], adoption_attendue=None,
-            garde_attendue=apercu["garde"]["empreinte"], initialisee_depuis_ecole=depuis_ecole)
+            garde_attendue=apercu["garde"]["empreinte"], initialisee_depuis_ecole=depuis_ecole,
+            selection_manuelle=selection_manuelle)
     return classe

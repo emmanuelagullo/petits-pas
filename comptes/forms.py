@@ -44,7 +44,9 @@ class InstallationLocaleForm(InitialisationEcoleForm):
     """Préparer aussi le référentiel annuel et, si souhaité, la première classe."""
 
     preparer_classe = forms.BooleanField(label="Préparer aussi ma première classe", initial=True, required=False)
-    referentiel = forms.ChoiceField(label="Façon de commencer", initial="trame")
+    referentiel = forms.ChoiceField(label="Catalogue de départ", initial="trame")
+    selection_manuelle = forms.BooleanField(label="Partir d’un suivi vide", required=False,
+        help_text="Dans la première classe, vous choisirez les compétences à suivre dans le catalogue.")
     annee_scolaire = forms.CharField(label="Année scolaire", max_length=9)
     classe_nom = forms.CharField(label="Nom de la classe", max_length=100, required=False)
 
@@ -62,7 +64,7 @@ class InstallationLocaleForm(InitialisationEcoleForm):
         self.order_fields([
             "ecole_nom", "commune", "first_name", "last_name",
             "username", "password1", "password2",
-            "annee_scolaire", "referentiel", "preparer_classe", "classe_nom",
+            "annee_scolaire", "referentiel", "preparer_classe", "classe_nom", "selection_manuelle",
         ])
 
     def clean(self):
