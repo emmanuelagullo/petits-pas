@@ -97,11 +97,14 @@ document à imprimer ; elle ne produit pas un ZIP de PDF séparés.
 
 ## Mettre à jour et récupérer
 
-Téléchargez d’abord une sauvegarde. **Vérifier les mises à jour** recherche une
-nouvelle version ; **Appliquer la mise à jour** l’active et redémarre
-l’application. Une version téléchargée peut aussi s’activer au prochain
-lancement, après fermeture de tous les onglets. Ne déplacez pas l’installation
-vers une autre adresse : les données du navigateur dépendent de cette adresse.
+**Vérifier les mises à jour** recherche une nouvelle version. La barre indique
+combien de ressources sont déjà vérifiées. Si le téléchargement est interrompu,
+cliquez sur **Réessayer la mise à jour** une fois la connexion rétablie. Petits Pas
+vérifie et réutilise les fichiers complets déjà téléchargés.
+Quand la version est prête, **Appliquer la mise à jour** l’active et redémarre
+l’application. Téléchargez une sauvegarde si vous le pouvez avant de l’appliquer.
+Une version prête peut aussi s’activer au prochain lancement, après fermeture
+de tous les onglets. Revenez à la même adresse pour retrouver votre école.
 
 **Exporter l’état de récupération** télécharge l’état conservé avant la
 dernière mise à jour ou restauration ; si aucun remplacement n’a eu lieu,
