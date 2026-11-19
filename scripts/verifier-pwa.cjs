@@ -654,9 +654,12 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   pass('Mise à jour explicite, ancien runtime arrêté, migration SQL appliquée, école conservée et checkpoint pré-version retenu');
   await python(reopened, "from django.db import connection; connection.cursor().execute(\"INSERT INTO django_migrations(app,name,applied) VALUES ('suivi','9999_inconnue','2026-10-02')\")");
   await assert.rejects(boot(reopened, url));
-  const rescueDownload = reopened.waitForEvent('download', {timeout: 120000});
-  await reopened.getByRole('button', {name: 'Exporter l’état de récupération'}).click();
-  const rescued = await rescueDownload;
+  assert.match(await reopened.locator('#failure-help').innerText(), /ne peut pas ouvrir les données enregistrées/);
+  assert.equal(await reopened.locator('#tools').evaluate(outils => outils.open), false);
+  const [rescued] = await Promise.all([
+    reopened.waitForEvent('download', {timeout: 120000}),
+    reopened.getByRole('button', {name: 'Récupérer un ZIP', exact: true}).click(),
+  ]);
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,tempfile,sqlite3
 from contextlib import closing
