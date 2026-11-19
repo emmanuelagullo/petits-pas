@@ -18,6 +18,8 @@ class ClasseForm(forms.Form):
 
 
 class CreationClasseForm(ClasseForm):
+    selection_manuelle = forms.BooleanField(label="Partir d’un suivi vide", required=False,
+        help_text="Le référentiel proposé reste le catalogue de la classe. Vous choisirez les compétences à suivre.")
     annee_scolaire = forms.CharField(widget=forms.HiddenInput, validators=[verifier_annee])
     base = forms.ChoiceField(widget=forms.HiddenInput, initial="ecole")
     jeton_choix = forms.CharField(widget=forms.HiddenInput)
@@ -39,6 +41,8 @@ class CreationClasseForm(ClasseForm):
             options = [("ecole", f"Utiliser le référentiel proposé par l’école : {proposee.source.titre} — version {proposee.numero}")]
         else:
             options = [("plus_tard", "Choisir après la création — aucun référentiel proposé pour cette année")]
+        if not proposee:
+            del self.fields["selection_manuelle"]
         self.fields["base"].choices = options
         self.fields["base"].initial = "ecole" if proposee else "plus_tard"
 

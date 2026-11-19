@@ -6,7 +6,7 @@ from django.db.models import Q
 from .models import AdaptationCompetence, AdoptionReferentiel, Competence, VersionReferentiel, VersionSourceEcole
 
 
-def contenu_adapte(ecole, annee, contenu, classe=None):
+def contenu_adapte(ecole, annee, contenu, classe=None, *, selection_manuelle=()):
     resultat = deepcopy(contenu)
     ids = [c["id"] for c in resultat.get("competences", [])]
     actuelles = Competence.objects.in_bulk(ids)
@@ -24,10 +24,13 @@ def contenu_adapte(ecole, annee, contenu, classe=None):
     for definition in resultat.get("competences", []):
         actuelle = actuelles.get(definition["id"])
         definition["active"] = definition["active"] and bool(actuelle and actuelle.active)
+        manuelle = definition["id"] in selection_manuelle
+        if manuelle:
+            definition["active"] = False
         for regle in par_competence.get(definition["id"], []):
             if regle.libelle is not None:
                 definition["libelle"] = regle.libelle
-            if regle.visible is not None:
+            if regle.visible is not None and (not manuelle or regle.classe_id is not None):
                 definition["active"] = regle.visible
     return resultat
 

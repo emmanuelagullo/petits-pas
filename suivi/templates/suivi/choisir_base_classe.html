@@ -20,10 +20,10 @@
 <p>Pour expliquer à l’équipe comment deux compétences se rapprochent. Ces repères facultatifs ne changent pas la liste de saisie et ne transfèrent aucune réussite. Vous pouvez utiliser les autres réglages sans en créer.</p>
 <p><a class="bouton discret" href="{% url 'correspondances_classe' classe.pk %}">Correspondances entre compétences</a></p>
 </details>
-{% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% if actuelle.initialisee_depuis_ecole %}<p>Cette base a été préparée depuis la proposition de l’école lors de la création de la classe. Elle reste conservée si l’école change ensuite sa proposition.</p>{% endif %}{% endif %}
+{% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% if actuelle.selection_manuelle %}<p>Suivi construit compétence par compétence.{% if peut_voir_catalogue %} <a href="{% url 'catalogue_competences' classe.pk %}">Ouvrir le catalogue</a>.{% endif %}</p>{% endif %}{% if actuelle.initialisee_depuis_ecole %}<p>Cette base a été préparée depuis la proposition de l’école lors de la création de la classe. Elle reste conservée si l’école change ensuite sa proposition.</p>{% endif %}{% endif %}
 {% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
-{% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}
+{% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><label><input type="checkbox" name="selection_manuelle" value="1"> Partir d’un suivi vide</label><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}
 <details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — changer la base de compétences</summary>
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Modifier la base de toute la classe" resume="Choisir un autre référentiel peut éloigner cette classe du référentiel commun de l’école, même avant les premières saisies, et compliquer les comparaisons avec les autres classes et les autres années. Privilégiez les adaptations courantes lorsque la base vous convient." %}
 <p>Changements après saisies : {% if permission.effective %}<strong>exception ouverte pour un seul changement</strong>{% else %}<strong>interdits au niveau {{ permission.blocage }}</strong>{% endif %}.</p>
@@ -40,6 +40,7 @@
 <option value="{{ version.pk }}" {% if selection_id == version.pk %}selected{% endif %}>{{ version.source.titre }} — version {{ version.numero }}{% if choix.proposee.pk == version.pk %} · choix proposé{% endif %}{% if version.source.provisoire %} · trame provisoire{% endif %}</option>
 {% endfor %}
 </select>
+{% if not actuelle %}<label><input type="checkbox" name="selection_manuelle" value="1"> Partir d’un suivi vide</label>{% endif %}
 <button class="bouton" name="action" value="apercu">Voir les conséquences</button>
 </form>
 {% else %}<p>Aucune base n'est autorisée pour un nouveau choix. Les classes déjà renseignées gardent leur suivi ; contactez la direction.</p>{% endif %}
@@ -53,6 +54,7 @@
 {% endif %}
 <p>Ce choix concerne toute la classe pour les prochaines saisies. Les observations, commentaires et photos déjà enregistrés sont conservés.</p>
 <p><strong>{{ apercu.version.source.titre }}</strong> — version {{ apercu.version.numero }}.</p>
+{% if apercu.selection_manuelle %}<p>Les nombres ci-dessous décrivent le catalogue. Les compétences de la base rejoignent le suivi selon les choix de la classe.</p>{% endif %}
 <ul><li>{{ apercu.communes }} compétence{{ apercu.communes|pluralize }} avec la même identité.</li>
 <li>{{ apercu.nouvelles }} nouvelle{{ apercu.nouvelles|pluralize }} compétence{{ apercu.nouvelles|pluralize }}.</li>
 <li>{{ apercu.hors_base }} compétence{{ apercu.hors_base|pluralize }} de la base actuelle hors de cette base.</li><li>{{ apercu.ajouts }} ajout{{ apercu.ajouts|pluralize }} local{{ apercu.ajouts|pluralize }} conservé{{ apercu.ajouts|pluralize }} dans cette classe.</li></ul>

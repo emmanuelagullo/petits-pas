@@ -66,3 +66,16 @@ l’école ; les classes existantes ne basculent pas automatiquement.
 L’ajout courant d’une réussite concerne seulement les élèves sélectionnés.
 Adopter ensuite une base reste avancé et conserve ces compétences et traces.
 Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].
+
+
+* Construire le suivi compétence par compétence
+
+À la création, cochez *Partir d’un suivi vide* pour conserver le référentiel
+proposé comme catalogue. Depuis la classe, ouvrez *Compétences*, recherchez
+l’entrée souhaitée et cliquez sur *Ajouter au suivi*. La compétence devient
+disponible pour toute la classe, sans enregistrer de réussite. Les ajouts
+locaux restent accessibles depuis le même catalogue.
+
+Lors d’une première installation locale, choisissez un catalogue qui contient
+des compétences, puis cochez *Partir d’un suivi vide* pour la première classe.
+Le choix des catégories seules reste utile pour créer ses propres compétences.

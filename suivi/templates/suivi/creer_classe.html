@@ -18,7 +18,8 @@
   {% for champ in formulaire %}
     {% if champ.is_hidden %}{{ champ }}{{ champ.errors }}
     {% else %}
-      <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>{{ champ }}
+      {% if champ.name == "selection_manuelle" %}<label for="{{ champ.id_for_label }}">{{ champ }} {{ champ.label }}</label>
+      {% else %}<label for="{{ champ.id_for_label }}">{{ champ.label }}</label>{{ champ }}{% endif %}
       {% if champ.help_text %}<p class="aide">{{ champ.help_text }}</p>{% endif %}
       {{ champ.errors }}
     {% endif %}

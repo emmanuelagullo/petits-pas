@@ -3,6 +3,9 @@
 {% block contenu %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
 <h1>Compétences de {{ classe.nom }}</h1>
+{% if adoption.selection_manuelle and not adoption.clos %}
+<p>Le suivi se construit compétence par compétence dans ce catalogue.</p>
+{% endif %}
 <form method="get" class="encadre">
   <label for="q">Rechercher une compétence</label>
   <input type="search" id="q" name="q" value="{{ q }}" maxlength="300">
@@ -47,6 +50,16 @@
     <ul class="liste">
       {% for ligne in sous_groupe.list %}
       <li>{% include "suivi/partiels/ligne_catalogue.html" %}
+        {% if ligne.ajout_au_suivi %}
+        <form method="post" class="actions">
+          {% csrf_token %}
+          <input type="hidden" name="competence" value="{{ ligne.competence.pk }}">
+          <input type="hidden" name="adoption" value="{{ adoption.pk }}">
+          <input type="hidden" name="revision" value="{{ ligne.revision }}">
+          <button class="bouton discret" type="submit" name="action" value="ajouter_au_suivi"
+                  aria-label="Ajouter au suivi · {{ ligne.competence.libelle }}">Ajouter au suivi</button>
+        </form>
+        {% endif %}
         {% if ligne.modifier %} · <a href="{{ ligne.modifier }}">{% if ligne.competence.active %}Modifier ou masquer{% else %}Modifier ou réafficher{% endif %}</a>{% endif %}
       </li>
       {% endfor %}

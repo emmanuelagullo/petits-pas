@@ -55,11 +55,12 @@ def preparer_referentiel(*, utilisateur, ecole, annee, choix):
 
 
 @transaction.atomic
-def preparer_premiere_classe(*, utilisateur, appartenance, classe, version):
+def preparer_premiere_classe(*, utilisateur, appartenance, classe, version, selection_manuelle=False):
     attribuer_affectation(utilisateur=utilisateur, classe=classe,
         type=AffectationClasse.RESPONSABLE, appartenance=appartenance)
     apercu = apercu_adoption(utilisateur=utilisateur, classe=classe, version_id=version.pk)
     adopter_base(utilisateur=utilisateur, classe=classe, version_id=version.pk,
         revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
-        garde_attendue=apercu["garde"]["empreinte"], initialisee_depuis_ecole=True)
+        garde_attendue=apercu["garde"]["empreinte"], initialisee_depuis_ecole=True,
+        selection_manuelle=selection_manuelle)
     activer_classe(utilisateur=utilisateur, classe=classe)

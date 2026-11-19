@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import GERER_REFERENTIEL_CLASSE, charger_classe_autorisee
+from .autorisations import GERER_REFERENTIEL_CLASSE, VOIR_SUIVI, autorise, charger_classe_autorisee
 from .contexte_ecole import ecole_courante
 from .referentiels import adoption_courante
 from .services.adoption_bases_referentiels import adopter_base, apercu_adoption
@@ -38,7 +38,8 @@ def choisir_base_classe(request, classe_pk):
                 verifier_confirmation(request, renforcee=apercu_confirmation["garde"]["niveau"] != "info")
                 adopter_base(utilisateur=request.user, classe=classe, version_id=donnees["version"],
                     revisions_attendues=donnees["revisions"], adoption_attendue=donnees["adoption"],
-                    adaptations_attendues=donnees.get("adaptations"), garde_attendue=donnees.get("garde"))
+                    adaptations_attendues=donnees.get("adaptations"), garde_attendue=donnees.get("garde"),
+                    selection_manuelle=donnees.get("selection_manuelle", False))
                 messages.success(request, "La base de la classe est choisie. Aucune réussite n'a été créée ou transférée.")
                 return redirect("classe_detail", pk=classe.pk)
             if request.POST.get("action") != "apercu":
@@ -48,9 +49,11 @@ def choisir_base_classe(request, classe_pk):
             except ValueError as cause:
                 raise ValidationError("Choisissez une base autorisée.") from cause
             apercu = apercu_adoption(utilisateur=request.user, classe=classe, version_id=version_id)
+            apercu["selection_manuelle"] = (actuelle.selection_manuelle if actuelle
+                                            else request.POST.get("selection_manuelle") == "1")
             jeton = signing.dumps({"classe": classe.pk, "auteur": request.user.pk,
                 "version": version_id, "revisions": apercu["revisions"], "adoption": apercu["adoption_id"],
-                "garde": apercu["garde"]["empreinte"],
+                "garde": apercu["garde"]["empreinte"], "selection_manuelle": apercu["selection_manuelle"],
                 "adaptations": apercu["mise_a_jour"]["empreinte_adaptations"] if apercu["mise_a_jour"] else None}, salt="base-classe")
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
@@ -60,7 +63,7 @@ def choisir_base_classe(request, classe_pk):
     confirmation_form = ConfirmationReferentielForm(renforcee=bool(apercu and apercu["garde"]["niveau"] != "info"))
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
         "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
-        "actuelle": actuelle, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
+        "actuelle": actuelle, "peut_voir_catalogue": autorise(request.user, VOIR_SUIVI, classe), "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
 
 
 def choix_ecole_modifies(local, donnees):
@@ -209,7 +212,9 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
         for definition in effectif.get("competences", []):
             definition.update(finales.get(definition["id"], {}))
     else:
-        effectif = contenu_adapte(ecole, annee, origine, classe)
+        manuel = bool(actuelle and actuelle.selection_manuelle and not hors_base)
+        selection = {c["id"] for c in origine.get("competences", [])} if manuel else ()
+        effectif = contenu_adapte(ecole, annee, origine, classe, selection_manuelle=selection)
     index_url = reverse("adaptations_classe", args=[classe.pk]) if classe else reverse("adaptations_ecole")
     suffixe = f"?annee={annee}&version={version_id}"
     contexte = {"classe": classe, "annee": annee, "bases": [v for v, _ in bases], "version": version,
@@ -231,6 +236,8 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
         raise Http404
     courante = next(c for c in effectif["competences"] if c["id"] == competence.pk)
     proposee = next(c for c in contenu_adapte(ecole, annee, origine)["competences"] if c["id"] == competence.pk) if classe else definition
+    if actuelle and actuelle.selection_manuelle and not hors_base:
+        proposee["active"] = False
     if not classe:
         proposee = {**definition, "active": definition["active"] and competence.active}
     regle = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
