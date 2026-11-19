@@ -381,7 +381,7 @@ scenarios:
     etapes:
       - { action: classe, classe: cerfs_volants }
       - { action: lien, nom: "Saisir pour toute la classe" }
-      - { action: titre, nom: "Quelle compétence venez-vous d'observer ?", exact: false }
+      - { action: visible, selecteur: ".domaine" }
     capture: guide/observer/suivi-libre.png
     capture_mobile: guide/observer/suivi-libre-mobile.png
     titre: Les compétences créées au fil des réussites
@@ -392,8 +392,10 @@ scenarios:
     etapes:
       - { action: classe, classe: cerfs_volants }
       - { action: lien, nom: "Saisir pour toute la classe" }
-      - { action: selecteur, selecteur: 'a[href*="/reussite/?domaine="]' }
-      - { action: titre, nom: "Ajouter une compétence hors du référentiel de la classe" }
+      - { action: selecteur, selecteur: '.action-classement a:has-text("+ Ajouter une compétence")' }
+      - { action: selecteur, selecteur: '#catalogue-resultats summary:has-text("Créer une compétence")' }
+      - { action: lien, nom: "Suivre pour les élèves sélectionnés" }
+      - { action: titre, nom: "Créer une compétence pour des élèves" }
     cible: "#formulaire-reussite"
     capture: guide/observer/ajouter-reussite.png
     titre: Créer une compétence et commencer son suivi
