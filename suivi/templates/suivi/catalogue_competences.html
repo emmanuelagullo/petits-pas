@@ -7,6 +7,13 @@
 <p>Le suivi se construit compétence par compétence dans ce catalogue.</p>
 {% endif %}
 <form method="get" class="encadre">
+  {% if sources %}
+  <label for="source">Source</label>
+  <select id="source" name="source">
+    <option value="">Catalogue de cette classe</option>
+    {% for cle, choix in sources.items %}<option value="{{ cle }}"{% if source == cle %} selected{% endif %}>{{ choix.0 }}</option>{% endfor %}
+  </select>
+  {% endif %}
   <label for="q">Rechercher une compétence</label>
   <input type="search" id="q" name="q" value="{{ q }}" maxlength="300">
   {% if ajouter %}<input type="hidden" name="ajouter" value="1">{% endif %}
@@ -22,6 +29,7 @@
     <option value="">Tous les domaines</option>
     {% for nom in domaines %}<option{% if nom == domaine %} selected{% endif %}>{{ nom }}</option>{% endfor %}
   </select>
+  {% if not source %}
   <label for="portee">Périmètre</label>
   <select id="portee" name="portee">
     <option value="">Tous</option>
@@ -29,8 +37,26 @@
     <option value="classe"{% if portee == "classe" %} selected{% endif %}>Ajouts pour la classe</option>
     <option value="cible"{% if portee == "cible" %} selected{% endif %}>Suivi ciblé</option>
   </select>
+  {% endif %}
   <button type="submit" class="bouton">Rechercher</button>
 </form>
+{% if source %}
+<ul class="liste">
+  {% for ligne in disponibles %}
+  <li>
+    {{ ligne.competence.libelle }}
+    <small> · {{ ligne.competence.niveau }} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>
+    <form method="post" class="actions">
+      {% csrf_token %}
+      <input type="hidden" name="reference" value="{{ ligne.reference }}">
+      <input type="hidden" name="adoption" value="{{ adoption.pk }}">
+      <button class="bouton discret" type="submit" name="action" value="ajouter_depuis_source"
+              aria-label="Ajouter au suivi · {{ ligne.competence.libelle }}">Ajouter au suivi</button>
+    </form>
+  </li>
+  {% empty %}<li>Aucune compétence ne correspond à la recherche.</li>{% endfor %}
+</ul>
+{% else %}
 {% if ajouter %}
 <section class="encadre">
   <h2>Ajouter une compétence</h2>
@@ -67,4 +93,5 @@
   {% endfor %}
   </section>
 {% empty %}<p>Aucune compétence ne correspond à la recherche.</p>{% endfor %}
+{% endif %}
 {% endblock %}

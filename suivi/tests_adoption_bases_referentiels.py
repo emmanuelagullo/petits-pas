@@ -41,6 +41,21 @@ class AdoptionBases(Base):
             revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
             garde_attendue=apercu["garde"]["empreinte"])
 
+    def test_ajouter_depuis_un_autre_referentiel_autorise(self):
+        adoption = self.adopter()
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        url = f"{catalogue}?source=version-{self.b.pk}"
+        reference = self.b.definitions.get().identite.identifiant
+        self.assertContains(self.client.get(url), "Ajouter au suivi")
+        self.assertRedirects(self.client.post(url, {"action": "ajouter_depuis_source",
+            "adoption": adoption.pk, "reference": reference}), url)
+        regle = AdaptationCompetence.objects.get(classe=self.classe)
+        self.assertTrue(regle.ajout)
+        self.assertEqual(regle.competence.origine_source.identite.source_id, self.b.source_id)
+        self.assertEqual(usage_pour_saisie(self.classe, regle.competence).adoption_id, adoption.pk)
+        self.assertFalse(Observation.objects.exists())
+        self.assertEqual(self.client.get(f"{catalogue}?source=version-99999").status_code, 403)
+
     def test_catalogue_actif_a_la_carte_sans_creer_observation(self):
         self.client.force_login(self.direction)
         creation = reverse("creer_classe")
