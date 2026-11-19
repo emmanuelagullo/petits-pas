@@ -6,18 +6,20 @@ categorie = "eleves-classes"
 publics = ["responsable", "direction"]
 intentions = ["compétence", "ajout", "créer", "reprendre", "référentiel", "rentrée"]
 prerequis = "Vous êtes responsable de la classe ou direction de l’école. La classe possède une base et ses choix sont ouverts."
-depart = "Référentiel de la classe → Compétences ajoutées, ou Référentiels de l’école → Compétences ajoutées"
+depart = "Classe → Compétences, ou Référentiels de l’école → Compétences ajoutées"
 statut = "disponible"
 +++
 
 ## Étapes
 
-1. Ouvrir **Compétences ajoutées** dans le référentiel de la classe. La direction
-   peut aussi partir des référentiels de l’école, en vérifiant l’année.
-2. Pour une nouvelle compétence, saisir son texte, choisir la section et un
-   domaine, puis cliquer sur **Créer la compétence**. Image et phrase sont
-   facultatives. Pour reformuler la même compétence, adapter plutôt le
-   libellé de la compétence existante.
+1. Ouvrir **Compétences** dans la classe et rechercher par libellé. Les filtres
+   de section, domaine et périmètre s’appliquent aux compétences de la base,
+   aux ajouts et au suivi ciblé. La direction peut aussi partir des
+   référentiels de l’école, en vérifiant l’année.
+2. Choisir **Ajouter une compétence**, puis **Ajouter pour toute la classe**
+   ou **Ajouter pour certains élèves**. Choisir la section, le domaine et,
+   si utile, le sous-domaine. Si un libellé identique existe déjà, ouvrir
+   la fiche existante ou confirmer la création d’une compétence distincte.
 3. Pour un ajout déjà proposé, cliquer sur **Reprendre dans cette classe**.
    Les propositions de l’école pour l’année et les ajouts déjà utilisés dans
    une classe dont vous gérez le référentiel sont disponibles.
@@ -52,6 +54,18 @@ Pour un ajout repris, **Garder le libellé d’origine** conserve le texte de sa
 création ; **Utiliser mon libellé** permet une reformulation propre à la classe.
 Si l’école a proposé un autre texte pour cette année, le choix s’appelle
 **Suivre le libellé de l’école**, y compris pour un ajout créé dans la classe.
+
+## Corriger un classement ou retrouver un doublon
+
+Dans le catalogue, **Modifier ou masquer** ouvre les réglages de la compétence.
+Pour un ajout, **Corriger le classement** permet de modifier la section, le
+domaine et le sous-domaine. Les observations restent rattachées à la compétence.
+Quand un ajout est partagé, la direction voit les utilisations avant d’enregistrer.
+Les carnets clôturés gardent le classement conservé à la clôture.
+
+Pour départager deux libellés identiques, comparer leur périmètre et le nombre
+d’élèves avec des observations dans cette classe. Masquer l’entrée en trop
+la retire des prochaines saisies et permet de conserver son historique.
 
 ## Changement de base et rentrée
 

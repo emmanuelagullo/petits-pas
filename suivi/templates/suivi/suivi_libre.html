@@ -22,6 +22,7 @@
 {% if not locale %}
 {% include "suivi/partiels/complements_suivi_libre.html" %}
 {% endif %}
+{% include "suivi/partiels/doublons_competences.html" %}
 {{ form.jeton }}
 <div class="actions"><button class="bouton" type="submit" name="action" value="ajouter">{% if locale %}Activer le suivi sans réussite{% else %}Enregistrer{% endif %}</button></div>
 </form>

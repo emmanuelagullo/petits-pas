@@ -80,6 +80,15 @@ def selection_classe(classe, utilisateur):
     identites.update(origines.values_list("identite_id", flat=True))
     sources = set(m.VersionReferentiel.objects.filter(pk__in=versions).values_list("source_id", flat=True))
     sources.update(m.IdentiteSourceCompetence.objects.filter(pk__in=identites).values_list("source_id", flat=True))
+    locales = m.CompetenceLocale.objects.filter(ecole_id=classe.ecole_id, competence_id__in=competences)
+    # Après un reclassement, les définitions d’origine et les instantanés
+    # clôturés peuvent encore référencer l’ancien domaine ou sous-domaine.
+    domaines_historiques, sous_domaines_historiques = set(), set()
+    contenus = list(locales.values_list("definition", flat=True))
+    contenus.extend(final.get("contenu", {}) for final in adoptions.values_list("etat_final", flat=True))
+    for contenu in contenus:
+        domaines_historiques.update(d["id"] for d in contenu.get("domaines", []))
+        sous_domaines_historiques.update(d["id"] for d in contenu.get("sous_domaines", []))
     perimetre = Q(classe=classe) | Q(classe__isnull=True)
     resultat.update({
         m.Ecole: Q(pk=classe.ecole_id), m.ParametresCarnet: Q(ecole_id=classe.ecole_id),
@@ -89,8 +98,14 @@ def selection_classe(classe, utilisateur):
         m.Trace: textes & Q(scolarite__classe=classe, observation_id__in=etats, supprime_le__isnull=True),
         m.Bilan: textes & Q(scolarite__classe=classe, scolarite__eleve_id__in=eleves, supprime_le__isnull=True),
         m.Competence: Q(pk__in=competences),
-        m.Domaine: Q(pk__in=m.Competence.objects.filter(pk__in=competences).values("domaine_id")),
-        m.SousDomaine: Q(pk__in=m.Competence.objects.filter(pk__in=competences).values("sous_domaine_id")),
+        m.Domaine: Q(ecole_id=classe.ecole_id) & (
+            Q(pk__in=m.Competence.objects.filter(pk__in=competences).values("domaine_id"))
+            | Q(pk__in=domaines_historiques)
+        ),
+        m.SousDomaine: Q(domaine__ecole_id=classe.ecole_id) & (
+            Q(pk__in=m.Competence.objects.filter(pk__in=competences).values("sous_domaine_id"))
+            | Q(pk__in=sous_domaines_historiques)
+        ),
         m.Attendu: Q(domaine_id__in=m.Competence.objects.filter(pk__in=competences).values("domaine_id")),
         m.FormulationProposee: Q(competence_id__in=competences),
         m.ReglagePresentation: perimetre & Q(ecole_id=classe.ecole_id) & (Q(competence_id__in=competences) | Q(competence__isnull=True)),
@@ -104,7 +119,7 @@ def selection_classe(classe, utilisateur):
         m.EtatAnnuelObservation: Q(observation_id__in=etats, annee_scolaire=classe.annee_scolaire),
         m.AdaptationCompetence: perimetre & Q(ecole_id=classe.ecole_id, annee_scolaire=classe.annee_scolaire, competence_id__in=competences),
         m.EleveApprentissage: Q(scolarite__classe=classe, disponibilite__classe=classe),
-        m.CompetenceLocale: Q(ecole_id=classe.ecole_id, competence_id__in=competences),
+        m.CompetenceLocale: Q(pk__in=locales.values("pk")),
         m.DisponibiliteCompetenceLocale: perimetre & Q(locale__competence_id__in=competences, annee_scolaire=classe.annee_scolaire),
         m.CorrespondanceCompetence: Q(pk__in=correspondances.values("pk")),
     })

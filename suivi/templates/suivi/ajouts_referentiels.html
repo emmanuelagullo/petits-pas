@@ -5,6 +5,7 @@
 <div class="page-referentiel">
 {% ariane_referentiel "Compétences ajoutées" classe annee %}
 {% if retour_suivi %}<p><a href="{{ retour_suivi }}">Revenir à la compétence</a></p>{% endif %}
+{% if retour_catalogue %}<p><a href="{{ retour_catalogue }}">Revenir au catalogue</a></p>{% endif %}
 <h1>{% if locale.suivi_libre %}Compétence hors référentiel{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>
 {% if locale.suivi_libre %}<p>Modifiez cette compétence hors du référentiel de la classe en conservant son suivi et ses observations.</p>
 {% else %}<p>{% if classe %}Ajoutez une compétence au référentiel pour la rendre disponible à toute la classe, ou reprenez un ajout disponible.{% else %}Proposez une compétence supplémentaire à l’école. Chaque classe choisit les ajouts qu’elle reprend.{% endif %} Chaque compétence garde son propre suivi ; aucune réussite n’est attribuée automatiquement.</p>
@@ -17,6 +18,18 @@
 <p><a href="{{ index_url }}">Revenir aux compétences ajoutées</a></p>
 <h2>{{ courante.libelle }}</h2>
 {% if ouvert and adaptable %}{% if form.libelle_direct %}<p>Vous avez créé cette compétence dans la classe : vous pouvez modifier son libellé ci-dessous. Ses observations restent associées à cette compétence. Pour décrire une autre compétence, créez une nouvelle compétence.</p>{% elif not libelle_ecole %}<p>« Garder le libellé d’origine » conserve le texte saisi lors de la création de cet ajout. « Utiliser mon libellé » permet de le reformuler, tout en gardant la même compétence et ses observations.</p>{% endif %}{% endif %}
+{% if classement %}
+<details{% if classement.errors %} open{% endif %}><summary>Corriger le classement</summary>
+  <p>Classement actuel · {{ locale.competence.get_niveau_display }} · {{ locale.competence.domaine.nom }}{% if locale.competence.sous_domaine %} · {{ locale.competence.sous_domaine.nom }}{% endif %}</p>
+  <p>Les observations restent rattachées à cette compétence. Les carnets des classes clôturées conservent leur classement.</p>
+  <p>Utilisations de cette compétence</p>
+  <ul>{% for usage in usages_classement %}<li>{% if usage.classe %}{{ usage.classe.libelle_avec_annee }}{% else %}Proposée à l’école · {{ usage.annee_scolaire }}{% endif %}</li>{% endfor %}</ul>
+  <form method="post">
+    {% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="classement">
+    {{ classement.as_p }}<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer le classement</button>
+  </form>
+</details>
+{% elif ouvert and locale %}<p>La direction peut corriger le classement des compétences partagées.</p>{% endif %}
 <details><summary>Origine de cet ajout</summary><p>Créé {% if locale.classe_origine %}pour {{ locale.classe_origine.libelle_avec_annee }}{% else %}pour l'école{% endif %}. Reprendre ou proposer cet ajout conserve la même compétence.</p><p>Libellé d'origine : {{ origine.libelle }}.</p></details>
 {% if ouvert and adaptable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="adapter">
 {% if form.libelle_direct %}
@@ -31,11 +44,11 @@
 {% endif %}
 <button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer</button></form>{% endif %}
 {% else %}
-<h2>Créer un ajout</h2>
+<h2 id="creer">Créer un ajout</h2>
 <p>{% if classe %}Cet ajout sera retenu uniquement dans cette classe pour cette année.{% else %}Cet ajout sera proposé à l'école pour cette année. Aucune classe ne le recevra automatiquement.{% endif %} Aucune image ni phrase n'est obligatoire.</p>
-{% if ouvert %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Créer la compétence</button></form>{% endif %}
+{% if ouvert %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}{% include "suivi/partiels/doublons_competences.html" %}<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Créer la compétence</button></form>{% endif %}
 <h2>{% if classe %}Ajouts retenus ou disponibles{% else %}Ajouts de l'école et des classes{% endif %}</h2>
-<ul class="liste">{% for ligne in lignes %}<li class="entree"><div class="principal"><strong>{{ ligne.definition.libelle }}</strong> · {{ ligne.locale.competence.get_niveau_display }}{% if not ligne.definition.active %} · masquée{% endif %}
+<ul class="liste">{% for ligne in lignes %}<li class="entree" id="ajout-{{ ligne.locale.pk }}"><div class="principal"><strong>{{ ligne.definition.libelle }}</strong> · {{ ligne.definition.niveau }}{% if not ligne.definition.active %} · masquée{% endif %}
 <p>Origine : {% if ligne.locale.classe_origine %}{{ ligne.locale.classe_origine.libelle_avec_annee }}{% else %}école{% endif %}.</p>
 {% if ligne.retenu %}<p>Retenue dans cette classe.</p>{% endif %}{% if ligne.propose %}<p>Proposée à l'école pour {{ annee }}.</p>{% endif %}
 {% if ligne.adaptable %}<a href="{{ ligne.url }}">Libellé et visibilité</a>{% endif %}

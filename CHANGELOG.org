@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Retrouver les compétences de la classe dans un catalogue par domaine et
+  sous-domaine, repérer un libellé identique avant de créer et corriger le
+  classement d’un ajout en conservant les observations.
+
 - Retrouver sa place dans le suivi grâce au fil d’Ariane, filtrer le catalogue
   collectif par section et enchaîner les traces dans l’ordre de la classe.
 

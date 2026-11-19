@@ -8,7 +8,7 @@ from django.db.models import Q
 from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise
 from suivi.models import (AdoptionReferentiel, Classe, Competence, CompetenceLocale,
-                         DisponibiliteCompetenceLocale, Domaine, Ecole)
+                         DisponibiliteCompetenceLocale, Domaine, Ecole, SousDomaine)
 from suivi.referentiels import contenu_origine
 from suivi.adaptations_referentiels import contenus_ecole
 from .choix_bases_referentiels import verifier_annee
@@ -44,43 +44,98 @@ def catalogue_reprises(*, utilisateur, ecole, annee, classe):
         Q(disponibilites__classe_id__in=classes)).distinct().order_by("pk")
 
 
+def definition_sous_domaine(sous):
+    return {"id": sous.pk, "code": sous.code, "nom": sous.nom,
+            "domaine_id": sous.domaine_id, "ordre": sous.ordre}
+
+
+def classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre):
+    domaine = next((d for c in contenus for d in c.get("domaines", []) if d["id"] == domaine_id), None)
+    if domaine is None:
+        raise ValidationError("Choisissez un domaine de la base consultée.")
+    sous = next((s for c in contenus for s in c.get("sous_domaines", [])
+                 if s["id"] == sous_domaine_id and s["domaine_id"] == domaine_id), None)
+    if sous_domaine_id is not None and sous is None:
+        raise ValidationError("Choisissez un sous-domaine de ce domaine.")
+    if suivi_libre:
+        groupe = Domaine.objects.get(pk=domaine_id, ecole=ecole)
+        return groupe, SousDomaine.objects.get(pk=sous["id"], domaine=groupe) if sous else None
+    # Les ajouts au référentiel gardent leur groupe lors d'un changement de base.
+    nom = "Ajouts — " + domaine["nom"][:191]
+    groupe = Domaine.objects.filter(ecole=ecole, code__startswith="ajout-", nom=nom).first()
+    if groupe is None:
+        groupe = Domaine.objects.create(ecole=ecole, code="ajout-" + uuid4().hex[:14], nom=nom, ordre=domaine["ordre"])
+    local = None
+    if sous:
+        local = SousDomaine.objects.filter(domaine=groupe, nom=sous["nom"]).first()
+        if local is None:
+            local = SousDomaine.objects.create(domaine=groupe, code="ajout-" + uuid4().hex[:14],
+                                               nom=sous["nom"], ordre=sous["ordre"])
+    return groupe, local
+
+
+def utilisations_classement(locale):
+    return list(locale.disponibilites.select_related("classe").order_by("annee_scolaire", "classe_id", "pk"))
+
+
+def peut_corriger_classement(utilisateur, locale, classe, utilisations):
+    if autorise(utilisateur, GERER_REFERENTIEL_ECOLE, locale.ecole):
+        return True
+    return bool(classe and utilisations and all(u.classe_id == classe.pk for u in utilisations)
+                and autorise(utilisateur, GERER_REFERENTIEL_CLASSE, classe))
+
+
+@transaction.atomic
+def corriger_classement(*, utilisateur, locale, annee, classe, adoption_attendue, niveau, domaine_id,
+                        sous_domaine_id, etat_attendu):
+    adoption = _verrouiller(utilisateur, locale.ecole, annee, classe, adoption_attendue)
+    utilisations = utilisations_classement(locale)
+    if not peut_corriger_classement(utilisateur, locale, classe, utilisations):
+        raise PermissionDenied
+    competence = Competence.objects.select_for_update().get(pk=locale.competence_id)
+    avant = etat_classement(competence, utilisations)
+    if avant != etat_attendu:
+        raise ValidationError("Le classement ou les utilisations ont changé. Rechargez la page.")
+    if niveau not in ("PS", "MS", "GS"):
+        raise ValidationError("Choisissez une section.")
+    if domaine_id is not None:
+        contenus = [contenu_origine(adoption)] if adoption else [c for _, c in contenus_ecole(locale.ecole, annee)]
+        competence.domaine, competence.sous_domaine = classement_local(
+            locale.ecole, contenus, domaine_id, sous_domaine_id, locale.suivi_libre)
+    elif sous_domaine_id is not None:
+        raise ValidationError("Choisissez d’abord le domaine du sous-domaine.")
+    competence.niveau = niveau
+    apres = etat_classement(competence, utilisations)
+    if apres != avant:
+        competence.save(update_fields=["niveau", "domaine", "sous_domaine"])
+        journaliser(utilisateur, "referentiel.classement_corrige", locale, anciennes=avant, nouvelles=apres)
+
+
+def etat_classement(competence, utilisations):
+    return {"niveau": competence.niveau, "domaine": competence.domaine_id,
+            "sous_domaine": competence.sous_domaine_id, "utilisations": [u.pk for u in utilisations]}
+
+
 @transaction.atomic
 def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None):
     adoption = _verrouiller(utilisateur, ecole, annee, classe, adoption_attendue)
     contenus = [contenu_origine(adoption)] if classe else [c for _, c in contenus_ecole(ecole, annee)]
-    domaine = next((d for c in contenus for d in c.get("domaines", []) if d["id"] == domaine_id), None)
-    if domaine is None:
-        raise ValidationError("Choisissez un domaine de la base consultée.")
     if not isinstance(libelle, str) or not libelle.strip() or len(libelle.strip()) > 300:
         raise ValidationError("Précisez un libellé de 1 à 300 caractères.")
     if niveau not in ("PS", "MS", "GS"):
         raise ValidationError("Choisissez une section.")
-    # Un groupe distinct garde son nom lors des changements de base. Réutiliser
-    # un Domaine source aurait rendu l'ajout dépendant d'une version particulière.
-    sous = None
-    if suivi_libre:
-        if classe is None:
-            raise PermissionDenied
-        from suivi.models import SousDomaine
-        if sous_domaine_id:
-            sous = next((s for s in contenu_origine(adoption).get("sous_domaines", [])
-                         if s["id"] == sous_domaine_id and s["domaine_id"] == domaine_id), None)
-            if sous is None:
-                raise ValidationError("Choisissez un sous-domaine de ce domaine.")
-        groupe = Domaine.objects.get(pk=domaine_id, ecole=ecole)
-    nom = "Ajouts — " + domaine["nom"][:191]
-    if not suivi_libre:
-        groupe = Domaine.objects.filter(ecole=ecole, code__startswith="ajout-", nom=nom).first()
-    if groupe is None:
-        groupe = Domaine.objects.create(ecole=ecole, code="ajout-" + uuid4().hex[:14], nom=nom, ordre=domaine["ordre"])
-    competence = Competence(domaine=groupe, sous_domaine_id=sous_domaine_id if sous else None, code="local-" + uuid4().hex[:24], libelle=libelle.strip(), niveau=niveau)
+    if suivi_libre and classe is None:
+        raise PermissionDenied
+    groupe, sous = classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre)
+    competence = Competence(domaine=groupe, sous_domaine=sous, code="local-" + uuid4().hex[:24],
+                            libelle=libelle.strip(), niveau=niveau)
     competence.full_clean()
     competence.save()
     definition = {"domaines": [{"id": groupe.pk, "code": groupe.code, "nom": groupe.nom, "ordre": groupe.ordre}],
-        "competences": [{"id": competence.pk, "domaine_id": groupe.pk, "sous_domaine_id": sous_domaine_id if sous else None,
+        "competences": [{"id": competence.pk, "domaine_id": groupe.pk, "sous_domaine_id": competence.sous_domaine_id,
             "code": competence.code, "libelle": competence.libelle, "niveau": niveau, "icone": "", "ordre": 0,
             "active": True, "cle_definition": f"locale-{competence.pk}"}]}
-    definition["sous_domaines"] = [sous] if sous else []
+    definition["sous_domaines"] = [definition_sous_domaine(sous)] if sous else []
     locale = CompetenceLocale(suivi_libre=suivi_libre, ecole=ecole, competence=competence, classe_origine=classe,
                              auteur=utilisateur, definition=definition)
     locale.full_clean()

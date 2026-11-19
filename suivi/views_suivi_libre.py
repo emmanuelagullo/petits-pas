@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 from .autorisations import MODIFIER_ETAT, charger_classe_autorisee, charger_eleve_autorise
+from .catalogue_competences import doublons_classe
 from .models import CompetenceLocale
 from .navigation import filtre_competences, lien
 from .forms_suivi_libre import ReussiteLibreForm, SelectionElevesForm
@@ -36,6 +37,7 @@ def suivi_libre(request, pk, locale_pk=None):
     initial = {"domaine": request.GET.get("domaine"), "sous_domaine": request.GET.get("sous_domaine")}
     if not locale:
         initial["reussite"] = True
+        initial["libelle"] = request.GET.get("libelle", "")[:300]
         if filtre != "tous":
             initial["niveau"] = filtre
     eleve = None
@@ -52,6 +54,7 @@ def suivi_libre(request, pk, locale_pk=None):
         options["contenu"] = contenu_origine(adoption)
     form = (SelectionElevesForm if locale else ReussiteLibreForm)(
         request.POST if request.method == "POST" else None, request.FILES or None, **options)
+    doublons = []
     if request.method == "POST" and form.is_valid():
         try:
             if signing.loads(form.cleaned_data["jeton"], salt="suivi-libre", max_age=1800) != attendu:
@@ -63,6 +66,10 @@ def suivi_libre(request, pk, locale_pk=None):
                 messages.success(request, "Disponibilité mise à jour, sans attribution de réussite.")
                 return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre))
             d = form.cleaned_data
+            if request.POST.get("confirmer_doublon") != "1":
+                doublons = doublons_classe(classe, d["libelle"], request.user)
+                if doublons:
+                    raise ValidationError("Vérifiez la compétence existante avant de créer un doublon.")
             photo = preparer_image(d["photo"]) if d.get("photo") else None
             resultat = ajouter_reussite(utilisateur=request.user, classe=classe,
                 ids=d["eleves"], domaine_id=d["domaine"], sous_domaine_id=d["sous_domaine"],
@@ -77,7 +84,7 @@ def suivi_libre(request, pk, locale_pk=None):
     reprises = CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True).select_related("competence")
     reprises = [c for c in reprises if peut_reprendre(request.user, classe, c)]
     return render(request, "suivi/suivi_libre.html", {"classe": classe, "form": form,
-        "locale": locale, "reprises": reprises, "eleve": eleve})
+        "locale": locale, "reprises": reprises, "doublons": doublons, "eleve": eleve})
 
 
 @acces_requis

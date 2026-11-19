@@ -1,6 +1,7 @@
 from tempfile import TemporaryDirectory
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import override_settings
+from django.urls import reverse
 from .models import AdoptionReferentiel, Classe, CompetenceLocale, EtatAnnuelObservation, Observation
 from .referentiels import contenu_adoption, contenu_origine
 from .services.ajouts_referentiels import creer_ajout, proposer_ajout, reprendre_ajout
@@ -32,6 +33,38 @@ class AjoutsLocaux(Base):
             annee=self.classe.annee_scolaire, classe=self.classe if classe else None,
             adoption_attendue=adoption.pk if classe else None,
             domaine_id=adoption.contenu["domaines"][0]["id"], libelle="Je trie des objets fictifs", niveau="PS", **options)
+
+    def test_catalogue_reunit_les_ajouts_et_signale_le_meme_libelle(self):
+        locale = self.creer()
+        cible = self.creer(suivi_libre=True)
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        page = self.client.get(catalogue, {"q": "je trie"})
+        self.assertEqual({l["locale"].pk for l in page.context["lignes"]}, {locale.pk, cible.pk})
+        self.assertContains(page, "Suivi ciblé")
+        self.assertContains(page, "Ajout pour la classe")
+        ajout = reverse("ajouts_classe", args=[self.classe.pk])
+        jeton = self.client.get(ajout).context["jeton"]
+        page = self.client.post(ajout, {"action": "creer", "jeton": jeton,
+            "libelle": locale.competence.libelle, "niveau": "GS",
+            "domaine": AdoptionReferentiel.objects.get(classe=self.classe, courante=True).contenu["domaines"][0]["id"]})
+        self.assertContains(page, "Une compétence porte déjà ce libellé", status_code=400)
+        self.assertEqual(CompetenceLocale.objects.count(), 2)
+
+    def test_correction_du_classement_conserve_identite_et_observation(self):
+        locale = self.creer()
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=locale.competence, statut="reussi")
+        observation = Observation.objects.get(competence=locale.competence)
+        url = reverse("ajout_classe", args=[self.classe.pk, locale.pk])
+        jeton = self.client.get(url).context["jeton"]
+        self.assertEqual(self.client.post(url, {"action": "classement", "jeton": jeton,
+            "niveau": "GS", "domaine": "", "sous_domaine": ""}).status_code, 302)
+        locale.refresh_from_db()
+        definition = next(c for c in contenu_adoption(adoption)["competences"] if c["id"] == locale.competence_id)
+        self.assertEqual(definition["niveau"], "GS")
+        self.assertEqual(locale.definition["competences"][0]["niveau"], "PS")
+        observation.refresh_from_db()
+        self.assertEqual(observation.statut, "reussi")
 
     def test_creation_distincte_sans_ressources_et_changement_de_base(self):
         locale = self.creer()

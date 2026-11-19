@@ -22,8 +22,16 @@ crée ni observation ni état annuel.
 
 Le choix de domaine est limité aux domaines des bases consultables (base
 courante pour une classe). Un groupe « Ajouts — nom du domaine » conserve le
-classement choisi indépendamment des futures bases. Pas de création libre de
-domaine, sous-domaine ou attendu dans ce premier périmètre.
+classement choisi indépendamment des futures bases. Le sous-domaine facultatif
+est choisi parmi ceux de la base consultée. Le catalogue de classe rapproche
+les ajouts et le suivi ciblé du domaine pédagogique correspondant.
+
+Une correction utilise la section, le domaine et le sous-domaine de la ligne
+Competence. La définition d’origine de l’ajout et les instantanés clôturés
+restent conservés. Le responsable corrige les ajouts propres à sa classe ;
+la direction corrige ceux proposés ou repris ailleurs après consultation des
+utilisations. La validation vérifie le classement et les disponibilités
+affichés avant l’écriture.
 
 Les ajouts retenus composent le référentiel lu, sans modifier le contenu fourni.
 Ils continuent lors d'un changement de base dans l'année ; l'aperçu les compte
