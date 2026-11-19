@@ -1,5 +1,7 @@
 """Adaptation Petits Pas du moteur Pas communs ; API et état local conservés."""
 import json
+import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 
 from pas_communs import paquets as moteur
@@ -12,6 +14,22 @@ FORMAT = "petits-pas-paquet"
 PROFIL = ProfilPaquet("petits-pas", FORMAT, "carnet.sqlite3", accepter_sans_application=True)
 SUIVI_SAUVEGARDE = "suivi-sauvegarde.json"
 _restauration = moteur.RestaurationLocale()
+
+
+def verifier_migrations_paquet(base):
+    """Refuser un schéma plus récent avant d’exécuter des migrations."""
+    if not base.is_file():
+        return
+    with closing(sqlite3.connect(base)) as connexion:
+        if not connexion.execute(
+            "SELECT 1 FROM sqlite_master WHERE name = 'django_migrations'"
+        ).fetchone():
+            return
+        appliquees = set(connexion.execute("SELECT app, name FROM django_migrations"))
+    from django.db.migrations.loader import MigrationLoader
+
+    if appliquees - set(MigrationLoader(None).disk_migrations):
+        raise ValueError("Base issue d'une version plus récente ou incompatible.")
 
 
 def creer_sauvegarde(paquet, destination, *, taille_bloc=None, export_ecole=None,

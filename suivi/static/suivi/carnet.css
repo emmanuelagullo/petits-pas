@@ -1068,3 +1068,24 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 [data-poignee] { cursor: grab; padding-inline: .6rem; font-size: 1.4rem; }
 [data-depot="avant"] { box-shadow: inset 0 3px var(--lien); }
 [data-depot="apres"] { box-shadow: inset 0 -3px var(--lien); }
+
+.outils-programme-local {
+  max-width: 72rem;
+  margin: .35rem auto;
+  padding-inline: 1rem;
+}
+
+.outils-programme-local summary {
+  width: fit-content;
+  cursor: pointer;
+  padding: .5rem 0;
+}
+
+.outils-programme-local h2 {
+  font-size: 1rem;
+  margin: .75rem 0 .25rem;
+}
+
+.outils-programme-local ul, .outils-programme-local p {
+  margin-block: .25rem;
+}

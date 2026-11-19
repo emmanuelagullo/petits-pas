@@ -331,13 +331,45 @@ class SauvegardesLocalesAccesTests(TestCase):
                     reponse.file_to_stream.close()
 
     @override_settings(MODE_LOCAL=True)
-    def test_direction_recoit_un_rappel_sans_export_local(self):
+    def test_programme_affiche_le_conseil_uniquement_dans_les_sauvegardes(self):
         with patch("suivi.paquet_local.suivi_export", return_value={
             "dernier_export_local": None, "rappel_sauvegarde_local": True,
-        }):
-            reponse = self.client.get(reverse("sauvegardes_locales"))
-            self.assertContains(reponse, "Pensez à télécharger une sauvegarde")
-            self.assertContains(reponse, "Aucun ZIP préparé")
+        }) as suivi_export:
+            gestion = self.client.get(reverse("gestion"))
+            self.assertContains(gestion, '<details class="outils-programme-local sans-impression">')
+            self.assertContains(gestion, "Ouvrir les sauvegardes locales")
+            self.assertNotContains(gestion, "Pensez à télécharger une sauvegarde")
+            suivi_export.assert_not_called()
+            sauvegardes = self.client.get(reverse("sauvegardes_locales"))
+            self.assertContains(sauvegardes, "Aucun ZIP préparé")
+            self.assertContains(sauvegardes, "Téléchargez une sauvegarde pour disposer d’une copie à jour")
+            suivi_export.assert_called_once()
+
+    @override_settings(MODE_LOCAL=True)
+    def test_programme_peut_verifier_un_zip_avant_connexion(self):
+        self.client.logout()
+        reponse = self.client.get(reverse("connexion"))
+        self.assertContains(reponse, "Vérifier un ZIP sans ouvrir de session")
+        self.assertNotContains(reponse, "Ouvrir les sauvegardes locales")
+
+    def test_controle_commun_refuse_une_base_future(self):
+        import sqlite3
+        from contextlib import closing
+        from suivi.paquet_local import verifier_migrations_paquet
+
+        with TemporaryDirectory() as dossier:
+            base = Path(dossier) / "carnet.sqlite3"
+            verifier_migrations_paquet(base)
+            self.assertFalse(base.exists())
+            with closing(sqlite3.connect(base)) as connexion, connexion:
+                connexion.execute("CREATE TABLE django_migrations (app text, name text)")
+            verifier_migrations_paquet(base)
+            with closing(sqlite3.connect(base)) as connexion, connexion:
+                connexion.execute("INSERT INTO django_migrations VALUES ('suivi', '9999_fictive')")
+            contenu = base.read_bytes()
+            with self.assertRaisesMessage(ValueError, "Base issue d'une version plus récente"):
+                verifier_migrations_paquet(base)
+            self.assertEqual(base.read_bytes(), contenu)
 
     @override_settings(MODE_LOCAL=True, MODE_PWA=True)
     def test_pwa_affiche_le_conseil_dans_les_sauvegardes(self):
@@ -348,6 +380,7 @@ class SauvegardesLocalesAccesTests(TestCase):
         }):
             gestion = self.client.get(reverse("gestion"))
             self.assertNotContains(gestion, "Pensez à télécharger une sauvegarde")
+            self.assertNotContains(gestion, "outils-programme-local")
             sauvegardes = self.client.get(reverse("sauvegardes_locales"))
             self.assertNotContains(sauvegardes, "Pensez à télécharger une sauvegarde")
             self.assertContains(sauvegardes, "Aucun ZIP préparé")

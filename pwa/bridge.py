@@ -15,6 +15,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from zipfile import ZipFile
 
+from suivi.paquet_local import verifier_migrations_paquet
+
 DATA = Path("/data")
 COOKIES = {}
 APPLICATION = None
@@ -54,7 +56,7 @@ def initialize(origin, version, base="/", essai=False, apercu=False):
     from django.core.signals import got_request_exception
     got_request_exception.connect(lambda **kwargs: traceback.print_exc(file=sys.stderr), weak=False)
     APPLICATION = get_wsgi_application()
-    validate_migrations(DATA / "carnet.sqlite3")
+    verifier_migrations_paquet(DATA / "carnet.sqlite3")
     call_command("migrate", interactive=False, verbosity=0)
     with closing(sqlite3.connect(DATA / "carnet.sqlite3")) as db:
         if db.execute("PRAGMA quick_check").fetchone()[0] != "ok":
@@ -182,17 +184,6 @@ def file_bytes(name):
             else DATA / name).read_bytes()
 
 
-def validate_migrations(path):
-    from django.db.migrations.loader import MigrationLoader
-    if not path.exists():
-        return
-    with closing(sqlite3.connect(path)) as db:
-        if db.execute("SELECT 1 FROM sqlite_master WHERE name='django_migrations'").fetchone():
-            applied = set(db.execute("SELECT app, name FROM django_migrations"))
-            if applied - set(MigrationLoader(None).disk_migrations):
-                raise ValueError("Base issue d'une version plus récente ou incompatible. Exportez un état de récupération.")
-
-
 def snapshot():
     """Même format public que le paquet autonome, base/clé/médias/manifeste."""
     from suivi.paquet_local import creer_sauvegarde
@@ -260,7 +251,7 @@ def apply_pending_restore():
     # Le précédent OPFS reste actif tant que le worker n'a pas validé le nouveau.
     PREVIOUS_PACKAGE = paquet_local.appliquer_restauration(DATA, preparation)
     FULL_MEDIA_SCAN = True
-    validate_migrations(DATA / "carnet.sqlite3")
+    verifier_migrations_paquet(DATA / "carnet.sqlite3")
     settings.SECRET_KEY = (DATA / "secret-key").read_text()
     call_command("migrate", interactive=False, verbosity=0)
     COOKIES.clear()

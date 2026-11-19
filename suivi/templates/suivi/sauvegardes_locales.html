@@ -7,7 +7,7 @@
 <p><a href="{% url 'verifier_zip_local' %}">Vérifier un ZIP dans une copie séparée avant de restaurer</a>.</p>{% endif %}
 {% if espace_apercu and not mode_pwa %}<p>Cette copie reste dans <code>{{ paquet }}</code> après fermeture. Vous pouvez supprimer ce dossier quand Petits Pas est fermé et que vous avez conservé le ZIP souhaité.</p>{% endif %}
 <p>{% if dernier_export_local %}Dernier ZIP préparé sur cet appareil : <strong>{{ dernier_export_local|date:"d/m/Y à H:i" }}</strong>.{% else %}Aucun ZIP préparé n’a été enregistré sur cet appareil.{% endif %}
-{% if mode_pwa and rappel_sauvegarde_local %}Téléchargez une sauvegarde pour disposer d’une copie à jour. {% endif %}Vérifiez que le téléchargement est terminé et conservez une copie hors de cet appareil. Cette date ne confirme pas que le fichier a été conservé.</p>
+{% if rappel_sauvegarde_local %}Téléchargez une sauvegarde pour disposer d’une copie à jour. {% endif %}Vérifiez que le téléchargement est terminé et conservez une copie hors de cet appareil. Cette date ne confirme pas que le fichier a été conservé.</p>
 <details><summary>Sauvegarder ou transférer vers un autre appareil</summary>
 <p>Le même ZIP s’utilise dans le navigateur et dans le programme Windows ou Linux, avec une version compatible. Il contient aussi les comptes : reconnectez-vous avec un compte de la sauvegarde.</p>
 <p>Pour transférer, exportez ici puis restaurez sur l’autre appareil. Continuez ensuite les saisies sur un seul appareil : les copies ne se synchronisent pas et une restauration remplace les données présentes.</p></details>

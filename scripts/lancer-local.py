@@ -350,6 +350,9 @@ def executer(paquet, projet, arguments):
     # de la construction de l'application WSGI. Collecter d'abord et isoler
     # cette sortie du staticfiles des autres profils du projet.
     django.setup()
+    from suivi.paquet_local import verifier_migrations_paquet
+    verifier_migrations_paquet(paquet / "carnet.sqlite3")
+
     call_command("collectstatic", interactive=False, verbosity=0)
     application = get_wsgi_application()
     migration = migration_necessaire(paquet)
