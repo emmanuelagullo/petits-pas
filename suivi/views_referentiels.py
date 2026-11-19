@@ -7,6 +7,7 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import GERER_REFERENTIEL_CLASSE, VOIR_SUIVI, autorise, charger_classe_autorisee
 from .contexte_ecole import ecole_courante
 from .referentiels import adoption_courante
+from .navigation import chemin_reglages_referentiel
 from .services.adoption_bases_referentiels import adopter_base, apercu_adoption
 from .services.choix_bases_referentiels import choix_bases
 from .views import acces_requis
@@ -61,9 +62,12 @@ def choisir_base_classe(request, classe_pk):
     selection_id = actuelle.version_id if actuelle and actuelle.version_id in disponibles else (choix.proposee.pk if choix.proposee else None)
     from .services.garde_fous_referentiels import permissions
     confirmation_form = ConfirmationReferentielForm(renforcee=bool(apercu and apercu["garde"]["niveau"] != "info"))
+    peut_voir_catalogue = autorise(request.user, VOIR_SUIVI, classe)
+    ariane = chemin_reglages_referentiel(classe, catalogue=bool(actuelle and peut_voir_catalogue),
+                                        inclure_reglages=False)
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
         "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
-        "actuelle": actuelle, "peut_voir_catalogue": autorise(request.user, VOIR_SUIVI, classe), "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
+        "actuelle": actuelle, "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
 
 
 def choix_ecole_modifies(local, donnees):

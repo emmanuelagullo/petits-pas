@@ -17,3 +17,14 @@ for (const bouton of document.querySelectorAll('[data-selection-eleves]')) {
   cases.forEach(champ => champ.addEventListener('change', actualiser));
   actualiser();
 }
+
+for (const groupe of document.querySelectorAll('[data-choix-eleves]')) {
+  const formulaire = groupe.form;
+  const choix = formulaire.elements.portee;
+  const actualiser = () => {
+    groupe.hidden = choix.value !== 'eleves';
+    groupe.disabled = groupe.hidden;
+  };
+  for (const option of choix) option.addEventListener('change', actualiser);
+  actualiser();
+}

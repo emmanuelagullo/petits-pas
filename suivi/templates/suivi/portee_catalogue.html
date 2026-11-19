@@ -13,15 +13,15 @@
     {{ form.portee.errors }}{{ form.portee }}
     <p class="aide">L’ajout au référentiel rend la compétence disponible aux élèves actuels et aux futurs inscrits. Il n’enregistre aucune réussite ni trace.</p>
   </fieldset>
-  <fieldset>
+  <fieldset data-choix-eleves>
     <legend>{{ form.eleves.label }}</legend>
-    <p class="aide">Pour un suivi ciblé, choisissez les élèves ci-dessous. Tout sélectionner coche les élèves inscrits aujourd’hui.</p>
+    <p class="aide">Sélectionnez les élèves qui suivront cette compétence.</p>
     {% include "suivi/partiels/selection_tous_eleves.html" %}
     {{ form.eleves.errors }}{{ form.eleves }}
   </fieldset>
   <div class="actions">
     <button class="bouton" type="submit">Enregistrer le suivi</button>
-    <a class="bouton discret" href="{{ retour }}">Retour au catalogue</a>
+    <a class="bouton discret" href="{{ retour }}">Annuler</a>
   </div>
 </form>
 <script src="{% static 'suivi/selection_eleves.js' %}" defer></script>

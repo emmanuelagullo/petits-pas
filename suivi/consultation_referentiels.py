@@ -29,6 +29,11 @@ def _normaliser(texte):
                    if not unicodedata.combining(c))
 
 
+def cle_recherche_libelle(texte):
+    """Égalité de libellé indépendante des accents, de la casse et du séparateur."""
+    return " ".join(re.findall(r"[^\W_]+", _normaliser(texte)))
+
+
 def _distance(a, b):
     """Erreurs de frappe : ajout, retrait, remplacement ou inversion voisine."""
     ligne = list(range(len(b) + 1))
@@ -49,6 +54,7 @@ def rechercher_apprentissages(lignes, recherche):
     termes = re.findall(r"\w+", _normaliser(recherche))
     if not termes:
         return lignes
+    exacte = cle_recherche_libelle(recherche)
     resultats = []
     for ligne in lignes:
         texte = _normaliser(ligne["libelle"])
@@ -68,7 +74,7 @@ def rechercher_apprentissages(lignes, recherche):
                 break
             score += distance
         else:
-            resultats.append((score, ligne))
+            resultats.append(((cle_recherche_libelle(texte) != exacte, score), ligne))
     return [ligne for _, ligne in sorted(resultats, key=lambda r: r[0])]
 
 

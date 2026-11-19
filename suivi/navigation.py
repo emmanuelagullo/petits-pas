@@ -27,13 +27,17 @@ def retour_catalogue_ajout(request, classe):
     return retour_competences(request, classe) or destination
 
 
-def retour_competences(request, classe):
+def retour_competences(request, classe, parametre="retour"):
     try:
-        retour = urlsplit(request.GET.get("retour", "")[:2000])
+        retour = urlsplit(request.GET.get(parametre, "")[:2000])
     except ValueError:
         return ""
     destinations = {reverse(route, args=[classe.pk]) for route in ("catalogue_competences", "choisir_competence")}
     return retour.geturl() if not (retour.scheme or retour.netloc) and retour.path in destinations else ""
+
+
+def ancrer_competence(retour, identifiant):
+    return urlsplit(retour)._replace(fragment=f"c{identifiant}").geturl()
 
 
 def chemin_classe(classe):
@@ -42,9 +46,18 @@ def chemin_classe(classe):
     return [("Les classes", accueil), (classe.libelle_avec_annee, lien("classe_detail", classe.pk))]
 
 
+def chemin_reglages_referentiel(classe, *, catalogue, inclure_reglages=True):
+    chemin = chemin_classe(classe)
+    if catalogue:
+        chemin.append(("Compétences", lien("catalogue_competences", classe.pk)))
+    if inclure_reglages:
+        chemin.append(("Réglages du référentiel", lien("referentiel_classe", classe.pk)))
+    return chemin
+
+
 def chemin_retour_competences(classe, retour):
     libelle = ("Saisir pour toute la classe" if urlsplit(retour).path == reverse("choisir_competence", args=[classe.pk])
-              else "Catalogue de compétences")
+              else "Compétences")
     return chemin_classe(classe) + [(libelle, retour)]
 
 

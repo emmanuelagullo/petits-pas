@@ -130,6 +130,8 @@ def jouer_etapes_guide(page, demonstration, etapes):
             page.get_by_role("link", name=etape["nom"], exact=True).click()
         elif action == "selecteur":
             page.locator(etape["selecteur"]).first.click()
+        elif action == "remplir":
+            page.locator(etape["selecteur"]).first.fill(etape["texte"])
         elif action == "visible":
             page.locator(etape["selecteur"]).first.wait_for(state="visible")
         elif action == "titre":

@@ -5,11 +5,11 @@
 
   const resultats = document.getElementById('catalogue-resultats');
   const etat = document.getElementById('catalogue-etat');
-  const {source, domaine, sous_domaine: groupe, portee} = form.elements;
+  const {source, domaine, sous_domaine: groupe} = form.elements;
   const soumettre = form.querySelector('.soumission-catalogue button');
   const actions = form.querySelector('[data-actions-catalogue]');
-  const resume = form.querySelector('[data-resume-actif]');
-  const ouvrirAjout = form.querySelector('[data-ouvrir-ajout]');
+  const filtres = form.querySelector('[data-filtres-actifs]');
+  const effacer = form.querySelector('[data-effacer-recherche]');
   let minuterie, requete, sequence = 0;
 
   function invalider() {
@@ -37,14 +37,15 @@
       const nombre = Number(contenu.content.querySelector('[data-nombre-resultats]').dataset.nombreResultats);
       const creationOuverte = actions.querySelector('details[open]');
       actions.replaceChildren(contenu.content.querySelector('[data-actions-creation]').content.cloneNode(true));
-      resume.textContent = contenu.content.querySelector('[data-resume-filtres]').content.textContent;
+      filtres.replaceChildren(contenu.content.querySelector('[data-filtres-actifs]').content.cloneNode(true));
+      effacer.replaceChildren(contenu.content.querySelector('[data-effacer-recherche]').content.cloneNode(true));
       actions.inert = false;
       domaine.replaceChildren(options.cloneNode(true));
       groupe.replaceChildren(groupes.cloneNode(true));
       url.searchParams.set('domaine', domaine.value);
       url.searchParams.set('sous_domaine', groupe.value);
       resultats.replaceChildren(contenu.content);
-      if (creationOuverte) actions.querySelector('details')?.setAttribute('open', '');
+      if (creationOuverte && !form.elements.q.matches(':focus')) actions.querySelector('details')?.setAttribute('open', '');
       resultats.inert = false;
       history.replaceState(history.state, '', url);
       etat.textContent = `${nombre} résultat${nombre > 1 ? 's' : ''}`;
@@ -60,19 +61,8 @@
 
   function rechercher(evenement) {
     const version = invalider();
-    if (evenement.target === source) {
-      domaine.value = '';
-      portee.value = '';
-      portee.disabled = !!source.value;
-      portee.closest('[data-filtre-portee]').hidden = !!source.value;
-    }
-    if (evenement.target === source || evenement.target === domaine) groupe.value = '';
-    if (ouvrirAjout) {
-      const ajout = new URL(form.action);
-      ajout.search = new URLSearchParams(new FormData(form));
-      ajout.searchParams.set('ajouter', '1');
-      ouvrirAjout.href = ajout;
-    }
+    if (source && evenement.target === source) domaine.value = '';
+    if ((source && evenement.target === source) || evenement.target === domaine) groupe.value = '';
     actions.inert = true;
     resultats.inert = true;
     resultats.setAttribute('aria-busy', 'true');

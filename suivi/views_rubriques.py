@@ -6,9 +6,9 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import GERER_REFERENTIEL_CLASSE, charger_classe_autorisee
+from .autorisations import GERER_REFERENTIEL_CLASSE, VOIR_SUIVI, autorise, charger_classe_autorisee
 from .contexte_ecole import ecole_courante
-from .navigation import chemin_classe, lien
+from .navigation import chemin_reglages_referentiel, lien
 from .referentiels import adoption_courante, arbre_version, contenu_adoption
 from .rubriques import rattachements_rubriques, rubriques_masquees
 from .services.rubriques import deplacer_rubrique, enregistrer_rubrique
@@ -104,7 +104,7 @@ def gerer_rubriques(request, pk):
     ordre_domaines = ",".join(str(d["id"]) for d in domaines)
     for domaine in domaines:
         domaine["ordre_groupes"] = ",".join(str(s["id"]) for s in domaine["groupes"])
-    ariane = chemin_classe(classe) + [("Référentiel de la classe", lien("referentiel_classe", classe.pk))]
+    ariane = chemin_reglages_referentiel(classe, catalogue=autorise(request.user, VOIR_SUIVI, classe))
     return render(request, "suivi/gerer_rubriques.html", {
         "classe": classe, "adoption": adoption, "ouvert": ouvert, "domaines": domaines, "ariane": ariane,
         "erreur": erreur, "formulaire": formulaire, "ordre_domaines": ordre_domaines,

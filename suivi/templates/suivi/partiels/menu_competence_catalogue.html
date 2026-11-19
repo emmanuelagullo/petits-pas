@@ -3,7 +3,8 @@
   <summary class="bouton discret" aria-label="Actions pour {{ ligne.competence.libelle }}">⋯</summary>
   <div class="actions">
     <a href="{{ ligne.deplacement }}">Déplacer…</a>
-    {% if ligne.modifier %}<a href="{{ ligne.modifier }}">Modifier le libellé</a>{% endif %}
+    {% if ligne.modifier_suivi %}<a href="{{ ligne.modifier_suivi }}">Modifier les élèves suivis</a>{% endif %}
+    {% if ligne.modifier %}<a href="{{ ligne.modifier }}">Modifier</a>{% endif %}
     {% if ligne.visibilite %}
     <form method="post" action="{{ url_resultats }}">
       {% csrf_token %}

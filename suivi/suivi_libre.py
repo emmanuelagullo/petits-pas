@@ -60,6 +60,15 @@ def preparer_arbre(arbre, classe, eleve=None):
     return arbre
 
 
+def reprises_ciblees_autorisees(utilisateur, classe):
+    from .autorisations import VOIR_SUIVI, classes_accessibles
+
+    classes = classes_accessibles(utilisateur, VOIR_SUIVI, classe.ecole).filter(
+        annee_scolaire__lte=classe.annee_scolaire)
+    return CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True,
+        disponibilites__classe__in=classes).distinct()
+
+
 def peut_reprendre(utilisateur, classe, locale):
     from .autorisations import VOIR_SUIVI, autorise
     return locale.suivi_libre and locale.ecole_id == classe.ecole_id and any(

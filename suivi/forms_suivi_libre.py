@@ -29,7 +29,7 @@ class SelectionElevesForm(forms.Form):
 
 class PorteeCatalogueForm(SelectionElevesForm):
     portee = forms.ChoiceField(label="Choisir qui suivra cette compétence", choices=(
-        ("classe", "Ajouter au référentiel de la classe"), ("eleves", "Suivre pour les élèves sélectionnés")), widget=forms.RadioSelect)
+        ("classe", "Référentiel de la classe — élèves actuels et futurs"), ("eleves", "Élèves sélectionnés — inscriptions actuelles")), widget=forms.RadioSelect)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

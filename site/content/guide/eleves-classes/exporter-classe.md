@@ -6,14 +6,13 @@ categorie = "eleves-classes"
 publics = ["responsable"]
 intentions = ["exporter", "classe", "transfert", "ZIP", "copie"]
 prerequis = "Une version proposant l’export est installée ; vous êtes responsable actif de la classe ; sur un service, l’export de classe est autorisé."
-depart = "Page de la classe → Transférer cette classe → Exporter cette classe"
+depart = "Page de la classe → Créer une copie de cette classe"
 statut = "disponible"
 +++
 
 ## Créer une copie indépendante
 
-Sur la page de votre classe, dépliez **Transférer cette classe**, puis ouvrez
-**Exporter cette classe**. Cette opération est également proposée dans le
+Après la liste des élèves de votre classe, cliquez sur **Créer une copie de cette classe**. Cette opération est également proposée dans le
 programme Windows, Mac ou Linux et dans l’application navigateur. Sur un service,
 son autorisation est indépendante de celle d’exporter l’école entière.
 

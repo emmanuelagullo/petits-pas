@@ -1,8 +1,8 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Exporter cette classe{% endblock %}
+{% block titre %}Créer une copie de cette classe{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
-<h1>Exporter cette classe</h1>
+{% include "suivi/partiels/ariane.html" with page="Créer une copie de cette classe" %}
+<h1>Créer une copie de cette classe</h1>
 <p>Créer une copie indépendante de <strong>{{ classe.libelle_avec_annee }}</strong> pour l’utiliser dans une nouvelle installation Petits Pas. Les modifications des deux copies ne seront pas synchronisées.</p>
 <p>La copie contient les enfants non archivés de cette classe, son référentiel, les états lisibles pour cette année, les bilans et les traces non supprimés. Les autres classes et années ne sont pas incluses. Les traces partagées deviennent des traces individuelles. Pour un enfant désormais scolarisé ailleurs, les traces et bilans sont inclus seulement si vous pouvez encore les consulter. Un média n’est inclus que si vous pouvez déjà le télécharger.</p>
 <p class="encadre">Conservez ce ZIP sur un appareil protégé. Dans la copie, vous aurez la responsabilité de la classe et la direction de la petite école locale, qui ne contient que cette classe. Ces droits concernent uniquement la copie.</p>
@@ -29,7 +29,7 @@
   <p>Dans la copie, votre identifiant sera <strong>{{ request.user.username }}</strong>. Choisissez un mot de passe distinct de celui {% if mode_local %}de cette installation{% else %}du service{% endif %}. Les sessions et secrets de connexion ne sont pas transférés.</p>
   <form method="post">{% csrf_token %}<input type="hidden" name="action" value="preparer">
     {{ formulaire.as_p }}
-    <button type="submit">Créer la copie de cette classe</button>
+    <button class="bouton" type="submit">Préparer le ZIP</button>
   </form>
 {% endif %}
 <details><summary>Comment utiliser cette copie ?</summary>

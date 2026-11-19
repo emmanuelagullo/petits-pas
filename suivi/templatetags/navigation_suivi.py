@@ -1,7 +1,7 @@
 from django import template
 
 from suivi.autorisations import VOIR_CLASSE, VOIR_SUIVI, autorise
-from suivi.navigation import chemin_classe, chemin_collectif, filtre_competences, lien
+from suivi.navigation import chemin_classe, chemin_collectif, chemin_reglages_referentiel, filtre_competences, lien
 
 register = template.Library()
 
@@ -25,10 +25,10 @@ def ariane_eleve(context, page, eleve, parent=False):
     return {"ariane": chemin, "page": page}
 
 
-@register.inclusion_tag("suivi/partiels/ariane.html")
-def ariane_referentiel(page, classe, annee):
+@register.inclusion_tag("suivi/partiels/ariane.html", takes_context=True)
+def ariane_referentiel(context, page, classe, annee):
     if classe:
-        chemin = chemin_classe(classe) + [("Référentiel de la classe", lien("referentiel_classe", classe.pk))]
+        chemin = chemin_reglages_referentiel(classe, catalogue=autorise(context["request"].user, VOIR_SUIVI, classe))
     else:
         chemin = [("Gérer l’école", lien("gestion")),
                   ("Référentiels de l’école", lien("referentiels_ecole", annee=annee))]

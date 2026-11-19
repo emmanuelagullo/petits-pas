@@ -3,12 +3,13 @@ import unicodedata
 
 from django.db.models import Count, Q
 
-from .autorisations import GERER_REFERENTIEL_CLASSE, autorise
+from .autorisations import GERER_REFERENTIEL_CLASSE, MODIFIER_ETAT, autorise
 from .models import AdaptationCompetence, CompetenceLocale, EleveApprentissage, Observation
 from .navigation import lien
 from .rubriques import origine_rubrique, rattachements_rubriques
 from .referentiels import adoption_courante, arbre_version, arbre_competences, contenu_adoption, observations_classe
 from .services.ajouts_referentiels import catalogue_reprises
+from .suivi_libre import reprises_ciblees_autorisees
 
 
 def cle_libelle(texte):
@@ -20,7 +21,7 @@ def cle_alphabetique(texte):
                    if not unicodedata.combining(c))
 
 
-def catalogue_classe(classe, utilisateur):
+def catalogue_classe(classe, utilisateur, *, reprises_ciblees=False):
     adoption = adoption_courante(classe)
     if adoption:
         arbre = arbre_version(classe.ecole, contenu_adoption(adoption), masquer=False)
@@ -32,6 +33,10 @@ def catalogue_classe(classe, utilisateur):
         disponibles = catalogue_reprises(utilisateur=utilisateur, ecole=classe.ecole,
             annee=classe.annee_scolaire, classe=classe).exclude(competence_id__in=presentes).select_related(
                 "competence__domaine", "competence__sous_domaine")
+        competences.extend(locale.competence for locale in disponibles)
+    if reprises_ciblees and adoption and not adoption.clos and autorise(utilisateur, MODIFIER_ETAT, classe):
+        disponibles = reprises_ciblees_autorisees(utilisateur, classe).exclude(
+            competence_id__in=presentes).select_related("competence__domaine", "competence__sous_domaine")
         competences.extend(locale.competence for locale in disponibles)
     locales = {
         locale.competence_id: locale
@@ -82,4 +87,4 @@ def catalogue_classe(classe, utilisateur):
 
 def doublons_classe(classe, libelle, utilisateur):
     cle = cle_libelle(libelle)
-    return [ligne for ligne in catalogue_classe(classe, utilisateur) if cle_libelle(ligne["competence"].libelle) == cle]
+    return [ligne for ligne in catalogue_classe(classe, utilisateur, reprises_ciblees=True) if cle_libelle(ligne["competence"].libelle) == cle]

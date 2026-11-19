@@ -6,7 +6,7 @@ categorie = "eleves-classes"
 publics = ["responsable", "direction"]
 intentions = ["référentiel", "base", "compétences", "choisir", "classe", "autorisation", "mot de passe"]
 prerequis = "Vous êtes responsable de la classe ou direction de l’école pour modifier ses choix. Une base est autorisée pour cette année."
-depart = "Classe → Référentiel de la classe"
+depart = "Classe → Compétences → Réglages du référentiel"
 statut = "disponible"
 +++
 
@@ -19,7 +19,7 @@ aucune donnée. Pour une base déjà utilisée, vous pouvez afficher les textes 
 la source ou la présentation de la classe avec ses adaptations et ajouts.
 Une section de classement ne remplace pas un repère d’âge officiel.
 
-La page *Référentiel de la classe* regroupe les libellés et compétences
+La page *Réglages du référentiel* regroupe les libellés et compétences
 masquées, les ajouts, les illustrations et phrases proposées. Ces adaptations
 courantes sont regroupées dans *Adapter au quotidien* et ne demandent pas
 de mot de passe. Le lien de consultation permet de quitter les réglages pour
@@ -46,7 +46,7 @@ Les classes déjà existantes conservent leur situation. Si aucune base n’a pu
 
 * Avant les premières saisies
 
-1. Ouvrir *Référentiel de la classe*. Pour une classe sans base, utiliser
+1. Ouvrir *Compétences → Réglages du référentiel*. Pour une classe sans base, utiliser
    *Préparer le choix proposé* : ce premier choix ordinaire ne demande pas
    de nouvelle confirmation par mot de passe.
 2. Pour une autre base, ouvrir *Avancé — changer la base de compétences*.

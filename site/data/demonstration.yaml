@@ -349,8 +349,9 @@ scenarios:
     parcours: guide
     etapes:
       - { action: classe, classe: mesanges }
-      - { action: lien, nom: "Référentiel de la classe" }
-      - { action: titre, nom: "Compétences de Les Mésanges — 2026-2027" }
+      - { action: lien, nom: "Compétences" }
+      - { action: lien, nom: "Réglages du référentiel" }
+      - { action: titre, nom: "Réglages du référentiel" }
     capture: referentiels/cycle1/mesanges.png
     titre: L'offre étayée des Mésanges
     legende: La classe fictive utilise les objectifs des programmes et les repères proposés, en version 2026.2.
@@ -359,8 +360,9 @@ scenarios:
     parcours: guide
     etapes:
       - { action: classe, classe: hirondelles }
-      - { action: lien, nom: "Référentiel de la classe" }
-      - { action: titre, nom: "Compétences de Les Hirondelles — 2026-2027" }
+      - { action: lien, nom: "Compétences" }
+      - { action: lien, nom: "Réglages du référentiel" }
+      - { action: titre, nom: "Réglages du référentiel" }
     capture: referentiels/cycle1/hirondelles.png
     titre: Les objectifs officiels des Hirondelles
     legende: L'autre classe fictive utilise uniquement les objectifs officiels, en version 2026.1.
@@ -369,8 +371,9 @@ scenarios:
     parcours: guide
     etapes:
       - { action: classe, classe: pinsons }
-      - { action: lien, nom: "Référentiel de la classe" }
-      - { action: titre, nom: "Compétences de Les Pinsons — 2026-2027" }
+      - { action: lien, nom: "Compétences" }
+      - { action: lien, nom: "Réglages du référentiel" }
+      - { action: titre, nom: "Réglages du référentiel" }
     capture: referentiels/cycle1/pinsons.png
     titre: Les tableaux Chat d’école des Pinsons
     legende: La classe fictive utilise l’édition pilote Chat d’école 2026.1, dans les six domaines, sans EVAR.
@@ -393,7 +396,8 @@ scenarios:
       - { action: classe, classe: cerfs_volants }
       - { action: lien, nom: "Saisir pour toute la classe" }
       - { action: selecteur, selecteur: '.action-classement a:has-text("+ Ajouter une compétence")' }
-      - { action: selecteur, selecteur: '[data-creation-competence] summary:has-text("Créer une compétence")' }
+      - { action: remplir, selecteur: '#q', texte: "J’assemble une mosaïque de galets" }
+      - { action: selecteur, selecteur: '[data-creation-competence] summary:has-text("J’assemble une mosaïque de galets")' }
       - { action: lien, nom: "Suivre pour les élèves sélectionnés" }
       - { action: titre, nom: "Créer une compétence pour des élèves" }
     cible: "#formulaire-reussite"
