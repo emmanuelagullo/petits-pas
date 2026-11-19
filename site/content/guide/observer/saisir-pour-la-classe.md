@@ -13,11 +13,22 @@ statut = "disponible"
 ## Étapes
 
 1. Ouvrir la classe et choisir **Saisir pour toute la classe**.
-2. Sélectionner un domaine, puis la compétence observée.
+2. Sous **Compétences à afficher**, choisir le cycle entier ou une section,
+   puis la compétence observée. Le choix de section filtre les compétences.
+   La liste des élèves de la compétence conserve le même périmètre.
 3. Pour chaque élève concerné, sélectionner sa ligne : **réussi**, **en cours**,
    puis **pas encore observé** se succèdent.
-4. Utiliser **Changer de compétence** pour poursuivre la séance sur un autre
-   apprentissage.
+4. Utiliser **Saisir pour toute la classe** dans le fil d’Ariane pour retrouver
+   la liste des compétences avec la section choisie.
+
+### Ajouter des traces individuelles
+
+Ouvrir le **+** de l’élève dans la liste de la compétence. **Enregistrer la trace**
+revient à sa ligne. **Enregistrer et passer à l’élève suivant** ouvre directement
+la trace suivante après l’enregistrement. Au-dessus du formulaire, **Élève
+précédent** et **Élève suivant** permettent de relire les traces dans l’ordre de
+la liste. Le fil d’Ariane ramène à la liste si vous souhaitez choisir un autre
+élève.
 
 ## Résultat attendu
 
@@ -53,6 +64,10 @@ consultation du suivi de la modification des états.
 ## Compétences de certains élèves
 
 **Ajouter une compétence hors référentiel** est indépendant des compétences existantes. Une compétence ciblée indique le nombre d’élèves suivis ; les autres restent **Hors du suivi**. Sa répartition porte seulement sur les élèves encore concernés.
+
+**Sélectionner toute la classe** coche toutes les cases proposées. Vérifiez le
+nombre d’élèves sélectionnés et l’option **Enregistrer une réussite** avant de
+valider.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).
 

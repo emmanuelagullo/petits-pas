@@ -50,6 +50,12 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     locale = next((l for l in catalogue if l.pk == locale_pk), None) if locale_pk else None
     if locale_pk and locale is None:
         raise PermissionDenied
+    retour_suivi = ""
+    if classe and locale and request.GET.get("origine") == "suivi":
+        from .autorisations import VOIR_SUIVI
+        from .navigation import filtre_competences, lien
+        if autorise(request.user, VOIR_SUIVI, classe):
+            retour_suivi = lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre_competences(request))
     regle = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
         classe=classe, competence=locale.competence).first() if locale else None
     proposee = contenu_adapte(ecole, annee, locale.definition)["competences"][0] if locale and classe else (locale.definition["competences"][0] if locale else None)
@@ -122,7 +128,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             else:
                 raise ValidationError("Choisissez une action proposée sur cette page.")
             messages.success(request, "Choix enregistré. Aucune réussite n'a été créée ou copiée.")
-            return redirect(index_url)
+            return redirect(retour_suivi or index_url)
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     lignes = []
@@ -145,6 +151,6 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
         "direction": direction, "ouvert": ouvert, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
+        "origine": origine, "retour_suivi": retour_suivi, "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
         "visibilite_directe": visibilite_directe, "adaptable": adaptable, "index_url": index_url, "erreur": erreur,
         "jeton": None if perime else signing.dumps(contexte, salt="ajouts-referentiels")}, status=400 if erreur else 200)

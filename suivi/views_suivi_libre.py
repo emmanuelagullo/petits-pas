@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 from .autorisations import MODIFIER_ETAT, charger_classe_autorisee, charger_eleve_autorise
 from .models import CompetenceLocale
+from .navigation import filtre_competences, lien
 from .forms_suivi_libre import ReussiteLibreForm, SelectionElevesForm
 from .referentiels import adoption_courante, contenu_origine, classe_historique
 from .services.suivi_libre import ajouter_reussite, associer
@@ -17,6 +18,7 @@ from .contexte_ecole import ecole_courante
 @require_http_methods(["GET", "POST"])
 def suivi_libre(request, pk, locale_pk=None):
     classe = charger_classe_autorisee(request.user, pk, MODIFIER_ETAT, ecole=ecole_courante(request))
+    filtre = filtre_competences(request)
     adoption = adoption_courante(classe)
     if not adoption or classe_historique(classe):
         from django.core.exceptions import PermissionDenied
@@ -30,10 +32,12 @@ def suivi_libre(request, pk, locale_pk=None):
     if locale and request.method == "GET":
         from .referentiels import competence_classe
         if competence_classe(classe, locale.competence):
-            return redirect("saisie_competence", pk=classe.pk, competence_pk=locale.competence_id)
+            return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre))
     initial = {"domaine": request.GET.get("domaine"), "sous_domaine": request.GET.get("sous_domaine")}
     if not locale:
         initial["reussite"] = True
+        if filtre != "tous":
+            initial["niveau"] = filtre
     eleve = None
     if request.GET.get("eleve"):
         eleve = charger_eleve_autorise(request.user, request.GET["eleve"], MODIFIER_ETAT, ecole=classe.ecole)
@@ -57,7 +61,7 @@ def suivi_libre(request, pk, locale_pk=None):
                     ids=form.cleaned_data["eleves"], adoption_attendue=adoption.pk,
                     retirer=request.POST.get("action") == "retirer")
                 messages.success(request, "Disponibilité mise à jour, sans attribution de réussite.")
-                return redirect("saisie_competence", pk=classe.pk, competence_pk=locale.competence_id)
+                return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre))
             d = form.cleaned_data
             photo = preparer_image(d["photo"]) if d.get("photo") else None
             resultat = ajouter_reussite(utilisateur=request.user, classe=classe,
@@ -66,8 +70,8 @@ def suivi_libre(request, pk, locale_pk=None):
                 commentaire=d["commentaire"], photo=photo, adoption_attendue=adoption.pk, reussite=d["reussite"], icone=d["icone"])
             messages.success(request, "Compétence ajoutée au suivi des élèves sélectionnés.")
             if eleve:
-                return redirect("saisie_eleve", pk=eleve.pk)
-            return redirect("saisie_competence", pk=classe.pk, competence_pk=resultat.competence_id)
+                return redirect(lien("saisie_eleve", eleve.pk, filtre=filtre))
+            return redirect(lien("saisie_competence", classe.pk, resultat.competence_id, filtre=filtre))
         except (signing.BadSignature, ValidationError) as exc:
             form.add_error(None, "Le formulaire a expiré. Consultez à nouveau cette page." if isinstance(exc, signing.BadSignature) else exc)
     reprises = CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True).select_related("competence")
@@ -94,4 +98,4 @@ def activer_suivi(request, pk, locale_pk, eleve_pk):
                  retirer=request.POST["action"] == "desactiver")
     except (ValidationError, ValueError) as exc:
         messages.error(request, str(exc))
-    return redirect("saisie_competence", pk=classe.pk, competence_pk=locale.competence_id)
+    return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre_competences(request)))

@@ -1,8 +1,9 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}Référentiels de l'école — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-<p class="fil"><a href="{% url 'gestion' %}">Gérer l'école</a></p>
+{% ariane_gestion "Référentiels de l’école" %}
 <h1>Référentiels de l'école</h1>
 <p><a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
 <p>Consultez les bases disponibles et adaptez les propositions de l’école. Les libellés, images et phrases proposés peuvent être repris ou adaptés par chaque classe. Choisissez d’abord les propositions pour l’année, puis créez les classes et invitez l’équipe. Les classes déjà préparées gardent leur base.</p>

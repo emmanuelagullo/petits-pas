@@ -1,8 +1,9 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% load illustrations %}
 {% block titre %}Ajouter une contribution pour {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
+{% ariane_eleve eleve.nom_court eleve %}
 <h1>Ajouter une contribution pour {{ eleve.nom_court }}</h1>
 <p class="sous-titre">Choisissez la compétence auquel rattacher la photo ou le commentaire.</p>
 

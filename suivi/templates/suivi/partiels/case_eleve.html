@@ -1,8 +1,8 @@
 {% comment %}Une ligne « enfant » dans la saisie éclair d'une compétence.{% endcomment %}
-<div class="ligne" id="e{{ eleve.pk }}">
+<div class="ligne" id="e{{ eleve.pk }}" tabindex="-1">
   {% if eleve.hors_suivi %}<span class="bascule">{{ eleve.nom_court }} — Hors du suivi</span>{% else %}
   {% if responsable and eleve.peut_saisir_dans_classe %}
-  <form hx-post="{% url 'basculer' eleve.pk competence.pk %}?vue=classe"
+  <form hx-post="{% url 'basculer' eleve.pk competence.pk %}?vue=classe{% if filtre and filtre != "tous" %}&amp;niveaux={{ filtre }}{% endif %}"
         hx-target="#e{{ eleve.pk }}" hx-swap="outerHTML">
     {% csrf_token %}
     <button class="bascule" type="submit"
@@ -22,7 +22,7 @@
   {% endif %}
   {% include "suivi/partiels/date_reussite.html" with vue_dates="classe" %}
   <a class="trace-lien {% if obs.a_un_commentaire or obs.a_une_photo %}pleine{% endif %}"
-     href="{% url 'trace' eleve.pk competence.pk %}"
+     href="{% url 'trace' eleve.pk competence.pk %}?classe={{ classe.pk }}{% if filtre and filtre != 'tous' %}&amp;niveaux={{ filtre }}{% endif %}"
      aria-label="{% if obs.a_un_commentaire or obs.a_une_photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}"
      title="{% if obs.a_un_commentaire or obs.a_une_photo %}Consulter ou ajouter une trace{% else %}Ajouter un commentaire ou une photo{% endif %}">
     {% if obs.a_un_commentaire or obs.a_une_photo %}
@@ -34,7 +34,7 @@
   </a>
   {% endif %}
   {% if responsable and competence.suivi_libre %}
-  <form class="portee-suivi" method="post" action="{% url 'activer_suivi' classe.pk competence.libre_id eleve.pk %}">
+  <form class="portee-suivi" method="post" action="{% url 'activer_suivi' classe.pk competence.libre_id eleve.pk %}{% if filtre and filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">
     {% csrf_token %}<input type="hidden" name="adoption" value="{{ adoption.pk }}">
     <button class="bouton discret" name="action" value="{% if eleve.hors_suivi %}activer{% else %}desactiver{% endif %}">{% if eleve.hors_suivi %}Activer le suivi{% else %}Désactiver le suivi{% endif %}</button>
   </form>

@@ -1,7 +1,8 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}Ajouter des enfants{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a></p>
+{% ariane_classe "Gérer les enfants" classe %}
 
 <form method="get" class="reglage-niveau-defaut">
   <label for="niveau_defaut_page">Niveau par défaut de la classe</label>
@@ -18,7 +19,7 @@
 <section class="encadre" id="composition-classe">
   <h2>Composition actuelle de la classe</h2>
   {% for scolarite in composition %}
-  <div class="ligne-composition">
+  <div class="ligne-composition" id="eleve-{{ scolarite.eleve.pk }}" tabindex="-1">
     <a class="principal" href="{% url 'parcours_eleve' scolarite.eleve.pk %}?retour={{ classe.pk }}"><strong>{{ scolarite.eleve.nom_court }}</strong></a>
     {% if scolarite.eleve.annee_naissance %}<span class="secondaire">Né(e) en {{ scolarite.eleve.annee_naissance }}</span>{% endif %}
     <form method="post" onsubmit="return confirm('Changer le niveau de {{ scolarite.eleve.prenom|escapejs }} ?');">

@@ -1,7 +1,8 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}Le parcours de {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-<p class="fil"><a href="{% url 'saisie_eleve' eleve.pk %}">{{ eleve.nom_court }}</a></p>
+{% ariane_eleve "Bilans" eleve parent=True %}
 <h1>Quelques mots sur le parcours de {{ eleve.prenom }}</h1>
 
 <section class="encadre historique-traces">

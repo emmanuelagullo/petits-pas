@@ -1,8 +1,9 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}Autorisation de changement après saisies — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-<p class="fil">{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Compétences de {{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l'école</a>{% endif %}</p>
+{% ariane_referentiel "Autorisations de changement" classe annee %}
 <h1>Autorisation de changement après saisies</h1>
 <p>Consultez les accords nécessaires et ouvrez ou refermez une autorisation exceptionnelle. Autoriser un changement et changer effectivement la base sont deux étapes séparées.</p>
 <p>{% if classe %}{{ classe.libelle_avec_annee }}{% else %}{{ ecole.nom }} — {{ annee }}{% endif %}.</p>
