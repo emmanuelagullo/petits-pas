@@ -31,9 +31,22 @@ const serve = (req, res) => {
   if (pathname === '/petits-pas/temoin.html') {res.setHeader('Content-Type', 'text/html'); res.end('<h1>Site Hugo fictif</h1>'); return;}
   if (!pathname.startsWith(base)) {res.writeHead(404).end('Hors PWA'); return;}
   const name = '/' + pathname.slice(base.length);
-  if (published && ['/config.json', '/sw.js', '/application.zip'].includes(name)) {
+  if (published && name === '/application.zip' && published.interruptDownload) {
+    published.interruptDownload = false;
+    published.failDownload = () => res.writeHead(503).end('Interruption fictive du téléchargement');
+    published.signalDownloadStarted();
+    return;
+  }
+  if (published && ['/config.json', '/sw.js', '/application.zip', '/apercu.html'].includes(name)) {
     res.setHeader('Content-Type', types[path.extname(name)] || 'application/octet-stream');
-    res.end(name === '/config.json' ? JSON.stringify(published.config) : name === '/sw.js' ? published.sw : published.application); return;
+    const content = {
+      '/config.json': JSON.stringify(published.config),
+      '/sw.js': published.sw,
+      '/application.zip': published.application,
+      '/apercu.html': published.preview,
+    };
+    res.end(content[name]);
+    return;
   }
   const file = path.resolve(serverRoot, '.' + (name === '/' ? '/index.html' : name));
   if (!file.startsWith(serverRoot + path.sep)) {res.writeHead(403).end(); return;}
@@ -591,9 +604,33 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
 `, path.join(root, 'application.zip'), migratedApplication]);
   const application = fs.readFileSync(migratedApplication);
   config.assets.find(asset => asset.url === '/application.zip').sha256 = require('node:crypto').createHash('sha256').update(application).digest('hex');
-  published = {config, sw, application};
+  const preview = fs.readFileSync(path.join(root, 'apercu.html'), 'utf8') + '<!-- mise à jour fictive -->';
+  config.assets.find(asset => asset.url === '/apercu.html').sha256 = require('node:crypto').createHash('sha256').update(preview).digest('hex');
+  published = {config, sw, application, preview, interruptDownload: true};
+  published.downloadStarted = new Promise(resolve => { published.signalDownloadStarted = resolve; });
+  const beforeUpdate = network.length;
   await reopened.getByRole('button', {name: 'Vérifier les mises à jour', exact: true}).click();
+  await reopened.locator('#update-progress').waitFor({state: 'visible'});
+  await reopened.waitForFunction(() => document.querySelector('#update-progress').value === 1);
+  assert.equal(await reopened.locator('#update-progress').getAttribute('max'), String(config.assets.length));
+  await Promise.race([
+    published.downloadStarted,
+    new Promise((_, reject) => {
+      const timer = setTimeout(() => reject(new Error('Téléchargement fictif non démarré')), 10000);
+      timer.unref();
+    }),
+  ]);
+  published.failDownload();
+  await reopened.getByRole('button', {name: 'Réessayer la mise à jour', exact: true}).waitFor();
+  assert.match(await reopened.locator('#update-status').innerText(), /interrompue.*1 ressources vérifiées/);
+  assert(await reopened.locator('#update').isHidden());
+  assert.equal(await python(reopened, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
+  await reopened.getByRole('button', {name: 'Réessayer la mise à jour', exact: true}).click();
   await reopened.locator('#update').waitFor({state: 'visible', timeout: 120000});
+  const downloads = network.slice(beforeUpdate);
+  assert.equal(downloads.filter(url => url === base + 'apercu.html').length, 1, 'Ressource reprise après interruption');
+  assert.equal(downloads.filter(url => url === base + 'application.zip').length, 2, 'Ressource interrompue retéléchargée');
+  assert(!downloads.includes(base + 'runtime/pyodide.asm.wasm'), 'Moteur inchangé réutilisé depuis le cache actif');
   // Le runtime actif continue à lire l'école pendant le téléchargement.
   assert.equal(await python(reopened, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
   const navigated = reopened.waitForEvent('framenavigated', {predicate: f => f === reopened.mainFrame(), timeout: 120000});

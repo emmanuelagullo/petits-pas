@@ -1,19 +1,71 @@
 const BASE = new URL('./', self.location.href).pathname;
 const assetURL = path => BASE + path.replace(/^\//, '');
-const CACHE = 'petits-pas-pwa-' + BASE + '__BUILD__';
-self.addEventListener('install', event => event.waitUntil((async () => {
-  const config = await (await fetch(assetURL('/config.json'), {cache: 'no-store'})).json();
+const CACHE_PREFIX = 'petits-pas-pwa-' + BASE;
+const VERSION = '__BUILD__';
+const CACHE = CACHE_PREFIX + VERSION;
+
+async function matchesAsset(response, asset) {
+  if (!response?.ok) return false;
+  const bytes = await response.clone().arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  return hash === asset.sha256;
+}
+
+async function installVersion() {
+  const manifest = await fetch(assetURL('/config.json'), {cache: 'no-store'});
+  if (!manifest.ok) throw new Error('Manifeste indisponible');
+  const config = await manifest.json();
+  if (config.version !== VERSION) throw new Error('Version du manifeste différente du service worker');
   const cache = await caches.open(CACHE);
-  await cache.put(assetURL('/config.json'), new Response(JSON.stringify(config), {headers: {'Content-Type': 'application/json'}}));
+  const previous = (await caches.keys()).reverse().filter(name =>
+    // Le préfixe comprend la portée. Le suffixe ne doit pas être un sous-chemin.
+    name.startsWith(CACHE_PREFIX) && !name.slice(CACHE_PREFIX.length).includes('/') && name !== CACHE
+  );
+  let checked = 0;
+  const progress = async () => {
+    try {
+      // Le service worker en cours d’installation ne contrôle pas encore ces fenêtres.
+      const windows = await self.clients.matchAll({type: 'window', includeUncontrolled: true});
+      for (const client of windows) {
+        if ([BASE, BASE + 'index.html'].includes(new URL(client.url).pathname)) {
+          client.postMessage({kind: 'update-progress', checked, total: config.assets.length});
+        }
+      }
+    } catch {
+      // Un onglet peut se fermer pendant l’installation.
+    }
+  };
+  await progress();
   for (const asset of config.assets) {
-    const response = await fetch(assetURL(asset.url), {cache: 'no-store'});
-    if (!response.ok) throw new Error('Fichier absent : ' + asset.url);
-    const bytes = await response.clone().arrayBuffer();
-    const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
-    if (hash !== asset.sha256) throw new Error('Empreinte incorrecte : ' + asset.url);
-    await cache.put(assetURL(asset.url), response);
+    const url = assetURL(asset.url);
+    const partial = await cache.match(url);
+    if (!await matchesAsset(partial, asset)) {
+      let reusable;
+      for (const name of previous) {
+        const candidate = await caches.match(url, {cacheName: name});
+        if (await matchesAsset(candidate, asset)) {
+          reusable = candidate;
+          break;
+        }
+      }
+      if (!reusable) {
+        reusable = await fetch(url, {cache: 'no-store'});
+        if (!reusable.ok) throw new Error('Fichier absent : ' + asset.url);
+        if (!await matchesAsset(reusable, asset)) throw new Error('Empreinte incorrecte : ' + asset.url);
+      }
+      await cache.put(url, reusable);
+    }
+    checked++;
+    await progress();
   }
-})()));
+  await cache.put(assetURL('/config.json'), new Response(JSON.stringify(config), {headers: {'Content-Type': 'application/json'}}));
+}
+
+self.addEventListener('install', event => event.waitUntil(installVersion().catch(error => {
+  console.error('Installation de Petits Pas interrompue', error);
+  throw error;
+})));
 self.addEventListener('activate', event => event.waitUntil(self.clients.claim()));
 async function local(request) {
   const clients = await self.clients.matchAll({type: 'window', includeUncontrolled: false});

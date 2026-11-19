@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Afficher la progression des mises à jour de la PWA et reprendre les
+  téléchargements interrompus à partir des ressources complètes.
+
 - Corriger l’envoi des traces avec ou sans photo lorsque le navigateur
   ne fournit pas le flux du formulaire.
 

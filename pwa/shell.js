@@ -85,11 +85,61 @@ function showVolume(durability) {
   document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 256 Mio (avant compression).`
     + (mib >= 205 ? ' Limite proche : téléchargez une sauvegarde et prévoyez un transfert.' : '');
 }
+const checkUpdate = document.querySelector('#check-update');
+const updateStatus = document.querySelector('#update-status');
+const updateProgress = document.querySelector('#update-progress');
+let installingUpdate;
+
 function showUpdate() {
   const available = !!(registration?.active && registration?.waiting);
   document.querySelector('#update').hidden = !available;
-  if (available) document.querySelector('#tools').open = true;
+  if (available) {
+    document.querySelector('#tools').open = true;
+    updateProgress.hidden = true;
+    updateStatus.textContent = 'Nouvelle version prête à appliquer.';
+    checkUpdate.textContent = 'Vérifier les mises à jour';
+  }
+  return available;
 }
+
+function watchUpdate() {
+  const candidate = registration.installing;
+  if (!registration.active || !candidate || installingUpdate === candidate) return;
+  installingUpdate = candidate;
+  checkUpdate.disabled = true;
+  updateProgress.removeAttribute('value');
+  updateProgress.hidden = false;
+  updateStatus.textContent = 'Téléchargement et vérification de la mise à jour…';
+  function stateChanged() {
+    if (installingUpdate !== candidate) return;
+    if (candidate.state === 'redundant') {
+      const count = updateProgress.hasAttribute('value')
+        ? ` (${updateProgress.value} ressources vérifiées sur ${updateProgress.max})`
+        : '';
+      updateStatus.textContent = `Installation de la mise à jour interrompue${count}. Vous pouvez réessayer.`;
+      checkUpdate.textContent = 'Réessayer la mise à jour';
+    } else if (!showUpdate() && candidate.state !== 'activated') {
+      return;
+    }
+    installingUpdate = null;
+    updateProgress.hidden = true;
+    checkUpdate.disabled = false;
+    candidate.removeEventListener('statechange', stateChanged);
+  }
+  candidate.addEventListener('statechange', stateChanged);
+  stateChanged();
+}
+
+navigator.serviceWorker?.addEventListener('message', event => {
+  if (event.data?.kind !== 'update-progress' || event.source !== registration?.installing) return;
+  watchUpdate();
+  if (event.source !== installingUpdate) return;
+  const {checked, total} = event.data;
+  updateProgress.max = total;
+  updateProgress.value = checked;
+  updateStatus.textContent = `${checked} ressources vérifiées sur ${total}.`;
+});
+
 function stopRuntime() {
   worker?.terminate(); worker = null; ready = false;
   frame.hidden = true;
@@ -137,12 +187,23 @@ document.querySelector('#persist').onclick = async () => {
     status.textContent = document.querySelector('#storage').textContent;
   } catch {status.textContent = 'Protection impossible à demander. Conservez une sauvegarde hors de cet appareil.';}
 };
-document.querySelector('#check-update').onclick = async () => {
+checkUpdate.onclick = async () => {
+  if (!registration || showUpdate()) return;
+  checkUpdate.disabled = true;
+  checkUpdate.textContent = 'Vérifier les mises à jour';
+  updateStatus.textContent = 'Recherche d’une mise à jour…';
   try {
-    if (!registration) throw new Error('Installation indisponible');
-    await registration.update(); showUpdate();
-    status.textContent = registration.waiting ? 'Nouvelle version prête. Exportez une sauvegarde avant de l’appliquer.' : 'Vérification lancée. Une mise à jour disponible sera proposée après son téléchargement.';
-  } catch { status.textContent = 'Vérification impossible hors ligne. Vous pouvez continuer à utiliser cette version.'; }
+    await registration.update();
+    watchUpdate();
+    if (!installingUpdate && !showUpdate() && checkUpdate.textContent !== 'Réessayer la mise à jour') {
+      updateStatus.textContent = 'Aucune nouvelle version détectée.';
+    }
+  } catch {
+    updateStatus.textContent = 'La vérification a échoué. Vérifiez la connexion, puis réessayez.';
+    checkUpdate.textContent = 'Réessayer la mise à jour';
+  } finally {
+    checkUpdate.disabled = !!installingUpdate;
+  }
 };
 document.querySelector('#update').onclick = async event => {
   event.target.disabled = true;
@@ -178,9 +239,8 @@ try {
     status.textContent = 'Téléchargement et vérification de l’application pour le mode hors ligne…';
     registration = await navigator.serviceWorker.register('./sw.js', {updateViaCache: 'none'});
     showUpdate();
-    registration.addEventListener('updatefound', () => {
-      registration.installing?.addEventListener('statechange', showUpdate);
-    });
+    registration.addEventListener('updatefound', watchUpdate);
+    watchUpdate();
     await controlled();
     worker = new Worker(WORKER, {type: 'module'});
     worker.addEventListener('message', event => {
