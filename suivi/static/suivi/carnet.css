@@ -1038,3 +1038,13 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
     align-items: flex-start;
   }
 }
+
+
+.recherche-catalogue { max-width: none; }
+.recherche-catalogue input[type="search"] { width: 100%; }
+.filtres-catalogue {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: .75rem;
+}
+.soumission-catalogue:not(:has(a, button:not([hidden]))) { display: none; }

@@ -1,7 +1,28 @@
 <template data-options-domaines>{% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}</template>
 <template data-options-groupes>{% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}</template>
 <div data-nombre-resultats="{{ nombre }}">
-{% if source %}
+{% if recherches_elargies %}
+<p>Des compétences correspondent en dehors des filtres actuels.</p>
+<div class="actions">{% for nom, url in recherches_elargies %}<a class="bouton discret" href="{{ url }}">Voir les correspondances · {{ nom }}</a>{% endfor %}</div>
+{% endif %}
+{% if ajouter %}
+<section class="encadre">
+  <details>
+    <summary class="bouton{% if not creer_en_priorite %} discret{% endif %}">{% if creer_en_priorite %}Créer « {{ q|truncatechars:55 }} »{% else %}+ Créer une compétence{% endif %}</summary>
+    {% if url_creation_ciblee %}
+    <p><a class="bouton discret" href="{{ url_creation_ciblee }}">Suivre pour les élèves sélectionnés</a><br>
+    <small>Les élèves inscrits plus tard ne seront pas ajoutés automatiquement.</small></p>
+    {% endif %}
+    {% if url_creation_classe %}
+    <p><a class="bouton discret" href="{{ url_creation_classe }}">Ajouter au référentiel de la classe</a><br>
+    <small>La compétence sera disponible pour les élèves actuels et les futurs inscrits.</small></p>
+    {% endif %}
+  </details>
+</section>
+{% endif %}
+{% if vue_suivi %}
+{% include "suivi/partiels/competences_collectives.html" %}
+{% elif source %}
   {% if disponibles %}
   <h2>{{ nom_source }}</h2>
   <ul class="liste">
@@ -45,20 +66,5 @@
   </section>
   {% endfor %}
 {% endif %}
-{% if not nombre %}<p>Aucune compétence ne correspond à la recherche.</p>{% endif %}
-{% if ajouter %}
-<section class="encadre">
-  <details>
-    <summary class="bouton">+ Créer une compétence</summary>
-    {% if url_creation_ciblee %}
-    <p><a class="bouton discret" href="{{ url_creation_ciblee }}">Suivre pour les élèves sélectionnés</a><br>
-    <small>Les élèves inscrits plus tard ne seront pas ajoutés automatiquement.</small></p>
-    {% endif %}
-    {% if url_creation_classe %}
-    <p><a class="bouton discret" href="{{ url_creation_classe }}">Ajouter au référentiel de la classe</a><br>
-    <small>La compétence sera disponible pour les élèves actuels et les futurs inscrits.</small></p>
-    {% endif %}
-  </details>
-</section>
-{% endif %}
+{% if not nombre and not recherches_elargies %}<p>{% if vue_suivi %}Aucune compétence dans le suivi pour cette section.{% else %}Aucune compétence ne correspond à la recherche.{% endif %}</p>{% endif %}
 </div>

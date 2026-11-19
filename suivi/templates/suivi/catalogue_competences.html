@@ -1,7 +1,11 @@
 {% extends "suivi/base.html" %}
 {% load static %}
-{% block titre %}{% if ajouter %}Ajouter une compétence{% else %}Compétences{% endif %}{% endblock %}
+{% block titre %}{% if saisie_collective %}Saisir pour toute la classe{% elif ajouter %}Ajouter une compétence{% else %}Compétences{% endif %}{% endblock %}
 {% block contenu %}
+{% if saisie_collective %}
+{% include "suivi/partiels/ariane.html" with page="Saisir pour toute la classe" %}
+<h1>Saisir pour toute la classe</h1>
+{% else %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
 {% if ajouter %}
 <h1>Ajouter une compétence</h1>
@@ -13,11 +17,13 @@
 <p>Le suivi se construit compétence par compétence dans ce catalogue.</p>
 {% endif %}
 {% endif %}
-<form method="get" action="{{ url_catalogue }}" class="encadre" id="recherche-catalogue">
-  <label for="q">Rechercher une compétence</label>
-  <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if ajouter %} autofocus{% endif %}>
+{% endif %}
+<form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
+  <label for="q">{% if ajouter %}Rechercher ou créer une compétence{% else %}Rechercher une compétence{% endif %}</label>
+  <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if ajouter and not saisie_collective %} autofocus{% endif %}>
   {% if ajouter %}<input type="hidden" name="ajouter" value="1">{% endif %}
   {% for nom, valeur in contexte_ajout.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
+  <div class="filtres-catalogue">
   {% if sources %}
   <label for="source">Source</label>
   <select id="source" name="source">
@@ -32,6 +38,9 @@
     <option value="MS"{% if niveau == "MS" %} selected{% endif %}>Moyenne section</option>
     <option value="GS"{% if niveau == "GS" %} selected{% endif %}>Grande section</option>
   </select>
+  </div>
+  <details{% if domaine or sous_domaine or portee %} open{% endif %}>
+  <summary>Filtres{% if domaine %} · {{ domaine }}{% endif %}{% if sous_domaine %} · {{ sous_domaine }}{% endif %}</summary>
   <label for="domaine">Domaine</label>
   <select id="domaine" name="domaine">
     {% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}
@@ -49,7 +58,8 @@
       <option value="cible"{% if portee == "cible" %} selected{% endif %}>Suivi ciblé</option>
     </select>
   </div>
-  <div class="actions">
+  </details>
+  <div class="actions soumission-catalogue">
     <button type="submit" class="bouton{% if ajouter %} discret{% endif %}">Rechercher</button>
     {% if peut_ajouter and not ajouter %}<a class="bouton" href="{{ url_ajouter }}" data-ouvrir-ajout>+ Ajouter une compétence</a>{% endif %}
   </div>

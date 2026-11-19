@@ -23,7 +23,7 @@ from .suivi_libre import est_libre
 from .views import acces_requis
 
 
-FILTRES = ("source", "q", "niveau", "domaine", "sous_domaine", "portee", "ajouter")
+FILTRES = ("source", "q", "niveau", "domaine", "sous_domaine", "portee", "ajouter", "depuis_saisie")
 CONTEXTE = ("classement", "groupe", "eleve", "collectif")
 
 
@@ -92,7 +92,8 @@ def choix_portee(request, classe, source, reference):
     attendu = [request.user.pk, classe.pk, adoption.pk, source, reference, regle.revision if regle else 0]
     initial["jeton"] = signing.dumps(attendu, salt="portee-catalogue")
     form = PorteeCatalogueForm(request.POST if request.method == "POST" else None, classe=classe, initial=initial)
-    retour = lien("catalogue_competences", classe.pk, **criteres_catalogue(request))
+    route = "choisir_competence" if request.GET.get("depuis_saisie") == "1" else "catalogue_competences"
+    retour = lien(route, classe.pk, **criteres_catalogue(request))
     if request.method == "POST" and form.is_valid():
         try:
             if signing.loads(form.cleaned_data["jeton"], salt="portee-catalogue", max_age=1800) != attendu:
@@ -113,7 +114,7 @@ def choix_portee(request, classe, source, reference):
             messages.success(request, "Le suivi de cette compétence a été mis à jour.")
             if eleve and ids is not None and eleve.pk in ids:
                 return redirect(lien("saisie_eleve", eleve.pk, ancre=f"c{competence.pk}"))
-            return redirect(lien("saisie_competence", classe.pk, competence.pk))
+            return redirect(lien("saisie_competence", classe.pk, competence.pk, retour=retour) if request.GET.get("depuis_saisie") == "1" else lien("saisie_competence", classe.pk, competence.pk))
         except signing.BadSignature:
             form.add_error(None, "Le formulaire a expiré. Rechargez la page.")
         except ValidationError as cause:
@@ -124,8 +125,9 @@ def choix_portee(request, classe, source, reference):
 
 @acces_requis
 @require_http_methods(["GET", "HEAD", "POST"])
-def catalogue(request, pk):
+def catalogue(request, pk, saisie_collective=False):
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole_courante(request))
+    route = "choisir_competence" if saisie_collective else "catalogue_competences"
     source = request.GET.get("source", "")[:40]
     if request.GET.get("selection"):
         return choix_portee(request, classe, source, request.GET["selection"][:120])
@@ -148,17 +150,18 @@ def catalogue(request, pk):
             messages.error(request, " ".join(cause.messages))
         else:
             messages.success(request, "Compétence ajoutée au suivi de la classe.")
-        return redirect(lien("catalogue_competences", classe.pk, **criteres_catalogue(request)))
+        return redirect(lien(route, classe.pk, **criteres_catalogue(request)))
     q = request.GET.get("q", "").strip()[:300]
-    niveau = request.GET.get("niveau", "")
+    niveau = request.GET.get("niveau", "") if "niveau" in request.GET else (request.GET.get("niveaux", "") if saisie_collective else "")
+    niveau = niveau if niveau in {"PS", "MS", "GS"} else ""
     portee = request.GET.get("portee", "")
     adoption = adoption_courante(classe)
     ouvert = bool(adoption and not adoption.clos)
     gerer = ouvert and autorise(request.user, GERER_REFERENTIEL_CLASSE, classe)
     cibler = ouvert and autorise(request.user, MODIFIER_ETAT, classe)
-    ajouter = (gerer or cibler) and request.GET.get("ajouter") == "1"
+    ajouter = (gerer or cibler) and (saisie_collective or request.GET.get("ajouter") == "1")
     eleve = eleve_contextuel(request, classe) if ajouter else None
-    collectif = ajouter and request.GET.get("collectif") == "1"
+    collectif = saisie_collective or (ajouter and request.GET.get("collectif") == "1")
     contenu = contenu_origine(adoption) if adoption else {}
     classement = next((d for d in contenu.get("domaines", [])
                        if str(d["id"]) == request.GET.get("classement")), {})
@@ -167,10 +170,24 @@ def catalogue(request, pk):
     domaine = request.GET.get("domaine", classement.get("nom", "") if not source else "")
     sous_domaine = request.GET.get("sous_domaine", groupe.get("nom", "") if not source else "")
     parametres = criteres_catalogue(request)
+    if saisie_collective:
+        parametres.update(collectif="1", ajouter="1", depuis_saisie="1")
+    if niveau:
+        parametres["niveau"] = niveau
+    url_resultats = lien(route, classe.pk, **parametres)
     sources = sources_catalogue(request.user, classe, adoption) if gerer else {}
     if source and source not in sources:
         raise PermissionDenied
     lignes = catalogue_classe(classe, request.user)
+    correspondances = bool(q and recherche_catalogue(lignes, q))
+    autres_sources = []
+    if q and not correspondances:
+        for identifiant, (nom, version, autre) in sources.items():
+            index = [{"libelle": c["libelle"]} for _, c, _, _ in
+                     lignes_source(version, autre, utilisateur=request.user, classe=classe)]
+            if rechercher_apprentissages(index, q):
+                autres_sources.append((identifiant, nom))
+        correspondances = bool(autres_sources)
     if source:
         _, version, autre = sources[source]
         externes = list(lignes_source(version, autre, utilisateur=request.user, classe=classe))
@@ -187,7 +204,7 @@ def catalogue(request, pk):
             deja = presents.get(ids.get(ligne["reference"]))
             ligne["deja_suivie"] = bool(deja and deja["competence"].active)
             if ligne["deja_suivie"]:
-                ligne["url"] = deja["url"]
+                ligne["url"] = lien("saisie_competence", classe.pk, ids[ligne["reference"]], filtre=niveau or "tous", retour=url_resultats)
             if cibler and (not ajouter or not ligne["deja_suivie"] or deja["portee"] == "cible"):
                 ligne["choix_portee"] = lien("catalogue_competences", classe.pk,
                     **parametres, selection=ligne["reference"])
@@ -209,6 +226,8 @@ def catalogue(request, pk):
         .values_list("competence_id", "revision"))
     for ligne in lignes:
         competence = ligne["competence"]
+        if not ligne["disponible"] and (q or domaine or sous_domaine or portee):
+            ligne["url"] = lien("saisie_competence", classe.pk, competence.pk, filtre=niveau or "tous", retour=url_resultats)
         if competence.pk in ids_ajoutables and not competence.active:
             ligne["ajout_au_suivi"] = True
             ligne["revision"] = revisions.get(competence.pk, 0)
@@ -230,9 +249,28 @@ def catalogue(request, pk):
     disponibles = recherche_catalogue([
         l for l in disponibles if classement_retenu(l) and (not niveau or l["competence"]["niveau"] == niveau)
     ], q, externe=True)
+    hors_filtres = q and not (lignes or disponibles) and correspondances
+    recherches_elargies = []
+    if hors_filtres:
+        commun = {cle: valeur for cle, valeur in parametres.items()
+                  if cle not in ("niveau", "domaine", "sous_domaine", "portee", "source")}
+        commun.update(niveau="", domaine="", sous_domaine="")
+        recherches_elargies = [(nom, lien(route, classe.pk, **commun, source=identifiant))
+                              for identifiant, nom in autres_sources]
+        recherches_elargies.insert(0, ("Catalogue de la classe", lien(route, classe.pk, **commun)))
+        if source and source not in dict(autres_sources):
+            recherches_elargies.append((sources[source][0], lien(route, classe.pk, **commun, source=source)))
+    domaines_suivi = []
+    vue_suivi = saisie_collective and not (q or source or domaine or sous_domaine or portee)
+    effectif = 0
+    if vue_suivi:
+        from .referentiels import arbre_competences
+        from .views import repartition_competences
+        domaines_suivi = [(d, d.visibles) for d in arbre_competences(classe.ecole, [niveau] if niveau else None, classe=classe)]
+        effectif = repartition_competences(classe, [c for _, cs in domaines_suivi for c in cs])
     # Le sous-domaine d'origine sert à la création, même après consultation d'une autre source.
     creation = {"libelle": q, "origine": "catalogue",
-                "retour": lien("catalogue_competences", classe.pk, **parametres)}
+                "retour": lien(route, classe.pk, **parametres)}
     if classement:
         creation["domaine"] = classement["id"]
     if groupe:
@@ -246,11 +284,14 @@ def catalogue(request, pk):
             if sous:
                 creation["sous_domaine"] = sous["id"]
     contexte = {
+        "saisie_collective": saisie_collective, "vue_suivi": vue_suivi, "domaines_suivi": domaines_suivi,
+        "effectif": effectif, "filtre": niveau or "tous", "responsable": cibler,
+        "creer_en_priorite": bool(q and not correspondances), "recherches_elargies": recherches_elargies,
         "classe": classe, "adoption": adoption, "ariane": chemin_classe(classe),
         "q": q, "niveau": niveau, "domaine": domaine, "portee": portee,
         "domaines": domaines, "groupes": groupes, "sous_domaine": sous_domaine,
         "source": source, "sources": sources, "nom_source": sources[source][0] if source else "",
-        "disponibles": disponibles, "lignes": lignes, "nombre": len(lignes) + len(disponibles),
+        "disponibles": disponibles, "lignes": lignes, "nombre": sum(len(cs) for _, cs in domaines_suivi) if vue_suivi else len(lignes) + len(disponibles),
         "ajouter": ajouter, "peut_ajouter": gerer or cibler,
         "url_ajouter": lien("catalogue_competences", classe.pk, **{**parametres, "ajouter": 1}),
         "url_creation_classe": lien("ajouts_classe", classe.pk, filtre=niveau or "tous",
@@ -259,11 +300,11 @@ def catalogue(request, pk):
             **({"eleve": eleve.pk} if eleve else {"collectif": 1} if collectif else {})) if cibler else "",
         "contexte_ajout": {cle: parametres[cle] for cle in CONTEXTE if cle in parametres},
         "eleve": eleve, "collectif": collectif,
-        "url_catalogue": reverse("catalogue_competences", args=[classe.pk]),
+        "url_catalogue": reverse(route, args=[classe.pk]),
         "url_resultats": lien("catalogue_competences", classe.pk, **parametres),
     }
     if request.GET.get("fragment") == "1":
         response = render(request, "suivi/partiels/catalogue_resultats.html", contexte)
         response.headers["X-Petits-Pas-Catalogue"] = "1"
         return response
-    return render(request, "suivi/catalogue_competences.html", contexte)
+    return render(request, "suivi/choisir_competence.html" if saisie_collective else "suivi/catalogue_competences.html", contexte)
