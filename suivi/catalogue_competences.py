@@ -6,6 +6,7 @@ from django.db.models import Count, Q
 from .autorisations import GERER_REFERENTIEL_CLASSE, autorise
 from .models import AdaptationCompetence, CompetenceLocale, EleveApprentissage, Observation
 from .navigation import lien
+from .rubriques import origine_rubrique, rattachements_rubriques
 from .referentiels import adoption_courante, arbre_version, arbre_competences, contenu_adoption, observations_classe
 from .services.ajouts_referentiels import catalogue_reprises
 
@@ -52,14 +53,21 @@ def catalogue_classe(classe, utilisateur):
             eleves_selectionnes__active=True, eleves_selectionnes__scolarite__classe=classe,
             eleves_selectionnes__scolarite__eleve__archive_le__isnull=True,
         ))).values_list("competence_id", "nombre"))
+    domaines = {d.pk: d for d in arbre}
+    groupes = {s.pk: s for d in arbre for s in getattr(d, "sous_domaines_lus", [])}
+    parents, enfants = rattachements_rubriques(adoption, list(domaines.values()), list(groupes.values()))
     resultats = []
     for competence in competences:
         locale = locales.get(competence.pk)
         portee = "cible" if competence.pk in selections or (locale and locale.suivi_libre) else "classe" if locale else "base"
+        domaine = domaines.get(parents.get(competence.domaine_id), competence.domaine)
+        sous = groupes.get(enfants.get(competence.sous_domaine_id), competence.sous_domaine)
         resultats.append({
             "competence": competence, "locale": locale, "portee": portee,
-            "domaine": competence.domaine.nom.removeprefix("Ajouts — "),
-            "sous_domaine": competence.sous_domaine.nom if competence.sous_domaine else "",
+            "domaine": origine_rubrique(domaine) or domaine.nom,
+            "domaine_affiche_id": domaine.pk,
+            "sous_domaine": sous.nom if sous else "",
+            "sous_domaine_affiche_id": sous.pk if sous else None,
             "nombre": comptes.get(competence.pk, 0),
             "suivis": selections.get(competence.pk, suivis.get(locale.pk, 0) if locale else 0),
             "disponible": competence.pk not in presentes,
@@ -67,8 +75,8 @@ def catalogue_classe(classe, utilisateur):
                     else lien("saisie_competence", classe.pk, competence.pk)),
         })
     return sorted(resultats, key=lambda l: (
-        cle_alphabetique(l["domaine"]), l["domaine"], cle_alphabetique(l["sous_domaine"]),
-        l["sous_domaine"], cle_alphabetique(l["competence"].libelle),
+        cle_alphabetique(l["domaine"]), l["domaine"], l["domaine_affiche_id"], cle_alphabetique(l["sous_domaine"]),
+        l["sous_domaine"], l["sous_domaine_affiche_id"] or 0, cle_alphabetique(l["competence"].libelle),
     ))
 
 

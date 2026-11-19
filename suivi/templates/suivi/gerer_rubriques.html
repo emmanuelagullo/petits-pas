@@ -1,37 +1,46 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Gérer les rubriques{% endblock %}
+{% load static %}
+{% block titre %}Rubriques et ordre d’affichage{% endblock %}
 {% block contenu %}
-{% include "suivi/partiels/ariane.html" with page="Gérer les rubriques" %}
-<h1>Gérer les rubriques</h1>
+{% include "suivi/partiels/ariane.html" with page="Rubriques et ordre d’affichage" %}
+<h1>Rubriques et ordre d’affichage</h1>
 {% if erreur %}<p role="alert">{{ erreur }}</p>{% endif %}
 {% if formulaire.errors %}{{ formulaire.errors }}{% endif %}
 {% if ouvert %}
-<p>Les positions les plus petites s’affichent en premier. Masquer une rubrique retire ses compétences de la navigation de saisie. Les observations restent dans les carnets.</p>
-<details class="encadre"><summary>Ajouter une rubrique</summary>
+<div class="actions">
+{% if mode_ordre %}
+<a class="bouton discret" href="{% url 'gerer_rubriques' classe.pk %}">Terminer</a>
+{% else %}
+<details><summary class="bouton">Ajouter une rubrique</summary>
 {% include "suivi/partiels/form_rubrique.html" with genre="domaine" rubrique=None parent=None %}
 </details>
+<a class="bouton discret" href="?ordre=1">Réordonner</a>
 {% endif %}
+</div>
+{% endif %}
+<ol class="liste liste-rubriques" data-liste-rubriques>
 {% for domaine in domaines %}
-<section class="domaine">
-<h2>{{ domaine.nom }}{% if domaine.masquee %} <small>Masquée</small>{% endif %}</h2>
-{% if ouvert %}
-<details><summary>Modifier la rubrique</summary>
-{% include "suivi/partiels/form_rubrique.html" with genre="domaine" rubrique=domaine parent=None %}
-</details>
-{% endif %}
-{% for sous in domaine.groupes %}
-<h3>{{ sous.nom }}{% if sous.masquee or domaine.masquee %} <small>Masquée</small>{% endif %}</h3>
-{% if ouvert %}
-<details><summary>Modifier la sous-rubrique</summary>
-{% include "suivi/partiels/form_rubrique.html" with genre="sous_domaine" rubrique=sous parent=domaine %}
-</details>
-{% endif %}
+<li data-rubrique="{{ domaine.id }}" id="domaine-{{ domaine.id }}">
+  <h2>{{ domaine.nom_affiche }}{% if domaine.masquee %} <small>Masquée</small>{% endif %}</h2>
+  {% if domaine.nom_affiche != domaine.nom %}<small>Regroupement local</small>{% endif %}
+  {% include "suivi/partiels/rubrique_actions.html" with genre="domaine" rubrique=domaine parent=None ordre_initial=ordre_domaines premier=forloop.first dernier=forloop.last %}
+  {% if domaine.groupes %}
+  <ol data-liste-rubriques>
+  {% for sous in domaine.groupes %}
+    <li data-rubrique="{{ sous.id }}" id="sous_domaine-{{ sous.id }}">
+    <h3>{{ sous.nom }}{% if sous.masquee or domaine.masquee %} <small>Masquée</small>{% endif %}</h3>
+    {% include "suivi/partiels/rubrique_actions.html" with genre="sous_domaine" rubrique=sous parent=domaine ordre_initial=domaine.ordre_groupes premier=forloop.first dernier=forloop.last %}
+    </li>
+  {% endfor %}
+  </ol>
+  {% endif %}
+  {% if ouvert and not mode_ordre %}
+  <details><summary>Ajouter une sous-rubrique</summary>
+  {% include "suivi/partiels/form_rubrique.html" with genre="sous_domaine" rubrique=None parent=domaine %}
+  </details>
+  {% endif %}
+</li>
 {% endfor %}
-{% if ouvert %}
-<details><summary>Ajouter une sous-rubrique</summary>
-{% include "suivi/partiels/form_rubrique.html" with genre="sous_domaine" rubrique=None parent=domaine %}
-</details>
-{% endif %}
-</section>
-{% endfor %}
+</ol>
+{% if mode_ordre %}<script src="{% static 'suivi/ordre_rubriques.js' %}" defer></script>{% endif %}
 {% endblock %}

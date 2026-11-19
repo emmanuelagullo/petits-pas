@@ -1,0 +1,15 @@
+{% if ajouter %}
+<div class="creation-catalogue">
+  <details data-creation-competence>
+    <summary class="bouton{% if not creer_en_priorite %} discret{% endif %}">{% if creer_en_priorite %}Créer « {{ q|truncatechars:55 }} »{% else %}+ Créer une compétence{% endif %}</summary>
+    {% if url_creation_ciblee %}
+    <p><a class="bouton discret" href="{{ url_creation_ciblee }}">Suivre pour les élèves sélectionnés</a><br>
+    <small>Les élèves inscrits plus tard ne seront pas ajoutés automatiquement.</small></p>
+    {% endif %}
+    {% if url_creation_classe %}
+    <p><a class="bouton discret" href="{{ url_creation_classe }}">Ajouter au référentiel de la classe</a><br>
+    <small>La compétence sera disponible pour les élèves actuels et les futurs inscrits.</small></p>
+    {% endif %}
+  </details>
+</div>
+{% endif %}

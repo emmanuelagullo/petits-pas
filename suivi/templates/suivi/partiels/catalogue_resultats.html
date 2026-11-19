@@ -1,3 +1,5 @@
+<template data-actions-creation>{% include "suivi/partiels/creation_catalogue.html" %}</template>
+<template data-resume-filtres>{{ resume_filtres }}</template>
 <template data-options-domaines>{% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}</template>
 <template data-options-groupes>{% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}</template>
 <div data-nombre-resultats="{{ nombre }}">
@@ -6,21 +8,6 @@
 {% if recherches_elargies %}
 <p>Des compétences correspondent en dehors des filtres actuels.</p>
 <div class="actions">{% for nom, url in recherches_elargies %}<a class="bouton discret" href="{{ url }}">Voir les correspondances · {{ nom }}</a>{% endfor %}</div>
-{% endif %}
-{% if ajouter %}
-<section class="encadre">
-  <details>
-    <summary class="bouton{% if not creer_en_priorite %} discret{% endif %}">{% if creer_en_priorite %}Créer « {{ q|truncatechars:55 }} »{% else %}+ Créer une compétence{% endif %}</summary>
-    {% if url_creation_ciblee %}
-    <p><a class="bouton discret" href="{{ url_creation_ciblee }}">Suivre pour les élèves sélectionnés</a><br>
-    <small>Les élèves inscrits plus tard ne seront pas ajoutés automatiquement.</small></p>
-    {% endif %}
-    {% if url_creation_classe %}
-    <p><a class="bouton discret" href="{{ url_creation_classe }}">Ajouter au référentiel de la classe</a><br>
-    <small>La compétence sera disponible pour les élèves actuels et les futurs inscrits.</small></p>
-    {% endif %}
-  </details>
-</section>
 {% endif %}
 {% if vue_suivi %}
 {% include "suivi/partiels/competences_collectives.html" %}
@@ -61,12 +48,12 @@
     {% for ligne in lignes %}{% include "suivi/partiels/catalogue_entree.html" with afficher_classement=True %}{% endfor %}
   </ul>
 {% else %}
-  {% regroup lignes by domaine as groupes_domaines %}
+  {% regroup lignes by domaine_affiche_id as groupes_domaines %}
   {% for groupe_domaine in groupes_domaines %}
-  <section class="domaine"><h2>{{ groupe_domaine.grouper }}</h2>
-    {% regroup groupe_domaine.list by sous_domaine as sous_groupes %}
+  <section class="domaine"><h2>{{ groupe_domaine.list.0.domaine }}</h2>
+    {% regroup groupe_domaine.list by sous_domaine_affiche_id as sous_groupes %}
     {% for sous_groupe in sous_groupes %}
-    {% if sous_groupe.grouper %}<h3>{{ sous_groupe.grouper }}</h3>{% endif %}
+    {% if sous_groupe.grouper %}<h3>{{ sous_groupe.list.0.sous_domaine }}</h3>{% endif %}
     <ul class="liste">
       {% for ligne in sous_groupe.list %}{% include "suivi/partiels/catalogue_entree.html" %}{% endfor %}
     </ul>

@@ -7,6 +7,8 @@
   const etat = document.getElementById('catalogue-etat');
   const {source, domaine, sous_domaine: groupe, portee} = form.elements;
   const soumettre = form.querySelector('.soumission-catalogue button');
+  const actions = form.querySelector('[data-actions-catalogue]');
+  const resume = form.querySelector('[data-resume-actif]');
   const ouvrirAjout = form.querySelector('[data-ouvrir-ajout]');
   let minuterie, requete, sequence = 0;
 
@@ -33,13 +35,16 @@
       const options = contenu.content.querySelector('[data-options-domaines]').content;
       const groupes = contenu.content.querySelector('[data-options-groupes]').content;
       const nombre = Number(contenu.content.querySelector('[data-nombre-resultats]').dataset.nombreResultats);
-      const creationOuverte = resultats.querySelector('details[open]');
+      const creationOuverte = actions.querySelector('details[open]');
+      actions.replaceChildren(contenu.content.querySelector('[data-actions-creation]').content.cloneNode(true));
+      resume.textContent = contenu.content.querySelector('[data-resume-filtres]').content.textContent;
+      actions.inert = false;
       domaine.replaceChildren(options.cloneNode(true));
       groupe.replaceChildren(groupes.cloneNode(true));
       url.searchParams.set('domaine', domaine.value);
       url.searchParams.set('sous_domaine', groupe.value);
       resultats.replaceChildren(contenu.content);
-      if (creationOuverte) resultats.querySelector('details')?.setAttribute('open', '');
+      if (creationOuverte) actions.querySelector('details')?.setAttribute('open', '');
       resultats.inert = false;
       history.replaceState(history.state, '', url);
       etat.textContent = `${nombre} résultat${nombre > 1 ? 's' : ''}`;
@@ -68,6 +73,7 @@
       ajout.searchParams.set('ajouter', '1');
       ouvrirAjout.href = ajout;
     }
+    actions.inert = true;
     resultats.inert = true;
     resultats.setAttribute('aria-busy', 'true');
     etat.textContent = 'Recherche en cours…';

@@ -1047,9 +1047,24 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: .75rem;
 }
-.soumission-catalogue:not(:has(a, button:not([hidden]))) { display: none; }
+.recherche-catalogue .soumission-catalogue { align-items: baseline; margin: .6rem 0 .9rem; }
+.recherche-catalogue [data-actions-catalogue] { margin-inline-start: auto; }
+.details-filtres-catalogue summary { cursor: pointer; }
+.details-filtres-catalogue [data-resume-actif] { font-weight: normal; }
+.creation-catalogue summary { cursor: pointer; }
+@media (max-width: 36rem) {
+  .recherche-catalogue [data-actions-catalogue] { margin-inline-start: 0; }
+}
 
 
 .menu-competence-catalogue { float: inline-end; margin-inline-start: .5rem; }
 .menu-competence-catalogue[open] { float: none; }
 .menu-competence-catalogue summary { min-width: 2.75rem; text-align: center; }
+
+.liste-rubriques ol { margin-block: .5rem; padding-inline-start: 1.2rem; }
+.liste-rubriques li { display: flow-root; padding: .65rem 0; }
+.liste-rubriques h2, .liste-rubriques h3 { margin-block: .2rem .5rem; }
+.ordre-rubrique { align-items: center; margin: .3rem 0; }
+[data-poignee] { cursor: grab; padding-inline: .6rem; font-size: 1.4rem; }
+[data-depot="avant"] { box-shadow: inset 0 3px var(--lien); }
+[data-depot="apres"] { box-shadow: inset 0 -3px var(--lien); }

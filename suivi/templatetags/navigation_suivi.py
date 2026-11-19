@@ -47,7 +47,7 @@ def lien_ajout_competence(classe, filtre="tous", domaine=None, sous_domaine=None
     if filtre != "tous":
         parametres["niveau"] = filtre
     if domaine:
-        parametres["classement"] = domaine.pk
+        parametres["classement"] = getattr(domaine, "parents_sous_domaines", {}).get(sous_domaine, domaine.pk)
     if sous_domaine:
         parametres["groupe"] = sous_domaine
     if eleve:

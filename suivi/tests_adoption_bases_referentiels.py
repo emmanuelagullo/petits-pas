@@ -156,6 +156,50 @@ class AdoptionBases(Base):
         self.assertTrue(any(d["nom"] == "Projets collectifs" for d in finale.etat_final["contenu"]["domaines"]))
         self.assertEqual(self.client.post(url, {**base, "genre": "domaine", "nom": "Trop tard"}).status_code, 400)
 
+    def test_ajout_local_est_affiche_dans_la_rubrique_de_la_base(self):
+        from .services.ajouts_referentiels import creer_ajout
+
+        adoption = self.adopter()
+        domaine = adoption.contenu["domaines"][0]
+        ajout = creer_ajout(utilisateur=self.enseignant, ecole=self.ecole, annee=self.classe.annee_scolaire,
+            classe=self.classe, adoption_attendue=adoption.pk, domaine_id=domaine["id"], sous_domaine_id=None,
+            libelle="Je parle à distance", niveau="PS")
+        self.assertNotEqual(ajout.competence.domaine_id, domaine["id"])
+        collectif = reverse("choisir_competence", args=[self.classe.pk])
+        page = self.client.get(collectif)
+        self.assertContains(page, f'<h3>{domaine["nom"]}</h3>', count=1, html=True)
+        self.assertContains(page, ajout.competence.libelle)
+        self.assertNotContains(page, "Ajouts —")
+        rubriques = reverse("gerer_rubriques", args=[self.classe.pk])
+        self.assertEqual(self.client.post(rubriques, {"adoption_id": adoption.pk, "genre": "domaine",
+            "rubrique_id": domaine["id"], "operation": "visibilite", "masquee": 1}).status_code, 302)
+        self.assertNotContains(self.client.get(collectif), ajout.competence.libelle)
+
+    def test_reordonner_rubriques_par_bouton_et_par_glisser(self):
+        from .models import RubriqueClasse
+        from .referentiels import contenu_adoption
+
+        adoption = self.adopter()
+        url = reverse("gerer_rubriques", args=[self.classe.pk]) + "?ordre=1"
+        base = {"adoption_id": adoption.pk, "genre": "domaine"}
+        for nom in ("Projets", "Ateliers"):
+            self.assertEqual(self.client.post(url, {**base, "nom": nom, "operation": "nom"}).status_code, 302)
+        domaines = contenu_adoption(adoption)["domaines"]
+        premier, projets, ateliers = [d["id"] for d in domaines]
+        avant = ",".join(str(d["id"]) for d in domaines)
+        self.assertEqual(self.client.post(url, {**base, "operation": "visibilite",
+            "rubrique_id": ateliers, "masquee": "on"}).status_code, 302)
+        monter = {**base, "rubrique_id": ateliers, "ordre_initial": avant, "action": "monter"}
+        self.assertEqual(self.client.post(url, monter).status_code, 302)
+        self.assertContains(self.client.post(url, monter), "L’ordre a changé", status_code=400)
+        self.assertEqual([d["id"] for d in contenu_adoption(adoption)["domaines"]], [premier, ateliers, projets])
+        glisser = {**monter, "action": "glisser", "ordre_initial": f"{premier},{ateliers},{projets}"}
+        self.assertContains(self.client.post(url, {**glisser, "cible_id": 999999}),
+                            "au même niveau", status_code=400)
+        self.assertEqual(self.client.post(url, {**glisser, "cible_id": projets, "apres": "1"}).status_code, 302)
+        self.assertEqual([d["id"] for d in contenu_adoption(adoption)["domaines"]], [premier, projets, ateliers])
+        self.assertTrue(RubriqueClasse.objects.get(classe=self.classe, domaine_id=ateliers).masquee)
+
     def test_recherche_dynamique_reutilise_les_resultats_et_le_contexte(self):
         adoption = self.adopter()
         domaine = adoption.contenu["domaines"][0]

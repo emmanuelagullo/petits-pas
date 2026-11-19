@@ -1,0 +1,30 @@
+{% if ouvert and mode_ordre %}
+<form method="post" class="actions ordre-rubrique" data-form-ordre>
+  {% csrf_token %}
+  <input type="hidden" name="adoption_id" value="{{ adoption.pk }}">
+  <input type="hidden" name="genre" value="{{ genre }}">
+  <input type="hidden" name="domaine_id" value="{{ parent.id }}">
+  <input type="hidden" name="rubrique_id" value="{{ rubrique.id }}">
+  <input type="hidden" name="ordre_initial" value="{{ ordre_initial }}">
+  <input type="hidden" name="cible_id">
+  <input type="hidden" name="apres">
+  <span data-poignee draggable="true" hidden aria-hidden="true">⠿</span>
+  <button class="bouton discret" type="submit" name="action" value="monter" aria-label="Monter {{ rubrique.nom }}"{% if premier %} disabled{% endif %}>Monter</button>
+  <button class="bouton discret" type="submit" name="action" value="descendre" aria-label="Descendre {{ rubrique.nom }}"{% if dernier %} disabled{% endif %}>Descendre</button>
+  <button type="submit" name="action" value="glisser" hidden></button>
+</form>
+{% elif ouvert %}
+<details class="menu-competence-catalogue">
+  <summary class="bouton discret" aria-label="Actions pour {{ rubrique.nom }}">⋯</summary>
+  <details><summary>Renommer</summary>
+  {% include "suivi/partiels/form_rubrique.html" %}
+  </details>
+  {% if rubrique.masquee %}
+  {% include "suivi/partiels/form_rubrique.html" with operation="visibilite" %}
+  {% else %}
+  <details><summary>Masquer…</summary>
+  {% include "suivi/partiels/form_rubrique.html" with operation="visibilite" %}
+  </details>
+  {% endif %}
+</details>
+{% endif %}
