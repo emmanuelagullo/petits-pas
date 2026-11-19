@@ -43,7 +43,7 @@
   </select>
   </div>
   </div>
-  <details{% if domaine or sous_domaine or portee or inclure_masquees %} open{% endif %}>
+  <details{% if domaine or sous_domaine or portee or inclure_masquees or inclure_competences_masquees %} open{% endif %}>
   <summary>Filtres{% if domaine %} · {{ domaine }}{% endif %}{% if sous_domaine %} · {{ sous_domaine }}{% endif %}</summary>
   <label for="domaine">Domaine</label>
   <select id="domaine" name="domaine">
@@ -62,6 +62,9 @@
       <option value="cible"{% if portee == "cible" %} selected{% endif %}>Suivi ciblé</option>
     </select>
   </div>
+  {% if a_des_competences_masquees %}
+  <label><input type="checkbox" name="inclure_competences_masquees" value="1"{% if inclure_competences_masquees %} checked{% endif %}> Inclure les compétences masquées</label>
+  {% endif %}
   {% if rubriques_masquees %}
   <label><input type="checkbox" name="inclure_masquees" value="1"{% if inclure_masquees %} checked{% endif %}> Inclure les rubriques masquées</label>
   {% endif %}

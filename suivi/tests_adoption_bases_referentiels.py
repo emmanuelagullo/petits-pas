@@ -41,6 +41,67 @@ class AdoptionBases(Base):
             revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
             garde_attendue=apercu["garde"]["empreinte"])
 
+    def test_deplacement_catalogue_local_et_retour_filtre(self):
+        from .exports_classe import selection_classe
+        from .models import Domaine, SousDomaine
+        from .referentiels import contenu_adoption
+        from .services.rubriques import enregistrer_rubrique
+
+        adoption = self.adopter()
+        competence = adoption.usages.get().competence
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=competence, statut="reussi")
+        originale = competence.domaine_id
+        options = dict(adoption_id=adoption.pk, rubrique_id=None, ordre=1, masquee=False)
+        enregistrer_rubrique(self.enseignant, self.classe, genre="domaine", domaine_id=None, nom="Atelier", **options)
+        domaine = Domaine.objects.get(nom="Atelier")
+        enregistrer_rubrique(self.enseignant, self.classe, genre="sous_domaine", domaine_id=domaine.pk,
+                             nom="Oral", **options)
+        groupe = SousDomaine.objects.get(domaine=domaine)
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        params = {"q": "parle", "domaine": "Langage", "deplacement": competence.pk}
+        page = self.client.get(catalogue, params)
+        self.assertContains(page, "Emplacement actuel · Langage")
+        url = page.wsgi_request.get_full_path()
+        reponse = self.client.post(url, {"domaine": domaine.pk, "sous_domaine": groupe.pk,
+            "jeton": page.context["deplacement"]["jeton"]}, follow=True)
+        self.assertContains(reponse, "Déplacée vers Atelier → Oral.")
+        self.assertContains(reponse, "Voir dans la rubrique")
+        self.assertIn("q=parle", reponse.context["url_deplacement"])
+        ligne = next(c for c in contenu_adoption(adoption)["competences"] if c["id"] == competence.pk)
+        self.assertEqual((ligne["domaine_id"], ligne["sous_domaine_id"]), (domaine.pk, groupe.pk))
+        competence.refresh_from_db()
+        self.assertEqual(competence.domaine_id, originale)
+        self.assertTrue(Observation.objects.filter(competence=competence, statut="reussi").exists())
+        selection, _ = selection_classe(self.classe, self.enseignant)
+        self.assertTrue(SousDomaine.objects.filter(selection[SousDomaine], pk=groupe.pk).exists())
+
+    def test_catalogue_masque_et_reaffiche_une_competence_ciblee(self):
+        from .models import EleveApprentissage
+        from .referentiels import competence_saisissable
+        from .services.ajouts_referentiels import creer_ajout
+        from .services.suivi_libre import associer
+
+        adoption = self.adopter()
+        locale = creer_ajout(utilisateur=self.enseignant, ecole=self.ecole, annee=self.classe.annee_scolaire,
+            classe=self.classe, adoption_attendue=adoption.pk, domaine_id=adoption.contenu["domaines"][0]["id"],
+            libelle="J’écoute mon voisin", niveau="PS", suivi_libre=True)
+        associer(utilisateur=self.enseignant, classe=self.classe, locale=locale, ids=[self.eleve.pk],
+                 adoption_attendue=adoption.pk)
+        competence = locale.competence
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=competence, statut="reussi")
+        url = reverse("catalogue_competences", args=[self.classe.pk])
+        action = {"action": "visibilite_catalogue", "competence": competence.pk, "adoption": adoption.pk}
+        self.assertRedirects(self.client.post(url, {**action, "visibilite": "masquer", "revision": 0}), url)
+        self.assertNotContains(self.client.get(url), competence.libelle)
+        filtre = f"{url}?inclure_competences_masquees=1"
+        self.assertContains(self.client.get(filtre), competence.libelle)
+        self.assertContains(self.client.get(filtre), "Réafficher")
+        self.assertFalse(competence_saisissable(self.classe, competence, eleve=self.eleve))
+        self.assertRedirects(self.client.post(filtre, {**action, "visibilite": "reafficher", "revision": 1}), filtre)
+        self.assertTrue(competence_saisissable(self.classe, competence, eleve=self.eleve))
+        self.assertTrue(EleveApprentissage.objects.filter(disponibilite__locale=locale, active=True).exists())
+        self.assertTrue(Observation.objects.filter(competence=competence, statut="reussi").exists())
+
     def test_saisie_collective_cree_seulement_sans_correspondance(self):
         self.adopter()
         url = reverse("choisir_competence", args=[self.classe.pk])

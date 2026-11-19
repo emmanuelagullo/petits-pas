@@ -102,6 +102,21 @@ class ClassementCompetenceForm(forms.Form):
         return donnees
 
 
+class DeplacementCompetenceForm(ClassementCompetenceForm):
+    niveau = None
+    domaine = forms.TypedChoiceField(label="Rubrique de destination", coerce=int)
+    sous_domaine = forms.TypedChoiceField(label="Sous-rubrique de destination", coerce=int, required=False,
+                                          empty_value=None)
+
+    def __init__(self, *args, sous_domaines=(), **kwargs):
+        from .forms_suivi_libre import SousDomainesSelect
+
+        super().__init__(*args, sous_domaines=sous_domaines, **kwargs)
+        champ = self.fields["sous_domaine"]
+        champ.choices = [("", "Sans sous-rubrique"), *list(champ.choices)[1:]]
+        champ.widget = SousDomainesSelect({str(s["id"]): s["domaine_id"] for s in sous_domaines}, choices=champ.choices)
+
+
 class AjoutCompetenceForm(ClassementCompetenceForm):
     libelle = forms.CharField(label="Description de la compétence", max_length=300,
                              widget=forms.Textarea(attrs={"rows": 2}))
