@@ -1,0 +1,57 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Compétences{% endblock %}
+{% block contenu %}
+{% include "suivi/partiels/ariane.html" with page="Compétences" %}
+<h1>Compétences de {{ classe.nom }}</h1>
+<form method="get" class="encadre">
+  <label for="q">Rechercher une compétence</label>
+  <input type="search" id="q" name="q" value="{{ q }}" maxlength="300">
+  {% if ajouter %}<input type="hidden" name="ajouter" value="1">{% endif %}
+  <label for="niveau">Section</label>
+  <select id="niveau" name="niveau">
+    <option value="">Tout le cycle</option>
+    <option value="PS"{% if niveau == "PS" %} selected{% endif %}>Petite section</option>
+    <option value="MS"{% if niveau == "MS" %} selected{% endif %}>Moyenne section</option>
+    <option value="GS"{% if niveau == "GS" %} selected{% endif %}>Grande section</option>
+  </select>
+  <label for="domaine">Domaine</label>
+  <select id="domaine" name="domaine">
+    <option value="">Tous les domaines</option>
+    {% for nom in domaines %}<option{% if nom == domaine %} selected{% endif %}>{{ nom }}</option>{% endfor %}
+  </select>
+  <label for="portee">Périmètre</label>
+  <select id="portee" name="portee">
+    <option value="">Tous</option>
+    <option value="base"{% if portee == "base" %} selected{% endif %}>Référentiel</option>
+    <option value="classe"{% if portee == "classe" %} selected{% endif %}>Ajouts pour la classe</option>
+    <option value="cible"{% if portee == "cible" %} selected{% endif %}>Suivi ciblé</option>
+  </select>
+  <button type="submit" class="bouton">Rechercher</button>
+</form>
+{% if ajouter %}
+<section class="encadre">
+  <h2>Ajouter une compétence</h2>
+  <p>Recherchez d’abord la compétence. Si elle existe, ouvrez-la dans les résultats ci-dessous.</p>
+  <div class="actions">
+    {% if creation_classe %}<a class="bouton" href="{% url 'ajouts_classe' classe.pk %}{% if q %}?libelle={{ q|urlencode }}{% endif %}#creer">Ajouter pour toute la classe</a>{% endif %}
+    {% if creation_ciblee %}<a class="bouton discret" href="{% url 'ajouter_reussite' classe.pk %}{% if q %}?libelle={{ q|urlencode }}{% endif %}">Ajouter pour certains élèves</a>{% endif %}
+  </div>
+</section>
+{% elif peut_ajouter %}<p><a class="bouton" href="?ajouter=1">Ajouter une compétence</a></p>{% endif %}
+{% regroup lignes by domaine as groupes %}
+{% for groupe in groupes %}
+  <section class="domaine"><h2>{{ groupe.grouper }}</h2>
+  {% regroup groupe.list by sous_domaine as sous_groupes %}
+  {% for sous_groupe in sous_groupes %}
+    {% if sous_groupe.grouper %}<h3>{{ sous_groupe.grouper }}</h3>{% endif %}
+    <ul class="liste">
+      {% for ligne in sous_groupe.list %}
+      <li>{% include "suivi/partiels/ligne_catalogue.html" %}
+        {% if ligne.modifier %} · <a href="{{ ligne.modifier }}">{% if ligne.competence.active %}Modifier ou masquer{% else %}Modifier ou réafficher{% endif %}</a>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+  </section>
+{% empty %}<p>Aucune compétence ne correspond à la recherche.</p>{% endfor %}
+{% endblock %}

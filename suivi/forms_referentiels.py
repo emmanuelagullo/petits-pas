@@ -73,16 +73,39 @@ class AdaptationCompetenceForm(forms.Form):
         return donnees
 
 
-class AjoutCompetenceForm(forms.Form):
-    libelle = forms.CharField(label="Description de la compétence", max_length=300,
-                             widget=forms.Textarea(attrs={"rows": 2}))
+class ClassementCompetenceForm(forms.Form):
     niveau = forms.ChoiceField(label="Section", choices=[("PS", "Petite section"),
                               ("MS", "Moyenne section"), ("GS", "Grande section")])
     domaine = forms.TypedChoiceField(label="Domaine", coerce=int)
+    sous_domaine = forms.TypedChoiceField(label="Sous-domaine", coerce=int, required=False, empty_value=None)
 
-    def __init__(self, *args, domaines, **kwargs):
+    def __init__(self, *args, domaines, sous_domaines=(), conserver_domaine=False, **kwargs):
         super().__init__(*args, **kwargs)
+        domaines = list(domaines)
+        self.sous_domaines = {s["id"]: s for s in sous_domaines}
         self.fields["domaine"].choices = [(d["id"], d["nom"]) for d in domaines]
+        if conserver_domaine:
+            self.fields["domaine"].required = False
+            self.fields["domaine"].empty_value = None
+            self.fields["domaine"].choices = [("", "Conserver le domaine et le sous-domaine actuels"),
+                                              *self.fields["domaine"].choices]
+        self.fields["sous_domaine"].choices = [("", "Sans sous-domaine")] + [
+            (d["nom"], [(s["id"], s["nom"]) for s in self.sous_domaines.values() if s["domaine_id"] == d["id"]])
+            for d in domaines
+        ]
+
+    def clean(self):
+        donnees = super().clean()
+        sous = self.sous_domaines.get(donnees.get("sous_domaine"))
+        if sous and sous["domaine_id"] != donnees.get("domaine"):
+            self.add_error("sous_domaine", "Ce sous-domaine appartient à un autre domaine.")
+        return donnees
+
+
+class AjoutCompetenceForm(ClassementCompetenceForm):
+    libelle = forms.CharField(label="Description de la compétence", max_length=300,
+                             widget=forms.Textarea(attrs={"rows": 2}))
+    field_order = ["libelle", "niveau", "domaine", "sous_domaine"]
 
 
 class CorrespondanceCompetenceForm(forms.Form):

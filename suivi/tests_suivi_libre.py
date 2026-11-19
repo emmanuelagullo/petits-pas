@@ -461,6 +461,41 @@ class ClassementLibre(Base):
         self.assertContains(page, "Je classe des formes fictives")
         self.assertFalse(CompetenceLocale.objects.exists())
 
+    def test_ajout_ordinaire_classe_dans_le_sous_domaine(self):
+        self.page()
+        sous = self.adoption.contenu["sous_domaines"][0]
+        url = reverse("ajouts_classe", args=[self.classe.pk])
+        choix = self.client.get(url).context["jeton"]
+        page = self.client.post(url, {"action": "creer", "jeton": choix,
+            "libelle": "Je décris un objet fictif", "niveau": "MS",
+            "domaine": sous["domaine_id"], "sous_domaine": sous["id"]})
+        self.assertEqual(page.status_code, 302)
+        competence = CompetenceLocale.objects.get().competence
+        self.assertTrue(competence.domaine.nom.startswith("Ajouts — "))
+        self.assertEqual(competence.sous_domaine.nom, sous["nom"])
+        self.assertEqual(competence.sous_domaine.domaine_id, competence.domaine_id)
+        catalogue = self.client.get(reverse("catalogue_competences", args=[self.classe.pk]),
+                                    {"q": competence.libelle})
+        self.assertContains(catalogue, sous["nom"])
+        self.assertContains(catalogue, competence.libelle)
+
+        ancien_domaine, ancien_sous_domaine = competence.domaine_id, competence.sous_domaine_id
+        autre_domaine = next(d["id"] for d in self.adoption.contenu["domaines"]
+                             if d["id"] != sous["domaine_id"])
+        detail = reverse("ajout_classe", args=[self.classe.pk, competence.origine_locale.pk])
+        jeton = self.client.get(detail).context["jeton"]
+        page = self.client.post(detail, {"action": "classement", "jeton": jeton,
+            "niveau": "GS", "domaine": autre_domaine, "sous_domaine": ""})
+        self.assertEqual(page.status_code, 302)
+        competence.refresh_from_db()
+        self.assertNotEqual(competence.domaine_id, ancien_domaine)
+        self.assertIsNone(competence.sous_domaine_id)
+        from .exports_classe import selection_classe
+        from .models import Domaine, SousDomaine
+        selection, _ = selection_classe(self.classe, self.enseignant)
+        self.assertTrue(Domaine.objects.filter(selection[Domaine], pk=ancien_domaine).exists())
+        self.assertTrue(SousDomaine.objects.filter(selection[SousDomaine], pk=ancien_sous_domaine).exists())
+
     def test_post_sans_js_sous_domaine_et_domaine_sans_sous_domaine(self):
         sous = self.adoption.contenu["sous_domaines"][-1]
         url = reverse("ajouter_reussite", args=[self.classe.pk])
@@ -469,7 +504,11 @@ class ClassementLibre(Base):
         self.assertEqual(CompetenceLocale.objects.get().competence.sous_domaine_id, sous["id"])
         parents = {s["domaine_id"] for s in self.adoption.contenu["sous_domaines"]}
         domaine = next(d["id"] for d in self.adoption.contenu["domaines"] if d["id"] not in parents)
-        page = self.client.post(url, self.donnees(domaine=domaine))
+        autre = self.donnees(domaine=domaine)
+        page = self.client.post(url, autre)
+        self.assertContains(page, "Une compétence porte déjà ce libellé")
+        self.assertEqual(CompetenceLocale.objects.count(), 1)
+        page = self.client.post(url, {**autre, "confirmer_doublon": "1"})
         self.assertEqual(page.status_code, 302)
         self.assertTrue(CompetenceLocale.objects.order_by("pk").last().competence.sous_domaine_id is None)
         self.assertFalse(Observation.objects.exists())
