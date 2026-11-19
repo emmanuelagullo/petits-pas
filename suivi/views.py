@@ -153,7 +153,6 @@ from .presentation import (affichage_avec_photos, credit_illustration, CREDITS_I
                            illustration_effective, reglages_du_perimetre, formulations_effectives)
 from .correspondances_referentiels import correspondances_classe
 from .referentiels import arbre_competences as _arbre, adoption_courante, observations_annee, competence_classe, observations_classe, projeter_etat_classe, classe_historique, competence_saisissable
-from .statistiques import repartition_competences
 from .services.equipe import (
     accepter_invitation,
     activer_classe,
@@ -1102,7 +1101,8 @@ def saisie_eleve(request, pk):
         etats = {o.competence_id: projeter_etat_classe(o)
                  for o in observations_classe(courante.classe).filter(eleve=eleve, competence_id__in=visibles)}
     classe = courante.classe if courante else None
-    for d in _arbre(ecole, niveaux, classe=classe, eleve=eleve):
+    from .rubriques import rubriques_saisissables
+    for d in rubriques_saisissables(_arbre(ecole, niveaux, classe=classe, eleve=eleve), classe):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         domaines.append((d, lignes))
 
@@ -1163,7 +1163,8 @@ def saisie_competence(request, pk, competence_pk):
     ariane = chemin_collectif(classe, filtre, competence)
     retour = retour_competences(request, classe)
     if retour:
-        ariane[-1] = (ariane[-1][0], retour)
+        libelle_retour = "Catalogue de compétences" if retour.split("?", 1)[0] == reverse("catalogue_competences", args=[classe.pk]) else ariane[-1][0]
+        ariane[-1] = (libelle_retour, retour)
     return render(
         request,
         "suivi/saisie_competence.html",

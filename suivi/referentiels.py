@@ -26,6 +26,8 @@ def contenu_adoption(adoption):
     selection = {c["id"] for c in contenu.get("competences", [])} if adoption.selection_manuelle else ()
     contenu = contenu_avec_ajouts(contenu, adoption.classe)
     contenu = contenu_avec_emprunts(contenu, adoption.classe)
+    from .rubriques import personnaliser_rubriques
+    contenu = personnaliser_rubriques(contenu, adoption.classe)
     return contenu_adapte(adoption.classe.ecole, adoption.classe.annee_scolaire,
                           contenu, adoption.classe, selection_manuelle=selection)
 

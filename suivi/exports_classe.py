@@ -87,9 +87,12 @@ def selection_classe(classe, utilisateur):
     locales = m.CompetenceLocale.objects.filter(ecole_id=classe.ecole_id, competence_id__in=competences)
     # Après un reclassement, les définitions d’origine et les instantanés
     # clôturés peuvent encore référencer l’ancien domaine ou sous-domaine.
-    domaines_historiques, sous_domaines_historiques = set(), set()
+    rubriques = m.RubriqueClasse.objects.filter(classe=classe)
+    domaines_historiques = set(rubriques.values_list("domaine_id", flat=True))
+    sous_domaines_historiques = set(rubriques.exclude(sous_domaine__isnull=True).values_list("sous_domaine_id", flat=True))
     contenus = list(locales.values_list("definition", flat=True))
     contenus.extend(emprunts.values_list("ajout", flat=True))
+    contenus.extend(adoptions.values_list("contenu", flat=True))
     contenus.extend(final.get("contenu", {}) for final in adoptions.values_list("etat_final", flat=True))
     for contenu in contenus:
         domaines_historiques.update(d["id"] for d in contenu.get("domaines", []))
@@ -122,6 +125,7 @@ def selection_classe(classe, utilisateur):
         m.ReferentielAnnuel: Q(pk__in=annuels.values("pk")),
         m.AdoptionReferentiel: Q(classe=classe), m.UsageCompetence: Q(adoption__classe=classe),
         m.EtatAnnuelObservation: Q(observation_id__in=etats, annee_scolaire=classe.annee_scolaire),
+        m.RubriqueClasse: Q(classe=classe),
         m.AdaptationCompetence: perimetre & Q(ecole_id=classe.ecole_id, annee_scolaire=classe.annee_scolaire, competence_id__in=competences),
         m.EleveCompetenceSelectionnee: Q(adaptation__classe=classe, scolarite__classe=classe, scolarite__eleve_id__in=eleves),
         m.EleveApprentissage: Q(scolarite__classe=classe, disponibilite__classe=classe),

@@ -1,8 +1,12 @@
 <li>
   {% include "suivi/partiels/ligne_catalogue.html" %}
+  {% if ligne.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
   {% if afficher_classement %}<small> · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>{% endif %}
-  {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.modifier %}
+  {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.modifier or ligne.competence.active %}
   <div class="actions">
+    {% if ligne.competence.active and not ligne.disponible %}
+    <a class="bouton" href="{{ ligne.url }}" aria-label="Ouvrir le suivi · {{ ligne.competence.libelle }}">Ouvrir le suivi</a>
+    {% endif %}
     {% if ligne.choix_portee %}
     <a class="bouton discret" href="{{ ligne.choix_portee }}">{% if ligne.competence.active and not ligne.disponible %}Modifier le suivi{% else %}Ajouter au suivi{% endif %}</a>
     {% elif ligne.ajout_au_suivi %}

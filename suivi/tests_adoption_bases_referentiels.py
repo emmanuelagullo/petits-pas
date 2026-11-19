@@ -41,6 +41,60 @@ class AdoptionBases(Base):
             revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
             garde_attendue=apercu["garde"]["empreinte"])
 
+    def test_saisie_collective_cree_seulement_sans_correspondance(self):
+        self.adopter()
+        url = reverse("choisir_competence", args=[self.classe.pk])
+        page = self.client.get(url, {"q": "parlé", "niveau": "GS", "fragment": 1})
+        self.assertEqual(page.headers["X-Petits-Pas-Catalogue"], "1")
+        self.assertContains(page, "Des compétences correspondent en dehors des filtres actuels.")
+        self.assertFalse(page.context["creer_en_priorite"])
+        page = self.client.get(url, {"q": "zqjx inventée"})
+        self.assertContains(page, "Créer « zqjx inventée »")
+        self.assertNotContains(page, "Configurer le référentiel de la classe")
+        creation = self.client.get(page.context["url_creation_ciblee"])
+        self.assertEqual(creation.context["form"].initial["libelle"], "zqjx inventée")
+        self.assertContains(creation, f"{url}?q=")
+        page = self.client.get(url, {"q": "parlé"})
+        self.assertContains(page, "Ouvrir le suivi")
+        detail = self.client.get(page.context["lignes"][0]["url"])
+        self.assertEqual(detail.context["ariane"][-1][1], page.context["url_resultats"])
+
+    def test_rubriques_classe_activation_masquage_et_cloture(self):
+        from .exports_classe import selection_classe
+        from .models import Domaine, RubriqueClasse, SousDomaine
+        from .referentiels import contenu_adoption
+        from .services.ajouts_referentiels import creer_ajout
+        adoption = self.adopter()
+        url = reverse("gerer_rubriques", args=[self.classe.pk])
+        base = {"adoption_id": adoption.pk, "ordre": 2}
+        self.assertRedirects(self.client.post(url, {**base, "genre": "domaine", "nom": "Projets"}), url)
+        domaine = Domaine.objects.get(nom="Projets")
+        self.assertRedirects(self.client.post(url, {**base, "genre": "sous_domaine", "domaine_id": domaine.pk,
+            "nom": "Jardin"}), url)
+        sous = SousDomaine.objects.get(domaine=domaine)
+        self.assertTrue(RubriqueClasse.objects.filter(classe=self.classe, sous_domaine=sous, creee=True).exists())
+        ajout = creer_ajout(utilisateur=self.enseignant, ecole=self.ecole, annee=self.classe.annee_scolaire,
+            classe=self.classe, adoption_attendue=adoption.pk, domaine_id=domaine.pk, sous_domaine_id=sous.pk,
+            libelle="Je plante une graine", niveau="PS")
+        self.assertEqual(ajout.competence.sous_domaine_id, sous.pk)
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=ajout.competence, statut="reussi")
+        self.assertRedirects(self.client.post(url, {**base, "genre": "domaine", "rubrique_id": domaine.pk,
+            "nom": "Projets collectifs", "ordre": 1, "masquee": "on"}), url)
+        collectif = reverse("choisir_competence", args=[self.classe.pk])
+        self.assertNotContains(self.client.get(collectif), "Je plante une graine")
+        self.assertContains(self.client.get(collectif, {"inclure_masquees": 1}), "Je plante une graine")
+        self.assertTrue(Observation.objects.filter(competence=ajout.competence, statut="reussi").exists())
+        self.assertEqual(next(d["nom"] for d in contenu_adoption(adoption)["domaines"] if d["id"] == domaine.pk),
+                         "Projets collectifs")
+        self.assertEqual(Domaine.objects.get(pk=domaine.pk).nom, "Projets")
+        selection, _ = selection_classe(self.classe, self.enseignant)
+        self.assertEqual(RubriqueClasse.objects.filter(selection[RubriqueClasse]).count(), 2)
+        self.assertTrue(SousDomaine.objects.filter(selection[SousDomaine], pk=sous.pk).exists())
+        with TemporaryDirectory() as media, override_settings(MEDIA_ROOT=media):
+            finale = clore(utilisateur=self.enseignant, classe=self.classe)
+        self.assertTrue(any(d["nom"] == "Projets collectifs" for d in finale.etat_final["contenu"]["domaines"]))
+        self.assertEqual(self.client.post(url, {**base, "genre": "domaine", "nom": "Trop tard"}).status_code, 400)
+
     def test_recherche_dynamique_reutilise_les_resultats_et_le_contexte(self):
         adoption = self.adopter()
         domaine = adoption.contenu["domaines"][0]

@@ -8,8 +8,8 @@ from django.db.models import Q
 from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise
 from suivi.models import (AdoptionReferentiel, Classe, Competence, CompetenceLocale,
-                         DisponibiliteCompetenceLocale, Domaine, Ecole, SousDomaine)
-from suivi.referentiels import contenu_origine
+                         DisponibiliteCompetenceLocale, Domaine, Ecole, RubriqueClasse, SousDomaine)
+from suivi.rubriques import contenu_classement
 from suivi.adaptations_referentiels import contenus_ecole
 from .choix_bases_referentiels import verifier_annee
 
@@ -49,7 +49,7 @@ def definition_sous_domaine(sous):
             "domaine_id": sous.domaine_id, "ordre": sous.ordre}
 
 
-def classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre):
+def classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre, classe=None):
     domaine = next((d for c in contenus for d in c.get("domaines", []) if d["id"] == domaine_id), None)
     if domaine is None:
         raise ValidationError("Choisissez un domaine de la base consultée.")
@@ -57,7 +57,10 @@ def classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre):
                  if s["id"] == sous_domaine_id and s["domaine_id"] == domaine_id), None)
     if sous_domaine_id is not None and sous is None:
         raise ValidationError("Choisissez un sous-domaine de ce domaine.")
-    if suivi_libre:
+    personnalise = classe and RubriqueClasse.objects.filter(classe=classe, creee=True).filter(
+        Q(domaine_id=domaine_id, sous_domaine__isnull=True) | Q(sous_domaine_id=sous_domaine_id, sous_domaine__isnull=False)
+    ).exists()
+    if suivi_libre or personnalise or domaine["code"].startswith("ajout-"):
         groupe = Domaine.objects.get(pk=domaine_id, ecole=ecole)
         return groupe, SousDomaine.objects.get(pk=sous["id"], domaine=groupe) if sous else None
     # Les ajouts au référentiel gardent leur groupe lors d'un changement de base.
@@ -99,9 +102,9 @@ def corriger_classement(*, utilisateur, locale, annee, classe, adoption_attendue
     if niveau not in ("PS", "MS", "GS"):
         raise ValidationError("Choisissez une section.")
     if domaine_id is not None:
-        contenus = [contenu_origine(adoption)] if adoption else [c for _, c in contenus_ecole(locale.ecole, annee)]
+        contenus = [contenu_classement(adoption)] if adoption else [c for _, c in contenus_ecole(locale.ecole, annee)]
         competence.domaine, competence.sous_domaine = classement_local(
-            locale.ecole, contenus, domaine_id, sous_domaine_id, locale.suivi_libre)
+            locale.ecole, contenus, domaine_id, sous_domaine_id, locale.suivi_libre, classe)
     elif sous_domaine_id is not None:
         raise ValidationError("Choisissez d’abord le domaine du sous-domaine.")
     competence.niveau = niveau
@@ -119,14 +122,14 @@ def etat_classement(competence, utilisations):
 @transaction.atomic
 def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None):
     adoption = _verrouiller(utilisateur, ecole, annee, classe, adoption_attendue)
-    contenus = [contenu_origine(adoption)] if classe else [c for _, c in contenus_ecole(ecole, annee)]
+    contenus = [contenu_classement(adoption)] if classe else [c for _, c in contenus_ecole(ecole, annee)]
     if not isinstance(libelle, str) or not libelle.strip() or len(libelle.strip()) > 300:
         raise ValidationError("Précisez un libellé de 1 à 300 caractères.")
     if niveau not in ("PS", "MS", "GS"):
         raise ValidationError("Choisissez une section.")
     if suivi_libre and classe is None:
         raise PermissionDenied
-    groupe, sous = classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre)
+    groupe, sous = classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre, classe)
     competence = Competence(domaine=groupe, sous_domaine=sous, code="local-" + uuid4().hex[:24],
                             libelle=libelle.strip(), niveau=niveau)
     competence.full_clean()

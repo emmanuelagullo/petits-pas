@@ -1,0 +1,14 @@
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <input type="hidden" name="adoption_id" value="{{ adoption.pk }}">
+  <input type="hidden" name="genre" value="{{ genre }}">
+  <input type="hidden" name="domaine_id" value="{{ parent.id }}">
+  <input type="hidden" name="rubrique_id" value="{{ rubrique.id }}">
+  <label>Nom <input name="nom" value="{{ rubrique.nom }}" maxlength="200" required></label>
+  <label>Position <input type="number" name="ordre" value="{{ rubrique.ordre|default_if_none:0 }}" min="0" max="32767" required></label>
+  {% if rubrique %}
+  <p>{{ rubrique.nombre }} compétence{{ rubrique.nombre|pluralize }} concernée{{ rubrique.nombre|pluralize }}</p>
+  <label><input type="checkbox" name="masquee"{% if rubrique.masquee %} checked{% endif %}> Masquer pour la saisie</label>
+  {% endif %}
+  <button class="bouton" type="submit">Enregistrer</button>
+</form>

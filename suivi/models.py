@@ -1269,3 +1269,31 @@ class EleveApprentissage(models.Model):
                     or d.classe.ecole_id != d.locale.ecole_id
                     or d.locale.ecole_id != self.scolarite.eleve.ecole_id):
                 raise ValidationError("Le suivi doit concerner un élève de la classe et de l’année de cet apprentissage libre.")
+
+
+class RubriqueClasse(models.Model):
+    """Personnalisation d'un domaine ou d'un sous-domaine pour une classe."""
+
+    classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
+    domaine = models.ForeignKey(Domaine, on_delete=models.PROTECT)
+    sous_domaine = models.ForeignKey(SousDomaine, on_delete=models.PROTECT, null=True, blank=True)
+    nom = models.CharField(max_length=200)
+    ordre = models.PositiveSmallIntegerField(default=0)
+    masquee = models.BooleanField(default=False)
+    creee = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["classe", "domaine"], condition=Q(sous_domaine__isnull=True),
+                                    name="rubrique_classe_domaine_unique"),
+            models.UniqueConstraint(fields=["classe", "sous_domaine"], condition=Q(sous_domaine__isnull=False),
+                                    name="rubrique_classe_sous_domaine_unique"),
+        ]
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        if self.classe_id and self.domaine_id and self.classe.ecole_id != self.domaine.ecole_id:
+            raise ValidationError("La rubrique doit appartenir à l’école de la classe.")
+        if self.sous_domaine_id and self.sous_domaine.domaine_id != self.domaine_id:
+            raise ValidationError("La sous-rubrique doit appartenir à la rubrique indiquée.")

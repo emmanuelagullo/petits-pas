@@ -89,6 +89,7 @@ def selections(ecole_id):
         m.EtatAnnuelObservation: Q(observation__eleve__ecole_id=ecole_id),
         m.RessourceReferentiel: Q(annuel__ecole_id=ecole_id),
         m.AdaptationCompetence: e, m.CompetenceLocale: e,
+        m.RubriqueClasse: Q(classe__ecole_id=ecole_id),
         m.DisponibiliteCompetenceLocale: Q(locale__ecole_id=ecole_id),
         m.EleveCompetenceSelectionnee: Q(adaptation__ecole_id=ecole_id),
         m.EleveApprentissage: Q(disponibilite__locale__ecole_id=ecole_id),
