@@ -4,6 +4,7 @@
 {% block contenu %}
 <div class="page-referentiel">
 {% ariane_classe "Référentiel de la classe" classe %}
+{% if actuelle %}<p><a class="bouton discret" href="{% url 'gerer_rubriques' classe.pk %}">Gérer les rubriques</a></p>{% endif %}
 <h1>Compétences de {{ classe.libelle_avec_annee }}</h1>
 <p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des compétences sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
 <p><a href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels sans modifier les choix →</a></p>

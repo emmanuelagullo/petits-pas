@@ -1,0 +1,37 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Gérer les rubriques{% endblock %}
+{% block contenu %}
+{% include "suivi/partiels/ariane.html" with page="Gérer les rubriques" %}
+<h1>Gérer les rubriques</h1>
+{% if erreur %}<p role="alert">{{ erreur }}</p>{% endif %}
+{% if formulaire.errors %}{{ formulaire.errors }}{% endif %}
+{% if ouvert %}
+<p>Les positions les plus petites s’affichent en premier. Masquer une rubrique retire ses compétences de la navigation de saisie. Les observations restent dans les carnets.</p>
+<details class="encadre"><summary>Ajouter une rubrique</summary>
+{% include "suivi/partiels/form_rubrique.html" with genre="domaine" rubrique=None parent=None %}
+</details>
+{% endif %}
+{% for domaine in domaines %}
+<section class="domaine">
+<h2>{{ domaine.nom }}{% if domaine.masquee %} <small>Masquée</small>{% endif %}</h2>
+{% if ouvert %}
+<details><summary>Modifier la rubrique</summary>
+{% include "suivi/partiels/form_rubrique.html" with genre="domaine" rubrique=domaine parent=None %}
+</details>
+{% endif %}
+{% for sous in domaine.groupes %}
+<h3>{{ sous.nom }}{% if sous.masquee or domaine.masquee %} <small>Masquée</small>{% endif %}</h3>
+{% if ouvert %}
+<details><summary>Modifier la sous-rubrique</summary>
+{% include "suivi/partiels/form_rubrique.html" with genre="sous_domaine" rubrique=sous parent=domaine %}
+</details>
+{% endif %}
+{% endfor %}
+{% if ouvert %}
+<details><summary>Ajouter une sous-rubrique</summary>
+{% include "suivi/partiels/form_rubrique.html" with genre="sous_domaine" rubrique=None parent=domaine %}
+</details>
+{% endif %}
+</section>
+{% endfor %}
+{% endblock %}

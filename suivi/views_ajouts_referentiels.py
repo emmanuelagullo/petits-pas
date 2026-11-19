@@ -16,7 +16,8 @@ from .models import AdaptationCompetence, CompetenceLocale, annee_scolaire_pour
 from .navigation import filtre_competences, lien, retour_catalogue_ajout
 from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
-from .referentiels import adoption_courante, contenu_origine
+from .rubriques import contenu_classement
+from .referentiels import adoption_courante
 from .services.ajouts_referentiels import (
     catalogue_reprises, corriger_classement, creer_ajout, etat_classement,
     peut_corriger_classement, proposer_ajout, reprendre_ajout, utilisations_classement,
@@ -41,7 +42,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         return render(request, "suivi/ajouts_referentiels.html", {"erreur": " ".join(cause.messages)}, status=400)
     adoption = adoption_courante(classe)
     ouvert = not classe or bool(adoption and not adoption.clos)
-    contenus = [contenu_origine(adoption)] if adoption else ([] if classe else [c for _, c in contenus_ecole(ecole, annee)])
+    contenus = [contenu_classement(adoption)] if adoption else ([] if classe else [c for _, c in contenus_ecole(ecole, annee)])
     domaines = {d["id"]: d for c in contenus for d in c.get("domaines", [])}
     sous_domaines = {d["id"]: d for c in contenus for d in c.get("sous_domaines", [])}
     choix_classement = {"domaines": domaines.values(), "sous_domaines": sous_domaines.values()}

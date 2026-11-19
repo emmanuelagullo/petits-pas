@@ -8,7 +8,8 @@ from .catalogue_competences import doublons_classe
 from .models import CompetenceLocale
 from .navigation import filtre_competences, lien, retour_catalogue_ajout
 from .forms_suivi_libre import ReussiteLibreForm, SelectionElevesForm
-from .referentiels import adoption_courante, contenu_origine, classe_historique
+from .rubriques import contenu_classement
+from .referentiels import adoption_courante, classe_historique
 from .services.suivi_libre import ajouter_reussite, associer
 from .services.medias_django import preparer_image
 from .views import acces_requis
@@ -54,7 +55,7 @@ def suivi_libre(request, pk, locale_pk=None):
     initial["jeton"] = signing.dumps(attendu, salt="suivi-libre")
     options = dict(classe=classe, initial=initial)
     if not locale:
-        options["contenu"] = contenu_origine(adoption)
+        options["contenu"] = contenu_classement(adoption)
     form = (SelectionElevesForm if locale else ReussiteLibreForm)(
         request.POST if request.method == "POST" else None, request.FILES or None, **options)
     doublons = []
@@ -81,7 +82,8 @@ def suivi_libre(request, pk, locale_pk=None):
             messages.success(request, "Compétence ajoutée au suivi des élèves sélectionnés.")
             if eleve:
                 return redirect(lien("saisie_eleve", eleve.pk, filtre=filtre))
-            return redirect(lien("saisie_competence", classe.pk, resultat.competence_id, filtre=filtre))
+            return redirect(lien("saisie_competence", classe.pk, resultat.competence_id, filtre=filtre,
+                                 **({"retour": retour_catalogue} if retour_catalogue else {})))
         except (signing.BadSignature, ValidationError) as exc:
             form.add_error(None, "Le formulaire a expiré. Consultez à nouveau cette page." if isinstance(exc, signing.BadSignature) else exc)
     reprises = CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True).select_related("competence")

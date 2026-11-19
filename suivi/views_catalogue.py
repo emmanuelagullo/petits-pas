@@ -15,6 +15,7 @@ from .forms_suivi_libre import PorteeCatalogueForm
 from .models import AdaptationCompetence, Competence
 from .navigation import chemin_classe, lien
 from .referentiels import adoption_courante, contenu_adoption, contenu_origine
+from .rubriques import contenu_classement, rubriques_masquees, rubriques_saisissables
 from .services.adaptations_referentiels import ajouter_au_suivi
 from .services.ajouts_referentiels import catalogue_reprises, reprendre_ajout
 from .services.sources_catalogue import ajouter_depuis_source, competence_id_source, lignes_source, sources_catalogue
@@ -23,7 +24,7 @@ from .suivi_libre import est_libre
 from .views import acces_requis
 
 
-FILTRES = ("source", "q", "niveau", "domaine", "sous_domaine", "portee", "ajouter", "depuis_saisie")
+FILTRES = ("source", "q", "niveau", "domaine", "sous_domaine", "portee", "ajouter", "depuis_saisie", "inclure_masquees")
 CONTEXTE = ("classement", "groupe", "eleve", "collectif")
 
 
@@ -162,7 +163,7 @@ def catalogue(request, pk, saisie_collective=False):
     ajouter = (gerer or cibler) and (saisie_collective or request.GET.get("ajouter") == "1")
     eleve = eleve_contextuel(request, classe) if ajouter else None
     collectif = saisie_collective or (ajouter and request.GET.get("collectif") == "1")
-    contenu = contenu_origine(adoption) if adoption else {}
+    contenu = contenu_classement(adoption) if adoption else {}
     classement = next((d for d in contenu.get("domaines", [])
                        if str(d["id"]) == request.GET.get("classement")), {})
     groupe = next((g for g in contenu.get("sous_domaines", [])
@@ -179,7 +180,14 @@ def catalogue(request, pk, saisie_collective=False):
     if source and source not in sources:
         raise PermissionDenied
     lignes = catalogue_classe(classe, request.user)
+    domaines_masques, groupes_masques = rubriques_masquees(classe)
+    inclure_masquees = request.GET.get("inclure_masquees") == "1"
     correspondances = bool(q and recherche_catalogue(lignes, q))
+    for ligne in lignes:
+        competence = ligne["competence"]
+        ligne["rubrique_masquee"] = competence.domaine_id in domaines_masques or competence.sous_domaine_id in groupes_masques
+    if not inclure_masquees:
+        lignes = [ligne for ligne in lignes if not ligne["rubrique_masquee"]]
     autres_sources = []
     if q and not correspondances:
         for identifiant, (nom, version, autre) in sources.items():
@@ -255,18 +263,21 @@ def catalogue(request, pk, saisie_collective=False):
         commun = {cle: valeur for cle, valeur in parametres.items()
                   if cle not in ("niveau", "domaine", "sous_domaine", "portee", "source")}
         commun.update(niveau="", domaine="", sous_domaine="")
+        if domaines_masques or groupes_masques:
+            commun["inclure_masquees"] = 1
         recherches_elargies = [(nom, lien(route, classe.pk, **commun, source=identifiant))
                               for identifiant, nom in autres_sources]
         recherches_elargies.insert(0, ("Catalogue de la classe", lien(route, classe.pk, **commun)))
         if source and source not in dict(autres_sources):
             recherches_elargies.append((sources[source][0], lien(route, classe.pk, **commun, source=source)))
     domaines_suivi = []
-    vue_suivi = saisie_collective and not (q or source or domaine or sous_domaine or portee)
+    vue_suivi = saisie_collective and not (q or source or domaine or sous_domaine or portee or inclure_masquees)
     effectif = 0
     if vue_suivi:
         from .referentiels import arbre_competences
-        from .views import repartition_competences
-        domaines_suivi = [(d, d.visibles) for d in arbre_competences(classe.ecole, [niveau] if niveau else None, classe=classe)]
+        from .statistiques import repartition_competences
+        arbre = arbre_competences(classe.ecole, [niveau] if niveau else None, classe=classe)
+        domaines_suivi = [(d, d.visibles) for d in rubriques_saisissables(arbre, classe)]
         effectif = repartition_competences(classe, [c for _, cs in domaines_suivi for c in cs])
     # Le sous-domaine d'origine sert à la création, même après consultation d'une autre source.
     creation = {"libelle": q, "origine": "catalogue",
@@ -284,6 +295,7 @@ def catalogue(request, pk, saisie_collective=False):
             if sous:
                 creation["sous_domaine"] = sous["id"]
     contexte = {
+        "inclure_masquees": inclure_masquees, "rubriques_masquees": bool(domaines_masques or groupes_masques),
         "saisie_collective": saisie_collective, "vue_suivi": vue_suivi, "domaines_suivi": domaines_suivi,
         "effectif": effectif, "filtre": niveau or "tous", "responsable": cibler,
         "creer_en_priorite": bool(q and not correspondances), "recherches_elargies": recherches_elargies,
@@ -301,7 +313,7 @@ def catalogue(request, pk, saisie_collective=False):
         "contexte_ajout": {cle: parametres[cle] for cle in CONTEXTE if cle in parametres},
         "eleve": eleve, "collectif": collectif,
         "url_catalogue": reverse(route, args=[classe.pk]),
-        "url_resultats": lien("catalogue_competences", classe.pk, **parametres),
+        "url_resultats": url_resultats,
     }
     if request.GET.get("fragment") == "1":
         response = render(request, "suivi/partiels/catalogue_resultats.html", contexte)
