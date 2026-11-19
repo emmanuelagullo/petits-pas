@@ -171,6 +171,7 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
     from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
     from .forms_referentiels import AdaptationCompetenceForm
     from .models import AdaptationCompetence, AdoptionReferentiel, Competence, annee_scolaire_pour
+    from .navigation import chemin_retour_competences, retour_competences
     from .referentiels import arbre_version, contenu_adoption, contenu_origine
     from .services.adaptations_referentiels import enregistrer_adaptation
     from .services.choix_bases_referentiels import verifier_annee
@@ -222,6 +223,9 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
     suffixe = f"?annee={annee}&version={version_id}"
     contexte = {"classe": classe, "annee": annee, "bases": [v for v, _ in bases], "version": version,
                 "clos": clos, "hors_base": hors_base, "index_url": index_url + suffixe}
+    retour_catalogue = retour_competences(request, classe) if classe and competence_pk else ""
+    if retour_catalogue:
+        contexte.update(retour_catalogue=retour_catalogue, ariane=chemin_retour_competences(classe, retour_catalogue))
     if not competence_pk:
         if request.method == "POST":
             raise Http404
@@ -272,7 +276,7 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
                 visible=form.cleaned_data["visible"],
                 revision_attendue=signe["revision"], adoption_attendue=signe["adoption"])
             messages.success(request, "Les choix de cette compétence sont enregistrés pour l'année. Son identité et ses observations sont conservées.")
-            return redirect(request.path + suffixe)
+            return redirect(retour_catalogue or request.path + suffixe)
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     contexte.update(competence=competence, origine=definition, courante=courante, proposee=proposee,

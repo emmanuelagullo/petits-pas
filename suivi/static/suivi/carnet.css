@@ -1048,3 +1048,8 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
   gap: .75rem;
 }
 .soumission-catalogue:not(:has(a, button:not([hidden]))) { display: none; }
+
+
+.menu-competence-catalogue { float: inline-end; margin-inline-start: .5rem; }
+.menu-competence-catalogue[open] { float: none; }
+.menu-competence-catalogue summary { min-width: 2.75rem; text-align: center; }

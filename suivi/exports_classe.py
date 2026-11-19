@@ -90,6 +90,11 @@ def selection_classe(classe, utilisateur):
     rubriques = m.RubriqueClasse.objects.filter(classe=classe)
     domaines_historiques = set(rubriques.values_list("domaine_id", flat=True))
     sous_domaines_historiques = set(rubriques.exclude(sous_domaine__isnull=True).values_list("sous_domaine_id", flat=True))
+    destinations = m.AdaptationCompetence.objects.filter(classe=classe, domaine_destination__isnull=False,
+        competence_id__in=competences)
+    domaines_historiques.update(destinations.values_list("domaine_destination_id", flat=True))
+    sous_domaines_historiques.update(destinations.exclude(sous_domaine_destination__isnull=True)
+                                    .values_list("sous_domaine_destination_id", flat=True))
     contenus = list(locales.values_list("definition", flat=True))
     contenus.extend(emprunts.values_list("ajout", flat=True))
     contenus.extend(adoptions.values_list("contenu", flat=True))

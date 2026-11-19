@@ -76,7 +76,7 @@
 
   form.elements.q.addEventListener('input', rechercher);
   form.addEventListener('change', evenement => {
-    if (evenement.target instanceof HTMLSelectElement || evenement.target.name === "inclure_masquees") rechercher(evenement);
+    if (evenement.target instanceof HTMLSelectElement || ["inclure_masquees", "inclure_competences_masquees"].includes(evenement.target.name)) rechercher(evenement);
   });
   form.addEventListener('submit', evenement => {
     if (soumettre.hidden) {

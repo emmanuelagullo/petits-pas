@@ -1,0 +1,19 @@
+{% if ligne.deplacement %}
+<details class="menu-competence-catalogue">
+  <summary class="bouton discret" aria-label="Actions pour {{ ligne.competence.libelle }}">⋯</summary>
+  <div class="actions">
+    <a href="{{ ligne.deplacement }}">Déplacer…</a>
+    {% if ligne.modifier %}<a href="{{ ligne.modifier }}">Modifier le libellé</a>{% endif %}
+    {% if ligne.visibilite %}
+    <form method="post" action="{{ url_resultats }}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="visibilite_catalogue">
+      <input type="hidden" name="competence" value="{{ ligne.competence.pk }}">
+      <input type="hidden" name="adoption" value="{{ adoption.pk }}">
+      <input type="hidden" name="revision" value="{{ ligne.revision_gestion }}">
+      <button class="bouton discret" name="visibilite" value="{{ ligne.visibilite }}">{% if ligne.visibilite == "masquer" %}Masquer{% else %}Réafficher{% endif %}</button>
+    </form>
+    {% endif %}
+  </div>
+</details>
+{% endif %}

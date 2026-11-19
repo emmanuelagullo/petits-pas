@@ -6,13 +6,14 @@ from suivi.audit import instantane, journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise
 from suivi.models import AdaptationCompetence, AdoptionReferentiel, Classe, Competence, Ecole
 from suivi.adaptations_referentiels import contenu_avec_emprunts, contenus_ecole
-from suivi.referentiels import contenu_origine
+from suivi.referentiels import contenu_adoption, contenu_origine
+from suivi.rubriques import contenu_classement
 from .choix_bases_referentiels import verifier_annee
 
 
 @transaction.atomic
 def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, visible,
-                           revision_attendue, classe=None, adoption_attendue=None):
+                           revision_attendue, classe=None, adoption_attendue=None, destination=None, depuis_catalogue=False):
     verifier_annee(annee)
     from suivi.suivi_libre import est_libre
     from suivi.autorisations import MODIFIER_ETAT
@@ -41,6 +42,8 @@ def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, vi
             raise ValidationError("Choisissez une base pour une classe ouverte avant de l'adapter.")
         if adoption.pk != adoption_attendue:
             raise ValidationError("La base de la classe a changé. Consultez à nouveau les compétences.")
+        if depuis_catalogue and not any(c["id"] == competence.pk for c in contenu_adoption(adoption)["competences"]):
+            raise ValidationError("Cette compétence ne figure plus dans le catalogue de la classe.")
         contenus = [contenu_avec_emprunts(contenu_origine(adoption), classe)]
         # Une compétence sortie de la base reste adaptable pour le parcours,
         # mais la montrer ne l'ajoute jamais à la base des prochaines saisies.
@@ -59,13 +62,24 @@ def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, vi
                                                         classe=classe, competence=competence)
     if regle.revision != revision_attendue:
         raise ValidationError("Ces choix ont changé. Consultez-les à nouveau avant d'enregistrer.")
-    anciennes = instantane(regle, ("libelle", "visible", "revision"))
+    champs = ("libelle", "visible", "domaine_destination_id", "sous_domaine_destination_id", "revision")
+    anciennes = instantane(regle, champs)
+    if destination is not None:
+        if not classe or not depuis_catalogue:
+            raise PermissionDenied
+        domaine, sous_domaine = destination
+        classement = contenu_classement(adoption)
+        if not any(d["id"] == domaine for d in classement["domaines"]) or (
+                sous_domaine is not None and not any(s["id"] == sous_domaine and s["domaine_id"] == domaine
+                                                      for s in classement["sous_domaines"])):
+            raise ValidationError("La rubrique de destination n’est plus disponible.")
+        regle.domaine_destination_id, regle.sous_domaine_destination_id = destination
     regle.libelle, regle.visible = libelle, visible
     regle.revision += 1
     regle.full_clean()
     regle.save()
     journaliser(utilisateur, "referentiel.competence_adaptee", regle, anciennes=anciennes,
-                nouvelles=instantane(regle, ("libelle", "visible", "revision")))
+                nouvelles=instantane(regle, champs))
     return regle
 
 

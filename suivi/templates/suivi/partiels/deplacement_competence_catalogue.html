@@ -1,0 +1,16 @@
+{% if deplacement %}
+<section id="deplacement-competence" tabindex="-1" aria-labelledby="titre-deplacement">
+  <h2 id="titre-deplacement">Déplacer « {{ deplacement.competence.libelle }} »</h2>
+  <p>Emplacement actuel · {{ deplacement.domaine }}{% if deplacement.groupe %} → {{ deplacement.groupe }}{% endif %}</p>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="jeton" value="{{ deplacement.jeton }}">
+    {{ deplacement.form.non_field_errors }}
+    {% include "suivi/partiels/classement_competence.html" with form=deplacement.form %}
+    <div class="actions">
+      <button class="bouton" type="submit">Déplacer</button>
+      <a class="bouton discret" href="{{ deplacement.retour }}">Annuler</a>
+    </div>
+  </form>
+</section>
+{% endif %}

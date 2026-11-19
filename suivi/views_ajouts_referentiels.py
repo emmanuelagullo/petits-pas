@@ -13,7 +13,7 @@ from .catalogue_competences import doublons_classe
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import AjoutCompetenceForm, AdaptationCompetenceForm, ClassementCompetenceForm
 from .models import AdaptationCompetence, CompetenceLocale, annee_scolaire_pour
-from .navigation import filtre_competences, lien, retour_catalogue_ajout
+from .navigation import chemin_retour_competences, filtre_competences, lien, retour_catalogue_ajout
 from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
 from .rubriques import contenu_classement
@@ -187,7 +187,8 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
         "direction": direction, "ouvert": ouvert, "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue, "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
+        "origine": origine, "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
+        "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
         "classement": classement, "usages_classement": usages_visibles,
         "visibilite_directe": visibilite_directe, "adaptable": adaptable, "index_url": index_url, "erreur": erreur,
         "jeton": None if perime else signing.dumps(contexte, salt="ajouts-referentiels")}, status=400 if erreur else 200)

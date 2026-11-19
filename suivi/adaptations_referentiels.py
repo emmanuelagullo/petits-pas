@@ -36,6 +36,8 @@ def contenu_adapte(ecole, annee, contenu, classe=None, *, selection_manuelle=())
     par_competence = {}
     for regle in regles:
         par_competence.setdefault(regle.competence_id, []).append(regle)
+    domaines = {d["id"] for d in resultat.get("domaines", [])}
+    groupes = {s["id"]: s["domaine_id"] for s in resultat.get("sous_domaines", [])}
     for definition in resultat.get("competences", []):
         actuelle = actuelles.get(definition["id"])
         definition["active"] = definition["active"] and bool(actuelle and actuelle.active)
@@ -43,6 +45,10 @@ def contenu_adapte(ecole, annee, contenu, classe=None, *, selection_manuelle=())
         if manuelle:
             definition["active"] = False
         for regle in par_competence.get(definition["id"], []):
+            destination = regle.domaine_destination_id
+            sous_destination = regle.sous_domaine_destination_id
+            if destination in domaines and (sous_destination is None or groupes.get(sous_destination) == destination):
+                definition.update(domaine_id=destination, sous_domaine_id=sous_destination)
             if regle.libelle is not None:
                 definition["libelle"] = regle.libelle
             if regle.visible is not None and (not manuelle or regle.classe_id is not None):

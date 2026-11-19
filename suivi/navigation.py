@@ -42,6 +42,12 @@ def chemin_classe(classe):
     return [("Les classes", accueil), (classe.libelle_avec_annee, lien("classe_detail", classe.pk))]
 
 
+def chemin_retour_competences(classe, retour):
+    libelle = ("Saisir pour toute la classe" if urlsplit(retour).path == reverse("choisir_competence", args=[classe.pk])
+              else "Catalogue de compétences")
+    return chemin_classe(classe) + [(libelle, retour)]
+
+
 def chemin_collectif(classe, filtre, competence=None):
     ancre = f"c{competence.pk}" if competence else ""
     return chemin_classe(classe) + [

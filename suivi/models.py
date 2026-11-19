@@ -1077,6 +1077,8 @@ class AdaptationCompetence(models.Model):
     # Chaque propriété laissée à None suit séparément le niveau supérieur.
     libelle = models.CharField(max_length=300, null=True, blank=True)
     visible = models.BooleanField(null=True, blank=True)
+    domaine_destination = models.ForeignKey(Domaine, on_delete=models.PROTECT, null=True, blank=True)
+    sous_domaine_destination = models.ForeignKey(SousDomaine, on_delete=models.PROTECT, null=True, blank=True)
     revision = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -1095,6 +1097,10 @@ class AdaptationCompetence(models.Model):
             raise ValidationError("La compétence doit appartenir à l'école.")
         if self.classe_id and (self.classe.ecole_id != self.ecole_id or self.classe.annee_scolaire != self.annee_scolaire):
             raise ValidationError("L'adaptation doit appartenir à l'école et à l'année de la classe.")
+        if self.domaine_destination_id and (not self.classe_id or self.domaine_destination.ecole_id != self.ecole_id):
+            raise ValidationError("La rubrique de destination doit appartenir à l’école de cette classe.")
+        if self.sous_domaine_destination_id and self.sous_domaine_destination.domaine_id != self.domaine_destination_id:
+            raise ValidationError("La sous-rubrique doit appartenir à la rubrique de destination.")
         if self.libelle is not None and not self.libelle.strip():
             raise ValidationError("Le libellé adapté ne peut pas être vide.")
 

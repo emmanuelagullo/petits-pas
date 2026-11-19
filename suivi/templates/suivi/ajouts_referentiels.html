@@ -3,7 +3,11 @@
 {% block titre %}{% if locale.suivi_libre %}Compétence suivie pour des élèves{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %} — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
+{% if retour_catalogue %}
+{% include "suivi/partiels/ariane.html" with page="Compétences ajoutées" %}
+{% else %}
 {% ariane_referentiel "Compétences ajoutées" classe annee %}
+{% endif %}
 {% if retour_suivi %}<p><a href="{{ retour_suivi }}">Revenir à la compétence</a></p>{% endif %}
 {% if retour_catalogue %}<p><a href="{{ retour_catalogue }}">Revenir au catalogue</a></p>{% endif %}
 <h1>{% if locale.suivi_libre %}Compétence suivie pour des élèves{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>

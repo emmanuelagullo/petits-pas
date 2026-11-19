@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core import signing
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -12,6 +13,7 @@ from .catalogue_competences import catalogue_classe
 from .consultation_referentiels import rechercher_apprentissages
 from .contexte_ecole import ecole_courante
 from .forms_suivi_libre import PorteeCatalogueForm
+from .gestion_catalogue import changer_visibilite, deplacer
 from .models import AdaptationCompetence, Competence
 from .navigation import chemin_classe, lien
 from .referentiels import adoption_courante, contenu_adoption, contenu_origine
@@ -24,7 +26,7 @@ from .suivi_libre import est_libre
 from .views import acces_requis
 
 
-FILTRES = ("source", "q", "niveau", "domaine", "sous_domaine", "portee", "ajouter", "depuis_saisie", "inclure_masquees")
+FILTRES = ("source", "q", "niveau", "domaine", "sous_domaine", "portee", "ajouter", "depuis_saisie", "inclure_masquees", "inclure_competences_masquees")
 CONTEXTE = ("classement", "groupe", "eleve", "collectif")
 
 
@@ -132,7 +134,15 @@ def catalogue(request, pk, saisie_collective=False):
     source = request.GET.get("source", "")[:40]
     if request.GET.get("selection"):
         return choix_portee(request, classe, source, request.GET["selection"][:120])
-    if request.method == "POST":
+    retour_gestion = lien(route, classe.pk, **criteres_catalogue(request))
+    deplacement = None
+    if request.GET.get("deplacement"):
+        deplacement = deplacer(request, classe, request.GET["deplacement"], retour_gestion)
+        if not isinstance(deplacement, dict):
+            return deplacement
+    if request.method == "POST" and not deplacement and request.POST.get("action") == "visibilite_catalogue":
+        return changer_visibilite(request, classe, retour_gestion)
+    if request.method == "POST" and not deplacement:
         action = request.POST.get("action")
         if action not in ("ajouter_au_suivi", "ajouter_depuis_source"):
             raise PermissionDenied
@@ -180,12 +190,36 @@ def catalogue(request, pk, saisie_collective=False):
     if source and source not in sources:
         raise PermissionDenied
     lignes = catalogue_classe(classe, request.user)
+    regles_visibilite = {
+        (cid, scope): visible for cid, scope, visible in AdaptationCompetence.objects.filter(
+            Q(classe=classe) | Q(classe__isnull=True), ecole=classe.ecole,
+            annee_scolaire=classe.annee_scolaire, visible__isnull=False
+        ).values_list("competence_id", "classe_id", "visible")
+    }
+    revisions_classe = dict(AdaptationCompetence.objects.filter(classe=classe)
+                           .values_list("competence_id", "revision"))
+    inclure_competences_masquees = request.GET.get("inclure_competences_masquees") == "1"
+    deplace = next((ligne for ligne in lignes if not ligne["disponible"]
+                    and str(ligne["competence"].pk) == request.GET.get("deplace")), None)
+    url_deplacement = ""
+    if deplace:
+        choix = {cle: valeur for cle, valeur in parametres.items()
+                 if cle not in ("classement", "groupe", "source", "domaine", "sous_domaine")}
+        choix.update(domaine=deplace["domaine"], sous_domaine=deplace["sous_domaine"],
+                     inclure_competences_masquees=1, inclure_masquees=1)
+        url_deplacement = lien(route, classe.pk, **choix)
     domaines_masques, groupes_masques = rubriques_masquees(classe)
     inclure_masquees = request.GET.get("inclure_masquees") == "1"
     correspondances = bool(q and recherche_catalogue(lignes, q))
     for ligne in lignes:
         competence = ligne["competence"]
+        ligne["competence_masquee"] = (not ligne["disponible"] and not competence.active
+            and regles_visibilite.get((competence.pk, classe.pk), regles_visibilite.get((competence.pk, None))) is False)
         ligne["rubrique_masquee"] = competence.domaine_id in domaines_masques or competence.sous_domaine_id in groupes_masques
+    a_des_competences_masquees = any(l["competence_masquee"] for l in lignes)
+    presentes = {l["competence"].pk: l for l in lignes if not l["disponible"]}
+    if not inclure_competences_masquees:
+        lignes = [l for l in lignes if not l["competence_masquee"]]
     if not inclure_masquees:
         lignes = [ligne for ligne in lignes if not ligne["rubrique_masquee"]]
     autres_sources = []
@@ -201,7 +235,6 @@ def catalogue(request, pk, saisie_collective=False):
         externes = list(lignes_source(version, autre, utilisateur=request.user, classe=classe))
         disponibles = [dict(reference=ref, competence=c, domaine=nom, sous_domaine=sous)
                        for ref, c, nom, sous in externes]
-        presents = {ligne["competence"].pk: ligne for ligne in lignes if not ligne["disponible"]}
         if version and version.source.ecole_id is None:
             from .models import CompetenceSourceEcole
             ids = dict(CompetenceSourceEcole.objects.filter(ecole=classe.ecole, identite__source=version.source)
@@ -209,13 +242,17 @@ def catalogue(request, pk, saisie_collective=False):
         else:
             ids = {ref: c["id"] for ref, c, _, _ in externes}
         for ligne in disponibles:
-            deja = presents.get(ids.get(ligne["reference"]))
+            deja = presentes.get(ids.get(ligne["reference"]))
+            ligne["gestion"] = deja
             ligne["deja_suivie"] = bool(deja and deja["competence"].active)
             if ligne["deja_suivie"]:
                 ligne["url"] = lien("saisie_competence", classe.pk, ids[ligne["reference"]], filtre=niveau or "tous", retour=url_resultats)
-            if cibler and (not ajouter or not ligne["deja_suivie"] or deja["portee"] == "cible"):
+            if cibler and not (deja and deja["competence_masquee"]) and (not ajouter or not ligne["deja_suivie"] or deja["portee"] == "cible"):
                 ligne["choix_portee"] = lien("catalogue_competences", classe.pk,
                     **parametres, selection=ligne["reference"])
+        disponibles = [l for l in disponibles if not l["gestion"] or (
+            (inclure_competences_masquees or not l["gestion"]["competence_masquee"])
+            and (inclure_masquees or not l["gestion"]["rubrique_masquee"]))]
         lignes = []
     else:
         disponibles = []
@@ -229,25 +266,32 @@ def catalogue(request, pk, saisie_collective=False):
     if sous_domaine not in groupes:
         sous_domaine = ""
     ids_ajoutables = {c["id"] for c in contenu_origine(adoption).get("competences", [])} if ouvert and gerer else set()
-    revisions = dict(AdaptationCompetence.objects.filter(classe=classe,
-        annee_scolaire=classe.annee_scolaire, competence_id__in=ids_ajoutables)
-        .values_list("competence_id", "revision"))
+    for ligne in presentes.values():
+        competence = ligne["competence"]
+        locale = ligne["locale"]
+        if gerer and (not (locale and locale.suivi_libre) or cibler):
+            ligne["deplacement"] = lien(route, classe.pk, **parametres, deplacement=competence.pk,
+                                        ancre="deplacement-competence")
+            ligne["revision_gestion"] = revisions_classe.get(competence.pk, 0)
+            if ligne["competence_masquee"]:
+                ligne["visibilite"] = "reafficher"
+            elif competence.active:
+                ligne["visibilite"] = "masquer"
+            if locale:
+                ligne["modifier"] = lien("ajout_classe", classe.pk, locale.pk, origine="catalogue", retour=url_resultats)
+            else:
+                ligne["modifier"] = lien("adaptation_competence_classe", classe.pk, competence.pk, retour=url_resultats)
     for ligne in lignes:
         competence = ligne["competence"]
         if not ligne["disponible"] and (q or domaine or sous_domaine or portee):
             ligne["url"] = lien("saisie_competence", classe.pk, competence.pk, filtre=niveau or "tous", retour=url_resultats)
-        if competence.pk in ids_ajoutables and not competence.active:
+        if competence.pk in ids_ajoutables and not competence.active and not ligne["competence_masquee"]:
             ligne["ajout_au_suivi"] = True
-            ligne["revision"] = revisions.get(competence.pk, 0)
+            ligne["revision"] = revisions_classe.get(competence.pk, 0)
         locale = ligne["locale"]
-        if gerer and cibler and not (locale and locale.suivi_libre):
+        if gerer and cibler and not (locale and locale.suivi_libre) and not ligne["competence_masquee"]:
             if ligne["disponible"] or not ajouter or not competence.active or ligne["portee"] == "cible":
                 ligne["choix_portee"] = lien("catalogue_competences", classe.pk, **parametres, selection=competence.pk)
-        if ouvert and gerer and not ligne["disponible"]:
-            if locale:
-                ligne["modifier"] = lien("ajout_classe", classe.pk, locale.pk, origine="catalogue")
-            else:
-                ligne["modifier"] = lien("adaptation_competence_classe", classe.pk, ligne["competence"].pk)
     def classement_retenu(ligne):
         return (not domaine or ligne["domaine"] == domaine) and (not sous_domaine or ligne["sous_domaine"] == sous_domaine)
 
@@ -257,12 +301,18 @@ def catalogue(request, pk, saisie_collective=False):
     disponibles = recherche_catalogue([
         l for l in disponibles if classement_retenu(l) and (not niveau or l["competence"]["niveau"] == niveau)
     ], q, externe=True)
+    deplacement_en_ligne = bool(deplacement and (
+        any(l["competence"].pk == deplacement["competence"]["id"] for l in lignes)
+        or any(l["gestion"] and l["gestion"]["competence"].pk == deplacement["competence"]["id"] for l in disponibles)
+    ))
     hors_filtres = q and not (lignes or disponibles) and correspondances
     recherches_elargies = []
     if hors_filtres:
         commun = {cle: valeur for cle, valeur in parametres.items()
                   if cle not in ("niveau", "domaine", "sous_domaine", "portee", "source")}
         commun.update(niveau="", domaine="", sous_domaine="")
+        if a_des_competences_masquees:
+            commun["inclure_competences_masquees"] = 1
         if domaines_masques or groupes_masques:
             commun["inclure_masquees"] = 1
         recherches_elargies = [(nom, lien(route, classe.pk, **commun, source=identifiant))
@@ -271,7 +321,7 @@ def catalogue(request, pk, saisie_collective=False):
         if source and source not in dict(autres_sources):
             recherches_elargies.append((sources[source][0], lien(route, classe.pk, **commun, source=source)))
     domaines_suivi = []
-    vue_suivi = saisie_collective and not (q or source or domaine or sous_domaine or portee or inclure_masquees)
+    vue_suivi = saisie_collective and not (deplacement or q or source or domaine or sous_domaine or portee or inclure_masquees or inclure_competences_masquees)
     effectif = 0
     if vue_suivi:
         from .referentiels import arbre_competences
@@ -295,6 +345,9 @@ def catalogue(request, pk, saisie_collective=False):
             if sous:
                 creation["sous_domaine"] = sous["id"]
     contexte = {
+        "deplacement": deplacement, "deplacement_en_ligne": deplacement_en_ligne, "url_deplacement": url_deplacement,
+        "a_des_competences_masquees": a_des_competences_masquees,
+        "inclure_competences_masquees": inclure_competences_masquees,
         "inclure_masquees": inclure_masquees, "rubriques_masquees": bool(domaines_masques or groupes_masques),
         "saisie_collective": saisie_collective, "vue_suivi": vue_suivi, "domaines_suivi": domaines_suivi,
         "effectif": effectif, "filtre": niveau or "tous", "responsable": cibler,
