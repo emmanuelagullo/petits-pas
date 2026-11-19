@@ -19,6 +19,7 @@ from .contexte_ecole import ecole_courante
 from .exports_classe import autorise_export_classe, creer_zip_classe
 from .exports_ecole import racine
 from .models import Classe, ExportClasse
+from .navigation import chemin_classe
 from .paquet_local import preparer_restauration
 from .views_exports import ExportForm, _confirmer, servir_export
 
@@ -114,7 +115,7 @@ def exporter_classe(request, pk):
             formulaire.add_error(None, "Le mot de passe n'a pas permis de confirmer le téléchargement.")
     actif = bool(export and export.expire_le > timezone.now() and export.etat in {"attente", "preparation", "pret"})
     return render(request, "suivi/exporter_classe.html", {"classe": classe,
-        "formulaire": formulaire, "export": export, "actif": actif,
+        "formulaire": formulaire, "export": export, "actif": actif, "ariane": chemin_classe(classe),
         "expire": bool(export and export.expire_le <= timezone.now())})
 
 

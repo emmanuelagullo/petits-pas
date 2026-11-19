@@ -13,7 +13,7 @@ import sqlite3
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 from collections import OrderedDict
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlsplit
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -1017,6 +1017,7 @@ def classe_detail(request, pk):
             "suivi_complet": suivi_complet,
             "peut_generer": peut_generer,
             "peut_gerer_referentiel": autorise(request.user, GERER_REFERENTIEL_CLASSE, classe),
+            "referentiel_choisi": bool(adoption_courante(classe)),
             "peut_gerer_eleves": peut_gerer_eleves,
             "vue_minimale": vue_minimale,
             "export_classe_autorise": autorise_export_classe(request.user, classe),
@@ -1175,7 +1176,7 @@ def saisie_competence(request, pk, competence_pk):
     ariane = chemin_collectif(classe, filtre, competence)
     retour = retour_competences(request, classe)
     if retour:
-        libelle_retour = "Catalogue de compétences" if retour.split("?", 1)[0] == reverse("catalogue_competences", args=[classe.pk]) else ariane[-1][0]
+        libelle_retour = "Compétences" if urlsplit(retour).path == reverse("catalogue_competences", args=[classe.pk]) else ariane[-1][0]
         ariane[-1] = (libelle_retour, retour)
     return render(
         request,

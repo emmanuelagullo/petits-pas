@@ -6,7 +6,7 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import MODIFIER_ETAT, charger_classe_autorisee, charger_eleve_autorise
 from .catalogue_competences import doublons_classe
 from .models import CompetenceLocale
-from .navigation import filtre_competences, lien, retour_catalogue_ajout
+from .navigation import ancrer_competence, filtre_competences, lien, retour_catalogue_ajout
 from .forms_suivi_libre import ReussiteLibreForm, SelectionElevesForm
 from .rubriques import contenu_classement
 from .referentiels import adoption_courante, classe_historique
@@ -27,17 +27,15 @@ def suivi_libre(request, pk, locale_pk=None):
         raise PermissionDenied("Préparez les choix d’une classe ouverte avant de saisir.")
     locale = get_object_or_404(CompetenceLocale, pk=locale_pk, ecole=classe.ecole,
                              suivi_libre=True) if locale_pk else None
-    from .suivi_libre import peut_reprendre
+    from .suivi_libre import peut_reprendre, reprises_ciblees_autorisees
     if locale and not peut_reprendre(request.user, classe, locale):
         from django.core.exceptions import PermissionDenied
         raise PermissionDenied
-    if locale and request.method == "GET":
-        from .referentiels import competence_classe
-        if competence_classe(classe, locale.competence):
-            return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre))
+    if locale and request.method == "GET" and locale.disponibilites.filter(classe=classe).exists():
+        return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre))
     initial = {"domaine": request.GET.get("domaine"), "sous_domaine": request.GET.get("sous_domaine")}
     if not locale:
-        initial["reussite"] = True
+        initial["reussite"] = request.GET.get("origine") != "catalogue" or request.GET.get("collectif") == "1"
         initial["libelle"] = request.GET.get("libelle", "")[:300]
         if filtre != "tous":
             initial["niveau"] = filtre
@@ -68,7 +66,14 @@ def suivi_libre(request, pk, locale_pk=None):
                     ids=form.cleaned_data["eleves"], adoption_attendue=adoption.pk,
                     retirer=request.POST.get("action") == "retirer")
                 messages.success(request, "Disponibilité mise à jour, sans attribution de réussite.")
-                return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre))
+                if eleve and eleve.pk in form.cleaned_data["eleves"]:
+                    return redirect(lien("saisie_eleve", eleve.pk, filtre=filtre, ancre=f"c{locale.competence_id}"))
+                if retour_catalogue:
+                    retour_catalogue = ancrer_competence(retour_catalogue, locale.competence_id)
+                    if retour_catalogue.partition("?")[0].partition("#")[0] == lien("catalogue_competences", classe.pk):
+                        return redirect(retour_catalogue)
+                return redirect(lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre,
+                                     **({"retour": retour_catalogue} if retour_catalogue else {})))
             d = form.cleaned_data
             if request.POST.get("confirmer_doublon") != "1":
                 doublons = doublons_classe(classe, d["libelle"], request.user)
@@ -81,13 +86,16 @@ def suivi_libre(request, pk, locale_pk=None):
                 commentaire=d["commentaire"], photo=photo, adoption_attendue=adoption.pk, reussite=d["reussite"], icone=d["icone"])
             messages.success(request, "Compétence ajoutée au suivi des élèves sélectionnés.")
             if eleve:
-                return redirect(lien("saisie_eleve", eleve.pk, filtre=filtre))
+                return redirect(lien("saisie_eleve", eleve.pk, filtre=filtre, ancre=f"c{resultat.competence_id}"))
+            if retour_catalogue:
+                retour_catalogue = ancrer_competence(retour_catalogue, resultat.competence_id)
+                if retour_catalogue.partition("?")[0].partition("#")[0] == lien("catalogue_competences", classe.pk):
+                    return redirect(retour_catalogue)
             return redirect(lien("saisie_competence", classe.pk, resultat.competence_id, filtre=filtre,
                                  **({"retour": retour_catalogue} if retour_catalogue else {})))
         except (signing.BadSignature, ValidationError) as exc:
             form.add_error(None, "Le formulaire a expiré. Consultez à nouveau cette page." if isinstance(exc, signing.BadSignature) else exc)
-    reprises = CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True).select_related("competence")
-    reprises = [c for c in reprises if peut_reprendre(request.user, classe, c)]
+    reprises = reprises_ciblees_autorisees(request.user, classe).select_related("competence")
     return render(request, "suivi/suivi_libre.html", {"classe": classe, "form": form,
         "locale": locale, "reprises": reprises, "doublons": doublons, "eleve": eleve,
         "retour_catalogue": retour_catalogue})

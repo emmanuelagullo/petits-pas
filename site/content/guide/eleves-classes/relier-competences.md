@@ -6,7 +6,7 @@ categorie = "eleves-classes"
 publics = ["responsable", "direction", "associe"]
 intentions = ["compétence", "correspondance", "relier", "remplacer", "référentiel", "passage"]
 prerequis = "Le responsable ou la direction valide les liens ; les personnes autorisées à consulter la classe peuvent les lire."
-depart = "Référentiel de la classe → Correspondances entre compétences, ou Référentiels de l’école → Correspondances entre compétences"
+depart = "Compétences → Réglages du référentiel → Correspondances entre compétences, ou Référentiels de l’école → Correspondances entre compétences"
 statut = "disponible"
 +++
 

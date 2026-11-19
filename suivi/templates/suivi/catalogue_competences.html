@@ -1,36 +1,31 @@
 {% extends "suivi/base.html" %}
 {% load static %}
-{% block titre %}{% if saisie_collective %}Saisir pour toute la classe{% elif ajouter %}Ajouter une compétence{% else %}Compétences{% endif %}{% endblock %}
+{% block titre %}{% if saisie_collective %}Saisir pour toute la classe{% else %}Compétences{% endif %}{% endblock %}
 {% block contenu %}
 {% if saisie_collective %}
 {% include "suivi/partiels/ariane.html" with page="Saisir pour toute la classe" %}
 <h1>Saisir pour toute la classe</h1>
 {% else %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
-{% if ajouter %}
-<h1>Ajouter une compétence</h1>
-{% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>
-{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
-{% else %}
-<h1>Compétences de {{ classe.nom }}</h1>
-{% if adoption.selection_manuelle and not adoption.clos %}
-<p>Le suivi se construit compétence par compétence dans ce catalogue.</p>
-{% endif %}
-{% endif %}
+<div class="actions entete-catalogue">
+  <h1>Compétences de {{ classe.nom }}</h1>
+  {% if peut_regler_referentiel %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>{% endif %}
+</div>
+{% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
 <form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
-  <label for="q">{% if ajouter %}Rechercher ou créer une compétence{% else %}Rechercher une compétence{% endif %}</label>
-  <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if ajouter and not saisie_collective %} autofocus{% endif %}>
-  {% if ajouter %}<input type="hidden" name="ajouter" value="1">{% endif %}
+  <label for="q">Rechercher une compétence</label>
+  <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if depuis_ajout and not saisie_collective %} autofocus{% endif %}>
+  {% if depuis_ajout %}<input type="hidden" name="ajouter" value="1">{% endif %}
   {% for nom, valeur in contexte_ajout.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
+  {% if recherche_initiale %}<input type="hidden" name="recherche_initiale" value="{{ recherche_initiale }}">{% endif %}
   <div class="actions soumission-catalogue">
     <button type="submit" class="bouton discret">Rechercher</button>
-    <a href="{{ url_effacer }}">Effacer</a>
-    {% if peut_ajouter and not ajouter %}<a class="bouton" href="{{ url_ajouter }}" data-ouvrir-ajout>+ Ajouter une compétence</a>{% endif %}
+    <span data-effacer-recherche>{% if q %}<a href="{{ url_effacer }}">Effacer la recherche</a>{% endif %}</span>
     <div data-actions-catalogue>{% include "suivi/partiels/creation_catalogue.html" %}</div>
   </div>
   <details class="details-filtres-catalogue">
-  <summary>Filtres<span data-resume-actif>{{ resume_filtres }}</span></summary>
+  <summary>Filtres</summary>
   <div class="filtres-catalogue">
   {% if sources %}
   <div>
@@ -60,15 +55,6 @@
   <select id="sous_domaine" name="sous_domaine">
     {% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}
   </select>
-  <div data-filtre-portee{% if source %} hidden{% endif %}>
-    <label for="portee">Périmètre</label>
-    <select id="portee" name="portee"{% if source %} disabled{% endif %}>
-      <option value="">Tous</option>
-      <option value="base"{% if portee == "base" %} selected{% endif %}>Référentiel</option>
-      <option value="classe"{% if portee == "classe" %} selected{% endif %}>Ajouts pour la classe</option>
-      <option value="cible"{% if portee == "cible" %} selected{% endif %}>Suivi ciblé</option>
-    </select>
-  </div>
   {% if a_des_competences_masquees %}
   <label><input type="checkbox" name="inclure_competences_masquees" value="1"{% if inclure_competences_masquees %} checked{% endif %}> Inclure les compétences masquées</label>
   {% endif %}
@@ -76,7 +62,9 @@
   <label><input type="checkbox" name="inclure_masquees" value="1"{% if inclure_masquees %} checked{% endif %}> Inclure les rubriques masquées</label>
   {% endif %}
   </details>
+  <div data-filtres-actifs>{% include "suivi/partiels/filtres_actifs_catalogue.html" %}</div>
 </form>
+{% if recherche_initiale %}<p><a href="{{ recherche_initiale }}">Revenir à la recherche initiale</a></p>{% endif %}
 <p role="status" id="catalogue-etat">{{ nombre }} résultat{{ nombre|pluralize }}</p>
 <div id="catalogue-resultats">
   {% include "suivi/partiels/catalogue_resultats.html" %}

@@ -1,10 +1,9 @@
 {% extends "suivi/base.html" %}
-{% load navigation_suivi %}
-{% block titre %}Compétences de {{ classe.libelle_avec_annee }}{% endblock %}
+{% block titre %}{% if actuelle %}Réglages du référentiel{% else %}Choisir le référentiel{% endif %}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-{% ariane_classe "Référentiel de la classe" classe %}
-<h1>Compétences de {{ classe.libelle_avec_annee }}</h1>
+{% if actuelle %}{% include "suivi/partiels/ariane.html" with page="Réglages du référentiel" %}{% else %}{% include "suivi/partiels/ariane.html" with page="Choisir le référentiel" %}{% endif %}
+<h1>{% if actuelle %}Réglages du référentiel{% else %}Choisir le référentiel{% endif %}</h1>
 <p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des compétences sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
 <p><a href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels sans modifier les choix →</a></p>
 <section class="encadre adaptations-courantes" aria-labelledby="adaptations-courantes">

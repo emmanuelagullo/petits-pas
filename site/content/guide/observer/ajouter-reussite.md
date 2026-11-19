@@ -17,7 +17,7 @@ utiliser [Ajouter une compétence au référentiel de la classe]({{< relref "/gu
 ## Créer une compétence et commencer son suivi
 
 1. Dans une catégorie, même vide, choisir **+ Ajouter une compétence**.
-   Rechercher dans le catalogue, puis choisir **Créer une compétence → Suivre pour
+   Saisir le libellé, puis choisir **Créer « … » → Suivre pour
    les élèves sélectionnés** si la compétence doit être créée.
 2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
    compétence déjà créée** aident à éviter les copies inutiles.

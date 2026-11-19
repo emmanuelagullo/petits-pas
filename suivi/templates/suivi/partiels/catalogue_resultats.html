@@ -1,13 +1,15 @@
 <template data-actions-creation>{% include "suivi/partiels/creation_catalogue.html" %}</template>
-<template data-resume-filtres>{{ resume_filtres }}</template>
+<template data-filtres-actifs>{% include "suivi/partiels/filtres_actifs_catalogue.html" %}</template>
+<template data-effacer-recherche>{% if q %}<a href="{{ url_effacer }}">Effacer la recherche</a>{% endif %}</template>
 <template data-options-domaines>{% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}</template>
 <template data-options-groupes>{% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}</template>
 <div data-nombre-resultats="{{ nombre }}">
+{% if url_voir_masquee %}<p><a href="{{ url_voir_masquee }}">Voir la compétence masquée</a></p>{% endif %}
 {% if url_deplacement %}<p><a href="{{ url_deplacement }}">Voir dans la rubrique</a></p>{% endif %}
 {% if not deplacement_en_ligne %}{% include "suivi/partiels/deplacement_competence_catalogue.html" %}{% endif %}
 {% if recherches_elargies %}
-<p>Des compétences correspondent en dehors des filtres actuels.</p>
-<div class="actions">{% for nom, url in recherches_elargies %}<a class="bouton discret" href="{{ url }}">Voir les correspondances · {{ nom }}</a>{% endfor %}</div>
+<p>Des correspondances sont accessibles avec d’autres filtres ou dans une autre source.</p>
+<div class="actions">{% for nom, url in recherches_elargies %}<a class="bouton discret" href="{{ url }}">{{ nom }}</a>{% endfor %}</div>
 {% endif %}
 {% if vue_suivi %}
 {% include "suivi/partiels/competences_collectives.html" %}
@@ -16,8 +18,8 @@
   <h2>{{ nom_source }}</h2>
   <ul class="liste">
     {% for ligne in disponibles %}
-    <li>
-      {{ ligne.competence.libelle }}
+    <li{% if ligne.ancre %} id="{{ ligne.ancre }}" tabindex="-1"{% endif %}>
+      <strong>{{ ligne.competence.libelle }}</strong>
       <small> · {{ ligne.competence.niveau }} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %} · {% if ligne.deja_suivie %}Déjà suivie{% else %}Hors suivi{% endif %}</small>
       {% if ligne.gestion.competence_masquee %}<small> · Compétence masquée</small>{% endif %}
       {% if ligne.gestion.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
@@ -26,10 +28,10 @@
         {% include "suivi/partiels/deplacement_competence_catalogue.html" %}
       {% endif %}
       <div class="actions">
-        {% if ligne.choix_portee %}
-        <a class="bouton discret" href="{{ ligne.choix_portee }}">{% if ligne.deja_suivie %}Modifier le suivi{% else %}Ajouter au suivi{% endif %}</a>
-        {% elif ligne.deja_suivie %}
-        <a class="bouton discret" href="{{ ligne.url }}">Ouvrir le suivi</a>
+        {% if ligne.deja_suivie %}
+        <a class="bouton discret" href="{{ ligne.url }}" aria-label="Ouvrir le suivi · {{ ligne.competence.libelle }}">Ouvrir le suivi</a>
+        {% elif ligne.choix_portee %}
+        <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
         {% elif not ligne.gestion.competence_masquee %}
         <form method="post" action="{{ url_resultats }}">
           {% csrf_token %}

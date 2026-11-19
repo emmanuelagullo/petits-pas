@@ -252,10 +252,10 @@ class ExportClasseTests(TransactionTestCase):
 
     def test_lien_discret_et_absence_dans_les_sauvegardes(self):
         response = self.client.get(reverse("classe_detail", args=[self.classe.pk]))
-        self.assertContains(response, "<summary>Transférer cette classe</summary>")
+        self.assertContains(response, "Créer une copie de cette classe")
         self.assertContains(response, reverse("exporter_classe", args=[self.classe.pk]))
         with override_settings(EXPORT_CLASSES=set()):
-            self.assertNotContains(self.client.get(reverse("classe_detail", args=[self.classe.pk])), "Transférer cette classe")
+            self.assertNotContains(self.client.get(reverse("classe_detail", args=[self.classe.pk])), "Créer une copie de cette classe")
 
     def test_etat_ancien_inconnu_reste_inconnu_jusqua_une_nouvelle_saisie(self):
         from .services.reprise_referentiels import preparer_nouvelle_ecole

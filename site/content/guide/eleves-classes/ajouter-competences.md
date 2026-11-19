@@ -12,17 +12,13 @@ statut = "disponible"
 
 ## Étapes
 
-1. Ouvrir **Compétences** dans la classe et rechercher par libellé. Les filtres
-   de section, domaine et périmètre s’appliquent aux compétences de la base,
-   aux ajouts et au suivi ciblé. La direction peut aussi partir des
-   référentiels de l’école, en vérifiant l’année.
-2. Choisir **Ajouter une compétence**, puis **Ajouter pour toute la classe**
-   ou **Ajouter pour certains élèves**. Choisir la section, le domaine et,
-   si utile, le sous-domaine. Si un libellé identique existe déjà, ouvrir
-   la fiche existante ou confirmer la création d’une compétence distincte.
-3. Pour un ajout déjà proposé, cliquer sur **Reprendre dans cette classe**.
-   Les propositions de l’école pour l’année et les ajouts déjà utilisés dans
-   une classe dont vous gérez le référentiel sont disponibles.
+1. Ouvrir **Compétences** dans la classe et saisir le libellé. Les filtres
+   permettent de choisir la source, la section, le domaine et le sous-domaine.
+2. Si une compétence correspond, ouvrir son suivi ou l’ajouter au suivi. Un lien
+   indique où retrouver une correspondance écartée par les filtres.
+3. Si la compétence est nouvelle, choisir **Créer « … »**, puis
+   **Ajouter au référentiel de la classe** ou **Suivre pour les élèves sélectionnés**.
+   Vérifier la section, le domaine et, si utile, le sous-domaine.
 4. Pour une compétence créée dans la classe, utiliser le bouton **Proposer
    cette compétence dans les prochaines saisies** pour la montrer ou la masquer.
    Pour un ajout venu de l’école, choisir de suivre son choix, de montrer ou de

@@ -91,13 +91,14 @@ class AdoptionBases(Base):
         modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=competence, statut="reussi")
         url = reverse("catalogue_competences", args=[self.classe.pk])
         action = {"action": "visibilite_catalogue", "competence": competence.pk, "adoption": adoption.pk}
-        self.assertRedirects(self.client.post(url, {**action, "visibilite": "masquer", "revision": 0}), url)
+        self.assertRedirects(self.client.post(url, {**action, "visibilite": "masquer", "revision": 0}), f"{url}?masquee={competence.pk}")
+        self.assertContains(self.client.get(url, {"masquee": competence.pk}), "Voir la compétence masquée")
         self.assertNotContains(self.client.get(url), competence.libelle)
         filtre = f"{url}?inclure_competences_masquees=1"
         self.assertContains(self.client.get(filtre), competence.libelle)
         self.assertContains(self.client.get(filtre), "Réafficher")
         self.assertFalse(competence_saisissable(self.classe, competence, eleve=self.eleve))
-        self.assertRedirects(self.client.post(filtre, {**action, "visibilite": "reafficher", "revision": 1}), filtre)
+        self.assertRedirects(self.client.post(filtre, {**action, "visibilite": "reafficher", "revision": 1}), f"{filtre}#c{competence.pk}")
         self.assertTrue(competence_saisissable(self.classe, competence, eleve=self.eleve))
         self.assertTrue(EleveApprentissage.objects.filter(disponibilite__locale=locale, active=True).exists())
         self.assertTrue(Observation.objects.filter(competence=competence, statut="reussi").exists())
@@ -107,7 +108,7 @@ class AdoptionBases(Base):
         url = reverse("choisir_competence", args=[self.classe.pk])
         page = self.client.get(url, {"q": "parlé", "niveau": "GS", "fragment": 1})
         self.assertEqual(page.headers["X-Petits-Pas-Catalogue"], "1")
-        self.assertContains(page, "Des compétences correspondent en dehors des filtres actuels.")
+        self.assertContains(page, "Des correspondances sont accessibles avec d’autres filtres ou dans une autre source.")
         self.assertFalse(page.context["creer_en_priorite"])
         page = self.client.get(url, {"q": "zqjx inventée"})
         self.assertContains(page, "Créer « zqjx inventée »")
@@ -118,7 +119,52 @@ class AdoptionBases(Base):
         page = self.client.get(url, {"q": "parlé"})
         self.assertContains(page, "Ouvrir le suivi")
         detail = self.client.get(page.context["lignes"][0]["url"])
-        self.assertEqual(detail.context["ariane"][-1][1], page.context["url_resultats"])
+        self.assertEqual(detail.context["ariane"][-1][1],
+                         page.context["url_resultats"] + f'#c{page.context["lignes"][0]["competence"].pk}')
+
+    def test_catalogue_ecarte_la_creation_si_le_libelle_existe_hors_section(self):
+        adoption = self.adopter()
+        competence = adoption.usages.get().competence
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        page = self.client.get(catalogue, {"q": competence.libelle.upper() + " !", "niveau": "GS"})
+        self.assertContains(page, "Retirer le filtre Grande section")
+        self.assertNotContains(page, "Périmètre")
+        self.assertFalse(page.context["creation_proposee"])
+        nom, url = page.context["recherches_elargies"][0]
+        self.assertIn("Petite section", nom)
+        self.assertIn("niveau=PS", url)
+        retrouvee = self.client.get(url)
+        self.assertContains(retrouvee, "Ouvrir le suivi")
+        self.assertIn("niveau=GS", retrouvee.context["recherche_initiale"])
+        self.assertIn("niveau%3DGS", retrouvee.context["lignes"][0]["modifier"])
+        self.assertContains(self.client.get(catalogue, {"q": "parlé"}), "Créer une compétence distincte")
+        self.assertContains(self.client.get(catalogue, {"q": "Assemble une mosaïque de galets"}),
+                            "Créer « Assemble une mosaïque de galets »")
+
+    def test_catalogue_retrouve_la_recherche_initiale_apres_correction_de_section(self):
+        from .services.ajouts_referentiels import creer_ajout
+
+        adoption = self.adopter()
+        locale = creer_ajout(utilisateur=self.enseignant, ecole=self.ecole,
+            annee=self.classe.annee_scolaire, classe=self.classe, adoption_attendue=adoption.pk,
+            domaine_id=adoption.contenu["domaines"][0]["id"], libelle="Je trie des galets", niveau="PS")
+        classe = self.client.get(reverse("classe_detail", args=[self.classe.pk]))
+        self.assertNotContains(classe, "Réglages du référentiel")
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        page = self.client.get(catalogue, {"q": locale.competence.libelle, "niveau": "GS"})
+        self.assertContains(page, "Réglages du référentiel")
+        self.assertFalse(page.context["creation_proposee"])
+        _, url = page.context["recherches_elargies"][0]
+        retrouvee = self.client.get(url)
+        modifier = retrouvee.context["lignes"][0]["modifier"]
+        jeton = self.client.get(modifier).context["jeton"]
+        resultat = self.client.post(modifier, {"action": "classement", "jeton": jeton, "niveau": "GS",
+            "domaine": locale.competence.domaine_id, "sous_domaine": ""})
+        initiale = page.context["url_resultats"]
+        self.assertRedirects(resultat, initiale + f"#c{locale.competence_id}")
+        corrigee = self.client.get(initiale)
+        self.assertContains(corrigee, f'id="c{locale.competence_id}"')
+        self.assertContains(corrigee, "Ouvrir le suivi")
 
     def test_rubriques_classe_activation_masquage_et_cloture(self):
         from .exports_classe import selection_classe
@@ -242,9 +288,10 @@ class AdoptionBases(Base):
         url = f"{catalogue}?source=version-{self.b.pk}"
         reference = self.b.definitions.get().identite.identifiant
         self.assertContains(self.client.get(url), "Ajouter au suivi")
-        self.assertRedirects(self.client.post(url, {"action": "ajouter_depuis_source",
-            "adoption": adoption.pk, "reference": reference}), url)
+        reponse = self.client.post(url, {"action": "ajouter_depuis_source",
+            "adoption": adoption.pk, "reference": reference})
         regle = AdaptationCompetence.objects.get(classe=self.classe)
+        self.assertRedirects(reponse, url + f"#c{regle.competence_id}")
         self.assertTrue(regle.ajout)
         self.assertEqual(regle.competence.origine_source.identite.source_id, self.b.source_id)
         self.assertEqual(usage_pour_saisie(self.classe, regle.competence).adoption_id, adoption.pk)
@@ -264,13 +311,42 @@ class AdoptionBases(Base):
         url = reverse("catalogue_competences", args=[destination.pk]) + f"?source=classe-{autre.pk}"
         self.assertContains(self.client.get(url), competence.libelle)
         self.assertRedirects(self.client.post(url, {"action": "ajouter_depuis_source",
-            "adoption": adoption.pk, "reference": str(competence.pk)}), url)
+            "adoption": adoption.pk, "reference": str(competence.pk)}), url + f"#c{competence.pk}")
         self.assertEqual(AdaptationCompetence.objects.get(classe=destination).competence_id, competence.pk)
         self.assertFalse(Observation.objects.exists())
         affectation.delete()
         self.assertEqual(self.client.get(url).status_code, 403)
         self.assertEqual(self.client.post(url, {"action": "ajouter_depuis_source",
             "adoption": adoption.pk, "reference": str(competence.pk)}).status_code, 403)
+
+    def test_recherche_retrouve_un_suivi_cible_reutilisable(self):
+        from .services.ajouts_referentiels import creer_ajout
+
+        self.adopter()
+        destination = self.classe
+        autre = Classe.objects.create(ecole=self.ecole, nom="Atelier précédent",
+                                     annee_scolaire=destination.annee_scolaire)
+        affectation = self.affecter_enseignant(autre)
+        autre.activer()
+        self.classe = autre
+        adoption = self.adopter()
+        locale = creer_ajout(utilisateur=self.enseignant, ecole=self.ecole, annee=autre.annee_scolaire,
+            classe=autre, adoption_attendue=adoption.pk, domaine_id=adoption.contenu["domaines"][0]["id"],
+            libelle="Je dessine une constellation", niveau="GS", suivi_libre=True)
+        url = reverse("catalogue_competences", args=[destination.pk])
+        page = self.client.get(url, {"q": locale.competence.libelle})
+        self.assertFalse(page.context["creation_proposee"])
+        choix = page.context["lignes"][0]["choix_portee"]
+        self.assertContains(self.client.get(choix), "Reprendre une compétence pour des élèves")
+        affectation.delete()
+        page = self.client.get(url, {"q": locale.competence.libelle})
+        self.assertTrue(page.context["creer_en_priorite"])
+        self.assertEqual(self.client.get(choix).status_code, 403)
+        self.affecter_enseignant(autre)
+        form = self.client.get(choix).context["form"]
+        ajout = self.client.post(choix, {"jeton": form["jeton"].value(), "eleves": [self.eleve.pk]})
+        self.assertRedirects(ajout, page.context["url_resultats"] + f"#c{locale.competence_id}")
+        self.assertFalse(Observation.objects.exists())
 
     def test_choisir_les_eleves_du_catalogue_sans_perdre_les_observations(self):
         from .exports_classe import selection_classe
@@ -319,7 +395,7 @@ class AdoptionBases(Base):
         reponse = self.client.post(url, {"portee": "eleves", "eleves": [self.eleve.pk],
                                         "jeton": form["jeton"].value()})
         regle = AdaptationCompetence.objects.get(classe=self.classe)
-        self.assertRedirects(reponse, reverse("saisie_competence", args=[self.classe.pk, regle.competence_id]))
+        self.assertRedirects(reponse, url.partition("&selection=")[0] + f"#c{regle.competence_id}")
         self.assertEqual(regle.eleves_selectionnes.get().scolarite_id, self.scolarite.pk)
         self.assertTrue(regle.selection_eleves)
         self.assertFalse(Observation.objects.exists())
@@ -353,7 +429,7 @@ class AdoptionBases(Base):
         self.client.post(catalogue, {**donnees, "competence": self.competence.pk})
         self.assertFalse(any(d.visibles for d in arbre_competences(self.ecole, classe=self.classe)))
         self.assertRedirects(self.client.post(catalogue + "?q=parle", {**donnees, "competence": competence.pk}),
-                             catalogue + "?q=parle")
+                             catalogue + f"?q=parle#c{competence.pk}")
         self.assertEqual([c.pk for d in arbre_competences(self.ecole, classe=self.classe) for c in d.visibles],
                          [competence.pk])
         self.assertFalse(Observation.objects.exists())

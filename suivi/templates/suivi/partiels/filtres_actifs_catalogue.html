@@ -1,0 +1,6 @@
+{% if filtres_actifs %}
+<div class="actions filtres-actifs-catalogue">
+  {% for libelle, url in filtres_actifs %}<a class="bouton discret" href="{{ url }}" aria-label="Retirer le filtre {{ libelle }}">{{ libelle }} <span aria-hidden="true">×</span></a>{% endfor %}
+  <a href="{{ url_reinitialiser }}">Réinitialiser les filtres</a>
+</div>
+{% endif %}

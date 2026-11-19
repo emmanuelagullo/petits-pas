@@ -1,2 +1,2 @@
-<a href="{{ ligne.url }}">{{ ligne.competence.libelle }}</a>
-<small> · {{ ligne.competence.get_niveau_display }} · {% if ligne.portee == "cible" %}Suivi ciblé · {{ ligne.suivis }} élève{{ ligne.suivis|pluralize }}{% elif ligne.portee == "classe" %}{% if ligne.disponible %}À reprendre dans la classe{% else %}Ajout pour la classe{% endif %}{% else %}Référentiel{% endif %} · {{ ligne.nombre }} élève{{ ligne.nombre|pluralize }} avec des observations{% if ligne.ajout_au_suivi %} · Hors suivi{% elif not ligne.competence.active %} · Masquée{% endif %}</small>
+<strong>{{ ligne.competence.libelle }}</strong>
+<small> · {{ ligne.competence.get_niveau_display }}{% if ligne.portee == "cible" and not ligne.disponible %} · Suivie pour {{ ligne.suivis }} élève{{ ligne.suivis|pluralize }}{% endif %}{% if ligne.competence_masquee %} · Masquée{% elif ligne.disponible or ligne.ajout_au_suivi %} · Hors suivi{% endif %}</small>

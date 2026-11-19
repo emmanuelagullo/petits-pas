@@ -6,13 +6,13 @@ categorie = "eleves-classes"
 publics = ["responsable", "direction"]
 intentions = ["compétence", "libellé", "renommer", "masquer", "démasquer", "référentiel", "origine"]
 prerequis = "Vous êtes responsable de la classe ou direction de l’école. Une base a été choisie pour la classe."
-depart = "Référentiel de la classe → Libellés et compétences masquées, ou Référentiels de l’école → Libellés et compétences masquées"
+depart = "Compétences → Réglages du référentiel → Libellés et compétences masquées, ou Référentiels de l’école → Libellés et compétences masquées"
 statut = "disponible"
 +++
 
 ## Étapes
 
-1. Dans **Référentiel de la classe**, ouvrir **Libellés et compétences masquées**.
+1. Dans **Réglages du référentiel**, ouvrir **Libellés et compétences masquées**.
    La direction peut aussi ouvrir ce bouton dans **Référentiels de l’école**,
    après avoir vérifié l’année scolaire.
 2. La liste présente la base actuelle, y compris ses compétences masquées.

@@ -61,12 +61,14 @@ def deplacer(request, classe, identifiant, retour):
         else:
             nom_domaine, nom_groupe = domaines[domaine], groupes.get(groupe, "")
             messages.success(request, "Déplacée vers " + " → ".join(filter(None, (nom_domaine, nom_groupe))) + ".")
-            parametres = dict(parse_qsl(urlsplit(retour).query))
+            parametres = dict(parse_qsl(urlsplit(retour).query, keep_blank_values=True))
             if ((parametres.get("domaine") and parametres["domaine"] != nom_domaine)
                     or (parametres.get("sous_domaine") and parametres["sous_domaine"] != nom_groupe)
                     or parametres.get("classement") or parametres.get("groupe")):
                 route = "choisir_competence" if urlsplit(retour).path == lien("choisir_competence", classe.pk) else "catalogue_competences"
                 retour = lien(route, classe.pk, **parametres, deplace=competence.pk)
+            else:
+                retour += f"#c{competence.pk}"
             return redirect(retour)
     return {"form": form, "competence": definition, "domaine": domaine_actuel, "groupe": groupe_actuel,
             "retour": retour, "jeton": signing.dumps(attendu, salt="deplacer-catalogue")}
@@ -87,5 +89,12 @@ def changer_visibilite(request, classe, retour):
     except ValidationError as cause:
         messages.error(request, " ".join(cause.messages))
     else:
-        messages.success(request, "Compétence masquée." if valeur == "masquer" else "Compétence réaffichée.")
+        messages.success(request, "Compétence masquée pour les prochaines saisies. Les observations sont conservées."
+                         if valeur == "masquer" else "Compétence réaffichée.")
+        if valeur == "masquer" and "inclure_competences_masquees=1" not in retour:
+            parametres = dict(parse_qsl(urlsplit(retour).query, keep_blank_values=True))
+            route = "choisir_competence" if urlsplit(retour).path == lien("choisir_competence", classe.pk) else "catalogue_competences"
+            retour = lien(route, classe.pk, **parametres, masquee=competence.pk)
+        else:
+            retour += f"#c{competence.pk}"
     return redirect(retour)

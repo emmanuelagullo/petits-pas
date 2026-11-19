@@ -13,7 +13,7 @@ from .catalogue_competences import doublons_classe
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import AjoutCompetenceForm, AdaptationCompetenceForm, ClassementCompetenceForm
 from .models import AdaptationCompetence, CompetenceLocale, annee_scolaire_pour
-from .navigation import chemin_retour_competences, filtre_competences, lien, retour_catalogue_ajout
+from .navigation import ancrer_competence, chemin_retour_competences, filtre_competences, lien, retour_catalogue_ajout
 from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
 from .rubriques import contenu_classement
@@ -122,10 +122,15 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                         doublons = doublons_classe(classe, form.cleaned_data["libelle"], request.user)
                         if doublons:
                             raise ValidationError("Vérifiez la compétence existante avant de créer un doublon.")
-                    creer_ajout(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
+                    creee = creer_ajout(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
                         adoption_attendue=contexte["adoption"], domaine_id=form.cleaned_data["domaine"],
                         libelle=form.cleaned_data["libelle"], niveau=form.cleaned_data["niveau"],
                         sous_domaine_id=form.cleaned_data["sous_domaine"])
+                    if retour_catalogue:
+                        retour_catalogue = ancrer_competence(retour_catalogue, creee.competence_id)
+                        if retour_catalogue.partition("?")[0].partition("#")[0] == lien("choisir_competence", classe.pk):
+                            retour_suivi = lien("saisie_competence", classe.pk, creee.competence_id,
+                                                filtre=filtre_competences(request), retour=retour_catalogue)
                 else:
                     raise ValidationError("Vérifiez la compétence, sa section et son domaine.")
             elif action in ("reprendre", "proposer") and locale is None:
@@ -149,7 +154,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                     domaine_id=classement.cleaned_data["domaine"], sous_domaine_id=classement.cleaned_data["sous_domaine"],
                     etat_attendu=contexte["classement"])
                 messages.success(request, "Classement corrigé. Les observations sont conservées.")
-                return redirect(request.get_full_path())
+                return redirect(retour_catalogue or request.get_full_path())
             elif action == "adapter" and locale:
                 form = AdaptationCompetenceForm(request.POST, choix_garder=choix_garder,
                     libelle_direct=libelle_direct, visibilite_directe=visibilite_directe,
