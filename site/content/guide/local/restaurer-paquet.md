@@ -40,7 +40,9 @@ partagée. Voir la [comparaison des façons de travailler]({{< relref "/guide/lo
 
 1. Sélectionnez l’archive ZIP et cliquez sur **Vérifier la sauvegarde**.
    L’application présente sa date et le nombre de médias après vérification.
-   Le paquet actuel n’est pas encore remplacé.
+   Le paquet actuel n’est pas encore remplacé. Le programme estime l’espace
+   nécessaire à la décompression sur le disque du dossier des données. Si
+   l’espace manque, libérez de la place sur ce disque, puis recommencez.
 2. Si vous souhaitez aussi conserver l’état actuel sous forme de ZIP, cliquez
    sur **Télécharger un ZIP du paquet actuel** et gardez ce fichier en lieu sûr.
 3. Cliquez sur **Confirmer la restauration** après avoir vérifié la date et le

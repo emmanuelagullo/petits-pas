@@ -70,9 +70,11 @@ dossier des données de l’école.
 La version du programme figure dans **Outils de l’application → Version et installation**.
 Si une mise à jour de l’école est nécessaire à l’ouverture, un message vous
 invite à patienter ; un second message confirme sa fin avant l’ouverture.
-En cas d’échec, relevez le chemin du diagnostic indiqué à l’écran et
-transmettez-le à la personne qui accompagne votre essai. Les données
-précédentes sont copiées avant les changements nécessaires à cette mise à jour.
+En cas d’échec, copiez le diagnostic affiché avec Ctrl+C. La boîte de dialogue
+propose aussi d’ouvrir le dossier des données. Transmettez le diagnostic à la
+personne qui accompagne votre essai. Une copie de la base est préparée avant
+migration. Si le disque ne suffit pas pour la préparer, libérez de la place avant
+de relancer Petits Pas.
 
 Si la nouvelle version pose problème, fermez-la et contactez la personne qui
 accompagne votre essai avant de réinstaller une version plus ancienne :
@@ -132,7 +134,8 @@ aux PDF doivent être disponibles sur l’ordinateur.
 
 Pour mettre à jour, [sauvegardez l’école]({{< relref "/guide/local/sauvegarder-paquet.md" >}}),
 fermez l’application, extrayez la nouvelle archive et relancez son
-installateur. Les outils Linux de gestion des versions sont décrits dans la
+installateur. En cas d’échec du démarrage, le diagnostic apparaît dans une
+fenêtre si Zenity est disponible, ou dans le terminal. Les outils Linux de gestion des versions sont décrits dans la
 [documentation technique du dépôt](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/README.md).
 
 ## Avant tout usage réel
