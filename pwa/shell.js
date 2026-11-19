@@ -8,9 +8,18 @@ const frame = document.querySelector('#app');
 let worker, registration, ready = false, installPrompt;
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 const changement = document.querySelector('#changer-espace');
-changement.textContent = ESSAI || APERCU ? 'Revenir à mon école habituelle' : 'Essayer avec l’école fictive';
-changement.href = ESSAI || APERCU ? BASE : BASE + 'essai.html';
-document.querySelector('#espace').textContent = APERCU ? 'Copie du ZIP à vérifier — vos modifications restent dans cette copie.' : (ESSAI ? 'Espace d’essai — utilisez des données fictives.' : 'École de ce navigateur — données conservées sur cet appareil.');
+changement.hidden = ESSAI || APERCU;
+const espace = document.querySelector('#espace');
+espace.hidden = !(ESSAI || APERCU);
+espace.textContent = APERCU ? 'Copie de sauvegarde' : 'École fictive';
+const retourEcole = document.querySelector('#retour-ecole');
+retourEcole.hidden = espace.hidden;
+retourEcole.href = BASE;
+const tools = document.querySelector('#tools');
+document.querySelector('#storage-tools').onclick = () => {
+  tools.open = true;
+  tools.querySelector('summary').focus();
+};
 document.querySelector('#apercu').hidden = APERCU;
 if (ESSAI && !APERCU) {
   fetch('./ecole-fictive.json').then(response => response.json()).then(notice => {
@@ -22,7 +31,9 @@ if (ESSAI && !APERCU) {
   }).catch(() => {});
 }
 function showNetwork() {
-  document.querySelector('#network').textContent = navigator.onLine ? 'Réseau disponible' : 'Hors ligne';
+  const network = document.querySelector('#network');
+  network.textContent = 'Hors ligne';
+  network.hidden = navigator.onLine;
 }
 showNetwork();
 window.addEventListener('online', showNetwork);
@@ -80,6 +91,9 @@ function controlled() {
   });
 }
 function showVolume(durability) {
+  const nearLimit = durability?.bytes >= 205 * 1024**2;
+  document.querySelector('#storage-warning').hidden = !nearLimit;
+  document.querySelector('#storage-tools').hidden = !nearLimit;
   if (!durability?.bytes) return;
   const mib = durability.bytes / 1024**2;
   document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 256 Mio (avant compression).`
@@ -88,6 +102,7 @@ function showVolume(durability) {
 const checkUpdate = document.querySelector('#check-update');
 const updateStatus = document.querySelector('#update-status');
 const updateProgress = document.querySelector('#update-progress');
+const updateRetry = document.querySelector('#update-retry');
 const resumeLabel = 'Reprendre le téléchargement';
 let installingUpdate;
 
@@ -95,7 +110,7 @@ function showUpdate() {
   const available = !!(registration?.active && registration?.waiting);
   document.querySelector('#update').hidden = !available;
   if (available) {
-    document.querySelector('#tools').open = true;
+    updateRetry.hidden = true;
     updateProgress.hidden = true;
     updateStatus.textContent = 'Nouvelle version prête à appliquer.';
     checkUpdate.textContent = 'Vérifier les mises à jour';
@@ -108,6 +123,7 @@ function watchUpdate() {
   if (!registration.active || !candidate || installingUpdate === candidate) return;
   installingUpdate = candidate;
   checkUpdate.disabled = true;
+  updateRetry.hidden = true;
   updateProgress.removeAttribute('value');
   updateProgress.hidden = false;
   updateStatus.textContent = 'Téléchargement et vérification de la mise à jour…';
@@ -118,7 +134,8 @@ function watchUpdate() {
         ? ` (${updateProgress.value} ressources vérifiées sur ${updateProgress.max})`
         : '';
       updateStatus.textContent = `Installation de la mise à jour interrompue${count}. Vous pouvez reprendre le téléchargement.`;
-      checkUpdate.textContent = resumeLabel;
+      updateRetry.textContent = resumeLabel;
+      updateRetry.hidden = false;
     } else if (!showUpdate() && candidate.state !== 'activated') {
       return;
     }
@@ -163,7 +180,6 @@ navigator.serviceWorker?.addEventListener('message', async event => {
   }
   if (event.source !== navigator.serviceWorker.controller || event.data?.kind !== 'http' || !event.ports[0]) return;
   const port = event.ports[0];
-  status.textContent = 'Enregistrement / lecture en cours…';
   const started = performance.now();
   const waiting = setInterval(() => {
     status.textContent = `Opération en cours depuis ${Math.floor((performance.now() - started) / 1000)} s. Gardez cette page ouverte ; les gros ZIP peuvent prendre plusieurs minutes.`;
@@ -171,10 +187,9 @@ navigator.serviceWorker?.addEventListener('message', async event => {
   try {
     const value = await rpc(event.data);
     showVolume(value.durability);
-    if (value.durability?.bytes >= 205 * 1024**2) document.querySelector('#tools').open = true;
     status.textContent = value.result.status >= 400
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
-      : 'État enregistré sur cet appareil.';
+      : '';
     port.postMessage({ok: true, ...value.result}, value.result.body?.buffer ? [value.result.body.buffer] : []);
     if (value.result.ouvrir_apercu) setTimeout(() => location.assign(BASE + 'apercu.html'), 0);
   } catch (error) {
@@ -191,21 +206,23 @@ document.querySelector('#persist').onclick = async () => {
 checkUpdate.onclick = async () => {
   if (!registration || showUpdate()) return;
   checkUpdate.disabled = true;
-  checkUpdate.textContent = 'Vérifier les mises à jour';
+  updateRetry.hidden = true;
   updateStatus.textContent = 'Recherche d’une mise à jour…';
   try {
     await registration.update();
     watchUpdate();
-    if (!installingUpdate && !showUpdate() && checkUpdate.textContent !== resumeLabel) {
+    if (!installingUpdate && !showUpdate() && updateRetry.hidden) {
       updateStatus.textContent = 'Aucune nouvelle version détectée.';
     }
   } catch {
     updateStatus.textContent = 'La vérification a échoué. Vérifiez la connexion, puis réessayez.';
-    checkUpdate.textContent = 'Réessayer la vérification';
+    updateRetry.textContent = 'Réessayer la vérification';
+    updateRetry.hidden = false;
   } finally {
     checkUpdate.disabled = !!installingUpdate;
   }
 };
+updateRetry.onclick = checkUpdate.onclick;
 document.querySelector('#update').onclick = async event => {
   event.target.disabled = true;
   try {
@@ -262,7 +279,7 @@ try {
         if (event.data?.kind === 'test-checkpoint') window.pwaCheckpoint = event.data.phase;
       });
     }
-    status.textContent = `Prêt en ${(initial.durationMs / 1000).toFixed(1)} s — ${initial.restored ? 'données retrouvées' : 'école à installer'}.`;
+    status.textContent = '';
     frame.hidden = false;
     document.querySelector('#apercu').disabled = false;
     frame.src = BASE + 'app/';
@@ -272,7 +289,6 @@ try {
   worker?.terminate(); worker = null; ready = false; frame.hidden = true;
   status.textContent = String(error.message).includes('déjà ouvert') ? String(error.message) : 'Démarrage interrompu.';
   document.querySelector('#failure').hidden = false;
-  document.querySelector('#tools').open = true;
   document.querySelector('#diagnostic').textContent = String(error.message);
   if (String(error.message).includes('incompatible')) document.querySelector('#failure-help').textContent = 'Ce navigateur ne fournit pas toutes les fonctions nécessaires. Essayez Chrome ou Edge récent. Le programme Windows ou Linux est une autre possibilité.';
 }

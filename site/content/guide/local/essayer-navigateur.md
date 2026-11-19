@@ -42,7 +42,7 @@ transférée par un ZIP pour être retrouvée à cette nouvelle adresse.
 ## Installer et retrouver Petits Pas
 
 Si **Installer Petits Pas** apparaît, il propose l’ajout d’une icône. Sinon,
-ouvrez **Installation, stockage et mises à jour** pour voir les instructions
+ouvrez **Outils de l’application** pour voir les instructions
 pour votre navigateur. Vous pouvez aussi continuer dans cet onglet.
 Le premier chargement affiche les étapes de préparation ; attendez que l’école
 s’ouvre. La version reste visible. Sur petit écran, les outils se replient pour
@@ -52,7 +52,7 @@ Les installations Windows, Android et iPad sont à observer au fil des essais.
 
 ## Sauvegarder et transférer
 
-Avec un compte de direction, ouvrez **Sauvegardes / transfert** ou **Gérer l’école → Sauvegardes locales**,
+Avec un compte de direction, ouvrez **Outils de l’application → Sauvegardes / transfert** ou **Gérer l’école → Sauvegardes locales**,
 puis **Télécharger une sauvegarde**. Le ZIP contient l’école, les comptes,
 les carnets, les photos et la clé locale. Conservez-le dans un lieu protégé.
 Il peut être restauré dans le programme autonome avec une version compatible.
@@ -97,7 +97,7 @@ document à imprimer ; elle ne produit pas un ZIP de PDF séparés.
 
 ## Mettre à jour et récupérer
 
-**Vérifier les mises à jour** recherche une nouvelle version. La barre indique
+Dans **Outils de l’application**, **Vérifier les mises à jour** recherche une nouvelle version. La barre indique
 combien de ressources sont déjà vérifiées. Si le téléchargement est interrompu,
 cliquez sur **Reprendre le téléchargement** une fois la connexion rétablie. Petits Pas
 vérifie et réutilise les fichiers complets déjà téléchargés.

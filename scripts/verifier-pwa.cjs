@@ -134,11 +134,15 @@ async function login(page) {
   await page.getByRole('button', {name: 'Installer Petits Pas', exact: true}).click();
   assert.equal(await page.evaluate(() => window.installRequested), true);
   await page.setViewportSize({width: 390, height: 844});
-  await page.locator('#tools').evaluate(node => {node.open = false;});
+  const toolsSummary = page.locator('#tools > summary');
+  await toolsSummary.press('Space');
+  assert(await page.locator('#backup').isHidden());
+  assert(await page.locator('#changer-espace').isHidden());
   assert((await page.locator('#app').boundingBox()).height > 400);
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await toolsSummary.press('Enter');
+  assert(await page.locator('#backup').isVisible());
   await page.setViewportSize({width: 1280, height: 720});
-  await page.locator('#tools').evaluate(node => {node.open = true;});
   const visibleConfig = JSON.parse(fs.readFileSync(path.join(serverRoot, 'config.json')));
   assert.equal(await page.locator('#version').innerText(), 'Version ' + (visibleConfig.application_version || visibleConfig.version));
   pass('Manifeste et icônes PNG, installation proposée ou refusée, coque mobile sans débordement et version visible');
@@ -380,6 +384,7 @@ with zipfile.ZipFile(sys.argv[1]) as z, tempfile.TemporaryDirectory() as temp:
   assert.equal(await python(page, 'from django.conf import settings; settings.ESPACE_APERCU'), true);
   assert.equal(await python(page, 'from django.conf import settings; settings.ESPACE_ESSAI'), false);
   await python(page, "from suivi.models import Ecole; Ecole.objects.update(nom='Copie fictive vérifiée')");
+  await page.locator('#tools > summary').click();
   await page.locator('#backup').click();
   await frame.getByRole('heading', {name: 'Sauvegardes locales', exact: true}).waitFor();
   assert.equal(await frame.getByRole('heading', {name: 'Restaurer une sauvegarde', exact: true}).count(), 0);
@@ -438,7 +443,7 @@ with tempfile.TemporaryDirectory() as folder:
   await page.close(); page = await context.newPage(); currentPage = page;
   await boot(page, url + '?apercu=oui'); await login(page);
   assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'Copie fictive vérifiée');
-  assert.equal(await page.locator('#changer-espace').getAttribute('href'), base);
+  assert.equal(await page.locator('#retour-ecole').getAttribute('href'), base);
   await page.close(); page = await context.newPage(); currentPage = page;
   await boot(page, url); await login(page); frame = page.frameLocator('#app');
   assert.equal(await python(page, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
@@ -610,6 +615,7 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   published.downloadStarted = new Promise(resolve => { published.signalDownloadStarted = resolve; });
   const beforeUpdate = network.length;
   await reopened.getByRole('button', {name: 'Vérifier les mises à jour', exact: true}).click();
+  await reopened.locator('#tools > summary').click();
   await reopened.locator('#update-progress').waitFor({state: 'visible'});
   await reopened.waitForFunction(() => document.querySelector('#update-progress').value === 1);
   assert.equal(await reopened.locator('#update-progress').getAttribute('max'), String(config.assets.length));
@@ -691,14 +697,15 @@ with tempfile.TemporaryDirectory() as dossier:
   await boot(espace, url + '?essai=oui');
   assert.notEqual(await python(espace, "from suivi.models import Ecole; Ecole.objects.get().commune"), 'Modification non activée fictive');
   pass('Expiration réelle de la coque : arrêt du Worker, réouverture du dernier état confirmé');
-  const retour = await espace.locator('#changer-espace').getAttribute('href');
+  assert(await espace.locator('#retour-ecole').isVisible());
+  const retour = await espace.locator('#retour-ecole').getAttribute('href');
   assert.equal(retour, base);
   await espace.close();
   espace = await context.newPage(); currentPage = espace;
   // L'espace habituel avait été volontairement rendu incompatible par le test précédent.
   await espace.goto(url);
   await espace.getByRole('heading', {name: 'Petits Pas n’a pas pu démarrer'}).waitFor({timeout:120000});
-  const archiveHabituelle = await Promise.all([espace.waitForEvent('download'), espace.locator('#recovery').click()]);
+  const archiveHabituelle = await Promise.all([espace.waitForEvent('download'), espace.locator('#rescue').click()]);
   const cheminHabituel = await archiveHabituelle[0].path();
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
