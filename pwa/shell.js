@@ -88,6 +88,7 @@ function showVolume(durability) {
 const checkUpdate = document.querySelector('#check-update');
 const updateStatus = document.querySelector('#update-status');
 const updateProgress = document.querySelector('#update-progress');
+const resumeLabel = 'Reprendre le téléchargement';
 let installingUpdate;
 
 function showUpdate() {
@@ -116,8 +117,8 @@ function watchUpdate() {
       const count = updateProgress.hasAttribute('value')
         ? ` (${updateProgress.value} ressources vérifiées sur ${updateProgress.max})`
         : '';
-      updateStatus.textContent = `Installation de la mise à jour interrompue${count}. Vous pouvez réessayer.`;
-      checkUpdate.textContent = 'Réessayer la mise à jour';
+      updateStatus.textContent = `Installation de la mise à jour interrompue${count}. Vous pouvez reprendre le téléchargement.`;
+      checkUpdate.textContent = resumeLabel;
     } else if (!showUpdate() && candidate.state !== 'activated') {
       return;
     }
@@ -195,12 +196,12 @@ checkUpdate.onclick = async () => {
   try {
     await registration.update();
     watchUpdate();
-    if (!installingUpdate && !showUpdate() && checkUpdate.textContent !== 'Réessayer la mise à jour') {
+    if (!installingUpdate && !showUpdate() && checkUpdate.textContent !== resumeLabel) {
       updateStatus.textContent = 'Aucune nouvelle version détectée.';
     }
   } catch {
     updateStatus.textContent = 'La vérification a échoué. Vérifiez la connexion, puis réessayez.';
-    checkUpdate.textContent = 'Réessayer la mise à jour';
+    checkUpdate.textContent = 'Réessayer la vérification';
   } finally {
     checkUpdate.disabled = !!installingUpdate;
   }

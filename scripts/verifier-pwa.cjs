@@ -621,11 +621,11 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
     }),
   ]);
   published.failDownload();
-  await reopened.getByRole('button', {name: 'Réessayer la mise à jour', exact: true}).waitFor();
+  await reopened.getByRole('button', {name: 'Reprendre le téléchargement', exact: true}).waitFor();
   assert.match(await reopened.locator('#update-status').innerText(), /interrompue.*1 ressources vérifiées/);
   assert(await reopened.locator('#update').isHidden());
   assert.equal(await python(reopened, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
-  await reopened.getByRole('button', {name: 'Réessayer la mise à jour', exact: true}).click();
+  await reopened.getByRole('button', {name: 'Reprendre le téléchargement', exact: true}).click();
   await reopened.locator('#update').waitFor({state: 'visible', timeout: 120000});
   const downloads = network.slice(beforeUpdate);
   assert.equal(downloads.filter(url => url === base + 'apercu.html').length, 1, 'Ressource reprise après interruption');
