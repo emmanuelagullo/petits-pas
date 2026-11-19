@@ -1,6 +1,7 @@
 {% comment %}Une ligne « compétence » dans l'écran d'un enfant.{% endcomment %}
 {% load illustrations %}
 <div class="ligne" id="c{{ competence.pk }}" tabindex="-1">
+  <div class="competence-eleve" data-statut="{{ obs.statut|default:'' }}">
   {% icone_liste competence classe as image_competence %}
   {% if responsable and competence.saisie_ouverte != False and image_competence %}
   <a class="emplacement-icone illustration-competence" href="{% url 'presentation_competence_classe' classe.pk competence.pk %}" aria-label="Modifier l’illustration de cette compétence">{{ image_competence }}</a>
@@ -11,7 +12,7 @@
   <form hx-post="{% url 'basculer' eleve.pk competence.pk %}{% if filtre and filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}"
         hx-target="#c{{ competence.pk }}" hx-swap="outerHTML">
     {% csrf_token %}
-    <button class="bascule" type="submit"
+    <button class="bascule" type="submit" id="etat-c{{ competence.pk }}"
             data-statut="{{ obs.statut|default:'' }}"
             aria-label="{{ competence.libelle }} — {% if obs %}{{ obs.get_statut_display }}{% else %}pas encore observé{% endif %}">
       <span class="marqueur" aria-hidden="true">{% if obs.statut == 'reussi' %}✓{% elif obs.statut == 'en_cours' %}◐{% endif %}</span>
@@ -25,6 +26,7 @@
     <span class="libelle">{{ competence.libelle }}</span>
   </span>
   {% endif %}
+  </div>
   {% if responsable and competence.saisie_ouverte == False %}<small>Suivi fermé pour cet élève ; ses traces restent conservées.</small>{% endif %}
   {% include "suivi/partiels/date_reussite.html" %}
   <a class="trace-lien {% if obs.a_un_commentaire or obs.a_une_photo %}pleine{% endif %}"

@@ -955,14 +955,40 @@ textarea { min-height: 7rem; resize: vertical; }
   .ligne > form.portee-suivi { flex-basis: 100%; order: 4; }
 }
 
-.illustration-competence {
-  box-sizing: content-box;
-  padding-inline: .5rem;
+.competence-eleve {
+  display: flex;
+  flex: 1 1 17rem;
+  min-width: 0;
+  border-inline-start: 5px solid transparent;
 }
-.ligne > .bascule { min-width: 0; flex: 1 1 15rem; }
-.ligne .libelle { min-width: 0; overflow-wrap: anywhere; }
+.competence-eleve:hover { background: #f8faf7; }
+.competence-eleve[data-statut="reussi"] {
+  border-inline-start-color: var(--reussi);
+  background: var(--reussi-fond);
+}
+.competence-eleve[data-statut="en_cours"] {
+  border-inline-start-color: var(--en-cours);
+  background: var(--en-cours-fond);
+}
+.competence-eleve .bascule[data-statut],
+.competence-eleve .bascule:hover { background: transparent; }
+.competence-eleve .bascule { border: 0; min-width: 0; }
+.competence-eleve span.bascule { cursor: default; }
+.competence-eleve form { min-width: 0; }
+.competence-eleve .libelle { min-width: 0; overflow-wrap: anywhere; }
+.illustration-competence { box-sizing: content-box; padding-inline: .5rem; }
+a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
+.competence-eleve[data-statut="reussi"] .marqueur {
+  border-color: var(--reussi);
+  background: var(--reussi);
+  color: #fff;
+}
+.competence-eleve[data-statut="en_cours"] .marqueur {
+  border-color: var(--en-cours);
+  color: var(--en-cours);
+}
 @media (max-width: 600px) {
-  .ligne > form:first-of-type, .ligne > .bascule { flex-basis: 0; }
+  .competence-eleve { flex-basis: 0; }
 }
 
 .complements-facultatifs { min-width: 0; margin: 1.25rem 0; }
