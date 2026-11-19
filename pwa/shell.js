@@ -250,8 +250,10 @@ document.querySelector('#recovery').onclick = async event => {
   finally {recoveryWorker.terminate(); event.target.disabled = false;}
 };
 
+const navigateurCompatible = window.isSecureContext && navigator.serviceWorker
+  && navigator.locks && navigator.storage?.getDirectory;
 try {
-  if (!window.isSecureContext || !navigator.serviceWorker || !navigator.locks || !navigator.storage?.getDirectory) throw new Error('Navigateur incompatible : Web Locks et OPFS requis.');
+  if (!navigateurCompatible) throw new Error('Navigateur incompatible : Web Locks et OPFS requis.');
   await navigator.locks.request('petits-pas-pwa-prototype' + (BASE === '/' ? '' : '-' + BASE), {ifAvailable: true}, async lock => {
     if (!lock) throw new Error('Petits Pas est déjà ouvert dans un autre onglet. Revenez à cet onglet.');
     status.textContent = 'Téléchargement et vérification de l’application pour le mode hors ligne…';
@@ -290,5 +292,10 @@ try {
   status.textContent = String(error.message).includes('déjà ouvert') ? String(error.message) : 'Démarrage interrompu.';
   document.querySelector('#failure').hidden = false;
   document.querySelector('#diagnostic').textContent = String(error.message);
-  if (String(error.message).includes('incompatible')) document.querySelector('#failure-help').textContent = 'Ce navigateur ne fournit pas toutes les fonctions nécessaires. Essayez Chrome ou Edge récent. Le programme Windows ou Linux est une autre possibilité.';
+  const aide = document.querySelector('#failure-help');
+  if (!navigateurCompatible) {
+    aide.textContent = 'Ce navigateur ne fournit pas toutes les fonctions nécessaires. Essayez Chrome ou Edge récent. Le programme Windows ou Linux est une autre possibilité.';
+  } else if (String(error.message).includes("Base issue d'une version plus récente ou incompatible.")) {
+    aide.textContent = 'Cette version de Petits Pas ne peut pas ouvrir les données enregistrées. Utilisez « Récupérer un ZIP » pour télécharger une copie de récupération. Ne supprimez pas les données du site.';
+  }
 }
