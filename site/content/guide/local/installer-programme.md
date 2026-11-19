@@ -67,7 +67,7 @@ sauvegardes. Pour retirer le programme, utilisez **Paramètres → Applications 
 Applications installées → Petits Pas → Désinstaller**. Ne supprimez pas le
 dossier des données de l’école.
 
-La version du programme est indiquée en bas de chaque page de Petits Pas.
+La version du programme figure dans **Outils de l’application → Version et installation**.
 Si une mise à jour de l’école est nécessaire à l’ouverture, un message vous
 invite à patienter ; un second message confirme sa fin avant l’ouverture.
 En cas d’échec, relevez le chemin du diagnostic indiqué à l’écran et

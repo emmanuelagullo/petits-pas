@@ -31,8 +31,8 @@ avant de compter sur cette copie. Répétez l’opération selon les besoins de
 l’école, notamment avant une mise à jour du programme. Le téléchargement
 ne supprime pas le paquet en cours.
 
-La page indique la date du dernier ZIP préparé sur cet appareil. La direction
-reçoit un rappel si aucun export n’a été enregistré ou après sept jours.
+La page indique la date du dernier ZIP préparé sur cet appareil. Elle propose
+de télécharger une nouvelle copie si aucun export n’a été enregistré ou après sept jours.
 Cette date ne prouve pas que le fichier a été conservé : gardez une copie hors
 de l’appareil, selon l’organisation choisie par l’école.
 

@@ -74,6 +74,9 @@
   </div>
 </header>
 {% endif %}
+{% if mode_local and not mode_pwa and not generation_pdf %}
+{% include "suivi/partiels/outils_programme_local.html" %}
+{% endif %}
 <main>
   {% if espace_apercu %}
   <aside class="encadre sans-impression"><strong>Copie du ZIP à vérifier — vos modifications restent dans cette copie.</strong>
@@ -81,12 +84,6 @@
   {% elif espace_essai %}
   <aside class="encadre sans-impression"><strong>Espace d’essai — utilisez des données fictives.</strong>
   {% if not mode_pwa %}<a href="{% url 'choisir_espace_local' %}">Revenir à mon école habituelle</a>{% endif %}</aside>
-  {% elif mode_local and not mode_pwa %}
-  <p class="sans-impression"><a href="{% url 'choisir_espace_local' %}">Essayer avec l’école fictive</a></p>
-  {% endif %}
-  {% if mode_local and not mode_pwa and not espace_apercu %}<p class="sans-impression"><a href="{% url 'verifier_zip_local' %}">Vérifier un ZIP sans remplacer mon école</a></p>{% endif %}
-  {% if rappel_sauvegarde_local and not generation_pdf and not mode_pwa %}
-  <aside class="encadre sans-impression"><a href="{% url 'sauvegardes_locales' %}">Pensez à télécharger une sauvegarde</a> et à en garder une copie hors de cet appareil.</aside>
   {% endif %}
   {% if double_facteur_jours_restants %}
   <p class="encadre">L'authentification à deux facteurs sera bientôt exigée pour votre fonction : il vous reste {{ double_facteur_jours_restants }} jour{{ double_facteur_jours_restants|pluralize }} pour la <a href="{% url 'double_facteur' %}">configurer</a>.</p>
@@ -98,7 +95,7 @@
   {% endif %}
   {% block contenu %}{% endblock %}
 </main>
-{% if version_application and not generation_pdf %}
+{% if version_application and not generation_pdf and not mode_local %}
 <footer class="version-application">Petits Pas — version {{ version_application }}</footer>
 {% endif %}
 </body>

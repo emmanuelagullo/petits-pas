@@ -1,0 +1,16 @@
+<details class="outils-programme-local sans-impression">
+  <summary>Outils de l’application</summary>
+  {% if est_direction or not espace_apercu %}
+  <h2>Sauvegardes</h2>
+  <ul>
+    {% if est_direction %}<li><a href="{% url 'sauvegardes_locales' %}">Ouvrir les sauvegardes locales</a></li>{% endif %}
+    {% if not espace_apercu %}<li><a href="{% url 'verifier_zip_local' %}">Vérifier un ZIP sans ouvrir de session</a></li>{% endif %}
+  </ul>
+  {% endif %}
+  <h2>Version et installation</h2>
+  {% if version_application %}<p>Version {{ version_application }}</p>{% endif %}
+  <p><a href="https://petits-pas.forge.apps.education.fr/petits-pas/guide/local/installer-programme/" target="_blank" rel="noopener">Installer ou mettre à jour le programme</a></p>
+  {% if not espace_essai and not espace_apercu %}
+  <p><a href="{% url 'choisir_espace_local' %}">Essayer avec l’école fictive</a></p>
+  {% endif %}
+</details>

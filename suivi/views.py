@@ -602,11 +602,10 @@ def sauvegardes_locales(request):
                 messages.error(request, "Choisissez un fichier de sauvegarde.")
             else:
                 try:
-                    limites = {}
+                    from django.db.migrations.loader import MigrationLoader
+                    limites = {"migrations_connues": MigrationLoader(None).disk_migrations}
                     if getattr(settings, "MODE_PWA", False):
-                        from django.db.migrations.loader import MigrationLoader
-                        limites = {"taille_max": 64 * 1024**2, "fichiers_max": 5000,
-                                   "migrations_connues": MigrationLoader(None).disk_migrations}
+                        limites.update(taille_max=64 * 1024**2, fichiers_max=5000)
                     etape = preparer_restauration(archive, paquet.parent, paquet.name, **limites)
                     try:
                         retenir_preparation(etape)
@@ -618,6 +617,7 @@ def sauvegardes_locales(request):
                 else:
                     messages.success(request, "Sauvegarde vérifiée. Vérifiez les détails avant de confirmer.")
             return redirect("sauvegardes_locales")
+    from .paquet_local import suivi_export
     preparation = restauration_en_attente() or preparation_en_attente()
     resultat = lire_resultat(paquet)
     def date_affichee(valeur):
@@ -631,6 +631,7 @@ def sauvegardes_locales(request):
     return render(
         request, "suivi/sauvegardes_locales.html",
         {
+            **suivi_export(paquet),
             "restauration_attente": restauration_en_attente() is not None,
             "preparation": preparation,
             "paquet": paquet,
