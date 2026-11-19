@@ -3,6 +3,7 @@ import os
 import re
 import smtplib
 from importlib.util import find_spec
+from copy import deepcopy
 from datetime import date, timedelta
 from unittest import skipUnless
 from zipfile import ZipFile
@@ -337,6 +338,20 @@ class SauvegardesLocalesAccesTests(TestCase):
             reponse = self.client.get(reverse("sauvegardes_locales"))
             self.assertContains(reponse, "Pensez à télécharger une sauvegarde")
             self.assertContains(reponse, "Aucun ZIP préparé")
+
+    @override_settings(MODE_LOCAL=True, MODE_PWA=True)
+    def test_pwa_affiche_le_conseil_dans_les_sauvegardes(self):
+        templates = deepcopy(settings.TEMPLATES)
+        templates[0]["OPTIONS"]["context_processors"].append("pwa.views.contexte")
+        with self.settings(TEMPLATES=templates), patch("suivi.paquet_local.suivi_export", return_value={
+            "dernier_export_local": None, "rappel_sauvegarde_local": True,
+        }):
+            gestion = self.client.get(reverse("gestion"))
+            self.assertNotContains(gestion, "Pensez à télécharger une sauvegarde")
+            sauvegardes = self.client.get(reverse("sauvegardes_locales"))
+            self.assertNotContains(sauvegardes, "Pensez à télécharger une sauvegarde")
+            self.assertContains(sauvegardes, "Aucun ZIP préparé")
+            self.assertContains(sauvegardes, "Téléchargez une sauvegarde pour disposer d’une copie à jour")
 
     @override_settings(MODE_LOCAL=True)
     def test_echec_export_ne_note_pas_de_zip_prepare(self):

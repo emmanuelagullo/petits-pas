@@ -197,7 +197,7 @@ def ajouter_photos(total):
   await page.locator('#storage-warning').filter({hasText: 'Stockage presque plein'}).waitFor();
   assert.equal(await page.locator('#tools').evaluate(outils => outils.open), false);
   await page.getByRole('button', {name: 'Ouvrir les outils de stockage', exact: true}).click();
-  await page.locator('#volume').filter({hasText: 'Limite proche'}).waitFor();
+  await page.locator('#volume').filter({hasText: /Données enregistrées.*256 Mio/}).waitFor();
   pass('Volume confirmé et avertissement visibles à proximité de la limite');
   await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
   const transferPss = [];
