@@ -28,11 +28,27 @@ async function local(request) {
     if (await hasRuntime(client)) { if (owner) throw new Error('Plusieurs propriétaires'); owner = client; }
   }
   if (!owner) return new Response('Ouvrez Petits Pas depuis sa page d’accueil.', {status: 503});
+  const multipart = request.method === 'POST' && request.headers.get('content-type')?.startsWith('multipart/form-data');
+  const stream = multipart ? request.body : null;
+  const upload = typeof stream?.getReader === 'function' ? new MessageChannel() : null;
+  const limit = 70 * 1024**2;
+  let raw = new ArrayBuffer(0);
+  if (!upload && request.method !== 'GET' && request.method !== 'HEAD') {
+    try {
+      if (multipart) {
+        // Certains navigateurs savent lire le corps sans exposer son flux.
+        const payload = await request.blob();
+        if (payload.size > limit) return new Response('Envoi trop volumineux (70 Mio sans transfert progressif).', {status: 413});
+        raw = await payload.arrayBuffer();
+      } else {
+        raw = await request.arrayBuffer();
+      }
+    } catch {
+      return new Response('Le navigateur n’a pas pu lire le formulaire. La demande n’a pas été transmise à Petits Pas.', {status: 503});
+    }
+  }
+  if (raw.byteLength > limit) return new Response('Envoi trop volumineux (70 Mio).', {status: 413});
   const channel = new MessageChannel();
-  const progressive = request.method === 'POST' && request.headers.get('content-type')?.startsWith('multipart/form-data');
-  const upload = progressive ? new MessageChannel() : null;
-  const raw = progressive || request.method === 'GET' || request.method === 'HEAD' ? new ArrayBuffer(0) : await request.arrayBuffer();
-  if (raw.byteLength > 70 * 1024**2) return new Response('Envoi trop volumineux (70 Mio).', {status: 413});
   const body = new Uint8Array(raw);
   let uploadReader;
   const stopUpload = () => {
@@ -41,7 +57,7 @@ async function local(request) {
   };
   if (upload) {
     // Une tranche est envoyée seulement après consommation de la précédente.
-    const reader = uploadReader = request.body.getReader();
+    const reader = uploadReader = stream.getReader();
     let pending = null, offset = 0;
     upload.port1.onmessage = async event => {
       try {

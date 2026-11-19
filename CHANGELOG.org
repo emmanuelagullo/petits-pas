@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Corriger l’envoi des traces avec ou sans photo lorsque le navigateur
+  ne fournit pas le flux du formulaire.
+
 * 0.14 — 2026-10-29
 
 Cette version propose, à l’essai, un programme pour les Mac à puce Apple, à côté
