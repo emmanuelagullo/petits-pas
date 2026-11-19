@@ -42,23 +42,22 @@ transférée par un ZIP pour être retrouvée à cette nouvelle adresse.
 ## Installer et retrouver Petits Pas
 
 Si **Installer Petits Pas** apparaît, il propose l’ajout d’une icône. Sinon,
-ouvrez **Outils de l’application** pour voir les instructions
-pour votre navigateur. Vous pouvez aussi continuer dans cet onglet.
+ouvrez le menu de Chrome ou Edge et cherchez « Installer ». Vous pouvez
+aussi continuer dans cet onglet.
 Le premier chargement affiche les étapes de préparation ; attendez que l’école
-s’ouvre. La version reste visible. Sur petit écran, les outils se replient pour
-laisser de la place à l’application. Une difficulté de démarrage propose
+s’ouvre. La version se trouve dans **Outils de l’application**, replié par défaut. Une difficulté de démarrage propose
 **Réessayer** et la récupération, sans effacer les données.
 Les installations Windows, Android et iPad sont à observer au fil des essais.
 
 ## Sauvegarder et transférer
 
-Avec un compte de direction, ouvrez **Outils de l’application → Sauvegardes / transfert** ou **Gérer l’école → Sauvegardes locales**,
+Avec un compte de direction, ouvrez **Outils de l’application → Ouvrir les sauvegardes locales** ou **Gérer l’école → Sauvegardes locales**,
 puis **Télécharger une sauvegarde**. Le ZIP contient l’école, les comptes,
 les carnets, les photos et la clé locale. Conservez-le dans un lieu protégé.
 Il peut être restauré dans le programme autonome avec une version compatible.
 
-La page indique le dernier ZIP préparé sur cet appareil. Un rappel apparaît
-pour la direction si aucun export n’a été enregistré ou après sept jours.
+La page indique le dernier ZIP préparé sur cet appareil. Elle propose de
+télécharger une nouvelle copie si aucun export n’a été enregistré ou après sept jours.
 Vérifiez le téléchargement et gardez une copie hors de l’appareil : cette date
 ne confirme pas que le fichier a été conservé. Après un transfert, continuez
 les saisies sur une seule copie : les appareils ne se synchronisent pas.
@@ -72,7 +71,8 @@ Reconnectez-vous avec un compte de la sauvegarde importée.
 Dans le navigateur, le contenu d’une sauvegarde est limité à 256 Mio après
 décompression, avec au plus 5 000 fichiers et 64 Mio par fichier ou pour la
 base. La photo préparée et sa version pour le carnet comptent comme deux
-fichiers. Le bandeau affiche le volume enregistré et avertit dès 205 Mio. Les
+fichiers. Le volet **Outils de l’application** affiche le volume enregistré. Une alerte
+reste visible dès 205 Mio. Les
 photos enregistrées sont lues à la demande ; depuis #PWA12, les ZIP sont
 également transférés progressivement. Il faut garder assez d’espace libre
 pour les fichiers temporaires et l’état de récupération. Une erreur de stockage
@@ -106,13 +106,13 @@ l’application. Téléchargez une sauvegarde si vous le pouvez avant de l’app
 Une version prête peut aussi s’activer au prochain lancement, après fermeture
 de tous les onglets. Revenez à la même adresse pour retrouver votre école.
 
-**Exporter l’état de récupération** télécharge l’état conservé avant la
+Dans **Outils de l’application → Dépannage**, **Exporter l’état de récupération** télécharge l’état conservé avant la
 dernière mise à jour ou restauration ; si aucun remplacement n’a eu lieu,
 il télécharge l’état actuel. Cet état peut être plus ancien que les dernières
 saisies. En fonctionnement normal, l’export est réservé à la direction.
 Si l’application ne démarre plus, la récupération reste accessible sans
 connexion : elle est destinée à la personne qui possède ce profil de
-navigateur. Le ZIP contient toutes les données de l’école.
+navigateur, depuis **Récupérer un ZIP**. Le ZIP contient toutes les données de l’école.
 
 Effacer le profil du navigateur ou les données du site peut supprimer
 l’école et son état de récupération. Le bouton **Protéger le stockage local**
@@ -121,8 +121,7 @@ avec des personnes qui ne doivent pas accéder aux données de l’école.
 
 ## Retrouver les nouveautés de votre version
 
-La version est affichée en haut de Petits Pas. Ouvrez **Installation, stockage
-et mises à jour**, puis **Voir les nouveautés**. Ces notes accompagnent la
+Dans **Outils de l’application → Version et installation**, ouvrez **Voir les nouveautés**. Ces notes accompagnent la
 version chargée ; elles ne changent pas seulement parce qu’une nouvelle
 version du code a été préparée. La publication dans le navigateur et celle
 des programmes à télécharger peuvent avoir lieu à des dates différentes.

@@ -142,6 +142,7 @@ async function login(page) {
   assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await toolsSummary.press('Enter');
   assert(await page.locator('#backup').isVisible());
+  assert(await page.locator('#recovery').isHidden());
   await page.setViewportSize({width: 1280, height: 720});
   const visibleConfig = JSON.parse(fs.readFileSync(path.join(serverRoot, 'config.json')));
   assert.equal(await page.locator('#version').innerText(), 'Version ' + (visibleConfig.application_version || visibleConfig.version));
@@ -316,7 +317,7 @@ assert not p.exists() and not q.exists()
   assert.equal(lazyMetrics.residentMediaBytes, 0);
   assert.equal(lazyMetrics.lazyMediaFiles, initialMediaCount + 1);
   pass('PWA11 : Pillow sur File OPFS, création, modification, troncature, ajout, renommage et suppression sans médias résidents');
-  await page.getByRole('button', {name: 'Sauvegardes / transfert'}).click();
+  await page.getByRole('button', {name: 'Ouvrir les sauvegardes locales'}).click();
   await page.frameLocator('#app').getByRole('heading', {name: 'Sauvegardes locales', exact: true}).waitFor();
   const downloadReady = page.waitForEvent('download');
   await page.frameLocator('#app').getByRole('button', {name: 'Télécharger une sauvegarde', exact: true}).click();
@@ -454,10 +455,10 @@ with tempfile.TemporaryDirectory() as folder:
   await frame.getByText(/Dernier ZIP préparé sur cet appareil/).waitFor();
   await boot(page, url); await login(page);
   await python(page, "from suivi.models import Ecole, Trace");
-  await page.getByRole('button', {name: 'Sauvegardes / transfert'}).click();
+  await page.getByRole('button', {name: 'Ouvrir les sauvegardes locales'}).click();
   await frame.getByText(/Dernier ZIP préparé sur cet appareil/).waitFor();
   assert.equal(await python(page, "from suivi.paquet_local import suivi_export; suivi_export(__import__('pathlib').Path('/data'))['rappel_sauvegarde_local']"), false);
-  pass('Date du ZIP préparé affichée, rappel commun levé sans prétendre confirmer son enregistrement');
+  pass('Date du ZIP préparé affichée sans prétendre confirmer son enregistrement');
   const transfer = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'petits-pas-transfert-'));
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 from pathlib import Path
@@ -504,6 +505,7 @@ with (parent/'version-future.zip').open('wb') as sortie: creer_sauvegarde(paquet
   await frame.getByRole('button', {name: 'Confirmer la restauration', exact: true}).click();
   await frame.locator('[name="nom_utilisateur"]').waitFor(); await login(page);
   assert.equal(await python(page, "Ecole.objects.get().nom"), 'École fictive PWA');
+  await page.locator('#depannage > summary').click();
   const recoveryDownload = page.waitForEvent('download', {timeout: 120000});
   await page.getByRole('button', {name: 'Exporter l’état de récupération'}).click();
   const recovery = await recoveryDownload;

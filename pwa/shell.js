@@ -18,7 +18,7 @@ retourEcole.href = BASE;
 const tools = document.querySelector('#tools');
 document.querySelector('#storage-tools').onclick = () => {
   tools.open = true;
-  tools.querySelector('summary').focus();
+  document.querySelector('#titre-stockage').focus();
 };
 document.querySelector('#apercu').hidden = APERCU;
 if (ESSAI && !APERCU) {
@@ -58,13 +58,18 @@ document.querySelector('#retry').onclick = () => location.reload();
 document.querySelector('#rescue').onclick = () => document.querySelector('#recovery').click();
 document.querySelector('#backup').onclick = () => {if (ready) frame.src = BASE + 'app/gestion/sauvegardes-locales/';};
 document.querySelector('#apercu').onclick = () => {if (ready) frame.src = BASE + 'app/verifier-zip/';};
+const storage = document.querySelector('#storage');
+const persist = document.querySelector('#persist');
 async function showStorage() {
   try {
-    const protectedStorage = await navigator.storage.persisted();
-    document.querySelector('#storage').textContent = protectedStorage
-      ? 'Protection contre l’effacement automatique accordée. Une sauvegarde externe reste nécessaire.'
-      : 'Protection contre l’effacement automatique non accordée. Gardez des sauvegardes hors de cet appareil.';
-  } catch {document.querySelector('#storage').textContent = 'Protection du stockage impossible à vérifier.';}
+    const protection = await navigator.storage.persisted();
+    storage.textContent = protection
+      ? 'Protection contre l’effacement automatique accordée.'
+      : 'Protection contre l’effacement automatique non accordée.';
+    persist.hidden = protection || typeof navigator.storage.persist !== 'function';
+  } catch {
+    storage.textContent = 'Protection du stockage impossible à vérifier.';
+  }
 }
 void showStorage();
 function controlled() {
@@ -94,13 +99,17 @@ function showVolume(durability) {
   const nearLimit = durability?.bytes >= 205 * 1024**2;
   document.querySelector('#storage-warning').hidden = !nearLimit;
   document.querySelector('#storage-tools').hidden = !nearLimit;
-  if (!durability?.bytes) return;
+  if (!Number.isFinite(durability?.bytes)) return;
   const mib = durability.bytes / 1024**2;
-  document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 256 Mio (avant compression).`
-    + (mib >= 205 ? ' Limite proche : téléchargez une sauvegarde et prévoyez un transfert.' : '');
+  document.querySelector('#volume').textContent = `Données enregistrées : ${mib.toLocaleString('fr-FR', {maximumFractionDigits: 1})} Mio / 256 Mio.`;
 }
 const checkUpdate = document.querySelector('#check-update');
 const updateStatus = document.querySelector('#update-status');
+const updateCheckStatus = document.querySelector('#update-check-status');
+function showUpdateStatus(message, dansOutils = false) {
+  updateCheckStatus.textContent = dansOutils ? message : '';
+  updateStatus.textContent = dansOutils ? '' : message;
+}
 const updateProgress = document.querySelector('#update-progress');
 const updateRetry = document.querySelector('#update-retry');
 const resumeLabel = 'Reprendre le téléchargement';
@@ -112,7 +121,7 @@ function showUpdate() {
   if (available) {
     updateRetry.hidden = true;
     updateProgress.hidden = true;
-    updateStatus.textContent = 'Nouvelle version prête à appliquer.';
+    showUpdateStatus('Nouvelle version prête à appliquer.');
     checkUpdate.textContent = 'Vérifier les mises à jour';
   }
   return available;
@@ -126,14 +135,14 @@ function watchUpdate() {
   updateRetry.hidden = true;
   updateProgress.removeAttribute('value');
   updateProgress.hidden = false;
-  updateStatus.textContent = 'Téléchargement et vérification de la mise à jour…';
+  showUpdateStatus('Téléchargement et vérification de la mise à jour…');
   function stateChanged() {
     if (installingUpdate !== candidate) return;
     if (candidate.state === 'redundant') {
       const count = updateProgress.hasAttribute('value')
         ? ` (${updateProgress.value} ressources vérifiées sur ${updateProgress.max})`
         : '';
-      updateStatus.textContent = `Installation de la mise à jour interrompue${count}. Vous pouvez reprendre le téléchargement.`;
+      showUpdateStatus(`Installation de la mise à jour interrompue${count}. Vous pouvez reprendre le téléchargement.`);
       updateRetry.textContent = resumeLabel;
       updateRetry.hidden = false;
     } else if (!showUpdate() && candidate.state !== 'activated') {
@@ -155,7 +164,7 @@ navigator.serviceWorker?.addEventListener('message', event => {
   const {checked, total} = event.data;
   updateProgress.max = total;
   updateProgress.value = checked;
-  updateStatus.textContent = `${checked} ressources vérifiées sur ${total}.`;
+  showUpdateStatus(`${checked} ressources vérifiées sur ${total}.`);
 });
 
 function stopRuntime() {
@@ -197,25 +206,31 @@ navigator.serviceWorker?.addEventListener('message', async event => {
     port.postMessage({ok: false, error: 'Opération interrompue. Fermez puis rouvrez Petits Pas ; ne répétez pas automatiquement cette saisie.'});
   } finally { clearInterval(waiting); port.close(); }
 });
-document.querySelector('#persist').onclick = async () => {
+persist.onclick = async () => {
+  persist.disabled = true;
   try {
-    await navigator.storage.persist(); await showStorage();
-    status.textContent = document.querySelector('#storage').textContent;
-  } catch {status.textContent = 'Protection impossible à demander. Conservez une sauvegarde hors de cet appareil.';}
+    await navigator.storage.persist();
+    await showStorage();
+    if (persist.hidden) storage.focus();
+  } catch {
+    storage.textContent = 'Protection impossible à demander.';
+  } finally {
+    persist.disabled = false;
+  }
 };
 checkUpdate.onclick = async () => {
   if (!registration || showUpdate()) return;
   checkUpdate.disabled = true;
   updateRetry.hidden = true;
-  updateStatus.textContent = 'Recherche d’une mise à jour…';
+  showUpdateStatus('Recherche d’une mise à jour…', true);
   try {
     await registration.update();
     watchUpdate();
     if (!installingUpdate && !showUpdate() && updateRetry.hidden) {
-      updateStatus.textContent = 'Aucune nouvelle version détectée.';
+      showUpdateStatus('Aucune nouvelle version détectée.', true);
     }
   } catch {
-    updateStatus.textContent = 'La vérification a échoué. Vérifiez la connexion, puis réessayez.';
+    showUpdateStatus('La vérification a échoué. Vérifiez la connexion, puis réessayez.');
     updateRetry.textContent = 'Réessayer la vérification';
     updateRetry.hidden = false;
   } finally {
@@ -267,7 +282,7 @@ try {
       if (event.data?.kind === 'progress') status.textContent = event.data.text;
     });
     const initial = await rpc({kind: 'init', essai: ESSAI, apercu: APERCU});
-    document.querySelector('#reprendre-apercu').hidden = APERCU || !initial.apercuDisponible;
+    document.querySelector('#copie-disponible').hidden = APERCU || !initial.apercuDisponible;
     ready = true;
     showVolume(initial.durability);
     const config = await (await fetch('./config.json')).json();
