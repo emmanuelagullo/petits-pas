@@ -74,6 +74,8 @@ def selection_classe(classe, utilisateur):
     versions = set(adoptions.values_list("version_id", flat=True))
     versions.update(annuels.values_list("version_proposee_id", flat=True))
     versions.update(v for pair in correspondances.values_list("version_depart_id", "version_arrivee_id") for v in pair if v)
+    emprunts = m.AdaptationCompetence.objects.filter(classe=classe).exclude(ajout={})
+    competences.update(emprunts.values_list("competence_id", flat=True))
     origines = m.CompetenceSourceEcole.objects.filter(ecole_id=classe.ecole_id, competence_id__in=competences)
     definitions = m.DefinitionSourceCompetence.objects.filter(version_id__in=versions)
     identites = set(definitions.values_list("identite_id", flat=True))
@@ -85,6 +87,7 @@ def selection_classe(classe, utilisateur):
     # clôturés peuvent encore référencer l’ancien domaine ou sous-domaine.
     domaines_historiques, sous_domaines_historiques = set(), set()
     contenus = list(locales.values_list("definition", flat=True))
+    contenus.extend(emprunts.values_list("ajout", flat=True))
     contenus.extend(final.get("contenu", {}) for final in adoptions.values_list("etat_final", flat=True))
     for contenu in contenus:
         domaines_historiques.update(d["id"] for d in contenu.get("domaines", []))

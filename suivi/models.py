@@ -1072,6 +1072,7 @@ class AdaptationCompetence(models.Model):
     classe = models.ForeignKey(Classe, on_delete=models.PROTECT, null=True, blank=True,
                               related_name="adaptations_referentiel")
     competence = models.ForeignKey(Competence, on_delete=models.PROTECT, related_name="adaptations_annuelles")
+    ajout = models.JSONField(default=dict, blank=True)
     # Chaque propriété laissée à None suit séparément le niveau supérieur.
     libelle = models.CharField(max_length=300, null=True, blank=True)
     visible = models.BooleanField(null=True, blank=True)

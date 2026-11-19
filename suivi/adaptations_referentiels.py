@@ -6,6 +6,21 @@ from django.db.models import Q
 from .models import AdaptationCompetence, AdoptionReferentiel, Competence, VersionReferentiel, VersionSourceEcole
 
 
+def contenu_avec_emprunts(contenu, classe):
+    """Ajouter les définitions retenues hors de la base sans modifier celle-ci."""
+    resultat = deepcopy(contenu)
+    presentes = {c["id"] for c in resultat.get("competences", [])}
+    regles = AdaptationCompetence.objects.filter(classe=classe).exclude(ajout={}).order_by("pk")
+    for regle in regles:
+        if regle.competence_id in presentes:
+            continue
+        for rubrique, lignes in regle.ajout.items():
+            destination = resultat.setdefault(rubrique, [])
+            ids = {ligne["id"] for ligne in destination}
+            destination.extend(ligne for ligne in lignes if ligne["id"] not in ids)
+    return resultat
+
+
 def contenu_adapte(ecole, annee, contenu, classe=None, *, selection_manuelle=()):
     resultat = deepcopy(contenu)
     ids = [c["id"] for c in resultat.get("competences", [])]

@@ -5,7 +5,7 @@ from django.db import transaction
 from suivi.audit import instantane, journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise
 from suivi.models import AdaptationCompetence, AdoptionReferentiel, Classe, Competence, Ecole
-from suivi.adaptations_referentiels import contenus_ecole
+from suivi.adaptations_referentiels import contenu_avec_emprunts, contenus_ecole
 from suivi.referentiels import contenu_origine
 from .choix_bases_referentiels import verifier_annee
 
@@ -41,7 +41,7 @@ def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, vi
             raise ValidationError("Choisissez une base pour une classe ouverte avant de l'adapter.")
         if adoption.pk != adoption_attendue:
             raise ValidationError("La base de la classe a changé. Consultez à nouveau les compétences.")
-        contenus = [contenu_origine(adoption)]
+        contenus = [contenu_avec_emprunts(contenu_origine(adoption), classe)]
         # Une compétence sortie de la base reste adaptable pour le parcours,
         # mais la montrer ne l'ajoute jamais à la base des prochaines saisies.
         contenus += [contenu_origine(a) for a in AdoptionReferentiel.objects.filter(

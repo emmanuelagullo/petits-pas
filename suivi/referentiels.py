@@ -21,10 +21,11 @@ def contenu_adoption(adoption):
     contenu = contenu_origine(adoption)
     if adoption.clos:
         return adoption.etat_final.get("contenu", contenu)
-    from .adaptations_referentiels import contenu_adapte
+    from .adaptations_referentiels import contenu_adapte, contenu_avec_emprunts
     from .ajouts_referentiels import contenu_avec_ajouts
     selection = {c["id"] for c in contenu.get("competences", [])} if adoption.selection_manuelle else ()
     contenu = contenu_avec_ajouts(contenu, adoption.classe)
+    contenu = contenu_avec_emprunts(contenu, adoption.classe)
     return contenu_adapte(adoption.classe.ecole, adoption.classe.annee_scolaire,
                           contenu, adoption.classe, selection_manuelle=selection)
 
