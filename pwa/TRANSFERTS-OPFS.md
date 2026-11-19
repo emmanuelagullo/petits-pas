@@ -95,6 +95,9 @@ d'image peuvent encore matérialiser **le fichier concerné** ; les pixels déco
 peuvent dépasser largement sa taille compressée. SQLite et sa copie cohérente
 restent MEMFS. Le ZIP central et les manifestes gardent des métadonnées Python.
 Les requêtes non multipart restent assemblées en mémoire (70 Mio maximum).
+Si le navigateur ne fournit pas le flux du corps multipart, le Service Worker
+lit le corps sous forme de Blob et applique la même limite de 70 Mio avant de
+le convertir en octets. Ce repli ne qualifie pas à lui seul le navigateur.
 
 Le tas WASM est une capacité allouée, le tas/backing storage CDP un compteur JS,
 et la PSS Linux une mesure globale des processus Chromium. Ils se recouvrent et
