@@ -1107,8 +1107,9 @@ def saisie_eleve(request, pk):
         etats = {o.competence_id: projeter_etat_classe(o)
                  for o in observations_classe(courante.classe).filter(eleve=eleve, competence_id__in=visibles)}
     classe = courante.classe if courante else None
-    from .rubriques import rubriques_saisissables
-    for d in rubriques_saisissables(_arbre(ecole, niveaux, classe=classe, eleve=eleve), classe):
+    from .rubriques import regrouper_rubriques_saisie, rubriques_saisissables
+    arbre = regrouper_rubriques_saisie(_arbre(ecole, niveaux, classe=classe, eleve=eleve), adoption_courante(classe))
+    for d in rubriques_saisissables(arbre, classe):
         lignes = [(c, etats.get(c.pk)) for c in d.visibles]
         domaines.append((d, lignes))
 

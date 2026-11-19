@@ -11,7 +11,7 @@ def groupes_suivi(domaine, lignes):
         noms[s.pk] = s.nom
     for ligne in lignes:
         c = ligne[0] if isinstance(ligne, tuple) else ligne
-        cle = c.sous_domaine_id
+        cle = getattr(domaine, "rattachements_sous_domaines", {}).get(c.sous_domaine_id, c.sous_domaine_id)
         groupes.setdefault(cle, []).append(ligne)
         if cle not in noms:
             noms[cle] = c.sous_domaine.nom if c.sous_domaine else ""

@@ -1804,7 +1804,9 @@ class HistoriqueTraces(Base):
         self.assertContains(self.client.get(base + "?niveaux=PS"), "Nour")
         sans_contexte = self.client.get(self.url + "?classe=99999&niveaux=PS")
         self.assertNotContains(sans_contexte, "Élève suivant : Nour")
-        self.assertContains(self.client.get(self.url + query), "Élève suivant : Nour")
+        page = self.client.get(self.url + query)
+        self.assertContains(page, "Élève suivant : Nour")
+        self.assertContains(page, "Enregistrer et passer à Nour")
         erreur = self.client.post(self.url + query, {
             "date_observation": "2026-99-99", "commentaire": "Brouillon conservé", "navigation": "suivant",
         })
@@ -1816,7 +1818,7 @@ class HistoriqueTraces(Base):
         self.assertRedirects(premier, trace_suivante, fetch_redirect_response=False)
         dernier = self.client.get(trace_suivante)
         self.assertContains(dernier, "Élève précédent : Lou")
-        self.assertNotContains(dernier, "Enregistrer et passer à l’élève suivant")
+        self.assertNotContains(dernier, 'name="navigation" value="suivant"')
         deuxieme = self.client.post(trace_suivante, {
             "date_observation": "2026-10-03", "commentaire": "Deuxième élève",
         })

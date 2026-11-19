@@ -4,11 +4,16 @@
   <input type="hidden" name="genre" value="{{ genre }}">
   <input type="hidden" name="domaine_id" value="{{ parent.id }}">
   <input type="hidden" name="rubrique_id" value="{{ rubrique.id }}">
-  <label>Nom <input name="nom" value="{{ rubrique.nom }}" maxlength="200" required></label>
-  <label>Position <input type="number" name="ordre" value="{{ rubrique.ordre|default_if_none:0 }}" min="0" max="32767" required></label>
-  {% if rubrique %}
-  <p>{{ rubrique.nombre }} compétence{{ rubrique.nombre|pluralize }} concernée{{ rubrique.nombre|pluralize }}</p>
-  <label><input type="checkbox" name="masquee"{% if rubrique.masquee %} checked{% endif %}> Masquer pour la saisie</label>
+  {% if operation == "visibilite" %}
+    <input type="hidden" name="operation" value="visibilite">
+    {% if not rubrique.masquee %}
+    <input type="hidden" name="masquee" value="1">
+    <p>{{ rubrique.nombre }} compétence{{ rubrique.nombre|pluralize }} en moins dans les prochaines saisies. Les observations sont conservées.</p>
+    {% endif %}
+    <button type="submit" class="bouton discret">{% if rubrique.masquee %}Réafficher{% else %}Confirmer le masquage{% endif %}</button>
+  {% else %}
+    <input type="hidden" name="operation" value="nom">
+    <label>Nom <input name="nom" value="{% firstof rubrique.nom_affiche rubrique.nom %}" maxlength="200" required></label>
+    <button class="bouton" type="submit">Enregistrer</button>
   {% endif %}
-  <button class="bouton" type="submit">Enregistrer</button>
 </form>

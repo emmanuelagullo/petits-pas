@@ -4,7 +4,6 @@
 {% block contenu %}
 <div class="page-referentiel">
 {% ariane_classe "Référentiel de la classe" classe %}
-{% if actuelle %}<p><a class="bouton discret" href="{% url 'gerer_rubriques' classe.pk %}">Gérer les rubriques</a></p>{% endif %}
 <h1>Compétences de {{ classe.libelle_avec_annee }}</h1>
 <p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des compétences sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
 <p><a href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels sans modifier les choix →</a></p>
@@ -12,6 +11,7 @@
 <h2 id="adaptations-courantes">Adapter au quotidien</h2>
 <p>Ces réglages conservent les compétences et les observations. Ils ne demandent pas de confirmation par mot de passe.</p>
 <div class="menus-referentiel">
+{% if actuelle %}<a href="{% url 'gerer_rubriques' classe.pk %}" aria-labelledby="menu-rubriques" aria-describedby="aide-rubriques"><strong id="menu-rubriques">Rubriques et ordre d’affichage</strong><span id="aide-rubriques">Organiser et masquer les rubriques des prochaines saisies. Les observations sont conservées.</span></a>{% endif %}
 <a href="{% url 'presentation_classe' classe.pk %}" aria-labelledby="menu-presentation" aria-describedby="aide-presentation"><strong id="menu-presentation">Illustrations et phrases proposées</strong><span id="aide-presentation">Choisir les images du carnet et les suggestions pour rédiger de nouvelles traces.</span></a>
 <a href="{% url 'adaptations_classe' classe.pk %}" aria-labelledby="menu-libelles" aria-describedby="aide-libelles"><strong id="menu-libelles">Libellés et compétences masquées</strong><span id="aide-libelles">Reformuler une compétence, la masquer pour les prochaines saisies ou la montrer à nouveau.</span></a>
 <a href="{% url 'ajouts_classe' classe.pk %}" aria-labelledby="menu-ajouts" aria-describedby="aide-ajouts"><strong id="menu-ajouts">Compétences ajoutées</strong><span id="aide-ajouts">Créer une compétence propre à la classe ou reprendre un ajout proposé par l’école.</span></a>

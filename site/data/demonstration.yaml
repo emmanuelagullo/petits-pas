@@ -393,7 +393,7 @@ scenarios:
       - { action: classe, classe: cerfs_volants }
       - { action: lien, nom: "Saisir pour toute la classe" }
       - { action: selecteur, selecteur: '.action-classement a:has-text("+ Ajouter une compétence")' }
-      - { action: selecteur, selecteur: '#catalogue-resultats summary:has-text("Créer une compétence")' }
+      - { action: selecteur, selecteur: '[data-creation-competence] summary:has-text("Créer une compétence")' }
       - { action: lien, nom: "Suivre pour les élèves sélectionnés" }
       - { action: titre, nom: "Créer une compétence pour des élèves" }
     cible: "#formulaire-reussite"

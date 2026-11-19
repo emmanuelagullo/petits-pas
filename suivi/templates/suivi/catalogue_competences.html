@@ -23,6 +23,14 @@
   <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if ajouter and not saisie_collective %} autofocus{% endif %}>
   {% if ajouter %}<input type="hidden" name="ajouter" value="1">{% endif %}
   {% for nom, valeur in contexte_ajout.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
+  <div class="actions soumission-catalogue">
+    <button type="submit" class="bouton discret">Rechercher</button>
+    <a href="{{ url_effacer }}">Effacer</a>
+    {% if peut_ajouter and not ajouter %}<a class="bouton" href="{{ url_ajouter }}" data-ouvrir-ajout>+ Ajouter une compétence</a>{% endif %}
+    <div data-actions-catalogue>{% include "suivi/partiels/creation_catalogue.html" %}</div>
+  </div>
+  <details class="details-filtres-catalogue">
+  <summary>Filtres<span data-resume-actif>{{ resume_filtres }}</span></summary>
   <div class="filtres-catalogue">
   {% if sources %}
   <div>
@@ -43,8 +51,7 @@
   </select>
   </div>
   </div>
-  <details{% if domaine or sous_domaine or portee or inclure_masquees or inclure_competences_masquees %} open{% endif %}>
-  <summary>Filtres{% if domaine %} · {{ domaine }}{% endif %}{% if sous_domaine %} · {{ sous_domaine }}{% endif %}</summary>
+
   <label for="domaine">Domaine</label>
   <select id="domaine" name="domaine">
     {% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}
@@ -69,10 +76,6 @@
   <label><input type="checkbox" name="inclure_masquees" value="1"{% if inclure_masquees %} checked{% endif %}> Inclure les rubriques masquées</label>
   {% endif %}
   </details>
-  <div class="actions soumission-catalogue">
-    <button type="submit" class="bouton{% if ajouter %} discret{% endif %}">Rechercher</button>
-    {% if peut_ajouter and not ajouter %}<a class="bouton" href="{{ url_ajouter }}" data-ouvrir-ajout>+ Ajouter une compétence</a>{% endif %}
-  </div>
 </form>
 <p role="status" id="catalogue-etat">{{ nombre }} résultat{{ nombre|pluralize }}</p>
 <div id="catalogue-resultats">

@@ -1,5 +1,4 @@
 {% load illustrations suivi_libre %}
-<p class="sous-titre">Vous cocherez ensuite tous les enfants concernés sur un seul écran.</p>
 {% if effectif %}<p class="aide">Répartition des observations pour cette classe ({{ effectif }} élève{{ effectif|pluralize }}) : vert, réussite ; orange, en cours ; gris, pas encore observée. Une compétence non observée n'est pas nécessairement une compétence non maîtrisée.</p>{% else %}<p class="aide">Aucun élève dans cette classe : la répartition des observations sera affichée après leur inscription.</p>{% endif %}
 
 {% for domaine, competences in domaines_suivi %}

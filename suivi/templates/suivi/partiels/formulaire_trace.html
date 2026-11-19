@@ -8,7 +8,7 @@
 
   <div class="actions actions-trace">
     <button class="bouton" type="submit">{% if trace_obj %}Enregistrer les modifications{% elif collectif %}Enregistrer la trace{% else %}Ajouter la trace{% endif %}</button>
-    {% if suivant and not trace_obj %}<button class="bouton discret" type="submit" name="navigation" value="suivant">Enregistrer et passer à l’élève suivant</button>{% endif %}
+    {% if suivant and not trace_obj %}<button class="bouton discret" type="submit" name="navigation" value="suivant">Enregistrer et passer à {{ suivant.nom_court }}</button>{% endif %}
     <a class="bouton discret" data-quitter-trace href="{% if trace_obj and not collectif %}{% url 'trace' eleve.pk competence.pk %}{{ contexte_trace }}{% else %}{{ retour_trace }}{% endif %}">Annuler</a>
   </div>
 </form>

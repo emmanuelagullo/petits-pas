@@ -17,7 +17,7 @@ from .gestion_catalogue import changer_visibilite, deplacer
 from .models import AdaptationCompetence, Competence
 from .navigation import chemin_classe, lien
 from .referentiels import adoption_courante, contenu_adoption, contenu_origine
-from .rubriques import contenu_classement, rubriques_masquees, rubriques_saisissables
+from .rubriques import contenu_classement, regrouper_rubriques_saisie, rubriques_masquees, rubriques_saisissables
 from .services.adaptations_referentiels import ajouter_au_suivi
 from .services.ajouts_referentiels import catalogue_reprises, reprendre_ajout
 from .services.sources_catalogue import ajouter_depuis_source, competence_id_source, lignes_source, sources_catalogue
@@ -215,7 +215,8 @@ def catalogue(request, pk, saisie_collective=False):
         competence = ligne["competence"]
         ligne["competence_masquee"] = (not ligne["disponible"] and not competence.active
             and regles_visibilite.get((competence.pk, classe.pk), regles_visibilite.get((competence.pk, None))) is False)
-        ligne["rubrique_masquee"] = competence.domaine_id in domaines_masques or competence.sous_domaine_id in groupes_masques
+        ligne["rubrique_masquee"] = (competence.domaine_id in domaines_masques or competence.sous_domaine_id in groupes_masques
+            or ligne["domaine_affiche_id"] in domaines_masques or ligne["sous_domaine_affiche_id"] in groupes_masques)
     a_des_competences_masquees = any(l["competence_masquee"] for l in lignes)
     presentes = {l["competence"].pk: l for l in lignes if not l["disponible"]}
     if not inclure_competences_masquees:
@@ -327,7 +328,7 @@ def catalogue(request, pk, saisie_collective=False):
         from .referentiels import arbre_competences
         from .statistiques import repartition_competences
         arbre = arbre_competences(classe.ecole, [niveau] if niveau else None, classe=classe)
-        domaines_suivi = [(d, d.visibles) for d in rubriques_saisissables(arbre, classe)]
+        domaines_suivi = [(d, d.visibles) for d in rubriques_saisissables(regrouper_rubriques_saisie(arbre, adoption), classe)]
         effectif = repartition_competences(classe, [c for _, cs in domaines_suivi for c in cs])
     # Le sous-domaine d'origine sert à la création, même après consultation d'une autre source.
     creation = {"libelle": q, "origine": "catalogue",
@@ -344,6 +345,17 @@ def catalogue(request, pk, saisie_collective=False):
                          and g["domaine_id"] == correspondance["id"]), None)
             if sous:
                 creation["sous_domaine"] = sous["id"]
+    portees = {"base": "Référentiel", "classe": "Ajouts pour la classe", "cible": "Suivi ciblé"}
+    resume = [libelle for libelle in (
+        f"Source : {sources[source][0]}" if source else "",
+        f"Section : {niveau}" if niveau else "", domaine, sous_domaine, portees.get(portee, ""),
+        "Rubriques masquées incluses" if inclure_masquees else "",
+        "Compétences masquées incluses" if inclure_competences_masquees else "",
+    ) if libelle]
+    effacer = {cle: parametres[cle] for cle in CONTEXTE if cle in parametres}
+    if ajouter:
+        effacer["ajouter"] = "1"
+    effacer.update(domaine="", sous_domaine="")
     contexte = {
         "deplacement": deplacement, "deplacement_en_ligne": deplacement_en_ligne, "url_deplacement": url_deplacement,
         "a_des_competences_masquees": a_des_competences_masquees,
@@ -367,6 +379,8 @@ def catalogue(request, pk, saisie_collective=False):
         "eleve": eleve, "collectif": collectif,
         "url_catalogue": reverse(route, args=[classe.pk]),
         "url_resultats": url_resultats,
+        "url_effacer": lien(route, classe.pk, **effacer),
+        "resume_filtres": " · " + " · ".join(resume) if resume else "",
     }
     if request.GET.get("fragment") == "1":
         response = render(request, "suivi/partiels/catalogue_resultats.html", contexte)
