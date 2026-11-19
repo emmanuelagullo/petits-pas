@@ -251,7 +251,7 @@ def projeter_etat_classe(observation):
 def competence_saisissable(classe, competence, *, eleve=None):
     """Lecture seule pour expliquer les refus avant une nouvelle saisie."""
     from .suivi_libre import est_libre, eleves_suivis
-    if eleve is not None and est_libre(competence) and eleve.pk not in eleves_suivis(classe, competence):
+    if eleve is not None and est_libre(competence, classe) and eleve.pk not in eleves_suivis(classe, competence):
         return False
     adoption = adoption_courante(classe)
     if adoption:

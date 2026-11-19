@@ -1,0 +1,14 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Élèves suivis{% endblock %}
+{% block contenu %}
+{% include "suivi/partiels/ariane.html" with page="Élèves suivis" %}
+<h1>{{ libelle }}</h1>
+<form method="post" class="encadre">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <div class="actions">
+    <button class="bouton" type="submit">Enregistrer le suivi</button>
+    <a class="bouton discret" href="{{ retour }}">Retour au catalogue</a>
+  </div>
+</form>
+{% endblock %}

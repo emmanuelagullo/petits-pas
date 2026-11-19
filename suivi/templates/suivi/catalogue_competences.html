@@ -52,6 +52,7 @@
       <input type="hidden" name="adoption" value="{{ adoption.pk }}">
       <button class="bouton discret" type="submit" name="action" value="ajouter_depuis_source"
               aria-label="Ajouter au suivi · {{ ligne.competence.libelle }}">Ajouter au suivi</button>
+      {% if ligne.choix_portee %}<a class="bouton discret" href="{{ ligne.choix_portee }}">Choisir des élèves</a>{% endif %}
     </form>
   </li>
   {% empty %}<li>Aucune compétence ne correspond à la recherche.</li>{% endfor %}
@@ -86,6 +87,7 @@
                   aria-label="Ajouter au suivi · {{ ligne.competence.libelle }}">Ajouter au suivi</button>
         </form>
         {% endif %}
+        {% if ligne.choix_portee %} · <a href="{{ ligne.choix_portee }}">Choisir les élèves suivis</a>{% endif %}
         {% if ligne.modifier %} · <a href="{{ ligne.modifier }}">{% if ligne.competence.active %}Modifier ou masquer{% else %}Modifier ou réafficher{% endif %}</a>{% endif %}
       </li>
       {% endfor %}

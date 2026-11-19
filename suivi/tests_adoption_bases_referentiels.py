@@ -5,7 +5,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import override_settings
 from django.urls import reverse
 
-from .models import AdaptationCompetence, AdoptionReferentiel, Classe, Competence, EtatAnnuelObservation, Observation, Trace, TraceCommune, VersionSourceEcole
+from .models import AdaptationCompetence, AdoptionReferentiel, Classe, Competence, Eleve, EtatAnnuelObservation, Observation, Scolarite, Trace, TraceCommune, VersionSourceEcole
 from .presentation import illustration_effective, propositions
 from .referentiels import arbre_competences, observations_annee
 from .services.adoption_bases_referentiels import apercu_adoption, adopter_base
@@ -55,6 +55,79 @@ class AdoptionBases(Base):
         self.assertEqual(usage_pour_saisie(self.classe, regle.competence).adoption_id, adoption.pk)
         self.assertFalse(Observation.objects.exists())
         self.assertEqual(self.client.get(f"{catalogue}?source=version-99999").status_code, 403)
+
+    def test_reprendre_une_competence_dune_classe_accessible(self):
+        adoption = self.adopter()
+        destination = self.classe
+        autre = Classe.objects.create(ecole=self.ecole, nom="Autre classe", annee_scolaire=destination.annee_scolaire)
+        affectation = self.affecter_enseignant(autre)
+        autre.activer()
+        self.classe = autre
+        origine = self.adopter(self.b)
+        self.classe = destination
+        competence = origine.usages.get().competence
+        url = reverse("catalogue_competences", args=[destination.pk]) + f"?source=classe-{autre.pk}"
+        self.assertContains(self.client.get(url), competence.libelle)
+        self.assertRedirects(self.client.post(url, {"action": "ajouter_depuis_source",
+            "adoption": adoption.pk, "reference": str(competence.pk)}), url)
+        self.assertEqual(AdaptationCompetence.objects.get(classe=destination).competence_id, competence.pk)
+        self.assertFalse(Observation.objects.exists())
+        affectation.delete()
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.assertEqual(self.client.post(url, {"action": "ajouter_depuis_source",
+            "adoption": adoption.pk, "reference": str(competence.pk)}).status_code, 403)
+
+    def test_choisir_les_eleves_du_catalogue_sans_perdre_les_observations(self):
+        from .exports_classe import selection_classe
+        from .models import EleveCompetenceSelectionnee, bornes_annee_scolaire
+        from .referentiels import competence_saisissable
+        from .services.pedagogie import enregistrer_trace
+        adoption = self.adopter()
+        competence = adoption.usages.get().competence
+        autre = Eleve.objects.create(ecole=self.ecole, prenom="Camille")
+        scolarite = Scolarite.objects.create(eleve=autre, classe=self.classe, annee_scolaire=self.classe.annee_scolaire, niveau="PS")
+        modifier_etat(utilisateur=self.enseignant, eleve=autre, competence=competence, statut=Observation.REUSSI)
+        trace = enregistrer_trace(utilisateur=self.enseignant, eleve=autre, competence=competence,
+            scolarite=scolarite, valeurs={"commentaire": "Une trace conservée",
+                                         "date_observation": bornes_annee_scolaire(self.classe.annee_scolaire)[0]})
+        url = reverse("catalogue_competences", args=[self.classe.pk]) + f"?selection={competence.pk}"
+
+        def regler(portee, eleves):
+            formulaire = self.client.get(url).context["form"]
+            return self.client.post(url, {"jeton": formulaire["jeton"].value(), "portee": portee, "eleves": eleves})
+
+        self.assertEqual(regler("eleves", [self.eleve.pk]).status_code, 302)
+        self.assertTrue(competence_saisissable(self.classe, competence, eleve=self.eleve))
+        self.assertFalse(competence_saisissable(self.classe, competence, eleve=autre))
+        with self.assertRaises(PermissionDenied):
+            usage_pour_saisie(self.classe, competence, eleve=autre)
+        ligne = next(c for d in arbre_competences(self.ecole, classe=self.classe, eleve=autre)
+                     for c in d.visibles if c.pk == competence.pk)
+        self.assertFalse(ligne.saisie_ouverte)
+        self.assertEqual(Observation.objects.get(eleve=autre, competence=competence).statut, Observation.REUSSI)
+        trace.refresh_from_db()
+        self.assertIsNone(trace.supprime_le)
+        self.assertEqual(trace.commentaire, "Une trace conservée")
+        projection, *_ = selection_classe(self.classe, self.enseignant)
+        self.assertEqual(EleveCompetenceSelectionnee.objects.filter(
+            projection[EleveCompetenceSelectionnee]).get().scolarite_id, self.scolarite.pk)
+        self.assertEqual(regler("classe", []).status_code, 302)
+        self.assertTrue(competence_saisissable(self.classe, competence, eleve=autre))
+
+    def test_ajouter_depuis_un_autre_referentiel_pour_un_eleve(self):
+        self.adopter()
+        reference = self.b.definitions.get().identite.identifiant
+        url = reverse("catalogue_competences", args=[self.classe.pk]) + f"?source=version-{self.b.pk}&selection={reference}"
+        form = self.client.get(url).context["form"]
+        self.assertEqual(form["portee"].value(), "classe")
+        self.assertFalse(AdaptationCompetence.objects.filter(classe=self.classe).exists())
+        reponse = self.client.post(url, {"portee": "eleves", "eleves": [self.eleve.pk],
+                                        "jeton": form["jeton"].value()})
+        regle = AdaptationCompetence.objects.get(classe=self.classe)
+        self.assertRedirects(reponse, reverse("saisie_competence", args=[self.classe.pk, regle.competence_id]))
+        self.assertEqual(regle.eleves_selectionnes.get().scolarite_id, self.scolarite.pk)
+        self.assertTrue(regle.selection_eleves)
+        self.assertFalse(Observation.objects.exists())
 
     def test_catalogue_actif_a_la_carte_sans_creer_observation(self):
         self.client.force_login(self.direction)

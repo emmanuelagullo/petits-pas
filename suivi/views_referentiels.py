@@ -167,7 +167,7 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
     from django.urls import reverse
     from django.utils import timezone
 
-    from .adaptations_referentiels import contenu_adapte, contenus_ecole
+    from .adaptations_referentiels import contenu_adapte, contenu_avec_emprunts, contenus_ecole
     from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
     from .forms_referentiels import AdaptationCompetenceForm
     from .models import AdaptationCompetence, AdoptionReferentiel, Competence, annee_scolaire_pour
@@ -206,6 +206,9 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
     version, origine = selection if selection else (None, {})
     clos = bool(actuelle and actuelle.clos)
     hors_base = bool(classe and actuelle and version_id != actuelle.version_id)
+    ids_base = {c["id"] for c in origine.get("competences", [])}
+    if classe and actuelle and not hors_base:
+        origine = contenu_avec_emprunts(origine, classe)
     if clos:
         effectif = deepcopy(origine)
         finales = {c["id"]: c for c in contenu_adoption(actuelle).get("competences", [])}
@@ -213,7 +216,7 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
             definition.update(finales.get(definition["id"], {}))
     else:
         manuel = bool(actuelle and actuelle.selection_manuelle and not hors_base)
-        selection = {c["id"] for c in origine.get("competences", [])} if manuel else ()
+        selection = ids_base if manuel else ()
         effectif = contenu_adapte(ecole, annee, origine, classe, selection_manuelle=selection)
     index_url = reverse("adaptations_classe", args=[classe.pk]) if classe else reverse("adaptations_ecole")
     suffixe = f"?annee={annee}&version={version_id}"
@@ -236,7 +239,7 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
         raise Http404
     courante = next(c for c in effectif["competences"] if c["id"] == competence.pk)
     proposee = next(c for c in contenu_adapte(ecole, annee, origine)["competences"] if c["id"] == competence.pk) if classe else definition
-    if actuelle and actuelle.selection_manuelle and not hors_base:
+    if actuelle and actuelle.selection_manuelle and not hors_base and competence.pk in ids_base:
         proposee["active"] = False
     if not classe:
         proposee = {**definition, "active": definition["active"] and competence.active}

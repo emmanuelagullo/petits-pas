@@ -1,7 +1,7 @@
 from django.core.files.storage import default_storage
 from django.core.management.base import BaseCommand, CommandError
 
-from suivi.models import Trace, TraceCommune, ReglagePresentation, RessourceReferentiel, EleveApprentissage
+from suivi.models import Trace, TraceCommune, ReglagePresentation, RessourceReferentiel, EleveApprentissage, EleveCompetenceSelectionnee
 
 
 class Command(BaseCommand):
@@ -9,6 +9,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for lien in EleveApprentissage.objects.select_related("disponibilite__locale", "scolarite__eleve"):
+            lien.full_clean()
+        for lien in EleveCompetenceSelectionnee.objects.select_related("adaptation", "scolarite__eleve"):
             lien.full_clean()
         references = set()
         for modele, champs in (

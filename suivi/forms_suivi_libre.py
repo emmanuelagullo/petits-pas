@@ -27,6 +27,22 @@ class SelectionElevesForm(forms.Form):
         self.fields["eleves"].choices = [(e.pk, e.nom_court) for e in classe.eleves]
 
 
+class PorteeCatalogueForm(SelectionElevesForm):
+    portee = forms.ChoiceField(label="Choisir qui suivra cette compétence", choices=(
+        ("classe", "Toute la classe"), ("eleves", "Choisir des élèves")), widget=forms.RadioSelect)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["eleves"].required = False
+        self.order_fields(["portee", "eleves", "jeton"])
+
+    def clean(self):
+        donnees = super().clean()
+        if donnees.get("portee") == "eleves" and not donnees.get("eleves"):
+            self.add_error("eleves", "Sélectionnez au moins un élève.")
+        return donnees
+
+
 class ReussiteLibreForm(SelectionElevesForm):
     libelle = forms.CharField(label="Description de la compétence", max_length=300,
         widget=forms.Textarea(attrs={"rows": 2}),
