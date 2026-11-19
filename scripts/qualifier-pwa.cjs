@@ -194,6 +194,9 @@ def ajouter_photos(total):
   report.photoHashes = JSON.parse(await value(PHOTO_HASHES));
   assert.equal(report.photoHashes.length, 2300);
   assert.equal(await page.evaluate(async () => (await fetch('/app/eleve/1/')).status), 200);
+  await page.locator('#storage-warning').filter({hasText: 'Stockage presque plein'}).waitFor();
+  assert.equal(await page.locator('#tools').evaluate(outils => outils.open), false);
+  await page.getByRole('button', {name: 'Ouvrir les outils de stockage', exact: true}).click();
   await page.locator('#volume').filter({hasText: 'Limite proche'}).waitFor();
   pass('Volume confirmé et avertissement visibles à proximité de la limite');
   await page.frames()[1].goto(url + 'app/gestion/sauvegardes-locales/');
