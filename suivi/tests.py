@@ -2571,6 +2571,16 @@ class CompositionClasse(Base):
         )
         self.assertEqual(r.content.count(b"<h1>"), 1)
 
+    def test_le_responsable_corrige_le_niveau_depuis_le_parcours(self):
+        self.entrer()
+        url = reverse("parcours_eleve", args=[self.eleve.pk]) + f"?retour={self.classe.pk}"
+        self.assertContains(self.client.get(url), "Modifier le niveau de cette année")
+        self.assertEqual(self.client.post(url, {
+            "action": "niveau", "niveau": "GS", "scolarite": self.scolarite.pk,
+        }).status_code, 302)
+        self.scolarite.refresh_from_db()
+        self.assertEqual(self.scolarite.niveau, "GS")
+
     def test_le_parcours_ramene_vers_la_classe_d_origine(self):
         r = self.client.get(
             reverse("parcours_eleve", args=[self.eleve.pk]), {"retour": self.classe.pk}

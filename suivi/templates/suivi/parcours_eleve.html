@@ -23,6 +23,24 @@
   <div class="actions"><button class="bouton" type="submit">Enregistrer l'identité</button></div>
 </form>
 
+{% if scolarite_a_corriger %}
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="niveau">
+  <input type="hidden" name="scolarite" value="{{ scolarite_a_corriger.pk }}">
+  {% if retour_classe %}<input type="hidden" name="retour" value="{{ retour_classe.pk }}">{% endif %}
+  <h2>Modifier le niveau de cette année</h2>
+  <p>{{ scolarite_a_corriger.classe.libelle_avec_annee }}</p>
+  <label for="niveau-courant">Niveau enregistré</label>
+  <select id="niveau-courant" name="niveau">
+    <option value="PS"{% if scolarite_a_corriger.niveau == "PS" %} selected{% endif %}>Petite section</option>
+    <option value="MS"{% if scolarite_a_corriger.niveau == "MS" %} selected{% endif %}>Moyenne section</option>
+    <option value="GS"{% if scolarite_a_corriger.niveau == "GS" %} selected{% endif %}>Grande section</option>
+  </select>
+  <button class="bouton" type="submit">Enregistrer le niveau</button>
+</form>
+{% endif %}
+
 {% if direction %}
 <h2>Scolarités conservées</h2>
 <ul class="liste">
@@ -44,10 +62,11 @@
   <p class="aide">Choisir une classe d'une nouvelle année ajoute une scolarité. Rechoisir une année existante corrige sa classe ou son niveau sans toucher aux autres années.</p>
   <label for="classe">Classe</label>
   <select id="classe" name="classe" required>
+    <option value="">Choisir une classe et une année</option>
     {% for classe in classes %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}
   </select>
   <label for="niveau">Niveau</label>
-  <select id="niveau" name="niveau"><option>PS</option><option>MS</option><option>GS</option></select>
+  <select id="niveau" name="niveau" required><option value="">Choisir un niveau</option><option>PS</option><option>MS</option><option>GS</option></select>
   <div class="actions"><button class="bouton" type="submit">Enregistrer cette scolarité</button></div>
 </form>
 {% endif %}

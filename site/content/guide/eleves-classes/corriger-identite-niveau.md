@@ -21,9 +21,10 @@ actuellement interprétée comme une valeur absente.
 
 ## Modifier le niveau de l’année
 
-Dans **Composition actuelle de la classe**, choisir PS, MS ou GS sur la ligne de
-l’élève. Le changement est envoyé immédiatement lorsque le menu est modifié ;
-une confirmation est demandée.
+Dans **Parcours scolaire**, la rubrique **Modifier le niveau de cette année**
+affiche l’année, la classe et le niveau déjà enregistré. Choisir le niveau
+voulu et cliquer sur **Enregistrer le niveau**. Le réglage reste aussi
+accessible sur la ligne de l’élève dans **Composition actuelle de la classe**.
 
 ## Résultat attendu
 

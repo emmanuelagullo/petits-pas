@@ -2930,6 +2930,21 @@ def parcours_eleve(request, pk):
     def _retour_url():
         return lien("parcours_eleve", eleve.pk, **params)
 
+    scolarite_a_corriger = eleve.scolarites.filter(classe=classe).first() if classe else None
+    if scolarite_a_corriger and (eleve.archive_le or classe_historique(classe)
+                                or not autorise(request.user, GERER_ELEVES_CLASSE, classe)):
+        scolarite_a_corriger = None
+    if request.method == "POST" and request.POST.get("action") == "niveau":
+        if scolarite_a_corriger is None or request.POST.get("scolarite") != str(scolarite_a_corriger.pk):
+            raise Http404
+        niveau = request.POST.get("niveau")
+        if niveau not in NIVEAUX_VALIDES:
+            messages.error(request, "Choisissez un niveau valide.")
+        else:
+            modifier_niveau_courant(utilisateur=request.user, scolarite=scolarite_a_corriger, niveau=niveau)
+            messages.success(request, f"Niveau de {scolarite_a_corriger.annee_scolaire} corrigé.")
+            return redirect(_retour_url())
+
     if request.method == "POST" and request.POST.get("action") == "reactiver":
         desarchiver(utilisateur=request.user, eleve=eleve, classe=classe)
         ou = _message_scolarite_courante(eleve)
@@ -2993,6 +3008,7 @@ def parcours_eleve(request, pk):
             "classes": ecole.classes.all(),
             "scolarites": eleve.scolarites.select_related("classe"),
             "retour_classe": retour_classe,
+            "scolarite_a_corriger": scolarite_a_corriger,
             "ariane": ariane,
             "direction": direction,
         },
