@@ -955,7 +955,15 @@ textarea { min-height: 7rem; resize: vertical; }
   .ligne > form.portee-suivi { flex-basis: 100%; order: 4; }
 }
 
-.illustration-competence { display: flex; align-items: center; padding: .5rem; }
+.illustration-competence {
+  box-sizing: content-box;
+  padding-inline: .5rem;
+}
+.ligne > .bascule { min-width: 0; flex: 1 1 15rem; }
+.ligne .libelle { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .ligne > form:first-of-type, .ligne > .bascule { flex-basis: 0; }
+}
 
 .complements-facultatifs { min-width: 0; margin: 1.25rem 0; }
 .complements-facultatifs legend { padding: 0 .4rem; font-weight: 550; }
