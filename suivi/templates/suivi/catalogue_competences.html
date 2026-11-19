@@ -1,12 +1,23 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Compétences{% endblock %}
+{% load static %}
+{% block titre %}{% if ajouter %}Ajouter une compétence{% else %}Compétences{% endif %}{% endblock %}
 {% block contenu %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
+{% if ajouter %}
+<h1>Ajouter une compétence</h1>
+{% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>
+{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
+{% else %}
 <h1>Compétences de {{ classe.nom }}</h1>
 {% if adoption.selection_manuelle and not adoption.clos %}
 <p>Le suivi se construit compétence par compétence dans ce catalogue.</p>
 {% endif %}
-<form method="get" class="encadre">
+{% endif %}
+<form method="get" action="{{ url_catalogue }}" class="encadre" id="recherche-catalogue">
+  <label for="q">Rechercher une compétence</label>
+  <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if ajouter %} autofocus{% endif %}>
+  {% if ajouter %}<input type="hidden" name="ajouter" value="1">{% endif %}
+  {% for nom, valeur in contexte_ajout.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
   {% if sources %}
   <label for="source">Source</label>
   <select id="source" name="source">
@@ -14,9 +25,6 @@
     {% for cle, choix in sources.items %}<option value="{{ cle }}"{% if source == cle %} selected{% endif %}>{{ choix.0 }}</option>{% endfor %}
   </select>
   {% endif %}
-  <label for="q">Rechercher une compétence</label>
-  <input type="search" id="q" name="q" value="{{ q }}" maxlength="300">
-  {% if ajouter %}<input type="hidden" name="ajouter" value="1">{% endif %}
   <label for="niveau">Section</label>
   <select id="niveau" name="niveau">
     <option value="">Tout le cycle</option>
@@ -26,74 +34,29 @@
   </select>
   <label for="domaine">Domaine</label>
   <select id="domaine" name="domaine">
-    <option value="">Tous les domaines</option>
-    {% for nom in domaines %}<option{% if nom == domaine %} selected{% endif %}>{{ nom }}</option>{% endfor %}
+    {% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}
   </select>
-  {% if not source %}
-  <label for="portee">Périmètre</label>
-  <select id="portee" name="portee">
-    <option value="">Tous</option>
-    <option value="base"{% if portee == "base" %} selected{% endif %}>Référentiel</option>
-    <option value="classe"{% if portee == "classe" %} selected{% endif %}>Ajouts pour la classe</option>
-    <option value="cible"{% if portee == "cible" %} selected{% endif %}>Suivi ciblé</option>
+  <label for="sous_domaine">Sous-domaine</label>
+  <select id="sous_domaine" name="sous_domaine">
+    {% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}
   </select>
-  {% endif %}
-  <button type="submit" class="bouton">Rechercher</button>
-</form>
-{% if source %}
-<ul class="liste">
-  {% for ligne in disponibles %}
-  <li>
-    {{ ligne.competence.libelle }}
-    <small> · {{ ligne.competence.niveau }} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>
-    <form method="post" class="actions">
-      {% csrf_token %}
-      <input type="hidden" name="reference" value="{{ ligne.reference }}">
-      <input type="hidden" name="adoption" value="{{ adoption.pk }}">
-      <button class="bouton discret" type="submit" name="action" value="ajouter_depuis_source"
-              aria-label="Ajouter au suivi · {{ ligne.competence.libelle }}">Ajouter au suivi</button>
-      {% if ligne.choix_portee %}<a class="bouton discret" href="{{ ligne.choix_portee }}">Choisir des élèves</a>{% endif %}
-    </form>
-  </li>
-  {% empty %}<li>Aucune compétence ne correspond à la recherche.</li>{% endfor %}
-</ul>
-{% else %}
-{% if ajouter %}
-<section class="encadre">
-  <h2>Ajouter une compétence</h2>
-  <p>Recherchez d’abord la compétence. Si elle existe, ouvrez-la dans les résultats ci-dessous.</p>
-  <div class="actions">
-    {% if creation_classe %}<a class="bouton" href="{% url 'ajouts_classe' classe.pk %}{% if q %}?libelle={{ q|urlencode }}{% endif %}#creer">Ajouter pour toute la classe</a>{% endif %}
-    {% if creation_ciblee %}<a class="bouton discret" href="{% url 'ajouter_reussite' classe.pk %}{% if q %}?libelle={{ q|urlencode }}{% endif %}">Ajouter pour certains élèves</a>{% endif %}
+  <div data-filtre-portee{% if source %} hidden{% endif %}>
+    <label for="portee">Périmètre</label>
+    <select id="portee" name="portee"{% if source %} disabled{% endif %}>
+      <option value="">Tous</option>
+      <option value="base"{% if portee == "base" %} selected{% endif %}>Référentiel</option>
+      <option value="classe"{% if portee == "classe" %} selected{% endif %}>Ajouts pour la classe</option>
+      <option value="cible"{% if portee == "cible" %} selected{% endif %}>Suivi ciblé</option>
+    </select>
   </div>
-</section>
-{% elif peut_ajouter %}<p><a class="bouton" href="?ajouter=1">Ajouter une compétence</a></p>{% endif %}
-{% regroup lignes by domaine as groupes %}
-{% for groupe in groupes %}
-  <section class="domaine"><h2>{{ groupe.grouper }}</h2>
-  {% regroup groupe.list by sous_domaine as sous_groupes %}
-  {% for sous_groupe in sous_groupes %}
-    {% if sous_groupe.grouper %}<h3>{{ sous_groupe.grouper }}</h3>{% endif %}
-    <ul class="liste">
-      {% for ligne in sous_groupe.list %}
-      <li>{% include "suivi/partiels/ligne_catalogue.html" %}
-        {% if ligne.ajout_au_suivi %}
-        <form method="post" class="actions">
-          {% csrf_token %}
-          <input type="hidden" name="competence" value="{{ ligne.competence.pk }}">
-          <input type="hidden" name="adoption" value="{{ adoption.pk }}">
-          <input type="hidden" name="revision" value="{{ ligne.revision }}">
-          <button class="bouton discret" type="submit" name="action" value="ajouter_au_suivi"
-                  aria-label="Ajouter au suivi · {{ ligne.competence.libelle }}">Ajouter au suivi</button>
-        </form>
-        {% endif %}
-        {% if ligne.choix_portee %} · <a href="{{ ligne.choix_portee }}">Choisir les élèves suivis</a>{% endif %}
-        {% if ligne.modifier %} · <a href="{{ ligne.modifier }}">{% if ligne.competence.active %}Modifier ou masquer{% else %}Modifier ou réafficher{% endif %}</a>{% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-  {% endfor %}
-  </section>
-{% empty %}<p>Aucune compétence ne correspond à la recherche.</p>{% endfor %}
-{% endif %}
+  <div class="actions">
+    <button type="submit" class="bouton{% if ajouter %} discret{% endif %}">Rechercher</button>
+    {% if peut_ajouter and not ajouter %}<a class="bouton" href="{{ url_ajouter }}" data-ouvrir-ajout>+ Ajouter une compétence</a>{% endif %}
+  </div>
+</form>
+<p role="status" id="catalogue-etat">{{ nombre }} résultat{{ nombre|pluralize }}</p>
+<div id="catalogue-resultats">
+  {% include "suivi/partiels/catalogue_resultats.html" %}
+</div>
+<script src="{% static 'suivi/catalogue_dynamique.js' %}" defer></script>
 {% endblock %}

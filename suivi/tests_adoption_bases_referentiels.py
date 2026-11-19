@@ -41,6 +41,42 @@ class AdoptionBases(Base):
             revisions_attendues=apercu["revisions"], adoption_attendue=apercu["adoption_id"],
             garde_attendue=apercu["garde"]["empreinte"])
 
+    def test_recherche_dynamique_reutilise_les_resultats_et_le_contexte(self):
+        adoption = self.adopter()
+        domaine = adoption.contenu["domaines"][0]
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        criteres = {"q": "parlé", "ajouter": 1, "classement": domaine["id"], "eleve": self.eleve.pk}
+        page = self.client.get(catalogue, criteres)
+        fragment = self.client.get(catalogue, {**criteres, "fragment": 1})
+        self.assertEqual(fragment.headers["X-Petits-Pas-Catalogue"], "1")
+        self.assertTemplateUsed(page, "suivi/partiels/catalogue_resultats.html")
+        self.assertContains(fragment, "Je parle")
+        self.assertNotContains(fragment, "<!doctype html>")
+        self.assertEqual(fragment.context["domaine"], domaine["nom"])
+        creation = self.client.get(fragment.context["url_creation_ciblee"])
+        self.assertEqual(creation.context["form"].initial["eleves"], [self.eleve.pk])
+        self.assertEqual(creation.context["form"].initial["libelle"], "parlé")
+        self.assertEqual(creation.context["form"]["domaine"].value(), str(domaine["id"]))
+
+    def test_cocher_tous_les_eleves_ninclut_pas_les_futurs_inscrits(self):
+        from .referentiels import competence_saisissable
+        competence = self.adopter().usages.get().competence
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        url = f"{catalogue}?ajouter=1&collectif=1&selection={competence.pk}"
+        form = self.client.get(url).context["form"]
+        self.assertEqual(form["portee"].value(), "eleves")
+        self.assertEqual(form["eleves"].value(), [self.eleve.pk])
+        self.assertEqual(self.client.post(url, {"jeton": form["jeton"].value(),
+            "portee": "eleves", "eleves": [self.eleve.pk]}).status_code, 302)
+        nouveau = Eleve.objects.create(ecole=self.ecole, prenom="Camille")
+        Scolarite.objects.create(eleve=nouveau, classe=self.classe, annee_scolaire=self.classe.annee_scolaire, niveau="PS")
+        self.assertFalse(competence_saisissable(self.classe, competence, eleve=nouveau))
+        form = self.client.get(url).context["form"]
+        self.assertEqual(self.client.post(url, {"jeton": form["jeton"].value(),
+            "portee": "classe"}).status_code, 302)
+        self.assertTrue(competence_saisissable(self.classe, competence, eleve=nouveau))
+        self.assertFalse(Observation.objects.exists())
+
     def test_ajouter_depuis_un_autre_referentiel_autorise(self):
         adoption = self.adopter()
         catalogue = reverse("catalogue_competences", args=[self.classe.pk])

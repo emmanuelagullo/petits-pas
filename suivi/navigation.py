@@ -1,5 +1,5 @@
 """Destinations de navigation du suivi, reconstruites à partir de routes nommées."""
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from django.urls import reverse
 
@@ -18,6 +18,19 @@ def lien(route, *args, filtre="tous", ancre="", **params):
     if params:
         url += "?" + urlencode(params)
     return url + ("#" + ancre if ancre else "")
+
+
+def retour_catalogue_ajout(request, classe):
+    if request.GET.get("origine") != "catalogue":
+        return ""
+    destination = reverse("catalogue_competences", args=[classe.pk])
+    try:
+        retour = urlsplit(request.GET.get("retour", "")[:2000])
+    except ValueError:
+        retour = None
+    if retour and not (retour.scheme or retour.netloc) and retour.path == destination:
+        return retour.geturl()
+    return destination
 
 
 def chemin_classe(classe):

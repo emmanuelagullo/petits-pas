@@ -1,0 +1,20 @@
+<li>
+  {% include "suivi/partiels/ligne_catalogue.html" %}
+  {% if afficher_classement %}<small> · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>{% endif %}
+  {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.modifier %}
+  <div class="actions">
+    {% if ligne.choix_portee %}
+    <a class="bouton discret" href="{{ ligne.choix_portee }}">{% if ligne.competence.active and not ligne.disponible %}Modifier le suivi{% else %}Ajouter au suivi{% endif %}</a>
+    {% elif ligne.ajout_au_suivi %}
+    <form method="post" action="{{ url_resultats }}">
+      {% csrf_token %}
+      <input type="hidden" name="competence" value="{{ ligne.competence.pk }}">
+      <input type="hidden" name="adoption" value="{{ adoption.pk }}">
+      <input type="hidden" name="revision" value="{{ ligne.revision }}">
+      <button class="bouton discret" type="submit" name="action" value="ajouter_au_suivi">Ajouter au référentiel de la classe</button>
+    </form>
+    {% endif %}
+    {% if ligne.modifier %}<a href="{{ ligne.modifier }}">{% if ligne.competence.active %}Modifier ou masquer{% else %}Modifier ou réafficher{% endif %}</a>{% endif %}
+  </div>
+  {% endif %}
+</li>

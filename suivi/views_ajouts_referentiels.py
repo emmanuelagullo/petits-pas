@@ -13,7 +13,7 @@ from .catalogue_competences import doublons_classe
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import AjoutCompetenceForm, AdaptationCompetenceForm, ClassementCompetenceForm
 from .models import AdaptationCompetence, CompetenceLocale, annee_scolaire_pour
-from .navigation import filtre_competences, lien
+from .navigation import filtre_competences, lien, retour_catalogue_ajout
 from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
 from .referentiels import adoption_courante, contenu_origine
@@ -59,7 +59,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     if locale_pk and locale is None:
         raise PermissionDenied
     retour_suivi = ""
-    retour_catalogue = lien("catalogue_competences", classe.pk) if classe and request.GET.get("origine") == "catalogue" else ""
+    retour_catalogue = retour_catalogue_ajout(request, classe) if classe else ""
     if classe and locale and request.GET.get("origine") == "suivi":
         from .autorisations import VOIR_SUIVI
         if autorise(request.user, VOIR_SUIVI, classe):
@@ -97,7 +97,9 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     erreur = None
     doublons = []
     form = AdaptationCompetenceForm(initial=initial, choix_garder=choix_garder, libelle_direct=libelle_direct,
-        visibilite_directe=visibilite_directe, choix_visibilite_garder=choix_visibilite_garder) if locale else AjoutCompetenceForm(**choix_classement, initial={"libelle": request.GET.get("libelle", "")[:300]})
+        visibilite_directe=visibilite_directe, choix_visibilite_garder=choix_visibilite_garder) if locale else AjoutCompetenceForm(**choix_classement, initial={"libelle": request.GET.get("libelle", "")[:300],
+            "domaine": request.GET.get("domaine"), "sous_domaine": request.GET.get("sous_domaine"),
+            "niveau": filtre_competences(request) if filtre_competences(request) != "tous" else "PS"})
     perime = False
     if request.method == "POST":
         try:

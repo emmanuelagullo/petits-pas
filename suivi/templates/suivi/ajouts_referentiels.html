@@ -1,15 +1,15 @@
 {% extends "suivi/base.html" %}
 {% load navigation_suivi %}
-{% block titre %}{% if locale.suivi_libre %}Compétence hors référentiel{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %} — {{ annee }}{% endblock %}
+{% block titre %}{% if locale.suivi_libre %}Compétence suivie pour des élèves{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %} — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
 {% ariane_referentiel "Compétences ajoutées" classe annee %}
 {% if retour_suivi %}<p><a href="{{ retour_suivi }}">Revenir à la compétence</a></p>{% endif %}
 {% if retour_catalogue %}<p><a href="{{ retour_catalogue }}">Revenir au catalogue</a></p>{% endif %}
-<h1>{% if locale.suivi_libre %}Compétence hors référentiel{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>
-{% if locale.suivi_libre %}<p>Modifiez cette compétence hors du référentiel de la classe en conservant son suivi et ses observations.</p>
+<h1>{% if locale.suivi_libre %}Compétence suivie pour des élèves{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>
+{% if locale.suivi_libre %}<p>Modifiez cette compétence ciblée en conservant son suivi et ses observations.</p>
 {% else %}<p>{% if classe %}Ajoutez une compétence au référentiel pour la rendre disponible à toute la classe, ou reprenez un ajout disponible.{% else %}Proposez une compétence supplémentaire à l’école. Chaque classe choisit les ajouts qu’elle reprend.{% endif %} Chaque compétence garde son propre suivi ; aucune réussite n’est attribuée automatiquement.</p>
-{% if peut_suivi_libre and not locale %}<p>Pour suivre seulement un élève ou un groupe, utilisez <a href="{% url 'ajouter_reussite' classe.pk %}">Ajouter une compétence hors référentiel</a>.</p>{% endif %}{% endif %}
+{% if peut_suivi_libre and not locale %}<p>Pour suivre seulement un élève ou un groupe, utilisez <a href="{% url 'catalogue_competences' classe.pk %}?ajouter=1">Ajouter une compétence</a>.</p>{% endif %}{% endif %}
 <p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Propositions de l'école pour {{ annee }}. Chaque classe choisit les ajouts qu'elle reprend.{% endif %}</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not ouvert %}<p>Choisissez une base pour une classe ouverte avant d'ajouter ou de reprendre une compétence. Les choix d'une classe close restent consultables.</p>{% endif %}

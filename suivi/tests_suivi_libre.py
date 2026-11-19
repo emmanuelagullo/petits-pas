@@ -514,7 +514,7 @@ class ClassementLibre(Base):
         self.assertFalse(Observation.objects.exists())
 
 
-class IntitulesHorsReferentiel(Base):
+class ParcoursAjoutCompetence(Base):
     setUp = SuiviLibre.setUp
     adopter = SuiviLibre.adopter
 
@@ -523,11 +523,15 @@ class IntitulesHorsReferentiel(Base):
         libre = reverse("ajouter_reussite", args=[self.classe.pk])
         commun = reverse("ajouts_classe", args=[self.classe.pk])
         page = self.client.get(libre)
-        self.assertContains(page, "Ajouter une compétence hors du référentiel de la classe")
-        self.assertContains(page, f'href="{commun}"')
-        self.assertContains(self.client.get(commun), f'href="{libre}"')
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        self.assertContains(page, "Créer une compétence pour des élèves")
+        self.assertContains(self.client.get(commun), f'href="{catalogue}?ajouter=1"')
+        page = self.client.get(catalogue, {"ajouter": 1})
+        self.assertTrue(page.context["url_creation_classe"])
+        self.assertTrue(page.context["url_creation_ciblee"])
         self.client.force_login(self.direction)
-        self.assertNotContains(self.client.get(commun), f'href="{libre}"')
+        self.assertNotContains(self.client.get(commun), f'href="{catalogue}?ajouter=1"')
+        self.assertEqual(self.client.get(catalogue, {"ajouter": 1}).status_code, 404)
 
     def test_reussite_preselectionnee_sans_selection_collective_et_decochage_conserve(self):
         self.client.force_login(self.enseignant)

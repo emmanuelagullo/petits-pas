@@ -10,8 +10,8 @@
 {% if effectif %}<p class="aide">Répartition des observations pour cette classe ({{ effectif }} élève{{ effectif|pluralize }}) : vert, réussite ; orange, en cours ; gris, pas encore observée. Une compétence non observée n'est pas nécessairement une compétence non maîtrisée.</p>{% else %}<p class="aide">Aucun élève dans cette classe : la répartition des observations sera affichée après leur inscription.</p>{% endif %}
 
 <div class="actions">
-  <a href="{% url 'catalogue_competences' classe.pk %}">Rechercher une compétence</a>
-  {% if responsable %}<a href="{% url 'catalogue_competences' classe.pk %}?ajouter=1">Ajouter une compétence</a>{% endif %}
+  <a class="bouton discret" href="{% url 'catalogue_competences' classe.pk %}{% if filtre != "tous" %}?niveau={{ filtre }}{% endif %}">Rechercher une compétence</a>
+  {% if responsable %}{% include "suivi/partiels/action_ajout_competence.html" with collectif=True principale=True %}{% endif %}
 </div>
 {% if selection_manuelle and not effectif_competences %}
 <p>Aucune compétence dans le suivi pour cette section. <a href="{% url 'catalogue_competences' classe.pk %}">Choisir des compétences dans le catalogue</a>.</p>
@@ -21,7 +21,7 @@
   <h3>{{ domaine.nom }}</h3>
   {% groupes_suivi domaine competences as groupes %}
   {% for sous_id, nom, sous_competences in groupes %}
-  {% if nom %}<h4>{{ nom }}</h4>{% if responsable %}<p><a href="{% url 'ajouter_reussite' classe.pk %}?domaine={{ domaine.pk }}&amp;sous_domaine={{ sous_id }}{% if filtre != "tous" %}&amp;niveaux={{ filtre }}{% endif %}">+ Ajouter une compétence hors référentiel</a></p>{% endif %}{% endif %}
+  {% if nom %}<h4>{{ nom }}</h4>{% if responsable %}<div class="actions action-classement">{% include "suivi/partiels/action_ajout_competence.html" with collectif=True %}</div>{% endif %}{% endif %}
   <ul class="liste" style="border:0; border-radius:0">
     {% for c in sous_competences %}
     <li id="c{{ c.pk }}" tabindex="-1"><a class="entree" href="{% url 'saisie_competence' classe.pk c.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">

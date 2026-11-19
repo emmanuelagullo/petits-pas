@@ -1,0 +1,64 @@
+<template data-options-domaines>{% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}</template>
+<template data-options-groupes>{% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}</template>
+<div data-nombre-resultats="{{ nombre }}">
+{% if source %}
+  {% if disponibles %}
+  <h2>{{ nom_source }}</h2>
+  <ul class="liste">
+    {% for ligne in disponibles %}
+    <li>
+      {{ ligne.competence.libelle }}
+      <small> · {{ ligne.competence.niveau }} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %} · {% if ligne.deja_suivie %}Déjà suivie{% else %}Hors suivi{% endif %}</small>
+      <div class="actions">
+        {% if ligne.choix_portee %}
+        <a class="bouton discret" href="{{ ligne.choix_portee }}">{% if ligne.deja_suivie %}Modifier le suivi{% else %}Ajouter au suivi{% endif %}</a>
+        {% elif ligne.deja_suivie %}
+        <a class="bouton discret" href="{{ ligne.url }}">Ouvrir le suivi</a>
+        {% else %}
+        <form method="post" action="{{ url_resultats }}">
+          {% csrf_token %}
+          <input type="hidden" name="reference" value="{{ ligne.reference }}">
+          <input type="hidden" name="adoption" value="{{ adoption.pk }}">
+          <button class="bouton discret" type="submit" name="action" value="ajouter_depuis_source">Ajouter au référentiel de la classe</button>
+        </form>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+{% elif q and lignes %}
+  <ul class="liste">
+    {% for ligne in lignes %}{% include "suivi/partiels/catalogue_entree.html" with afficher_classement=True %}{% endfor %}
+  </ul>
+{% else %}
+  {% regroup lignes by domaine as groupes_domaines %}
+  {% for groupe_domaine in groupes_domaines %}
+  <section class="domaine"><h2>{{ groupe_domaine.grouper }}</h2>
+    {% regroup groupe_domaine.list by sous_domaine as sous_groupes %}
+    {% for sous_groupe in sous_groupes %}
+    {% if sous_groupe.grouper %}<h3>{{ sous_groupe.grouper }}</h3>{% endif %}
+    <ul class="liste">
+      {% for ligne in sous_groupe.list %}{% include "suivi/partiels/catalogue_entree.html" %}{% endfor %}
+    </ul>
+    {% endfor %}
+  </section>
+  {% endfor %}
+{% endif %}
+{% if not nombre %}<p>Aucune compétence ne correspond à la recherche.</p>{% endif %}
+{% if ajouter %}
+<section class="encadre">
+  <details>
+    <summary class="bouton">+ Créer une compétence</summary>
+    {% if url_creation_ciblee %}
+    <p><a class="bouton discret" href="{{ url_creation_ciblee }}">Suivre pour les élèves sélectionnés</a><br>
+    <small>Les élèves inscrits plus tard ne seront pas ajoutés automatiquement.</small></p>
+    {% endif %}
+    {% if url_creation_classe %}
+    <p><a class="bouton discret" href="{{ url_creation_classe }}">Ajouter au référentiel de la classe</a><br>
+    <small>La compétence sera disponible pour les élèves actuels et les futurs inscrits.</small></p>
+    {% endif %}
+  </details>
+</section>
+{% endif %}
+</div>
