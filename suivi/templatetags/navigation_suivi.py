@@ -38,3 +38,20 @@ def ariane_referentiel(page, classe, annee):
 @register.inclusion_tag("suivi/partiels/ariane.html")
 def ariane_gestion(page):
     return {"ariane": [("Gérer l’école", lien("gestion"))], "page": page}
+
+
+@register.simple_tag
+def lien_ajout_competence(classe, filtre="tous", domaine=None, sous_domaine=None, eleve=None, collectif=False):
+    """Entrée commune, avec le contexte de la saisie conservé dans le GET."""
+    parametres = {"ajouter": 1}
+    if filtre != "tous":
+        parametres["niveau"] = filtre
+    if domaine:
+        parametres["classement"] = domaine.pk
+    if sous_domaine:
+        parametres["groupe"] = sous_domaine
+    if eleve:
+        parametres["eleve"] = eleve.pk
+    if collectif:
+        parametres["collectif"] = 1
+    return lien("catalogue_competences", classe.pk, **parametres)

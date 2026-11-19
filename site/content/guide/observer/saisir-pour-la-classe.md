@@ -63,7 +63,7 @@ consultation du suivi de la modification des états.
 
 ## Compétences de certains élèves
 
-**Ajouter une compétence hors référentiel** est indépendant des compétences existantes. Une compétence ciblée indique le nombre d’élèves suivis ; les autres restent **Hors du suivi**. Sa répartition porte seulement sur les élèves encore concernés.
+**+ Ajouter une compétence** ouvre le catalogue et permet de réutiliser ou de créer une compétence. Une compétence ciblée indique le nombre d’élèves suivis ; les autres restent **Hors du suivi**. Sa répartition porte seulement sur les élèves encore concernés.
 
 **Sélectionner toute la classe** coche toutes les cases proposées. Vérifiez le
 nombre d’élèves sélectionnés et l’option **Enregistrer une réussite** avant de

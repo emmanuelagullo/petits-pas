@@ -1,12 +1,12 @@
 +++
-title = "Ajouter une compétence hors référentiel"
+title = "Créer une compétence pour des élèves sélectionnés"
 description = "Créer une compétence pour un élève ou un groupe, avec ou sans référentiel."
 fiche = true
 categorie = "observer"
 publics = ["responsable"]
 intentions = ["réussite", "apprentissage", "libre", "groupe", "sans référentiel", "sous-domaine"]
 prerequis = "Vous êtes responsable d’une classe active dont les choix sont ouverts."
-depart = "Suivi d’un élève, ou Saisir pour toute la classe → catégorie → Ajouter une compétence hors référentiel"
+depart = "Suivi d’un élève, ou Saisir pour toute la classe → catégorie → Ajouter une compétence"
 statut = "disponible"
 +++
 
@@ -16,8 +16,9 @@ utiliser [Ajouter une compétence au référentiel de la classe]({{< relref "/gu
 
 ## Créer une compétence et commencer son suivi
 
-1. Dans une catégorie, même vide, choisir **Ajouter une compétence hors référentiel**
-   depuis le suivi collectif ou celui d’un élève.
+1. Dans une catégorie, même vide, choisir **+ Ajouter une compétence**.
+   Rechercher dans le catalogue, puis choisir **Créer une compétence → Suivre pour
+   les élèves sélectionnés** si la compétence doit être créée.
 2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
    compétence déjà créée** aident à éviter les copies inutiles.
 3. Dans **Classement de la compétence**, choisir le domaine. La liste des

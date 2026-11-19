@@ -1,0 +1,3 @@
+{% load navigation_suivi %}
+{% lien_ajout_competence classe filtre domaine sous_id eleve collectif as ajout_url %}
+<a class="bouton{% if not principale %} discret{% endif %}" href="{{ ajout_url }}">+ Ajouter une compétence</a>

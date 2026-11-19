@@ -1,0 +1,2 @@
+<option value="">{{ libelle }}</option>
+{% for nom in valeurs %}<option value="{{ nom }}"{% if nom == valeur %} selected{% endif %}>{{ nom }}</option>{% endfor %}

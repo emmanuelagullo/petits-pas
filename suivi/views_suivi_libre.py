@@ -6,7 +6,7 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import MODIFIER_ETAT, charger_classe_autorisee, charger_eleve_autorise
 from .catalogue_competences import doublons_classe
 from .models import CompetenceLocale
-from .navigation import filtre_competences, lien
+from .navigation import filtre_competences, lien, retour_catalogue_ajout
 from .forms_suivi_libre import ReussiteLibreForm, SelectionElevesForm
 from .referentiels import adoption_courante, contenu_origine, classe_historique
 from .services.suivi_libre import ajouter_reussite, associer
@@ -40,6 +40,8 @@ def suivi_libre(request, pk, locale_pk=None):
         initial["libelle"] = request.GET.get("libelle", "")[:300]
         if filtre != "tous":
             initial["niveau"] = filtre
+    if request.GET.get("collectif") == "1":
+        initial["eleves"] = list(classe.eleves.values_list("pk", flat=True))
     eleve = None
     if request.GET.get("eleve"):
         eleve = charger_eleve_autorise(request.user, request.GET["eleve"], MODIFIER_ETAT, ecole=classe.ecole)
@@ -47,6 +49,7 @@ def suivi_libre(request, pk, locale_pk=None):
             from django.http import Http404
             raise Http404
         initial.update(eleves=[eleve.pk], niveau=eleve.niveau, reussite=True)
+    retour_catalogue = retour_catalogue_ajout(request, classe)
     attendu = {"classe": classe.pk, "compte": request.user.pk, "adoption": adoption.pk, "locale": locale_pk}
     initial["jeton"] = signing.dumps(attendu, salt="suivi-libre")
     options = dict(classe=classe, initial=initial)
@@ -84,7 +87,8 @@ def suivi_libre(request, pk, locale_pk=None):
     reprises = CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True).select_related("competence")
     reprises = [c for c in reprises if peut_reprendre(request.user, classe, c)]
     return render(request, "suivi/suivi_libre.html", {"classe": classe, "form": form,
-        "locale": locale, "reprises": reprises, "doublons": doublons, "eleve": eleve})
+        "locale": locale, "reprises": reprises, "doublons": doublons, "eleve": eleve,
+        "retour_catalogue": retour_catalogue})
 
 
 @acces_requis
