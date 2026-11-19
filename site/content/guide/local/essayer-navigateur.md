@@ -99,7 +99,7 @@ document à imprimer ; elle ne produit pas un ZIP de PDF séparés.
 
 **Vérifier les mises à jour** recherche une nouvelle version. La barre indique
 combien de ressources sont déjà vérifiées. Si le téléchargement est interrompu,
-cliquez sur **Réessayer la mise à jour** une fois la connexion rétablie. Petits Pas
+cliquez sur **Reprendre le téléchargement** une fois la connexion rétablie. Petits Pas
 vérifie et réutilise les fichiers complets déjà téléchargés.
 Quand la version est prête, **Appliquer la mise à jour** l’active et redémarre
 l’application. Téléchargez une sauvegarde si vous le pouvez avant de l’appliquer.
