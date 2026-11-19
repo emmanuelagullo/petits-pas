@@ -54,4 +54,4 @@ def lien_ajout_competence(classe, filtre="tous", domaine=None, sous_domaine=None
         parametres["eleve"] = eleve.pk
     if collectif:
         parametres["collectif"] = 1
-    return lien("catalogue_competences", classe.pk, **parametres)
+    return lien("choisir_competence" if collectif else "catalogue_competences", classe.pk, **parametres)

@@ -6,6 +6,7 @@
   const resultats = document.getElementById('catalogue-resultats');
   const etat = document.getElementById('catalogue-etat');
   const {source, domaine, sous_domaine: groupe, portee} = form.elements;
+  const soumettre = form.querySelector('.soumission-catalogue button');
   const ouvrirAjout = form.querySelector('[data-ouvrir-ajout]');
   let minuterie, requete, sequence = 0;
 
@@ -43,8 +44,10 @@
       history.replaceState(history.state, '', url);
       etat.textContent = `${nombre} résultat${nombre > 1 ? 's' : ''}`;
     } catch (erreur) {
-      if (version === sequence && erreur.name !== 'AbortError')
+      if (version === sequence && erreur.name !== 'AbortError') {
+        soumettre.hidden = false;
         etat.textContent = 'Recherche indisponible. Utilisez le bouton Rechercher.';
+      }
     } finally {
       if (version === sequence) resultats.removeAttribute('aria-busy');
     }
@@ -75,5 +78,11 @@
   form.addEventListener('change', evenement => {
     if (evenement.target instanceof HTMLSelectElement) rechercher(evenement);
   });
-  form.addEventListener('submit', invalider);
+  form.addEventListener('submit', evenement => {
+    if (soumettre.hidden) {
+      evenement.preventDefault();
+      rechercher(evenement);
+    }
+  });
+  soumettre.hidden = true;
 })();

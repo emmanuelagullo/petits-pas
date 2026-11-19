@@ -1136,21 +1136,8 @@ def contribuer_eleve(request, pk):
 
 @acces_requis
 def choisir_competence(request, pk):
-    ecole = ecole_courante(request)
-    classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole)
-    filtre = filtre_competences(request)
-    niveaux = None if filtre == "tous" else [filtre]
-    domaines = [(d, d.visibles) for d in _arbre(ecole, niveaux, classe=classe)]
-    competences = [c for _d, lignes in domaines for c in lignes]
-    effectif = repartition_competences(classe, competences)
-    adoption = adoption_courante(classe)
-    return render(
-        request,
-        "suivi/choisir_competence.html",
-        {"classe": classe, "domaines": domaines, "effectif": effectif, "filtre": filtre,
-         "selection_manuelle": bool(adoption and adoption.selection_manuelle),
-         "effectif_competences": len(competences), "ariane": chemin_classe(classe), "responsable": autorise(request.user, MODIFIER_ETAT, classe) and not classe_historique(classe)},
-    )
+    from .views_catalogue import catalogue
+    return catalogue(request, pk, saisie_collective=True)
 
 
 @acces_requis
@@ -1172,11 +1159,16 @@ def saisie_competence(request, pk, competence_pk):
         eleve.hors_suivi = competence.suivi_libre and eleve.pk not in competence.eleves_suivis_ids
         eleve.peut_saisir_dans_classe = eleve.derniere_annee == classe.annee_scolaire and not eleve.hors_suivi
     lignes = [(e, etats.get(e.pk)) for e in eleves]
+    from .navigation import retour_competences
+    ariane = chemin_collectif(classe, filtre, competence)
+    retour = retour_competences(request, classe)
+    if retour:
+        ariane[-1] = (ariane[-1][0], retour)
     return render(
         request,
         "suivi/saisie_competence.html",
         {"classe": classe, "competence": competence, "lignes": lignes, "filtre": filtre,
-         "ariane": chemin_collectif(classe, filtre, competence),
+         "ariane": ariane,
          "adoption": adoption_courante(classe),
          "historique": classe_historique(classe),
          "nouvelle_saisie_possible": saisissable,

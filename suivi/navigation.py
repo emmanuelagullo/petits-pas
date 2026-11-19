@@ -24,13 +24,16 @@ def retour_catalogue_ajout(request, classe):
     if request.GET.get("origine") != "catalogue":
         return ""
     destination = reverse("catalogue_competences", args=[classe.pk])
+    return retour_competences(request, classe) or destination
+
+
+def retour_competences(request, classe):
     try:
         retour = urlsplit(request.GET.get("retour", "")[:2000])
     except ValueError:
-        retour = None
-    if retour and not (retour.scheme or retour.netloc) and retour.path == destination:
-        return retour.geturl()
-    return destination
+        return ""
+    destinations = {reverse(route, args=[classe.pk]) for route in ("catalogue_competences", "choisir_competence")}
+    return retour.geturl() if not (retour.scheme or retour.netloc) and retour.path in destinations else ""
 
 
 def chemin_classe(classe):
