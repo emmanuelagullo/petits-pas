@@ -1,0 +1,3 @@
+<label for="{{ champ.id_for_label }}">{{ champ.label }}{% if aide %} <span class="aide">{{ aide }}</span>{% endif %}{% if mdp_aide %} <span class="aide">Au moins {{ longueur_min_mot_de_passe }} caractères, pas trop courant.</span>{% endif %}</label>
+{{ champ }}
+{% if champ.errors %}<p id="erreur-{{ champ.name }}" class="erreurs" role="alert">{{ champ.errors|join:" " }}</p>{% endif %}

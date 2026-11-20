@@ -1,0 +1,19 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Accès sur cet appareil{% endblock %}
+{% block contenu %}
+<h1>Accès sur cet appareil</h1>
+<p class="sous-titre">{{ ecole.nom }}</p>
+<p>Les données de cette installation ne sont pas chiffrées : celui qui peut ouvrir la session de l’ordinateur peut déjà les lire. Le <strong>dernier recours</strong> permet, sur cet appareil, de choisir un nouveau mot de passe sans clé de secours et sans rien perdre.</p>
+{% if erreur %}<p class="message erreur" role="alert" id="erreur-cle">{{ erreur }}</p>{% endif %}
+<form method="post" class="encadre">
+  {% csrf_token %}
+  <label for="dernier-recours"><input type="checkbox" id="dernier-recours" name="dernier_recours" {% if autorise_actuellement %}checked{% endif %}> Autoriser le dernier recours</label>
+  <p class="aide">À décocher si l’ordinateur est partagé avec des personnes qui ne doivent pas voir les carnets. L’opération reste consignée dans le journal de l’école.</p>
+  {% if autorise_actuellement %}
+  <label for="cle">Pour l’interdire, recopiez votre clé de secours</label>
+  <input type="text" id="cle" name="cle" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="aide-cle{% if erreur %} erreur-cle{% endif %}"{% if erreur %} aria-invalid="true"{% endif %}>
+  <p class="aide" id="aide-cle">{% if a_une_cle %}Elle devient votre seule issue en cas d’oubli.{% else %}Vous n’avez pas encore de clé : <a href="{% url 'mon_compte' %}">générez-en une depuis « Mon compte »</a> avant de l’interdire.{% endif %}</p>
+  {% endif %}
+  <div class="actions"><button class="bouton" type="submit">Enregistrer</button> <a href="{% url 'gestion' %}">Retour</a></div>
+</form>
+{% endblock %}

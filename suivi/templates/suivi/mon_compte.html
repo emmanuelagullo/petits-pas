@@ -12,6 +12,14 @@
 
 <h2>Mot de passe</h2>
 <p><a href="{% url 'changer_mot_de_passe' %}">Changer mon mot de passe</a></p>
+{% if acces_local_disponible %}
+<form method="post" class="formulaire-contextuel">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="nouvelle_cle_secours">
+  <p class="aide">{% if a_une_cle %}Vous avez une clé de secours pour retrouver l’accès si vous oubliez votre mot de passe.{% else %}Vous n’avez pas de clé de secours : sans elle, un oubli ne se répare que par l’école.{% endif %} En créer une nouvelle remplace l’ancienne.</p>
+  <button class="bouton discret" type="submit">{% if a_une_cle %}Obtenir une nouvelle clé de secours{% else %}Obtenir une clé de secours{% endif %}</button>
+</form>
+{% endif %}
 
 {% if double_facteur_propose %}
 <h2>Authentification à deux facteurs</h2>

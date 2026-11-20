@@ -1,0 +1,16 @@
+{% if phrase_de_passe_proposee %}
+<p class="aide">Besoin d’une idée ? Par exemple : <strong id="phrase-proposee">{{ phrase_de_passe_proposee }}</strong> <button type="button" class="bouton discret" id="utiliser-phrase" hidden>L’utiliser</button></p>
+<script>
+(function () {
+  const bouton = document.getElementById('utiliser-phrase');
+  const champs = document.querySelectorAll('input[autocomplete="new-password"]');
+  if (!bouton || !champs.length) { return; }
+  const phrase = document.getElementById('phrase-proposee').textContent;
+  bouton.hidden = false;
+  bouton.addEventListener('click', function () {
+    champs.forEach(function (champ) { champ.value = phrase; });
+    champs[0].focus();
+  });
+})();
+</script>
+{% endif %}

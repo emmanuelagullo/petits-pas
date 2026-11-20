@@ -26,6 +26,7 @@
 <p>Créez votre compte individuel pour rejoindre l’école avec l’adresse <strong>{{ invitation.email }}</strong>.</p>
 <form method="post" class="encadre">{% csrf_token %}
   {{ formulaire.as_p }}
+  {% include "suivi/partiels/phrase_de_passe.html" %}
   <button class="bouton" type="submit">Créer mon compte et rejoindre l’école</button>
 </form>
 {% endif %}
