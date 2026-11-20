@@ -1233,6 +1233,14 @@ def _observations_visibles(utilisateur, eleve):
     ).distinct().prefetch_related(Prefetch("traces", queryset=traces))
 
 
+def _retour_grille_eleve(request):
+    retour = request.GET.get("retour", "")[:4000]
+    prefixe = reverse("grille_classe", args=[0]).split("/classe/0/")[0]
+    if re.fullmatch(re.escape(prefixe) + r"/classe/[0-9]+/(?:competence/[0-9]+/)?grille/\?[^#]*#eleve-[0-9]+-[0-9]+", retour):
+        return retour
+    return ""
+
+
 @acces_requis
 def saisie_eleve(request, pk):
     """L'écran du quotidien : un enfant, tout ce qu'il sait faire."""
@@ -1265,6 +1273,7 @@ def saisie_eleve(request, pk):
         request,
         "suivi/saisie_eleve.html",
         {"eleve": eleve, "classe": classe, "domaines": domaines, "filtre": filtre,
+         "retour_grille": _retour_grille_eleve(request),
          "responsable": autorise(request.user, MODIFIER_ETAT, eleve) and not (courante and classe_historique(courante.classe))},
     )
 
@@ -1389,6 +1398,17 @@ def _contexte_grille_competence(request, pk, competence_pk=None, operation=VOIR_
         for eleve in eleves:
             scolarite = eleve.scolarite_courante()
             eleve.ouvrir_trace_grille = bool(scolarite and scolarite.classe_id == classe.pk)
+    if not impression:
+        classe_active = not classe_historique(classe)
+        for eleve in eleves:
+            courante = eleve.scolarite_courante()
+            if (classe_active and not eleve.archive_le and courante and courante.classe_id == classe.pk
+                    and autorise(request.user, VOIR_SUIVI, eleve)):
+                eleve.url_ligne_grille = reverse("saisie_eleve", args=[eleve.pk])
+            elif autorise(request.user, PREVISUALISER_CARNET, eleve):
+                scolarites_visibles, _ = _scolarites_visibles(request.user, eleve)
+                if scolarites_visibles.filter(annee_scolaire=classe.annee_scolaire).exists():
+                    eleve.url_ligne_grille = reverse("carnet", args=[eleve.pk]) + "?annee=" + classe.annee_scolaire
     groupes = []
     if presentation == "lecture":
         blocs = ([colonne] for colonne in colonnes)
@@ -2316,7 +2336,7 @@ def carnet(request, pk):
     return render(
         request,
         "suivi/carnet.html",
-        _contexte_carnet(request, pk),
+        {**_contexte_carnet(request, pk), "retour_grille": _retour_grille_eleve(request)},
     )
 
 
@@ -2461,7 +2481,7 @@ def preparer_edition(request, pk):
     explicite = request.method == "POST" or any(cle in donnees for cle in ("contenu", "colonnes", "regroupement"))
     presentation = options_carnet(donnees if explicite else request.session.get(cle_options, {}),
                                   parametres, cases_postees=request.method == "POST")
-    parcours_complet = donnees.get("parcours") == "complet" and len(selection) == 1 and not cartes
+    parcours_complet = donnees.get("parcours") == "complet" and format_edition in {"pdf", "zip", "sequence"}
     champs_cartes = ("unite", "ordre_cartes", "avec_photo", "avec_commentaire",
                      "espace_eleve", "grandes_cartes", "planches_compactes")
     if request.method == "POST" or "reglages_cartes" in donnees:

@@ -49,19 +49,39 @@ class FiltresEdition(forms.Form):
         self.fields["eleves"].choices = [(str(e.pk), e.nom_court) for e in self.eleves]
         self.colonnes = []
         rubriques = []
+        branches = {}
         for domaine in arbre_competences(classe.ecole, classe=classe,
                 inclure_ids=[competence.pk] if competence else ()):
             racine = str(domaine.pk)
             rubriques.append((racine, domaine.nom))
+            branches[racine] = []
             for cle, nom, lignes in groupes_suivi(domaine, domaine.visibles):
                 if not lignes:
                     continue
                 groupe = f"{racine}/{cle}" if cle else racine
                 if cle:
                     rubriques.append((groupe, f"{domaine.nom} › {nom}"))
+                    branches[racine].append((groupe, nom))
+                else:
+                    branches[racine].append((f"{racine}/", "Sans sous-rubrique"))
+                    rubriques.append((f"{racine}/", f"{domaine.nom} › Sans sous-rubrique"))
                 self.colonnes.extend(Colonne(0, c, domaine.nom, nom, groupe) for c in lignes)
+        self.branches = branches
         self.fields["rubriques"].choices = list(dict(rubriques).items())
         self.fields["competences"].choices = list({str(c.competence.pk): c.competence.libelle for c in self.colonnes}.items())
+
+    def groupes_rubriques(self):
+        valeurs = set(self["rubriques"].value() or ())
+        libelles = dict(self.fields["rubriques"].choices)
+        for racine, enfants in self.branches.items():
+            if not enfants:
+                continue
+            if all(cle == f"{racine}/" for cle, _ in enfants):
+                yield racine, libelles[racine], racine in valeurs or f"{racine}/" in valeurs, []
+            else:
+                yield racine, libelles[racine], False, [
+                    (cle, nom, cle in valeurs or racine in valeurs) for cle, nom in enfants
+                ]
 
     def clean(self):
         valeurs = super().clean()
@@ -105,7 +125,7 @@ class FiltresEdition(forms.Form):
             c.competence.pk == force.pk if force else (
                 (not niveaux or c.competence.niveau in niveaux) and (
                     not (ids or rubriques) or str(c.competence.pk) in ids
-                    or c.groupe in rubriques or c.groupe.split("/")[0] in rubriques)
+                    or c.groupe in rubriques or f"{c.groupe}/" in rubriques or c.groupe.split("/")[0] in rubriques)
             ))]
         mode = donnees.get("observations") or ("tout" if ids or rubriques or force else "observes")
         if mode != "tout" and not force:

@@ -622,11 +622,14 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   config.assets.find(asset => asset.url === '/application.zip').sha256 = require('node:crypto').createHash('sha256').update(application).digest('hex');
   const preview = fs.readFileSync(path.join(root, 'apercu.html'), 'utf8') + '<!-- mise à jour fictive -->';
   config.assets.find(asset => asset.url === '/apercu.html').sha256 = require('node:crypto').createHash('sha256').update(preview).digest('hex');
+  await reopened.locator("#tools").evaluate(tools => { tools.open = true; });
+  const boutonMaj = reopened.getByRole("button", {name: "Vérifier les mises à jour", exact: true});
+  await boutonMaj.waitFor({state: "visible"});
+  const beforeUpdate = network.length;
   published = {config, sw, application, preview, interruptDownload: true};
   published.downloadStarted = new Promise(resolve => { published.signalDownloadStarted = resolve; });
-  const beforeUpdate = network.length;
-  await reopened.getByRole('button', {name: 'Vérifier les mises à jour', exact: true}).click();
-  await reopened.locator('#tools > summary').click();
+  // Chromium peut avoir déjà lancé la vérification en arrière-plan.
+  await boutonMaj.evaluate(button => { if (!button.disabled) button.click(); });
   await reopened.locator('#update-progress').waitFor({state: 'visible'});
   await reopened.waitForFunction(() => document.querySelector('#update-progress').value === 1);
   assert.equal(await reopened.locator('#update-progress').getAttribute('max'), String(config.assets.length));

@@ -25,9 +25,11 @@
     <span data-effacer-recherche>{% if q %}<a href="{{ url_effacer }}">Effacer la recherche</a>{% endif %}</span>
     <div data-actions-catalogue>{% include "suivi/partiels/creation_catalogue.html" %}</div>
   </div>
-  <details class="details-filtres-catalogue">
-  <summary>Filtres</summary>
-  <div class="filtres-catalogue">
+  <div class="barre-filtres-edition" data-barre-filtres>
+  <details data-panneau-filtre class="details-filtres-catalogue">
+  <summary class="bouton discret">Filtres</summary>
+  <div class="groupes-filtres">
+  <fieldset class="groupe-filtres"><legend>Source et section</legend>
   {% if sources %}
   <div>
   <label for="source">Source</label>
@@ -46,8 +48,8 @@
     <option value="GS"{% if niveau == "GS" %} selected{% endif %}>Grande section</option>
   </select>
   </div>
-  </div>
-
+  </fieldset>
+  <fieldset class="groupe-filtres"><legend>Classement</legend>
   <label for="domaine">Domaine</label>
   <select id="domaine" name="domaine">
     {% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}
@@ -62,7 +64,10 @@
   {% if rubriques_masquees %}
   <label><input type="checkbox" name="inclure_masquees" value="1"{% if inclure_masquees %} checked{% endif %}> Inclure les rubriques masquées</label>
   {% endif %}
+  </fieldset>
+  </div>
   </details>
+  </div>
   <div data-filtres-actifs>{% include "suivi/partiels/filtres_actifs_catalogue.html" %}</div>
 </form>
 {% if recherche_initiale %}<p><a href="{{ recherche_initiale }}">Revenir à la recherche initiale</a></p>{% endif %}

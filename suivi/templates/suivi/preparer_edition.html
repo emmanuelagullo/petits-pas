@@ -4,13 +4,8 @@
 {% block contenu %}
 {% ariane_classe "Préparer une édition" classe %}
 <h1>Préparer une édition</h1>
-<form method="post" class="formulaire" id="preparer-carnets">
+<form method="post" class="formulaire" id="preparer-carnets" data-annee="{{ classe.annee_scolaire }}">
   {% csrf_token %}
-  {% if parcours_complet %}<label class="choix"><input type="checkbox" name="parcours" value="complet" checked> Carnet du parcours complet de cet élève</label>{% endif %}
-  <div class="barre-filtres-edition">
-    <p data-resume-eleves>{{ selection_ids|length }} enfant{{ selection_ids|length|pluralize }} sélectionné{{ selection_ids|length|pluralize }} · {{ classe.annee_scolaire }}</p>
-    {% include "suivi/partiels/filtres_edition.html" %}
-  </div>
   <label for="format-edition">Édition</label>
   <select id="format-edition" name="format">
     {% if not mode_pwa %}<option value="zip"{% if format_edition == "zip" %} selected{% endif %}>Carnets · un PDF par élève dans un ZIP</option>{% endif %}
@@ -20,9 +15,12 @@
     <option value="cartes"{% if format_edition == "cartes" %} selected{% endif %}>Cartes à découper</option>
   </select>
 
+  <div class="barre-filtres-edition" data-barre-filtres>
+    <p data-resume-eleves>{{ selection_ids|length }} enfant{{ selection_ids|length|pluralize }} · <span data-resume-annee>{% if parcours_complet %}Parcours complet{% else %}{{ classe.annee_scolaire }}{% endif %}</span></p>
+    {% include "suivi/partiels/filtres_edition.html" with filtres_carnet=True %}
   {% include "suivi/partiels/options_carnet.html" %}
-  <details class="details-filtres-catalogue" data-options-cartes>
-    <summary>Options des cartes</summary>
+  <details class="details-filtres-catalogue" data-panneau-filtre data-options-cartes>
+    <summary class="bouton discret">Présentation des cartes</summary>
     <label for="unite-cartes">Une carte par</label>
     <select id="unite-cartes" name="unite"><option value="trace">Trace visible dans le carnet</option><option value="competence"{% if choix_cartes.unite == "competence" %} selected{% endif %}>Compétence</option></select>
     <label class="choix"><input type="checkbox" name="avec_photo"{% if choix_cartes.avec_photo %} checked{% endif %}> Ajouter la photo ou l’illustration</label>
@@ -33,6 +31,7 @@
     <label for="ordre-cartes">Ordre sur les planches compactes</label>
     <select id="ordre-cartes" name="ordre_cartes"><option value="eleve">Par élève, puis par rubrique</option><option value="rubrique"{% if choix_cartes.ordre_cartes == "rubrique" %} selected{% endif %}>Par rubrique, puis par élève</option></select>
   </details>
+  </div>
   <div class="actions">
     <button class="bouton" type="submit" data-preparer-edition>{% if mode_pwa %}Préparer l’impression des carnets{% else %}Télécharger l’archive ZIP{% endif %}</button>
     {% if not mode_pwa %}<button class="bouton discret" type="submit" name="action" value="apercu" data-apercu-edition>Aperçu imprimable</button>{% endif %}

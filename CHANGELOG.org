@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Ouvrir le suivi d’un élève depuis la grille et retrouver sa ligne au retour.
+- Choisir les rubriques et sous-rubriques dans un filtre hiérarchique et
+  retrouver les mêmes commandes d’année et de mise en page dans les carnets.
+
 - Consulter la grille de classe par rubrique, compétence et période, reprendre
   les filtres de la session et imprimer une grille compacte.
 - Préparer des carnets séparés, groupés ou un par un et des cartes à découper

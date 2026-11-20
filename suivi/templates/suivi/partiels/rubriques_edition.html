@@ -1,0 +1,21 @@
+<fieldset class="groupe-filtres">
+  <legend>Rubriques et sous-rubriques</legend>
+  {{ formulaire.rubriques.errors }}
+  {% for racine, rubrique, cochee, enfants in formulaire.groupes_rubriques %}
+    {% if enfants %}
+      <div class="branche-rubrique" data-branche-rubrique>
+        <label hidden><input type="checkbox" data-bascule-rubrique> {{ rubrique }}</label>
+        <details open>
+          <summary><span data-rubrique-repli>{{ rubrique }}</span><span data-rubrique-total hidden></span></summary>
+          <div class="sous-rubriques-edition">
+            {% for cle, nom, actif in enfants %}
+              <label><input type="checkbox" name="rubriques" value="{{ cle }}"{% if actif %} checked{% endif %}> {{ nom }}</label>
+            {% endfor %}
+          </div>
+        </details>
+      </div>
+    {% else %}
+      <label><input type="checkbox" name="rubriques" value="{{ racine }}"{% if cochee %} checked{% endif %}> {{ rubrique }}</label>
+    {% endif %}
+  {% endfor %}
+</fieldset>

@@ -2,6 +2,7 @@
 {% load navigation_suivi %}
 {% block titre %}Carnet de {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
+{% if retour_grille %}<p class="sans-impression"><a class="bouton discret" href="{{ retour_grille }}">Retour à la grille</a></p>{% endif %}
 <div class="sans-impression">{% ariane_eleve "Carnet" eleve parent=True %}</div>
 {% if impression_pwa %}<section class="sans-impression encadre">
   <p>Le carnet est prêt à imprimer. Dans la fenêtre d’impression, choisissez « Enregistrer au format PDF » si votre navigateur le propose. La mise en page peut différer du PDF du programme autonome.</p>
@@ -14,24 +15,31 @@
 </div>
 
 <div class="apercu-carnet sans-impression">
-  <strong>Année à consulter</strong>
-  <div class="filtres" aria-label="Année du carnet">
-    <a href="?contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if not annee_selectionnee %}true{% endif %}">Parcours complet</a>
-    {% for situation in scolarites_proposees %}
-    <a href="?annee={{ situation.annee_scolaire }}&amp;contenu={{ mode }}&amp;colonnes={{ colonnes }}&amp;regroupement={{ regroupement }}&amp;attendus={{ afficher_attendus|yesno:'1,0' }}&amp;sous_domaines={{ afficher_sous_domaines|yesno:'1,0' }}&amp;bilans={{ inclure_bilans|yesno:'1,0' }}" aria-current="{% if annee_selectionnee == situation.annee_scolaire %}true{% endif %}">{{ situation.annee_scolaire }}</a>
-    {% endfor %}
-  </div>
   {% if etats_historiques_inconnus %}<p>Certains états de réussite de cette année n’ont pas pu être retrouvés. Les traces conservées restent consultables ; une réussite plus récente n’est pas ajoutée à cette année.</p>{% endif %}
   {% if presentation_initiale_reprise %}<p>La présentation de cette année reprend les choix disponibles lors de la reprise des données. Les anciens choix de présentation n’ont pas pu être reconstitués.</p>{% endif %}
 
   {% if not generation_pdf and not impression_pwa %}
-  <form method="get">
-    <input type="hidden" name="annee" value="{{ annee_selectionnee }}">
+  <form method="get" class="barre-filtres-edition" data-barre-filtres data-apercu-carnet>
+    <div>{% if annee_selectionnee %}Année scolaire {{ annee_selectionnee }}{% else %}Parcours complet{% endif %}</div>
     <input type="hidden" name="options_appliquees" value="1">
-    {% include "suivi/partiels/options_carnet.html" with apercu_individuel=True %}
+    {% if retour_grille %}<input type="hidden" name="retour" value="{{ retour_grille }}">{% endif %}
+    <details class="details-filtres-catalogue" data-panneau-filtre{% if request.GET.panneau == 'filtres' %} open{% endif %}>
+      <summary class="bouton discret">Filtres</summary>
+      <div class="groupes-filtres">{% include "suivi/partiels/filtres_carnet.html" with classe=None %}</div>
+      <button class="bouton" name="panneau" value="filtres">Actualiser l’aperçu</button>
+    </details>
+    {% include "suivi/partiels/options_carnet.html" with apercu_individuel=True panneau_ouvert=request.GET.panneau %}
   </form>
   {% endif %}
 </div>
 
+{% if not generation_pdf and not impression_pwa %}
+<div id="haut-page-suivi" tabindex="-1" class="sans-impression"></div>
+<div class="page-a-sommaire">
+  {% include "suivi/partiels/sommaire_page.html" %}
+  {% include "suivi/partiels/carnet_contenu.html" with sommaire_carnet=True %}
+</div>
+{% else %}
 {% include "suivi/partiels/carnet_contenu.html" %}
+{% endif %}
 {% endblock %}

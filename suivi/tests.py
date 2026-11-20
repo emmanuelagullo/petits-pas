@@ -1704,6 +1704,15 @@ class EditionClasse(Base):
         self.assertEqual(reponse.context["nb_eleves"], 1)
         self.assertEqual(reponse.context["nb_competences"], 1)
 
+    @patch("suivi.views._contenu_pdf_carnet", return_value=(b"%PDF", "carnet.pdf"))
+    def test_parcours_complet_conserve_pour_une_sequence_de_plusieurs_eleves(self, generer):
+        donnees = {
+            "eleves": [self.eleve.pk, self.autre_eleve.pk], "format": "sequence",
+            "parcours": "complet", "carnet": self.autre_eleve.pk,
+        }
+        self.assertEqual(self.client.post(self.url, donnees)["Content-Type"], "application/pdf")
+        self.assertEqual(generer.call_args.args[2]["annee"], "")
+
     @patch("suivi.views._generer_pdf", return_value=b"%PDF-groupe")
     def test_pdf_unique_reutilise_les_deux_carnets(self, generer):
         reponse = self.client.post(self.url, {
@@ -1850,6 +1859,24 @@ class GrilleCompetence(Base):
         self.assertEqual(self.client.get(self.url).context["nb_eleves"], 3)
         self.assertEqual(self.client.get(url).context["nb_eleves"], 1)
         self.assertEqual(self.client.get(url, {"reinitialiser": "1"}).context["nb_eleves"], 3)
+
+    def test_selection_dune_sous_rubrique_et_compatibilite_du_parent(self):
+        domaine = self.competence.domaine
+        sous_rubrique = SousDomaine.objects.create(domaine=domaine, code="ORAL", nom="Oral")
+        enfant = Competence.objects.create(
+            domaine=domaine, sous_domaine=sous_rubrique, code="ORAL-01", libelle="Compétence orale",
+        )
+        url = reverse("grille_classe", args=[self.classe.pk])
+        racine = str(domaine.pk)
+        cle = f"{racine}/{sous_rubrique.pk}"
+        tout = self.client.get(url, {"filtres": "1", "rubriques": [racine]})
+        self.assertEqual(tout.context["nb_competences"], 2)
+        branche = self.client.get(url, {"filtres": "1", "rubriques": [cle]})
+        self.assertEqual([c.competence.pk for c in branche.context["groupes"][0]["colonnes"]], [enfant.pk])
+        self.assertContains(branche, "Sans sous-rubrique")
+        sans_sous_rubrique = self.client.get(url, {"filtres": "1", "rubriques": [f"{racine}/"]})
+        self.assertEqual(sans_sous_rubrique.context["nb_competences"], 1)
+        self.assertContains(branche, reverse("saisie_eleve", args=[self.eleve.pk]) + "?retour=")
 
     def test_section_des_eleves_independante_du_classement_des_competences(self):
         Scolarite.objects.filter(eleve=self.reussi, classe=self.classe).update(niveau="GS")

@@ -26,10 +26,11 @@
 {% if lecture == 'classe' %}<p>La liste ci-dessous présente les libellés utilisés par la classe, avec ses adaptations et ajouts{% if historique.clos %}, conservée à la clôture{% endif %}.</p>{% else %}<p>La liste ci-dessous présente les libellés de la base fournie, sans les reformulations, masquages ni ajouts de l’école ou de la classe.</p>{% endif %}
 <form method="get" class="filtres-referentiel" data-recherche-referentiel data-lecture="{{ lecture }}">
 <input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="annee" value="{{ annee }}">
-{% if historique %}<label for="lecture">Libellés à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Libellés de la base fournie</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select>{% endif %}
-<label for="domaine">Domaine</label><select id="domaine" name="domaine"><option value="">Tous les domaines</option>{% for nom in domaines %}<option{% if domaine == nom %} selected{% endif %}>{{ nom }}</option>{% endfor %}</select>
-<label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Toutes les sections</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
-<p class="aide">Les sections de classement ne remplacent pas les repères d'âge des programmes.</p>
+<fieldset class="groupe-filtres"><legend>Compétences à afficher</legend><div class="groupes-filtres">
+{% if historique %}<div><label for="lecture">Libellés à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Libellés de la base fournie</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select></div>{% endif %}
+<div><label for="domaine">Domaine</label><select id="domaine" name="domaine"><option value="">Tous les domaines</option>{% for nom in domaines %}<option{% if domaine == nom %} selected{% endif %}>{{ nom }}</option>{% endfor %}</select></div>
+<div><label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Toutes les sections</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
+<p class="aide">Les sections de classement ne remplacent pas les repères d'âge des programmes.</p></div></div></fieldset>
 <div class="recherche-referentiel">
 <div class="champ-recherche"><label for="q">Rechercher une compétence</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300"></div>
 <button class="bouton discret">Filtrer les compétences</button>

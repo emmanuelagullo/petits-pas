@@ -25,7 +25,7 @@
 
     {% for domaine, groupes in domaines %}
     <section class="domaine-carnet">
-      <h2>{{ domaine.nom }}</h2>
+      <h2{% if sommaire_carnet %} id="rubrique-carnet-{{ forloop.counter }}" tabindex="-1" data-titre-sommaire{% endif %}>{{ domaine.nom }}</h2>
       {% if afficher_attendus and domaine.attendus.all %}
       <div class="attendus-carnet"><h3>Attendus de fin de cycle</h3><ul>{% for attendu in domaine.attendus.all %}<li>{{ attendu.texte }}</li>{% endfor %}</ul></div>
       {% endif %}
@@ -61,7 +61,7 @@
 
     {% if bilans %}
     <section class="domaine-carnet bilans-carnet">
-      <h2>Quelques mots sur mon parcours</h2>
+      <h2{% if sommaire_carnet %} id="bilans-carnet" tabindex="-1" data-titre-sommaire{% endif %}>Quelques mots sur mon parcours</h2>
       {% for bilan in bilans %}
       <div class="encadre-bilan"><h3>{{ bilan.scolarite.get_niveau_display }} — {{ bilan.date_bilan|date:"j F Y" }}</h3><p>{{ bilan.texte|linebreaksbr }}</p></div>
       {% endfor %}

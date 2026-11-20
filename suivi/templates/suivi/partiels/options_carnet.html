@@ -1,28 +1,23 @@
-  <details class="details-filtres-catalogue" data-options-carnet>
-    <summary>Options du carnet</summary>
-    <label for="contenu">Compétences affichées</label>
-    <select id="contenu" name="contenu">
-      <option value="reussites"{% if presentation.contenu == 'reussites' %} selected{% endif %}>Réussites</option>
-      <option value="observes"{% if presentation.contenu == 'observes' %} selected{% endif %}>Compétences réussies ou en cours</option>
-      <option value="tout"{% if presentation.contenu == 'tout' %} selected{% endif %}>Référentiel complet</option>
-    </select>
-
-    <label for="regroupement">Regrouper les acquisitions</label>
-    <select id="regroupement" name="regroupement">
-      <option value="aucun"{% if presentation.regroupement == 'aucun' %} selected{% endif %}>Aucun</option>
-      <option value="annuel"{% if presentation.regroupement == 'annuel' %} selected{% endif %}>Annuel</option>
-      <option value="mensuel"{% if presentation.regroupement == 'mensuel' %} selected{% endif %}>Mensuel</option>
-      <option value="bilan"{% if presentation.regroupement == 'bilan' %} selected{% endif %}>Par bilan</option>
-    </select>
-
-    <label for="colonnes">Mise en page</label>
-    <select id="colonnes" name="colonnes">
-      <option value="1"{% if presentation.colonnes == '1' %} selected{% endif %}>Une colonne</option>
-      <option value="2"{% if presentation.colonnes == '2' %} selected{% endif %}>Deux colonnes</option>
-    </select>
-
-    <label class="choix"><input type="checkbox" name="attendus"{% if presentation.attendus == '1' %} checked{% endif %}> Afficher les attendus de fin de cycle</label>
-    <label class="choix"><input type="checkbox" name="sous_domaines"{% if presentation.sous_domaines == '1' %} checked{% endif %}> Afficher les sous-domaines</label>
-    <label class="choix"><input type="checkbox" name="bilans"{% if presentation.bilans == '1' %} checked{% endif %}> Inclure les bilans</label>
-    {% if apercu_individuel %}<button class="bouton" type="submit">Actualiser l’aperçu</button>{% endif %}
-  </details>
+<details class="details-filtres-catalogue" data-panneau-filtre data-options-carnet{% if panneau_ouvert == 'mise-en-page' %} open{% endif %}>
+  <summary class="bouton discret">Mise en page</summary>
+  <div class="groupes-filtres">
+    <fieldset class="groupe-filtres">
+      <legend>Colonnes</legend>
+      <div class="choix-segmentes">
+        <label><input type="radio" name="colonnes" value="1"{% if presentation.colonnes == '1' %} checked{% endif %}> Une colonne</label>
+        <label><input type="radio" name="colonnes" value="2"{% if presentation.colonnes == '2' %} checked{% endif %}> Deux colonnes</label>
+      </div>
+    </fieldset>
+    <fieldset class="groupe-filtres">
+      <legend>Regrouper les acquisitions</legend>
+      <div class="choix-segmentes">
+        <label><input type="radio" name="regroupement" value="aucun"{% if presentation.regroupement == 'aucun' %} checked{% endif %}> Aucun</label>
+        <label><input type="radio" name="regroupement" value="annuel"{% if presentation.regroupement == 'annuel' %} checked{% endif %}> Annuel</label>
+        <label><input type="radio" name="regroupement" value="mensuel"{% if presentation.regroupement == 'mensuel' %} checked{% endif %}> Mensuel</label>
+        <label><input type="radio" name="regroupement" value="bilan"{% if presentation.regroupement == 'bilan' %} checked{% endif %}> Par bilan</label>
+      </div>
+      <label class="choix"><input type="checkbox" name="sous_domaines"{% if presentation.sous_domaines == '1' %} checked{% endif %}> Afficher les sous-rubriques</label>
+    </fieldset>
+  </div>
+  {% if apercu_individuel %}<button class="bouton" name="panneau" value="mise-en-page">Actualiser l’aperçu</button>{% endif %}
+</details>

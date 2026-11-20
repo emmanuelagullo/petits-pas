@@ -15,9 +15,15 @@
 {% if impression_pwa %}
 <div class="actions sans-impression"><button class="bouton" type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button></div>
 {% elif not generation_pdf %}
-<form method="get" class="barre-filtres-edition sans-impression">
+<form method="get" class="barre-filtres-edition sans-impression" data-barre-filtres>
   {% include "suivi/partiels/resume_grille.html" %}
   {% include "suivi/partiels/filtres_edition.html" %}
+  {% if not competence %}
+  <details data-panneau-filtre class="details-filtres-catalogue"><summary class="bouton discret">Mise en page</summary>
+    <fieldset class="groupe-filtres"><legend>Grille</legend>{{ formulaire.compacte.as_field_group }}</fieldset>
+    <button name="filtres" value="1">Appliquer la mise en page</button>
+  </details>
+  {% endif %}
 </form>
 {% if peut_generer and groupes %}
 <div class="actions sans-impression">
@@ -59,7 +65,7 @@
     <tbody>
       {% for eleve, cases in groupe.lignes %}
       <tr>
-        <th scope="row" id="eleve-{{ forloop.parentloop.counter }}-{{ eleve.pk }}">{{ eleve.prenom }} {{ eleve.nom }}</th>
+        <th scope="row" id="eleve-{{ forloop.parentloop.counter }}-{{ eleve.pk }}">{% if eleve.url_ligne_grille and not generation_pdf and not impression_pwa %}<a href="{{ eleve.url_ligne_grille }}{% if '?' in eleve.url_ligne_grille %}&amp;{% else %}?{% endif %}retour={{ retour_grille|urlencode:"" }}%23eleve-{{ forloop.parentloop.counter }}-{{ eleve.pk }}">{{ eleve.prenom }} {{ eleve.nom }}</a>{% else %}{{ eleve.prenom }} {{ eleve.nom }}{% endif %}</th>
         {% for colonne, etat in cases %}<td class="etat-{{ etat }}" headers="eleve-{{ forloop.parentloop.parentloop.counter }}-{{ eleve.pk }} col-{{ colonne.numero }}">
           {% if eleve.ouvrir_trace_grille and etat != 'hors_suivi' and not competence %}
           <a href="{% url 'trace' eleve.pk colonne.competence.pk %}?classe={{ classe.pk }}&amp;retour={{ retour_grille|urlencode:"" }}%23eleve-{{ forloop.parentloop.parentloop.counter }}-{{ eleve.pk }}" title="Ouvrir les traces">
