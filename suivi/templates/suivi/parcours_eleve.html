@@ -14,17 +14,17 @@
 </section>
 {% endif %}
 
-<form method="post" class="encadre">
+<form method="post" class="encadre" data-formulaire-modifie>
   {% csrf_token %}<input type="hidden" name="action" value="identite">{% if retour_classe %}<input type="hidden" name="retour" value="{{ retour_classe.pk }}">{% endif %}
   <h2>Identité durable</h2>
   <label for="prenom">Prénom</label><input id="prenom" name="prenom" value="{{ eleve.prenom }}" required>
   <label for="nom">Nom</label><input id="nom" name="nom" value="{{ eleve.nom }}">
   <label for="annee_naissance">Année de naissance</label><input id="annee_naissance" name="annee_naissance" inputmode="numeric" value="{{ eleve.annee_naissance|default:'' }}">
-  <div class="actions"><button class="bouton" type="submit">Enregistrer l'identité</button></div>
+  <div class="actions"><button class="bouton" type="submit" data-enregistrer>Enregistrer l'identité</button>{% include "suivi/partiels/annuler_modifications.html" %}</div>
 </form>
 
 {% if scolarite_a_corriger %}
-<form method="post" class="encadre">
+<form method="post" class="encadre" data-formulaire-modifie>
   {% csrf_token %}
   <input type="hidden" name="action" value="niveau">
   <input type="hidden" name="scolarite" value="{{ scolarite_a_corriger.pk }}">
@@ -37,7 +37,7 @@
     <option value="MS"{% if scolarite_a_corriger.niveau == "MS" %} selected{% endif %}>Moyenne section</option>
     <option value="GS"{% if scolarite_a_corriger.niveau == "GS" %} selected{% endif %}>Grande section</option>
   </select>
-  <button class="bouton" type="submit">Enregistrer le niveau</button>
+  <button class="bouton" type="submit" data-enregistrer>Enregistrer le niveau</button>{% include "suivi/partiels/annuler_modifications.html" %}
 </form>
 {% endif %}
 
@@ -56,7 +56,7 @@
   {% endfor %}
 </ul>
 
-<form method="post" class="encadre">
+<form method="post" class="encadre" data-formulaire-modifie>
   {% csrf_token %}<input type="hidden" name="action" value="scolarite">{% if retour_classe %}<input type="hidden" name="retour" value="{{ retour_classe.pk }}">{% endif %}
   <h2>Préparer une année scolaire</h2>
   <p class="aide">Choisir une classe d'une nouvelle année ajoute une scolarité. Rechoisir une année existante corrige sa classe ou son niveau sans toucher aux autres années.</p>
@@ -67,7 +67,7 @@
   </select>
   <label for="niveau">Niveau</label>
   <select id="niveau" name="niveau" required><option value="">Choisir un niveau</option><option>PS</option><option>MS</option><option>GS</option></select>
-  <div class="actions"><button class="bouton" type="submit">Enregistrer cette scolarité</button></div>
+  <div class="actions"><button class="bouton" type="submit" data-enregistrer>Enregistrer cette scolarité</button>{% include "suivi/partiels/annuler_modifications.html" %}</div>
 </form>
 {% endif %}
 {% endblock %}

@@ -1,4 +1,4 @@
-<form method="post" class="formulaire-trace" id="formulaire-bilan">
+<form method="post" class="formulaire-trace" id="formulaire-bilan" data-formulaire-modifie{% if saisie_bilan %} data-brouillon{% endif %}>
   {% csrf_token %}
   <h2>{% if bilan_obj %}Modifier le bilan{% else %}Ajouter un bilan{% endif %}</h2>
   <label for="scolarite">Année scolaire</label>
@@ -7,15 +7,16 @@
   </select>
 
   <label for="date_bilan">Date</label>
-  <input id="date_bilan" name="date_bilan" type="date" value="{% if bilan_obj %}{{ bilan_obj.date_bilan|date:'Y-m-d' }}{% else %}{{ date_defaut|date:'Y-m-d' }}{% endif %}" required>
+  <input id="date_bilan" name="date_bilan" type="date" value="{% if saisie_bilan %}{{ saisie_bilan.date_bilan }}{% elif bilan_obj %}{{ bilan_obj.date_bilan|date:'Y-m-d' }}{% else %}{{ date_defaut|date:'Y-m-d' }}{% endif %}" required>
 
   <label for="texte">Quelques mots sur le parcours</label>
-  <textarea id="texte" name="texte" required>{{ bilan_obj.texte }}</textarea>
+  <textarea id="texte" name="texte" required>{% if saisie_bilan %}{{ saisie_bilan.texte }}{% else %}{{ bilan_obj.texte }}{% endif %}</textarea>
 
-  <p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if not bilan_obj or bilan_obj.visible_carnet %}checked{% endif %}> Afficher ce bilan dans le carnet</label></p>
+  <p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if saisie_bilan.visible_carnet or not saisie_bilan and not bilan_obj or not saisie_bilan and bilan_obj.visible_carnet %}checked{% endif %}> Afficher ce bilan dans le carnet</label></p>
 
   <div class="actions">
-    <button class="bouton" type="submit">{% if bilan_obj %}Enregistrer les modifications{% else %}Ajouter le bilan{% endif %}</button>
-    {% if bilan_obj %}<a class="bouton discret" href="{% url 'bilans_eleve' eleve.pk %}">Annuler</a>{% endif %}
+    <button class="bouton" type="submit" data-enregistrer>{% if bilan_obj %}Enregistrer les modifications{% else %}Ajouter le bilan{% endif %}</button>
+    {% if bilan_obj %}<a class="bouton discret" href="{% url 'bilans_eleve' eleve.pk %}" data-retour-formulaire="Retour aux bilans">Retour aux bilans</a>
+    {% else %}{% include "suivi/partiels/annuler_modifications.html" %}{% endif %}
   </div>
 </form>

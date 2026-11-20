@@ -565,8 +565,8 @@ class TracesCommunes(Base):
                                         type=AffectationClasse.ENSEIGNANT_ASSOCIE)
         self.client.force_login(associe)
         page = self.client.get(reverse("saisie_competence", args=[self.classe.pk, self.competence.pk]))
-        self.assertContains(page, "Consulter les traces communes")
-        self.assertNotContains(page, "Ajouter ou modifier une trace commune")
+        self.assertContains(page, "Voir les traces communes (1)")
+        self.assertNotContains(page, "Ajouter une trace commune")
         page = self.client.get(reverse("traces_communes", args=[self.classe.pk, self.competence.pk]))
         ajouter = reverse("ajouter_trace_commune", args=[self.classe.pk, self.competence.pk])
         modifier = reverse("modifier_trace_commune", args=[self.classe.pk, self.competence.pk, commune.pk])
@@ -581,6 +581,27 @@ class TracesCommunes(Base):
         self.autre = Eleve.objects.create(ecole=self.ecole, prenom="Milo")
         Scolarite.objects.create(eleve=self.autre, classe=self.classe,
                                  annee_scolaire=self.classe.annee_scolaire, niveau="PS")
+
+    def test_ajout_direct_et_retour_a_la_competence(self):
+        self.entrer()
+        args = [self.classe.pk, self.competence.pk]
+        competence = reverse("saisie_competence", args=args) + "?niveaux=PS"
+        ajouter = reverse("ajouter_trace_commune", args=args) + "?origine=competence&niveaux=PS"
+        page = self.client.get(competence)
+        self.assertContains(page, ajouter.replace("&", "&amp;"))
+        self.assertNotContains(page, "Voir les traces communes")
+        erreur = self.client.post(ajouter, {
+            "eleves": [self.eleve.pk], "date_observation": "invalide", "commentaire": "Brouillon collectif",
+        })
+        self.assertContains(erreur, "Brouillon collectif")
+        self.assertContains(erreur, "data-brouillon")
+        self.assertContains(erreur, "Retour à la compétence")
+        self.assertEqual(erreur.context["selection_ids"], {self.eleve.pk})
+        resultat = self.client.post(ajouter, {
+            "eleves": [self.eleve.pk], "date_observation": "2026-10-03", "commentaire": "Atelier commun",
+        })
+        self.assertRedirects(resultat, competence)
+        self.assertContains(self.client.get(competence), "Voir les traces communes (1)")
 
     def test_attribution_mise_a_jour_et_personnalisation(self):
         from .services.traces_communes import enregistrer_commune, personnaliser
@@ -1864,6 +1885,13 @@ class HistoriqueTraces(Base):
             "date_observation": "2026-10-03", "commentaire": "Premier élève", "navigation": "suivant",
         })
         self.assertRedirects(premier, trace_suivante, fetch_redirect_response=False)
+        trace_lou = Trace.objects.get()
+        edition = reverse("modifier_trace", args=[self.eleve.pk, self.competence.pk, trace_lou.pk]) + query
+        self.assertContains(self.client.get(edition), "Enregistrer et passer à Nour")
+        modifiee = self.client.post(edition, {
+            "date_observation": "2026-10-03", "commentaire": "Trace de Lou corrigée", "navigation": "suivant",
+        })
+        self.assertRedirects(modifiee, trace_suivante, fetch_redirect_response=False)
         dernier = self.client.get(trace_suivante)
         self.assertContains(dernier, "Élève précédent : Lou")
         self.assertNotContains(dernier, 'name="navigation" value="suivant"')
@@ -1872,7 +1900,7 @@ class HistoriqueTraces(Base):
         })
         self.assertRedirects(deuxieme, base + f"?niveaux=PS#e{suivant.pk}", fetch_redirect_response=False)
         self.assertEqual(dict(Trace.objects.values_list("observation__eleve_id", "commentaire")),
-                         {self.eleve.pk: "Premier élève", suivant.pk: "Deuxième élève"})
+                         {self.eleve.pk: "Trace de Lou corrigée", suivant.pk: "Deuxième élève"})
         self.assertContains(self.client.get(base + "?niveaux=PS"), choix + f"?niveaux=PS#c{self.competence.pk}")
 
     def test_plusieurs_traces_sont_conservees_pour_une_competence(self):

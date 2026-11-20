@@ -17,7 +17,8 @@
 {% if responsable and competence.libre_id %}<p><a href="{% url 'ajout_classe' classe.pk competence.libre_id %}?origine=suivi{% if filtre != 'tous' %}&amp;niveaux={{ filtre }}{% endif %}">Modifier le libellé ou masquer la compétence</a> · <a href="{% url 'presentation_competence_classe' classe.pk competence.pk %}">Modifier l’illustration</a></p>{% endif %}{% endif %}
 {% include "suivi/partiels/correspondances_competences.html" %}
 <div class="actions">
-  <a class="bouton" href="{% url 'traces_communes' classe.pk competence.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">{% if responsable %}+ Ajouter ou modifier une trace commune{% else %}Consulter les traces communes{% endif %}</a>
+  {% if responsable %}<a class="bouton" href="{% url 'ajouter_trace_commune' classe.pk competence.pk %}?origine=competence{% if filtre != 'tous' %}&amp;niveaux={{ filtre }}{% endif %}">Ajouter une trace commune</a>{% endif %}
+  {% if nombre_traces_communes %}<a class="bouton discret" href="{% url 'traces_communes' classe.pk competence.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">Voir les traces communes ({{ nombre_traces_communes }})</a>{% endif %}
   <a class="bouton discret" href="{% url 'grille_competence' classe.pk competence.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">Voir la grille de suivi</a>
 </div>
 

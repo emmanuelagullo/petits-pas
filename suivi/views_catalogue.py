@@ -164,7 +164,8 @@ def choix_portee(request, classe, source, reference):
         except ValidationError as cause:
             form.add_error(None, cause)
     return render(request, "suivi/portee_catalogue.html", {"classe": classe, "libelle": candidat["libelle"],
-                  "ariane": chemin_retour_competences(classe, retour), "form": form, "retour": retour})
+                  "ariane": chemin_retour_competences(classe, retour), "form": form, "retour": retour,
+                  "ajout_suivi": bool(source or reprise or not candidat.get("active"))})
 
 
 @acces_requis

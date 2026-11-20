@@ -1,13 +1,13 @@
 {% extends "suivi/base.html" %}
 {% block titre %}Une trace pour {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
-{% include "suivi/partiels/ariane.html" with page=page_trace proteger_trace=True %}
+{% include "suivi/partiels/ariane.html" with page=page_trace %}
 <h1>{{ page_trace }}</h1>
 <p>{{ competence.libelle }}</p>
 {% if precedent or suivant %}
 <nav class="actions" aria-label="Élèves de cette compétence">
-  {% if precedent %}<a data-quitter-trace href="{% url 'trace' precedent.pk competence.pk %}{{ contexte_trace }}"><span aria-hidden="true">← </span>Élève précédent : {{ precedent.nom_court }}</a>{% endif %}
-  {% if suivant %}<a data-quitter-trace href="{% url 'trace' suivant.pk competence.pk %}{{ contexte_trace }}">Élève suivant : {{ suivant.nom_court }}<span aria-hidden="true"> →</span></a>{% endif %}
+  {% if precedent %}<a href="{% url 'trace' precedent.pk competence.pk %}{{ contexte_trace }}"><span aria-hidden="true">← </span>Élève précédent : {{ precedent.nom_court }}</a>{% endif %}
+  {% if suivant %}<a href="{% url 'trace' suivant.pk competence.pk %}{{ contexte_trace }}">Élève suivant : {{ suivant.nom_court }}<span aria-hidden="true"> →</span></a>{% endif %}
 </nav>
 {% endif %}
 <p class="sous-titre">{{ competence.domaine.nom }}</p>

@@ -4,7 +4,7 @@
 {% block contenu %}
 {% include "suivi/partiels/ariane.html" with page="Élèves suivis" %}
 <h1>{{ libelle }}</h1>
-<form method="post" class="encadre">
+<form method="post" class="encadre" data-formulaire-modifie{% if ajout_suivi %} data-enregistrer-sans-modification{% endif %}{% if form.errors %} data-brouillon{% endif %}>
   {% csrf_token %}
   {{ form.non_field_errors }}
   {{ form.jeton }}
@@ -20,8 +20,8 @@
     {{ form.eleves.errors }}{{ form.eleves }}
   </fieldset>
   <div class="actions">
-    <button class="bouton" type="submit">Enregistrer le suivi</button>
-    <a class="bouton discret" href="{{ retour }}">Annuler</a>
+    <button class="bouton" type="submit" data-enregistrer>Enregistrer le suivi</button>
+    <a class="bouton discret" href="{{ retour }}" data-retour-formulaire="Retour">Retour</a>
   </div>
 </form>
 <script src="{% static 'suivi/selection_eleves.js' %}" defer></script>

@@ -28,14 +28,14 @@
   <p>Les observations restent rattachées à cette compétence. Les carnets des classes clôturées conservent leur classement.</p>
   <p>Utilisations de cette compétence</p>
   <ul>{% for usage in usages_classement %}<li>{% if usage.classe %}{{ usage.classe.libelle_avec_annee }}{% else %}Proposée à l’école · {{ usage.annee_scolaire }}{% endif %}</li>{% endfor %}</ul>
-  <form method="post">
+  <form method="post" data-formulaire-modifie{% if classement.errors %} data-brouillon{% endif %}>
     {% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="classement">
-    {{ classement.as_p }}<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer le classement</button>
-  </form>
+    {{ classement.as_p }}<button class="bouton" type="submit" data-enregistrer{% if not jeton %} disabled{% endif %}>Enregistrer le classement</button>
+  {% include "suivi/partiels/annuler_modifications.html" %}</form>
 </details>
 {% elif ouvert and locale %}<p>La direction peut corriger le classement des compétences partagées.</p>{% endif %}
 <details><summary>Origine de cet ajout</summary><p>Créé {% if locale.classe_origine %}pour {{ locale.classe_origine.libelle_avec_annee }}{% else %}pour l'école{% endif %}. Reprendre ou proposer cet ajout conserve la même compétence.</p><p>Libellé d'origine : {{ origine.libelle }}.</p></details>
-{% if ouvert and adaptable %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="adapter">
+{% if ouvert and adaptable %}<form method="post" data-formulaire-modifie{% if form.errors or doublons %} data-brouillon{% endif %}>{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="adapter">
 {% if form.libelle_direct %}
 <p>{{ form.libelle.label_tag }} {{ form.libelle }} {{ form.libelle.errors }}</p>
 {% else %}{% include "suivi/partiels/choix_libelle.html" %}{% endif %}
@@ -46,11 +46,11 @@
 <fieldset><legend>{{ form.visibilite.label }}</legend>{{ form.visibilite }}{{ form.visibilite.errors }}</fieldset>
 <p>Masquer retire l'ajout des prochaines saisies, tout en conservant ses observations dans le parcours. Vous pouvez le montrer à nouveau.</p>
 {% endif %}
-<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Enregistrer</button></form>{% endif %}
+<button class="bouton" type="submit" data-enregistrer{% if not jeton %} disabled{% endif %}>Enregistrer</button>{% include "suivi/partiels/annuler_modifications.html" %}</form>{% endif %}
 {% else %}
 <h2 id="creer">Créer un ajout</h2>
 <p>{% if classe %}Cet ajout sera retenu uniquement dans cette classe pour cette année.{% else %}Cet ajout sera proposé à l'école pour cette année. Aucune classe ne le recevra automatiquement.{% endif %} Aucune image ni phrase n'est obligatoire.</p>
-{% if ouvert %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}{% include "suivi/partiels/doublons_competences.html" %}<button class="bouton" type="submit"{% if not jeton %} disabled{% endif %}>Créer la compétence</button></form>{% endif %}
+{% if ouvert %}<form method="post" data-formulaire-modifie{% if form.errors or doublons %} data-brouillon{% endif %}>{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}{% include "suivi/partiels/doublons_competences.html" %}<button class="bouton" type="submit" data-enregistrer{% if not jeton %} disabled{% endif %}>Créer la compétence</button>{% include "suivi/partiels/annuler_modifications.html" %}</form>{% endif %}
 <h2>{% if classe %}Ajouts retenus ou disponibles{% else %}Ajouts de l'école et des classes{% endif %}</h2>
 <ul class="liste">{% for ligne in lignes %}<li class="entree" id="ajout-{{ ligne.locale.pk }}"><div class="principal"><strong>{{ ligne.definition.libelle }}</strong> · {{ ligne.definition.niveau }}{% if not ligne.definition.active %} · masquée{% endif %}
 <p>Origine : {% if ligne.locale.classe_origine %}{{ ligne.locale.classe_origine.libelle_avec_annee }}{% else %}école{% endif %}.</p>

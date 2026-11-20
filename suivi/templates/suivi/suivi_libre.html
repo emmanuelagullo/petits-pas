@@ -5,8 +5,7 @@
 {% ariane_classe "Suivi des élèves sélectionnés" classe collectif=True %}
 <h1>{% if locale %}Reprendre une compétence pour des élèves{% else %}Créer une compétence pour des élèves{% endif %}</h1>
 <p>La compétence sera suivie pour les élèves sélectionnés. Les futurs inscrits ne seront pas ajoutés automatiquement. Vous pouvez aussi enregistrer une réussite ou une trace.</p>
-{% if retour_catalogue %}<p><a class="bouton discret" href="{{ retour_catalogue }}">Retour à l’ajout de compétence</a></p>{% endif %}
-<form method="post" enctype="multipart/form-data" id="formulaire-reussite">
+<form method="post" enctype="multipart/form-data" id="formulaire-reussite" data-formulaire-modifie data-eleves-requis{% if selection_initiale %} data-enregistrer-sans-modification{% endif %}{% if form.errors %} data-brouillon{% endif %}>
 {% csrf_token %}
 {% if form.errors %}<div role="alert"><p>Vérifiez les informations suivantes :</p><ul>{% for field in form %}{% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }} : {{ error }}</a></li>{% endfor %}{% endfor %}</ul>{{ form.non_field_errors }}</div>{% endif %}
 {% if locale %}<p>{{ locale.competence.libelle }}</p>{% else %}
@@ -24,7 +23,9 @@
 {% endif %}
 {% include "suivi/partiels/doublons_competences.html" %}
 {{ form.jeton }}
-<div class="actions"><button class="bouton" type="submit" name="action" value="ajouter">{% if locale %}Activer le suivi sans réussite{% else %}Enregistrer{% endif %}</button></div>
+<div class="actions"><button class="bouton" type="submit" data-enregistrer name="action" value="ajouter">{% if locale %}Activer le suivi sans réussite{% else %}Enregistrer{% endif %}</button>
+{% if retour_catalogue %}<a class="bouton discret" href="{{ retour_catalogue }}" data-retour-formulaire="Retour">Retour</a>
+{% else %}{% include "suivi/partiels/annuler_modifications.html" %}{% endif %}</div>
 </form>
 <script src="{% static 'suivi/selection_eleves.js' %}" defer></script>
 {% endblock %}

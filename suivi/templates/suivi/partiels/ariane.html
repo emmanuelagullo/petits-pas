@@ -1,6 +1,6 @@
 <nav class="fil" aria-label="Fil d’Ariane">
   <ol class="ariane" role="list">
-    {% for libelle, url in ariane %}<li><a href="{{ url }}"{% if proteger_trace %} data-quitter-trace{% endif %}>{{ libelle }}</a></li>{% endfor %}
+    {% for libelle, url in ariane %}<li><a href="{{ url }}">{{ libelle }}</a></li>{% endfor %}
     <li aria-current="page">{{ page }}</li>
   </ol>
 </nav>
