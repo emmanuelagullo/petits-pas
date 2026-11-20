@@ -1,13 +1,13 @@
 format: 1
 statut: 'Propositions de discussion #IM1 — non importées'
-note: 'Identité absente pour la trame historique : ne pas déduire une filiation de
-  son code.'
+note: 'La trame versionnée déclare ses identités. Aucune filiation avec la trame
+  historique ne se déduit de son code.'
 associations:
 - fichier_referentiel: referentiel/trame-cycle1.yaml
-  empreinte_referentiel: b106e64bb4891612680813590dea0c3d043e4712046d013b81bbca7af941d3fd
-  source: null
-  version: null
-  identite: null
+  empreinte_referentiel: 3389ceee157806634d612f825e11afc7e9a4e7c36e09981baa8255a5ec6a4657
+  source: petits-pas-trame-cycle1
+  version: '1'
+  identite: LANG-07
   code: LANG-07
   libelle: Je raconte une histoire que j'ai entendue
   image: livre
