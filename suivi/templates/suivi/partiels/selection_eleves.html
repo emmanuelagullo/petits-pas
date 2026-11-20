@@ -1,3 +1,4 @@
+{% load static %}
 <fieldset>
   <legend>Enfants</legend>
   <label class="choix"><input type="checkbox" data-selection-tous> Sélectionner toute la classe</label>
@@ -11,19 +12,4 @@
   </div>
   <p data-selection-message role="status" aria-live="polite"></p>
 </fieldset>
-<script>
-document.querySelectorAll('[data-selection-tous]').forEach((commande) => {
-  commande.addEventListener('change', () => {
-    commande.closest('fieldset').querySelectorAll('input[name="eleves"]').forEach((caseEleve) => {
-      caseEleve.checked = !caseEleve.hasAttribute('data-version-personnelle') && commande.checked;
-    });
-  });
-});
-document.querySelectorAll('[data-version-personnelle]').forEach((caseEleve) => {
-  caseEleve.checked = false;
-  caseEleve.addEventListener('click', (evenement) => {
-    evenement.preventDefault();
-    caseEleve.closest('fieldset').querySelector('[data-selection-message]').textContent = caseEleve.dataset.message;
-  });
-});
-</script>
+<script src="{% static 'suivi/selection_eleves.js' %}" defer></script>

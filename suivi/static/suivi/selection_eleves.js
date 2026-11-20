@@ -1,20 +1,41 @@
-for (const bouton of document.querySelectorAll('[data-selection-eleves]')) {
-  const groupe = bouton.closest('fieldset');
-  const cases = Array.from(groupe.querySelectorAll('input[name="eleves"]:not(:disabled)'));
-  if (!cases.length) continue;
+for (const groupe of document.querySelectorAll('fieldset')) {
+  const commande = groupe.querySelector('[data-selection-eleves], [data-selection-tous]');
+  if (!commande || commande.closest('fieldset') !== groupe) continue;
+  const cases = Array.from(groupe.querySelectorAll('input[name="eleves"]'));
+  const admissibles = cases.filter(champ => !champ.disabled && champ.getAttribute('aria-disabled') !== 'true');
   const compteur = groupe.querySelector('[data-effectif-selection]');
+  const estCase = commande.matches('input');
   const actualiser = () => {
-    const nombre = cases.filter(champ => champ.checked).length;
-    bouton.textContent = nombre === cases.length ? 'Tout désélectionner' : 'Tout sélectionner';
-    compteur.textContent = `${nombre} élève${nombre > 1 ? 's sélectionnés' : ' sélectionné'}`;
+    const nombre = admissibles.filter(champ => champ.checked).length;
+    const tous = admissibles.length > 0 && nombre === admissibles.length;
+    if (estCase) {
+      commande.checked = tous;
+      commande.indeterminate = nombre > 0 && !tous;
+    } else {
+      commande.textContent = tous ? 'Tout désélectionner' : 'Tout sélectionner';
+    }
+    if (compteur) compteur.textContent = `${nombre} élève${nombre > 1 ? 's sélectionnés' : ' sélectionné'}`;
   };
-  bouton.hidden = false;
-  bouton.addEventListener('click', () => {
-    const cocher = cases.some(champ => !champ.checked);
-    cases.forEach(champ => { champ.checked = cocher; });
+  commande.disabled = !admissibles.length;
+  if (!estCase) commande.hidden = !admissibles.length;
+  commande.addEventListener(estCase ? 'change' : 'click', () => {
+    const cocher = estCase ? commande.checked : admissibles.some(champ => !champ.checked);
+    admissibles.forEach(champ => { champ.checked = cocher; });
     actualiser();
+    if (!estCase) groupe.dispatchEvent(new Event('change', {bubbles: true}));
   });
-  cases.forEach(champ => champ.addEventListener('change', actualiser));
+  for (const champ of cases) {
+    if (champ.hasAttribute('data-version-personnelle')) {
+      champ.checked = false;
+      champ.addEventListener('click', event => {
+        event.preventDefault();
+        groupe.querySelector('[data-selection-message]').textContent = champ.dataset.message;
+      });
+    } else {
+      champ.addEventListener('change', actualiser);
+    }
+  }
+  groupe.form?.addEventListener('reset', () => setTimeout(actualiser));
   actualiser();
 }
 

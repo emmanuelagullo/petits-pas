@@ -24,7 +24,7 @@
 {% include "suivi/partiels/doublons_competences.html" %}
 {{ form.jeton }}
 <div class="actions"><button class="bouton" type="submit" data-enregistrer name="action" value="ajouter">{% if locale %}Activer le suivi sans réussite{% else %}Enregistrer{% endif %}</button>
-{% if retour_catalogue %}<a class="bouton discret" href="{{ retour_catalogue }}" data-retour-formulaire="Retour">Retour</a>
+{% if retour_catalogue %}{% include "suivi/partiels/retour_formulaire.html" with destination=retour_catalogue only %}
 {% else %}{% include "suivi/partiels/annuler_modifications.html" %}{% endif %}</div>
 </form>
 <script src="{% static 'suivi/selection_eleves.js' %}" defer></script>
