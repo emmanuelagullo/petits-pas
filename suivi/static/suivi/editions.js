@@ -14,22 +14,42 @@ if (edition) {
   const enfants = Array.from(edition.querySelectorAll('[name="eleves"]'));
   const action = edition.querySelector('[data-preparer-edition]');
   const apercu = edition.querySelector('[data-apercu-edition]');
+  const sections = Array.from(edition.querySelectorAll('[name="sections_eleves"]'));
+  const dates = edition.querySelector('[data-dates-edition]');
+  const etat = edition.querySelector('[data-etat-edition]');
+  const optionsCartes = edition.querySelector('[data-options-cartes]');
+  const optionsCarnet = edition.querySelector('[data-options-carnet]');
+  function memoriserMiseEnPage() {
+    edition.elements.mise_en_page_ouverte.value =
+      !optionsCartes.hidden && optionsCartes.open ? 'cartes' :
+      !optionsCarnet.hidden && optionsCarnet.open ? 'carnet' : '';
+  }
+  edition.addEventListener('submit', memoriserMiseEnPage);
   function actualiser() {
-    const nombre = enfants.filter(eleve => eleve.checked).length;
+    const sectionsRetenues = sections.filter(section => section.checked).map(section => section.value);
+    const nombre = enfants.filter(eleve => eleve.checked &&
+      (!sectionsRetenues.length || sectionsRetenues.includes(eleve.dataset.section))).length;
     const cartes = format.value === 'cartes';
     const grille = format.value === 'grille';
     const pwa = !apercu;
-    edition.querySelector('[data-options-cartes]').hidden = !cartes;
-    edition.querySelector('[data-options-carnet]').hidden = cartes || grille;
+    optionsCartes.hidden = !cartes;
+    optionsCarnet.hidden = cartes || grille;
+    edition.elements.ordre_cartes.disabled = !edition.elements.planches_compactes.checked;
     for (const groupe of edition.querySelectorAll('[data-filtres-carnet]')) {
       groupe.hidden = groupe.disabled = cartes || grille;
     }
     const parcoursComplet = !cartes && !grille && edition.elements.parcours.value === 'complet';
     edition.querySelector('[data-resume-eleves]').textContent =
       `${nombre} enfant${nombre > 1 ? 's' : ''} · ${parcoursComplet ? 'Parcours complet' : edition.dataset.annee}`;
-    action.disabled = !nombre;
+    const avecPeriode = ['periode', 'reussites'].includes(edition.elements.observations.value);
+    const debut = dates.querySelector('[name="debut"]').value;
+    const fin = dates.querySelector('[name="fin"]').value;
+    const periodeValide = !avecPeriode || (debut && fin && debut <= fin);
+    etat.textContent = !nombre ? 'Sélectionnez au moins un élève dans les sections retenues.' :
+      !periodeValide ? 'Indiquez une période valide pour préparer cette édition.' : '';
+    action.disabled = !nombre || !periodeValide;
     if (apercu) {
-      apercu.disabled = !nombre;
+      apercu.disabled = action.disabled;
       apercu.hidden = grille || format.value === 'sequence';
     }
     action.textContent = {
@@ -41,6 +61,7 @@ if (edition) {
     }[format.value];
   }
   edition.addEventListener('change', actualiser);
+  dates.addEventListener('input', actualiser);
   actualiser();
 }
 
@@ -63,6 +84,9 @@ if (grille) {
 for (const liste of document.querySelectorAll('[data-recherche-competences]')) {
   const champ = liste.querySelector('input[type="search"]');
   champ.closest('label').hidden = false;
+  champ.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !event.isComposing) event.preventDefault();
+  });
   function normaliser(texte) {
     return texte.toLocaleLowerCase('fr').normalize('NFD').replace(/\p{Diacritic}/gu, '');
   }

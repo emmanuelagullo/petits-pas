@@ -6,6 +6,7 @@
 <h1>Préparer une édition</h1>
 <form method="post" class="formulaire" id="preparer-carnets" data-annee="{{ classe.annee_scolaire }}">
   {% csrf_token %}
+  <input type="hidden" name="mise_en_page_ouverte" value="{{ mise_en_page_ouverte }}">
   <label for="format-edition">Édition</label>
   <select id="format-edition" name="format">
     {% if not mode_pwa %}<option value="zip"{% if format_edition == "zip" %} selected{% endif %}>Carnets · un PDF par élève dans un ZIP</option>{% endif %}
@@ -19,7 +20,7 @@
     <p data-resume-eleves>{{ selection_ids|length }} enfant{{ selection_ids|length|pluralize }} · <span data-resume-annee>{% if parcours_complet %}Parcours complet{% else %}{{ classe.annee_scolaire }}{% endif %}</span></p>
     {% include "suivi/partiels/filtres_edition.html" with filtres_carnet=True %}
   {% include "suivi/partiels/options_carnet.html" %}
-  <details class="details-filtres-catalogue" data-panneau-filtre data-options-cartes>
+  <details class="details-filtres-catalogue" data-panneau-filtre data-options-cartes{% if mise_en_page_ouverte == "cartes" %} open{% endif %}>
     <summary class="bouton discret">Présentation des cartes</summary>
     <label for="unite-cartes">Une carte par</label>
     <select id="unite-cartes" name="unite"><option value="trace">Trace visible dans le carnet</option><option value="competence"{% if choix_cartes.unite == "competence" %} selected{% endif %}>Compétence</option></select>
@@ -32,9 +33,10 @@
     <select id="ordre-cartes" name="ordre_cartes"><option value="eleve">Par élève, puis par rubrique</option><option value="rubrique"{% if choix_cartes.ordre_cartes == "rubrique" %} selected{% endif %}>Par rubrique, puis par élève</option></select>
   </details>
   </div>
+  <p class="aide" id="etat-edition" role="status" data-etat-edition>{% if not selection_ids %}Sélectionnez au moins un élève.{% endif %}</p>
   <div class="actions">
-    <button class="bouton" type="submit" data-preparer-edition>{% if mode_pwa %}Préparer l’impression des carnets{% else %}Télécharger l’archive ZIP{% endif %}</button>
-    {% if not mode_pwa %}<button class="bouton discret" type="submit" name="action" value="apercu" data-apercu-edition>Aperçu imprimable</button>{% endif %}
+    <button class="bouton" type="submit" data-preparer-edition aria-describedby="etat-edition">{% if mode_pwa %}Préparer l’impression des carnets{% else %}Télécharger l’archive ZIP{% endif %}</button>
+    {% if not mode_pwa %}<button class="bouton discret" type="submit" name="action" value="apercu" data-apercu-edition aria-describedby="etat-edition">Aperçu imprimable</button>{% endif %}
   </div>
 </form>
 <script src="{% static 'suivi/editions.js' %}" defer></script>
