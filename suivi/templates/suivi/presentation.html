@@ -17,11 +17,12 @@
   <h2>Images proposées et photos</h2>
   <p>Les photos collectives et personnelles des traces affichées restent toutes dans le carnet. Ce choix concerne seulement l'image qui illustre la compétence.</p>
   <p>Choix utilisé : {% if illustration_avec_photos %}garder aussi l'image proposée{% else %}cacher l'image proposée lorsqu'une photo est affichée{% endif %} ({{ affichage_origine }}).</p>
-  <form method="post">
+  <form method="post" data-formulaire-modifie>
     {% csrf_token %}<input type="hidden" name="action" value="affichage">
     {{ affichage_form.as_p }}
     <p>Sans photo, l'image proposée reste visible si elle existe. Pour la retirer d'une compétence, choisissez « Désactiver » dans ses réglages. La couverture reste indépendante.</p>
-    <button class="bouton" type="submit">Enregistrer l'affichage des images</button>
+    <button class="bouton" type="submit" data-enregistrer>Enregistrer l'affichage des images</button>
+    {% include "suivi/partiels/annuler_modifications.html" %}
   </form>
 </section>
 {% endif %}
@@ -37,7 +38,7 @@
     <p>Vous pouvez changer d'avis à tout moment. Choisir <strong>Hériter</strong> permet de reprendre l'image proposée.</p>
     <p>Pour remplacer, choisissez soit une image fournie, soit une image importée. Pour passer d'une image importée à une image fournie, cochez aussi « Effacer ».</p>
   </details>
-  <form method="post" enctype="multipart/form-data" data-presentation="illustration">
+  <form method="post" data-formulaire-modifie{% if form.is_bound and erreur or form.errors %} data-brouillon{% endif %} enctype="multipart/form-data" data-presentation="illustration">
     {% csrf_token %}<input type="hidden" name="action" value="illustration">
     {{ form.non_field_errors }}
     {% for champ in form %}
@@ -60,7 +61,8 @@
     {% endfor %}
     {% if competence %}<p data-apercu-icone aria-live="polite" hidden>Image choisie : <img class="icone-apercu" alt=""></p>{% endif %}
     <p data-aide-champs>Les champs d'image sont modifiables avec « Remplacer ».</p>
-    <button class="bouton" type="submit">Enregistrer l'illustration</button>
+    <button class="bouton" type="submit" data-enregistrer>Enregistrer l'illustration</button>
+    {% include "suivi/partiels/annuler_modifications.html" %}
   </form>
 </section>
 {% if competence %}
@@ -81,7 +83,7 @@
 <article class="encadre">
   <p>{{ proposition.provenance }}{% if proposition.masquee %} · masquée{% endif %}</p>
   <p>{{ proposition.texte }}</p>
-  <form method="post" data-presentation="formulation">
+  <form method="post" data-formulaire-modifie data-presentation="formulation">
     {% csrf_token %}<input type="hidden" name="action" value="formulation"><input type="hidden" name="cle" value="{{ proposition.cle }}">
     <label title="Garder la phrase proposée, écrire votre version ou masquer cette proposition.">Quelle phrase proposer ? <select name="mode">
       {% if not proposition.ajoutee_ici %}<option value="heriter" {% if proposition.mode == 'heriter' %}selected{% endif %}>Hériter</option>{% endif %}
@@ -89,14 +91,16 @@
       <option value="desactiver" {% if proposition.mode == 'desactiver' %}selected{% endif %}>Masquer</option>
     </select></label>
     <label>Texte <textarea name="texte">{{ proposition.texte_local|default:proposition.texte }}</textarea></label>
-    <button class="bouton discret" type="submit">Enregistrer cette proposition</button>
+    <button class="bouton discret" type="submit" data-enregistrer>Enregistrer cette proposition</button>
+    {% include "suivi/partiels/annuler_modifications.html" %}
   </form>
 </article>
 {% empty %}<p>Aucune formulation fournie pour cette compétence. Vous pouvez en ajouter une.</p>{% endfor %}
-<form method="post" class="encadre">
+<form method="post" data-formulaire-modifie class="encadre">
   {% csrf_token %}<input type="hidden" name="action" value="ajouter_formulation">
   <label>Ajouter une proposition locale <textarea name="texte" required></textarea></label>
-  <button class="bouton" type="submit">Ajouter la proposition</button>
+  <button class="bouton" type="submit" data-enregistrer>Ajouter la proposition</button>
+  {% include "suivi/partiels/annuler_modifications.html" %}
 </form>
 {% else %}
 <h2>Images et formulations par compétence</h2>

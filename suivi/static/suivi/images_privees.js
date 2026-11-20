@@ -21,9 +21,26 @@
     etat.classList.toggle("erreur", erreur);
   }
 
-  function verrouiller(formulaire, verrouille) {
-    formulaire?.querySelectorAll('button[type="submit"], input[type="submit"]')
-      .forEach((bouton) => { bouton.disabled = verrouille; });
+  const preparations = new WeakMap();
+  function verrouiller(formulaire) {
+    const enCours = preparations.get(formulaire);
+    if (enCours) {
+      enCours.nombre++;
+    } else {
+      const boutons = Array.from(formulaire.querySelectorAll('button[type="submit"], input[type="submit"]'));
+      const actifs = boutons.filter(bouton => !bouton.disabled);
+      preparations.set(formulaire, {nombre: 1, actifs});
+      formulaire.setAttribute('data-image-en-cours', '');
+      actifs.forEach(bouton => { bouton.disabled = true; });
+    }
+    return () => {
+      const preparation = preparations.get(formulaire);
+      if (--preparation.nombre) return;
+      preparations.delete(formulaire);
+      formulaire.removeAttribute('data-image-en-cours');
+      preparation.actifs.forEach(bouton => { bouton.disabled = false; });
+      formulaire.dispatchEvent(new Event('validation:actualiser'));
+    };
   }
 
   async function encoder(champ, fichier) {
@@ -60,9 +77,10 @@
 
   document.addEventListener("change", async (evenement) => {
     const champ = evenement.target.closest("input[type=file][data-image-privee]");
-    if (!champ || !champ.files?.length) return;
-    const fichier = champ.files[0];
+    if (!champ) return;
     champ.setCustomValidity("");
+    if (!champ.files?.length) return;
+    const fichier = champ.files[0];
     if (fichier.size > LIMITE_BRUTE) {
       champ.value = "";
       champ.setCustomValidity("L’image dépasse 25 Mio.");
@@ -75,19 +93,20 @@
       return;
     }
     const formulaire = champ.form;
-    verrouiller(formulaire, true);
+    const deverrouiller = formulaire ? verrouiller(formulaire) : () => {};
     annoncer(champ, "Préparation de l’image…");
     try {
       const prepare = await encoder(champ, fichier);
+      if (champ.files[0] !== fichier) return;
       const transfert = new DataTransfer();
       transfert.items.add(prepare);
       champ.files = transfert.files;
       const ko = Math.max(1, Math.round(prepare.size / 1024));
       annoncer(champ, `Image prête à être envoyée (${ko} Ko).`);
     } catch (_erreur) {
-      annoncer(champ, "L’image sera automatiquement allégée lors de son enregistrement.");
+      if (champ.files[0] === fichier) annoncer(champ, "L’image sera automatiquement allégée lors de son enregistrement.");
     } finally {
-      verrouiller(formulaire, false);
+      deverrouiller();
     }
   });
 })();

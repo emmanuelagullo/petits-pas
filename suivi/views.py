@@ -1186,6 +1186,8 @@ def saisie_competence(request, pk, competence_pk):
          "adoption": adoption_courante(classe),
          "historique": classe_historique(classe),
          "nouvelle_saisie_possible": saisissable,
+         "nombre_traces_communes": TraceCommune.objects.filter(
+             classe=classe, competence=competence, supprime_le__isnull=True).count(),
          "correspondances": correspondances_classe(classe, competence.pk),
          "responsable": autorise(request.user, MODIFIER_ETAT, classe) and saisissable},
     )
@@ -1449,15 +1451,27 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
     versions_par_eleve = {trace.observation.eleve_id: trace for trace in versions}
     for eleve in eleves:
         eleve.version_personnelle = versions_par_eleve.get(eleve.pk)
+    depuis_competence = request.GET.get("origine") == "competence"
+    ariane = chemin_competence(classe, competence, filtre)
+    if retour_url:
+        libelle_retour = f"Retour aux traces de {retour_eleve.nom_court}"
+        ariane.append((f"Trace de {retour_eleve.nom_court}", retour_url))
+    elif depuis_competence:
+        libelle_retour, retour_url = "Retour à la compétence", ariane[-1][1]
+    else:
+        retour_url = lien("traces_communes", pk, competence_pk, filtre=filtre)
+        libelle_retour = "Retour aux traces communes"
+        ariane.append(("Traces communes", retour_url))
     erreur = None
+    saisie_trace = None
     commentaire = commune.commentaire if commune else ""
     date_observation = commune.date_observation if commune else timezone.localdate()
     if request.method == "POST":
         commentaire = request.POST.get("commentaire", "").strip()
         date_observation = request.POST.get("date_observation") or ""
         try:
+            selection_ids = {int(pk) for pk in request.POST.getlist("eleves")}
             date_observation = datetime.strptime(date_observation, "%Y-%m-%d").date()
-            ids = {int(pk) for pk in request.POST.getlist("eleves")}
             photo = commune.photo if commune else None
             if request.POST.get("retirer_photo"):
                 photo = None
@@ -1466,7 +1480,7 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
             ancien_nom = commune.photo.name if commune and commune.photo else ""
             with transaction.atomic():
                 commune_enregistree = enregistrer_commune(utilisateur=request.user, classe=classe,
-                                   competence=competence, ids=ids,
+                                   competence=competence, ids=selection_ids,
                                    valeurs={"commentaire": commentaire,
                                             "date_observation": date_observation,
                                             "photo": photo}, commune=commune)
@@ -1474,18 +1488,14 @@ def editer_trace_commune(request, pk, competence_pk, commune_pk=None):
                 if ancien_nom and ancien_nom != nouveau_nom:
                     _supprimer_media_apres_validation(ancien_nom)
             messages.success(request, "Trace commune enregistrée.")
-            if retour_url:
-                return redirect(retour_url)
-            return redirect(lien("traces_communes", pk, competence_pk, filtre=filtre))
+            return redirect(retour_url)
         except (ValueError, ValidationError) as exc:
             erreur = " ".join(exc.messages) if isinstance(exc, ValidationError) else str(exc)
-            selection_ids = ids if "ids" in locals() else set()
+            saisie_trace = request.POST
     trace_media = commune.attributions.filter(supprime_le__isnull=True).first() if commune else None
     return render(request, "suivi/formulaire_trace_commune.html", {
         "classe": classe, "competence": competence, "commune": commune, "filtre": filtre,
-        "ariane": chemin_competence(classe, competence, filtre) + [
-            ("Traces communes", lien("traces_communes", pk, competence_pk, filtre=filtre)),
-        ],
+        "ariane": ariane, "libelle_retour": libelle_retour, "saisie_trace": saisie_trace,
         "eleves": eleves, "selection_ids": selection_ids,
         "versions": versions, "versions_ids": {t.observation.eleve_id for t in versions},
         "commentaire": commentaire, "date_observation": date_observation,
@@ -1806,7 +1816,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
                     _supprimer_media_apres_validation(ancien_nom_photo)
             messages.success(request, f"Trace enregistrée pour {eleve.prenom}.")
             if collectif:
-                if suivant and request.POST.get("navigation") == "suivant" and trace_pk is None:
+                if suivant and request.POST.get("navigation") == "suivant":
                     return redirect(lien("trace", suivant.pk, competence.pk, filtre=filtre, classe=classe.pk))
                 return redirect(retour)
             return redirect(lien("trace", eleve.pk, competence.pk, filtre=filtre))
@@ -3406,6 +3416,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
                         "scolarites": scolarites,
                         "bilans": bilans,
                         "bilan_obj": bilan_en_conflit,
+                        "saisie_bilan": request.POST,
                         "date_defaut": timezone.localdate(),
                         "responsable": responsable,
                     },
@@ -3431,6 +3442,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
             "scolarites": scolarites,
             "bilans": bilans,
             "bilan_obj": bilan_obj,
+            "saisie_bilan": request.POST if request.method == "POST" else None,
             "date_defaut": timezone.localdate(),
             "responsable": responsable,
         },

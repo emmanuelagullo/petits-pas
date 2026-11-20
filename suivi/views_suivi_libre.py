@@ -98,7 +98,7 @@ def suivi_libre(request, pk, locale_pk=None):
     reprises = reprises_ciblees_autorisees(request.user, classe).select_related("competence")
     return render(request, "suivi/suivi_libre.html", {"classe": classe, "form": form,
         "locale": locale, "reprises": reprises, "doublons": doublons, "eleve": eleve,
-        "retour_catalogue": retour_catalogue})
+        "retour_catalogue": retour_catalogue, "selection_initiale": bool(initial.get("eleves"))})
 
 
 @acces_requis

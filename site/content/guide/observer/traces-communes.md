@@ -17,10 +17,10 @@ commentaire, sa date et sa photo sont préparés une seule fois, puis associés
 aux enfants que vous choisissez. « Pour la classe » ne signifie pas que tous
 les enfants seront automatiquement sélectionnés.
 
-1. Depuis **Saisir pour toute la classe**, ouvrir une compétence puis **Ajouter ou modifier une trace commune**.
-2. Choisir **Ajouter une trace commune**, saisir la date, le commentaire et, si besoin, une photo.
+1. Depuis **Saisir pour toute la classe**, ouvrir une compétence puis cliquer sur **Ajouter une trace commune**.
+2. Saisir la date, le commentaire et, si besoin, une photo.
 3. Cocher uniquement les enfants concernés, puis enregistrer. Le texte `<prenom>` ou `<prénom>` est remplacé par le prénom de chacun dans son carnet.
-4. Pour modifier la trace, revenir à la liste des traces communes de cette compétence. Les modifications touchent tous les enfants encore associés. Décocher un enfant retire uniquement son attribution.
+4. Pour modifier une trace existante, cliquer sur **Voir les traces communes** depuis la compétence. Les modifications touchent tous les enfants encore associés. Décocher un enfant retire uniquement son attribution.
 
 Une photo de groupe peut montrer d'autres enfants que ceux sélectionnés. Vérifier avant diffusion que sa présence dans les carnets destinés aux familles convient à toutes les personnes visibles. L'ajout d'une trace ne change pas l'état d'acquisition.
 
@@ -33,7 +33,7 @@ Le commentaire reste libre. Si des phrases sont proposées, en choisir une
 dans le menu puis **Insérer la proposition**. Elle est ajoutée au curseur, ou
 remplace le texte sélectionné, et peut ensuite être modifiée.
 
-Si l'édition collective est ouverte depuis la fiche d'un élève, le lien **Revenir aux traces de…** reste disponible. L'enregistrement ramène également à cette fiche.
+Le bouton d’enregistrement s’active après une modification, lorsqu’au moins un élève est sélectionné. Le bouton **Retour** devient **Annuler** pendant la saisie. Depuis la fiche d’un élève, le retour et l’enregistrement ramènent à ses traces.
 
 ## Personnaliser pour un enfant
 

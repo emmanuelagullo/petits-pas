@@ -1,4 +1,4 @@
-<form method="post" enctype="multipart/form-data" class="formulaire-trace" id="formulaire-trace"{% if erreur_trace %} data-brouillon{% endif %}>
+<form method="post" enctype="multipart/form-data" class="formulaire-trace" id="formulaire-trace" data-formulaire-modifie{% if erreur_trace %} data-brouillon{% endif %}>
   {% csrf_token %}
   <h2>{% if trace_obj %}Modifier la trace{% else %}Ajouter une trace{% endif %}</h2>
   {% if erreur_trace %}<p>Si vous aviez choisi une photo, sélectionnez-la à nouveau.</p>{% endif %}
@@ -7,9 +7,9 @@
   {% if responsable %}<p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if saisie_trace.visible_carnet or not erreur_trace and not trace_obj or not erreur_trace and trace_obj.visible_carnet %}checked{% endif %}> Afficher cette trace dans le carnet</label></p>{% endif %}
 
   <div class="actions actions-trace">
-    <button class="bouton" type="submit">{% if trace_obj %}Enregistrer les modifications{% elif collectif %}Enregistrer la trace{% else %}Ajouter la trace{% endif %}</button>
-    {% if suivant and not trace_obj %}<button class="bouton discret" type="submit" name="navigation" value="suivant">Enregistrer et passer à {{ suivant.nom_court }}</button>{% endif %}
-    <a class="bouton discret" data-quitter-trace href="{% if trace_obj and not collectif %}{% url 'trace' eleve.pk competence.pk %}{{ contexte_trace }}{% else %}{{ retour_trace }}{% endif %}">Annuler</a>
+    <button class="bouton" type="submit" data-enregistrer>{% if trace_obj %}Enregistrer les modifications{% elif collectif %}Enregistrer la trace{% else %}Ajouter la trace{% endif %}</button>
+    {% if suivant %}<button class="bouton discret" type="submit" data-enregistrer name="navigation" value="suivant">Enregistrer et passer à {{ suivant.nom_court }}</button>{% endif %}
+    <a class="bouton discret" data-retour-formulaire="Retour" href="{% if trace_obj and not collectif %}{% url 'trace' eleve.pk competence.pk %}{{ contexte_trace }}{% else %}{{ retour_trace }}{% endif %}">Retour</a>
   </div>
 </form>
 {% include "suivi/partiels/script_trace.html" %}

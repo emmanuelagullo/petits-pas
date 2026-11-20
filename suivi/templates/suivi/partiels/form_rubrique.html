@@ -1,4 +1,4 @@
-<form method="post" class="encadre">
+<form method="post" class="encadre"{% if operation != "visibilite" %} data-formulaire-modifie{% endif %}>
   {% csrf_token %}
   <input type="hidden" name="adoption_id" value="{{ adoption.pk }}">
   <input type="hidden" name="genre" value="{{ genre }}">
@@ -14,6 +14,7 @@
   {% else %}
     <input type="hidden" name="operation" value="nom">
     <label>Nom <input name="nom" value="{% firstof rubrique.nom_affiche rubrique.nom %}" maxlength="200" required></label>
-    <button class="bouton" type="submit">Enregistrer</button>
+    <button class="bouton" type="submit" data-enregistrer>Enregistrer</button>
+    {% include "suivi/partiels/annuler_modifications.html" %}
   {% endif %}
 </form>

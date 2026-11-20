@@ -156,6 +156,12 @@ h2 {
   border-color: var(--trait);
 }
 
+.bouton[data-enregistrer]:disabled {
+  color: #535d65;
+  background: #e6e9eb;
+  border-color: #b9c0c5;
+  cursor: not-allowed;
+}
 .bouton[hidden] { display: none; }
 .action-classement { margin: .5rem 0 .75rem; }
 .action-classement .bouton.discret { padding-inline: .75rem; }
