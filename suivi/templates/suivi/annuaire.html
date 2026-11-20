@@ -6,27 +6,31 @@
 <h1>Annuaire des élèves</h1>
 <p class="sous-titre">{{ eleves|length }} élève{{ eleves|length|pluralize }} affiché{{ eleves|length|pluralize }}</p>
 
-<form method="get" class="encadre filtres-annuaire">
-  <label for="annee">Année scolaire</label>
+<form method="get" class="filtres-annuaire">
+  <fieldset class="groupe-filtres"><legend>Élèves à afficher</legend>
+  <div class="groupes-filtres">
+  <div><label for="annee">Année scolaire</label>
   <select id="annee" name="annee">
     {% for a in annees %}<option value="{{ a }}" {% if a == annee %}selected{% endif %}>{{ a }}</option>{% endfor %}
-  </select>
+  </select></div>
 
-  <label for="niveau">Niveau</label>
+  <div><label for="niveau">Niveau</label>
   <select id="niveau" name="niveau">
     <option value="tous" {% if niveau == "tous" %}selected{% endif %}>Tous niveaux</option>
     <option value="PS" {% if niveau == "PS" %}selected{% endif %}>Petite section</option>
     <option value="MS" {% if niveau == "MS" %}selected{% endif %}>Moyenne section</option>
     <option value="GS" {% if niveau == "GS" %}selected{% endif %}>Grande section</option>
-  </select>
+  </select></div>
 
-  <label for="etat">État</label>
+  <div><label for="etat">État</label>
   <select id="etat" name="etat">
     <option value="actifs" {% if etat == "actifs" %}selected{% endif %}>Actifs</option>
     <option value="archives" {% if etat == "archives" %}selected{% endif %}>Archivés</option>
     <option value="tous" {% if etat == "tous" %}selected{% endif %}>Tous</option>
-  </select>
+  </select></div>
 
+  </div>
+  </fieldset>
   <div class="actions"><button class="bouton" type="submit">Filtrer</button></div>
 </form>
 

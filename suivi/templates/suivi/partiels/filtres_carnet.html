@@ -1,0 +1,24 @@
+<fieldset class="groupe-filtres" data-filtres-carnet>
+  <legend>Année scolaire</legend>
+  <div class="choix-segmentes">
+    {% if classe %}
+      <label><input type="radio" name="parcours" value="annee"{% if not parcours_complet %} checked{% endif %}> {{ classe.annee_scolaire }}</label>
+      <label><input type="radio" name="parcours" value="complet"{% if parcours_complet %} checked{% endif %}> Parcours complet</label>
+    {% else %}
+      <label><input type="radio" name="annee" value=""{% if not annee_selectionnee %} checked{% endif %}> Parcours complet</label>
+      {% for situation in scolarites_proposees %}
+        <label><input type="radio" name="annee" value="{{ situation.annee_scolaire }}"{% if annee_selectionnee == situation.annee_scolaire %} checked{% endif %}> {{ situation.annee_scolaire }}</label>
+      {% endfor %}
+    {% endif %}
+  </div>
+</fieldset>
+<fieldset class="groupe-filtres" data-filtres-carnet>
+  <legend>Contenu du carnet</legend>
+  <div class="choix-segmentes">
+    <label><input type="radio" name="contenu" value="reussites"{% if presentation.contenu == 'reussites' %} checked{% endif %}> Réussites</label>
+    <label><input type="radio" name="contenu" value="observes"{% if presentation.contenu == 'observes' %} checked{% endif %}> Réussites et compétences en cours</label>
+    <label><input type="radio" name="contenu" value="tout"{% if presentation.contenu == 'tout' %} checked{% endif %}> Référentiel complet</label>
+  </div>
+  <label class="choix"><input type="checkbox" name="attendus"{% if presentation.attendus == '1' %} checked{% endif %}> Inclure les attendus de fin de cycle</label>
+  <label class="choix"><input type="checkbox" name="bilans"{% if presentation.bilans == '1' %} checked{% endif %}> Inclure les bilans</label>
+</fieldset>

@@ -1,28 +1,34 @@
-<details class="details-filtres-catalogue"{% if formulaire.errors or ouvrir_filtres %} open{% endif %}>
+<details data-panneau-filtre class="details-filtres-catalogue"{% if formulaire.errors or ouvrir_filtres %} open{% endif %}>
   <summary class="bouton discret">Filtres</summary>
   {{ formulaire.non_field_errors }}
+  <div class="groupes-filtres">
+  <fieldset class="groupe-filtres"><legend>Élèves</legend>
   {% include "suivi/partiels/selection_eleves.html" %}
   {{ formulaire.eleves.errors }}
   {{ formulaire.sections_eleves.as_field_group }}
   {% if url_grille %}<p class="aide">Laissez la sélection vide pour afficher toute la classe.</p>{% endif %}
+  </fieldset>
+  {% if filtres_carnet %}{% include "suivi/partiels/filtres_carnet.html" %}{% endif %}
   {% if not competence %}
-  <fieldset>
-    <legend>Compétences et observations</legend>
-    <div class="choix-competences-edition">{{ formulaire.rubriques.as_field_group }}</div>
+  {% include "suivi/partiels/rubriques_edition.html" %}
+  <fieldset class="groupe-filtres">
+    <legend>Compétences</legend>
     <div class="choix-competences-edition" data-recherche-competences>
       <label hidden>Rechercher dans les compétences <input type="search"></label>
       {{ formulaire.competences.as_field_group }}
     </div>
     {{ formulaire.niveaux.as_field_group }}
+  </fieldset>
+  <fieldset class="groupe-filtres"><legend>Observations</legend>
     {{ formulaire.observations.as_field_group }}
     <div data-dates-edition>
       {{ formulaire.debut.as_field_group }}
       {{ formulaire.fin.as_field_group }}
       <p class="aide">Les dates sélectionnent les compétences. Les cases indiquent leur état dans le suivi de l’année.</p>
     </div>
-    {% if url_grille %}{{ formulaire.compacte.as_field_group }}{% endif %}
   </fieldset>
   {% endif %}
+  </div>
   {% if url_grille %}
   <div class="actions">
     <button class="bouton" name="filtres" value="1">Appliquer les filtres</button>

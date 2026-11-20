@@ -21,8 +21,12 @@ if (edition) {
     const pwa = !apercu;
     edition.querySelector('[data-options-cartes]').hidden = !cartes;
     edition.querySelector('[data-options-carnet]').hidden = cartes || grille;
+    for (const groupe of edition.querySelectorAll('[data-filtres-carnet]')) {
+      groupe.hidden = groupe.disabled = cartes || grille;
+    }
+    const parcoursComplet = !cartes && !grille && edition.elements.parcours.value === 'complet';
     edition.querySelector('[data-resume-eleves]').textContent =
-      `${nombre} enfant${nombre > 1 ? 's' : ''} sélectionné${nombre > 1 ? 's' : ''}`;
+      `${nombre} enfant${nombre > 1 ? 's' : ''} · ${parcoursComplet ? 'Parcours complet' : edition.dataset.annee}`;
     action.disabled = !nombre;
     if (apercu) {
       apercu.disabled = !nombre;
@@ -84,4 +88,29 @@ if (sequence) {
       suivant.focus();
     }
   });
+}
+
+for (const branche of document.querySelectorAll('[data-branche-rubrique]')) {
+  const parent = branche.querySelector('[data-bascule-rubrique]');
+  const panneau = branche.querySelector('details');
+  const resume = branche.querySelector('[data-rubrique-total]');
+  const titre = branche.querySelector('[data-rubrique-repli]');
+  const enfants = Array.from(branche.querySelectorAll('[name="rubriques"]'));
+  parent.closest('label').hidden = false;
+  resume.hidden = false;
+  titre.hidden = true;
+  panneau.querySelector('summary').setAttribute('aria-label', 'Sous-rubriques de ' + titre.textContent);
+  function actualiser() {
+    const nombre = enfants.filter(enfant => enfant.checked).length;
+    parent.checked = nombre === enfants.length;
+    parent.indeterminate = nombre > 0 && nombre < enfants.length;
+    resume.textContent = nombre + ' sur ' + enfants.length;
+  }
+  parent.addEventListener('change', () => {
+    for (const enfant of enfants) enfant.checked = parent.checked;
+    actualiser();
+  });
+  panneau.addEventListener('change', actualiser);
+  actualiser();
+  panneau.open = parent.indeterminate || enfants.length <= 2;
 }
