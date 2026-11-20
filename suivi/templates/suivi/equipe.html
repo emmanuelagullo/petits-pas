@@ -96,12 +96,6 @@
   {% if classe.anomalie_ouverte %}
   <div class="message-anomalie">
     <p>{{ classe.anomalie_ouverte.motif }}</p>
-    <details><summary class="bouton discret">Attribuer un responsable</summary>
-      <form method="post" class="formulaire-contextuel" data-formulaire-modifie>{% csrf_token %}<input type="hidden" name="action" value="affecter"><input type="hidden" name="classe" value="{{ classe.pk }}"><input type="hidden" name="type" value="responsable"><input type="hidden" name="vue" value="classes">
-        <label>Personne <select name="appartenance" required><option value="">Choisir une personne</option>{% for membre in membres_affectables %}<option value="{{ membre.pk }}">{{ membre.utilisateur.get_full_name|default:membre.utilisateur.username }}</option>{% endfor %}</select></label>
-        <label>Fin éventuelle <input type="date" name="date_fin"></label><label>Motif <input name="motif"></label><button class="bouton" type="submit" data-enregistrer>Attribuer</button>{% include "suivi/partiels/annuler_modifications.html" %}
-      </form>
-    </details>
   </div>
   {% endif %}
 
@@ -110,13 +104,9 @@
   {% if afficher_historique %}{% for affectation in classe.affectations_historiques %}{% include "suivi/partiels/affectation_equipe.html" with vue="classes" historique=True %}{% endfor %}{% endif %}
   </div>
 
-  <details class="ajout-contextuel">
+  <details class="ajout-contextuel"{% if classe.anomalie_ouverte %} open{% endif %}>
     <summary>Ajouter une personne à cette classe</summary>
-    <form method="post" class="formulaire-contextuel" data-formulaire-modifie>{% csrf_token %}<input type="hidden" name="action" value="affecter"><input type="hidden" name="classe" value="{{ classe.pk }}"><input type="hidden" name="vue" value="classes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
-      <label>Personne <select name="appartenance" required><option value="">Choisir une personne</option>{% for membre in membres_affectables %}<option value="{{ membre.pk }}">{{ membre.utilisateur.get_full_name|default:membre.utilisateur.username }}</option>{% endfor %}</select></label>
-      <label>Fonction <select name="type">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
-      <label>Fin éventuelle <input type="date" name="date_fin"></label><label>Motif <input name="motif"></label><button class="bouton" type="submit" data-enregistrer>Attribuer</button>{% include "suivi/partiels/annuler_modifications.html" %}
-    </form>
+    {% include "suivi/partiels/formulaire_affectation.html" with vue="classes" %}
   </details>
 </section>
 {% empty %}<div class="vide"><p>Aucune classe à afficher.</p></div>{% endfor %}
@@ -148,11 +138,7 @@
   {% if appartenance in membres_affectables %}
   <details class="ajout-contextuel">
     <summary>Attribuer une fonction à {{ appartenance.utilisateur.first_name|default:appartenance.utilisateur.username }}</summary>
-    <form method="post" class="formulaire-contextuel" data-formulaire-modifie>{% csrf_token %}<input type="hidden" name="action" value="affecter"><input type="hidden" name="appartenance" value="{{ appartenance.pk }}"><input type="hidden" name="vue" value="personnes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
-      <label>Classe <select name="classe" required><option value="">Choisir une classe</option>{% for classe in classes_affectables %}<option value="{{ classe.pk }}">{{ classe.libelle_avec_annee }}</option>{% endfor %}</select></label>
-      <label>Fonction <select name="type">{% for valeur, libelle in types_affectation %}<option value="{{ valeur }}">{{ libelle }}</option>{% endfor %}</select></label>
-      <label>Fin éventuelle <input type="date" name="date_fin"></label><label>Motif <input name="motif"></label><button class="bouton" type="submit" data-enregistrer>Attribuer</button>{% include "suivi/partiels/annuler_modifications.html" %}
-    </form>
+    {% include "suivi/partiels/formulaire_affectation.html" with vue="personnes" %}
   </details>
   {% endif %}
 </section>

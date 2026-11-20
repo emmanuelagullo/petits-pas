@@ -16,7 +16,7 @@
   <p data-selection-requise role="status" hidden>Sélectionnez au moins un élève.</p>
   <div class="actions">
     <button class="bouton" type="submit" data-enregistrer>Enregistrer la trace commune</button>
-    <a class="bouton discret" href="{{ retour_url }}" data-retour-formulaire="{{ libelle_retour }}">{{ libelle_retour }}</a>
+{% include "suivi/partiels/retour_formulaire.html" with destination=retour_url libelle=libelle_retour only %}
   </div>
 </form>
 {{ apercu_eleves|json_script:"apercu-eleves" }}

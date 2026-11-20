@@ -16,7 +16,7 @@
 
   <div class="actions">
     <button class="bouton" type="submit" data-enregistrer>{% if bilan_obj %}Enregistrer les modifications{% else %}Ajouter le bilan{% endif %}</button>
-    {% if bilan_obj %}<a class="bouton discret" href="{% url 'bilans_eleve' eleve.pk %}" data-retour-formulaire="Retour aux bilans">Retour aux bilans</a>
+    {% if bilan_obj %}{% url "bilans_eleve" eleve.pk as destination_bilans %}{% include "suivi/partiels/retour_formulaire.html" with destination=destination_bilans libelle="Retour aux bilans" only %}
     {% else %}{% include "suivi/partiels/annuler_modifications.html" %}{% endif %}
   </div>
 </form>

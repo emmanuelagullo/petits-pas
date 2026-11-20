@@ -38,6 +38,7 @@
     const annuler = formulaire.querySelector('[data-annuler-formulaire]');
     const aide = formulaire.querySelector('[data-selection-requise]');
     const selectionComplete = () => !formulaire.hasAttribute('data-eleves-requis') ||
+      (formulaire.dataset.elevesRequis === 'portee' && formulaire.elements.portee.value !== 'eleves') ||
       !!formulaire.querySelector('input[name="eleves"]:checked:not(:disabled):not([aria-disabled="true"])');
 
     function actualiser() {
