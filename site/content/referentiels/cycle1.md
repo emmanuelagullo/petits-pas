@@ -58,7 +58,7 @@ des objectifs n’ont aucune observation : une base complète ne signifie pas
 que tout a déjà été travaillé.
 
 1. Se connecter avec **Rémi** (`enseignant-demo`), puis ouvrir **Les Mésanges — 2026-2027**.
-2. Ouvrir **Référentiel de la classe** et vérifier le titre et la version de l’offre étayée.
+2. Ouvrir **Compétences → Réglages du référentiel** et vérifier le titre et la version de l’offre étayée.
 3. Explorer les domaines et les sous-domaines ; comparer un objectif et un repère du même thème.
 4. Ouvrir **Ada F.**, en PS : consulter les observations de langage, de quantité et de saut ; ajouter une observation fictive ou un commentaire.
 5. Essayer la saisie pour plusieurs élèves, puis consulter le carnet et générer un PDF. Les illustrations ne remplacent pas les commentaires sur la situation observée.

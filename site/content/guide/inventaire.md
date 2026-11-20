@@ -200,6 +200,8 @@ passe.
 | --- | --- | --- | --- |
 | Relier deux compétences | Responsable ou direction ; consultation selon les droits de classe | Disponible | Liens orientés annuels ; aucun transfert automatique de suivi ou de média. |
 | Ajouter ou reprendre une compétence | Responsable ou direction | Disponible | Reprise explicite par classe et année ; aucune réussite copiée. |
+| Rechercher et organiser les compétences de la classe | Responsable ou direction | Disponible | Filtres, déplacement et masquage selon les droits ; observations conservées. |
+| Organiser les rubriques | Responsable ou direction | Disponible | Ordre, noms et visibilité de la classe pour cette année. |
 | Adapter les libellés et masquer des compétences | Responsable ou direction | Disponible | Choix annuels séparés ; même apprentissage et ancien parcours conservés. |
 | Consulter les référentiels | Intervenants de la classe | Disponible | Lecture seule, textes sources ou présentation adaptée ; aucune adoption. |
 | Choisir une base autorisée | Responsable ou direction | Disponible | Avancé, avertissement orange et mot de passe pour changer avant saisies ; premier choix proposé ordinaire. |
@@ -212,7 +214,7 @@ Voir [les choix de l’école]({{< relref "/guide/eleves-classes/referentiels-ec
 
 Voir [adapter les libellés et masquer des compétences]({{< relref "/guide/eleves-classes/adapter-competences" >}}).
 
-Voir [ajouter ou reprendre une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
+Voir [ajouter ou reprendre une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}}) et [organiser les rubriques de la classe]({{< relref "/guide/eleves-classes/organiser-rubriques" >}}).
 
 Voir [relier deux compétences]({{< relref "/guide/eleves-classes/relier-competences" >}}).
 

@@ -70,6 +70,9 @@ Les images et phrases se règlent séparément dans la
 
 ## Compétences ciblées
 
-Depuis une compétence ciblée du suivi collectif, le responsable peut modifier son libellé ou le masquer avec l’éditeur existant. Une reformulation fidèle garde son identité ; son domaine et sous-domaine de création restent conservés.
+Dans **Compétences**, le menu **⋯** permet de masquer aussi une compétence
+ciblée lorsque l’action est proposée. Retrouvez-la avec **Filtres → Inclure
+les compétences masquées** pour la réafficher. Le masquage conserve son
+historique et ses élèves suivis. Voir aussi [organiser les rubriques]({{< relref "/guide/eleves-classes/organiser-rubriques" >}}).
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

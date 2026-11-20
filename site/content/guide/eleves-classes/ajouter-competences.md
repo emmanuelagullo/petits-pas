@@ -1,6 +1,6 @@
 +++
 title = "Ajouter ou reprendre une compétence"
-description = "Créer une compétence propre à l’école ou à une classe, puis le reprendre sans copier les réussites."
+description = "Créer une compétence propre à l’école ou à une classe, puis la reprendre sans copier les réussites."
 fiche = true
 categorie = "eleves-classes"
 publics = ["responsable", "direction"]
@@ -12,18 +12,21 @@ statut = "disponible"
 
 ## Étapes
 
-1. Ouvrir **Compétences** dans la classe et saisir le libellé. Les filtres
-   permettent de choisir la source, la section, le domaine et le sous-domaine.
-2. Si une compétence correspond, ouvrir son suivi ou l’ajouter au suivi. Un lien
-   indique où retrouver une correspondance écartée par les filtres.
-3. Si la compétence est nouvelle, choisir **Créer « … »**, puis
-   **Ajouter au référentiel de la classe** ou **Suivre pour les élèves sélectionnés**.
-   Vérifier la section, le domaine et, si utile, le sous-domaine.
-4. Pour une compétence créée dans la classe, utiliser le bouton **Proposer
-   cette compétence dans les prochaines saisies** pour la montrer ou la masquer.
-   Pour un ajout venu de l’école, choisir de suivre son choix, de montrer ou de
-   masquer la compétence.
-5. Cliquer sur **Enregistrer**.
+1. Ouvrir **Compétences** dans la classe et taper quelques mots du libellé.
+   Ouvrir **Filtres** pour préciser la section, le domaine ou le sous-domaine.
+   Si **Source** est proposée, vous pouvez consulter un autre référentiel
+   autorisé ou les compétences d’une autre classe accessible.
+2. Sur un résultat, **Voir le suivi** ouvre la liste des élèves de cette
+   compétence. **Ajouter au suivi**, quand il est proposé, permet de choisir
+   les élèves concernés. **Ajouter au référentiel de la classe**, quand il
+   est proposé, rend la compétence disponible à toute la classe.
+3. Si une correspondance est écartée par les filtres, suivre le lien proposé
+   pour la retrouver. Si la recherche ne trouve pas la compétence, ouvrir
+   **Créer « … »**, puis choisir **Ajouter au référentiel de la classe**
+   ou **Suivre pour les élèves sélectionnés**. Le premier choix vaut aussi
+   pour les futurs inscrits. Le second porte sur les élèves choisis.
+4. Vérifier le libellé, la section, le domaine et le sous-domaine si utile,
+   puis enregistrer.
 
 ## Résultat attendu
 
@@ -35,8 +38,7 @@ origine ; elle ne l’ajoute automatiquement à aucune autre classe.
 
 Reprendre ne crée pas une nouvelle compétence et ne copie aucune réussite.
 Les nouvelles observations sont saisies pour les élèves concernés, comme pour
-les compétences de la base. Les ajouts sont rangés dans **Ajouts — nom du domaine**,
-un groupe qui conserve le domaine choisi même si la base change.
+les compétences de la base. Les ajouts apparaissent dans les rubriques et sous-rubriques de la classe.
 
 Pour une compétence créée dans la classe, modifier directement **Libellé de
 la compétence**. Pour décrire une autre compétence, créer une nouvelle compétence.
@@ -53,15 +55,19 @@ Si l’école a proposé un autre texte pour cette année, le choix s’appelle
 
 ## Corriger un classement ou retrouver un doublon
 
-Dans le catalogue, **Modifier ou masquer** ouvre les réglages de la compétence.
-Pour un ajout, **Corriger le classement** permet de modifier la section, le
-domaine et le sous-domaine. Les observations restent rattachées à la compétence.
+Dans **Compétences**, ouvrir le menu **⋯** sur la ligne concernée.
+Pour un ajout modifiable, **Modifier** donne accès au libellé et, selon les
+droits, à la correction de la section et du classement. **Déplacer…** permet
+de choisir la rubrique et la sous-rubrique d’affichage dans cette classe.
+Les observations restent rattachées à la compétence.
 Quand un ajout est partagé, la direction voit les utilisations avant d’enregistrer.
 Les carnets clôturés gardent le classement conservé à la clôture.
 
-Pour départager deux libellés identiques, comparer leur périmètre et le nombre
-d’élèves avec des observations dans cette classe. Masquer l’entrée en trop
-la retire des prochaines saisies et permet de conserver son historique.
+Pour départager deux libellés identiques, vérifier la source, les élèves suivis
+et les observations de chaque entrée. **Masquer** retire l’entrée des prochaines
+saisies en conservant son historique. Pour la retrouver, ouvrir **Filtres**,
+cocher **Inclure les compétences masquées**, puis choisir **Réafficher** dans
+son menu.
 
 ## Changement de base et rentrée
 
@@ -77,9 +83,8 @@ de l’école ne modifient plus ce carnet.
 
 ## Limites et refus
 
-- Le domaine est choisi parmi les domaines de la base actuelle de la classe,
-  ou des bases consultables par la direction. La création libre de domaines,
-  sous-domaines et attendus n’est pas proposée.
+- Les [rubriques personnalisées de la classe]({{< relref "/guide/eleves-classes/organiser-rubriques" >}})
+  servent au classement local. Les textes de la source restent consultables.
 - Un texte identique n’assimile jamais deux compétences. [Relier deux compétences]({{< relref "/guide/eleves-classes/relier-competences" >}})
   permet d’expliquer un rapprochement sans copier de réussite.
 - Une classe close reste consultable. Une classe sans base doit d’abord en
@@ -95,6 +100,6 @@ et [choisir une base]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}
 
 ## Ajouter seulement pour certains élèves
 
-Cette fiche concerne les compétences disponibles pour une classe entière. Pour créer une compétence pour un élève ou un groupe choisi, utiliser **+ Ajouter une compétence** depuis le suivi.
+Pour commencer depuis la fiche d’un élève ou dans **Saisir pour toute la classe**, utiliser **+ Ajouter une compétence** quand le bouton est proposé dans la rubrique.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

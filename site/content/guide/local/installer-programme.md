@@ -47,7 +47,8 @@ téléchargez **Evergreen Bootstrapper** (ou **Evergreen Standalone Installer** 
 l’ordinateur n’a pas accès à Internet), lancez-le, puis rouvrez Petits Pas.
 
 Si Petits Pas ne s’ouvre pas, un message indique où trouver le diagnostic.
-Notez ce message et transmettez-le à la personne qui accompagne votre essai.
+Notez ce message et le chemin du journal, puis transmettez-les à la personne
+qui accompagne votre essai.
 Si la fenêtre reste bloquée sans message, indiquez ce que vous faisiez au
 moment du blocage.
 

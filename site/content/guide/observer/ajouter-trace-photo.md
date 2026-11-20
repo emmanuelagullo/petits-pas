@@ -25,7 +25,10 @@ statut = "disponible"
    pas modifié.
 5. Si vous êtes responsable, laisser cochée ou décocher l’option **Afficher
    cette trace dans le carnet**.
-6. Sélectionner **Ajouter la trace**.
+6. Sélectionner **Ajouter la trace**. Depuis la liste de **Saisir pour toute
+   la classe**, le bouton s’appelle **Enregistrer la trace**. Si un autre
+   élève suit dans la liste, **Enregistrer et passer à [prénom]** ouvre sa
+   fiche pour la même compétence. Le fil d’Ariane ramène à la liste.
 
 {{< capture-guide src="captures/guide/observer/trace.png" alt="Formulaire d’ajout d’une trace avec commentaire, date et photographie" caption="Le cadrage montre uniquement les champs utiles, avec les données fictives de la démonstration." >}}
 

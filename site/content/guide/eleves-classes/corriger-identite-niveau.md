@@ -29,7 +29,10 @@ accessible sur la ligne de l’élève dans **Composition actuelle de la classe*
 ## Résultat attendu
 
 L’identité corrigée est utilisée dans toute l’école. Le niveau, lui, appartient
-à la scolarité de l’année et ne réécrit pas les années précédentes.
+à la scolarité de l’année. Rouvrez **Parcours scolaire** pour vérifier la
+section enregistrée sur la ligne de l’année courante. Les années précédentes
+gardent leur niveau. La section de classement d’une compétence se règle
+séparément dans **Compétences**.
 
 ## Limites et conséquences
 

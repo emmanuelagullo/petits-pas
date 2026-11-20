@@ -19,8 +19,8 @@ les enfants seront automatiquement sélectionnés.
 
 1. Depuis **Saisir pour toute la classe**, ouvrir une compétence puis cliquer sur **Ajouter une trace commune**.
 2. Saisir la date, le commentaire et, si besoin, une photo.
-3. Cocher uniquement les enfants concernés, puis enregistrer. Le texte `<prenom>` ou `<prénom>` est remplacé par le prénom de chacun dans son carnet.
-4. Pour modifier une trace existante, cliquer sur **Voir les traces communes** depuis la compétence. Les modifications touchent tous les enfants encore associés. Décocher un enfant retire uniquement son attribution.
+3. Cocher les enfants concernés. **Sélectionner toute la classe** coche les élèves disponibles, puis vous pouvez ajuster la sélection. Cliquer sur **Enregistrer la trace commune**. Le texte `<prenom>` ou `<prénom>` est remplacé par le prénom de chacun dans son carnet.
+4. Pour modifier une trace existante, cliquer sur **Voir les traces communes** depuis la compétence lorsque des traces existent. Les modifications touchent tous les enfants encore associés. Décocher un enfant retire uniquement son attribution.
 
 Une photo de groupe peut montrer d'autres enfants que ceux sélectionnés. Vérifier avant diffusion que sa présence dans les carnets destinés aux familles convient à toutes les personnes visibles. L'ajout d'une trace ne change pas l'état d'acquisition.
 
