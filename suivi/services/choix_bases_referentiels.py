@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import re
 
+from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 
@@ -35,9 +36,15 @@ def verifier_annee(annee):
 def _superieur(ecole, annee, application):
     if application and application.configure:
         ids = application.versions_autorisees.values_list("pk", flat=True)
-        # Les seules versions fournies sont les versions explicitement publiées.
         versions = list(VersionReferentiel.objects.filter(pk__in=ids, source__ecole__isnull=True,
             contenu__origine="source_declaree").select_related("source").order_by("source__titre", "pk"))
+        if settings.MODE_LOCAL:
+            # Une ancienne proposition explicite reste utilisable dans son école.
+            locale = ChoixEcoleAnnuel.objects.filter(ecole=ecole, annee_scolaire=annee
+                ).select_related("version_proposee__source").first()
+            historique = locale.version_proposee if locale else None
+            if historique and historique.source.ecole_id == ecole.pk:
+                versions.append(historique)
         return versions, application.version_proposee_id
     # Compatibilité : une base locale reprise ne devient pas une source nationale.
     initiale = VersionReferentiel.objects.filter(source__ecole=ecole,

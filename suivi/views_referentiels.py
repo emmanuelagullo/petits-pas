@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -110,6 +111,21 @@ def choisir_bases_ecole(request):
     except ValidationError as cause:
         contexte["erreur"] = " ".join(cause.messages)
         return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400)
+    if request.method == "POST" and request.POST.get("action") == "completer_catalogue":
+        if not settings.MODE_LOCAL:
+            raise PermissionDenied
+        from .services.catalogue_fourni import completer_catalogue_fourni
+        try:
+            _, ajoutes = completer_catalogue_fourni(annee)
+        except ValidationError as cause:
+            messages.error(request, " ".join(cause.messages))
+        else:
+            if ajoutes:
+                messages.success(request, "Les référentiels fournis sont disponibles pour cette année, "
+                    "selon les choix de l’école. Chaque classe garde son référentiel et ses saisies.")
+            else:
+                messages.info(request, "Les référentiels fournis figurent déjà dans le catalogue de cette année.")
+        return redirect(f"{reverse('referentiels_ecole')}?annee={annee}")
     superieures, proposee_superieure = choix_superieurs(ecole, annee)
     choix = choix_bases(ecole, annee)
     local = ChoixEcoleAnnuel.objects.filter(ecole=ecole, annee_scolaire=annee).first()
@@ -152,7 +168,7 @@ def choisir_bases_ecole(request):
             erreur = " ".join(cause.messages)
     from .services.garde_fous_referentiels import permissions
     application = ChoixApplicationAnnuel.objects.filter(annee_scolaire=annee).first()
-    contexte.update(catalogue_publie=bool(application and application.configure),
+    contexte.update(catalogue_local=settings.MODE_LOCAL, catalogue_publie=bool(application and application.configure),
         nb_bases_superieures=len(superieures), restriction_ecole=bool(local and local.restreindre),
         demarrage=demarrage, niveau_choix="vert" if demarrage and not (local and local.restreindre) and not (apercu and apercu["restreindre"]) else "orange",
         confirmation_form=ConfirmationReferentielForm(renforcee=bool(apercu and choix_ecole_renforces(local, apercu, demarrage))), permission=permissions(ecole, annee),

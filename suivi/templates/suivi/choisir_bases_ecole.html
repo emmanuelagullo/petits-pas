@@ -15,6 +15,13 @@
 <button class="bouton discret" type="submit">Consulter cette année</button>
 </form>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if form and catalogue_local %}
+<form method="post" class="encadre">
+{% csrf_token %}<input type="hidden" name="annee" value="{{ annee }}">
+<button class="bouton discret" name="action" value="completer_catalogue">Ajouter les référentiels fournis pour {{ annee }}</button>
+<p class="aide">Ajoute les sources manquantes au catalogue. Vos réglages d’école et les référentiels des classes sont conservés.</p>
+</form>
+{% endif %}
 {% if form %}
 <p><strong>Deux façons de commencer :</strong> démarrer sans compétences prédéfinies, avec des catégories seules, ou partir d’un référentiel du catalogue. Les deux permettent ensuite d’ajouter des réussites pour certains élèves.</p>
 <h2>Choix actuels — {{ annee }}</h2>
@@ -57,11 +64,14 @@
 {% endif %}
 <p><a class="bouton" href="{% url 'creer_classe' %}">Créer une classe</a> puis <a href="{% url 'equipe_ecole' %}">inviter l’équipe</a>.</p>
 <details><summary>Pourquoi un référentiel manque-t-il ?</summary>
-<p>Pour {{ annee }} : {% if catalogue_publie %}les bases autorisées par l’application ont été publiées.{% else %}aucune liste de bases n’a encore été publiée par l’administration du service.{% endif %}
+<p>Pour {{ annee }} : {% if catalogue_publie %}les bases autorisées par l’application ont été publiées.{% else %}{% if catalogue_local %}le catalogue des référentiels fournis n’a pas encore été préparé sur cet appareil.{% else %}aucune liste de bases n’a encore été publiée par l’administration du service.{% endif %}{% endif %}
 {{ nb_bases_superieures }} base{{ nb_bases_superieures|pluralize }} autorisée{{ nb_bases_superieures|pluralize }} au niveau de l’application pour cette école ; {{ choix.versions|length }} proposée{{ choix.versions|length|pluralize }} par l’école.
 {% if restriction_ecole %}L’école conserve une liste plus courte pour cette année.{% else %}L’école garde la liste autorisée par l’application.{% endif %}</p>
+{% if catalogue_local %}
+<p>Utilisez « Ajouter les référentiels fournis » pour cette année. Si l’école a choisi une liste plus courte, adaptez aussi cette liste pour proposer les nouvelles sources aux classes.</p>
+{% else %}
 <p>Un fichier fourni avec Petits Pas n’est pas forcément disponible sur ce service. L’administration doit d’abord l’importer, puis l’autoriser pour l’année affichée. Sans publication annuelle, seule la trame initiale de l’école peut être proposée. Vérifiez aussi l’année et une éventuelle liste plus courte conservée par l’école.</p>
-<p>Le choix proposé par défaut ne limite pas la liste. Pour une offre absente des bases autorisées par l’application, contactez la personne qui administre le service en indiquant l’année et le référentiel attendu. La direction ne peut ni importer une source ni élargir les autorisations de l’application.</p></details>
+<p>Le choix proposé par défaut ne limite pas la liste. Pour une offre absente des bases autorisées par l’application, contactez la personne qui administre le service en indiquant l’année et le référentiel attendu. La direction ne peut ni importer une source ni élargir les autorisations de l’application.</p>{% endif %}</details>
 <details><summary>Quel choix privilégier ?</summary>
 <p>Pour commencer, gardez les autorisations et le choix proposés par l'application. Choisissez une autre base proposée si l'équipe a un besoin pédagogique précis : les autres bases restent disponibles.</p>
 <p>Conservez une liste plus courte seulement si l'école souhaite limiter les nouveaux choix de ses classes. Ce choix concerne toute l'école pour l'année indiquée.</p>
