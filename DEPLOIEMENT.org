@@ -203,6 +203,22 @@ Un déploiement persistant doit choisir explicitement son fonctionnement :
 Le diagnostic de déploiement refuse un profil persistant où aucun de ces deux
 choix n'est explicite.
 
+* Accès sur l'appareil local
+
+Le programme autonome et la PWA n'envoient pas de courriel. Ils ouvrent, pour
+l'oubli de mot de passe, une clé de secours par compte (empreinte seule) et un
+« dernier recours » choisi par l'école (réinitialisation depuis l'appareil, sans
+clé, consignée au journal). Ce parcours exige deux conditions :
+=CARNET_MODE_LOCAL=oui= *et* =CARNET_ACCES_LOCAL_AUTONOME=oui=, cette seconde
+variable étant posée par =scripts/lancer-local.py= et =pwa/bridge.py=. Un serveur
+affecté par erreur de =CARNET_MODE_LOCAL= n'ouvre donc jamais ce parcours : ne
+jamais poser =CARNET_ACCES_LOCAL_AUTONOME= hors d'un poste local. Il est
+désactivé dans les espaces d'essai et d'aperçu.
+
+Sur ce profil, le minimum d'un mot de passe est de huit caractères (douze
+ailleurs). Les tables =CleSecoursLocale= et =RecoursLocalEcole= ne sont pas
+exportées avec l'école.
+
 * Anti-bruteforce à la connexion
 
 =django-axes= bloque temporairement un couple adresse + identifiant après

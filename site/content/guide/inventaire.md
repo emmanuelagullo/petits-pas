@@ -18,8 +18,12 @@ Les statuts employés sont :
 | Je voudrais… | Pour qui ? | État | Point important |
 | --- | --- | --- | --- |
 | Me connecter et revenir à la page demandée | Toute personne autorisée | Disponible | Le compte doit posséder une responsabilité ou une affectation active. |
-| Créer mon compte depuis une invitation | Personne invitée | Disponible | Mot de passe d’au moins douze caractères, ni trop courant ni composé de chiffres seuls. Une fonction peut avoir été préparée par la direction. |
+| Créer mon compte depuis une invitation | Personne invitée | Disponible | Mot de passe d’au moins douze caractères (huit sur l’appareil local), ni trop courant ni composé de chiffres seuls. Une fonction peut avoir été préparée par la direction. |
 | Rattacher mon compte existant à une école | Personne invitée | Disponible | L’adresse du compte doit correspondre à l’invitation. |
+| Retrouver l’accès avec ma clé de secours | Toute personne ayant un compte sur l’appareil local | Disponible | Sans courriel ; nouveau mot de passe d’au moins huit caractères, connexion immédiate et nouvelle clé remise. Voir la [fiche]({{< relref "/guide/local/retrouver-acces/" >}}). |
+| Retrouver l’accès sans clé (dernier recours) | Toute personne ayant un compte sur l’appareil local | Selon le choix de l’école | Autorisé par défaut à l’installation, modifiable par la direction ; consigné au journal ; sessions du compte fermées. |
+| Autoriser ou interdire le dernier recours | Direction | Disponible | Gérer l’école → Accès sur cet appareil ; l’interdire exige de recopier sa clé de secours. |
+| Obtenir un lien de réinitialisation pour un collègue | Direction (appareil local) | Disponible | Équipe pédagogique ; lien affiché une seule fois, à remettre en main propre ; consigné au journal. |
 | Réinitialiser mon mot de passe | Toute personne disposant d’un compte | Selon l’installation | Nécessite l’envoi de courriel ; la réponse ne révèle pas si l’adresse est connue ; les sessions ouvertes sont fermées. |
 | Changer mon mot de passe quand je suis connecté | Toute personne autorisée | Disponible | Depuis Mon compte ; mot de passe actuel exigé ; les sessions ouvertes sur d’autres appareils sont fermées. Voir la [fiche]({{< relref "/guide/equipe/changer-mot-de-passe/" >}}). |
 | Ajouter un code de vérification à mon mot de passe (second facteur) | Toute personne autorisée | Selon l’installation | Nécessite que l’hébergeur ait activé la fonction ; code à six chiffres produit par une application (téléphone, tablette), un jeton ou un logiciel du poste. Voir la [fiche]({{< relref "/guide/equipe/second-facteur/" >}}). |

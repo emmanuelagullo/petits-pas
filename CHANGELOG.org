@@ -7,6 +7,13 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Retrouver l’accès à son compte sur le programme et dans le navigateur de cet
+  appareil sans courriel : clé de secours remise à l’installation, dernier
+  recours (nouveau mot de passe depuis l’appareil) que l’école autorise ou non,
+  lien de réinitialisation remis par la direction, trace au journal et rappel à
+  la connexion ; minimum de huit caractères et idée de phrase de passe sur ce
+  profil.
+
 * 0.15 — 2026-11-20
 
 Cette version simplifie la recherche de compétences et la saisie des traces.

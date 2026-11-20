@@ -23,7 +23,7 @@ une autre procédure : voir
 1. Ouvrir **Mon compte**, puis, dans la rubrique « Mot de passe », sélectionner
    **Changer mon mot de passe**.
 2. Saisir le **mot de passe actuel**.
-3. Saisir deux fois le **nouveau mot de passe**, d’au moins douze caractères. Le
+3. Saisir deux fois le **nouveau mot de passe**, d’au moins douze caractères (huit sur l’appareil local). Le
    formulaire refuse un mot de passe trop courant, composé uniquement de chiffres
    ou trop proche du nom d’utilisateur ou du nom, et indique ce qu’il faut
    corriger.

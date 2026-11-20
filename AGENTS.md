@@ -356,6 +356,13 @@ le sous-module épinglé avant Hugo. Ne pas recopier les layouts/styles du thèm
 Conserver contenus, démonstration, URL et paramètres de couleur propres au produit.
 
 
+Accès local : `ACCES_LOCAL_AUTONOME` exige `CARNET_MODE_LOCAL` et la déclaration
+du lanceur (`CARNET_ACCES_LOCAL_AUTONOME`, posée par `scripts/lancer-local.py` et
+`pwa/bridge.py`). Ne jamais ouvrir la clé de secours ou le dernier recours sur le
+seul mode local. Les clés ne sont conservées qu'en empreinte, ne figurent dans
+aucun journal, et `CleSecoursLocale` comme `RecoursLocalEcole` restent hors des
+exports d'école.
+
 ## Aides contextuelles et erreurs compréhensibles
 
 Pour chaque champ ou action dont le sens n'est pas évident, expliquer l'intention,

@@ -25,6 +25,7 @@ Les fiches pédagogiques du Guide s’appliquent aux deux options.
 - [Transférer ou restaurer l’école]({{< relref "/guide/local/restaurer-paquet" >}}).
 - [Vérifier un ZIP dans une copie séparée]({{< relref "/guide/local/verifier-zip" >}}).
 - [Vérifier sur votre appareil]({{< relref "/guide/local/verifier-appareil" >}}).
+- [Retrouver l’accès si l’on oublie son mot de passe]({{< relref "/guide/local/retrouver-acces" >}}).
 - [Une difficulté au démarrage ?]({{< relref "/guide/demarrage-aide" >}})
 
 Le ZIP est commun aux deux options, avec une version compatible. Restaurer

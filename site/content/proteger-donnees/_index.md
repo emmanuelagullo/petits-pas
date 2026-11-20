@@ -13,6 +13,8 @@ Aucun accord de mise en service n’est annoncé par ce site.
 - Utilisez votre compte personnel et fermez votre session sur un appareil partagé.
 - Protégez l’accès à l’appareil et au profil du navigateur. Une personne qui
   possède les fichiers locaux ou un ZIP peut accéder aux données de l’école.
+- Sur cet appareil, rangez la [clé de secours]({{< relref "/guide/local/retrouver-acces" >}})
+  hors de l’ordinateur ; décochez le dernier recours si l’appareil est partagé.
 - Sur cet appareil, [conservez une sauvegarde ailleurs]({{< relref "/guide/local/sauvegarder-paquet" >}}).
   Avec le service de l’école, demandez qui assure les sauvegardes et la récupération.
 - Conservez et transmettez les carnets comme des documents scolaires confidentiels.
