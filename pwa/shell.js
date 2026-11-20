@@ -55,7 +55,6 @@ document.querySelector('#install').onclick = async () => {
 };
 if (standalone()) document.querySelector('#installation').textContent = 'Petits Pas est ouvert depuis son icône.';
 document.querySelector('#retry').onclick = () => location.reload();
-document.querySelector('#rescue').onclick = () => document.querySelector('#recovery').click();
 document.querySelector('#backup').onclick = () => {if (ready) frame.src = BASE + 'app/gestion/sauvegardes-locales/';};
 document.querySelector('#apercu').onclick = () => {if (ready) frame.src = BASE + 'app/verifier-zip/';};
 const storage = document.querySelector('#storage');
@@ -250,20 +249,31 @@ document.querySelector('#update').onclick = async event => {
     registration.waiting.postMessage({kind: 'activate-update'});
   } catch (error) { status.textContent = String(error.message); event.target.disabled = false; }
 };
-document.querySelector('#recovery').onclick = async event => {
-  event.target.disabled = true;
-  const recoveryWorker = new Worker(WORKER, {type: 'module'});
+const boutonsRecuperation = document.querySelectorAll('#recovery, #rescue');
+async function exporterRecuperation(etat) {
+  boutonsRecuperation.forEach(bouton => { bouton.disabled = true; });
+  etat.textContent = 'Préparation du ZIP de récupération…';
+  let recoveryWorker;
   try {
     if (ready && (await fetch(BASE + 'app/pwa/autoriser-recuperation/')).status !== 204) throw new Error('L’export est réservé à la direction de l’école. Connectez-vous avec ce compte.');
-    status.textContent = 'Préparation du ZIP de récupération…';
+    recoveryWorker = new Worker(WORKER, {type: 'module'});
     const value = await requestWorker(recoveryWorker, {kind: 'recovery', essai: ESSAI, apercu: APERCU}, {onTimeout: () => recoveryWorker.terminate()});
     const url = URL.createObjectURL(value.file);
     const link = document.createElement('a'); link.href = url; link.download = 'petits-pas-recuperation.zip'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
-    status.textContent = 'ZIP de récupération téléchargé : il contient l’état conservé avant le dernier remplacement, ou l’état actuel si aucun remplacement n’a eu lieu.';
-  } catch (error) {status.textContent = String(error.message);}
-  finally {recoveryWorker.terminate(); event.target.disabled = false;}
-};
+    etat.textContent = 'Téléchargement du ZIP de récupération lancé.';
+  } catch (error) {
+    etat.textContent = String(error.message);
+  } finally {
+    recoveryWorker?.terminate();
+    boutonsRecuperation.forEach(bouton => { bouton.disabled = false; });
+  }
+}
+
+for (const bouton of boutonsRecuperation) {
+  const etat = document.getElementById(bouton.id + '-status');
+  bouton.onclick = () => exporterRecuperation(etat);
+}
 
 const navigateurCompatible = window.isSecureContext && navigator.serviceWorker
   && navigator.locks && navigator.storage?.getDirectory;
