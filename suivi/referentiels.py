@@ -201,7 +201,8 @@ def observations_classe(classe):
                                           competence__domaine__ecole_id=classe.ecole_id)
     adoption = adoption_courante(classe)
     if adoption is None:
-        return queryset.annotate(statut_lecture=F("statut"), connu_lecture=Value(True), date_lecture=F("date_observation"))
+        return queryset.annotate(statut_lecture=F("statut"), connu_lecture=Value(True), date_lecture=F("date_observation"),
+            reussite_datee_lecture=F("date_derniere_reussite"))
     if adoption.clos and "etats" in adoption.etat_final:
         etats = adoption.etat_final["etats"]
         return queryset.annotate(
@@ -211,7 +212,11 @@ def observations_classe(classe):
                                default=Value(False), output_field=BooleanField()),
             date_lecture=Case(*[When(pk=e["observation_id"], then=Value(date.fromisoformat(e["date_observation"])))
                                for e in etats if e["connu"] and e["date_observation"]],
-                              default=Value(None), output_field=DateField()))
+                              default=Value(None), output_field=DateField()),
+            reussite_datee_lecture=Case(*[
+                When(pk=e["observation_id"], then=Value(date.fromisoformat(e["date_derniere_reussite"])))
+                for e in etats if e["connu"] and e.get("date_derniere_reussite")
+            ], default=Value(None), output_field=DateField()))
     # Une projection de classe ne transporte aucune scolarité d'une autre
     # année. Conserver le degré de connaissance de l'état visible au moment de
     # l'extraction, jusqu'à sa première modification dans la copie. L'import
@@ -228,16 +233,22 @@ def observations_classe(classe):
             connu_lecture=Case(When(modifie_le__lte=instantane, then=Subquery(etats.values("connu")[:1])),
                                default=Value(True), output_field=BooleanField()),
             date_lecture=Case(When(modifie_le__lte=instantane, then=Subquery(etats.values("date_observation")[:1])),
-                              default=F("date_observation"), output_field=DateField()))
+                              default=F("date_observation"), output_field=DateField()),
+            reussite_datee_lecture=Case(When(modifie_le__lte=instantane, then=Subquery(
+                etats.filter(connu=True).values("date_derniere_reussite")[:1])),
+                default=F("date_derniere_reussite"), output_field=DateField()))
     annuels = EtatAnnuelObservation.objects.filter(observation_id=OuterRef("pk"), annee_scolaire=classe.annee_scolaire, connu=True)
     plus_recent = Scolarite.objects.filter(eleve_id=OuterRef("eleve_id"), annee_scolaire__gt=classe.annee_scolaire)
     return queryset.annotate(autre_annee=Exists(plus_recent),
         statut_ancien=Subquery(annuels.values("statut")[:1]),
         connu_ancien=Subquery(annuels.values("connu")[:1]),
-        date_ancienne=Subquery(annuels.values("date_observation")[:1])).annotate(
+        date_ancienne=Subquery(annuels.values("date_observation")[:1]),
+        reussite_ancienne=Subquery(annuels.values("date_derniere_reussite")[:1])).annotate(
             statut_lecture=Case(When(autre_annee=True, then=F("statut_ancien")), default=F("statut")),
             connu_lecture=Case(When(autre_annee=True, then=F("connu_ancien")), default=Value(True), output_field=BooleanField()),
-            date_lecture=Case(When(autre_annee=True, then=F("date_ancienne")), default=F("date_observation")))
+            date_lecture=Case(When(autre_annee=True, then=F("date_ancienne")), default=F("date_observation")),
+        reussite_datee_lecture=Case(When(autre_annee=True, then=F("reussite_ancienne")),
+                                   default=F("date_derniere_reussite")))
 
 
 def projeter_etat_classe(observation):

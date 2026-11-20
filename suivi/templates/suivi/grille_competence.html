@@ -1,44 +1,90 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Grille — {{ competence.libelle }}{% endblock %}
+{% load static %}
+{% block titre %}Grille de suivi{% if competence %} — {{ competence.libelle }}{% endif %}{% endblock %}
 {% block contenu %}
+<div class="edition-grille">
+{% if not generation_pdf and not impression_pwa %}
 <div class="sans-impression">{% include "suivi/partiels/ariane.html" with page="Grille de suivi" %}</div>
-{% if impression_pwa %}<section class="sans-impression encadre">
-  <p>Le carnet est prêt à imprimer. Dans la fenêtre d’impression, choisissez « Enregistrer au format PDF » si votre navigateur le propose. La mise en page peut différer du PDF du programme autonome.</p>
-  <button type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button>
-</section>{% endif %}
+{% endif %}
+<header>
+  <p class="sur-titre">Grille de suivi · {{ classe.libelle_avec_annee }}</p>
+  <h1>{% if competence %}{{ competence.libelle }}{% else %}Grille de suivi{% endif %}</h1>
+  {% if generation_pdf or impression_pwa %}{% include "suivi/partiels/resume_grille.html" %}{% endif %}
+</header>
+
+{% if impression_pwa %}
+<div class="actions sans-impression"><button class="bouton" type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button></div>
+{% elif not generation_pdf %}
+<form method="get" class="barre-filtres-edition sans-impression">
+  {% include "suivi/partiels/resume_grille.html" %}
+  {% include "suivi/partiels/filtres_edition.html" %}
+</form>
+{% if peut_generer and groupes %}
 <div class="actions sans-impression">
-  <a class="bouton" href="{% url 'grille_competence_pdf' classe.pk competence.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">{% if mode_pwa %}Préparer l’impression / PDF{% else %}Télécharger le PDF{% endif %}</a>
-  <button class="bouton discret" type="button" onclick="window.print()">Imprimer</button>
+  <a class="bouton" href="{{ url_pdf }}">{% if mode_pwa %}Préparer l’impression / PDF{% else %}Télécharger le PDF{% endif %}</a>
+  <a class="bouton discret" href="{{ url_edition }}">Préparer une édition</a>
 </div>
+{% endif %}
+{% endif %}
 
-<article class="grille-competence">
-  <header>
-    <p class="sur-titre">Grille de suivi · {{ classe.nom }} · {{ classe.annee_scolaire }}</p>
-    <h1>{{ competence.libelle }}</h1>
-    <p>{{ competence.domaine.nom }}{% if competence.sous_domaine %} · {{ competence.sous_domaine.nom }}{% endif %} · repère {{ competence.get_niveau_display|lower }}</p>
-  </header>
+{% if competence %}
+<div class="resume-grille">
+  <span><strong>{{ compteurs.a_observer }}</strong> à observer</span>
+  <span><strong>{{ compteurs.en_cours }}</strong> en cours</span>
+  <span><strong>{{ compteurs.reussi }}</strong> réussite{{ compteurs.reussi|pluralize }}</span>
+</div>
+{% endif %}
+{% if groupes %}<p class="legende-etats">○ À observer · ◐ En cours · ✓ Réussi · — Hors du suivi · ? État non retrouvé</p>{% endif %}
 
-  <div class="resume-grille">
-    <span><strong>{{ compteurs.a_observer }}</strong> à observer</span>
-    <span><strong>{{ compteurs.en_cours }}</strong> en cours</span>
-    <span><strong>{{ compteurs.reussi }}</strong> réussite{{ compteurs.reussi|pluralize }}</span>
-  </div>
-
-  {% if compteurs.non_retrouve %}<p>{{ compteurs.non_retrouve }} état{{ compteurs.non_retrouve|pluralize }} de cette année non retrouvé{{ compteurs.non_retrouve|pluralize }}. Aucune réussite plus récente n’est ajoutée.</p>{% endif %}
-  <table>
-    <thead><tr><th>Élève</th><th>À observer</th><th>En cours</th><th>Réussi</th><th>Notes de séance</th></tr></thead>
+{% for groupe in groupes %}
+<section class="bloc-grille-edition">
+  {% if impression_pwa or generation_pdf %}<p>{{ classe.libelle_avec_annee }} · Tableau {{ forloop.counter }} sur {{ groupes|length }}</p>{% endif %}
+  {% if compacte %}
+  <ol class="legende-colonnes" start="{{ groupe.colonnes.0.numero }}">{% for colonne in groupe.colonnes %}
+    <li id="libelle-{{ colonne.numero }}">{{ colonne.competence.libelle }}</li>
+  {% endfor %}</ol>
+  {% endif %}
+  <div class="defilement-grille" data-defilement-grille tabindex="0" role="region" aria-label="Tableau de suivi {{ forloop.counter }}">
+  <table class="matrice-suivi">
+    <thead>
+      <tr><th rowspan="3" scope="col">Élève</th>{% for nom, largeur in groupe.rubriques %}<th colspan="{{ largeur }}">{{ nom }}</th>{% endfor %}{% if competence %}<th rowspan="3" scope="col">Notes de séance</th>{% endif %}</tr>
+      <tr>{% for nom, largeur in groupe.sous_rubriques %}<th colspan="{{ largeur }}">{{ nom }}</th>{% endfor %}</tr>
+      <tr>{% for colonne in groupe.colonnes %}
+        <th scope="col" id="col-{{ colonne.numero }}"{% if compacte %} aria-labelledby="libelle-{{ colonne.numero }}"{% endif %}>
+          {% if generation_pdf or impression_pwa %}{% if compacte %}{{ colonne.numero }}{% else %}{{ colonne.competence.libelle }}{% endif %}
+          {% else %}<a href="{% url 'saisie_competence' classe.pk colonne.competence.pk %}{% if not competence %}?retour={{ retour_grille|urlencode:"" }}%23col-{{ colonne.numero }}{% endif %}" title="{{ colonne.competence.libelle }}">{% if compacte %}{{ colonne.numero }}{% else %}{{ colonne.competence.libelle }}{% endif %}</a>{% endif %}
+        </th>
+      {% endfor %}</tr>
+    </thead>
     <tbody>
-      {% for eleve, observation, etat in lignes %}
+      {% for eleve, cases in groupe.lignes %}
       <tr>
-        <th>{{ eleve.prenom }} {{ eleve.nom }}{% if etat == 'hors_suivi' %} — Hors du suivi{% endif %}{% if etat == 'non_retrouve' %} — état non retrouvé{% endif %}</th>
-        <td class="marque-etat">{% if etat == 'a_observer' %}●{% else %}○{% endif %}</td>
-        <td class="marque-etat">{% if etat == 'en_cours' %}●{% else %}○{% endif %}</td>
-        <td class="marque-etat">{% if etat == 'reussi' %}●{% else %}○{% endif %}</td>
-        <td class="notes-grille"></td>
+        <th scope="row" id="eleve-{{ forloop.parentloop.counter }}-{{ eleve.pk }}">{{ eleve.prenom }} {{ eleve.nom }}</th>
+        {% for colonne, etat in cases %}<td class="etat-{{ etat }}" headers="eleve-{{ forloop.parentloop.parentloop.counter }}-{{ eleve.pk }} col-{{ colonne.numero }}">
+          {% if eleve.ouvrir_trace_grille and etat != 'hors_suivi' and not competence %}
+          <a href="{% url 'trace' eleve.pk colonne.competence.pk %}?classe={{ classe.pk }}&amp;retour={{ retour_grille|urlencode:"" }}%23eleve-{{ forloop.parentloop.parentloop.counter }}-{{ eleve.pk }}" title="Ouvrir les traces">
+          {% endif %}
+          {% if etat == 'reussi' %}<span aria-label="Réussi">✓</span>
+          {% elif etat == 'en_cours' %}<span aria-label="En cours">◐</span>
+          {% elif etat == 'hors_suivi' %}<span aria-label="Hors du suivi">—</span>
+          {% elif etat == 'non_retrouve' %}<span aria-label="État non retrouvé">?</span>
+          {% else %}<span aria-label="À observer">○</span>{% endif %}
+          {% if eleve.ouvrir_trace_grille and etat != 'hors_suivi' and not competence %}</a>{% endif %}
+        </td>{% endfor %}
+        {% if competence %}<td class="notes-grille"></td>{% endif %}
       </tr>
-      {% empty %}<tr><td colspan="5">Cette classe n'a pas encore d'enfants.</td></tr>{% endfor %}
+      {% endfor %}
     </tbody>
   </table>
-  <p class="pied-grille">Édité le {{ edite_le|date:"j F Y" }} · document interne à l'équipe pédagogique.</p>
-</article>
+  </div>
+</section>
+{% empty %}
+<p>Aucune compétence ne correspond à cette sélection.</p>
+{% if not generation_pdf and not impression_pwa and not competence %}
+<a class="bouton" href="{{ url_grille }}?filtres=1&amp;observations=tout">Afficher les compétences suivies</a>
+{% endif %}
+{% endfor %}
+<p class="pied-grille">Édité le {{ edite_le|date:"j F Y" }} · document interne à l'équipe pédagogique.</p>
+</div>
+<script src="{% static 'suivi/editions.js' %}" defer></script>
 {% endblock %}

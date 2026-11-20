@@ -7,6 +7,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Consulter la grille de classe par rubrique, compétence et période, reprendre
+  les filtres de la session et imprimer une grille compacte.
+- Préparer des carnets séparés, groupés ou un par un et des cartes à découper
+  avec les mêmes filtres et les contenus visibles du carnet.
+
 - Retrouver l’accès à son compte sur le programme et dans le navigateur de cet
   appareil sans courriel : clé de secours remise à l’installation, dernier
   recours (nouveau mot de passe depuis l’appareil) que l’école autorise ou non,

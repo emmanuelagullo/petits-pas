@@ -5,6 +5,8 @@ from . import views_catalogue, views_rubriques, views_suivi_libre
 from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
+    path("classe/<int:pk>/grille/", views.grille_competence, name="grille_classe"),
+    path("classe/<int:pk>/grille.pdf", views.grille_competence_pdf, name="grille_classe_pdf"),
     path("classe/<int:pk>/catalogue-competences/", views_catalogue.catalogue, name="catalogue_competences"),
     path("eleve/<int:eleve_pk>/competence/<int:competence_pk>/date-reussite/", views.date_reussite, name="date_reussite"),
     path("classe/<int:pk>/competence-libre/<int:locale_pk>/eleve/<int:eleve_pk>/suivi/", views_suivi_libre.activer_suivi, name="activer_suivi"),

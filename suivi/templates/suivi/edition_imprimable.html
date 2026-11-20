@@ -1,0 +1,15 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Carnets à imprimer{% endblock %}
+{% block contenu %}
+{% if not generation_pdf %}
+<section class="sans-impression encadre">
+  <h1>Carnets à imprimer</h1>
+  <p>Choisissez « Enregistrer au format PDF » dans la fenêtre d’impression pour conserver un fichier.</p>
+  <button class="bouton" type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button>
+  <a class="bouton discret" href="{{ retour_edition }}">Modifier la sélection</a>
+</section>
+{% endif %}
+<div class="carnets-groupes">
+{% for carnet in carnets %}{{ carnet }}{% endfor %}
+</div>
+{% endblock %}

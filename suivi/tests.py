@@ -1697,6 +1697,45 @@ class EditionClasse(Base):
         self.assertContains(reponse, self.autre_eleve.nom_court)
         self.assertContains(reponse, "Regrouper les acquisitions")
 
+    def test_une_edition_grille_reprend_la_selection(self):
+        reponse = self.client.post(self.url, {
+            "format": "grille", "eleves": [self.eleve.pk], "observations": "tout",
+        }, follow=True)
+        self.assertEqual(reponse.context["nb_eleves"], 1)
+        self.assertEqual(reponse.context["nb_competences"], 1)
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-groupe")
+    def test_pdf_unique_reutilise_les_deux_carnets(self, generer):
+        reponse = self.client.post(self.url, {
+            "eleves": [self.eleve.pk, self.autre_eleve.pk], "format": "pdf",
+        })
+        self.assertEqual(reponse["Content-Type"], "application/pdf")
+        html = generer.call_args.args[0]
+        self.assertIn(self.eleve.prenom, html)
+        self.assertIn(self.autre_eleve.prenom, html)
+        self.assertEqual(html.count('<article class="carnet '), 2)
+
+    @patch("suivi.views._generer_pdf", return_value=b"%PDF-carnet")
+    def test_sequence_ne_rend_qu_un_carnet_sur_demande(self, generer):
+        donnees = {"eleves": [self.eleve.pk, self.autre_eleve.pk], "format": "sequence"}
+        self.assertContains(self.client.post(self.url, donnees), "Carnets un par un")
+        generer.assert_not_called()
+        reponse = self.client.post(self.url, {**donnees, "carnet": self.autre_eleve.pk})
+        self.assertEqual(reponse["Content-Type"], "application/pdf")
+        self.assertIn(self.autre_eleve.prenom, generer.call_args.args[0])
+        generer.assert_called_once()
+
+    def test_les_cartes_ignorent_les_traces_masquees(self):
+        trace = self.creer_trace(commentaire="Message à coller")
+        self.creer_trace(observation=trace.observation, commentaire="Message confidentiel", visible_carnet=False)
+        reponse = self.client.post(self.url, {
+            "eleves": [self.eleve.pk], "format": "cartes", "action": "apercu",
+            "avec_commentaire": "on",
+        })
+        self.assertContains(reponse, "Message à coller")
+        self.assertNotContains(reponse, "Message confidentiel")
+        self.assertContains(reponse, "1 planche")
+
     @patch("suivi.views._generer_pdf", return_value=b"%PDF-factice")
     def test_une_selection_produit_un_pdf_par_eleve_dans_un_zip(self, generer):
         reponse = self.client.post(
@@ -1801,6 +1840,38 @@ class GrilleCompetence(Base):
         self.assertContains(reponse, "<strong>1</strong> en cours", html=True)
         self.assertContains(reponse, "<strong>1</strong> réussite", html=True)
         self.assertContains(reponse, "document interne à l'équipe pédagogique")
+
+    def test_la_grille_de_classe_retrouve_ses_filtres_apres_un_raccourci(self):
+        url = reverse("grille_classe", args=[self.classe.pk])
+        reponse = self.client.get(url, {"filtres": "1", "eleves": [self.reussi.pk], "compacte": "oui"})
+        self.assertEqual(reponse.context["nb_eleves"], 1)
+        self.assertEqual(reponse.context["nb_competences"], 1)
+        self.assertTrue(reponse.context["compacte"])
+        self.assertEqual(self.client.get(self.url).context["nb_eleves"], 3)
+        self.assertEqual(self.client.get(url).context["nb_eleves"], 1)
+        self.assertEqual(self.client.get(url, {"reinitialiser": "1"}).context["nb_eleves"], 3)
+
+    def test_section_des_eleves_independante_du_classement_des_competences(self):
+        Scolarite.objects.filter(eleve=self.reussi, classe=self.classe).update(niveau="GS")
+        url = reverse("grille_classe", args=[self.classe.pk])
+        reponse = self.client.get(url, {"filtres": "1", "sections_eleves": ["GS"],
+                                       "niveaux": [self.competence.niveau]})
+        self.assertEqual(reponse.context["nb_eleves"], 1)
+        self.assertEqual(reponse.context["nb_competences"], 1)
+        self.assertEqual(reponse.context["compteurs"]["reussi"], 1)
+
+    def test_filtrer_la_date_de_reussite_garde_les_etats_de_la_classe(self):
+        observation = Observation.objects.get(eleve=self.reussi, competence=self.competence)
+        debut, _ = bornes_annee_scolaire(self.classe.annee_scolaire)
+        observation.date_derniere_reussite = debut
+        observation.save(update_fields=["date_derniere_reussite"])
+        url = reverse("grille_classe", args=[self.classe.pk])
+        reponse = self.client.get(url, {
+            "filtres": "1", "observations": "reussites", "debut": debut, "fin": debut,
+        })
+        self.assertEqual(reponse.context["nb_competences"], 1)
+        self.assertEqual(reponse.context["compteurs"]["en_cours"], 1)
+        self.assertEqual(reponse.context["compteurs"]["reussi"], 1)
 
     @patch("suivi.views._generer_pdf", return_value=b"%PDF-grille")
     def test_la_grille_est_exportable_en_pdf(self, generer):
