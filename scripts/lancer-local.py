@@ -36,6 +36,8 @@ def configurer_environnement(paquet, cle):
     os.environ.pop("CARNET_VERSION", None)
     os.environ["CARNET_DEBUG"] = "0"
     os.environ["CARNET_MODE_LOCAL"] = "oui"
+    # Déclare l'appareil de l'école : ouvre la clé de secours et le dernier recours.
+    os.environ["CARNET_ACCES_LOCAL_AUTONOME"] = "oui"
     os.environ["CARNET_HOSTS"] = "127.0.0.1,localhost"
     os.environ["CARNET_EMAIL_DESACTIVE"] = "oui"
     os.environ.pop("CARNET_EMAIL_BACKEND", None)

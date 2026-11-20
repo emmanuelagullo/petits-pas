@@ -42,7 +42,7 @@ def initialize(origin, version, base="/", essai=False, apercu=False):
         "DJANGO_ALLOW_ASYNC_UNSAFE": "true",
         "PWA_BASE_PATH": base,
         "DJANGO_SETTINGS_MODULE": "pwa.settings", "CARNET_DEBUG": "0",
-        "CARNET_MODE_LOCAL": "oui", "CARNET_ESPACE_ESSAI": "oui" if essai else "non", "CARNET_EMAIL_DESACTIVE": "oui",
+        "CARNET_MODE_LOCAL": "oui", "CARNET_ACCES_LOCAL_AUTONOME": "oui", "CARNET_ESPACE_ESSAI": "oui" if essai else "non", "CARNET_EMAIL_DESACTIVE": "oui",
         "CARNET_ESPACE_APERCU": "oui" if apercu else "non",
         "CARNET_ANTIBRUTEFORCE": "non", "CARNET_VERSION": version,
         "CARNET_HOSTS": urlsplit(origin).hostname,

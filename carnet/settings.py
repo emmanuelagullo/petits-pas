@@ -48,6 +48,18 @@ EXPORT_TAILLE_MAX = 10 * 1024**3
 ESPACE_ESSAI = MODE_LOCAL and os.environ.get("CARNET_ESPACE_ESSAI", "") == "oui"
 ESPACE_APERCU = MODE_LOCAL and os.environ.get("CARNET_ESPACE_APERCU", "") == "oui"
 VERSION_APPLICATION = os.environ.get("CARNET_VERSION", "").strip() or version_application()
+# Accès sur l'appareil : clé de secours et dernier recours. Deux clés : le mode
+# local ET la déclaration explicite du lanceur (programme ou PWA). Un serveur
+# affecté par erreur de CARNET_MODE_LOCAL n'ouvre donc jamais ce parcours.
+ACCES_LOCAL_AUTONOME = (
+    MODE_LOCAL
+    and os.environ.get("CARNET_ACCES_LOCAL_AUTONOME", "") == "oui"
+    and not ESPACE_ESSAI
+    and not ESPACE_APERCU
+)
+# Sur l'appareil de l'école, le mot de passe protège surtout d'un accès
+# accidentel : huit caractères suffisent, hors mots courants. Le serveur garde 12.
+LONGUEUR_MIN_MOT_DE_PASSE = 8 if MODE_LOCAL else 12
 # Anti-bruteforce sur la connexion (django-axes). Actif par défaut, sauf pour
 # l'installation autonome mono-poste (non exposée au réseau, et dont le paquet
 # PyInstaller n'embarque pas axes). CARNET_ANTIBRUTEFORCE=oui|non surcharge.
@@ -148,7 +160,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {"min_length": 12},
+        "OPTIONS": {"min_length": LONGUEUR_MIN_MOT_DE_PASSE},
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",

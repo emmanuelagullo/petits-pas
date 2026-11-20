@@ -105,7 +105,10 @@ def selections(ecole_id):
 def verifier_couverture(selection):
     excludes = {m.ExportEcole, m.ExportClasse, Utilisateur,
                 apps.get_model("comptes", "DoubleFacteurCompte"),
-                apps.get_model("comptes", "CodeSecoursDoubleFacteur")}
+                apps.get_model("comptes", "CodeSecoursDoubleFacteur"),
+                # Accès de l'appareil local : ni clés ni choix ne quittent l'appareil.
+                apps.get_model("comptes", "CleSecoursLocale"),
+                apps.get_model("comptes", "RecoursLocalEcole")}
     metier = {model for label in ("suivi", "comptes")
               for model in apps.get_app_config(label).get_models()}
     if metier != set(selection) | excludes:
