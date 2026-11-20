@@ -13,9 +13,9 @@ statut = "disponible"
 ## Étapes
 
 1. Ouvrir la classe et choisir **Saisir pour toute la classe**.
-2. Sous **Compétences à afficher**, choisir le cycle entier ou une section,
-   puis la compétence observée. Le choix de section filtre les compétences.
-   La liste des élèves de la compétence conserve le même périmètre.
+2. Taper quelques mots dans la recherche ou parcourir les rubriques. Pour
+   afficher une section, ouvrir **Filtres → Section**, puis choisir la section
+   voulue. Ce réglage filtre les compétences. Ouvrir ensuite la compétence.
 3. Pour chaque élève concerné, sélectionner sa ligne : **réussi**, **en cours**,
    puis **pas encore observé** se succèdent.
 4. Utiliser **Saisir pour toute la classe** dans le fil d’Ariane pour retrouver
@@ -24,11 +24,15 @@ statut = "disponible"
 ### Ajouter des traces individuelles
 
 Ouvrir le **+** de l’élève dans la liste de la compétence. **Enregistrer la trace**
-revient à sa ligne. **Enregistrer et passer à l’élève suivant** ouvre directement
-la trace suivante après l’enregistrement. Au-dessus du formulaire, **Élève
-précédent** et **Élève suivant** permettent de relire les traces dans l’ordre de
-la liste. Le fil d’Ariane ramène à la liste si vous souhaitez choisir un autre
-élève.
+revient à sa ligne. **Enregistrer et passer à [prénom]** enregistre la trace
+et ouvre la fiche de l’élève suivant sur la même compétence. Au-dessus du
+formulaire, **Élève précédent** et **Élève suivant** suivent l’ordre de la liste
+collective. Pour une compétence ciblée, ils passent seulement par les élèves
+suivis. Le fil d’Ariane ramène à la ligne de l’élève.
+
+{{< capture-guide src="captures/guide/observer/traces-par-eleve.png" alt="Trace individuelle ouverte depuis la liste collective" caption="La navigation nomme les élèves voisins et le fil d’Ariane ramène à la compétence." >}}
+
+{{< capture-guide src="captures/guide/observer/filtres-competences.png" alt="Recherche des compétences et filtre Section déplié" caption="La recherche et les filtres permettent de retrouver une compétence dans le suivi collectif." >}}
 
 ## Résultat attendu
 

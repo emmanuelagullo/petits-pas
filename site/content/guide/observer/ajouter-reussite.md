@@ -18,7 +18,10 @@ utiliser [Ajouter une compétence au référentiel de la classe]({{< relref "/gu
 
 1. Dans une catégorie, même vide, choisir **+ Ajouter une compétence**.
    Saisir le libellé, puis choisir **Créer « … » → Suivre pour
-   les élèves sélectionnés** si la compétence doit être créée.
+   les élèves sélectionnés** si la compétence doit être créée. Si elle existe
+   déjà, utiliser **Voir le suivi** ou **Ajouter au suivi** selon les actions
+   proposées. Dans la sélection, **Sélectionner toute la classe** coche les
+   élèves proposés en un clic.
 2. Saisir la **Description de la compétence**. Les exemples et **Retrouver une
    compétence déjà créée** aident à éviter les copies inutiles.
 3. Dans **Classement de la compétence**, choisir le domaine. La liste des

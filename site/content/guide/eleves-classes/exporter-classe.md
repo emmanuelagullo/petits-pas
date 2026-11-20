@@ -57,8 +57,8 @@ vers une nouvelle école du service, contacter l'exploitant : voir le
 Pour un transfert définitif, convenez avec l’équipe du moment où les saisies cessent dans l’ancien
 emplacement.
 
-Cette extraction ne remplace pas la sauvegarde complète de l’installation
-locale et ne renouvelle pas son rappel de sauvegarde.
+Pour conserver l’école entière, utilisez les [sauvegardes locales]({{< relref "/guide/local/sauvegarder-paquet" >}}).
+La copie d’une classe ne renouvelle pas le rappel de sauvegarde de l’école.
 
 ## Suivi libre dans la copie
 

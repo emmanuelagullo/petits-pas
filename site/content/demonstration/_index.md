@@ -67,20 +67,25 @@ les fichiers à télécharger et une proposition de relecture en dix minutes.
 ## Tester les référentiels avec l’équipe fictive
 
 Pour l’année **2026-2027**, ouvrir **Les Coccinelles** avec Rémi ou Nadia,
-puis **Référentiel de la classe**. Le jeu initial conserve sa base de travail ;
+puis **Compétences → Réglages du référentiel**. Le jeu initial conserve sa base de travail ;
 une petite **Progression fictive de langage**, sans portée officielle, est aussi
 autorisée pour essayer un changement de base. Ce changement concerne les
 prochaines saisies et ne copie aucune réussite.
 
-Dans **Compétences ajoutées**, trois exemples permettent de tester les choix :
+Revenir dans **Compétences** et essayer ces trois exemples :
 
-- **Je raconte une découverte au groupe** : modifier directement le libellé
-  d’un ajout créé dans cette classe.
-- **Je présente un objet de notre boîte à histoires** : cet ajout est masqué.
-  Activer **Proposer cette compétence dans les prochaines saisies**, puis
-  **Enregistrer**, pour le retrouver dans la saisie ; le désactiver pour le retirer.
-- **Je prends soin du jardin de l’école** : cet ajout proposé par l’école a
-  déjà été repris aux Coccinelles. Aux Papillons, il reste à reprendre.
+- Rechercher **Je raconte une découverte au groupe**. Ouvrir son menu **⋯**
+  pour modifier le libellé d’un ajout de classe ou le déplacer vers une
+  autre rubrique.
+- Ouvrir **Filtres → Inclure les compétences masquées** et rechercher
+  **Je présente un objet de notre boîte à histoires**. Choisir **Réafficher**
+  dans son menu, puis vérifier sa présence dans les prochaines saisies.
+- Rechercher **Je prends soin du jardin de l’école**. L’ajout a déjà été
+  repris aux Coccinelles. Aux Papillons, il reste à reprendre.
+
+Pour essayer le classement, ouvrir **Réglages du référentiel → Rubriques
+et ordre d’affichage**. Créer une sous-rubrique fictive, puis essayer
+**Réordonner** avec les boutons **Monter** et **Descendre** ou la poignée.
 
 Avec Diane, consulter les référentiels de l’école pour **2026-2027** : une
 compétence de la base possède un libellé proposé par l’école. Avec Rémi,
@@ -98,6 +103,20 @@ restent inconnues lorsque les données ne permettent pas de les établir.
 Voir les fiches pour [ajouter une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}})
 et [choisir une base]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}).
 
+### Enchaîner les traces d’une compétence
+
+Avec Rémi, ouvrir **Les Coccinelles → Saisir pour toute la classe** et
+rechercher **Je tiens bien mon crayon**. Ouvrir le **+** d’un des premiers
+élèves, écrire un commentaire fictif et choisir **Enregistrer et passer à
+[prénom]**. Cliquer sur le nom de la compétence dans le fil d’Ariane pour
+retrouver la liste.
+
+Choisir ensuite **Ajouter une trace commune**. Le formulaire s’ouvre
+directement. Saisir un commentaire fictif, essayer **Sélectionner toute la
+classe** puis décocher un élève. Vérifier que **Enregistrer la trace
+commune** s’active après une modification avec au moins un élève coché.
+Après enregistrement, retrouver la trace dans **Voir les traces communes**.
+
 ### Essayer une mise à jour de source
 
 Deux versions de **Progression fictive de langage** sont autorisées pour
@@ -111,7 +130,7 @@ libellé, les prochaines saisies et le carnet. Vous pouvez revenir à la version
 
 ## Tester les précautions lors d’un changement de référentiel
 
-Dans **Référentiel de la classe**, commencer par **Consulter les référentiels**
+Dans **Compétences → Réglages du référentiel**, commencer par **Consulter les référentiels**
 ou les adaptations courantes. **Avancé — changer la base de compétences**
 est fermé par défaut. Les classes fictives ont déjà des saisies : un changement
 est rouge et bloqué tant que l’école et la classe ne l’ont pas autorisé.
@@ -141,13 +160,13 @@ avec des domaines et sous-domaines seuls. Les classes existantes gardent leurs b
 - Noé : une réalisation individuelle avec une image fictive.
 - Inès, Noé et Sami : une alternance de trois couleurs, avec une trace commune.
   Sami possède une version personnelle de son commentaire.
-- Zoé : la même compétence est proposé à son suivi, **sans réussite attribuée**.
+- Zoé : la même compétence est proposée à son suivi, **sans réussite attribuée**.
 - Mila et Ana : une réussite collective de motricité sans photo.
 
 Ouvrir **Saisir pour toute la classe**, puis **+ Ajouter une compétence** dans un
  domaine ou un sous-domaine. Vérifier les élèves concernés et leurs carnets.
 Comparer avec **Les Mésanges**, dont les sous-domaines du référentiel étayé sont
-visibles dans le suivi. Les images des Cerfs-volants représentent des réalisations
+visibles dans le suivi. Déplier **Filtres**, choisir une **Section**, puis retrouver une compétence dans son sous-domaine. Les images des Cerfs-volants représentent des réalisations
 schématiques ; aucune photographie d’enfant n’est utilisée.
 
 Le scénario est commun à Render et aux espaces d’essai du navigateur et du

@@ -41,6 +41,9 @@ classe concernée.
 affectation pédagogique. Une même personne peut cumuler plusieurs fonctions,
 mais chacune continue de s'appliquer dans son propre périmètre.
 
+Les responsables peuvent [organiser les rubriques de leur classe]({{< relref "/guide/eleves-classes/organiser-rubriques" >}})
+et [ajouter ou reprendre une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
+
 Les [traces communes]({{< relref "/guide/observer/traces-communes/" >}})
 permettent au responsable de décrire une activité pour les enfants choisis.
 Les enseignants associés peuvent les consulter. Les

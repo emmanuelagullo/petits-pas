@@ -413,3 +413,43 @@ scenarios:
     capture: referentiels/cycle1/sous-domaines.png
     titre: Les sous-domaines dans un référentiel fourni
     legende: Les Mésanges conservent leur édition étayée et son classement en sous-domaines.
+
+  - id: guide-filtres-competences
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: mesanges }
+      - { action: lien, nom: "Saisir pour toute la classe" }
+      - { action: selecteur, selecteur: ".details-filtres-catalogue > summary" }
+      - { action: visible, selecteur: "#niveau" }
+    cible: "#recherche-catalogue"
+    capture: guide/observer/filtres-competences.png
+    titre: Rechercher par section
+    legende: Le volet Filtres donne accès à la section et au classement.
+
+  - id: guide-traces-par-eleve
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: lien, nom: "Saisir pour toute la classe" }
+      - { action: selecteur, selecteur: '#catalogue-resultats a.entree:has-text("Je tiens bien mon crayon")' }
+      - { action: selecteur, selecteur: ".domaine .trace-lien" }
+      - { action: visible, selecteur: '#formulaire-trace button[value="suivant"]' }
+    capture: guide/observer/traces-par-eleve.png
+    titre: Enchaîner les traces par élève
+    legende: La fiche indique l’élève suivant pour la même compétence.
+
+  - id: guide-ordre-rubriques
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: mesanges }
+      - { action: lien, nom: "Compétences" }
+      - { action: lien, nom: "Réglages du référentiel" }
+      - { action: lien, nom: "Rubriques et ordre d’affichage" }
+      - { action: lien, nom: "Réordonner" }
+      - { action: visible, selecteur: ".ordre-rubrique" }
+    capture: guide/classes/ordre-rubriques.png
+    titre: Changer l’ordre des rubriques
+    legende: Les boutons et la poignée permettent de réordonner les rubriques.

@@ -47,6 +47,9 @@ aussi continuer dans cet onglet.
 Le premier chargement affiche les étapes de préparation ; attendez que l’école
 s’ouvre. La version se trouve dans **Outils de l’application**, replié par défaut. Une difficulté de démarrage propose
 **Réessayer** et la récupération, sans effacer les données.
+Si le démarrage reste bloqué, ouvrez **Détails à transmettre pour obtenir
+de l’aide** et communiquez ces détails à la personne qui accompagne votre
+essai. Gardez tout ZIP de récupération dans un emplacement protégé.
 Les installations Windows, Android et iPad sont à observer au fil des essais.
 
 ## Sauvegarder et transférer
