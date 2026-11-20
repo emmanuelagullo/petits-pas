@@ -7,6 +7,7 @@ const http = require('node:http');
 const assert = require('node:assert/strict');
 const {spawn, execFileSync} = require('node:child_process');
 const {createRequire} = require('node:module');
+const {creerEcole} = require('./installation-pwa.cjs');
 const localRequire = createRequire(path.resolve(__dirname, '../pwa/package.json'));
 const {chromium} = process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES
   ? require(path.join(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES, 'playwright')) : localRequire('playwright');
@@ -151,7 +152,7 @@ async function integrity(photos, name) {
     await frame.locator('[name="preparer_classe"]').uncheck();
     await frame.locator('[name="annee_scolaire"]').fill('2026-2027');
   }
-  await frame.getByRole('button', {name: /Créer (l’école et mon compte|et commencer)/}).click();
+  await creerEcole(frame);
   await frame.getByRole('heading', {name:"Gérer l'école", exact:true}).waitFor();
   await rpc(`
 import io, random

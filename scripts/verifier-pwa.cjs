@@ -8,6 +8,7 @@ const os = require('node:os');
 const {execFileSync} = require('node:child_process');
 const assert = require('node:assert/strict');
 const {createRequire} = require('node:module');
+const {creerEcole} = require('./installation-pwa.cjs');
 const root = path.resolve(__dirname, '../dist/pwa');
 const requirePwa = createRequire(path.resolve(__dirname, '../pwa/package.json'));
 const playwright = process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES
@@ -176,7 +177,7 @@ async function login(page) {
     await frame.locator('[name="annee_scolaire"]').fill('2026-2027');
     await frame.locator('[name="classe_nom"]').fill('Classe fictive');
   }
-  await frame.getByRole('button', {name: /Créer (l’école et mon compte|et commencer)/}).click();
+  await creerEcole(frame);
   await frame.getByRole('heading', {name: demarrageCourt ? /Ajouter/ : "Gérer l'école", exact: !demarrageCourt}).waitFor({timeout: 30000});
   if (demarrageCourt) {
     assert.equal(await python(page, "from suivi.models import Classe; Classe.objects.get().etat"), 'active');
