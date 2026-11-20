@@ -17,7 +17,7 @@ statut = "disponible"
 2. Sélectionner **Envoyer le lien de réinitialisation**.
 3. Consulter sa messagerie, y compris les courriers indésirables.
 4. Ouvrir le lien reçu, saisir deux fois un nouveau mot de passe d’au moins
-   douze caractères puis sélectionner **Enregistrer le mot de passe**.
+   douze caractères (huit sur l’appareil local) puis sélectionner **Enregistrer le mot de passe**.
 5. Sélectionner **Se connecter** et utiliser ce nouveau mot de passe.
 
 ## Résultat attendu
@@ -41,7 +41,9 @@ réinitialisation est à usage unique et expire au bout de trois jours.
   réinitialisation depuis cette adresse » ; patienter avant de réessayer.
 - Si l’installation n’envoie pas de courriels, la page l’indique (« La
   réinitialisation par courriel n’est pas disponible sur cette installation ») et
-  renvoie vers la direction de l’école.
+  renvoie vers la direction de l’école. Sur le programme ou dans le navigateur de
+  cet appareil, la clé de secours remplace le courriel : voir
+  [Retrouver l’accès sur cet appareil]({{< relref "/guide/local/retrouver-acces.md" >}}).
 - Réinitialiser son mot de passe ne supprime pas le
   [second facteur]({{< relref "/guide/equipe/second-facteur/" >}}) : le code
   reste demandé à la connexion.

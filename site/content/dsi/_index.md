@@ -127,6 +127,21 @@ centralise les archives publiques ; les [fiches pratiques du mode local]({{< rel
 l’installation et les sauvegardes ; le [README du dépôt](https://gitlab.inria.fr/petits-pas/petits-pas/-/blob/main/README.md)
 précise les commandes de construction, les dépendances et les limites.
 
+### Accès au poste : clé de secours et dernier recours
+
+Le programme et l’application dans le navigateur n’envoient pas de courriel. À
+l’installation, une clé de secours est remise une fois (seule son empreinte est
+conservée) et l’école choisit d’autoriser ou non un **dernier recours** :
+choisir un nouveau mot de passe depuis l’appareil, sans la clé, avec trace au
+journal. Comme les données locales ne sont pas chiffrées, avoir l’appareil en
+main vaut déjà accès aux fichiers ; sur un poste partagé, ce dernier recours est
+à interdire. Le minimum du mot de passe est de huit caractères sur ce profil, de
+douze sur un serveur. Ce parcours n’existe que si le lanceur le déclare
+(variable `CARNET_ACCES_LOCAL_AUTONOME`, posée par le programme et par
+l’application dans le navigateur) : il ne s’ouvre pas sur un serveur.
+[Retrouver l’accès sur cet appareil]({{< relref "/guide/local/retrouver-acces.md" >}})
+décrit le parcours.
+
 ### Sauvegarde et reprise sur le poste
 
 Une personne disposant de la direction peut exporter dans l’interface un ZIP

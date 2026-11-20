@@ -14,7 +14,7 @@ statut = "disponible"
 
 1. Ouvrir le lien d’invitation.
 2. Choisir un nom d’utilisateur et renseigner prénom et nom.
-3. Saisir deux fois un mot de passe d’au moins douze caractères. Le formulaire
+3. Saisir deux fois un mot de passe d’au moins douze caractères (huit sur l’appareil local). Le formulaire
    refuse un mot de passe trop courant, composé uniquement de chiffres ou trop
    proche du nom d’utilisateur ou du nom, et indique ce qu’il faut corriger.
 4. Sélectionner **Créer mon compte et rejoindre l’école**.
