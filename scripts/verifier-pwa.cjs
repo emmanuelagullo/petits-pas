@@ -509,9 +509,14 @@ with (parent/'version-future.zip').open('wb') as sortie: creer_sauvegarde(paquet
   await frame.locator('[name="nom_utilisateur"]').waitFor(); await login(page);
   assert.equal(await python(page, "Ecole.objects.get().nom"), 'École fictive PWA');
   await page.locator('#depannage > summary').click();
-  const recoveryDownload = page.waitForEvent('download', {timeout: 120000});
-  await page.getByRole('button', {name: 'Exporter l’état de récupération'}).click();
-  const recovery = await recoveryDownload;
+  const [recovery] = await Promise.all([
+    page.waitForEvent('download', {timeout: 120000}),
+    page.getByRole('button', {name: 'Exporter l’état de récupération'}).click(),
+  ]);
+  assert.match(await page.locator('#recovery-status').innerText(), /Téléchargement.*lancé/);
+  await page.locator('#depannage > summary').click();
+  assert(await page.locator('#recovery-status').isHidden());
+  assert.doesNotMatch(await page.locator('#status').innerText(), /ZIP de récupération/);
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,sqlite3,tempfile,zipfile
 from contextlib import closing
@@ -665,6 +670,7 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
     reopened.waitForEvent('download', {timeout: 120000}),
     reopened.getByRole('button', {name: 'Récupérer un ZIP', exact: true}).click(),
   ]);
+  assert.match(await reopened.locator('#rescue-status').innerText(), /Téléchargement.*lancé/);
   execFileSync(process.env.PWA_PYTHON || 'python3', ['-c', `
 import sys,tempfile,sqlite3
 from contextlib import closing
