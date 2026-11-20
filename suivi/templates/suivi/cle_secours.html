@@ -1,0 +1,41 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Votre clé de secours{% endblock %}
+{% block contenu %}
+<h1>Votre clé de secours</h1>
+<p class="sous-titre">Elle vous permettra de choisir un nouveau mot de passe si vous l’oubliez.</p>
+<div class="encadre">
+  <p id="cle-secours" class="cle-secours" aria-label="Clé de secours">{{ cle }}</p>
+  <p class="aide"><strong>Elle ne sera plus affichée.</strong> Téléchargez-la ou imprimez cette page, puis rangez-la hors de cet ordinateur, par exemple avec vos sauvegardes.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if preuve %}
+    <p class="aide" id="aide-preuve">Vous n’avez pas autorisé le dernier recours : sans cette clé, un mot de passe oublié ne pourra pas être retrouvé.</p>
+    <label for="fin-de-cle">Pour continuer, recopiez les deux derniers groupes de la clé</label>
+    <input type="text" id="fin-de-cle" name="fin_de_cle" value="{{ saisie }}" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" aria-describedby="aide-preuve{% if erreur %} erreur-preuve{% endif %}"{% if erreur %} aria-invalid="true"{% endif %} required>
+    {% if erreur %}<p id="erreur-preuve" class="erreurs" role="alert">{{ erreur }}</p>{% endif %}
+    {% endif %}
+    <div class="actions">
+      <button class="bouton discret" type="button" id="telecharger-cle" hidden>Télécharger</button>
+      <button class="bouton" type="submit">Continuer</button>
+    </div>
+  </form>
+</div>
+<script>
+(function () {
+  const bouton = document.getElementById('telecharger-cle');
+  const cle = document.getElementById('cle-secours').textContent.trim();
+  if (!bouton || !window.Blob || !window.URL || !URL.createObjectURL) { return; }
+  bouton.hidden = false;
+  bouton.addEventListener('click', function () {
+    const texte = 'Petits Pas — clé de secours\r\n{{ ecole.nom|escapejs }}\r\n\r\n' + cle +
+      '\r\n\r\nElle permet de choisir un nouveau mot de passe depuis l’écran de connexion.' +
+      '\r\nConservez ce fichier hors de l’ordinateur où se trouve Petits Pas.\r\n';
+    const lien = document.createElement('a');
+    lien.href = URL.createObjectURL(new Blob([texte], { type: 'text/plain;charset=utf-8' }));
+    lien.download = 'petits-pas-cle-de-secours.txt';
+    document.body.appendChild(lien); lien.click(); document.body.removeChild(lien);
+    setTimeout(function () { URL.revokeObjectURL(lien.href); }, 1000);
+  });
+})();
+</script>
+{% endblock %}

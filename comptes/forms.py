@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 
@@ -49,9 +50,16 @@ class InstallationLocaleForm(InitialisationEcoleForm):
         help_text="Dans la première classe, vous choisirez les compétences à suivre dans le catalogue.")
     annee_scolaire = forms.CharField(label="Année scolaire", max_length=9)
     classe_nom = forms.CharField(label="Nom de la classe", max_length=100, required=False)
+    dernier_recours = forms.BooleanField(
+        label="Autoriser un dernier recours", initial=True, required=False,
+        help_text="Si vous perdez à la fois votre mot de passe et votre clé de secours, "
+                  "vous pourrez choisir un nouveau mot de passe depuis cet appareil, "
+                  "sans perdre vos données.")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if not settings.ACCES_LOCAL_AUTONOME:
+            del self.fields["dernier_recours"]
         from suivi.forms import ClasseForm
         from suivi.services.installation_locale import REFERENTIELS_DEPART
         classe = ClasseForm()
@@ -65,6 +73,7 @@ class InstallationLocaleForm(InitialisationEcoleForm):
             "ecole_nom", "commune", "first_name", "last_name",
             "username", "password1", "password2",
             "annee_scolaire", "referentiel", "preparer_classe", "classe_nom", "selection_manuelle",
+            "dernier_recours",
         ])
 
     def clean(self):

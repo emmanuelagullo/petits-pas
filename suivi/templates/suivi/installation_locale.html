@@ -8,7 +8,7 @@
   {% csrf_token %}
   {% if formulaire.non_field_errors %}<div class="messages erreur">{{ formulaire.non_field_errors }}</div>{% endif %}
   {% for champ in formulaire %}
-  {% if champ.name == "preparer_classe" or champ.name == "selection_manuelle" %}
+  {% if champ.name == "preparer_classe" or champ.name == "selection_manuelle" or champ.name == "dernier_recours" %}
   <label for="{{ champ.id_for_label }}">{{ champ }} {{ champ.label }}</label>
   {% else %}
   <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
@@ -16,10 +16,16 @@
   {% endif %}
   {% if champ.help_text %}<p class="aide">{{ champ.help_text|safe }}</p>{% endif %}
   {% if champ.errors %}<div class="erreurs">{{ champ.errors }}</div>{% endif %}
+  {% if champ.name == "dernier_recours" %}
+  <details class="aide-propositions">
+    <summary>Pourquoi cette case est cochée</summary>
+    <p class="aide">Sur un ordinateur personnel, celui qui peut ouvrir votre session peut déjà lire les fichiers de Petits Pas : ils ne sont pas chiffrés. Le dernier recours évite alors de perdre l’accès à votre carnet pour un simple oubli. Décochez-la si l’ordinateur est partagé avec des personnes qui ne doivent pas voir les carnets : vous recevrez une clé de secours à conserver avec soin.</p>
+  </details>
+  {% endif %}
   {% endfor %}
   <p class="aide">Le référentiel sera proposé par défaut pour l’école et utilisé par la première classe si vous la préparez. Vous pourrez ensuite ajouter des classes et des collègues.</p>
   <p><a href="https://petits-pas.gitlabpages.inria.fr/petits-pas/referentiels/cycle1/" target="_blank" rel="noopener">Consulter les descriptions et les sources des référentiels</a></p>
-  <p class="aide">Ce premier compte permet de gérer l’école dans Petits Pas, sans attribuer une fonction officielle. Si vous préparez la classe, vous en serez aussi responsable dans l’application. Conservez son mot de passe : l’envoi d’e-mails est désactivé en mode local.</p>
+  <p class="aide">Ce premier compte permet de gérer l’école dans Petits Pas, sans attribuer une fonction officielle. Si vous préparez la classe, vous en serez aussi responsable dans l’application. {% if formulaire.dernier_recours %}Une clé de secours vous sera remise à l’étape suivante, car l’envoi d’e-mails est désactivé en mode local.{% else %}Conservez son mot de passe : l’envoi d’e-mails est désactivé en mode local.{% endif %}</p>
   <div class="actions"><button class="bouton" type="submit">Créer et commencer</button></div>
 </form>
 <script>

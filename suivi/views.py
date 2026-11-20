@@ -56,6 +56,7 @@ from comptes.models import (
     Utilisateur,
 )
 from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
+from .services import acces_local
 from .forms import DroitsGestionForm
 from .confirmations_referentiels import verifier_confirmation
 from .lectures_eleves import avec_scolarites_pour_lecture
@@ -544,6 +545,12 @@ def installation_locale(request):
                     preparer_premiere_classe(utilisateur=utilisateur, appartenance=appartenance,
                                              classe=classe, version=version,
                                              selection_manuelle=formulaire.cleaned_data["selection_manuelle"])
+                cle_secours = None
+                if acces_local.disponible():
+                    acces_local.definir_dernier_recours(
+                        acteur=utilisateur, ecole=ecole,
+                        autorise_recours=formulaire.cleaned_data["dernier_recours"])
+                    cle_secours = acces_local.generer_cle(utilisateur)
         except ValidationError as erreur:
             formulaire.add_error(None, erreur)
             return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
@@ -552,10 +559,49 @@ def installation_locale(request):
         request.session.pop("suivant", None)
         if classe:
             messages.success(request, "École et classe créées. Vous pouvez ajouter les élèves.")
-            return redirect("importer_eleves", pk=classe.pk)
-        messages.success(request, "École créée. Vous pouvez maintenant préparer une classe.")
-        return redirect("gestion")
+            suite = reverse("importer_eleves", args=[classe.pk])
+        else:
+            messages.success(request, "École créée. Vous pouvez maintenant préparer une classe.")
+            suite = reverse("gestion")
+        if cle_secours:
+            _remettre_cle_secours(request, cle_secours, suite=suite,
+                                  preuve=not formulaire.cleaned_data["dernier_recours"])
+            return redirect("cle_secours")
+        return redirect(suite)
     return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
+
+
+SESSION_CLE_SECOURS = "cle_secours_a_montrer"
+
+
+def _remettre_cle_secours(request, cle, *, suite, preuve):
+    """Garde la clé le temps de la montrer une fois ; elle n'est jamais relue ensuite."""
+    request.session[SESSION_CLE_SECOURS] = {"cle": cle, "suite": suite, "preuve": preuve}
+
+
+@never_cache
+@acces_requis
+def cle_secours(request):
+    """Montre la clé de secours une seule fois, puis poursuit le parcours."""
+    if not acces_local.disponible():
+        raise Http404
+    en_attente = request.session.get(SESSION_CLE_SECOURS)
+    if not en_attente:
+        return redirect("mon_compte")
+    erreur = None
+    if request.method == "POST":
+        fin = "".join(c for c in request.POST.get("fin_de_cle", "").upper() if c not in " -")
+        attendue = en_attente["cle"].replace("-", "")[-8:]
+        if en_attente["preuve"] and fin != attendue:
+            erreur = ("Ces signes ne correspondent pas à la fin de votre clé. "
+                      "Relisez-la ci-dessus et recopiez ses deux derniers groupes.")
+        else:
+            request.session.pop(SESSION_CLE_SECOURS, None)
+            return redirect(en_attente["suite"])
+    return render(request, "suivi/cle_secours.html", {
+        "cle": en_attente["cle"], "preuve": en_attente["preuve"], "erreur": erreur,
+        "saisie": request.POST.get("fin_de_cle", ""),
+    })
 
 
 @never_cache
