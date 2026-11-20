@@ -3938,7 +3938,18 @@ class JeuDemoLarge(TestCase):
             profil for profil in configuration["profils"] if profil["id"] == "alice"
         )
         self.assertEqual(alice["affectations"][0]["periode"], "terminee")
-        self.assertEqual(len(configuration["scenarios"]), 23)
+        self.assertEqual(len(configuration["scenarios"]), 26)
+        captures = {scenario["id"]: scenario["capture"] for scenario in configuration["scenarios"]}
+        self.assertEqual(
+            {identifiant: captures.get(identifiant) for identifiant in (
+                "guide-filtres-competences", "guide-traces-par-eleve", "guide-ordre-rubriques"
+            )},
+            {
+                "guide-filtres-competences": "guide/observer/filtres-competences.png",
+                "guide-traces-par-eleve": "guide/observer/traces-par-eleve.png",
+                "guide-ordre-rubriques": "guide/classes/ordre-rubriques.png",
+            },
+        )
         self.assertEqual(
             {scenario["profil"] for scenario in configuration["scenarios"]},
             {"diane", "remi", "nadia", "cora", "samir"},
@@ -3955,6 +3966,7 @@ class JeuDemoLarge(TestCase):
             },
             {
                 "#formulaire-reussite",
+                "#recherche-catalogue",
                 "#membre-lea-demo",
                 "#membre-alice-demo",
                 "#membre-marc-demo",
