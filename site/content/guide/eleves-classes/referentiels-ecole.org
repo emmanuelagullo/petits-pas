@@ -108,12 +108,17 @@ base : elle ne suit pas les changements futurs de l’école, même sans observa
 Les anciennes années et les traces retirées comptent aussi dans cette précaution.
 
 Ouvrir *Pourquoi un référentiel manque-t-il ?* : vérifier l’année et une
-éventuelle liste plus courte de l’école. Un fichier fourni dans le dépôt
-peut ne pas avoir été importé sur le service, ou ne pas être autorisé pour
-cette année. Sans publication annuelle, seule la trame initiale peut être
-proposée. Le défaut proposé ne limite pas la liste. Pour une offre absente
-au niveau de l’application, contacter son gestionnaire en indiquant l’année
-et le référentiel attendu ; aucun import ni droit technique n’est ajouté ici.
+éventuelle liste plus courte de l’école. Le défaut proposé ne limite pas la liste.
+
+- Dans le programme ou l’application installée dans le navigateur, cliquer sur
+  *Ajouter les référentiels fournis* pour l’année affichée. Cette action est utile
+  pour une ancienne école qui n’a que sa trame, ou pour une nouvelle année.
+  Les éditions déjà autorisées et les réglages de l’école sont conservés.
+  Si l’école a choisi une liste plus courte, ajuster cette liste pour proposer
+  les nouvelles sources aux classes. Les classes gardent leurs bases et leurs saisies.
+- Sur un service hébergé, l’administration importe les fichiers du projet ou ses
+  propres sources et les autorise pour l’année. Contacter le gestionnaire du
+  service si une offre manque.
 
 * Commencer avec des catégories seules
 

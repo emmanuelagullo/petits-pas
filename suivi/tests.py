@@ -134,6 +134,10 @@ class InstallationLocaleTests(TestCase):
             ).exists()
         )
         self.assertTrue(ecole.domaines.exists())
+        from suivi.services.choix_bases_referentiels import choix_bases
+        choix = choix_bases(ecole, "2026-2027")
+        self.assertEqual({v.source.identifiant for v in choix.versions}, self.identifiants_catalogue())
+        self.assertEqual(choix.proposee.source.identifiant, "petits-pas-trame-cycle1")
         self.assertEqual(self.client.session["_auth_user_id"], str(utilisateur.pk))
         self.assertEqual(self.client.get(reverse("installation_locale")).url, reverse("accueil"))
 
@@ -155,7 +159,7 @@ class InstallationLocaleTests(TestCase):
         self.assertEqual(self.client.get(reverse("installation_locale")).status_code, 403)
 
     @override_settings(MODE_LOCAL=True)
-    @patch("suivi.views.call_command", side_effect=RuntimeError("référentiel illisible"))
+    @patch("suivi.services.catalogue_fourni.importer_source", side_effect=RuntimeError("référentiel illisible"))
     def test_erreur_de_referentiel_annule_ecole_et_compte(self, _commande):
         with self.assertRaises(RuntimeError):
             self.client.post(reverse("installation_locale"), self.donnees())
@@ -202,7 +206,50 @@ class InstallationLocaleTests(TestCase):
         self.assertEqual(adoption.version.numero, fourni["version"])
         self.assertEqual(adoption.version.contenu, fourni)
         self.assertFalse(ChoixEcoleAnnuel.objects.get().restreindre)
-        self.assertEqual(len(choix_bases(classe.ecole, classe.annee_scolaire).versions), 4)
+        self.assertEqual({v.source.identifiant for v in choix_bases(classe.ecole, classe.annee_scolaire).versions},
+                         self.identifiants_catalogue())
+
+    def identifiants_catalogue(self):
+        from django.conf import settings
+        from suivi.services.catalogue_fourni import REFERENTIELS_DEPART
+        from suivi.services.import_sources_referentiels import lire_source
+
+        return {
+            lire_source((settings.BASE_DIR / fichier).read_text(encoding="utf-8"))[0]["source"]["identifiant"]
+            for _, _, fichier in REFERENTIELS_DEPART
+        }
+
+    @override_settings(MODE_LOCAL=True)
+    def test_complete_une_ecole_reprise_sans_changer_son_choix(self):
+        from suivi.models import ChoixApplicationAnnuel, ChoixEcoleAnnuel, VersionReferentiel
+        from suivi.services.choix_bases_referentiels import choix_bases
+        from suivi.services.reprise_referentiels import preparer_nouvelle_ecole
+
+        ecole = Ecole.objects.create(nom="École existante")
+        domaine = Domaine.objects.create(ecole=ecole, code="LANG", nom="Langage")
+        competence = Competence.objects.create(domaine=domaine, code="LANG-01", libelle="Texte adapté")
+        preparer_nouvelle_ecole(ecole)
+        ancienne = VersionReferentiel.objects.get(source__ecole=ecole)
+        ChoixEcoleAnnuel.objects.create(ecole=ecole, annee_scolaire="2026-2027", version_proposee=ancienne)
+        direction = get_user_model().objects.create_user(username="direction")
+        appartenance = AppartenanceEcole.objects.create(ecole=ecole, utilisateur=direction)
+        ResponsabiliteEcole.objects.create(appartenance=appartenance, type=ResponsabiliteEcole.DIRECTION)
+        self.client.force_login(direction)
+        url = reverse("referentiels_ecole")
+        donnees = {"annee": "2026-2027", "action": "completer_catalogue"}
+
+        with self.settings(MODE_LOCAL=False):
+            self.assertEqual(self.client.post(url, donnees).status_code, 403)
+        for _ in range(2):
+            self.assertRedirects(self.client.post(url, donnees), f"{url}?annee=2026-2027")
+        choix = choix_bases(ecole, "2026-2027")
+        self.assertEqual(choix.proposee, ancienne)
+        self.assertEqual({v.source.identifiant for v in choix.versions if v.pk != ancienne.pk},
+                         self.identifiants_catalogue())
+        self.assertEqual(ChoixApplicationAnnuel.objects.get().revision, 1)
+        competence.refresh_from_db()
+        self.assertEqual(competence.libelle, "Texte adapté")
+        self.assertEqual(Competence.objects.filter(domaine__ecole=ecole).count(), 1)
 
     @override_settings(MODE_LOCAL=True, MODE_PWA=True)
     def test_navigateur_utilise_le_meme_demarrage(self):

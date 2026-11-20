@@ -1,5 +1,4 @@
 from functools import wraps
-from io import StringIO
 import tempfile
 import logging
 import mimetypes
@@ -17,7 +16,6 @@ from urllib.parse import quote, unquote, urlsplit
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.core.management import call_command
 from django.contrib.auth import views as auth_views
 from django.contrib.messages.views import SuccessMessageMixin
 from carnet.reseau import adresse_client, cle_ip
@@ -540,14 +538,6 @@ def installation_locale(request):
                 ResponsabiliteEcole.objects.create(
                     appartenance=appartenance, type=ResponsabiliteEcole.DIRECTION
                 )
-                call_command(
-                    "charger_referentiel",
-                    settings.BASE_DIR / "referentiel" / "trame-cycle1.yaml",
-                    ecole=ecole.pk,
-                    stdout=StringIO(),
-                )
-                from .services.reprise_referentiels import preparer_nouvelle_ecole
-                preparer_nouvelle_ecole(ecole)
                 from .services.installation_locale import preparer_referentiel, preparer_premiere_classe
                 version = preparer_referentiel(utilisateur=utilisateur, ecole=ecole,
                     annee=formulaire.cleaned_data["annee_scolaire"], choix=formulaire.cleaned_data["referentiel"])

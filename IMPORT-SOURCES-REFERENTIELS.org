@@ -99,3 +99,27 @@ de la provenance et de la licence. Les correspondances entre sources restent
 le jalon #R7 ; aucune équivalence ni réussite transférée n'est introduite ici.
 L'usage d'une nouvelle version par une école ou classe nécessite encore les
 parcours d'autorisation et d'adoption prévus ; l'import seul ne les anticipe pas.
+
+* Sources distribuées, sources du service et reprises d’école
+
+La trame Petits Pas est livrée comme source versionnée, avec des identités
+déclarées dans son fichier, au même titre que les autres offres distribuées.
+Une source livrée ou ajoutée par le service entre dans le même catalogue
+après import et suit la même sélection de versions par année. Un import
+de fichier seul ne publie pas la version et n’adopte aucune base.
+
+Le programme et la PWA publient les offres distribuées à la création de
+l’école. La direction peut compléter ce catalogue pour l’année dans une
+installation locale existante. Cette action ajoute les sources manquantes,
+garde les éditions déjà autorisées et ne change pas la liste restreinte de
+l’école. Le service hébergé conserve la publication explicite par
+l’administration, y compris pour les fichiers distribués par Petits Pas.
+
+Une ancienne trame reprise est un instantané de l’école, avec ses identités
+historiques. Elle peut rester le choix proposé localement lorsqu’elle l’était
+déjà. L’identité d’une compétence reprise n’est jamais déduite de son code
+ou de son libellé. Les exports et restaurations de l’école locale conservent
+le catalogue et ses réglages. L’import d’un paquet dans un service conserve
+ses sources historiques dans l’école importée et exclut les politiques
+d’autorisation du paquet. Ces sources privées ne sont pas publiées dans le
+catalogue du service.

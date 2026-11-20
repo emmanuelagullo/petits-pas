@@ -1,6 +1,12 @@
 # Contenus du référentiel
 
 `trame-cycle1.yaml` est une trame de travail, sans statut de référentiel officiel.
+Elle suit le même format versionné que les autres offres et s’importe avec
+`importer_source_referentiel referentiel/trame-cycle1.yaml`. Sur un service,
+l’administrateur autorise ensuite la version pour l’année avec
+`proposer_bases_referentiels`, comme pour ses propres sources. Ce fichier
+est aussi lisible par le chargeur historique d’une école non reprise.
+
 L'audit des contenus, de leur provenance et des offres à préparer est consigné
 dans [CONTENUS-REFERENTIELS.org](../CONTENUS-REFERENTIELS.org) (#CR1).
 Il ne remplace ni n'importe cette trame ; les deux versions sous `exemples/`
@@ -20,7 +26,8 @@ explicitement, indépendamment de son code : voir
 [IMPORT-SOURCES-REFERENTIELS.org](../IMPORT-SOURCES-REFERENTIELS.org). Une compétence peut n'avoir ni icône ni formulation.
 
 ```yaml
-- code: LANG-01
+- identite: LANG-01
+  code: LANG-01
   libelle: "J'ose parler devant les autres"
   niveau: PS
   icone: parler

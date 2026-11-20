@@ -1,26 +1,15 @@
 """Choix de départ d'un paquet vide, partagés par navigateur et programme."""
-from pathlib import Path
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from suivi.models import ChoixApplicationAnnuel
-from .import_sources_referentiels import importer_source
+from .catalogue_fourni import REFERENTIELS_DEPART, completer_catalogue_fourni
+from .versions_sources_ecoles import definir_version_ecole
 from .choix_bases_referentiels import (
-    choix_bases, publier_choix_application, enregistrer_choix_ecole,
+    _application_verrouillee, choix_bases, enregistrer_choix_ecole, verifier_annee,
 )
 from .adoption_bases_referentiels import apercu_adoption, adopter_base
 from .equipe import attribuer_affectation, activer_classe
 from comptes.models import AffectationClasse
-
-# Liste publique explicite, commune à l'interface et au chargement.
-REFERENTIELS_DEPART = (
-    ("libre", "Démarrer sans compétences prédéfinies", "referentiel/structure-cycle1.yaml"),
-    ("trame", "Trame de démarrage Petits Pas — sélection provisoire", None),
-    ("objectifs", "Cycle 1 — objectifs des programmes", "referentiel/cycle1/objectifs-programmes.yaml"),
-    ("etaye", "Cycle 1 — édition étayée", "referentiel/cycle1/cycle1-etaye.yaml"),
-    ("chatdecole", "Cycle 1 — tableaux Chat d’école", "referentiel/chatdecole/tableaux-cycle1.yaml"),
-)
-
 
 @transaction.atomic
 def preparer_referentiel(*, utilisateur, ecole, annee, choix):
@@ -29,24 +18,14 @@ def preparer_referentiel(*, utilisateur, ecole, annee, choix):
         raise ValidationError("Ce démarrage est réservé à une installation locale.")
     if choix not in {cle for cle, _, _ in REFERENTIELS_DEPART}:
         raise ValidationError("Choisissez un référentiel de départ proposé.")
-    from .choix_bases_referentiels import verifier_annee
     verifier_annee(annee)
-    application = ChoixApplicationAnnuel.objects.filter(annee_scolaire=annee).first()
+    application = _application_verrouillee(annee)
     # Une politique déjà configurée reste souveraine, même sans école.
-    if application and application.configure:
+    if application.configure:
         raise ValidationError("Des choix de référentiel existent déjà. Faites vérifier cette installation avant de créer l’école.")
-    if choix == "trame":
-        version = choix_bases(ecole, annee).proposee
-    else:
-        versions = {}
-        for cle, _, chemin in REFERENTIELS_DEPART:
-            if chemin:
-                version, _, _ = importer_source((Path(settings.BASE_DIR) / chemin).read_text())
-                versions[cle] = version
-        version = versions[choix]
-        # Le choix de départ ne restreint pas les autres bases fournies.
-        publier_choix_application(annee=annee, versions_ids=[v.pk for v in versions.values()],
-            proposee_id=versions["objectifs"].pk, revision_attendue=application.revision if application else 0)
+    versions, _ = completer_catalogue_fourni(annee)
+    version = versions[choix]
+    definir_version_ecole(ecole, version)
     choix_effectifs = choix_bases(ecole, annee)
     enregistrer_choix_ecole(utilisateur=utilisateur, ecole=ecole, annee=annee,
         restreindre=False, versions_ids=[], proposee_id=version.pk,

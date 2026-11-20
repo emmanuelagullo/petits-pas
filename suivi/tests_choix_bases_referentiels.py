@@ -3,6 +3,7 @@ from io import StringIO
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.test import override_settings
 from django.utils import timezone
 
 from comptes.models import AffectationClasse
@@ -40,6 +41,38 @@ class ChoixAnnuels(Base):
         self.assertNotIn(self.a.pk, [v.pk for v in choix.versions])
         self.assertFalse(ChoixApplicationAnnuel.objects.exists())
         self.assertFalse(ChoixEcoleAnnuel.objects.exists())
+
+    def test_trame_fournie_et_source_du_service_suivent_la_meme_publication(self):
+        from django.conf import settings
+
+        call_command("importer_source_referentiel", str(settings.BASE_DIR / "referentiel/trame-cycle1.yaml"),
+                     stdout=StringIO())
+        trame = VersionReferentiel.objects.get(source__identifiant="petits-pas-trame-cycle1")
+        avant = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        self.assertNotIn(trame, choix_bases(self.ecole, self.annee).versions)
+        self.publier(ids=[trame.pk, self.a.pk], defaut=trame.pk)
+        self.assertEqual(set(choix_bases(self.ecole, self.annee).versions), {trame, self.a})
+        self.regler(defaut=self.a.pk)
+        self.assertEqual(choix_bases(self.ecole, self.annee).proposee, self.a)
+        self.assertEqual(AdoptionReferentiel.objects.get(classe=self.classe, courante=True), avant)
+
+    @override_settings(MODE_LOCAL=True)
+    def test_completer_conserve_restriction_defaut_et_suivi(self):
+        from .models import Trace
+        from .services.catalogue_fourni import completer_catalogue_fourni
+
+        self.publier(ids=[self.a.pk], defaut=self.a.pk)
+        self.regler(restreindre=True, ids=[self.a.pk], defaut=self.a.pk)
+        avant = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        completer_catalogue_fourni(self.annee)
+        choix = choix_bases(self.ecole, self.annee)
+        self.assertEqual(choix.versions, (self.a,))
+        self.assertEqual(choix.proposee, self.a)
+        application = ChoixApplicationAnnuel.objects.get(annee_scolaire=self.annee)
+        self.assertEqual(application.version_proposee, self.a)
+        self.assertIn(self.a, application.versions_autorisees.all())
+        self.assertEqual(AdoptionReferentiel.objects.get(classe=self.classe, courante=True), avant)
+        self.assertTrue(Trace.objects.filter(commentaire="Trace conservée").exists())
 
     def test_defaut_distinct_des_bases_autorisees(self):
         self.publier()

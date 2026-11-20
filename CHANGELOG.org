@@ -14,6 +14,11 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   la connexion ; minimum de huit caractères et idée de phrase de passe sur ce
   profil.
 
+- Proposer le même catalogue de référentiels au démarrage local quel que soit
+  le choix initial, y compris la trame Petits Pas. La direction peut compléter
+  le catalogue d’une école existante pour l’année choisie. Les classes
+  conservent leur référentiel et leurs observations.
+
 * 0.15 — 2026-11-20
 
 Cette version simplifie la recherche de compétences et la saisie des traces.
