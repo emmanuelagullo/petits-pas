@@ -46,6 +46,9 @@ class FiltresEdition(forms.Form):
         super().__init__(donnees, initial=initial)
         self.classe = classe
         self.eleves = list(avec_scolarites_pour_lecture(classe.eleves))
+        self.sections_classe = dict(classe.scolarites.values_list("eleve_id", "niveau"))
+        for eleve in self.eleves:
+            eleve.section_filtre = self.sections_classe.get(eleve.pk, "")
         self.fields["eleves"].choices = [(str(e.pk), e.nom_court) for e in self.eleves]
         self.colonnes = []
         rubriques = []
@@ -113,8 +116,7 @@ class FiltresEdition(forms.Form):
         enfants = [e for e in self.eleves if (tous and not ids) or str(e.pk) in ids]
         if not sections:
             return enfants
-        niveaux = dict(self.classe.scolarites.values_list("eleve_id", "niveau"))
-        return [e for e in enfants if niveaux.get(e.pk) in sections]
+        return [e for e in enfants if self.sections_classe.get(e.pk) in sections]
 
     def competences_retenues(self, eleves, *, force=None):
         donnees = self.cleaned_data

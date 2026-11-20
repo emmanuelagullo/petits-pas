@@ -2532,7 +2532,7 @@ def preparer_edition(request, pk):
             for contexte in contextes:
                 medias.extend(_medias_pdf_carnet(contexte))
         retour = QueryDict(mutable=True)
-        for cle in (*formulaire.fields, "format", "parcours", "unite", "avec_photo",
+        for cle in (*formulaire.fields, "format", "parcours", "mise_en_page_ouverte", "unite", "avec_photo",
                     "avec_commentaire", "espace_eleve", "grandes_cartes", "planches_compactes",
                     "ordre_cartes"):
             if cle in donnees:
@@ -2579,7 +2579,9 @@ def preparer_edition(request, pk):
         messages.error(request, "Sélectionnez au moins un enfant.")
     return render(request, "suivi/preparer_edition.html", {
         "classe": classe, "eleves": eleves, "formulaire": formulaire,
-        "selection_ids": {e.pk for e in selection}, "ouvrir_filtres": not selection,
+        "selection_ids": {e.pk for e in eleves if str(e.pk) in filtres.getlist("eleves")},
+        "ouvrir_filtres": not selection,
+        "mise_en_page_ouverte": donnees.get("mise_en_page_ouverte", ""),
         "presentation": presentation, "format_edition": format_edition,
         "parcours_complet": parcours_complet,
         "choix_cartes": choix_cartes,

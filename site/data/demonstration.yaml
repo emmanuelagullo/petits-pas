@@ -420,7 +420,7 @@ scenarios:
     etapes:
       - { action: classe, classe: mesanges }
       - { action: lien, nom: "Saisir pour toute la classe" }
-      - { action: selecteur, selecteur: ".details-filtres-catalogue > summary" }
+      - { action: selecteur, selecteur: "#recherche-catalogue .commandes-filtres button[aria-controls]" }
       - { action: visible, selecteur: "#niveau" }
     cible: "#recherche-catalogue"
     capture: guide/observer/filtres-competences.png
