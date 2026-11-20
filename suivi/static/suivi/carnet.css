@@ -1116,3 +1116,51 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
   overflow-wrap: anywhere;
   user-select: all;
 }
+.barre-filtres-edition { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: .55rem; }
+.barre-filtres-edition > details[open] { grid-column: 1 / -1; }
+.barre-filtres-edition summary { width: fit-content; margin-inline-start: auto; }
+.defilement-grille { overflow: auto; max-height: 70vh; }
+.matrice-suivi { width: 100%; border-collapse: separate; border-spacing: 0; }
+.matrice-suivi thead { position: sticky; top: 0; z-index: 2; background: var(--papier, white); }
+.matrice-suivi th[scope="row"] { position: sticky; left: 0; background: var(--papier, white); text-align: left; }
+.matrice-suivi td, .matrice-suivi th { border: 1px solid #b7bdb9; padding: .25rem; }
+.matrice-suivi td { text-align: center; min-width: 1.6rem; }
+.matrice-suivi .etat-reussi { background: #d9f0dd; }
+.matrice-suivi .etat-en_cours { background: #ffe3bc; }
+.matrice-suivi .etat-hors_suivi { background: #e9ecea; }
+.matrice-suivi .notes-grille { width: 35%; }
+.legende-colonnes { columns: 2; }
+.legende-colonnes li { break-inside: avoid; }
+@media (max-width: 36rem) {
+  .barre-filtres-edition { grid-template-columns: 1fr; }
+  .barre-filtres-edition summary { margin-inline-start: 0; }
+  .legende-colonnes { columns: 1; }
+}
+@page grille { size: A4 landscape; margin: 12mm; }
+@media print {
+  .edition-grille { page: grille; }
+  .bloc-grille-edition + .bloc-grille-edition { break-before: page; }
+  .defilement-grille { overflow: visible; max-height: none; }
+  .matrice-suivi thead, .matrice-suivi th[scope="row"] { position: static; }
+  .matrice-suivi thead { display: table-header-group; }
+  .matrice-suivi tr { break-inside: avoid; }
+  .matrice-suivi { font-size: 9pt; print-color-adjust: exact; }
+  .matrice-suivi td, .matrice-suivi th { padding: 1mm; min-width: 0; overflow-wrap: anywhere; }
+}
+
+.planche-cartes { display: table; width: 100%; table-layout: fixed; }
+.carte-a-decouper { display: inline-block; box-sizing: border-box; vertical-align: top; width: 50%; min-height: 56mm; border: 1px dashed #777; padding: 3mm; overflow-wrap: anywhere; break-inside: avoid; }
+.grandes-cartes .carte-a-decouper { min-height: 106mm; }
+.carte-a-decouper p { margin: 0 0 .2em; }
+.carte-a-decouper img { display: block; max-height: 24mm; max-width: 100%; object-fit: contain; }
+.grandes-cartes img { max-height: 55mm; }
+.rubrique-carte { font-size: .82em; }
+.espace-carte { min-height: 12mm; }
+@media print {
+  .planche-cartes + .planche-cartes, .carnets-groupes .carnet + .carnet { break-before: page; }
+  .carte-a-decouper { font-size: 10pt; }
+}
+.choix-competences-edition [id="id_rubriques"],
+.choix-competences-edition [id="id_competences"] { max-height: 12rem; overflow: auto; border: 1px solid #b7bdb9; padding: .35rem; }
+.planche-cartes { font-size: 0; }
+.carte-a-decouper { font-size: 10pt; }

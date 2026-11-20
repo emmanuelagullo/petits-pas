@@ -5,6 +5,7 @@
 {% if saisie_collective %}
 {% include "suivi/partiels/ariane.html" with page="Saisir pour toute la classe" %}
 <h1>Saisir pour toute la classe</h1>
+<div class="actions"><a class="bouton discret" href="{% url 'grille_classe' classe.pk %}{% if niveau %}?filtres=1&amp;niveaux={{ niveau }}{% endif %}">Grille de suivi</a></div>
 {% else %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
 <div class="actions entete-catalogue">

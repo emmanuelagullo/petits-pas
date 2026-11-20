@@ -1,0 +1,16 @@
+{% extends "suivi/base.html" %}
+{% load navigation_suivi static %}
+{% block titre %}Carnets un par un{% endblock %}
+{% block contenu %}
+{% ariane_classe "Carnets un par un" classe %}
+<h1>Carnets un par un</h1>
+<p>Préparez chaque carnet quand vous êtes prêt à l’enregistrer ou à l’imprimer.</p>
+<form method="post" data-sequence-carnets>
+  {% csrf_token %}
+  {% for cle, valeur in champs %}<input type="hidden" name="{{ cle }}" value="{{ valeur }}">{% endfor %}
+  <ol>{% for eleve in eleves %}
+    <li><button class="bouton {% if not forloop.first %}discret{% endif %}" type="submit" name="carnet" value="{{ eleve.pk }}" formtarget="_blank">Préparer le carnet de {{ eleve.nom_court }}</button></li>
+  {% endfor %}</ol>
+</form>
+<script src="{% static 'suivi/editions.js' %}" defer></script>
+{% endblock %}

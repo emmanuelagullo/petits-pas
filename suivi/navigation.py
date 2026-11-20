@@ -32,7 +32,7 @@ def retour_competences(request, classe, parametre="retour"):
         retour = urlsplit(request.GET.get(parametre, "")[:2000])
     except ValueError:
         return ""
-    destinations = {reverse(route, args=[classe.pk]) for route in ("catalogue_competences", "choisir_competence")}
+    destinations = {reverse(route, args=[classe.pk]) for route in ("catalogue_competences", "choisir_competence", "grille_classe")}
     return retour.geturl() if not (retour.scheme or retour.netloc) and retour.path in destinations else ""
 
 

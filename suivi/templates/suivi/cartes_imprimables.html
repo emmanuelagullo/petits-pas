@@ -1,0 +1,36 @@
+{% extends "suivi/base.html" %}
+{% load navigation_suivi %}
+{% block titre %}Cartes à découper{% if avec_photo and credits_cartes %}<p class="credits-illustrations">Illustrations : {% for credit in credits_cartes %}<a href="{{ credit.url }}">{{ credit.nom }}</a>{% if not forloop.last %}, {% endif %}{% endfor %} — CC BY-SA 4.0.</p>{% endif %}
+{% endblock %}
+{% block contenu %}
+{% if not generation_pdf %}
+<div class="sans-impression">
+  {% ariane_classe "Cartes à découper" classe %}
+  <h1>Cartes à découper</h1>
+  <p>{{ nombre_cartes }} carte{{ nombre_cartes|pluralize }} · {{ planches|length }} planche{{ planches|pluralize }}</p>
+  {% if avec_commentaire and textes_longs and not grandes_cartes %}<p>Certains commentaires sont longs. Vérifiez l’aperçu ou choisissez de grandes cartes.</p>{% endif %}
+  {% if planches %}<button class="bouton" type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button>{% endif %}
+  <a class="bouton discret" href="{{ retour_edition }}">Modifier la sélection</a>
+</div>
+{% endif %}
+{% for planche in planches %}
+<section class="planche-cartes{% if grandes_cartes %} grandes-cartes{% endif %}" aria-label="Planche {{ forloop.counter }}">
+  {% for carte in planche %}
+  <article class="carte-a-decouper">
+    <p><strong>{{ carte.eleve.nom_court }}</strong>{% if carte.trace %} · {{ carte.trace.date_observation|date:"j/n/Y" }}{% endif %}</p>
+    <p class="rubrique-carte">{{ carte.rubrique }}</p>
+    <p>{{ carte.competence.libelle }}</p>
+    {% if avec_photo %}
+      {% if carte.trace.photo %}<img alt="Trace de l’activité" src="{% if generation_pdf %}{{ carte.trace.url_photo_pdf }}{% else %}{% url 'afficher_media_trace' carte.trace.pk %}{% endif %}">
+      {% elif carte.competence.url_icone %}<img alt="" src="{% if generation_pdf %}{{ carte.competence.url_icone_pdf }}{% else %}{{ carte.competence.url_icone }}{% endif %}">{% endif %}
+    {% endif %}
+    {% if avec_commentaire and carte.trace.commentaire %}<p>{{ carte.trace.commentaire }}</p>{% endif %}
+    {% if espace_eleve %}<div class="espace-carte"></div>{% endif %}
+  </article>
+  {% endfor %}
+</section>
+{% empty %}
+<p>Aucune carte à préparer avec cette sélection.</p>
+{% endfor %}
+{% if avec_photo and credits_cartes %}<p class="credits-illustrations">Illustrations : {% for credit in credits_cartes %}<a href="{{ credit.url }}">{{ credit.nom }}</a>{% if not forloop.last %}, {% endif %}{% endfor %} — CC BY-SA 4.0.</p>{% endif %}
+{% endblock %}

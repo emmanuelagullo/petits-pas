@@ -1,48 +1,54 @@
 +++
 title = "Consulter, imprimer ou télécharger une grille de suivi"
-description = "Obtenir la vue de classe d’une compétence, avec les états et une colonne de notes de séance."
+description = "Lire les états de la classe pour une ou plusieurs compétences."
 fiche = true
 categorie = "observer"
 publics = ["responsable", "associe"]
 intentions = ["grille", "suivi", "imprimer", "PDF", "classe", "compétence"]
 prerequis = "Vous pouvez consulter le suivi de la classe. Le téléchargement PDF est réservé au responsable."
-depart = "Classe → Saisir pour toute la classe → compétence → Voir la grille de suivi"
+depart = "Classe → Saisir pour toute la classe → Grille de suivi"
 statut = "disponible"
 +++
 
 ## Étapes
 
-1. Choisir la compétence depuis la saisie collective.
-2. Sélectionner **Voir la grille de suivi**.
-3. Vérifier le résumé : nombre d’élèves à observer, en cours et en réussite.
-4. Utiliser **Imprimer** pour la boîte de dialogue du navigateur, ou
-   **Télécharger le PDF** pour conserver un document.
+1. Dans **Saisir pour toute la classe**, choisir **Grille de suivi**. Pour
+   examiner une seule compétence, l’ouvrir puis choisir **Voir la grille de suivi**.
+2. Lire le résumé au-dessus du tableau. Par défaut, la grille de classe
+   affiche les compétences observées pendant l’année.
+3. Ouvrir **Filtres** pour choisir les élèves, les rubriques, les
+   sous-rubriques ou des compétences précises. Pour préparer une séance,
+   choisir **Toutes les compétences suivies**.
+4. Le responsable peut **Télécharger le PDF** ou, dans l’application navigateur,
+   **Préparer l’impression / PDF**. **Préparer une édition** reprend la sélection
+   pour produire des carnets ou des cartes à découper.
 
-## Résultat attendu
+Les élèves sont en lignes. Les colonnes sont regroupées par rubrique et
+sous-rubrique. En mode compact, leur numéro renvoie au libellé complet.
+Sur un écran étroit, choisir **Une compétence à la fois** dans les filtres.
+Le PDF répartit les grandes grilles sur plusieurs tableaux, avec les élèves
+et les en-têtes répétés. La grille d’une compétence garde une colonne pour
+les notes de séance sur papier.
 
-La grille comporte une ligne par élève, une marque dans la colonne correspondant
-à son état, et une colonne vierge pour les notes de séance. Le pied précise la
-date d’édition et le caractère interne du document.
+## Observations et période
 
-## Limites et refus
+Une compétence figure dans le résultat dès qu’au moins un élève retenu
+correspond au filtre. Pour une période donnée, choisir **Observations sur une
+période** ou **Réussites constatées sur une période**, puis indiquer les dates.
+La période choisit les colonnes. Les couleurs restent celles du suivi annuel.
 
-- Responsable et enseignant associé peuvent consulter et imprimer la page.
-- La production du PDF utilise le droit de génération : elle est donc réservée
-  au responsable. Une URL appelée directement par un autre rôle est refusée.
-- La colonne de notes est destinée au papier ; son contenu n’est pas saisi ni
-  conservé dans Petits Pas.
+Les cases distinguent **À observer** (blanc, ○), **En cours** (orange, ◐),
+**Réussi** (vert, ✓), **Hors du suivi** (gris, —) et **État non retrouvé** (?).
+Les élèves hors du suivi d’une compétence ciblée restent visibles mais ne sont
+pas comptés comme en attente d’observation.
 
+## Reprendre son travail
+
+Le bandeau résume les filtres appliqués. La grille de classe retrouve les
+derniers critères de cette classe et de cette année pendant la session.
+**Réinitialiser** retire ces critères. Ouvrir la grille d’une compétence depuis
+sa fiche ne remplace pas les critères de la grille de classe.
+
+Le document est réservé à l’équipe pédagogique.
 Voir la distinction entre **voir le suivi** et **générer** dans la
 [matrice des autorisations]({{< relref "/conception/documents/matrice-autorisations.org" >}}).
-
-Pour une ancienne classe, la grille indique les états connus de cette année.
-Un **état non retrouvé** est signalé à part : cela ne signifie pas que l'élève
-n'avait pas réussi. Les réussites enregistrées plus tard ne sont pas reportées
-dans cette grille. La saisie d'un élève passé dans une nouvelle année se fait
-depuis sa classe actuelle.
-
-## Portée limitée
-
-Pour une compétence ciblée, les élèves non sélectionnés sont **Hors du suivi**, et ne sont pas comptés comme en attente d’observation.
-
-Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).

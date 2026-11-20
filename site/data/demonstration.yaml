@@ -325,8 +325,8 @@ scenarios:
     parcours: guide
     etapes:
       - { action: classe, classe: coccinelles }
-      - { action: lien, nom: "Préparer les carnets PDF" }
-      - { action: titre, nom: "Préparer les carnets PDF" }
+      - { action: lien, nom: "Préparer une édition" }
+      - { action: titre, nom: "Préparer une édition" }
     cible: "#preparer-carnets"
     capture: guide/carnets/preparer-classe.png
     titre: Préparer les carnets d'une classe

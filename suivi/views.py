@@ -12,7 +12,7 @@ import sqlite3
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 from collections import OrderedDict
-from urllib.parse import quote, unquote, urlsplit
+from urllib.parse import quote, unquote, urlencode, urlsplit
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -29,6 +29,7 @@ from django.core.files.storage import default_storage
 from django.db import DatabaseError, connection, transaction
 from django.db.models import F, Max, Count, Prefetch, Q
 from django.http import (
+    QueryDict,
     FileResponse,
     Http404,
     HttpResponse,
@@ -41,6 +42,7 @@ from django.templatetags.static import static
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.formats import date_format
+from django.utils.safestring import mark_safe
 from django.utils.text import slugify
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe, require_http_methods
@@ -1316,7 +1318,11 @@ def saisie_competence(request, pk, competence_pk):
     ariane = chemin_collectif(classe, filtre, competence)
     retour = retour_competences(request, classe)
     if retour:
-        libelle_retour = "Compétences" if urlsplit(retour).path == reverse("catalogue_competences", args=[classe.pk]) else ariane[-1][0]
+        chemin = urlsplit(retour).path
+        if chemin == reverse("grille_classe", args=[classe.pk]):
+            libelle_retour = "Grille de suivi"
+        else:
+            libelle_retour = "Compétences" if chemin == reverse("catalogue_competences", args=[classe.pk]) else ariane[-1][0]
         ariane[-1] = (libelle_retour, retour)
     return render(
         request,
@@ -1333,98 +1339,144 @@ def saisie_competence(request, pk, competence_pk):
     )
 
 
-def _contexte_grille_competence(
-    request, pk, competence_pk, operation=VOIR_SUIVI
-):
+def _contexte_grille_competence(request, pk, competence_pk=None, operation=VOIR_SUIVI,
+                                *, impression=False):
+    from .selection_editions import FiltresEdition, en_tetes, groupes_colonnes
+
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, operation, ecole=ecole)
-    competence = get_object_or_404(
-        Competence, pk=competence_pk, domaine__ecole=ecole
-    )
-    competence = competence_classe(classe, competence)
-    if competence is None:
-        raise Http404
-    etats = {o.eleve_id: projeter_etat_classe(o) for o in observations_classe(classe).filter(competence=competence)}
-    lignes = []
-    compteurs = {"a_observer": 0, "en_cours": 0, "reussi": 0, "non_retrouve": 0}
-    for eleve in classe.eleves:
-        if competence.suivi_libre and eleve.pk not in competence.eleves_suivis_ids:
-            lignes.append((eleve, None, "hors_suivi"))
-            continue
-        observation = etats.get(eleve.pk)
-        if observation and observation.historique_inconnu:
-            etat = "non_retrouve"
-        elif observation and observation.statut == Observation.REUSSI:
-            etat = "reussi"
-        elif observation and observation.statut == Observation.EN_COURS:
-            etat = "en_cours"
-        else:
-            etat = "a_observer"
-        compteurs[etat] += 1
-        lignes.append((eleve, observation, etat))
+    competence = None
+    if competence_pk is not None:
+        competence = competence_classe(classe, get_object_or_404(
+            Competence, pk=competence_pk, domaine__ecole=ecole))
+        if competence is None:
+            raise Http404
+
     filtre = filtre_competences(request)
+    cle = f"grille:{ecole.pk}:{classe.pk}:{classe.annee_scolaire}"
+    acces_direct = bool(competence or request.GET.get("filtres") or impression)
+    if request.GET.get("reinitialiser") and not impression and not competence:
+        request.session.pop(cle, None)
+    donnees = request.GET if acces_direct else QueryDict(mutable=True)
+    if not acces_direct:
+        for nom, valeurs in request.session.get(cle, {}).items():
+            donnees.setlist(nom, valeurs)
+    # Les sélections mémorisées sont revalidées à chaque lecture.
+    formulaire = FiltresEdition(classe, donnees, competence=competence)
+    valide = formulaire.is_valid()
+    if not valide and not acces_direct:
+        for nom in formulaire.errors:
+            donnees.pop(nom, None)
+        formulaire = FiltresEdition(classe, donnees, competence=competence)
+        valide = formulaire.is_valid()
+        if not valide:
+            formulaire = FiltresEdition(classe, {}, competence=competence)
+            valide = formulaire.is_valid()
+        request.session.pop(cle, None)
+        messages.info(request, "Certains filtres mémorisés ne sont plus disponibles.")
+    parametres = formulaire.parametres()
+    if valide and request.GET.get("filtres") and not request.GET.get("origine") and not competence and not impression:
+        request.session[cle] = dict(parametres.lists())
+    eleves = formulaire.enfants(tous=True) if valide else []
+    colonnes = formulaire.competences_retenues(eleves, force=competence) if valide else []
+    etats = {(o.eleve_id, o.competence_id): projeter_etat_classe(o)
+        for o in observations_classe(classe).filter(eleve_id__in=[e.pk for e in eleves],
+                                                  competence_id__in=[c.competence.pk for c in colonnes])}
+    compteurs = dict.fromkeys(("a_observer", "en_cours", "reussi", "non_retrouve"), 0)
+    presentation = formulaire.cleaned_data.get("compacte")
+    compacte = presentation == "oui" or (not presentation and len(colonnes) > 6)
+    if not impression and not classe_historique(classe) and autorise(request.user, CONTRIBUER, classe, ecole=ecole):
+        for eleve in eleves:
+            scolarite = eleve.scolarite_courante()
+            eleve.ouvrir_trace_grille = bool(scolarite and scolarite.classe_id == classe.pk)
+    groupes = []
+    if presentation == "lecture":
+        blocs = ([colonne] for colonne in colonnes)
+    else:
+        blocs = groupes_colonnes(colonnes, 20 if compacte else 6) if impression else [colonnes]
+    for colonnes_bloc in blocs:
+        if not colonnes_bloc:
+            continue
+        lignes = []
+        for eleve in eleves:
+            cases = []
+            for colonne in colonnes_bloc:
+                c = colonne.competence
+                observation = etats.get((eleve.pk, c.pk))
+                if c.suivi_libre and eleve.pk not in c.eleves_suivis_ids:
+                    etat = "hors_suivi"
+                elif observation and observation.historique_inconnu:
+                    etat = "non_retrouve"
+                elif observation and observation.statut in (Observation.REUSSI, Observation.EN_COURS):
+                    etat = observation.statut
+                else:
+                    etat = "a_observer"
+                if etat in compteurs:
+                    compteurs[etat] += 1
+                cases.append((colonne, etat))
+            lignes.append((eleve, cases))
+        groupes.append({
+            "colonnes": colonnes_bloc, "lignes": lignes,
+            "rubriques": en_tetes(colonnes_bloc, "rubrique"),
+            "sous_rubriques": en_tetes(colonnes_bloc, "sous_rubrique"),
+        })
+    args = [classe.pk, competence.pk] if competence else [classe.pk]
+    url_pdf = reverse("grille_competence_pdf" if competence else "grille_classe_pdf", args=args)
+    url_grille = reverse("grille_competence" if competence else "grille_classe", args=args)
+    qualification = formulaire.cleaned_data.get("observations") or (
+        "tout" if competence or formulaire.cleaned_data.get("rubriques")
+        or formulaire.cleaned_data.get("competences") else "observes")
+    edition = parametres.copy()
+    edition["observations"] = qualification
+    if competence:
+        edition.setlist("competences", [str(competence.pk)])
+        edition.pop("rubriques", None)
+        edition.pop("niveaux", None)
+        edition["observations"] = "tout"
+    edition.setlist("eleves", [str(e.pk) for e in eleves])
     return {
-        "ariane": chemin_competence(classe, competence, filtre), "filtre": filtre,
-        "classe": classe,
-        "competence": competence,
-        "lignes": lignes,
-        "compteurs": compteurs,
-        "edite_le": timezone.localdate(),
+        "ariane": chemin_competence(classe, competence, filtre) if competence else chemin_collectif(classe, filtre),
+        "classe": classe, "competence": competence, "groupes": groupes, "compteurs": compteurs,
+        "formulaire": formulaire, "eleves": formulaire.eleves,
+        "selection_ids": {e.pk for e in eleves}, "compacte": compacte, "nb_eleves": len(eleves),
+        "nb_competences": len(colonnes), "edite_le": timezone.localdate(), "filtre": filtre,
+        "url_pdf": url_pdf + "?" + parametres.urlencode(), "url_grille": url_grille,
+        "retour_grille": url_grille + "?filtres=1&" + parametres.urlencode(),
+        "a_des_filtres": bool(parametres),
+        "qualification_observations": qualification,
+        "resume_rubriques": [label for valeur, label in formulaire.fields["rubriques"].choices
+                            if valeur in formulaire.cleaned_data.get("rubriques", ())],
+        "url_edition": reverse("preparer_edition", args=[classe.pk]) + "?" + edition.urlencode(),
+        "peut_generer": autorise(request.user, GENERER_CARNET, classe, ecole=ecole),
     }
 
 
 @acces_requis
 @require_safe
-def grille_competence(request, pk, competence_pk):
-    return render(
-        request,
-        "suivi/grille_competence.html",
-        _contexte_grille_competence(request, pk, competence_pk),
-    )
+def grille_competence(request, pk, competence_pk=None):
+    return render(request, "suivi/grille_competence.html",
+                  _contexte_grille_competence(request, pk, competence_pk))
 
 
 @never_cache
 @acces_requis
 @require_safe
-def grille_competence_pdf(request, pk, competence_pk):
-    contexte = _contexte_grille_competence(
-        request, pk, competence_pk, GENERER_CARNET
-    )
-    html = render_to_string(
-        "suivi/grille_competence.html",
-        {**contexte, "generation_pdf": True},
-        request=request,
-    )
-    feuille_style = finders.find("suivi/carnet.css")
-    if not feuille_style:
-        raise RuntimeError("La feuille de style est introuvable.")
-    contenu = _generer_pdf(
-        html,
-        request.build_absolute_uri("/"),
-        feuille_style,
-    )
-    journaliser(
-        request.user,
-        "pdf.grille_genere",
-        contexte["classe"],
-        nouvelles={
-            "competence_id": contexte["competence"].pk,
-            "taille": len(contenu),
-        },
-    )
-    journaliser(
-        request.user,
-        "pdf.grille_telecharge",
-        contexte["classe"],
-        nouvelles={"competence_id": contexte["competence"].pk},
-    )
-    nom_classe = slugify(contexte["classe"].nom) or "classe"
-    nom_competence = slugify(contexte["competence"].code) or "competence"
-    reponse = HttpResponse(contenu, content_type="application/pdf")
-    reponse["Content-Disposition"] = (
-        f'attachment; filename="grille-{nom_classe}-{nom_competence}.pdf"'
-    )
-    return reponse
+def grille_competence_pdf(request, pk, competence_pk=None):
+    contexte = _contexte_grille_competence(request, pk, competence_pk, GENERER_CARNET, impression=True)
+    if contexte["formulaire"].errors or not contexte["nb_competences"]:
+        return render(request, "suivi/grille_competence.html", contexte, status=400)
+    if getattr(settings, "MODE_PWA", False):
+        return render(request, "suivi/grille_competence.html", {**contexte, "impression_pwa": True})
+    html = render_to_string("suivi/grille_competence.html", {**contexte, "generation_pdf": True}, request=request)
+    contenu = _generer_pdf(html, request.build_absolute_uri("/"), finders.find("suivi/carnet.css"))
+    classe, competence = contexte["classe"], contexte["competence"]
+    identifiant = competence.pk if competence else None
+    journaliser(request.user, "pdf.grille_genere", classe,
+                nouvelles={"competence_id": identifiant, "taille": len(contenu)})
+    journaliser(request.user, "pdf.grille_telecharge", classe, nouvelles={"competence_id": identifiant})
+    nom_classe = slugify(classe.nom) or "classe"
+    suffixe = "-" + (slugify(competence.code) or "competence") if competence else ""
+    return _reponse_pdf(contenu, f"grille-{nom_classe}{suffixe}.pdf")
 
 
 SUITE = {
@@ -1879,6 +1931,12 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
         ariane = chemin_competence(classe, competence, filtre, ancre=f"e{eleve.pk}")
         retour = ariane[-1][1]
         trace_query = lien("trace", eleve.pk, competence.pk, filtre=filtre, classe=classe.pk).partition("?")[2]
+        from .navigation import retour_competences
+        depuis_grille = retour_competences(request, classe)
+        if depuis_grille and urlsplit(depuis_grille).path == reverse("grille_classe", args=[classe.pk]):
+            ariane.insert(-1, ("Grille de suivi", depuis_grille))
+            retour = depuis_grille
+            trace_query += "&" + urlencode({"retour": depuis_grille})
         if (not classe_historique(classe) and competence_saisissable(classe, competence)
                 and autorise(request.user, CONTRIBUER, classe, ecole=ecole)):
             # Même ordre que la liste collective, avec la scolarité active et les droits de contribution.
@@ -2048,30 +2106,15 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     )
     parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
     options = request.GET if options is None else options
-    modes = {"reussites", "observes", "tout"}
-    mode = options.get("contenu", parametres.contenu_par_defaut)
-    colonnes = options.get("colonnes", str(parametres.colonnes_par_defaut))
-    regroupement = options.get(
-        "regroupement", parametres.regroupement_par_defaut
-    )
-    afficher_attendus = options.get(
-        "attendus", "1" if parametres.afficher_attendus else "0"
-    ) == "1"
-    afficher_sous_domaines = options.get(
-        "sous_domaines", "1" if parametres.afficher_sous_domaines else "0"
-    ) == "1"
-    inclure_bilans = options.get(
-        "bilans", "1" if parametres.inclure_bilans else "0"
-    ) == "1"
-    # Compatibilité avec les liens de la version 0.2.
-    if options.get("tout") == "1":
-        mode = "tout"
-    if mode not in modes:
-        mode = "observes"
-    if colonnes not in {"1", "2"}:
-        colonnes = "2"
-    if regroupement not in {"aucun", "annuel", "mensuel", "bilan"}:
-        regroupement = "aucun"
+    from .selection_editions import options_carnet
+
+    presentation = options_carnet(options, parametres, cases_postees=options.get("options_appliquees") == "1")
+    mode = presentation["contenu"]
+    colonnes = presentation["colonnes"]
+    regroupement = presentation["regroupement"]
+    afficher_attendus = presentation["attendus"] == "1"
+    afficher_sous_domaines = presentation["sous_domaines"] == "1"
+    inclure_bilans = presentation["bilans"] == "1"
 
     scolarites_visibles, courante = _scolarites_visibles(request.user, eleve)
     annee_selectionnee = options.get("annee", "")
@@ -2082,7 +2125,7 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
             raise Http404
     classe_presentation = scolarite.classe if scolarite else None
     adoption = adoption_courante(classe_presentation)
-    historique = bool(annee_selectionnee and (scolarite.pk != courante.pk or (adoption and adoption.clos)))
+    historique = bool(annee_selectionnee and (courante is None or scolarite.pk != courante.pk or (adoption and adoption.clos)))
     etats_inconnus = False
     if historique:
         etats, etats_inconnus = observations_annee(eleve, scolarite)
@@ -2098,6 +2141,11 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         scolarites_bilans = scolarites_visibles.filter(pk=scolarite.pk)
     else:
         scolarites_bilans = scolarites_visibles
+    if periode := options.get("periode_traces"):
+        debut, fin = periode
+        for observation in etats.values():
+            observation.traces_carnet = [trace for trace in observation.traces_carnet
+                if debut <= trace.date_observation <= fin]
     for observation in etats.values():
         observation.a_reussite_datee = any(t.reussite for t in observation.traces_carnet)
     domaines = []
@@ -2110,8 +2158,10 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         scolarite__eleve=eleve, scolarite__in=scolarites_bilans,
         supprime_le__isnull=True).select_related("scolarite").order_by("date_bilan"))
         if regroupement == "bilan" else [])
+    selection_competences = options.get("selection_competences")
     for d in _arbre(ecole, classe=classe_presentation, inclure_ids=etats, eleve=eleve):
-        lignes = [(c, etats.get(c.pk)) for c in d.visibles]
+        lignes = [(c, etats.get(c.pk)) for c in d.visibles
+                  if selection_competences is None or c.pk in selection_competences]
         if mode == "reussites":
             lignes = [
                 (c, o) for c, o in lignes if o and (o.statut == Observation.REUSSI or o.a_reussite_datee)
@@ -2165,6 +2215,7 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
     )
 
     return {
+        "presentation": presentation,
         "annee_selectionnee": annee_selectionnee,
         "scolarites_proposees": scolarites_visibles.select_related("classe"),
         "etats_historiques_inconnus": etats_inconnus,
@@ -2185,6 +2236,8 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
         "afficher_sous_domaines": afficher_sous_domaines,
         "inclure_bilans": inclure_bilans,
         "edite_le": timezone.localdate(),
+        "classe_edition": classe_presentation if classe_presentation and autorise(
+            request.user, GENERER_CARNET, classe_presentation, ecole=ecole) else None,
         "peut_generer": autorise(
             request.user, GENERER_CARNET, eleve, ecole=ecole
         ),
@@ -2293,8 +2346,7 @@ def carnet_pdf(request, pk):
         raise
 
 
-def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
-    contexte = _contexte_carnet(request, pk, options, operation)
+def _medias_pdf_carnet(contexte):
     noms_media = []
     couverture = contexte["illustration_couverture"]
     if couverture.photo:
@@ -2319,6 +2371,18 @@ def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
                         if trace_obj.photo:
                             trace_obj.url_photo_pdf = _url_media_pdf(trace_obj.photo.name)
                             noms_media.append(trace_obj.photo.name)
+    return noms_media
+
+
+def _reponse_pdf(contenu, nom):
+    reponse = HttpResponse(contenu, content_type="application/pdf")
+    reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
+    return reponse
+
+
+def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
+    contexte = _contexte_carnet(request, pk, options, operation)
+    noms_media = _medias_pdf_carnet(contexte)
     html = render_to_string(
         "suivi/carnet.html",
         {**contexte, "generation_pdf": True},
@@ -2350,76 +2414,156 @@ def _contenu_pdf_carnet(request, pk, options=None, operation=GENERER_CARNET):
     return contenu, f"carnet-{nom}.pdf"
 
 
+def _archive_carnets(request, classe, eleves, options):
+    archive = BytesIO()
+    noms_utilises = set()
+    with ZipFile(archive, "w", ZIP_DEFLATED) as fichiers:
+        for eleve in eleves:
+            contenu, nom = _contenu_pdf_carnet(request, eleve.pk, options)
+            base, extension = nom.rsplit(".", 1)
+            candidat = nom
+            numero = 2
+            while candidat in noms_utilises:
+                candidat = f"{base}-{numero}.{extension}"
+                numero += 1
+            noms_utilises.add(candidat)
+            fichiers.writestr(candidat, contenu)
+    reponse = HttpResponse(archive.getvalue(), content_type="application/zip")
+    nom_classe = slugify(classe.nom) or "classe"
+    reponse["Content-Disposition"] = f'attachment; filename="carnets-{nom_classe}.zip"'
+    nouvelles = {"nombre_eleves": len(eleves), "taille": len(archive.getvalue())}
+    journaliser(request.user, "zip.classe_genere", classe, nouvelles=nouvelles)
+    journaliser(request.user, "zip.classe_telecharge", classe, nouvelles=nouvelles)
+    return reponse
+
+
 @never_cache
 @acces_requis
+@require_http_methods(["GET", "POST"])
 def preparer_edition(request, pk):
+    from .selection_editions import FiltresEdition, options_carnet
+
     ecole = ecole_courante(request)
-    classe = charger_classe_autorisee(
-        request.user, pk, GENERER_CARNET, ecole=ecole
-    )
-    eleves = list(avec_scolarites_pour_lecture(classe.eleves))
+    classe = charger_classe_autorisee(request.user, pk, GENERER_CARNET, ecole=ecole)
+    donnees = request.POST if request.method == "POST" else request.GET
+    filtres = donnees.copy()
+    formulaire = FiltresEdition(classe, filtres)
+    eleves = formulaire.eleves
+    ids = {str(e.pk) for e in eleves}
+    filtres.setlist("eleves", [v for v in donnees.getlist("eleves") if v in ids])
+    valide = formulaire.is_valid()
+    selection = formulaire.enfants() if valide else []
+    mode_pwa = getattr(settings, "MODE_PWA", False)
+    format_edition = donnees.get("format", "pdf" if mode_pwa else "zip")
+    cartes = format_edition == "cartes"
     parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
-
-    if request.method == "POST":
-        ids = request.POST.getlist("eleves")
-        selection = list(classe.eleves.filter(pk__in=ids))
-        if not selection:
-            messages.error(request, "Sélectionnez au moins un enfant.")
+    cle_options = f"edition:{ecole.pk}:{classe.pk}:{classe.annee_scolaire}:{format_edition}"
+    explicite = request.method == "POST" or any(cle in donnees for cle in ("contenu", "colonnes", "regroupement"))
+    presentation = options_carnet(donnees if explicite else request.session.get(cle_options, {}),
+                                  parametres, cases_postees=request.method == "POST")
+    parcours_complet = donnees.get("parcours") == "complet" and len(selection) == 1 and not cartes
+    champs_cartes = ("unite", "ordre_cartes", "avec_photo", "avec_commentaire",
+                     "espace_eleve", "grandes_cartes", "planches_compactes")
+    if request.method == "POST" or "reglages_cartes" in donnees:
+        choix_cartes = {cle: donnees[cle] for cle in champs_cartes if cle in donnees}
+    else:
+        choix_cartes = request.session.get(cle_options + ":cartes", {"avec_photo": "on"})
+    if request.method == "POST" and valide and selection:
+        if format_edition == "grille":
+            criteres = formulaire.parametres()
+            criteres["filtres"] = "1"
+            criteres["origine"] = "edition"
+            return redirect(reverse("grille_classe", args=[classe.pk]) + "?" + criteres.urlencode())
+        if format_edition not in {"pdf", "sequence", "cartes", "zip"}:
+            raise Http404
+        request.session[cle_options] = presentation
+        options = {**presentation, "annee": "" if parcours_complet else classe.annee_scolaire}
+        if formulaire.cleaned_data.get("observations") in {"periode", "reussites"}:
+            options["periode_traces"] = (formulaire.cleaned_data["debut"], formulaire.cleaned_data["fin"])
+        if cartes:
+            request.session[cle_options + ":cartes"] = choix_cartes
+            options["contenu"] = "tout"
+            options["regroupement"] = "aucun"
+            options["bilans"] = "0"
+        champs_competences = ("competences", "rubriques", "niveaux", "observations")
+        if cartes or any(formulaire.cleaned_data.get(c) for c in champs_competences):
+            colonnes = formulaire.competences_retenues(selection)
+            options["selection_competences"] = {c.competence.pk for c in colonnes}
+        if format_edition == "zip" and not mode_pwa and donnees.get("action") != "apercu":
+            return _archive_carnets(request, classe, selection, options)
+        if format_edition == "sequence":
+            cible = donnees.get("carnet")
+            if cible is None:
+                return render(request, "suivi/edition_sequence.html", {
+                    "classe": classe, "eleves": selection,
+                    "champs": [(cle, valeur) for cle, valeurs in donnees.lists()
+                               if cle not in {"csrfmiddlewaretoken", "carnet"} for valeur in valeurs],
+                })
+            selection = [e for e in selection if str(e.pk) == cible]
+            if not selection:
+                raise Http404
+            if not mode_pwa:
+                contenu, nom = _contenu_pdf_carnet(request, selection[0].pk, options)
+                return _reponse_pdf(contenu, nom)
+        contextes = [_contexte_carnet(request, e.pk, options, GENERER_CARNET) for e in selection]
+        medias = []
+        generation_pdf = not mode_pwa and donnees.get("action") != "apercu"
+        if generation_pdf:
+            for contexte in contextes:
+                medias.extend(_medias_pdf_carnet(contexte))
+        retour = QueryDict(mutable=True)
+        for cle in (*formulaire.fields, "format", "parcours", "unite", "avec_photo",
+                    "avec_commentaire", "espace_eleve", "grandes_cartes", "planches_compactes",
+                    "ordre_cartes"):
+            if cle in donnees:
+                retour.setlist(cle, donnees.getlist(cle))
+        retour.update(presentation)
+        if cartes:
+            retour["reglages_cartes"] = "1"
+        contexte = {
+            "carnets": contextes, "classe": classe, "generation_pdf": generation_pdf,
+            "retour_edition": reverse("preparer_edition", args=[classe.pk]) + "?" + retour.urlencode(),
+        }
+        gabarit = "suivi/edition_imprimable.html"
+        nom = f"carnets-{slugify(classe.nom) or 'classe'}.pdf"
+        if cartes:
+            from .selection_editions import planches_cartes
+            contexte["planches"] = planches_cartes(contextes, donnees, formulaire.cleaned_data)
+            contexte["nombre_cartes"] = sum(map(len, contexte["planches"]))
+            contexte["textes_longs"] = any(len(c["trace"].commentaire) > 180
+                for planche in contexte["planches"] for c in planche if c["trace"])
+            contexte["credits_cartes"] = {c["url"]: c for carnet in contextes
+                for c in carnet["credits_illustrations"]}.values()
+            contexte["grandes_cartes"] = "grandes_cartes" in donnees
+            contexte["avec_commentaire"] = "avec_commentaire" in donnees
+            contexte["avec_photo"] = "avec_photo" in donnees
+            contexte["espace_eleve"] = "espace_eleve" in donnees
+            gabarit = "suivi/cartes_imprimables.html"
+            nom = f"cartes-{slugify(classe.nom) or 'classe'}.pdf"
         else:
-            options = {
-                "contenu": request.POST.get("contenu", "observes"),
-                "colonnes": request.POST.get("colonnes", "2"),
-                "regroupement": request.POST.get("regroupement", "aucun"),
-                "attendus": "1" if "attendus" in request.POST else "0",
-                "sous_domaines": "1" if "sous_domaines" in request.POST else "0",
-                "bilans": "1" if "bilans" in request.POST else "0",
-            }
-            archive = BytesIO()
-            noms_utilises = set()
-            with ZipFile(archive, "w", ZIP_DEFLATED) as fichiers:
-                for eleve in selection:
-                    contenu, nom = _contenu_pdf_carnet(request, eleve.pk, options)
-                    base, extension = nom.rsplit(".", 1)
-                    candidat = nom
-                    numero = 2
-                    while candidat in noms_utilises:
-                        candidat = f"{base}-{numero}.{extension}"
-                        numero += 1
-                    noms_utilises.add(candidat)
-                    fichiers.writestr(candidat, contenu)
-            nom_classe = slugify(classe.nom) or "classe"
-            reponse = HttpResponse(
-                archive.getvalue(), content_type="application/zip"
-            )
-            reponse["Content-Disposition"] = (
-                f'attachment; filename="carnets-{nom_classe}.zip"'
-            )
-            journaliser(
-                request.user,
-                "zip.classe_genere",
-                classe,
-                nouvelles={
-                    "nombre_eleves": len(selection),
-                    "taille": len(archive.getvalue()),
-                },
-            )
-            journaliser(
-                request.user,
-                "zip.classe_telecharge",
-                classe,
-                nouvelles={"nombre_eleves": len(selection)},
-            )
-            return reponse
+            # Le fragment commun échappe le contenu de chaque carnet.
+            contexte["carnets"] = [mark_safe(render_to_string(
+                "suivi/partiels/carnet_contenu.html",
+                {**carnet, "generation_pdf": generation_pdf}, request=request,
+            )) for carnet in contextes]
+        if not generation_pdf:
+            return render(request, gabarit, contexte)
+        html = render_to_string(gabarit, contexte, request=request)
+        contenu = _generer_pdf(html, request.build_absolute_uri("/"),
+                               finders.find("suivi/carnet.css"), medias)
+        journaliser(request.user, "pdf.edition_classe_generee", classe,
+                    nouvelles={"format": format_edition, "nombre_eleves": len(selection), "taille": len(contenu)})
+        return _reponse_pdf(contenu, nom)
 
-    return render(
-        request,
-        "suivi/preparer_edition.html",
-        {
-            "classe": classe,
-            "eleves": eleves,
-            "parametres_carnet": parametres,
-        },
-    )
+    if request.method == "POST" and valide:
+        messages.error(request, "Sélectionnez au moins un enfant.")
+    return render(request, "suivi/preparer_edition.html", {
+        "classe": classe, "eleves": eleves, "formulaire": formulaire,
+        "selection_ids": {e.pk for e in selection}, "ouvrir_filtres": not selection,
+        "presentation": presentation, "format_edition": format_edition,
+        "parcours_complet": parcours_complet,
+        "choix_cartes": choix_cartes,
+    })
 
 
 # --------------------------------------------------------------------------

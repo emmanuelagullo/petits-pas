@@ -5,9 +5,7 @@ from . import views
 urlpatterns = [
     path("gestion/sauvegardes-locales/", views.sauvegardes_progressives),
     path("verifier-zip/", views.verifier_zip_progressif),
-    path("classe/<int:pk>/edition/", views.edition_imprimable),
     path("pwa/autoriser-recuperation/", views.autoriser_recuperation),
     path("eleve/<int:pk>/carnet.pdf", views.carnet_imprimable),
-    path("classe/<int:pk>/competence/<int:competence_pk>/grille.pdf", views.grille_imprimable),
     path("", include("suivi.urls")),
 ]

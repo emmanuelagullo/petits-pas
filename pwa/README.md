@@ -126,10 +126,11 @@ HTML imprimable. **Préparer l'impression / PDF** puis **Imprimer / enregistrer
 en PDF** ouvre le dialogue du navigateur ; choisir l'option PDF si disponible.
 Ce n'est pas un téléchargement PDF calculé par Django/WeasyPrint.
 
-La préparation pour plusieurs enfants garde les choix communs et réunit les
-fragments du carnet dans un document à imprimer. Elle ne fabrique pas un ZIP
-de PDF individuels. Le fragment du carnet est partagé avec le rendu serveur
-et autonome ; WeasyPrint reste inchangé dans ces deux profils.
+La préparation d’édition reprend la sélection de la grille ou de la fiche.
+Elle propose un document groupé, des carnets un par un ou des cartes à
+découper. La PWA présente des pages imprimables, sans produire de ZIP de PDF.
+Les mêmes projections et gabarits alimentent le moteur PDF du service et du
+programme autonome.
 
 **Vérifier les mises à jour** télécharge une nouvelle version en attente.
 **Appliquer la mise à jour** termine les requêtes en file, enregistre un état,

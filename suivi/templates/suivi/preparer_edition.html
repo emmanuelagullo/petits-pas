@@ -1,44 +1,42 @@
 {% extends "suivi/base.html" %}
-{% load navigation_suivi %}
-{% block titre %}Préparer les carnets de {{ classe.libelle_avec_annee }}{% endblock %}
+{% load navigation_suivi static %}
+{% block titre %}Préparer une édition de {{ classe.libelle_avec_annee }}{% endblock %}
 {% block contenu %}
-{% ariane_classe "Préparer les carnets PDF" classe %}
-<h1>Préparer les carnets PDF</h1>
-<p class="sous-titre">{% if mode_pwa %}Les carnets sélectionnés seront réunis dans un document à imprimer ou enregistrer en PDF.{% else %}Chaque enfant sélectionné aura son propre PDF dans une archive ZIP.{% endif %}</p>
-
+{% ariane_classe "Préparer une édition" classe %}
+<h1>Préparer une édition</h1>
 <form method="post" class="formulaire" id="preparer-carnets">
   {% csrf_token %}
-  {% include "suivi/partiels/selection_eleves.html" %}
+  {% if parcours_complet %}<label class="choix"><input type="checkbox" name="parcours" value="complet" checked> Carnet du parcours complet de cet élève</label>{% endif %}
+  <div class="barre-filtres-edition">
+    <p data-resume-eleves>{{ selection_ids|length }} enfant{{ selection_ids|length|pluralize }} sélectionné{{ selection_ids|length|pluralize }} · {{ classe.annee_scolaire }}</p>
+    {% include "suivi/partiels/filtres_edition.html" %}
+  </div>
+  <label for="format-edition">Édition</label>
+  <select id="format-edition" name="format">
+    {% if not mode_pwa %}<option value="zip"{% if format_edition == "zip" %} selected{% endif %}>Carnets · un PDF par élève dans un ZIP</option>{% endif %}
+    <option value="pdf"{% if format_edition == "pdf" %} selected{% endif %}>Carnets · un seul document</option>
+    <option value="sequence"{% if format_edition == "sequence" %} selected{% endif %}>Carnets · un par un</option>
+    <option value="grille"{% if format_edition == "grille" %} selected{% endif %}>Grille de suivi</option>
+    <option value="cartes"{% if format_edition == "cartes" %} selected{% endif %}>Cartes à découper</option>
+  </select>
 
-  <fieldset>
-    <legend>Contenu</legend>
-    <label for="contenu">Compétences affichées</label>
-    <select id="contenu" name="contenu">
-      <option value="reussites"{% if parametres_carnet.contenu_par_defaut == 'reussites' %} selected{% endif %}>Réussites</option>
-      <option value="observes"{% if parametres_carnet.contenu_par_defaut == 'observes' %} selected{% endif %}>Compétences réussies ou en cours</option>
-      <option value="tout"{% if parametres_carnet.contenu_par_defaut == 'tout' %} selected{% endif %}>Référentiel complet</option>
-    </select>
-
-    <label for="regroupement">Regrouper les acquisitions</label>
-    <select id="regroupement" name="regroupement">
-      <option value="aucun"{% if parametres_carnet.regroupement_par_defaut == 'aucun' %} selected{% endif %}>Aucun</option>
-      <option value="annuel"{% if parametres_carnet.regroupement_par_defaut == 'annuel' %} selected{% endif %}>Annuel</option>
-      <option value="mensuel"{% if parametres_carnet.regroupement_par_defaut == 'mensuel' %} selected{% endif %}>Mensuel</option>
-      <option value="bilan"{% if parametres_carnet.regroupement_par_defaut == 'bilan' %} selected{% endif %}>Par bilan</option>
-    </select>
-
-    <label for="colonnes">Mise en page</label>
-    <select id="colonnes" name="colonnes">
-      <option value="1"{% if parametres_carnet.colonnes_par_defaut == 1 %} selected{% endif %}>Une colonne</option>
-      <option value="2"{% if parametres_carnet.colonnes_par_defaut == 2 %} selected{% endif %}>Deux colonnes</option>
-    </select>
-
-    <label class="choix"><input type="checkbox" name="attendus"{% if parametres_carnet.afficher_attendus %} checked{% endif %}> Afficher les attendus de fin de cycle</label>
-    <label class="choix"><input type="checkbox" name="sous_domaines"{% if parametres_carnet.afficher_sous_domaines %} checked{% endif %}> Afficher les sous-domaines</label>
-    <label class="choix"><input type="checkbox" name="bilans"{% if parametres_carnet.inclure_bilans %} checked{% endif %}> Inclure les bilans</label>
-  </fieldset>
-
-  <div class="actions"><button class="bouton" type="submit">{% if mode_pwa %}Préparer l’impression des carnets{% else %}Télécharger l'archive ZIP{% endif %}</button></div>
+  {% include "suivi/partiels/options_carnet.html" %}
+  <details class="details-filtres-catalogue" data-options-cartes>
+    <summary>Options des cartes</summary>
+    <label for="unite-cartes">Une carte par</label>
+    <select id="unite-cartes" name="unite"><option value="trace">Trace visible dans le carnet</option><option value="competence"{% if choix_cartes.unite == "competence" %} selected{% endif %}>Compétence</option></select>
+    <label class="choix"><input type="checkbox" name="avec_photo"{% if choix_cartes.avec_photo %} checked{% endif %}> Ajouter la photo ou l’illustration</label>
+    <label class="choix"><input type="checkbox" name="avec_commentaire"{% if choix_cartes.avec_commentaire %} checked{% endif %}> Ajouter le commentaire visible dans le carnet</label>
+    <label class="choix"><input type="checkbox" name="espace_eleve"{% if choix_cartes.espace_eleve %} checked{% endif %}> Laisser une place pour écrire ou dessiner</label>
+    <label class="choix"><input type="checkbox" name="grandes_cartes"{% if choix_cartes.grandes_cartes %} checked{% endif %}> Grandes cartes</label>
+    <label class="choix"><input type="checkbox" name="planches_compactes"{% if choix_cartes.planches_compactes %} checked{% endif %}> Remplir les planches sans saut par élève</label>
+    <label for="ordre-cartes">Ordre sur les planches compactes</label>
+    <select id="ordre-cartes" name="ordre_cartes"><option value="eleve">Par élève, puis par rubrique</option><option value="rubrique"{% if choix_cartes.ordre_cartes == "rubrique" %} selected{% endif %}>Par rubrique, puis par élève</option></select>
+  </details>
+  <div class="actions">
+    <button class="bouton" type="submit" data-preparer-edition>{% if mode_pwa %}Préparer l’impression des carnets{% else %}Télécharger l’archive ZIP{% endif %}</button>
+    {% if not mode_pwa %}<button class="bouton discret" type="submit" name="action" value="apercu" data-apercu-edition>Aperçu imprimable</button>{% endif %}
+  </div>
 </form>
-
+<script src="{% static 'suivi/editions.js' %}" defer></script>
 {% endblock %}
