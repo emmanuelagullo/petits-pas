@@ -7,21 +7,65 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
-- Garder le référentiel comme catalogue en partant d’un suivi vide, puis
-  ajouter ses compétences à l’unité pour toute la classe.
+* 0.15 — 2026-11-20
 
-- Retrouver les compétences de la classe dans un catalogue par domaine et
-  sous-domaine, repérer un libellé identique avant de créer et corriger le
-  classement d’un ajout en conservant les observations.
+Cette version simplifie la recherche de compétences et la saisie des traces.
+Elle permet de choisir plus précisément ce que l’on suit dans chaque classe
+et améliore les mises à jour et le dépannage sur les appareils.
 
-- Retrouver sa place dans le suivi grâce au fil d’Ariane, filtrer le catalogue
-  collectif par section et enchaîner les traces dans l’ordre de la classe.
+** Compétences et référentiel de la classe
 
-- Afficher la progression des mises à jour de la PWA et reprendre les
-  téléchargements interrompus à partir des ressources complètes.
+- Rechercher une compétence en tapant quelques mots. Filtrer les résultats
+  par section dans la saisie collective, et retrouver les compétences dans
+  leurs rubriques et sous-rubriques. Les libellés identiques sont signalés
+  pour aider à retrouver un ajout avant de le recréer.
+- Partir avec un suivi vide et garder un référentiel comme catalogue. Piocher
+  dans les sources autorisées et choisir les élèves concernés. La sélection
+  de toute la classe se fait en un clic, puis peut être ajustée.
+- Modifier le libellé, la section ou le classement d’un ajout local,
+  déplacer ou masquer une compétence dans la classe, et gérer les rubriques
+  et sous-rubriques personnalisées. Les observations sont conservées.
+- Corriger l’enregistrement de la section depuis le parcours scolaire d’un
+  élève et aligner les lignes de suivi avec ou sans icône.
 
-- Corriger l’envoi des traces avec ou sans photo lorsque le navigateur
-  ne fournit pas le flux du formulaire.
+** Saisie des traces
+
+- Revenir à la liste des élèves pour la même compétence grâce au fil
+  d’Ariane. Depuis cette liste, naviguer entre les traces des élèves ou
+  enregistrer une trace et passer directement à l’élève suivant.
+- Ouvrir directement le formulaire pour ajouter une trace commune. Le bouton
+  d’enregistrement s’active après une modification quand au moins un élève
+  est sélectionné. Le bouton Retour devient Annuler pendant la saisie.
+
+** Application dans le navigateur
+
+- Corriger l’envoi des traces avec ou sans photo dans les navigateurs qui
+  ne fournissent pas le flux du formulaire.
+- Afficher la progression du téléchargement d’une mise à jour. Après une
+  interruption, reprendre en réutilisant les fichiers complets déjà vérifiés.
+- Regrouper l’installation, le stockage, les mises à jour et le dépannage
+  dans « Outils de l’application », replié par défaut. Garder l’alerte de
+  stockage visible lorsque la limite approche. Afficher la confirmation de
+  l’export de récupération près de son bouton.
+
+** Programme autonome et sauvegardes
+
+- Donner des indications de dépannage au démarrage et vérifier l’espace
+  disque disponible avant de restaurer une sauvegarde. Harmoniser les
+  contrôles de compatibilité des sauvegardes entre le programme autonome
+  et l’application dans le navigateur.
+- Le programme pour Mac à puce Apple reste proposé à l’essai.
+
+** Avant la mise à jour
+
+- Garder une sauvegarde récente hors de l’appareil. Pour l’application dans
+  le navigateur, revenir à la même adresse et utiliser le même profil pour
+  retrouver l’école. Passer par « Outils de l’application » pour appliquer
+  la mise à jour. L’effacement des données du site peut supprimer l’école.
+- Pour un service existant, appliquer la procédure habituelle avec
+  sauvegarde, installation des dépendances, migrations et collecte des
+  fichiers statiques. Cette version contient de nouvelles migrations pour
+  les compétences et les rubriques de classe.
 
 * 0.14 — 2026-10-29
 
