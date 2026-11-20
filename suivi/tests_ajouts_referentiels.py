@@ -9,6 +9,7 @@ from .services.adaptations_referentiels import enregistrer_adaptation
 from .services.contextes_referentiels import usage_pour_saisie
 from .services.cloture_referentiels import clore
 from .services.pedagogie import modifier_etat
+from .services.suivi_libre import associer
 from . import tests_adoption_bases_referentiels as fixtures
 from .tests import Base
 
@@ -37,16 +38,19 @@ class AjoutsLocaux(Base):
     def test_catalogue_reunit_les_ajouts_et_signale_le_meme_libelle(self):
         locale = self.creer()
         cible = self.creer(suivi_libre=True)
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        associer(utilisateur=self.enseignant, classe=self.classe, locale=cible,
+                 ids=[self.eleve.pk], adoption_attendue=adoption.pk)
         catalogue = reverse("catalogue_competences", args=[self.classe.pk])
         page = self.client.get(catalogue, {"q": "je trie"})
-        self.assertEqual({l["locale"].pk for l in page.context["lignes"]}, {locale.pk, cible.pk})
-        self.assertContains(page, "Suivi ciblé")
-        self.assertContains(page, "Ajout pour la classe")
+        self.assertEqual({ligne["locale"].pk: ligne["portee"] for ligne in page.context["lignes"]},
+                         {locale.pk: "classe", cible.pk: "cible"})
+        self.assertContains(page, "Suivie pour 1 élève")
         ajout = reverse("ajouts_classe", args=[self.classe.pk])
         jeton = self.client.get(ajout).context["jeton"]
         page = self.client.post(ajout, {"action": "creer", "jeton": jeton,
             "libelle": locale.competence.libelle, "niveau": "GS",
-            "domaine": AdoptionReferentiel.objects.get(classe=self.classe, courante=True).contenu["domaines"][0]["id"]})
+            "domaine": adoption.contenu["domaines"][0]["id"]})
         self.assertContains(page, "Une compétence porte déjà ce libellé", status_code=400)
         self.assertEqual(CompetenceLocale.objects.count(), 2)
 
