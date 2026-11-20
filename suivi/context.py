@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.utils import timezone
+from django.utils.functional import SimpleLazyObject
 from comptes.models import AffectationClasse
+from comptes.phrases_de_passe import proposer_phrase
 
 from .autorisations import ADMINISTRER_ECOLE, VOIR_CLASSE, autorise, classes_accessibles
 from .contexte_ecole import ecole_courante
@@ -56,6 +58,9 @@ def session_ecole(request):
         "version_application": settings.VERSION_APPLICATION,
         "email_disponible": settings.EMAIL_DISPONIBLE,
         "mode_local": settings.MODE_LOCAL,
+        "acces_local_disponible": settings.ACCES_LOCAL_AUTONOME,
+        "longueur_min_mot_de_passe": settings.LONGUEUR_MIN_MOT_DE_PASSE,
+        "phrase_de_passe_proposee": SimpleLazyObject(proposer_phrase) if settings.MODE_LOCAL else "",
         "export_ecole_autorise": direction and autorise_export(utilisateur, ecole),
         "double_facteur_disponible": settings.DOUBLE_FACTEUR_DISPONIBLE,
         "espace_essai": settings.ESPACE_ESSAI,

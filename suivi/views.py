@@ -55,7 +55,11 @@ from comptes.models import (
     ResponsabiliteEcole,
     Utilisateur,
 )
-from comptes.forms import CreationCompteInvitationForm, InstallationLocaleForm, ProfilForm
+from comptes.forms import (
+    CreationCompteInvitationForm, DernierRecoursForm, InstallationLocaleForm, ProfilForm,
+    ReinitialisationParCleForm,
+)
+from comptes import secours_local
 from .services import acces_local
 from .forms import DroitsGestionForm
 from .confirmations_referentiels import verifier_confirmation
@@ -244,6 +248,14 @@ def _tracer_echec_connexion(request, nom_utilisateur):
     )
 
 
+def _signaler_reinitialisations(request, utilisateur, depuis):
+    """Rappelle, à la connexion, les mots de passe réinitialisés depuis l'appareil."""
+    for evenement in acces_local.reinitialisations_a_signaler(utilisateur, depuis):
+        quand = timezone.localtime(evenement["quand"]).strftime("%d/%m/%Y à %Hh%M")
+        sujet = "Votre mot de passe a" if evenement["moi"] else f"Le mot de passe de {evenement['nom']} a"
+        messages.warning(request, f"{sujet} été réinitialisé depuis cet appareil le {quand}.")
+
+
 def _suite_connexion(request, utilisateur, nom_utilisateur):
     """Après une connexion réussie (second facteur compris) : choix de la page
     d'arrivée, ou refus si le compte n'a encore aucune fonction."""
@@ -292,7 +304,9 @@ def connexion(request):
                 mecanismes_sessions.commencer_attente(request.session, utilisateur,
                     cle=SESSION_ATTENTE, delai=DELAI_ATTENTE_SECONDES)
                 return redirect("connexion_verification")
+            precedente_connexion = utilisateur.last_login
             login(request, utilisateur)
+            _signaler_reinitialisations(request, utilisateur, precedente_connexion)
             return _suite_connexion(request, utilisateur, nom_utilisateur)
         _tracer_echec_connexion(request, nom_utilisateur)
         if settings.ANTIBRUTEFORCE_ACTIF:
@@ -571,6 +585,35 @@ def installation_locale(request):
     return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
 
 
+@never_cache
+@acces_requis
+def acces_local_ecole(request):
+    """Autoriser ou non le dernier recours ; la direction seule, en étant connectée."""
+    if not acces_local.disponible():
+        raise Http404
+    ecole = ecole_courante(request)
+    if not autorise(request.user, ADMINISTRER_ECOLE, ecole=ecole):
+        raise PermissionDenied
+    autorise_actuellement = acces_local.dernier_recours_autorise(ecole)
+    a_une_cle = secours_local.possede_une_cle(request.user)
+    erreur = None
+    if request.method == "POST":
+        voulu = request.POST.get("dernier_recours") == "on"
+        if autorise_actuellement and not voulu and not secours_local.cle_correspond(
+                request.user, request.POST.get("cle", "")):
+            erreur = ("Pour interdire le dernier recours, recopiez votre clé de secours : "
+                      "elle devient alors votre seule issue en cas d’oubli.")
+        else:
+            acces_local.definir_dernier_recours(
+                acteur=request.user, ecole=ecole, autorise_recours=voulu)
+            messages.success(request, "Le dernier recours est autorisé." if voulu
+                             else "Le dernier recours n’est plus autorisé.")
+            return redirect("gestion")
+    return render(request, "suivi/acces_local_ecole.html", {
+        "autorise_actuellement": autorise_actuellement, "a_une_cle": a_une_cle,
+        "erreur": erreur})
+
+
 SESSION_CLE_SECOURS = "cle_secours_a_montrer"
 
 
@@ -693,7 +736,61 @@ def sauvegardes_locales(request):
     )
 
 
+def _ouvrir_session_locale(request, compte, ecole):
+    login(request, compte, backend="django.contrib.auth.backends.ModelBackend")
+    if ecole:
+        request.session["ecole_id"] = ecole.pk
+
+
+def _mot_de_passe_oublie_local(request):
+    """Sans courriel : la clé de secours, puis le dernier recours si l'école l'autorise."""
+    ecole = acces_local.ecole_locale()
+    formulaire = ReinitialisationParCleForm(request.POST or None)
+    if request.method == "POST" and formulaire.is_valid():
+        try:
+            nouvelle_cle = acces_local.reinitialiser_par_cle(
+                formulaire.compte_cible, formulaire.cleaned_data["new_password1"])
+        except ValidationError as erreur:
+            formulaire.add_error("new_password1", erreur)
+        else:
+            _ouvrir_session_locale(request, formulaire.compte_cible, ecole)
+            messages.success(request, "Votre nouveau mot de passe est enregistré.")
+            _remettre_cle_secours(request, nouvelle_cle, suite=reverse("accueil"), preuve=False)
+            return redirect("cle_secours")
+    return render(request, "suivi/mot_de_passe_oublie.html", {
+        "local": True, "formulaire": formulaire,
+        "dernier_recours": acces_local.dernier_recours_autorise(ecole)})
+
+
+@never_cache
+def dernier_recours(request):
+    """Nouveau mot de passe depuis l'appareil, quand l'école l'a autorisé."""
+    if not acces_local.disponible():
+        raise Http404
+    ecole = acces_local.ecole_locale()
+    if not acces_local.dernier_recours_autorise(ecole):
+        messages.info(request, "Le dernier recours n’est pas autorisé sur cet appareil.")
+        return redirect("mot_de_passe_oublie")
+    formulaire = DernierRecoursForm(
+        request.POST or None, comptes=acces_local.comptes_reinitialisables(ecole))
+    if request.method == "POST" and formulaire.is_valid():
+        compte = formulaire.compte_cible
+        try:
+            acces_local.reinitialiser_dernier_recours(
+                compte, formulaire.cleaned_data["new_password1"], ecole)
+        except ValidationError as erreur:
+            formulaire.add_error("new_password1", erreur)
+        else:
+            _ouvrir_session_locale(request, compte, ecole)
+            messages.success(
+                request, "Votre nouveau mot de passe est enregistré. Vos données sont intactes.")
+            return redirect("accueil")
+    return render(request, "suivi/dernier_recours.html", {"formulaire": formulaire})
+
+
 def mot_de_passe_oublie(request):
+    if acces_local.disponible():
+        return _mot_de_passe_oublie_local(request)
     if not settings.EMAIL_DISPONIBLE:
         return render(request, "suivi/mot_de_passe_oublie.html")
     if request.method == "POST" and is_ratelimited(
@@ -752,6 +849,12 @@ def deconnexion(request):
 
 @acces_requis
 def mon_compte(request):
+    if request.method == "POST" and request.POST.get("action") == "nouvelle_cle_secours":
+        if not acces_local.disponible():
+            raise Http404
+        _remettre_cle_secours(request, acces_local.generer_cle(request.user),
+                              suite=reverse("mon_compte"), preuve=False)
+        return redirect("cle_secours")
     formulaire = ProfilForm(request.POST or None, instance=request.user)
     if request.method == "POST" and formulaire.is_valid():
         formulaire.save()
@@ -773,7 +876,8 @@ def mon_compte(request):
         "suivi/mon_compte.html",
         {"formulaire": formulaire, "affectations": affectations,
          "double_facteur_propose": double_facteur_propose,
-         "double_facteur_inscrit": double_facteur_propose and totp.est_inscrit(request.user)},
+         "double_facteur_inscrit": double_facteur_propose and totp.est_inscrit(request.user),
+         "a_une_cle": acces_local.disponible() and secours_local.possede_une_cle(request.user)},
     )
 
 
@@ -2551,6 +2655,14 @@ def equipe_ecole(request):
                         "l’envoi de l’e-mail a échoué. Copiez le lien "
                         "affiché ci-dessous et transmettez-le vous-même.",
                     )
+            elif action == "lien_reinitialisation":
+                membre = get_object_or_404(
+                    AppartenanceEcole, pk=request.POST.get("appartenance"), ecole=ecole)
+                request.session["lien_reinitialisation_creee"] = {
+                    "lien": acces_local.lien_reinitialisation(
+                        acteur=request.user, cible=membre.utilisateur, ecole=ecole,
+                        requete=request),
+                    "nom": membre.utilisateur.get_full_name() or membre.utilisateur.username}
             elif action == "reinitialiser_double_facteur":
                 membre = get_object_or_404(
                     AppartenanceEcole, pk=request.POST.get("appartenance"), ecole=ecole)
@@ -2853,6 +2965,8 @@ def equipe_ecole(request):
             "appartenances": personnes_visibles,
             "membres_affectables": membres_affectables,
             "invitations": invitations,
+            "lien_reinitialisation_creee": request.session.pop("lien_reinitialisation_creee", None),
+            "lien_reinitialisation_possible": acces_local.disponible(),
             "lien_invitation_creee": request.session.pop(
                 "lien_invitation_creee", None
             ),

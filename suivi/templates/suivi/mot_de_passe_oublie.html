@@ -2,7 +2,27 @@
 {% block titre %}Mot de passe oublié{% endblock %}
 {% block contenu %}
 <h1>Mot de passe oublié</h1>
-{% if not email_disponible %}
+{% if local %}
+<p class="sous-titre">Retrouvez l’accès à votre compte avec votre clé de secours.</p>
+{% include "suivi/partiels/resume_erreurs.html" %}
+<form method="post" class="encadre formulaire-compte">
+  {% csrf_token %}
+  {% include "suivi/partiels/champ_formulaire.html" with champ=formulaire.cle aide="Seize signes en quatre groupes, remise à l’installation." %}
+  {% include "suivi/partiels/champ_formulaire.html" with champ=formulaire.new_password1 mdp_aide=True %}
+  {% include "suivi/partiels/champ_formulaire.html" with champ=formulaire.new_password2 aide="" %}
+  {% include "suivi/partiels/phrase_de_passe.html" %}
+  <div class="actions"><button class="bouton" type="submit">Choisir ce mot de passe</button></div>
+</form>
+<details class="aide-propositions">
+  <summary>Je n’ai plus ma clé de secours</summary>
+  {% if dernier_recours %}
+  <p class="aide">Cet appareil est le vôtre : vous pouvez choisir un nouveau mot de passe sans perdre vos données. L’opération est consignée dans le journal de l’école.</p>
+  <p><a class="bouton discret" href="{% url 'dernier_recours' %}">Choisir un nouveau mot de passe sans la clé</a></p>
+  {% else %}
+  <p class="aide">Le dernier recours n’est pas autorisé sur cet appareil. Si une autre personne de la direction utilise ce carnet, elle peut vous remettre un lien pour choisir un nouveau mot de passe. Sinon, l’accès ne peut pas être retrouvé.</p>
+  {% endif %}
+</details>
+{% elif not email_disponible %}
 <p class="sous-titre">La réinitialisation par courriel n’est pas disponible sur cette installation.</p>
 <p>Contactez la direction de l’école pour retrouver l’accès à votre compte.</p>
 {% elif trop_de_demandes %}

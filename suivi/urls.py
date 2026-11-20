@@ -59,6 +59,8 @@ urlpatterns = [
         views.mot_de_passe_oublie,
         name="mot_de_passe_oublie",
     ),
+    path("mot-de-passe/dernier-recours/", views.dernier_recours, name="dernier_recours"),
+    path("gestion/acces-sur-l-appareil/", views.acces_local_ecole, name="acces_local_ecole"),
     path(
         "mot-de-passe/oublie/envoye/",
         auth_views.PasswordResetDoneView.as_view(

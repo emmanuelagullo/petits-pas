@@ -1,0 +1,6 @@
+{% if formulaire.errors %}
+<div class="messages erreur" role="alert">
+  <p>Le formulaire contient {{ formulaire.errors|length }} erreur{{ formulaire.errors|length|pluralize }} :</p>
+  <ul>{% for champ in formulaire %}{% for erreur in champ.errors %}<li><a href="#{{ champ.id_for_label }}">{{ champ.label }} : {{ erreur }}</a></li>{% endfor %}{% endfor %}</ul>
+</div>
+{% endif %}

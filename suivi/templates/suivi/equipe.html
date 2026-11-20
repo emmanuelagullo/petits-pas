@@ -23,6 +23,14 @@
   </details>
 </div>
 
+{% if lien_reinitialisation_creee %}
+<div class="encadre" role="status">
+  <label for="lien-reinitialisation">Lien pour {{ lien_reinitialisation_creee.nom }} — affiché une seule fois</label>
+  <input id="lien-reinitialisation" value="{{ lien_reinitialisation_creee.lien }}" readonly onclick="this.select()">
+  <p class="aide">À lui remettre en main propre : il lui permet de choisir un nouveau mot de passe. L’opération est consignée dans le journal de l’école.</p>
+</div>
+{% endif %}
+
 {% if lien_invitation_creee %}
 <div class="encadre" role="status">
   <label for="lien-invitation">{% if email_disponible %}Lien de secours — {% endif %}affiché une seule fois{% if email_disponible %}, au cas où l’e-mail n’arriverait pas{% endif %}</label>
@@ -131,6 +139,16 @@
     <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="reinitialiser_double_facteur"><input type="hidden" name="appartenance" value="{{ appartenance.pk }}"><input type="hidden" name="vue" value="personnes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
       <p class="aide">À utiliser si cette personne a perdu son générateur de codes et ses codes de secours. Ses sessions ouvertes sont fermées et, si votre politique l'exige, elle devra configurer de nouveau son second facteur dès sa prochaine connexion ; l'opération est consignée dans le journal de l'école.</p>
       <button class="bouton discret" type="submit">Réinitialiser le second facteur</button>
+    </form>
+  </details>
+  {% endif %}
+
+  {% if lien_reinitialisation_possible and appartenance in membres_affectables and appartenance.utilisateur_id != request.user.pk %}
+  <details class="ajout-contextuel">
+    <summary>Mot de passe de {{ appartenance.utilisateur.first_name|default:appartenance.utilisateur.username }}</summary>
+    <form method="post" class="formulaire-contextuel">{% csrf_token %}<input type="hidden" name="action" value="lien_reinitialisation"><input type="hidden" name="appartenance" value="{{ appartenance.pk }}"><input type="hidden" name="vue" value="personnes">{% if afficher_historique %}<input type="hidden" name="historique" value="1">{% endif %}
+      <p class="aide">À utiliser si cette personne a oublié son mot de passe. Vous obtenez un lien à lui remettre en main propre ; l’opération est consignée dans le journal de l’école.</p>
+      <button class="bouton discret" type="submit">Obtenir un lien de réinitialisation</button>
     </form>
   </details>
   {% endif %}

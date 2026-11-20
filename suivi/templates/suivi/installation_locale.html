@@ -15,6 +15,7 @@
   {{ champ }}
   {% endif %}
   {% if champ.help_text %}<p class="aide">{{ champ.help_text|safe }}</p>{% endif %}
+  {% if champ.name == "password2" %}{% include "suivi/partiels/phrase_de_passe.html" %}{% endif %}
   {% if champ.errors %}<div class="erreurs">{{ champ.errors }}</div>{% endif %}
   {% if champ.name == "dernier_recours" %}
   <details class="aide-propositions">

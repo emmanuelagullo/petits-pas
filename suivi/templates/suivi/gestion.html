@@ -20,6 +20,7 @@
   <a class="bouton discret" href="{% url 'equipe_ecole' %}">Équipe pédagogique</a>
   {% if double_facteur_disponible %}<a class="bouton discret" href="{% url 'double_facteur_ecole' %}">Second facteur</a>{% endif %}
   {% if mode_local %}<a class="bouton discret" href="{% url 'sauvegardes_locales' %}">Sauvegardes locales</a>{% endif %}
+  {% if acces_local_disponible %}<a class="bouton discret" href="{% url 'acces_local_ecole' %}">Accès sur cet appareil</a>{% endif %}
   {% if export_ecole_autorise %}<a class="bouton discret" href="{% url 'exporter_ecole' %}">Exporter l’école</a>{% endif %}
 </div>
 

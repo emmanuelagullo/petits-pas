@@ -1,0 +1,24 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Dernier recours{% endblock %}
+{% block contenu %}
+<h1>Choisir un nouveau mot de passe</h1>
+<p class="sous-titre">Sans clé de secours, depuis cet appareil.</p>
+{% include "suivi/partiels/resume_erreurs.html" %}
+<form method="post" class="encadre formulaire-compte">
+  {% csrf_token %}
+  <p class="aide">Vos données sont conservées. L’opération est consignée dans le journal de l’école.</p>
+  {% if formulaire.comptes|length == 1 %}
+  <p><strong>Compte :</strong> {{ formulaire.comptes.0.get_full_name|default:formulaire.comptes.0.username }}</p>
+  <input type="hidden" name="compte" value="{{ formulaire.comptes.0.pk }}">
+  {% else %}
+  {% include "suivi/partiels/champ_formulaire.html" with champ=formulaire.compte aide="" %}
+  {% endif %}
+  {% include "suivi/partiels/champ_formulaire.html" with champ=formulaire.new_password1 mdp_aide=True %}
+  {% include "suivi/partiels/champ_formulaire.html" with champ=formulaire.new_password2 aide="" %}
+  {% include "suivi/partiels/phrase_de_passe.html" %}
+  <div class="actions">
+    <button class="bouton" type="submit">Choisir ce mot de passe</button>
+    <a href="{% url 'mot_de_passe_oublie' %}">Retour</a>
+  </div>
+</form>
+{% endblock %}
