@@ -417,6 +417,33 @@ class CodeSecoursDoubleFacteur(models.Model):
         ]
 
 
+class CleSecoursLocale(models.Model):
+    """Clé de secours d'un compte sur une installation locale.
+
+    Elle permet de choisir un nouveau mot de passe sans courriel. Seule son
+    empreinte est conservée ; la clé n'est montrée qu'une fois.
+    """
+
+    utilisateur = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cle_secours_locale"
+    )
+    empreinte = models.CharField(max_length=64, unique=True)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+
+class RecoursLocalEcole(models.Model):
+    """Choix de l'école locale : autoriser ou non le dernier recours.
+
+    Sans ligne, le dernier recours n'est pas autorisé.
+    """
+
+    ecole = models.OneToOneField(
+        "suivi.Ecole", on_delete=models.PROTECT, related_name="recours_local"
+    )
+    dernier_recours = models.BooleanField(default=False)
+    modifie_le = models.DateTimeField(auto_now=True)
+
+
 def _enregistrer_avec_continuite(instance, enregistrer, args, kwargs):
     """Protéger les changements existants ; ne pas bloquer l'initialisation.
 
