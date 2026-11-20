@@ -8,6 +8,7 @@ from datetime import timedelta
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
 
 from comptes import secours_local
@@ -15,7 +16,7 @@ from comptes.models import (
     AppartenanceEcole, CleSecoursLocale, RecoursLocalEcole, ResponsabiliteEcole, Utilisateur,
 )
 
-from .models import Ecole, EvenementAudit
+from .models import Classe, Ecole, EvenementAudit
 from .services import acces_local
 
 LOCAL = override_settings(MODE_LOCAL=True, ACCES_LOCAL_AUTONOME=True)
@@ -236,3 +237,79 @@ class LongueurMinimale(TestCase):
                 recharge = importlib.reload(reglages)
                 self.assertEqual(recharge.LONGUEUR_MIN_MOT_DE_PASSE, attendu)
         importlib.reload(reglages)
+
+
+def donnees_installation(**en_plus):
+    mot_de_passe = "phrase-locale-2026"
+    donnees = {
+        "annee_scolaire": "2026-2027", "referentiel": "trame",
+        "ecole_nom": "École des Lucioles", "commune": "Bordeaux",
+        "username": "direction-locale", "first_name": "Camille", "last_name": "Martin",
+        "password1": mot_de_passe, "password2": mot_de_passe,
+    }
+    donnees.update(en_plus)
+    return donnees
+
+
+@LOCAL
+class InstallationAvecCleDeSecours(TestCase):
+    def installer(self, **en_plus):
+        return self.client.post(reverse("installation_locale"), donnees_installation(**en_plus))
+
+    def test_la_case_est_proposee_cochee(self):
+        page = self.client.get(reverse("installation_locale"))
+        self.assertContains(page, "Autoriser un dernier recours")
+        self.assertTrue(page.context["formulaire"].fields["dernier_recours"].initial)
+
+    def test_dernier_recours_autorise_la_cle_est_montree_sans_preuve(self):
+        reponse = self.installer(dernier_recours="on")
+        self.assertRedirects(reponse, reverse("cle_secours"))
+        page = self.client.get(reverse("cle_secours"))
+        cle = page.context["cle"]
+        self.assertContains(page, cle)
+        self.assertFalse(page.context["preuve"])
+        self.assertNotContains(page, "fin_de_cle")
+        self.assertTrue(RecoursLocalEcole.objects.get().dernier_recours)
+        self.assertEqual(secours_local.compte_par_cle(cle).username, "direction-locale")
+        suite = self.client.post(reverse("cle_secours"))
+        self.assertRedirects(suite, reverse("gestion"), fetch_redirect_response=False)
+
+    def test_la_cle_n_est_montree_qu_une_fois(self):
+        self.installer(dernier_recours="on")
+        self.client.post(reverse("cle_secours"))
+        self.assertRedirects(self.client.get(reverse("cle_secours")), reverse("mon_compte"),
+                             fetch_redirect_response=False)
+        self.assertNotIn("cle_secours_a_montrer", self.client.session)
+
+    def test_sans_dernier_recours_il_faut_recopier_la_fin_de_la_cle(self):
+        self.installer()  # case décochée : absente de la requête
+        self.assertFalse(RecoursLocalEcole.objects.get().dernier_recours)
+        page = self.client.get(reverse("cle_secours"))
+        self.assertTrue(page.context["preuve"])
+        self.assertContains(page, "ne pourra pas être retrouvé")
+        cle = page.context["cle"]
+        vide = self.client.post(reverse("cle_secours"), {"fin_de_cle": ""})
+        self.assertContains(vide, "ne correspondent pas", status_code=200)
+        faux = self.client.post(reverse("cle_secours"), {"fin_de_cle": "AAAA-AAAA"})
+        self.assertContains(faux, 'aria-invalid="true"')
+        juste = self.client.post(reverse("cle_secours"), {"fin_de_cle": cle[-9:].lower()})
+        self.assertRedirects(juste, reverse("gestion"), fetch_redirect_response=False)
+
+    def test_avec_une_classe_la_suite_est_l_import_des_eleves(self):
+        reponse = self.installer(dernier_recours="on", preparer_classe="on", classe_nom="Petite section")
+        self.assertRedirects(reponse, reverse("cle_secours"))
+        suite = self.client.post(reverse("cle_secours"))
+        self.assertEqual(suite.url, reverse("importer_eleves", args=[Classe.objects.get().pk]))
+
+    def test_la_page_exige_une_connexion(self):
+        self.assertEqual(self.client.get(reverse("cle_secours")).status_code, 302)
+
+    @override_settings(ACCES_LOCAL_AUTONOME=False)
+    def test_sans_profil_local_declare_rien_ne_change(self):
+        page = self.client.get(reverse("installation_locale"))
+        self.assertNotContains(page, "dernier recours")
+        reponse = self.installer()
+        self.assertRedirects(reponse, reverse("gestion"))
+        self.assertFalse(CleSecoursLocale.objects.exists())
+        self.assertFalse(RecoursLocalEcole.objects.exists())
+        self.assertEqual(self.client.get(reverse("cle_secours")).status_code, 404)
