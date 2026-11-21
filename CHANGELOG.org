@@ -7,22 +7,17 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
-- Sélectionner les compétences dans un arbre commun aux rubriques et sous-rubriques.
-- Retrouver les commandes administratives dans la gestion des élèves et les
-  réglages de couverture, d’illustrations et de formulations dans le fil d’Ariane.
-
-- Retrouver les compétences cochées et filtrer les observations avec des
-  raccourcis de période ou une durée. Les réglages des éditions sont présentés
-  dans des rubriques repliables.
-
-- Ouvrir le suivi d’un élève depuis la grille et retrouver sa ligne au retour.
-- Choisir les rubriques et sous-rubriques dans un filtre hiérarchique et
-  retrouver les mêmes commandes d’année et de mise en page dans les carnets.
-
-- Consulter la grille de classe par rubrique, compétence et période, reprendre
-  les filtres de la session et imprimer une grille compacte.
-- Préparer des carnets séparés, groupés ou un par un et des cartes à découper
-  avec les mêmes filtres et les contenus visibles du carnet.
+- Consulter la grille de classe par élève, compétence, rubrique et période.
+  Ouvrir le suivi d’un élève et retrouver sa ligne au retour. Reprendre les
+  filtres de la session et imprimer une grille compacte.
+- Préparer des carnets séparés, groupés ou un par un et des cartes à découper.
+  Choisir les compétences dans un arbre commun, rechercher et relire les cases
+  cochées. Régler la période au moyen d’un raccourci, de deux dates ou d’une durée.
+  Pour les cartes, choisir des planches par élève ou partagées.
+- Utiliser le sommaire de la fiche élève pour rejoindre la rubrique active ou
+  « Carnet et parcours ». Le sommaire latéral préserve la largeur du contenu.
+- Retrouver les commandes administratives sous « Gérer les élèves ». Les
+  réglages de couverture, d’illustrations et de formulations ont un fil d’Ariane.
 - Retrouver l’accès à son compte sur le programme et dans le navigateur de cet
   appareil sans courriel : clé de secours remise à l’installation, dernier
   recours (nouveau mot de passe depuis l’appareil) que l’école autorise ou non,

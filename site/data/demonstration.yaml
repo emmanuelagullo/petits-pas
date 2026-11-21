@@ -327,10 +327,12 @@ scenarios:
       - { action: classe, classe: coccinelles }
       - { action: lien, nom: "Préparer une édition" }
       - { action: titre, nom: "Préparer une édition" }
+      - { action: selecteur, selecteur: '#preparer-carnets details[data-panneau-filtre] > summary:text-is("Filtres")' }
+      - { action: visible, selecteur: "#preparer-carnets input[name=eleves]" }
     cible: "#preparer-carnets"
     capture: guide/carnets/preparer-classe.png
     titre: Préparer les carnets d'une classe
-    legende: La sélection des élèves et les options communes précèdent la création de l'archive fictive.
+    legende: Le volet Filtres permet de sélectionner les élèves et les compétences avant de préparer une édition.
   - id: guide-remplacer-responsable
     profil: diane
     parcours: guide

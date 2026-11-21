@@ -450,6 +450,11 @@ explicitement placés dans `site/content/` sont publiés. Le contrôle préalabl
 vérifie les métadonnées des fiches pratiques, leurs liens internes et la
 cohérence entre les captures utilisées et les scénarios fictifs déclarés.
 
+Le Guide pratique décrit les [grilles de suivi](site/content/guide/observer/consulter-grille.md),
+la [préparation des carnets et des cartes à découper](site/content/guide/carnets/generer-carnets-classe.md)
+et la [récupération d’accès sur un appareil](site/content/guide/local/retrouver-acces.md).
+L’inventaire distingue les tâches disponibles, leurs droits et leurs limites.
+
 ## Gestion de l’école à plusieurs
 
 Équipe pédagogique permet d’accorder ou retirer les droits de gestion de

@@ -40,6 +40,9 @@ classe concernée.
 « Direction seule » désigne ici une personne qui n'a pas également reçu une
 affectation pédagogique. Une même personne peut cumuler plusieurs fonctions,
 mais chacune continue de s'appliquer dans son propre périmètre.
+Dans la page de classe, le nom d’un élève ouvre son suivi. Les commandes
+administratives sont regroupées sous **Gérer les élèves**. La direction peut
+aussi ouvrir un parcours scolaire depuis **Gérer l’école → Annuaire des élèves**.
 
 Les responsables peuvent [organiser les rubriques de leur classe]({{< relref "/guide/eleves-classes/organiser-rubriques" >}})
 et [ajouter ou reprendre une compétence]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).

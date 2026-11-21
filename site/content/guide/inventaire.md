@@ -75,7 +75,8 @@ Les statuts employés sont :
 | Utiliser une ou deux colonnes | Disponible | Valeur habituelle définissable par la direction. |
 | Afficher attendus, sous-domaines et bilans | Disponible | Chaque option peut être activée séparément. |
 | Télécharger le PDF individuel | Disponible | Responsable seulement. |
-| Générer les carnets d’une classe dans une archive ZIP | Disponible | Responsable ; au moins un élève doit être sélectionné. |
+| Générer les carnets d’une classe | Disponible | Responsable. Un PDF par élève dans un ZIP sur le service ou le programme, un document groupé ou un carnet à la fois. |
+| Préparer des cartes à découper | Disponible | Responsable. À partir des traces visibles ou des compétences retenues, avec planches par élève ou partagées. |
 | Définir les paramètres habituels des carnets | Disponible | Direction. |
 | Choisir les images proposées et la photo de couverture | Disponible | Direction pour l’école, responsable pour la classe ; hériter, remplacer, désactiver et choisir si l’image accompagne aussi les photos. Toutes les photos des traces affichées restent présentes. |
 | Adapter les formulations proposées | Disponible | Par proposition, à l’école ou dans la classe ; les traces enregistrées gardent leur texte. |
@@ -94,7 +95,7 @@ Les statuts employés sont :
 | Corriger le prénom, le nom ou l’année de naissance | Disponible | Responsable autorisé ou direction. |
 | Déplacer un élève dans une autre classe | Disponible | Direction et confirmation explicite. |
 | Retirer un élève de la classe | Disponible sous condition | Refus si des traces ou bilans sont rattachés à cette scolarité. |
-| Retirer puis archiver sans supprimer le parcours | Disponible | Le parcours antérieur est conservé. |
+| Archiver sans supprimer le parcours | Disponible | Depuis la composition ou, pour la direction, depuis le parcours scolaire. Les scolarités sont conservées. |
 | Réactiver un élève archivé | Disponible | Une nouvelle scolarité peut ensuite être nécessaire. |
 | Préparer une nouvelle année scolaire | Disponible | Direction ; les années précédentes sont conservées. |
 | Rechercher les élèves par année, niveau ou état | Disponible | Annuaire réservé à la direction. |
