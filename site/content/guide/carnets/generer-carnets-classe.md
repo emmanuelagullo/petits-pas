@@ -1,6 +1,6 @@
 +++
 title = "Générer les carnets PDF d’une classe"
-description = "Préparer les carnets sélectionnés dans un ZIP, un PDF groupé ou un par un."
+description = "Préparer les carnets sélectionnés dans un ZIP, un PDF groupé ou un par un. Préparer aussi une grille ou des cartes à découper."
 fiche = true
 categorie = "carnets"
 publics = ["responsable"]
@@ -12,11 +12,20 @@ statut = "disponible"
 
 1. Ouvrir la classe et choisir **Préparer une édition**. Depuis un carnet
    individuel, le même bouton présélectionne l’élève.
-2. Dans **Filtres**, cocher les élèves concernés ou **Sélectionner toute la
-   classe**, puis retenir les compétences voulues. Depuis la grille, les
-   critères sont repris dans la sélection.
-3. Choisir le résultat souhaité. **Options du carnet** règle le contenu,
-   le regroupement, la mise en page et la présence des bilans.
+2. Choisir le résultat souhaité sous **Édition**. **Grille de suivi** ouvre
+   la grille avec les critères retenus. **Cartes à découper** propose les
+   réglages décrits plus bas.
+3. Ouvrir **Filtres**, puis cocher les élèves concernés ou **Sélectionner toute
+   la classe**. Le compteur tient aussi compte des sections d’élèves retenues.
+   Depuis la grille, les critères sont repris dans la sélection.
+4. Pour les carnets, **Filtres** contient aussi **Année scolaire** et
+   **Contenu du carnet**. **Parcours complet** rassemble, pour chacun des
+   élèves choisis, les années accessibles. **Mise en page** règle les colonnes,
+   le regroupement des acquisitions et l’affichage des sous-rubriques.
+5. Pour choisir des rubriques, des compétences ou des dates, utiliser les
+   [mêmes filtres que dans la grille]({{< relref "/guide/observer/consulter-grille/" >}}).
+   L’action de préparation est disponible dès qu’au moins un élève est retenu
+   et que la période demandée est complète et valide.
 
 - **Carnets · un PDF par élève dans un ZIP** crée une archive avec un fichier
   par élève sur le service ou le programme. Un numéro distingue les noms de
@@ -35,11 +44,13 @@ contiennent des données scolaires confidentielles.
 
 Dans le même formulaire, choisir **Cartes à découper**. On peut produire
 une carte par trace visible dans le carnet ou une carte par compétence.
+Ouvrir **Présentation des cartes** pour régler le format.
 Les options permettent d’ajouter une photo ou une illustration, le commentaire
 visible et une place pour écrire ou dessiner.
 
 Par défaut, chaque élève commence sur une nouvelle planche. Pour économiser
-du papier, cocher **Autoriser plusieurs élèves sur une même planche (mode compact)**. On peut alors
-trier par élève ou par rubrique. Chaque carte garde le nom de son destinataire.
+du papier, cocher **Autoriser plusieurs élèves sur une même planche (mode compact)**.
+Le réglage **Ordre des cartes sur les planches partagées** devient alors
+disponible. Il propose de trier d’abord par élève ou d’abord par rubrique. Chaque carte garde le nom de son destinataire.
 Vérifier l’aperçu à taille réelle avant de lancer un lot, surtout avec des
 photos et des commentaires longs.

@@ -16,16 +16,21 @@ statut = "disponible"
    examiner une seule compétence, l’ouvrir puis choisir **Voir la grille de suivi**.
 2. Lire le résumé au-dessus du tableau. Par défaut, la grille de classe
    affiche les compétences observées pendant l’année.
-3. Ouvrir **Filtres** pour choisir les élèves, les rubriques, les
-   sous-rubriques ou des compétences précises. Pour préparer une séance,
-   choisir **Toutes les compétences suivies**.
-4. Le responsable peut **Télécharger le PDF** ou, dans l’application navigateur,
+3. Ouvrir **Filtres** pour choisir les élèves puis les **Compétences** dans
+   l’arbre. Cocher une rubrique ou une sous-rubrique sélectionne toute sa
+   branche. Décocher une compétence permet d’affiner cette sélection.
+   **Afficher uniquement les compétences cochées** permet de la relire.
+   La recherche déplie les résultats sans modifier les cases cochées.
+4. Choisir **Appliquer les filtres**.
+5. Le responsable peut **Télécharger le PDF** ou, dans l’application navigateur,
    **Préparer l’impression / PDF**. **Préparer une édition** reprend la sélection
    pour produire des carnets ou des cartes à découper.
 
 Les élèves sont en lignes. Les colonnes sont regroupées par rubrique et
 sous-rubrique. En mode compact, leur numéro renvoie au libellé complet.
-Sur un écran étroit, choisir **Une compétence à la fois** dans les filtres.
+Sur un écran étroit, choisir **Une compétence à la fois** dans **Mise en page**.
+Le nom d’un élève ouvre son suivi lorsqu’il est accessible. **Retour à la
+grille** retrouve sa ligne et les filtres utilisés.
 Le PDF répartit les grandes grilles sur plusieurs tableaux, avec les élèves
 et les en-têtes répétés. La grille d’une compétence garde une colonne pour
 les notes de séance sur papier.
@@ -34,8 +39,17 @@ les notes de séance sur papier.
 
 Une compétence figure dans le résultat dès qu’au moins un élève retenu
 correspond au filtre. Pour une période donnée, choisir **Observations sur une
-période** ou **Réussites constatées sur une période**, puis indiquer les dates.
-La période choisit les colonnes. Les couleurs restent celles du suivi annuel.
+période** ou **Réussites constatées sur une période**. Choisir un raccourci
+(**Depuis la rentrée**, les 7, 14 ou 30 derniers jours, **Semaine en cours**,
+ou **Depuis le dernier bilan de la classe** si un bilan visible existe), ou
+**Dates personnalisées**. Pour les dates personnalisées, saisir deux dates ou
+une date de début et une durée. Les deux bornes sont incluses.
+
+**Automatique** privilégie les compétences observées. Une rubrique ou une
+compétence cochée peut faire apparaître des compétences encore sans observation.
+Pour les afficher indépendamment de toute observation, choisir **Toutes les
+compétences suivies**. La période choisit les colonnes. Les couleurs restent
+celles du suivi annuel.
 
 Les cases distinguent **À observer** (blanc, ○), **En cours** (orange, ◐),
 **Réussi** (vert, ✓), **Hors du suivi** (gris, —) et **État non retrouvé** (?).

@@ -6,23 +6,29 @@ categorie = "carnets"
 publics = ["responsable", "associe"]
 intentions = ["carnet", "contenu", "mise en page", "colonnes", "regroupement", "attendus", "bilans"]
 prerequis = "Le carnet individuel est ouvert en prévisualisation."
-depart = "Carnet de l’élève → panneau Contenu du carnet à prévisualiser"
+depart = "Carnet de l’élève → Filtres ou Mise en page"
 statut = "disponible"
 +++
 
 ## Choisir les compétences
 
+Ouvrir **Filtres → Contenu du carnet**.
+
 - **Réussites** ne conserve que les compétences réussies.
-- **Compétences réussies ou en cours** ajoute les compétences en cours.
+- **Réussites et compétences en cours** ajoute les compétences en cours.
 - **Référentiel complet** présente aussi ce qui reste à découvrir.
 
+Dans **Filtres**, choisir aussi si le carnet doit inclure les attendus de fin
+de cycle et les bilans.
+
 ## Choisir la présentation
+
+Ouvrir **Mise en page**.
 
 1. Passer d’une à deux colonnes selon la densité souhaitée.
 2. Regrouper les acquisitions sans période, par année scolaire, par mois ou par
    bilan.
-3. Activer ou désactiver les attendus de fin de cycle, les sous-domaines et les
-   bilans.
+3. Choisir si les sous-rubriques doivent être affichées.
 4. Relire l’aperçu après chaque choix.
 
 ## Résultat attendu

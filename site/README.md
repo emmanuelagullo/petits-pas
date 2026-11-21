@@ -48,6 +48,9 @@ en revanche être versionnées dans `static/`.
 Les scénarios documentaires, leurs chemins de sortie et les éventuels cadrages
 ciblés sont déclarés dans `data/demonstration.yaml`. Trois parcours
 représentatifs possèdent également une variante mobile de 390 × 844 pixels.
+Pour une étape dans un volet replié, faire ouvrir le volet par le scénario,
+puis vérifier que le contrôle à montrer est visible. Utiliser le bouton ou
+le titre effectivement affiché dans le mode testé.
 Avant chaque capture, Playwright contrôle la présence d'un contenu principal,
 d'un titre de page et d'un unique `h1`, ainsi que l'absence de débordement
 horizontal.

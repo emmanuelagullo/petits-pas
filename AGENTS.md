@@ -112,6 +112,18 @@ Ce fichier s'applique à l'ensemble du dépôt Petits Pas. Lire d'abord
   accessible des fonctions et de leurs limites, consulter `site/content/roles/`.
   `site/content/guide/inventaire.md` recense la disponibilité des tâches :
   distinguer une fonction accessible d'une fonction seulement envisagée.
+- Grilles, éditions et carnets : partir des fiches
+  `guide/observer/consulter-grille` et `guide/carnets/generer-carnets-classe`
+  sous `site/content/`. La sélection commune est dans
+  `suivi/selection_editions.py` et `suivi/partiels/filtres_edition.html`
+  sous les templates. Distinguer les cases sélectionnées, les résultats de
+  recherche et les compétences finalement retenues. Une période filtre
+  les colonnes de la grille ; les états restent ceux du suivi annuel.
+- Navigation du suivi individuel : conserver la largeur du contenu, utiliser
+  le sommaire latéral si la marge le permet et le repli sur les autres écrans.
+  Les ancres, le défilement et les échanges HTMX sont synchronisés par
+  `suivi/static/suivi/sommaire-page.js`. Toute extraction dans Pas Communs
+  doit garder la structure des rubriques et les retours métier dans Petits Pas.
 - Déploiement et atelier : `DEPLOIEMENT.org`, `ATELIER-PEDAGOGIQUE.org`,
   `REPRODUCTIBILITE.org`.
 - Identités et autorisations : `POLITIQUE-AUTORISATION.org`,
@@ -222,6 +234,10 @@ essais serveur/bureau/PWA pertinents. Préserver les anciens ZIP et plafonds OPF
 - Privilégier des parcours simples pour les enseignants : partir de la tâche
   à accomplir, limiter les étapes et rendre explicites les conséquences d'une
   action, notamment lorsqu'elle concerne plusieurs enfants.
+- Dans la page de classe, le nom de l’élève ouvre le suivi. Regrouper les
+  commandes administratives sous « Gérer les élèves ». Conserver les
+  scolarités lors d’un archivage et distinguer cette action du retrait
+  d’une scolarité. Employer « élève » dans les parcours scolaires.
 - Garder les textes en français, avec des mots courants et des exemples
   concrets ; éviter le jargon technique dans les écrans et le Guide pratique.
   Les libellés du guide doivent correspondre aux boutons réellement proposés.
@@ -237,6 +253,9 @@ essais serveur/bureau/PWA pertinents. Préserver les anciens ZIP et plafonds OPF
   conception publiés sont copiés depuis la racine par `scripts/preparer-site.sh` ;
   ne pas éditer leurs copies générées. Les captures de démonstration sont
   générées depuis `site/data/demonstration.yaml` et ne sont pas versionnées.
+  Si un contrôle se trouve dans un volet replié, l’ouvrir explicitement dans
+  les scénarios de capture et de recette PWA. Vérifier la visibilité du contrôle
+  avant son utilisation, comme dans le parcours réel.
 - Limiter chaque modification au besoin demandé ; éviter les refontes
   incidentes. Suivre les conventions des fichiers voisins.
 

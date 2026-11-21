@@ -14,6 +14,13 @@ Cette création concerne seulement les élèves sélectionnés et ne modifie pas
 référentiel commun. Pour rendre une compétence disponible à toute la classe,
 utiliser [Ajouter une compétence au référentiel de la classe]({{< relref "/guide/eleves-classes/ajouter-competences" >}}).
 
+## Se repérer dans la fiche élève
+
+Dans le **Sommaire**, la rubrique active est mise en évidence lorsque vous
+défilez ou intervenez sur une compétence. Les chevrons ouvrent les sous-rubriques.
+Sur grand écran, le sommaire reste à gauche. Sur un écran plus étroit, l’ouvrir
+avec **Sommaire**. Le lien **Carnet et parcours** mène aux commandes de fin de fiche.
+
 ## Créer une compétence et commencer son suivi
 
 1. Dans une catégorie, même vide, choisir **+ Ajouter une compétence**.

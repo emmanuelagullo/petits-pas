@@ -13,7 +13,8 @@ statut = "disponible"
 ## Étapes
 
 1. Ouvrir la fiche de l’élève.
-2. Sélectionner **Voir le carnet de…** en bas de la page.
+2. Dans **Carnet et parcours**, sélectionner **Voir le carnet de…**. Le
+   **Sommaire** permet de rejoindre ce bloc depuis les compétences.
 3. Parcourir la couverture, les domaines, les acquisitions, les traces visibles
    et, selon les options, les bilans.
 4. Essayer les choix de contenu et de mise en page pour contrôler le résultat.
@@ -48,7 +49,7 @@ Voir les [règles détaillées des rôles]({{< relref "/roles/" >}}).
 
 ## Consulter une année du parcours
 
-Dans **Année à consulter**, choisir une année proposée, ou **Parcours complet**.
+Dans **Filtres → Année scolaire**, choisir une année proposée, ou **Parcours complet**.
 Seules les années que vous êtes autorisé à consulter apparaissent. Le choix
 reste conservé lorsque vous changez la mise en page ou téléchargez le PDF.
 
@@ -56,7 +57,7 @@ Une année précédente utilise les états d'apprentissage conservés pour cette
 année. Une réussite enregistrée plus tard n'y est pas ajoutée. Si l'ancien état
 n'a pas pu être retrouvé lors de la reprise des données, un message l'indique :
 les traces conservées restent consultables, mais aucune réussite n'est inventée.
-Pour voir ces traces, utiliser **Compétences réussies ou en cours** ou
+Pour voir ces traces, utiliser **Réussites et compétences en cours** ou
 **Référentiel complet**.
 
 La présentation d'une classe close garde ses derniers choix. Pour des données
