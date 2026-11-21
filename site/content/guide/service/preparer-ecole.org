@@ -38,7 +38,7 @@ sans accès pédagogique automatique aux observations et aux carnets.
 Vous pouvez préparer l’effectif avant l’activation ou laisser le responsable
 le faire après. Pour votre propre classe, attribuez-vous explicitement la
 fonction *Responsable de classe* dans le même formulaire, puis activez-la.
-Ouvrez ensuite *Gérer les enfants* ; poursuivez avec
+Ouvrez ensuite *Gérer les élèves* ; poursuivez avec
 [[{{< relref "/guide/service/premiers-pas" >}}][une première observation]].
 
 Pour déléguer l’organisation à un collègue, attendre qu’il ait accepté son

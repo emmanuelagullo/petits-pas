@@ -6,7 +6,7 @@ categorie = "eleves-classes"
 publics = ["direction"]
 intentions = ["rapprochement", "doublon", "homonyme", "dossier existant", "fusion", "valider"]
 prerequis = "Un ajout a détecté une ou plusieurs correspondances ; vous exercez la fonction de direction."
-depart = "Gérer l’école → classe · ajouter des enfants → Rapprochements à valider"
+depart = "Gérer l’école → classe · ajouter des élèves → Rapprochements à valider"
 statut = "disponible"
 +++
 

@@ -71,7 +71,7 @@ concernés, sans date d'activité ni sélection d'enfants, utiliser plutôt
 Si plusieurs traces comportent des photos collectives ou personnelles, elles
 restent toutes dans le carnet selon leur visibilité. Le choix
 **Images proposées et photos**, dans
-[Présentation du carnet]({{< relref "/guide/carnets/personnaliser-presentation/" >}}),
+[Couverture, illustrations et formulations]({{< relref "/guide/carnets/personnaliser-presentation/" >}}),
 concerne seulement l’illustration supplémentaire de la compétence.
 Personnaliser une trace commune garde son fonctionnement habituel : la version
 conserve d’abord la photo, puis peut la remplacer ou la retirer.

@@ -6,7 +6,7 @@ categorie = "eleves-classes"
 publics = ["responsable", "direction"]
 intentions = ["corriger", "identité", "prénom", "nom", "année de naissance", "niveau", "PS", "MS", "GS"]
 prerequis = "Vous êtes responsable de la classe concernée, ou membre de la direction."
-depart = "Gérer les enfants → nom de l’élève → Parcours scolaire"
+depart = "Gérer les élèves → nom de l’élève → Parcours scolaire"
 statut = "disponible"
 +++
 

@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Sélectionner les compétences dans un arbre commun aux rubriques et sous-rubriques.
+- Retrouver les commandes administratives dans la gestion des élèves et les
+  réglages de couverture, d’illustrations et de formulations dans le fil d’Ariane.
+
 - Retrouver les compétences cochées et filtrer les observations avec des
   raccourcis de période ou une durée. Les réglages des éditions sont présentés
   dans des rubriques repliables.

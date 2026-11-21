@@ -1,0 +1,3 @@
+{% for identifiant, libelle, cochee in lignes.values %}
+  <label class="ligne-competence-edition"><input type="checkbox" name="competences" value="{{ identifiant }}"{% if cochee %} checked{% endif %}> {{ libelle }}</label>
+{% endfor %}

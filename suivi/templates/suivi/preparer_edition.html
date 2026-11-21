@@ -17,7 +17,7 @@
   </select>
 
   <div class="rubriques-edition">
-    <p data-resume-eleves>{{ selection_ids|length }} enfant{{ selection_ids|length|pluralize }} · <span data-resume-annee>{% if parcours_complet %}Parcours complet{% else %}{{ classe.annee_scolaire }}{% endif %}</span></p>
+    <p data-resume-eleves>{% if selection_ids %}{{ selection_ids|length }} élève{{ selection_ids|length|pluralize }} sélectionné{{ selection_ids|length|pluralize }}{% else %}Aucun élève sélectionné{% endif %} · <span data-resume-annee>{% if parcours_complet %}Parcours complet{% else %}{{ classe.annee_scolaire }}{% endif %}</span></p>
     {% include "suivi/partiels/filtres_edition.html" with filtres_carnet=True %}
   {% include "suivi/partiels/options_carnet.html" %}
   <details class="details-filtres-catalogue" data-panneau-filtre data-options-cartes{% if mise_en_page_ouverte == "cartes" %} open{% endif %}>

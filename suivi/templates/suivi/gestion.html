@@ -16,7 +16,7 @@
   <a class="bouton discret" href="{% url 'annuaire_eleves' %}">Annuaire des élèves</a>
   <a class="bouton discret" href="{% url 'parametres_carnet' %}">Paramétrer le carnet</a>
   <a class="bouton discret" href="{% url 'referentiels_ecole' %}">Référentiels de l’école</a>
-  <a class="bouton discret" href="{% url 'presentation_ecole' %}">Icônes, couverture et formulations</a>
+  <a class="bouton discret" href="{% url 'presentation_ecole' %}">Couverture, illustrations et formulations</a>
   <a class="bouton discret" href="{% url 'equipe_ecole' %}">Équipe pédagogique</a>
   {% if double_facteur_disponible %}<a class="bouton discret" href="{% url 'double_facteur_ecole' %}">Second facteur</a>{% endif %}
   {% if mode_local %}<a class="bouton discret" href="{% url 'sauvegardes_locales' %}">Sauvegardes locales</a>{% endif %}
@@ -26,7 +26,7 @@
 
 <h2>Les classes</h2>
 {% if groupes %}
-  {% include "suivi/partiels/groupes_classes.html" with url_nom="importer_eleves" suffixe=" · ajouter des enfants" gestion_classes=True %}
+  {% include "suivi/partiels/groupes_classes.html" with url_nom="importer_eleves" suffixe=" · ajouter des élèves" gestion_classes=True %}
 {% else %}<div class="vide"><p>Aucune classe pour l'instant.</p></div>{% endif %}
 
 {% if eleves_archives %}

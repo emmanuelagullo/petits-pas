@@ -9,7 +9,7 @@
     <li>
       <a class="entree" href="{% url url_nom c.pk %}">
         <span class="principal">{{ c.nom }}</span>
-        <span class="secondaire">{{ c.nb_eleves }} enfant{{ c.nb_eleves|pluralize }}{{ suffixe|default:"" }}{% if gestion_classes %} · {{ c.get_etat_display|lower }}{% endif %}</span>
+        <span class="secondaire">{{ c.nb_eleves }} élève{{ c.nb_eleves|pluralize }}{{ suffixe|default:"" }}{% if gestion_classes %} · {{ c.get_etat_display|lower }}{% endif %}</span>
       </a>
       {% if gestion_classes and c.etat == "preparation" %}
       <div class="actions">

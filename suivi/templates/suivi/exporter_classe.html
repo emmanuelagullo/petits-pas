@@ -4,7 +4,7 @@
 {% include "suivi/partiels/ariane.html" with page="Créer une copie de cette classe" %}
 <h1>Créer une copie de cette classe</h1>
 <p>Créer une copie indépendante de <strong>{{ classe.libelle_avec_annee }}</strong> pour l’utiliser dans une nouvelle installation Petits Pas. Les modifications des deux copies ne seront pas synchronisées.</p>
-<p>La copie contient les enfants non archivés de cette classe, son référentiel, les états lisibles pour cette année, les bilans et les traces non supprimés. Les autres classes et années ne sont pas incluses. Les traces partagées deviennent des traces individuelles. Pour un enfant désormais scolarisé ailleurs, les traces et bilans sont inclus seulement si vous pouvez encore les consulter. Un média n’est inclus que si vous pouvez déjà le télécharger.</p>
+<p>La copie contient les élèves non archivés de cette classe, son référentiel, les états lisibles pour cette année, les bilans et les traces non supprimés. Les autres classes et années ne sont pas incluses. Les traces partagées deviennent des traces individuelles. Pour un élève désormais scolarisé ailleurs, les traces et bilans sont inclus seulement si vous pouvez encore les consulter. Un média n’est inclus que si vous pouvez déjà le télécharger.</p>
 <p class="encadre">Conservez ce ZIP sur un appareil protégé. Dans la copie, vous aurez la responsabilité de la classe et la direction de la petite école locale, qui ne contient que cette classe. Ces droits concernent uniquement la copie.</p>
 {% if formulaire.errors %}<div class="encadre">{{ formulaire.non_field_errors }}</div>{% endif %}
 {% if export %}

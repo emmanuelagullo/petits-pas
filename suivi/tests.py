@@ -1808,7 +1808,7 @@ class EditionClasse(Base):
         reponse = self.client.post(self.url, {})
 
         self.assertEqual(reponse.status_code, 200)
-        self.assertContains(reponse, "Sélectionnez au moins un enfant")
+        self.assertContains(reponse, "Sélectionnez au moins un élève")
         generer.assert_not_called()
 
 
@@ -1874,6 +1874,8 @@ class GrilleCompetence(Base):
         branche = self.client.get(url, {"filtres": "1", "rubriques": [cle]})
         self.assertEqual([c.competence.pk for c in branche.context["groupes"][0]["colonnes"]], [enfant.pk])
         self.assertContains(branche, "Sans sous-rubrique")
+        self.assertContains(branche, f'<input type="checkbox" name="competences" value="{enfant.pk}" checked>', html=True)
+        self.assertContains(branche, "Afficher uniquement les compétences cochées")
         sans_sous_rubrique = self.client.get(url, {"filtres": "1", "rubriques": [f"{racine}/"]})
         self.assertEqual(sans_sous_rubrique.context["nb_competences"], 1)
         self.assertContains(branche, reverse("saisie_eleve", args=[self.eleve.pk]) + "?retour=")
@@ -2566,7 +2568,7 @@ class GestionClassesGroupees(Base):
         self.assertContains(
             r, reverse("importer_eleves", args=[self.classe.pk])
         )
-        self.assertContains(r, "ajouter des enfants")
+        self.assertContains(r, "ajouter des élèves")
 
     def test_les_annees_passees_sont_masquees_par_defaut_dans_la_gestion(self):
         Classe.objects.create(
@@ -2631,7 +2633,7 @@ class CompositionClasse(Base):
         self.assertContains(r, "Lou")
         self.assertContains(r, "Modifier le niveau")
         self.assertContains(r, "Retirer de la classe")
-        self.assertContains(r, "Retirer et archiver")
+        self.assertContains(r, "Archiver l’élève")
 
     def test_modifier_le_niveau_d_un_eleve_deja_dans_la_classe(self):
         self.client.post(
@@ -2801,7 +2803,7 @@ class CompositionClasse(Base):
             r, f"<h1>Composition de {self.classe.libelle_avec_annee}</h1>"
         )
         self.assertContains(
-            r, f"<h2>Ajouter des enfants à {self.classe.libelle_avec_annee}</h2>"
+            r, f"<h2>Ajouter des élèves à {self.classe.libelle_avec_annee}</h2>"
         )
         self.assertEqual(r.content.count(b"<h1>"), 1)
         self.assertContains(r, "Né(e) en 2021")
@@ -2812,7 +2814,7 @@ class CompositionClasse(Base):
         r = self.client.get(reverse("importer_eleves", args=[classe_vide.pk]))
 
         self.assertContains(
-            r, "<h1>Ajouter des enfants à Classe vide — 2026-2027</h1>"
+            r, "<h1>Ajouter des élèves à Classe vide — 2026-2027</h1>"
         )
         self.assertEqual(r.content.count(b"<h1>"), 1)
 
@@ -3053,8 +3055,20 @@ class ParcoursLongitudinal(Base):
         self.assertEqual(Scolarite.objects.filter(eleve=self.eleve).count(), 1)
         self.assertContains(
             self.client.get(reverse("classe_detail", args=[self.classe.pk])),
-            "0 enfants",
+            "0 élèves",
         )
+
+    def test_archivage_depuis_le_parcours_de_gestion(self):
+        self.entrer("dir-mdp")
+        classe = reverse("classe_detail", args=[self.classe.pk])
+        parcours = reverse("parcours_eleve", args=[self.eleve.pk])
+        self.assertNotContains(self.client.get(classe), "Archiver sans supprimer")
+        self.assertContains(self.client.get(parcours), "Archiver l’élève")
+        reponse = self.client.post(parcours, {"action": "archiver", "retour": self.classe.pk})
+        self.assertRedirects(reponse, f"{parcours}?retour={self.classe.pk}")
+        self.eleve.refresh_from_db()
+        self.assertIsNotNone(self.eleve.archive_le)
+        self.assertTrue(self.eleve.scolarites.filter(classe=self.classe).exists())
 
     def test_un_eleve_archive_peut_etre_reactive(self):
         self.eleve.archive_le = timezone.now()
