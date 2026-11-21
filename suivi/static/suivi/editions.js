@@ -160,7 +160,9 @@ for (const arbre of document.querySelectorAll('[data-recherche-competences]')) {
     });
     if (!filtre) ouvertures = null;
     const nombre = cases.filter(champ => champ.checked).length;
-    const selection = `${nombre} compétence${nombre === 1 ? ' sélectionnée' : 's sélectionnées'}`;
+    const selection = nombre
+      ? `${nombre} compétence${nombre === 1 ? ' sélectionnée' : 's sélectionnées'}`
+      : 'Toutes les compétences suivies sont prises en compte avant le filtre d’observations';
     const resultats = cases.filter(champ => !champ.parentElement.hidden).length;
     compteur.textContent = terme ? `${selection} · ${resultats} résultat${resultats === 1 ? '' : 's'}` : selection;
   }
