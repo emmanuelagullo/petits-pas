@@ -333,6 +333,52 @@ scenarios:
     capture: guide/carnets/preparer-classe.png
     titre: Préparer les carnets d'une classe
     legende: Le volet Filtres permet de sélectionner les élèves et les compétences avant de préparer une édition.
+  - id: guide-grille-classe
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: lien, nom: "Saisir pour toute la classe" }
+      - { action: lien, nom: "Grille de suivi" }
+      - { action: visible, selecteur: "[data-defilement-grille] tbody tr" }
+    capture: guide/observer/grille-classe.png
+    titre: Consulter la grille de suivi d’une classe
+    legende: Les élèves sont en lignes. Les compétences sont regroupées par rubrique et sous-rubrique.
+  - id: guide-apercu-carnets-groupes
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: lien, nom: "Préparer une édition" }
+      - { action: choisir, selecteur: "#format-edition", valeur: pdf }
+      - { action: selecteur, selecteur: '#preparer-carnets details[data-panneau-filtre] > summary:text-is("Filtres")' }
+      - { action: selecteur, selecteur: '#preparer-carnets input[name="eleves"] >> nth=0' }
+      - { action: selecteur, selecteur: '#preparer-carnets input[name="eleves"] >> nth=1' }
+      - { action: selecteur, selecteur: "[data-apercu-edition]" }
+      - { action: titre, nom: "Carnets à imprimer" }
+      - { action: visible, selecteur: ".carnets-groupes article.carnet >> nth=1" }
+    capture: guide/carnets/apercu-carnets-groupes.png
+    titre: Relire les carnets groupés
+    legende: Les carnets des élèves sélectionnés se suivent dans le même aperçu imprimable.
+  - id: guide-cartes-decouper
+    profil: remi
+    parcours: guide
+    etapes:
+      - { action: classe, classe: coccinelles }
+      - { action: lien, nom: "Préparer une édition" }
+      - { action: choisir, selecteur: "#format-edition", valeur: cartes }
+      - { action: selecteur, selecteur: '#preparer-carnets details[data-panneau-filtre] > summary:text-is("Filtres")' }
+      - { action: selecteur, selecteur: '#preparer-carnets input[name="eleves"] >> nth=0' }
+      - { action: choisir, selecteur: "#id_observations", valeur: tout }
+      - { action: selecteur, selecteur: "[data-options-cartes] > summary" }
+      - { action: choisir, selecteur: "#unite-cartes", valeur: competence }
+      - { action: selecteur, selecteur: 'input[name="espace_eleve"]' }
+      - { action: selecteur, selecteur: "[data-apercu-edition]" }
+      - { action: titre, nom: "Cartes à découper" }
+      - { action: visible, selecteur: ".planche-cartes .carte-a-decouper" }
+    capture: guide/carnets/cartes-decouper.png
+    titre: Préparer une planche de cartes à découper
+    legende: Chaque carte porte le nom de son destinataire et peut laisser une place pour écrire ou dessiner.
   - id: guide-remplacer-responsable
     profil: diane
     parcours: guide

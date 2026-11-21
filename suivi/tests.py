@@ -4125,7 +4125,7 @@ class JeuDemoLarge(TestCase):
             profil for profil in configuration["profils"] if profil["id"] == "alice"
         )
         self.assertEqual(alice["affectations"][0]["periode"], "terminee")
-        self.assertEqual(len(configuration["scenarios"]), 26)
+        self.assertEqual(len(configuration["scenarios"]), 29)
         captures = {scenario["id"]: scenario["capture"] for scenario in configuration["scenarios"]}
         self.assertEqual(
             {identifiant: captures.get(identifiant) for identifiant in (

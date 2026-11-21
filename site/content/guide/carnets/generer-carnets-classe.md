@@ -37,6 +37,8 @@ statut = "disponible"
 
 {{< capture-guide src="captures/guide/carnets/preparer-classe.png" alt="Formulaire de préparation des carnets d’une classe fictive" caption="Sélectionnez les élèves et le résultat voulu avant de préparer l’édition." >}}
 
+{{< capture-guide src="captures/guide/carnets/apercu-carnets-groupes.png" alt="Aperçu imprimable de carnets groupés, commençant par la couverture d’un élève fictif" caption="L’aperçu des carnets groupés permet de relire le document avant l’impression." >}}
+
 Relire le contenu avant diffusion. Le document et les noms de fichiers
 contiennent des données scolaires confidentielles.
 
@@ -54,3 +56,5 @@ Le réglage **Ordre des cartes sur les planches partagées** devient alors
 disponible. Il propose de trier d’abord par élève ou d’abord par rubrique. Chaque carte garde le nom de son destinataire.
 Vérifier l’aperçu à taille réelle avant de lancer un lot, surtout avec des
 photos et des commentaires longs.
+
+{{< capture-guide src="captures/guide/carnets/cartes-decouper.png" alt="Planche de cartes à découper avec les compétences et un espace pour écrire ou dessiner" caption="Les cartes portent le nom de l’élève et la compétence. Les espaces libres sont facultatifs." >}}

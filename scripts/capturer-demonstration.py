@@ -132,6 +132,8 @@ def jouer_etapes_guide(page, demonstration, etapes):
             page.locator(etape["selecteur"]).first.click()
         elif action == "remplir":
             page.locator(etape["selecteur"]).first.fill(etape["texte"])
+        elif action == "choisir":
+            page.locator(etape["selecteur"]).first.select_option(value=etape["valeur"])
         elif action == "visible":
             page.locator(etape["selecteur"]).first.wait_for(state="visible")
         elif action == "titre":
