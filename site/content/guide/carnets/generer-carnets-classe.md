@@ -39,7 +39,7 @@ Les options permettent d’ajouter une photo ou une illustration, le commentaire
 visible et une place pour écrire ou dessiner.
 
 Par défaut, chaque élève commence sur une nouvelle planche. Pour économiser
-du papier, cocher **Autoriser plusieurs élèves sur une même planche**. On peut alors
+du papier, cocher **Autoriser plusieurs élèves sur une même planche (mode compact)**. On peut alors
 trier par élève ou par rubrique. Chaque carte garde le nom de son destinataire.
 Vérifier l’aperçu à taille réelle avant de lancer un lot, surtout avec des
 photos et des commentaires longs.
