@@ -6,7 +6,7 @@ categorie = "carnets"
 publics = ["direction", "responsable"]
 intentions = ["icône", "couverture", "formulation", "phrase", "photo", "héritage"]
 prerequis = "Vous êtes direction pour les choix de l’école, ou responsable pour ceux de votre classe."
-depart = "Gestion ou fiche de classe → Présentation du carnet"
+depart = "Gestion ou fiche de classe → Couverture, illustrations et formulations"
 statut = "disponible"
 +++
 
@@ -22,8 +22,8 @@ Une image n’indique pas à elle seule qu’une compétence est réussie. Ajout
 
 ## Ouvrir les bons réglages
 
-- **Pour l’école :** la direction ouvre **Gérer l’école → Icônes, couverture et formulations**.
-- **Pour une classe :** le responsable ouvre sa classe, puis **Présentation du carnet**.
+- **Pour l’école :** la direction ouvre **Gérer l’école → Couverture, illustrations et formulations**.
+- **Pour une classe :** le responsable ouvre sa classe, puis **Couverture, illustrations et formulations**.
 
 Les choix de l’école servent de point de départ aux classes. Une classe peut garder ces choix ou faire les siens. La direction n’a pas besoin d’ouvrir les carnets des élèves pour préparer les images et les phrases de l’école.
 
@@ -31,7 +31,7 @@ La liste des compétences suit les mêmes domaines et le même ordre que le carn
 
 ## Choisir la photo de couverture ou l’image d’une compétence
 
-1. Pour la couverture, rester sur la page **Présentation du carnet**. Pour une compétence, ouvrir sa ligne dans la liste.
+1. Pour la couverture, rester sur la page **Couverture, illustrations et formulations**. Pour une compétence, ouvrir sa ligne dans la liste.
 2. Regarder l’image actuellement utilisée et l’indication **École**, **Classe** ou **Référentiel importé**. Le référentiel est la liste de compétences chargée pour l’école ; il peut aussi fournir quelques images et exemples de phrases.
 3. Choisir l’une des possibilités ci-dessous, puis enregistrer.
 
@@ -67,7 +67,7 @@ Les petites icônes apparaissent aussi dans les listes de compétences. Elles so
 
 ## Quand une photo est déjà affichée
 
-Sur **Présentation du carnet**, la rubrique **Images proposées et photos**
+Sur **Couverture, illustrations et formulations**, la rubrique **Images proposées et photos**
 permet de choisir :
 
 - **Cacher l’image proposée** lorsqu’au moins une photo de cette compétence

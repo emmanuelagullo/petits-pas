@@ -1162,8 +1162,6 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
   .planche-cartes + .planche-cartes, .carnets-groupes .carnet + .carnet { break-before: page; }
   .carte-a-decouper { font-size: 10pt; }
 }
-.choix-competences-edition [id="id_rubriques"],
-.choix-competences-edition [id="id_competences"] { max-height: 12rem; overflow: auto; border: 1px solid #b7bdb9; padding: .35rem; }
 .planche-cartes { font-size: 0; }
 .carte-a-decouper { font-size: 10pt; }
 
@@ -1180,11 +1178,6 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 .groupe-filtres legend { font-weight: 650; padding: 0; }
 .groupe-filtres > label, .sous-rubriques-edition label { display: block; }
 .groupe-filtres [hidden], .groupe-filtres[hidden] { display: none; }
-.branche-rubrique { display: flex; flex-wrap: wrap; align-items: baseline; gap: .35rem; padding-block: .2rem; }
-.branche-rubrique details { flex: 1; }
-.branche-rubrique details[open] { flex-basis: 100%; }
-.branche-rubrique summary { margin-inline-start: 0; }
-.sous-rubriques-edition { margin-inline-start: .6rem; padding-inline-start: .65rem; border-inline-start: 1px solid #c8d9ce; }
 .choix-segmentes { display: flex; flex-wrap: wrap; gap: .35rem; padding-block: .25rem; }
 .choix-segmentes label { display: inline-flex; align-items: center; gap: .3rem; border: 1px solid #c8d9ce; border-radius: .4rem; padding: .3rem .45rem; cursor: pointer; }
 .choix-segmentes label:has(:checked) { background: #e0f0e4; border-color: #51805d; }
@@ -1226,4 +1219,11 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 .rubriques-edition > details[open] { padding: 0 .85rem .85rem; }
 .rubriques-edition > details[open] > summary { margin: 0 -.85rem .65rem; border-bottom: 1px solid var(--trait); }
 .rubriques-edition input:disabled, .rubriques-edition select:disabled { background: #e6e9eb; color: #535d65; }
-.inclusion-rubrique { color: #535d65; font-size: .85em; margin-inline-start: .35rem; }
+
+.groupe-arbre-edition { grid-column: 1 / -1; }
+[data-branche-rubrique] { padding: .25rem 0 .25rem 1.75rem; position: relative; }
+[data-branche-rubrique] > label { position: absolute; inset-inline-start: .15rem; }
+[data-branche-rubrique] summary { cursor: pointer; }
+[data-rubrique-total] { color: #535d65; margin-inline-start: .4rem; }
+.ligne-competence-edition { display: block; margin-inline-start: 1rem; }
+.ligne-competence-edition[hidden] { display: none; }

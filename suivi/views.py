@@ -2576,7 +2576,7 @@ def preparer_edition(request, pk):
         return _reponse_pdf(contenu, nom)
 
     if request.method == "POST" and valide:
-        messages.error(request, "Sélectionnez au moins un enfant.")
+        messages.error(request, "Sélectionnez au moins un élève.")
     return render(request, "suivi/preparer_edition.html", {
         "classe": classe, "eleves": eleves, "formulaire": formulaire,
         "selection_ids": {e.pk for e in eleves if str(e.pk) in filtres.getlist("eleves")},
@@ -3247,7 +3247,7 @@ def parcours_eleve(request, pk):
     if retour_classe:
         params["retour"] = retour_classe.pk
         ariane = chemin_classe(retour_classe) + [
-            ("Gérer les enfants", lien("importer_eleves", retour_classe.pk, ancre=f"eleve-{eleve.pk}")),
+            ("Gérer les élèves", lien("importer_eleves", retour_classe.pk, ancre=f"eleve-{eleve.pk}")),
         ]
     else:
         ariane = [("Gérer l’école", lien("gestion"))] if direction else []
@@ -3281,6 +3281,13 @@ def parcours_eleve(request, pk):
             modifier_niveau_courant(utilisateur=request.user, scolarite=scolarite_a_corriger, niveau=niveau)
             messages.success(request, f"Niveau de {scolarite_a_corriger.annee_scolaire} corrigé.")
             return redirect(_retour_url())
+
+    if request.method == "POST" and request.POST.get("action") == "archiver":
+        if not direction:
+            raise Http404
+        archiver(utilisateur=request.user, eleve=eleve, classe=eleve.classe)
+        messages.success(request, f"{eleve.prenom} a été archivé sans supprimer son parcours.")
+        return redirect(_retour_url())
 
     if request.method == "POST" and request.POST.get("action") == "reactiver":
         desarchiver(utilisateur=request.user, eleve=eleve, classe=classe)
@@ -3495,7 +3502,7 @@ def importer_eleves(request, pk):
                 f"{scolarite.eleve.prenom} a des bilans, des compétences suivies ou des observations "
                 f"datées enregistrés pour {classe.annee_scolaire} : "
                 "utilisez plutôt « Déplacer vers une autre classe », ou "
-                "utilisez « Retirer et archiver » pour conserver son parcours.",
+                "utilisez « Archiver l’élève » pour conserver son parcours.",
             )
         else:
             prenom = scolarite.eleve.prenom
@@ -3518,8 +3525,7 @@ def importer_eleves(request, pk):
         archiver(utilisateur=request.user, eleve=eleve, classe=classe)
         messages.success(
             request,
-            f"{eleve.prenom} a été retiré de {classe} et archivé sans supprimer "
-            "son parcours.",
+            f"{eleve.prenom} a été archivé sans supprimer son parcours.",
         )
         return redirect("importer_eleves", pk=classe.pk)
 
@@ -3581,7 +3587,7 @@ def importer_eleves(request, pk):
         )
         messages.success(
             request,
-            f"{resultat['crees']} enfant(s) ajouté(s) à {classe}. "
+            f"{resultat['crees']} élève(s) ajouté(s) à {classe}. "
             f"{resultat['demandes']} rapprochement(s) à valider par la direction.",
         )
         return redirect("classe_detail", pk=classe.pk)

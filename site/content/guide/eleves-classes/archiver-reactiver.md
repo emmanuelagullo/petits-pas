@@ -6,7 +6,7 @@ categorie = "eleves-classes"
 publics = ["responsable", "direction"]
 intentions = ["retirer", "archiver", "désarchiver", "réactiver", "élève", "parcours"]
 prerequis = "Vous gérez l’effectif de la classe concernée ; certaines actions globales sont réservées à la direction."
-depart = "Classe → Gérer les enfants → Composition actuelle"
+depart = "Classe → Gérer les élèves → Composition actuelle"
 statut = "disponible"
 +++
 
@@ -16,11 +16,12 @@ La direction peut sélectionner **Retirer de la classe** puis confirmer. Cette
 action convient lorsqu’aucun bilan ni aucune trace datée n’est rattaché à cette
 scolarité. L’élève reste actif mais sans classe pour l’année.
 
-## Retirer et archiver
+## Archiver un élève
 
-Sélectionner **Retirer et archiver**, puis confirmer. Malgré son intitulé, cette
-action conserve la scolarité et tout le parcours : elle masque le dossier des
-listes actives en posant une date d’archivage.
+Dans **Composition actuelle**, choisir **Archiver l’élève** et confirmer. La
+direction peut aussi ouvrir le nom de l’élève, puis **Archivage** dans son
+parcours scolaire. L’archivage masque le dossier des listes actives et conserve
+les scolarités et le parcours.
 
 ## Réactiver
 

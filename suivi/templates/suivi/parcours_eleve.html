@@ -70,4 +70,15 @@
   <div class="actions"><button class="bouton" type="submit" data-enregistrer>Enregistrer cette scolarité</button>{% include "suivi/partiels/annuler_modifications.html" %}</div>
 </form>
 {% endif %}
+{% if direction and not eleve.archive_le %}
+<details class="encadre">
+  <summary>Archivage</summary>
+  <p>L’élève disparaîtra des listes actives. Ses affectations et son parcours seront conservés. Vous pourrez le réactiver depuis son parcours scolaire.</p>
+  <form method="post" onsubmit="return confirm('Archiver cet élève en conservant son parcours et ses affectations ?');">
+    {% csrf_token %}<input type="hidden" name="action" value="archiver">
+    {% if retour_classe %}<input type="hidden" name="retour" value="{{ retour_classe.pk }}">{% endif %}
+    <button class="bouton discret" type="submit">Archiver l’élève</button>
+  </form>
+</details>
+{% endif %}
 {% endblock %}

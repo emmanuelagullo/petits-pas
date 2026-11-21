@@ -31,7 +31,7 @@ tenter une seconde inscription.
 ## Retrait refusé à cause des traces ou bilans
 
 La scolarité sert de support à des données datées : sa suppression romprait leur
-contexte. Choisir un déplacement ou **Retirer et archiver** pour conserver le
+contexte. Choisir un déplacement ou **Archiver l’élève** pour conserver le
 parcours. La suppression des éléments pédagogiques uniquement pour permettre le
 retrait doit rester une décision consciente, pas un contournement.
 

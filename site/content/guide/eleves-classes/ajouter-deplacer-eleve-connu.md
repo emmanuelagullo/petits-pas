@@ -6,7 +6,7 @@ categorie = "eleves-classes"
 publics = ["direction"]
 intentions = ["élève existant", "ajouter", "déplacer", "changer de classe", "dossier", "scolarité"]
 prerequis = "Vous exercez la fonction de direction et l’élève appartient à la même école."
-depart = "Gérer l’école → classe · ajouter des enfants"
+depart = "Gérer l’école → classe · ajouter des élèves"
 statut = "disponible"
 +++
 

@@ -14,6 +14,7 @@ from .autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autoris
 from .contexte_ecole import ecole_courante
 from .forms_presentation import AffichageIllustrationForm, IllustrationForm
 from .models import Competence, ParametresCarnet, ReglagePresentation
+from .navigation import chemin_classe
 from .referentiels import arbre_competences, competence_classe
 from .presentation import affichage_avec_photos, catalogue_icones, illustration_effective, propositions
 from .services.presentation import enregistrer_affichage, enregistrer_formulation, enregistrer_reglage, verifier_droit
@@ -105,6 +106,11 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         index_url = reverse("presentation_classe", args=[classe.pk])
     else:
         index_url = reverse("presentation_ecole")
+    ariane = chemin_classe(classe) if classe else [("Gérer l’école", reverse("gestion"))]
+    titre = "Couverture, illustrations et formulations"
+    if competence:
+        ariane.append((titre, index_url))
+    page = competence.libelle if competence else titre
     domaines = []
     if not competence:
         for domaine in arbre_competences(ecole, classe=classe):
@@ -121,7 +127,7 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         "affichage_form": affichage_form,
         "illustration_avec_photos": affichage_avec_photos(ecole, classe),
         "affichage_origine": "Classe" if classe and classe.illustration_avec_photos is not None else "École",
-        "illustration_url": url_illustration(illustration), "index_url": index_url,
+        "illustration_url": url_illustration(illustration), "ariane": ariane, "page": page,
         "domaines": domaines,
         "afficher_sous_domaines": parametres.afficher_sous_domaines,
         "icones_apercu": {cle: static(valeur["fichier"]) for cle, valeur in catalogue_icones().items()},

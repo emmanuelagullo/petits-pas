@@ -1,10 +1,10 @@
 {% extends "suivi/base.html" %}
 {% load static illustrations %}
-{% block titre %}Présentation du carnet{% endblock %}
+{% block titre %}{{ page }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-<p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'gestion' %}">{{ ecole.nom }}</a>{% endif %}{% if competence %} · <a href="{{ index_url }}">Présentation du carnet</a>{% endif %}</p>
-<h1>{% if competence %}{{ competence.libelle }}{% else %}Présentation du carnet{% endif %}</h1>
+{% include "suivi/partiels/ariane.html" %}
+<h1>{{ page }}</h1>
 <p>{% if competence %}Choisissez l’illustration de cette compétence et adaptez les phrases proposées pour rédiger les prochaines traces.{% else %}Choisissez la photo de couverture, puis ouvrez une compétence pour adapter son illustration et ses phrases proposées.{% endif %} Les commentaires déjà enregistrés ne sont pas réécrits.</p>
 <details class="aide-presentation">
   <summary>Que changent ces choix dans les carnets ?</summary>
@@ -46,7 +46,7 @@
     {% if champ.name == 'icone' %}
     <details class="galerie-images" data-galerie-images hidden>
       <summary>Voir les {{ images_fournies|length }} images fournies</summary>
-      <p>Choisissez un dessin, puis enregistrez l’illustration. Une image illustre la compétence ; elle ne représente pas le travail d’un enfant.</p>
+      <p>Choisissez un dessin, puis enregistrez l’illustration. Une image illustre la compétence ; elle ne représente pas le travail d’un élève.</p>
       <div class="grille-images">
         {% for cle, image in images_fournies.items %}
         <button type="button" data-choisir-image="{{ cle }}" aria-pressed="false">
@@ -69,7 +69,7 @@
 <h2>Formulations proposées</h2>
 <details class="aide-presentation">
   <summary>À quoi servent les phrases proposées ?</summary>
-  <p>Ce sont des exemples de commentaires pour cette compétence. Ils vous donnent un point de départ lorsque vous ajoutez une trace pour un élève ou plusieurs enfants de la classe.</p>
+  <p>Ce sont des exemples de commentaires pour cette compétence. Ils vous donnent un point de départ lorsque vous ajoutez une trace pour un élève ou plusieurs élèves de la classe.</p>
   <p>Dans le formulaire de la trace, vous pouvez choisir une phrase, puis la modifier pour décrire ce que vous avez observé. Vous pouvez aussi écrire votre commentaire sans utiliser de proposition.</p>
   <p>Par exemple, « &lt;prenom&gt; prend la parole pendant un échange » devient « Lou prend la parole pendant un échange » pour Lou. Cela ne valide pas la compétence et ne crée aucune trace tant que vous n'enregistrez pas votre saisie.</p>
 </details>
@@ -77,7 +77,7 @@
   <summary>Comment utiliser les phrases proposées ?</summary>
   <p><strong>Hériter :</strong> garder la phrase proposée {% if classe %}par l'école ou le référentiel{% else %}dans le référentiel{% endif %}, et suivre ses changements.</p>
   <p><strong>Remplacer :</strong> écrire votre propre version. <strong>Masquer :</strong> ne plus proposer cette phrase, sans la supprimer.</p>
-  <p>Chaque phrase se choisit séparément. Vous pouvez aussi en ajouter une. Écrivez &lt;prenom&gt; ou &lt;prénom&gt; à l'endroit où le prénom de l'enfant doit apparaître.</p>
+  <p>Chaque phrase se choisit séparément. Vous pouvez aussi en ajouter une. Écrivez &lt;prenom&gt; ou &lt;prénom&gt; à l'endroit où le prénom de l'élève doit apparaître.</p>
 </details>
 {% for proposition in propositions %}
 <article class="encadre">

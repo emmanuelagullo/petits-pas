@@ -21,7 +21,7 @@ PARCOURS = {
 }
 PREMIERS_PAS = {
     AffectationClasse.RESPONSABLE: (
-        "Ouvrez votre classe, puis Gérer les enfants pour vérifier l’effectif. "
+        "Ouvrez votre classe, puis Gérer les élèves pour vérifier l’effectif. "
         "Ouvrez un élève, choisissez + à droite d’une compétence, écrivez une "
         "observation et sélectionnez Ajouter la trace. Vous pouvez aussi décider "
         "des acquisitions et préparer les carnets."
@@ -84,7 +84,7 @@ def composer_accueil(*, ecole, lien, destinataire, compte=None, invitation=None,
             "5. Le responsable peut vérifier le référentiel de sa classe et ajouter "
             "les élèves. Vous pouvez aussi préparer l’effectif. Pour votre propre "
             "classe, attribuez-vous explicitement la fonction Responsable de classe "
-            "avant de l’activer, puis ouvrez Gérer les enfants. Pour déléguer la "
+            "avant de l’activer, puis ouvrez Gérer les élèves. Pour déléguer la "
             "gestion de l’école, accordez séparément les droits de gestion à un "
             "membre après son acceptation.",
         ]

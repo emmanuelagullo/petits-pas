@@ -75,7 +75,7 @@ if (edition) {
     }
     const parcoursComplet = !cartes && !grille && edition.elements.parcours.value === 'complet';
     edition.querySelector('[data-resume-eleves]').textContent =
-      `${nombre} enfant${nombre > 1 ? 's' : ''} · ${parcoursComplet ? 'Parcours complet' : edition.dataset.annee}`;
+      `${nombre ? `${nombre} élève${nombre > 1 ? 's sélectionnés' : ' sélectionné'}` : 'Aucun élève sélectionné'} · ${parcoursComplet ? 'Parcours complet' : edition.dataset.annee}`;
     const avecPeriode = ['periode', 'reussites'].includes(edition.elements.observations.value);
     const debut = dates.querySelector('[name="debut"]').value;
     const fin = dates.querySelector('[name="fin"]').value;
@@ -116,52 +116,65 @@ if (grille) {
   } catch (_) { /* La mémoire de position est facultative. */ }
 }
 
-for (const liste of document.querySelectorAll('[data-recherche-competences]')) {
-  const champ = liste.querySelector('input[type="search"]');
-  champ.closest('label').hidden = false;
-  champ.addEventListener('keydown', event => {
+for (const arbre of document.querySelectorAll('[data-recherche-competences]')) {
+  const outils = arbre.querySelector('[data-outils-competences]');
+  const recherche = outils.querySelector('input[type="search"]');
+  const cochees = outils.querySelector('[data-competences-cochees]');
+  const compteur = outils.querySelector('[data-compteur-competences]');
+  const cases = [...arbre.querySelectorAll('input[name="competences"]')];
+  const normaliser = texte => texte.toLocaleLowerCase('fr').normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  const libelles = new Map(cases.map(champ => {
+    const texte = [champ.parentElement.textContent];
+    let panneau = champ.closest('details');
+    while (panneau && arbre.contains(panneau)) {
+      texte.push(panneau.querySelector(':scope > summary').textContent);
+      panneau = panneau.parentElement.closest('details');
+    }
+    return [champ, normaliser(texte.join(' '))];
+  }));
+  const branches = [...arbre.querySelectorAll('[data-branche-rubrique]')].map(element => ({
+    element,
+    commande: element.querySelector(':scope > label input'),
+    panneau: element.querySelector(':scope > details'),
+    total: element.querySelector(':scope > details > summary [data-rubrique-total]'),
+    cases: [...element.querySelectorAll('input[name="competences"]')],
+  }));
+  let ouvertures = null;
+  function actualiser() {
+    recherche.disabled = cochees.checked;
+    const terme = cochees.checked ? "" : normaliser(recherche.value.trim());
+    const filtre = Boolean(terme || cochees.checked);
+    if (filtre && !ouvertures) ouvertures = branches.map(branche => branche.panneau.open);
+    for (const champ of cases) {
+      champ.parentElement.hidden = (cochees.checked && !champ.checked) || !libelles.get(champ).includes(terme);
+    }
+    branches.forEach(({element, commande, panneau, total, cases: descendants}, index) => {
+      const nombre = descendants.filter(champ => champ.checked).length;
+      const visible = descendants.some(champ => !champ.parentElement.hidden);
+      commande.checked = nombre === descendants.length;
+      commande.indeterminate = nombre > 0 && !commande.checked;
+      total.textContent = `${nombre} / ${descendants.length}`;
+      element.hidden = !visible;
+      if (filtre) panneau.open = visible;
+      else if (ouvertures) panneau.open = ouvertures[index];
+    });
+    if (!filtre) ouvertures = null;
+    const nombre = cases.filter(champ => champ.checked).length;
+    const visibles = cases.filter(champ => !champ.parentElement.hidden).length;
+    compteur.textContent = `${nombre} sélectionnée${nombre > 1 ? 's' : ''} · ${visibles} / ${cases.length} affichées`;
+  }
+  for (const {commande, cases: descendants} of branches) {
+    commande.parentElement.hidden = false;
+    commande.addEventListener('change', () => {
+      for (const champ of descendants) champ.checked = commande.checked;
+    });
+  }
+  outils.hidden = false;
+  recherche.addEventListener('keydown', event => {
     if (event.key === 'Enter' && !event.isComposing) event.preventDefault();
   });
-  const form = liste.closest('form');
-  const groupes = JSON.parse(liste.querySelector('script').textContent);
-  const cases = Array.from(liste.querySelectorAll('input[name="competences"]'));
-  const rubriques = Array.from(form.querySelectorAll('input[name="rubriques"]'));
-  const compteur = liste.querySelector('[data-compteur-competences]');
-  const cochees = liste.querySelector('[data-competences-cochees]');
-  const lignes = cases.map(caseChoix => {
-    const ligne = caseChoix.closest('label').parentElement;
-    const texte = normaliser(ligne.textContent);
-    const indication = document.createElement('span');
-    indication.className = 'inclusion-rubrique';
-    indication.textContent = 'Incluse par une rubrique cochée';
-    ligne.append(indication);
-    return {caseChoix, ligne, texte, indication};
-  });
-  function normaliser(texte) {
-    return texte.toLocaleLowerCase('fr').normalize('NFD').replace(/\p{Diacritic}/gu, '');
-  }
-  function actualiser() {
-    const recherche = normaliser(champ.value.trim());
-    const branches = new Set(rubriques.filter(caseChoix => caseChoix.checked).map(caseChoix => caseChoix.value));
-    let nombre = 0;
-    let visibles = 0;
-    champ.disabled = cochees.checked;
-    for (const {caseChoix, ligne, texte, indication} of lignes) {
-      const groupe = groupes[caseChoix.value] || '';
-      indication.hidden = ![groupe, groupe + '/', groupe.split('/')[0]].some(cle => branches.has(cle));
-      if (caseChoix.checked) nombre += 1;
-      ligne.hidden = cochees.checked ? !caseChoix.checked : !texte.includes(recherche);
-      if (!ligne.hidden) visibles += 1;
-    }
-    compteur.textContent = `${nombre} cochée${nombre > 1 ? 's' : ''} directement · ${visibles} sur ${cases.length} affichées`;
-  }
-  liste.querySelector('[data-outils-competences]').hidden = false;
-  champ.addEventListener('input', actualiser);
-  form.addEventListener('change', event => {
-    if (event.target === cochees || event.target.matches('[name="competences"], [name="rubriques"], [data-bascule-rubrique]')) {
-      actualiser();
-    }
-  });
+  recherche.addEventListener('input', actualiser);
+  arbre.addEventListener('change', actualiser);
   actualiser();
 }
 
@@ -178,29 +191,4 @@ if (sequence) {
       suivant.focus();
     }
   });
-}
-
-for (const branche of document.querySelectorAll('[data-branche-rubrique]')) {
-  const parent = branche.querySelector('[data-bascule-rubrique]');
-  const panneau = branche.querySelector('details');
-  const resume = branche.querySelector('[data-rubrique-total]');
-  const titre = branche.querySelector('[data-rubrique-repli]');
-  const enfants = Array.from(branche.querySelectorAll('[name="rubriques"]'));
-  parent.closest('label').hidden = false;
-  resume.hidden = false;
-  titre.hidden = true;
-  panneau.querySelector('summary').setAttribute('aria-label', 'Sous-rubriques de ' + titre.textContent);
-  function actualiser() {
-    const nombre = enfants.filter(enfant => enfant.checked).length;
-    parent.checked = nombre === enfants.length;
-    parent.indeterminate = nombre > 0 && nombre < enfants.length;
-    resume.textContent = nombre + ' sur ' + enfants.length;
-  }
-  parent.addEventListener('change', () => {
-    for (const enfant of enfants) enfant.checked = parent.checked;
-    actualiser();
-  });
-  panneau.addEventListener('change', actualiser);
-  actualiser();
-  panneau.open = parent.indeterminate || enfants.length <= 2;
 }

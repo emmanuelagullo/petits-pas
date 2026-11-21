@@ -1,21 +1,30 @@
-<fieldset class="groupe-filtres">
-  <legend>Rubriques et sous-rubriques</legend>
+<div class="choix-competences-edition" data-recherche-competences>
   {{ formulaire.rubriques.errors }}
-  {% for racine, rubrique, cochee, enfants in formulaire.groupes_rubriques %}
-    {% if enfants %}
-      <div class="branche-rubrique" data-branche-rubrique>
-        <label hidden><input type="checkbox" data-bascule-rubrique> {{ rubrique }}</label>
-        <details open>
-          <summary><span data-rubrique-repli>{{ rubrique }}</span><span data-rubrique-total hidden></span></summary>
-          <div class="sous-rubriques-edition">
-            {% for cle, nom, actif in enfants %}
-              <label><input type="checkbox" name="rubriques" value="{{ cle }}"{% if actif %} checked{% endif %}> {{ nom }}</label>
-            {% endfor %}
-          </div>
-        </details>
-      </div>
-    {% else %}
-      <label><input type="checkbox" name="rubriques" value="{{ racine }}"{% if cochee %} checked{% endif %}> {{ rubrique }}</label>
-    {% endif %}
+  {{ formulaire.competences.errors }}
+  <div data-outils-competences hidden>
+    <label>Rechercher dans les compétences <input type="search"></label>
+    <label><input type="checkbox" data-competences-cochees> Afficher uniquement les compétences cochées</label>
+    <p role="status" data-compteur-competences></p>
+  </div>
+  {% for rubrique, groupes in formulaire.arbre_selection %}
+    <div data-branche-rubrique>
+      <label hidden><input type="checkbox" data-bascule-rubrique aria-label="Sélectionner toutes les compétences de {{ rubrique }}"></label>
+      <details>
+        <summary>{{ rubrique }} <span data-rubrique-total></span></summary>
+        {% for sous_rubrique, lignes in groupes.values %}
+          {% if groupes|length > 1 or sous_rubrique != "Sans sous-rubrique" %}
+            <div data-branche-rubrique>
+              <label hidden><input type="checkbox" data-bascule-rubrique aria-label="Sélectionner toutes les compétences de {{ sous_rubrique }}"></label>
+              <details>
+                <summary>{{ sous_rubrique }} <span data-rubrique-total></span></summary>
+                {% include "suivi/partiels/competences_edition.html" %}
+              </details>
+            </div>
+          {% else %}
+            {% include "suivi/partiels/competences_edition.html" %}
+          {% endif %}
+        {% endfor %}
+      </details>
+    </div>
   {% endfor %}
-</fieldset>
+</div>

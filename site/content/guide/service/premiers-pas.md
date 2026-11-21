@@ -15,7 +15,7 @@ description = "Rejoindre l’école et enregistrer une première observation sel
 
 | Fonction | Premier résultat utile |
 | --- | --- |
-| Responsable de classe | Ouvrir la classe puis **Gérer les enfants** pour vérifier ou compléter l’effectif. Ouvrir un élève, sélectionner **+** à droite d’une compétence, écrire une observation, puis **Ajouter la trace**. |
+| Responsable de classe | Ouvrir la classe puis **Gérer les élèves** pour vérifier ou compléter l’effectif. Ouvrir un élève, sélectionner **+** à droite d’une compétence, écrire une observation, puis **Ajouter la trace**. |
 | Enseignant associé | Ouvrir la classe puis un élève. Sélectionner **+** à droite d’une compétence, écrire une observation, puis **Ajouter la trace**. La décision d’acquisition et les carnets finaux restent au responsable. |
 | Contributeur | Ouvrir la classe puis un élève actif : **Ajouter une contribution pour…** s’ouvre. Choisir une compétence, écrire une observation, puis **Ajouter la trace**. Le suivi complet et les carnets ne sont pas ouverts par cette fonction. |
 

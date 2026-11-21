@@ -6,7 +6,7 @@ categorie = "eleves-classes"
 publics = ["responsable", "direction"]
 intentions = ["élève", "ajouter", "importer", "liste", "classe", "niveau", "naissance"]
 prerequis = "Vous êtes responsable de cette classe, ou membre de la direction."
-depart = "Classe → Gérer les enfants, ou Gérer l’école → classe · ajouter des enfants"
+depart = "Classe → Gérer les élèves, ou Gérer l’école → classe · ajouter des élèves"
 statut = "disponible"
 +++
 
@@ -16,7 +16,7 @@ statut = "disponible"
 2. Dans **Nouveaux élèves**, coller une ligne par enfant.
 3. Utiliser au choix un simple prénom ou le format
    `Prénom ; Nom ; Niveau ; Année de naissance`.
-4. Sélectionner **Ajouter ces enfants**.
+4. Sélectionner **Ajouter ces élèves**.
 
 Le niveau écrit sur une ligne remplace le niveau par défaut. Les tabulations
 sont acceptées comme séparateurs à la place des points-virgules.

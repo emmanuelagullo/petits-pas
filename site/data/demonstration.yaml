@@ -292,7 +292,7 @@ scenarios:
     parcours: guide
     etapes:
       - { action: classe, classe: coccinelles }
-      - { action: lien, nom: "Gérer les enfants" }
+      - { action: lien, nom: "Gérer les élèves" }
       - { action: titre, nom: "Composition de Les Coccinelles", exact: false }
     cible: "#composition-classe"
     capture: guide/classes/composition.png

@@ -1,6 +1,6 @@
 {% load static %}
 <fieldset>
-  <legend>Enfants</legend>
+  <legend>élève</legend>
   <label class="choix"><input type="checkbox" data-selection-tous> Sélectionner toute la classe</label>
   <div class="liste-selection">
     {% for eleve in eleves %}
@@ -8,7 +8,7 @@
       <label><input type="checkbox" name="eleves" value="{{ eleve.pk }}"{% if eleve.section_filtre %} data-section="{{ eleve.section_filtre }}"{% endif %} {% if eleve.version_personnelle %}aria-disabled="true" data-version-personnelle data-message="Une version personnelle existe pour {{ eleve.nom_court }} : retirez-la avant de réassocier cet élève."{% elif eleve.pk in selection_ids %}checked{% endif %}> {{ eleve.nom_court }} — {{ eleve.get_niveau_display }}</label>
       {% if eleve.version_personnelle %}<em><a href="{% url 'trace' eleve.pk competence.pk %}#trace-{{ eleve.version_personnelle.pk }}">version personnelle</a></em>{% endif %}
     </div>
-    {% empty %}<p>Cette classe n'a pas encore d'enfants.</p>{% endfor %}
+    {% empty %}<p>Cette classe n'a pas encore d'élèves.</p>{% endfor %}
   </div>
   <p data-selection-message role="status" aria-live="polite"></p>
 </fieldset>

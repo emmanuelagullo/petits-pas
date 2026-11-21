@@ -4,12 +4,12 @@
 {% include "suivi/partiels/ariane.html" with page="Traces communes" %}
 <h1>Traces communes</h1>
 {% if not peut_ajouter %}<p class="message">Cette compétence n’est pas disponible pour une nouvelle trace commune. Les traces déjà conservées restent consultables.</p>{% endif %}
-<p>Une trace commune s'affiche uniquement pour les enfants sélectionnés. Leur état d'acquisition ne change pas.</p>
+<p>Une trace commune s'affiche uniquement pour les élèves sélectionnés. Leur état d'acquisition ne change pas.</p>
 {% for item in communes %}
 <article class="encadre">
-  <p><strong>{{ item.date_observation|date:'j F Y' }}</strong> · {{ item.attributions_actives|length }} enfant(s)</p>
+  <p><strong>{{ item.date_observation|date:'j F Y' }}</strong> · {{ item.attributions_actives|length }} élève(s)</p>
   <p>{{ item.commentaire }}</p>
-  {% if responsable %}<a href="{% url 'modifier_trace_commune' classe.pk competence.pk item.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">Modifier pour les enfants associés</a>{% endif %}
+  {% if responsable %}<a href="{% url 'modifier_trace_commune' classe.pk competence.pk item.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}">Modifier pour les élèves associés</a>{% endif %}
   {% if responsable %}<form method="post" action="{% url 'supprimer_trace_commune' classe.pk competence.pk item.pk %}{% if filtre != 'tous' %}?niveaux={{ filtre }}{% endif %}" onsubmit="return confirm('Retirer cette trace commune des carnets associés ? Les versions personnelles seront conservées.');">{% csrf_token %}<button class="bouton discret" type="submit">Retirer cette trace commune</button></form>{% endif %}
 </article>
 {% endfor %}

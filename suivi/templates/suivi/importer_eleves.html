@@ -1,8 +1,8 @@
 {% extends "suivi/base.html" %}
 {% load navigation_suivi %}
-{% block titre %}Ajouter des enfants{% endblock %}
+{% block titre %}Ajouter des élèves{% endblock %}
 {% block contenu %}
-{% ariane_classe "Gérer les enfants" classe %}
+{% ariane_classe "Gérer les élèves" classe %}
 
 <form method="get" class="reglage-niveau-defaut">
   <label for="niveau_defaut_page">Niveau par défaut de la classe</label>
@@ -32,9 +32,9 @@
       <button class="bouton discret" type="submit">Retirer de la classe</button>
     </form>
     {% endif %}
-    <form method="post" onsubmit="return confirm('Retirer {{ scolarite.eleve.prenom|escapejs }} de {{ classe.nom|escapejs }} et l\'archiver ?');">
+    <form method="post" onsubmit="return confirm('Archiver {{ scolarite.eleve.prenom|escapejs }} en conservant son parcours et ses affectations ?');">
       {% csrf_token %}<input type="hidden" name="action" value="retirer_et_archiver"><input type="hidden" name="eleve" value="{{ scolarite.eleve.pk }}">
-      <button class="bouton discret" type="submit">Retirer et archiver</button>
+      <button class="bouton discret" type="submit">Archiver l’élève</button>
     </form>
     {% if autres_classes_annee %}
     <form method="post">
@@ -51,9 +51,9 @@
 {% endif %}
 
 {% if composition %}
-<h2>Ajouter des enfants à {{ classe.libelle_avec_annee }}</h2>
+<h2>Ajouter des élèves à {{ classe.libelle_avec_annee }}</h2>
 {% else %}
-<h1>Ajouter des enfants à {{ classe.libelle_avec_annee }}</h1>
+<h1>Ajouter des élèves à {{ classe.libelle_avec_annee }}</h1>
 {% endif %}
 <p class="sous-titre">Collez une liste de nouveaux élèves. Toute correspondance avec un dossier existant sera soumise à la direction, sans fusion automatique.</p>
 
@@ -145,6 +145,6 @@
     <option value="GS"{% if niveau_defaut_page == "GS" %} selected{% endif %}>Grande section</option>
   </select>
 
-  <div class="actions"><button class="bouton" type="submit" data-champ-action-requis="liste">Ajouter ces enfants</button></div>
+  <div class="actions"><button class="bouton" type="submit" data-champ-action-requis="liste">Ajouter ces élèves</button></div>
 </form>
 {% endblock %}
