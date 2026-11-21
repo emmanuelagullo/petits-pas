@@ -134,7 +134,7 @@
   <label for="liste">La liste
     <span class="aide">Un prénom par ligne suffit. Pour aller plus loin : <code>Prénom ; Nom ; PS ; 2021</code>.</span>
   </label>
-  <textarea id="liste" name="liste" autofocus placeholder="Camille&#10;Sofiane ; Benali ; MS ; 2021&#10;Lou ; Trémeur ; GS ; 2020"></textarea>
+  <textarea id="liste" name="liste" required autofocus placeholder="Camille&#10;Sofiane ; Benali ; MS ; 2021&#10;Lou ; Trémeur ; GS ; 2020"></textarea>
 
   <label for="niveau">Niveau par défaut
     <span class="aide">Appliqué aux lignes où vous ne l'avez pas précisé.</span>
@@ -145,6 +145,6 @@
     <option value="GS"{% if niveau_defaut_page == "GS" %} selected{% endif %}>Grande section</option>
   </select>
 
-  <div class="actions"><button class="bouton" type="submit">Ajouter ces enfants</button></div>
+  <div class="actions"><button class="bouton" type="submit" data-champ-action-requis="liste">Ajouter ces enfants</button></div>
 </form>
 {% endblock %}

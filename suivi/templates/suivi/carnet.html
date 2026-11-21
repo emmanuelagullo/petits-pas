@@ -19,7 +19,7 @@
   {% if presentation_initiale_reprise %}<p>La présentation de cette année reprend les choix disponibles lors de la reprise des données. Les anciens choix de présentation n’ont pas pu être reconstitués.</p>{% endif %}
 
   {% if not generation_pdf and not impression_pwa %}
-  <form method="get" class="barre-filtres-edition" data-barre-filtres data-apercu-carnet>
+  <form method="get" class="rubriques-edition" data-apercu-carnet>
     <div>{% if annee_selectionnee %}Année scolaire {{ annee_selectionnee }}{% else %}Parcours complet{% endif %}</div>
     <input type="hidden" name="options_appliquees" value="1">
     {% if retour_grille %}<input type="hidden" name="retour" value="{{ retour_grille }}">{% endif %}

@@ -1207,3 +1207,23 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
   .barre-filtres-active > p, .barre-filtres-active > div:not(.commandes-filtres) { grid-row: auto; }
   .commandes-filtres { grid-column: 1; }
 }
+
+.rubriques-edition > details {
+  margin-block: .6rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+.rubriques-edition > details[hidden] { display: none; }
+.rubriques-edition > details > summary.bouton {
+  display: list-item;
+  box-sizing: border-box;
+  min-height: auto;
+  padding: .65rem .85rem;
+  border: 0;
+  font-weight: 650;
+  background: var(--surface);
+}
+.rubriques-edition > details[open] { padding: 0 .85rem .85rem; }
+.rubriques-edition > details[open] > summary { margin: 0 -.85rem .65rem; border-bottom: 1px solid var(--trait); }
+.rubriques-edition input:disabled, .rubriques-edition select:disabled { background: #e6e9eb; color: #535d65; }
+.inclusion-rubrique { color: #535d65; font-size: .85em; margin-inline-start: .35rem; }

@@ -1887,6 +1887,28 @@ class GrilleCompetence(Base):
         self.assertEqual(reponse.context["nb_competences"], 1)
         self.assertEqual(reponse.context["compteurs"]["reussi"], 1)
 
+    def test_periodes_symboliques_et_duree_inclusive(self):
+        from datetime import timedelta
+        from .selection_editions import FiltresEdition
+
+        rentree, _ = bornes_annee_scolaire(self.classe.annee_scolaire)
+        reference = rentree + timedelta(days=45)
+        Bilan.objects.create(
+            scolarite=self.eleve.scolarite_courante(),
+            date_bilan=reference - timedelta(days=3), texte="Bilan de période",
+        )
+        with patch("suivi.selection_editions.timezone.localdate", return_value=reference):
+            for choix, debut in (("7j", reference - timedelta(days=6)), ("bilan", reference - timedelta(days=3))):
+                formulaire = FiltresEdition(self.classe, {"observations": "periode", "periode": choix})
+                self.assertTrue(formulaire.is_valid(), formulaire.errors)
+                self.assertEqual((formulaire.cleaned_data["debut"], formulaire.cleaned_data["fin"]),
+                                 (debut, reference))
+        formulaire = FiltresEdition(self.classe, {
+            "observations": "reussites", "calcul_periode": "duree", "debut": reference, "duree": 7,
+        })
+        self.assertTrue(formulaire.is_valid(), formulaire.errors)
+        self.assertEqual(formulaire.cleaned_data["fin"], reference + timedelta(days=6))
+
     def test_filtrer_la_date_de_reussite_garde_les_etats_de_la_classe(self):
         observation = Observation.objects.get(eleve=self.reussi, competence=self.competence)
         debut, _ = bornes_annee_scolaire(self.classe.annee_scolaire)

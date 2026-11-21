@@ -17,7 +17,7 @@
     <form method="post">{% csrf_token %}<input type="hidden" name="action" value="telecharger">
       <label for="mot-de-passe-telechargement">Votre mot de passe sur ce service</label>
       <input id="mot-de-passe-telechargement" name="mot_de_passe" type="password" autocomplete="current-password" required>
-      <button type="submit">Télécharger le ZIP</button>
+      <button class="bouton" type="submit" data-champ-action-requis="mot_de_passe">Télécharger le ZIP</button>
     </form>
     <p class="aide">Le téléchargement peut être repris tant que la copie reste disponible et que votre autorisation est conservée.</p>
   {% elif export.etat == "echec" %}<p class="encadre">{{ export.erreur }}</p>

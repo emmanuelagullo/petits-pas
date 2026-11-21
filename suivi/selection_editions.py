@@ -1,12 +1,14 @@
 """Sélection de classe commune à la grille et aux éditions."""
 from dataclasses import dataclass
+from datetime import date, timedelta
 from itertools import groupby
 
 from django import forms
 from django.http import QueryDict
+from django.utils import timezone
 
 from .lectures_eleves import avec_scolarites_pour_lecture
-from .models import Observation, Trace, bornes_annee_scolaire
+from .models import Bilan, Observation, Trace, bornes_annee_scolaire
 from .referentiels import arbre_competences, observations_classe
 from .templatetags.suivi_libre import groupes_suivi
 
@@ -35,7 +37,11 @@ class FiltresEdition(forms.Form):
     competences = forms.MultipleChoiceField(label="Compétences précises", required=False, widget=forms.CheckboxSelectMultiple)
     niveaux = forms.MultipleChoiceField(label="Section de classement des compétences", required=False,
                                         choices=sections, widget=forms.CheckboxSelectMultiple)
-    observations = forms.ChoiceField(choices=(("", "Selon la sélection"), *modes), required=False)
+    observations = forms.ChoiceField(label="Quelles observations retenir ?", choices=(("", "Automatique"), *modes), required=False)
+    periode = forms.ChoiceField(label="Période", required=False)
+    calcul_periode = forms.ChoiceField(label="Calculer la période", required=False,
+        choices=(("dates", "Deux dates"), ("duree", "Date de début et durée")))
+    duree = forms.IntegerField(label="Durée en jours", required=False, min_value=1, max_value=366)
     debut = forms.DateField(label="Du", required=False, widget=forms.DateInput(attrs={"type": "date"}))
     fin = forms.DateField(label="Au", required=False, widget=forms.DateInput(attrs={"type": "date"}))
     compacte = forms.ChoiceField(label="Présentation de la grille", required=False, choices=(
@@ -45,6 +51,26 @@ class FiltresEdition(forms.Form):
     def __init__(self, classe, donnees, *, competence=None, initial=None):
         super().__init__(donnees, initial=initial)
         self.classe = classe
+        rentree, fin_annee = bornes_annee_scolaire(classe.annee_scolaire)
+        reference = min(fin_annee, max(rentree, timezone.localdate()))
+        dernier_bilan = Bilan.objects.filter(
+            scolarite__classe=classe, supprime_le__isnull=True, visible_carnet=True,
+            date_bilan__range=(rentree, reference),
+        ).order_by("-date_bilan").values_list("date_bilan", flat=True).first() if not competence else None
+        raccourcis = [
+            ("rentree", "Depuis la rentrée", rentree),
+            ("30j", "30 derniers jours", reference - timedelta(days=29)),
+            ("14j", "14 derniers jours", reference - timedelta(days=13)),
+            ("7j", "7 derniers jours", reference - timedelta(days=6)),
+            ("semaine", "Semaine en cours", reference - timedelta(days=reference.weekday())),
+        ]
+        if dernier_bilan:
+            raccourcis.insert(1, ("bilan", "Depuis le dernier bilan de la classe", dernier_bilan))
+        self.periodes = {cle: (max(rentree, debut).isoformat(), reference.isoformat())
+                         for cle, _, debut in raccourcis}
+        self.fields["periode"].choices = [
+            ("", "Dates personnalisées"), *((cle, nom) for cle, nom, _ in raccourcis),
+        ]
         self.eleves = list(avec_scolarites_pour_lecture(classe.eleves))
         self.sections_classe = dict(classe.scolarites.values_list("eleve_id", "niveau"))
         for eleve in self.eleves:
@@ -73,6 +99,9 @@ class FiltresEdition(forms.Form):
         self.fields["rubriques"].choices = list(dict(rubriques).items())
         self.fields["competences"].choices = list({str(c.competence.pk): c.competence.libelle for c in self.colonnes}.items())
 
+    def competences_par_groupe(self):
+        return {str(c.competence.pk): c.groupe for c in self.colonnes}
+
     def groupes_rubriques(self):
         valeurs = set(self["rubriques"].value() or ())
         libelles = dict(self.fields["rubriques"].choices)
@@ -91,6 +120,19 @@ class FiltresEdition(forms.Form):
         mode = valeurs.get("observations")
         debut, fin = valeurs.get("debut"), valeurs.get("fin")
         if mode in {"periode", "reussites"}:
+            if raccourci := self.periodes.get(valeurs.get("periode")):
+                debut, fin = map(date.fromisoformat, raccourci)
+            elif valeurs.get("calcul_periode") == "duree":
+                duree = valeurs.get("duree")
+                if not duree:
+                    self.add_error("duree", "Indiquez une durée en jours.")
+                    fin = None
+                elif debut:
+                    try:
+                        fin = debut + timedelta(days=duree - 1)
+                    except OverflowError:
+                        fin = None
+            valeurs["debut"], valeurs["fin"] = debut, fin
             if not debut:
                 self.add_error("debut", "Indiquez le début de la période.")
             if not fin:
@@ -98,7 +140,8 @@ class FiltresEdition(forms.Form):
             if debut and fin and fin < debut:
                 self.add_error("fin", "La fin doit suivre le début.")
         else:
-            valeurs["debut"] = valeurs["fin"] = None
+            for cle in ("debut", "fin", "periode", "calcul_periode", "duree"):
+                valeurs[cle] = None
         return valeurs
 
     def parametres(self):

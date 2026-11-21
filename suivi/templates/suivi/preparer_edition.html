@@ -16,7 +16,7 @@
     <option value="cartes"{% if format_edition == "cartes" %} selected{% endif %}>Cartes à découper</option>
   </select>
 
-  <div class="barre-filtres-edition" data-barre-filtres>
+  <div class="rubriques-edition">
     <p data-resume-eleves>{{ selection_ids|length }} enfant{{ selection_ids|length|pluralize }} · <span data-resume-annee>{% if parcours_complet %}Parcours complet{% else %}{{ classe.annee_scolaire }}{% endif %}</span></p>
     {% include "suivi/partiels/filtres_edition.html" with filtres_carnet=True %}
   {% include "suivi/partiels/options_carnet.html" %}

@@ -106,6 +106,17 @@
     if (modifications(formulaire) && !window.confirm(message)) event.preventDefault();
     else if (!formulaire.hasAttribute('hx-post')) accepterSortie();
   });
+  for (const bouton of document.querySelectorAll('[data-champ-action-requis]')) {
+    const champ = bouton.form.elements[bouton.dataset.champActionRequis];
+    const actualiser = () => {
+      const valeur = champ.type === 'password' ? champ.value : champ.value.trim();
+      bouton.disabled = !valeur || !champ.validity.valid;
+    };
+    champ.addEventListener('input', actualiser);
+    champ.addEventListener('change', actualiser);
+    window.addEventListener('pageshow', actualiser);
+    actualiser();
+  }
   document.addEventListener('htmx:load', preparerPage);
   window.addEventListener('pageshow', () => {
     sortieConfirmee = false;
