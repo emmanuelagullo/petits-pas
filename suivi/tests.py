@@ -1719,6 +1719,16 @@ class EditionClasse(Base):
         self.assertEqual(self.client.post(self.url, donnees)["Content-Type"], "application/pdf")
         self.assertEqual(generer.call_args.args[2]["annee"], "")
 
+    def test_apercu_groupe_garde_un_seul_titre_principal(self):
+        reponse = self.client.post(self.url, {
+            "format": "pdf", "action": "apercu",
+            "eleves": [self.eleve.pk, self.autre_eleve.pk],
+        })
+        self.assertContains(reponse, "<h1", count=1)
+        self.assertContains(reponse, "<h1>Carnets à imprimer</h1>", html=True)
+        self.assertContains(reponse, f"<h2>{self.eleve.nom_court}</h2>", html=True)
+        self.assertContains(reponse, f"<h2>{self.autre_eleve.nom_court}</h2>", html=True)
+
     @patch("suivi.views._generer_pdf", return_value=b"%PDF-groupe")
     def test_pdf_unique_reutilise_les_deux_carnets(self, generer):
         reponse = self.client.post(self.url, {
