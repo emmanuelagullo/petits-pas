@@ -7,6 +7,14 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+* 0.16 — 2026-11-21
+
+Cette version ajoute la grille de suivi de classe, les éditions groupées et
+les cartes à découper. Le programme autonome et l’application dans le
+navigateur proposent aussi une récupération d’accès sans courriel.
+
+** Grilles, carnets et cartes
+
 - Consulter la grille de classe par élève, compétence, rubrique et période.
   Ouvrir le suivi d’un élève et retrouver sa ligne au retour. Reprendre les
   filtres de la session et imprimer une grille compacte.
@@ -18,6 +26,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   « Carnet et parcours ». Le sommaire latéral préserve la largeur du contenu.
 - Retrouver les commandes administratives sous « Gérer les élèves ». Les
   réglages de couverture, d’illustrations et de formulations ont un fil d’Ariane.
+
+** Récupération d’accès sur l’appareil
+
 - Retrouver l’accès à son compte sur le programme et dans le navigateur de cet
   appareil sans courriel : clé de secours remise à l’installation, dernier
   recours (nouveau mot de passe depuis l’appareil) que l’école autorise ou non,
@@ -30,10 +41,20 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
   dernier recours (« Plus tard » le reporte) ; le texte de « Mon compte » dit
   clairement ce qui se passe sans clé.
 
+** Référentiels fournis
+
 - Proposer le même catalogue de référentiels au démarrage local quel que soit
   le choix initial, y compris la trame Petits Pas. La direction peut compléter
   le catalogue d’une école existante pour l’année choisie. Les classes
   conservent leur référentiel et leurs observations.
+
+** Avant la mise à jour
+
+- Sur un appareil, garder une sauvegarde récente hors de l’appareil. Dans le
+  navigateur, retrouver l’école à la même adresse et dans le même profil.
+  Après la mise à jour, conserver la clé de secours à part de l’appareil.
+- Pour un service existant, appliquer la procédure habituelle avec sauvegarde,
+  installation des dépendances, migrations et collecte des fichiers statiques.
 
 * 0.15 — 2026-11-20
 
