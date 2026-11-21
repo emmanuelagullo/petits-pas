@@ -552,6 +552,7 @@ with tempfile.TemporaryDirectory() as dossier:
   await grid.close();
   pass('Carnet PDF Chromium avec photo et texte, grille imprimable, bouton impression');
   await page.frames()[1].goto(url + `app/classe/${ids.classe}/edition/`);
+  await frame.locator('#preparer-carnets summary').filter({hasText: /^Filtres$/}).click();
   await frame.locator(`input[name="eleves"][value="${ids.eleve}"]`).check();
   await frame.getByRole('button', {name: 'Préparer l’impression des carnets', exact: true}).click();
   await frame.getByRole('heading', {name: 'Carnets à imprimer', exact: true}).waitFor();
