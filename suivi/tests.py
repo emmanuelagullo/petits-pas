@@ -1402,6 +1402,12 @@ class Bascule(Base):
         ).first()
         return obs.statut if obs else None
 
+    def test_sommaire_de_la_fiche_eleve(self):
+        reponse = self.client.get(reverse("saisie_eleve", args=[self.eleve.pk]))
+        self.assertContains(reponse, 'data-titre-sommaire="competences-eleve"')
+        self.assertContains(reponse, 'data-zone-sommaire="carnet-parcours"')
+        self.assertContains(reponse, "Carnet et parcours")
+
     def test_le_cycle_complet(self):
         self.client.post(self.url)
         self.assertEqual(self.etat(), "reussi")
