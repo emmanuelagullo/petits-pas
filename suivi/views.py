@@ -2600,7 +2600,7 @@ def preparer_edition(request, pk):
             # Le fragment commun échappe le contenu de chaque carnet.
             contexte["carnets"] = [mark_safe(render_to_string(
                 "suivi/partiels/carnet_contenu.html",
-                {**carnet, "generation_pdf": generation_pdf}, request=request,
+                {**carnet, "generation_pdf": generation_pdf, "apercu_groupe": not generation_pdf}, request=request,
             )) for carnet in contextes]
         if not generation_pdf:
             return render(request, gabarit, contexte)

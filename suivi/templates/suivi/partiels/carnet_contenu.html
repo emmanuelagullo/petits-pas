@@ -3,7 +3,7 @@
     <p class="nom-ecole">{{ ecole.nom }}</p>
     <div>
       <p class="sur-titre">{{ parametres_carnet.titre_couverture }}</p>
-      <h1>{{ eleve.nom_court }}</h1>
+      {% if apercu_groupe %}<h2>{{ eleve.nom_court }}</h2>{% else %}<h1>{{ eleve.nom_court }}</h1>{% endif %}
       <p>{{ scolarite.classe.nom }}</p>
       <p>{{ scolarite.get_niveau_display }} · Année scolaire {{ scolarite.annee_scolaire }}</p>
       {% if eleve.annee_naissance %}<p>Né(e) en {{ eleve.annee_naissance }}</p>{% endif %}
