@@ -16,7 +16,7 @@ PARCOURS_CAPTURE = {
     "collaborateurs",
     "guide",
 }
-ACTIONS_CAPTURE_GUIDE = {"classe", "lien", "selecteur", "titre", "visible", "remplir"}
+ACTIONS_CAPTURE_GUIDE = {"classe", "lien", "selecteur", "titre", "visible", "remplir", "choisir"}
 
 
 def _exiger_chaine(valeur, chemin):
@@ -258,6 +258,8 @@ def charger_configuration_demo(chemin):
                     )
                     if action == "remplir":
                         _exiger_chaine(etape.get("texte"), f"{chemin_etape}.texte")
+                    elif action == "choisir":
+                        _exiger_chaine(etape.get("valeur"), f"{chemin_etape}.valeur")
         elif etapes is not None:
             raise ValueError(
                 f"Configuration de démonstration invalide : {chemin_scenario}.etapes."

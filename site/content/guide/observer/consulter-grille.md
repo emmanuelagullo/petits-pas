@@ -26,6 +26,8 @@ statut = "disponible"
    **Préparer l’impression / PDF**. **Préparer une édition** reprend la sélection
    pour produire des carnets ou des cartes à découper.
 
+{{< capture-guide src="captures/guide/observer/grille-classe.png" alt="Grille fictive avec les élèves en lignes et les compétences en colonnes" caption="La grille regroupe les compétences par rubrique et sous-rubrique. Les symboles et les couleurs indiquent les états." >}}
+
 Les élèves sont en lignes. Les colonnes sont regroupées par rubrique et
 sous-rubrique. En mode compact, leur numéro renvoie au libellé complet.
 Sur un écran étroit, choisir **Une compétence à la fois** dans **Mise en page**.
