@@ -16,7 +16,7 @@
 <form method="post" class="formulaire-contextuel">
   {% csrf_token %}
   <input type="hidden" name="action" value="nouvelle_cle_secours">
-  <p class="aide">{% if a_une_cle %}Vous avez une clé de secours pour retrouver l’accès si vous oubliez votre mot de passe.{% else %}Vous n’avez pas de clé de secours : sans elle, un oubli ne se répare que par l’école.{% endif %} En créer une nouvelle remplace l’ancienne.</p>
+  <p class="aide">{% if a_une_cle %}Vous avez une clé de secours pour retrouver l’accès si vous oubliez votre mot de passe.{% elif dernier_recours_autorise %}Vous n’avez pas de clé de secours. En cas d’oubli, le dernier recours de cet appareil vous laissera choisir un nouveau mot de passe ; une clé reste plus sûre.{% else %}Vous n’avez pas de clé de secours : sans elle, un mot de passe oublié ne pourra pas être retrouvé, sauf par une autre personne de la direction.{% endif %} En créer une nouvelle remplace l’ancienne.</p>
   <button class="bouton discret" type="submit">{% if a_une_cle %}Obtenir une nouvelle clé de secours{% else %}Obtenir une clé de secours{% endif %}</button>
 </form>
 {% endif %}

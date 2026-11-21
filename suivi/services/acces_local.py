@@ -27,6 +27,7 @@ from .double_facteur import journaliser_securite_compte
 ACTION_REINITIALISE = "mot_de_passe_reinitialise"
 MOYEN_CLE = "cle_de_secours"
 MOYEN_DERNIER_RECOURS = "dernier_recours"
+SESSION_PLUS_TARD = "acces_local_plus_tard"
 
 
 def disponible():
@@ -66,6 +67,21 @@ def definir_dernier_recours(*, acteur, ecole, autorise_recours):
                         anciennes={"autorise": ancien},
                         nouvelles={"autorise": ligne.dernier_recours})
     return ligne
+
+
+def mise_a_niveau_a_proposer(utilisateur, ecole, session):
+    """Vrai pour la direction d'une installation antérieure à la clé de secours.
+
+    Une école n'a « fait le choix » du dernier recours qu'une fois sa ligne
+    créée : à l'installation, ou depuis « Accès sur cet appareil ». Tant que ce
+    n'est pas fait, la direction se voit proposer un écran, une fois par session
+    (« Plus tard » le masque jusqu'à la connexion suivante).
+    """
+    if not disponible() or ecole is None or session.get(SESSION_PLUS_TARD):
+        return False
+    if not autorise(utilisateur, ADMINISTRER_ECOLE, ecole=ecole):
+        return False
+    return not RecoursLocalEcole.objects.filter(ecole=ecole).exists()
 
 
 def comptes_reinitialisables(ecole):

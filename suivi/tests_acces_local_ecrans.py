@@ -251,3 +251,90 @@ class SignalementALaConnexionEcran(TestCase):
             "nom_utilisateur": "lea", "mot_de_passe": "ancien-mot-de-passe"}, follow=True)
         textes = [str(m) for m in get_messages(reponse.wsgi_request)]
         self.assertTrue(any("Le mot de passe de Paul Test a été réinitialisé" in t for t in textes), textes)
+
+
+@LOCAL
+class MiseANiveauDeLInstallationExistante(TestCase):
+    """Direction d'une installation antérieure : ni clé, ni choix de l'école."""
+
+    def setUp(self):
+        self.ecole, (self.lea, self.paul) = creer_ecole_locale(noms=("lea", "paul"))
+        self.client.force_login(self.lea)
+
+    def test_l_accueil_mene_une_fois_a_l_ecran_propose(self):
+        reponse = self.client.get(reverse("accueil"))
+        self.assertRedirects(reponse, reverse("mise_a_niveau_acces"))
+        page = self.client.get(reverse("mise_a_niveau_acces"))
+        self.assertContains(page, "Nouveau : une clé de secours")
+        self.assertContains(page, "Elle vous sera remise à l’étape suivante")
+        self.assertContains(page, 'name="dernier_recours" checked')
+        self.assertContains(page, "Plus tard")
+        self.assertNotContains(page, 'name="cle"')
+
+    def test_continuer_autorise_et_remet_la_cle_sans_preuve(self):
+        reponse = self.client.post(reverse("mise_a_niveau_acces"), {"dernier_recours": "on"})
+        self.assertRedirects(reponse, reverse("cle_secours"))
+        page = self.client.get(reverse("cle_secours"))
+        self.assertFalse(page.context["preuve"])
+        self.assertEqual(secours_local.compte_par_cle(page.context["cle"]), self.lea)
+        self.assertTrue(acces_local.dernier_recours_autorise(self.ecole))
+        suite = self.client.post(reverse("cle_secours"))
+        self.assertRedirects(suite, reverse("accueil"), fetch_redirect_response=False)
+        self.assertEqual(self.client.get(reverse("accueil")).status_code, 200)
+
+    def test_decocher_exige_de_recopier_la_cle_remise(self):
+        self.client.post(reverse("mise_a_niveau_acces"), {})
+        self.assertFalse(acces_local.dernier_recours_autorise(self.ecole))
+        self.assertTrue(RecoursLocalEcole.objects.filter(ecole=self.ecole).exists())
+        self.assertTrue(self.client.get(reverse("cle_secours")).context["preuve"])
+
+    def test_plus_tard_masque_l_ecran_jusqu_a_la_connexion_suivante(self):
+        reponse = self.client.post(reverse("mise_a_niveau_acces"), {"action": "plus_tard"})
+        self.assertRedirects(reponse, reverse("accueil"))
+        self.assertEqual(self.client.get(reverse("accueil")).status_code, 200)
+        self.assertFalse(RecoursLocalEcole.objects.exists())
+        self.assertFalse(secours_local.possede_une_cle(self.lea))
+        autre_session = self.client_class()
+        autre_session.force_login(self.lea)
+        self.assertRedirects(autre_session.get(reverse("accueil")), reverse("mise_a_niveau_acces"))
+
+    def test_avec_une_cle_deja_la_les_cle_n_est_pas_remplacee(self):
+        cle = secours_local.creer_cle(self.lea)
+        page = self.client.get(reverse("mise_a_niveau_acces"))
+        self.assertContains(page, "Vous avez déjà une clé de secours")
+        reponse = self.client.post(reverse("mise_a_niveau_acces"), {"dernier_recours": "on"})
+        self.assertRedirects(reponse, reverse("accueil"), fetch_redirect_response=False)
+        self.assertEqual(secours_local.compte_par_cle(cle), self.lea)
+
+    def test_avec_une_cle_deja_la_decocher_demande_la_cle(self):
+        cle = secours_local.creer_cle(self.lea)
+        refus = self.client.post(reverse("mise_a_niveau_acces"), {"cle": "AAAA-AAAA-AAAA-AAAA"})
+        self.assertContains(refus, 'aria-invalid="true"')
+        self.assertFalse(RecoursLocalEcole.objects.exists())
+        ok = self.client.post(reverse("mise_a_niveau_acces"), {"cle": cle.lower()})
+        self.assertRedirects(ok, reverse("accueil"), fetch_redirect_response=False)
+        self.assertFalse(acces_local.dernier_recours_autorise(self.ecole))
+        self.assertTrue(RecoursLocalEcole.objects.exists())
+
+    def test_rien_pour_une_ecole_qui_a_deja_choisi(self):
+        RecoursLocalEcole.objects.create(ecole=self.ecole, dernier_recours=False)
+        self.assertEqual(self.client.get(reverse("accueil")).status_code, 200)
+        self.assertRedirects(self.client.get(reverse("mise_a_niveau_acces")), reverse("accueil"),
+                             fetch_redirect_response=False)
+
+    def test_seule_la_direction_se_voit_proposer_l_ecran(self):
+        self.assertTrue(acces_local.mise_a_niveau_a_proposer(self.lea, self.ecole, {}))
+        self.assertFalse(acces_local.mise_a_niveau_a_proposer(self.paul, self.ecole, {}))
+
+    @override_settings(ACCES_LOCAL_AUTONOME=False)
+    def test_hors_profil_local_rien_ne_change(self):
+        self.assertEqual(self.client.get(reverse("accueil")).status_code, 200)
+        self.assertEqual(self.client.get(reverse("mise_a_niveau_acces")).status_code, 404)
+
+    def test_mon_compte_ne_parle_plus_de_l_ecole_pour_un_oubli(self):
+        sans = self.client.get(reverse("mon_compte"))
+        self.assertContains(sans, "ne pourra pas être retrouvé, sauf par une autre personne de la direction")
+        self.assertNotContains(sans, "ne se répare que par l’école")
+        acces_local.definir_dernier_recours(acteur=self.lea, ecole=self.ecole, autorise_recours=True)
+        avec = self.client.get(reverse("mon_compte"))
+        self.assertContains(avec, "le dernier recours de cet appareil vous laissera choisir")

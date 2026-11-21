@@ -606,6 +606,39 @@ def acces_local_ecole(request):
         "erreur": erreur})
 
 
+@never_cache
+@acces_requis
+def mise_a_niveau_acces(request):
+    """Une fois, pour la direction d'une installation existante : clé et dernier recours."""
+    if not acces_local.disponible():
+        raise Http404
+    ecole = ecole_courante(request)
+    if not acces_local.mise_a_niveau_a_proposer(request.user, ecole, request.session):
+        return redirect("accueil")
+    a_une_cle = secours_local.possede_une_cle(request.user)
+    erreur = None
+    if request.method == "POST":
+        if request.POST.get("action") == "plus_tard":
+            request.session[acces_local.SESSION_PLUS_TARD] = True
+            return redirect("accueil")
+        voulu = request.POST.get("dernier_recours") == "on"
+        if a_une_cle and not voulu and not secours_local.cle_correspond(
+                request.user, request.POST.get("cle", "")):
+            erreur = ("Pour ne pas autoriser le dernier recours, recopiez votre clé de secours : "
+                      "elle devient alors votre seule issue en cas d’oubli.")
+        else:
+            acces_local.definir_dernier_recours(
+                acteur=request.user, ecole=ecole, autorise_recours=voulu)
+            if not a_une_cle:
+                _remettre_cle_secours(request, acces_local.generer_cle(request.user),
+                                      suite=reverse("accueil"), preuve=not voulu)
+                return redirect("cle_secours")
+            messages.success(request, "C’est enregistré.")
+            return redirect("accueil")
+    return render(request, "suivi/mise_a_niveau_acces.html", {
+        "a_une_cle": a_une_cle, "erreur": erreur})
+
+
 SESSION_CLE_SECOURS = "cle_secours_a_montrer"
 
 
@@ -869,7 +902,8 @@ def mon_compte(request):
         {"formulaire": formulaire, "affectations": affectations,
          "double_facteur_propose": double_facteur_propose,
          "double_facteur_inscrit": double_facteur_propose and totp.est_inscrit(request.user),
-         "a_une_cle": acces_local.disponible() and secours_local.possede_une_cle(request.user)},
+         "a_une_cle": acces_local.disponible() and secours_local.possede_une_cle(request.user),
+         "dernier_recours_autorise": acces_local.dernier_recours_autorise()},
     )
 
 
@@ -1006,6 +1040,8 @@ def accueil(request):
     if (settings.MODE_LOCAL and est_direction(request.user, ecole)
             and lire_resultat(Path(settings.DATABASES["default"]["NAME"]).parent)):
         return redirect("sauvegardes_locales")
+    if acces_local.mise_a_niveau_a_proposer(request.user, ecole, request.session):
+        return redirect("mise_a_niveau_acces")
     classes = classes_accessibles(request.user, VOIR_CLASSE, ecole).annotate(
         nb_eleves=Count(
             "scolarites__eleve",
