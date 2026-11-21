@@ -47,7 +47,9 @@ ou **Depuis le dernier bilan de la classe** si un bilan visible existe), ou
 **Dates personnalisées**. Pour les dates personnalisées, saisir deux dates ou
 une date de début et une durée. Les deux bornes sont incluses.
 
-**Automatique** privilégie les compétences observées. Une rubrique ou une
+Si aucune compétence n’est cochée, toutes les compétences suivies sont prises
+en compte avant le filtre d’observations. **Automatique** privilégie les
+compétences observées. Une rubrique ou une
 compétence cochée peut faire apparaître des compétences encore sans observation.
 Pour les afficher indépendamment de toute observation, choisir **Toutes les
 compétences suivies**. La période choisit les colonnes. Les couleurs restent
