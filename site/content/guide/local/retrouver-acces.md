@@ -44,6 +44,17 @@ Si le dernier recours n’est pas autorisé et que la clé est perdue, une autre
 personne de la direction peut obtenir un lien (voir plus bas). Sinon, l’accès ne
 peut pas être retrouvé : c’est le prix de ce choix.
 
+## Après une mise à jour
+
+Une installation créée avant cette fonction n’a ni clé de secours ni choix de
+l’école. À la première visite de l’accueil, la direction voit **Nouveau : une clé
+de secours** : **Continuer** enregistre le choix du dernier recours (case cochée
+par défaut) et remet la clé, **Plus tard** masque l’écran jusqu’à la connexion
+suivante. Les autres personnes ne voient rien : elles peuvent obtenir leur clé
+depuis **Mon compte**. Une personne déjà bloquée avant la mise à jour ne peut pas
+être aidée par ce biais ; si plusieurs personnes utilisent l’appareil, la
+direction peut lui remettre un lien (voir plus bas).
+
 ## Choisir si le dernier recours est autorisé
 
 - **À l’installation**, la case **Autoriser un dernier recours** est cochée par

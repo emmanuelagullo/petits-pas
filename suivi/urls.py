@@ -47,6 +47,7 @@ urlpatterns = [
     path("verifier-zip/", views.verifier_zip_local, name="verifier_zip_local"),
     path("installation/", views.installation_locale, name="installation_locale"),
     path("mon-compte/cle-de-secours/", views.cle_secours, name="cle_secours"),
+    path("bienvenue/acces-sur-l-appareil/", views.mise_a_niveau_acces, name="mise_a_niveau_acces"),
     path("connexion/verification/", views.connexion_verification, name="connexion_verification"),
     path("deconnexion/", views.deconnexion, name="deconnexion"),
     path("mon-compte/double-facteur/", views.double_facteur, name="double_facteur"),

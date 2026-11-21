@@ -18,10 +18,7 @@
   {% if champ.name == "password2" %}{% include "suivi/partiels/phrase_de_passe.html" %}{% endif %}
   {% if champ.errors %}<div class="erreurs">{{ champ.errors }}</div>{% endif %}
   {% if champ.name == "dernier_recours" %}
-  <details class="aide-propositions">
-    <summary>Pourquoi cette case est cochée</summary>
-    <p class="aide">Sur un ordinateur personnel, celui qui peut ouvrir votre session peut déjà lire les fichiers de Petits Pas : ils ne sont pas chiffrés. Le dernier recours évite alors de perdre l’accès à votre carnet pour un simple oubli. Décochez-la si l’ordinateur est partagé avec des personnes qui ne doivent pas voir les carnets : vous recevrez une clé de secours à conserver avec soin.</p>
-  </details>
+  {% include "suivi/partiels/dernier_recours_explication.html" %}
   {% endif %}
   {% endfor %}
   <p class="aide">Le référentiel sera proposé par défaut pour l’école et utilisé par la première classe si vous la préparez. Vous pourrez ensuite ajouter des classes et des collègues.</p>
