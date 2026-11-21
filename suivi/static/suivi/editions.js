@@ -1,10 +1,45 @@
-for (const choix of document.querySelectorAll('select[name="observations"]')) {
-  const dates = choix.form.querySelector('[data-dates-edition]');
-  if (!dates) continue;
+// Calcul en jours civils UTC, comme dans la saisie des périodes de Pas à Pas.
+const millisecondesParJour = 86400000;
+
+for (const zone of document.querySelectorAll('[data-dates-edition]')) {
+  const form = zone.closest('form');
+  const {observations, periode, calcul_periode: calcul, debut, fin, duree} = form.elements;
+  const raccourcis = JSON.parse(zone.querySelector('script').textContent);
+  const explication = form.querySelector('[data-explication-automatique]');
+  const champDuree = zone.querySelector('[data-duree-edition]');
   function actualiser() {
-    dates.hidden = !['periode', 'reussites'].includes(choix.value) && !dates.querySelector('.errorlist');
+    const active = ['periode', 'reussites'].includes(observations.value);
+    zone.hidden = !active && !zone.querySelector('.errorlist');
+    explication.hidden = observations.value !== '';
+    const symbolique = raccourcis[periode.value];
+    const parDuree = !symbolique && calcul.value === 'duree';
+    if (symbolique) {
+      [debut.value, fin.value] = symbolique;
+    } else if (parDuree) {
+      const jours = duree.valueAsNumber;
+      const origine = debut.valueAsNumber;
+      fin.valueAsNumber = Number.isInteger(jours) && jours >= 1 && jours <= 366 &&
+        Number.isFinite(origine) ? origine + (jours - 1) * millisecondesParJour : NaN;
+    }
+    if (!parDuree && debut.value && fin.value) {
+      const jours = (fin.valueAsNumber - debut.valueAsNumber) / millisecondesParJour + 1;
+      duree.value = jours > 0 ? jours : '';
+    }
+    debut.disabled = !active || Boolean(symbolique);
+    fin.disabled = !active || Boolean(symbolique) || parDuree;
+    calcul.disabled = !active || Boolean(symbolique);
+    periode.disabled = !active;
+    champDuree.hidden = !parDuree;
+    duree.disabled = !active || !parDuree;
   }
-  choix.addEventListener('change', actualiser);
+  zone.addEventListener('input', actualiser);
+  zone.addEventListener('change', actualiser);
+  observations.addEventListener('change', () => {
+    if (!debut.value && !fin.value && !duree.value && !zone.querySelector('.errorlist')) {
+      periode.value = 'rentree';
+    }
+    actualiser();
+  });
   actualiser();
 }
 
@@ -87,16 +122,47 @@ for (const liste of document.querySelectorAll('[data-recherche-competences]')) {
   champ.addEventListener('keydown', event => {
     if (event.key === 'Enter' && !event.isComposing) event.preventDefault();
   });
+  const form = liste.closest('form');
+  const groupes = JSON.parse(liste.querySelector('script').textContent);
+  const cases = Array.from(liste.querySelectorAll('input[name="competences"]'));
+  const rubriques = Array.from(form.querySelectorAll('input[name="rubriques"]'));
+  const compteur = liste.querySelector('[data-compteur-competences]');
+  const cochees = liste.querySelector('[data-competences-cochees]');
+  const lignes = cases.map(caseChoix => {
+    const ligne = caseChoix.closest('label').parentElement;
+    const texte = normaliser(ligne.textContent);
+    const indication = document.createElement('span');
+    indication.className = 'inclusion-rubrique';
+    indication.textContent = 'Incluse par une rubrique cochée';
+    ligne.append(indication);
+    return {caseChoix, ligne, texte, indication};
+  });
   function normaliser(texte) {
     return texte.toLocaleLowerCase('fr').normalize('NFD').replace(/\p{Diacritic}/gu, '');
   }
-  champ.addEventListener('input', () => {
+  function actualiser() {
     const recherche = normaliser(champ.value.trim());
-    for (const caseChoix of liste.querySelectorAll('input[type="checkbox"]')) {
-      const ligne = caseChoix.closest('label').parentElement;
-      ligne.hidden = !caseChoix.checked && !normaliser(ligne.textContent).includes(recherche);
+    const branches = new Set(rubriques.filter(caseChoix => caseChoix.checked).map(caseChoix => caseChoix.value));
+    let nombre = 0;
+    let visibles = 0;
+    champ.disabled = cochees.checked;
+    for (const {caseChoix, ligne, texte, indication} of lignes) {
+      const groupe = groupes[caseChoix.value] || '';
+      indication.hidden = ![groupe, groupe + '/', groupe.split('/')[0]].some(cle => branches.has(cle));
+      if (caseChoix.checked) nombre += 1;
+      ligne.hidden = cochees.checked ? !caseChoix.checked : !texte.includes(recherche);
+      if (!ligne.hidden) visibles += 1;
+    }
+    compteur.textContent = `${nombre} cochée${nombre > 1 ? 's' : ''} directement · ${visibles} sur ${cases.length} affichées`;
+  }
+  liste.querySelector('[data-outils-competences]').hidden = false;
+  champ.addEventListener('input', actualiser);
+  form.addEventListener('change', event => {
+    if (event.target === cochees || event.target.matches('[name="competences"], [name="rubriques"], [data-bascule-rubrique]')) {
+      actualiser();
     }
   });
+  actualiser();
 }
 
 const sequence = document.querySelector('[data-sequence-carnets]');

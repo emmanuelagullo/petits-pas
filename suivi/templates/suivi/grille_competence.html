@@ -15,7 +15,7 @@
 {% if impression_pwa %}
 <div class="actions sans-impression"><button class="bouton" type="button" onclick="window.print()">Imprimer / enregistrer en PDF</button></div>
 {% elif not generation_pdf %}
-<form method="get" class="barre-filtres-edition sans-impression" data-barre-filtres>
+<form method="get" class="rubriques-edition sans-impression">
   {% include "suivi/partiels/resume_grille.html" %}
   {% include "suivi/partiels/filtres_edition.html" %}
   {% if not competence %}

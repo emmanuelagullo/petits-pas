@@ -7,6 +7,10 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Retrouver les compétences cochées et filtrer les observations avec des
+  raccourcis de période ou une durée. Les réglages des éditions sont présentés
+  dans des rubriques repliables.
+
 - Ouvrir le suivi d’un élève depuis la grille et retrouver sa ligne au retour.
 - Choisir les rubriques et sous-rubriques dans un filtre hiérarchique et
   retrouver les mêmes commandes d’année et de mise en page dans les carnets.

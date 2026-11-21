@@ -1,4 +1,4 @@
-<details data-panneau-filtre class="details-filtres-catalogue"{% if formulaire.errors or ouvrir_filtres %} open{% endif %}>
+<details data-panneau-filtre class="details-filtres-catalogue"{% if formulaire.errors or ouvrir_filtres and not filtres_carnet or ouvrir_filtres and request.method == "POST" %} open{% endif %}>
   <summary class="bouton discret">Filtres</summary>
   {{ formulaire.non_field_errors }}
   <div class="groupes-filtres">
@@ -10,22 +10,32 @@
   </fieldset>
   {% if filtres_carnet %}{% include "suivi/partiels/filtres_carnet.html" %}{% endif %}
   {% if not competence %}
+  <fieldset class="groupe-filtres"><legend>Observations</legend>
+    {{ formulaire.observations.as_field_group }}
+    <p class="aide" data-explication-automatique>En mode automatique, les compétences d’une rubrique cochée peuvent être affichées même sans observation.</p>
+    <div data-dates-edition>
+      {{ formulaire.periode.as_field_group }}
+      {{ formulaire.calcul_periode.as_field_group }}
+      {{ formulaire.debut.as_field_group }}
+      {{ formulaire.fin.as_field_group }}
+      <div data-duree-edition>{{ formulaire.duree.as_field_group }}</div>
+      <p class="aide">Les dates de début et de fin sont incluses. La période filtre les compétences selon les observations des élèves retenus.</p>
+      {{ formulaire.periodes|json_script:"periodes-edition" }}
+    </div>
+  </fieldset>
   {% include "suivi/partiels/rubriques_edition.html" %}
   <fieldset class="groupe-filtres">
     <legend>Compétences</legend>
     <div class="choix-competences-edition" data-recherche-competences>
       <label hidden>Rechercher dans les compétences <input type="search"></label>
+      <div data-outils-competences hidden>
+        <p role="status" data-compteur-competences></p>
+        <label><input type="checkbox" data-competences-cochees> Voir les compétences cochées</label>
+      </div>
+      {{ formulaire.competences_par_groupe|json_script:"groupes-competences-edition" }}
       {{ formulaire.competences.as_field_group }}
     </div>
     {{ formulaire.niveaux.as_field_group }}
-  </fieldset>
-  <fieldset class="groupe-filtres"><legend>Observations</legend>
-    {{ formulaire.observations.as_field_group }}
-    <div data-dates-edition>
-      {{ formulaire.debut.as_field_group }}
-      {{ formulaire.fin.as_field_group }}
-      <p class="aide">Les dates sélectionnent les compétences. Les cases indiquent leur état dans le suivi de l’année.</p>
-    </div>
   </fieldset>
   {% endif %}
   </div>

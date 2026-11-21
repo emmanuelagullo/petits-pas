@@ -16,7 +16,7 @@
       <input type="hidden" name="action" value="telecharger">
       <label for="mot-de-passe-telechargement">Votre mot de passe sur ce service</label>
       <input id="mot-de-passe-telechargement" name="mot_de_passe" type="password" autocomplete="current-password" required>
-      <button type="submit">Télécharger le ZIP</button>
+      <button class="bouton" type="submit" data-champ-action-requis="mot_de_passe">Télécharger le ZIP</button>
     </form>
     <p class="aide">Une interruption peut être reprise par les logiciels de téléchargement qui le permettent, tant que le ZIP reste disponible et que vous avez accès à l’école.</p>
   {% elif export.etat == "echec" %}<p class="encadre">{{ export.erreur }}</p>
