@@ -160,8 +160,9 @@ for (const arbre of document.querySelectorAll('[data-recherche-competences]')) {
     });
     if (!filtre) ouvertures = null;
     const nombre = cases.filter(champ => champ.checked).length;
-    const visibles = cases.filter(champ => !champ.parentElement.hidden).length;
-    compteur.textContent = `${nombre} sélectionnée${nombre > 1 ? 's' : ''} · ${visibles} / ${cases.length} affichées`;
+    const selection = `${nombre} compétence${nombre === 1 ? ' sélectionnée' : 's sélectionnées'}`;
+    const resultats = cases.filter(champ => !champ.parentElement.hidden).length;
+    compteur.textContent = terme ? `${selection} · ${resultats} résultat${resultats === 1 ? '' : 's'}` : selection;
   }
   for (const {commande, cases: descendants} of branches) {
     commande.parentElement.hidden = false;

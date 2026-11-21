@@ -1184,14 +1184,32 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 .edition-grille .matrice-suivi th[scope="row"] { z-index: 1; }
 
 .sommaire-page { max-height: 65vh; overflow: auto; border: 1px solid #c8d9ce; border-radius: .5rem; background: white; padding: .45rem; }
-.sommaire-page ol { padding-inline-start: 1.6rem; }
-.sommaire-page li { margin-block: .35rem; }
-[data-titre-sommaire] { scroll-margin-block-start: 1rem; }
-@media screen and (min-width: 65.01rem) {
-  .avec-sommaire { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 1.2rem; }
-  .sommaire-page { position: sticky; top: 1rem; align-self: start; }
+.sommaire-page ol { list-style: none; padding-inline-start: .8rem; }
+.sommaire-page nav > ol { padding-inline-start: 0; }
+.sommaire-page li { margin-block: .25rem; }
+.ligne-sommaire { display: flex; align-items: baseline; gap: .25rem; }
+.ligne-sommaire a { flex: 1; padding: .2rem .3rem; overflow-wrap: anywhere; }
+.ligne-sommaire button { border: 0; background: transparent; color: inherit; padding: .25rem .45rem; cursor: pointer; }
+.ligne-sommaire button::before { content: "▸"; }
+.ligne-sommaire button[aria-expanded="true"]::before { content: "▾"; }
+.sommaire-page [aria-current="location"], .ligne-sommaire[data-section-active] > a {
+  background: #e0efe4;
+  border-radius: .25rem;
+  font-weight: 700;
 }
-@media screen and (max-width: 65rem) {
+[data-titre-sommaire] { scroll-margin-block-start: 1rem; }
+@media screen and (min-width: 90rem) {
+  .avec-sommaire { display: flow-root; }
+  .sommaire-page {
+    position: sticky;
+    top: 1rem;
+    float: inline-start;
+    inline-size: 12rem;
+    margin-inline-start: -13rem;
+  }
+  .sommaire-page > summary { display: none; }
+}
+@media screen and (width < 90rem) {
   .avec-sommaire { padding-bottom: 4rem; }
   .sommaire-page { position: fixed; inset-inline-end: .7rem; bottom: max(.7rem, env(safe-area-inset-bottom)); z-index: 4; max-width: min(26rem, calc(100vw - 1.4rem)); }
 }
