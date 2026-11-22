@@ -62,6 +62,14 @@ let browser;
 let currentPage;
 const report = [];
 function pass(test, data = {}) { report.push({test, platform: process.platform, browser: browser?.version(), channel: process.env.PWA_BROWSER_CHANNEL || "chromium", ...data}); console.log('OK', test, JSON.stringify(data)); }
+async function journaliserPage(page) {
+  console.error('STATUS', await page.locator('#status').textContent({timeout: 2000}).catch(() => ''));
+  console.error('DIAGNOSTIC', await page.locator('#diagnostic').textContent({timeout: 2000}).catch(() => ''));
+  for (const frame of page.frames()) {
+    const texte = await frame.locator('body').innerText({timeout: 2000}).catch(() => '');
+    console.error('FRAME', frame.url(), texte.slice(0, 4000));
+  }
+}
 async function boot(page, url) {
   await page.goto(url);
   await page.waitForFunction(() => !!window.pwaTest || !document.querySelector('#failure').hidden || /TypeError|PythonError|Error:/.test(document.querySelector('#status').textContent), null, {timeout: 120000});
@@ -424,14 +432,18 @@ with tempfile.TemporaryDirectory() as folder:
     execFileSync(process.env.PWA_PYTHON || 'python3',
       [path.join(__dirname, 'qualifier-export-ecole.py'), '--destination', exportZip], {stdio:'pipe'});
     const imported = await browser.newContext({acceptDownloads:true, ignoreHTTPSErrors:tls});
+    const copied = await imported.newPage();
     try {
-      const copied = await imported.newPage();
       await boot(copied, url);
       await copied.frames()[1].goto(url + 'app/verifier-zip/');
       const school = copied.frameLocator('#app');
       await school.locator('[name="archive"]').setInputFiles(exportZip);
       await school.getByRole('button', {name:'Vérifier le ZIP pour ouvrir une copie', exact:true}).click();
-      await school.getByRole('button', {name:'Utiliser ce ZIP comme école sur cet appareil', exact:true}).click();
+      const installer = school.getByRole('button', {name:'Utiliser ce ZIP comme école sur cet appareil', exact:true});
+      const refus = school.locator('.messages .error').filter({hasText: 'Copie refusée'});
+      await installer.or(refus).first().waitFor({state: 'visible'});
+      if (await refus.isVisible()) throw new Error(await refus.innerText());
+      await installer.click();
       await school.locator('[name="nom_utilisateur"]').fill('export-fictif');
       await school.locator('[name="mot_de_passe"]').fill('Copie!Fictive2026');
       await school.getByRole('button', {name:'Entrer', exact:true}).click();
@@ -443,6 +455,12 @@ with tempfile.TemporaryDirectory() as folder:
       const media = await python(copied, 'from suivi.models import Trace; Trace.objects.first().photo.name');
       assert.equal(await python(copied, `from django.core.files.storage import default_storage; default_storage.exists(${JSON.stringify(media)})`), true);
       pass('Export serveur installé dans la PWA : mot de passe local, école, traces et média conservés');
+    } catch (error) {
+      // Le contexte principal est sur la copie du ZIP précédent. Lire le
+      // contexte de l'export serveur avant de le fermer.
+      console.error('Échec de l’installation du ZIP issu du service');
+      await journaliserPage(copied);
+      throw error;
     } finally {await imported.close();}
   } finally {fs.rmSync(exportFixture, {recursive:true, force:true});}
   await page.close(); page = await context.newPage(); currentPage = page;
@@ -741,11 +759,7 @@ with tempfile.TemporaryDirectory() as folder:
   fs.writeFileSync(path.join(root, 'resultats-tests.json'), JSON.stringify(report, null, 2));
 })().catch(async error => {
   console.error(error);
-  if (currentPage) {
-    console.error('STATUS', await currentPage.locator('#status').innerText());
-    console.error('DIAGNOSTIC', await currentPage.locator('#diagnostic').textContent());
-    for (const frame of currentPage.frames()) console.error('FRAME', frame.url(), (await frame.locator('body').innerText().catch(() => '')).slice(0, 4000));
-  }
+  if (currentPage && !currentPage.isClosed()) await journaliserPage(currentPage);
   process.exitCode = 1;
 }).finally(async () => {
   if(browser) await browser.close(); server.close();
