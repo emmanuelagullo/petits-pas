@@ -17,13 +17,18 @@ statut = "disponible"
    disponible pour une nouvelle saisie.
 3. Choisir la date et saisir le texte.
 4. Choisir si le bilan doit apparaître dans le carnet.
-5. Sélectionner **Ajouter le bilan**.
+5. Sélectionner **Ajouter le bilan**. Pour enchaîner, choisir **Ajouter et
+   passer à [prénom]**. Le prochain formulaire reprend la date avec un texte vide.
+
+Les liens **Élève précédent** et **Élève suivant**, sous le fil d’Ariane,
+permettent de consulter les bilans des autres élèves de la classe.
 
 {{< capture-guide src="captures/guide/observer/bilan.png" alt="Formulaire d’ajout de quelques mots sur le parcours d’un élève fictif" caption="Année, date, texte et visibilité dans le carnet sont regroupés dans un même formulaire." >}}
 
 ## Modifier, masquer ou retirer
 
-Le responsable peut ensuite modifier le bilan courant, basculer entre
+Lors d’une modification, **Enregistrer et passer à [prénom]** enregistre
+puis ouvre les bilans du prochain élève. Le responsable peut aussi basculer entre
 **Affiché dans le carnet** et **Masqué du carnet**, ou sélectionner **Retirer ce
 bilan** puis confirmer. Le retrait est logique : les données ne sont pas
 effacées physiquement.

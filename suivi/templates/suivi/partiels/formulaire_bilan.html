@@ -9,13 +9,16 @@
   <label for="date_bilan">Date</label>
   <input id="date_bilan" name="date_bilan" type="date" value="{% if saisie_bilan %}{{ saisie_bilan.date_bilan }}{% elif bilan_obj %}{{ bilan_obj.date_bilan|date:'Y-m-d' }}{% else %}{{ date_defaut|date:'Y-m-d' }}{% endif %}" required>
 
+  {% if date_deja_utilisee and not bilan_obj %}<p class="aide">Un bilan existe déjà le {{ date_defaut|date:"j F Y" }}. Choisissez une autre date ou ouvrez le bilan existant pour le modifier.</p>{% endif %}
+
   <label for="texte">Quelques mots sur le parcours</label>
   <textarea id="texte" name="texte" required>{% if saisie_bilan %}{{ saisie_bilan.texte }}{% else %}{{ bilan_obj.texte }}{% endif %}</textarea>
 
   <p><label class="choix-simple"><input type="checkbox" name="visible_carnet" {% if saisie_bilan.visible_carnet or not saisie_bilan and not bilan_obj or not saisie_bilan and bilan_obj.visible_carnet %}checked{% endif %}> Afficher ce bilan dans le carnet</label></p>
 
-  <div class="actions">
+  <div class="actions actions-trace">
     <button class="bouton" type="submit" data-enregistrer>{% if bilan_obj %}Enregistrer les modifications{% else %}Ajouter le bilan{% endif %}</button>
+    {% include "suivi/partiels/enregistrer_suivant.html" with destinataire=suivant_saisie ajout_bilan=True %}
     {% if bilan_obj %}{% url "bilans_eleve" eleve.pk as destination_bilans %}{% include "suivi/partiels/retour_formulaire.html" with destination=destination_bilans libelle="Retour aux bilans" only %}
     {% else %}{% include "suivi/partiels/annuler_modifications.html" %}{% endif %}
   </div>

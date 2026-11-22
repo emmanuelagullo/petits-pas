@@ -21,6 +21,9 @@ statut = "disponible"
 
 {{< capture-guide src="captures/carnet.png" alt="Prévisualisation du carnet d’un élève fictif" caption="Aperçu produit automatiquement avec les seules données fictives de la démonstration." >}}
 
+Les liens **Élève précédent** et **Élève suivant** ouvrent un autre carnet
+de la classe en conservant l’année et les options d’édition choisies.
+
 ## Résultat attendu
 
 L’aperçu reflète les paramètres habituels de l’école et les options choisies

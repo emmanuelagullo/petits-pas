@@ -3,6 +3,7 @@
 {% block titre %}Le parcours de {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
 {% ariane_eleve "Bilans" eleve parent=True %}
+{% include "suivi/partiels/navigation_eleves.html" %}
 <h1>Quelques mots sur le parcours de {{ eleve.prenom }}</h1>
 
 <section class="encadre historique-traces">

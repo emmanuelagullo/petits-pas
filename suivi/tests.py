@@ -1891,7 +1891,7 @@ class GrilleCompetence(Base):
         self.assertEqual([c.competence.pk for c in branche.context["groupes"][0]["colonnes"]], [enfant.pk])
         self.assertContains(branche, "Sans sous-rubrique")
         self.assertContains(branche, f'<input type="checkbox" name="competences" value="{enfant.pk}" checked>', html=True)
-        self.assertContains(branche, "Afficher uniquement les compétences cochées")
+        self.assertContains(branche, "Masquer les cases non cochées dans cette liste")
         sans_sous_rubrique = self.client.get(url, {"filtres": "1", "rubriques": [f"{racine}/"]})
         self.assertEqual(sans_sous_rubrique.context["nb_competences"], 1)
         self.assertContains(branche, reverse("saisie_eleve", args=[self.eleve.pk]) + "?retour=")
@@ -3193,6 +3193,24 @@ class BilansEtPeriodes(Base):
     def setUp(self):
         super().setUp()
         self.entrer()
+
+    def test_ajouter_un_bilan_et_passer_au_suivant(self):
+        autre = Eleve.objects.create(ecole=self.ecole, prenom="Zélie")
+        Scolarite.objects.create(eleve=autre, classe=self.classe,
+                                 annee_scolaire=self.scolarite.annee_scolaire, niveau="PS")
+        url = reverse("bilans_eleve", args=[self.eleve.pk])
+        self.assertContains(self.client.get(url), "Ajouter et passer à Zélie")
+        reponse = self.client.post(url, {
+            "scolarite": self.scolarite.pk, "date_bilan": "2027-01-15",
+            "texte": "Un bilan pour Lou.", "navigation": "suivant",
+        })
+        destination = reverse("bilans_eleve", args=[autre.pk]) + "?date=2027-01-15#formulaire-bilan"
+        self.assertRedirects(reponse, destination)
+        self.assertContains(self.client.get(destination), 'value="2027-01-15"')
+        self.assertFalse(Bilan.objects.filter(scolarite__eleve=autre).exists())
+        carnet = self.client.get(reverse("carnet", args=[self.eleve.pk]), {"colonnes": "1"})
+        self.assertIn("colonnes=1", carnet.context["url_suivant"])
+        self.assertContains(carnet, "Élève suivant")
 
     def test_un_bilan_date_est_affiche_dans_le_carnet(self):
         Bilan.objects.create(

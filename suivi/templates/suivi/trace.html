@@ -2,14 +2,9 @@
 {% block titre %}Une trace pour {{ eleve.prenom }}{% endblock %}
 {% block contenu %}
 {% include "suivi/partiels/ariane.html" with page=page_trace %}
+{% include "suivi/partiels/navigation_eleves.html" with libelle_navigation="Élèves de cette compétence" %}
 <h1>{{ page_trace }}</h1>
 <p>{{ competence.libelle }}</p>
-{% if precedent or suivant %}
-<nav class="actions" aria-label="Élèves de cette compétence">
-  {% if precedent %}<a href="{% url 'trace' precedent.pk competence.pk %}{{ contexte_trace }}"><span aria-hidden="true">← </span>Élève précédent : {{ precedent.nom_court }}</a>{% endif %}
-  {% if suivant %}<a href="{% url 'trace' suivant.pk competence.pk %}{{ contexte_trace }}">Élève suivant : {{ suivant.nom_court }}<span aria-hidden="true"> →</span></a>{% endif %}
-</nav>
-{% endif %}
 <p class="sous-titre">{{ competence.domaine.nom }}</p>
 {% if not peut_ajouter %}<p class="message">Cette compétence n’est pas disponible pour une nouvelle saisie. Les traces déjà conservées restent consultables. Si la classe est ouverte, son responsable peut la montrer de nouveau ou choisir une base qui la contient.</p>{% endif %}
 

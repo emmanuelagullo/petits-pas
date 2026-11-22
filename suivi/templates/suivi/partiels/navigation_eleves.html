@@ -1,0 +1,6 @@
+{% if url_precedent or url_suivant %}
+<nav class="actions sans-impression" aria-label="{{ libelle_navigation|default:'Navigation entre élèves' }}">
+  {% if url_precedent %}<a href="{{ url_precedent }}"><span aria-hidden="true">← </span>Élève précédent : {{ precedent.nom_court }}</a>{% endif %}
+  {% if url_suivant %}<a href="{{ url_suivant }}">Élève suivant : {{ suivant.nom_court }}<span aria-hidden="true"> →</span></a>{% endif %}
+</nav>
+{% endif %}

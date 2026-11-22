@@ -7,6 +7,9 @@ Le dépôt source et les versions publiées sont disponibles à l’adresse :
 
 * À venir
 
+- Passer d’un élève à l’autre dans les carnets et les bilans. Enregistrer
+  un bilan et retrouver sa date dans le formulaire du prochain élève.
+
 * 0.16 — 2026-11-21
 
 Cette version ajoute la grille de suivi de classe, les éditions groupées et

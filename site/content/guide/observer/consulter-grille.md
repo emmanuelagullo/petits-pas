@@ -19,7 +19,8 @@ statut = "disponible"
 3. Ouvrir **Filtres** pour choisir les élèves puis les **Compétences** dans
    l’arbre. Cocher une rubrique ou une sous-rubrique sélectionne toute sa
    branche. Décocher une compétence permet d’affiner cette sélection.
-   **Afficher uniquement les compétences cochées** permet de la relire.
+   **Masquer les cases non cochées dans cette liste** permet de relire la sélection
+   sans changer le résultat de l’édition.
    La recherche déplie les résultats sans modifier les cases cochées.
 4. Choisir **Appliquer les filtres**.
 5. Le responsable peut **Télécharger le PDF** ou, dans l’application navigateur,

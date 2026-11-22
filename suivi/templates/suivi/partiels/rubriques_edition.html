@@ -3,7 +3,7 @@
   {{ formulaire.competences.errors }}
   <div data-outils-competences hidden>
     <label>Rechercher dans les compétences <input type="search"></label>
-    <label><input type="checkbox" data-competences-cochees> Afficher uniquement les compétences cochées</label>
+    <label title="Les cases gardent leur état. Le résultat de l’édition reste le même quand vous activez ou désactivez cette option."><input type="checkbox" data-competences-cochees> Masquer les cases non cochées dans cette liste</label>
     <p role="status" data-compteur-competences></p>
   </div>
   {% for rubrique, groupes in formulaire.arbre_selection %}

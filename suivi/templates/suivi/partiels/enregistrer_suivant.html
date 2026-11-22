@@ -1,0 +1,3 @@
+{% if destinataire %}
+<button class="bouton discret" type="submit" data-enregistrer name="navigation" value="suivant">{% if ajout_bilan and not bilan_obj %}Ajouter{% else %}Enregistrer{% endif %} et passer à {% if ajout_bilan %}{{ destinataire.prenom }}{% else %}{{ destinataire.nom_court }}{% endif %}</button>
+{% endif %}

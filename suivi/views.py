@@ -7,7 +7,7 @@ import re
 import shutil
 import sys
 import traceback
-from datetime import datetime
+from datetime import date, datetime
 import sqlite3
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
@@ -1251,6 +1251,22 @@ def _scolarites_visibles(utilisateur, eleve):
     return eleve.scolarites.filter(pk__in=ids), courante
 
 
+def _voisins_eleve(eleves, eleve):
+    for index, candidat in enumerate(eleves):
+        if candidat.pk == eleve.pk:
+            return (eleves[index - 1] if index else None,
+                    eleves[index + 1] if index + 1 < len(eleves) else None)
+    return None, None
+
+
+def _navigation_eleve(precedent, suivant, destination):
+    return {
+        "precedent": precedent, "suivant": suivant,
+        "url_precedent": destination(precedent) if precedent else "",
+        "url_suivant": destination(suivant) if suivant else "",
+    }
+
+
 def _observations_visibles(utilisateur, eleve):
     scolarites, courante = _scolarites_visibles(utilisateur, eleve)
     if courante is None:
@@ -2001,11 +2017,7 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
                 if enfant.scolarite_courante() and enfant.scolarite_courante().classe_id == classe.pk
                 and (not competence.suivi_libre or enfant.pk in competence.eleves_suivis_ids)
             ]
-            for position, enfant in enumerate(voisins):
-                if enfant.pk == eleve.pk:
-                    precedent = voisins[position - 1] if position else None
-                    suivant = voisins[position + 1] if position + 1 < len(voisins) else None
-                    break
+            precedent, suivant = _voisins_eleve(voisins, eleve)
     else:
         ariane = chemin_classe(classe) if classe and autorise(request.user, VOIR_CLASSE, classe, ecole=ecole) else []
         retour = lien("saisie_eleve" if suivi_complet else "contribuer_eleve", eleve.pk,
@@ -2131,8 +2143,10 @@ def _editer_trace(request, eleve_pk, competence_pk, trace_pk=None):
             "contexte_trace": "?" + trace_query if trace_query else "",
             "collectif": collectif,
             "filtre": filtre,
-            "precedent": precedent,
-            "suivant": suivant,
+            **_navigation_eleve(precedent, suivant, lambda voisin: (
+                reverse("trace", args=[voisin.pk, competence.pk])
+                + ("?" + trace_query if trace_query else "")
+            )),
             "saisie_trace": saisie,
             "erreur_trace": saisie is not None,
             "trace_obj": trace_obj,
@@ -2369,11 +2383,25 @@ def _generer_pdf(html, base_url, feuille_style, noms_media=()):
 
 @acces_requis
 def carnet(request, pk):
-    return render(
-        request,
-        "suivi/carnet.html",
-        {**_contexte_carnet(request, pk), "retour_grille": _retour_grille_eleve(request)},
-    )
+    contexte = _contexte_carnet(request, pk)
+    scolarite = contexte["scolarite"]
+    annee = contexte["annee_selectionnee"]
+    if scolarite:
+        classe = scolarite.classe
+        eleves = [
+            candidat for candidat in avec_scolarites_pour_lecture(classe.eleves)
+            if autorise(request.user, PREVISUALISER_CARNET, candidat)
+            and (_scolarites_visibles(request.user, candidat)[0].filter(
+                classe=classe, annee_scolaire=annee).exists() if annee else
+                candidat.scolarite_courante() and candidat.scolarite_courante().classe_id == classe.pk)
+        ]
+        params = {"annee": annee, **contexte["presentation"]}
+        contexte.update(_navigation_eleve(*_voisins_eleve(eleves, contexte["eleve"]),
+            lambda voisin: lien("carnet", voisin.pk, **params)))
+        contexte["classe"] = classe
+    return render(request, "suivi/carnet.html", {
+        **contexte, "retour_grille": _retour_grille_eleve(request),
+    })
 
 
 @never_cache
@@ -3712,6 +3740,28 @@ def _editer_bilan(request, pk, bilan_pk=None):
     scolarites_visibles, scolarite_courante = _scolarites_visibles(
         request.user, eleve
     )
+    if scolarite_courante is None:
+        raise Http404
+    classe = scolarite_courante.classe
+    eleves = [
+        candidat for candidat in avec_scolarites_pour_lecture(classe.eleves)
+        if candidat.scolarite_courante() and candidat.scolarite_courante().classe_id == classe.pk
+        and autorise(request.user, VOIR_SUIVI, candidat, ecole=ecole)
+    ]
+    filtre = filtre_competences(request)
+    navigation = _navigation_eleve(*_voisins_eleve(eleves, eleve),
+        lambda voisin: lien("bilans_eleve", voisin.pk, filtre=filtre))
+    suivant_saisie = None
+    if responsable and not classe_historique(classe):
+        _, suivant_saisie = _voisins_eleve([
+            candidat for candidat in eleves
+            if autorise(request.user, MODIFIER_ETAT, candidat, ecole=ecole)
+        ], eleve)
+    try:
+        date_defaut = date.fromisoformat(request.GET.get("date", ""))
+    except ValueError:
+        date_defaut = timezone.localdate()
+    contexte = {**navigation, "suivant_saisie": suivant_saisie, "date_defaut": date_defaut}
     scolarites = scolarites_visibles.filter(pk=scolarite_courante.pk).select_related(
         "classe"
     )
@@ -3724,6 +3774,10 @@ def _editer_bilan(request, pk, bilan_pk=None):
             ),
             supprime_le__isnull=True,
         ).select_related("scolarite")
+    )
+    contexte["date_deja_utilisee"] = request.method == "GET" and bool(request.GET.get("date")) and any(
+        bilan.scolarite_id == scolarite_courante.pk and bilan.date_bilan == date_defaut
+        for bilan in bilans
     )
     for bilan in bilans:
         bilan.peut_modifier = responsable and (
@@ -3775,7 +3829,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
                         "bilans": bilans,
                         "bilan_obj": bilan_en_conflit,
                         "saisie_bilan": request.POST,
-                        "date_defaut": timezone.localdate(),
+                        **contexte,
                         "responsable": responsable,
                     },
                 )
@@ -3790,7 +3844,10 @@ def _editer_bilan(request, pk, bilan_pk=None):
                 },
             )
             messages.success(request, "Quelques mots sur le parcours enregistrés.")
-            return redirect("bilans_eleve", pk=eleve.pk)
+            if suivant_saisie and request.POST.get("navigation") == "suivant":
+                return redirect(lien("bilans_eleve", suivant_saisie.pk, filtre=filtre,
+                                     date=date_bilan, ancre="formulaire-bilan"))
+            return redirect(lien("bilans_eleve", eleve.pk, filtre=filtre))
         messages.error(request, "La date et le texte sont obligatoires.")
     return render(
         request,
@@ -3801,7 +3858,7 @@ def _editer_bilan(request, pk, bilan_pk=None):
             "bilans": bilans,
             "bilan_obj": bilan_obj,
             "saisie_bilan": request.POST if request.method == "POST" else None,
-            "date_defaut": timezone.localdate(),
+            **contexte,
             "responsable": responsable,
         },
     )
