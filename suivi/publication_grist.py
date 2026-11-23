@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .models import DestinationPublicationGrist
+from .services.catalogues_externes import numerotation_grist_globale
 from .services.publications_grist import destination_grist, meme_contenu_grist, publier_edition_grist
 
 ACTIONS_GRIST = {"voir-grist", "publier-grist"}
@@ -33,7 +34,7 @@ def publication_grist(request, classe, contexte, action, document):
     url = request.POST.get("url_grist", "").strip() or request.POST.get("destination_grist", "")
     contexte["url_grist"] = url
     if not url:
-        raise ValidationError("Indiquez le lien du document Grist.")
+        raise ValidationError("Indiquez le lien du catalogue Grist.")
     if len(url) > 2000:
         raise ValidationError("Le lien Grist est trop long.")
     destination = destination_grist(url, preparer_vierge=action == "publier-grist")
@@ -51,7 +52,7 @@ def publication_grist(request, classe, contexte, action, document):
         reference = source["identifiant"]
     elif choix:
         if choix not in references:
-            raise ValidationError("Le référentiel choisi ne figure plus dans ce document.")
+            raise ValidationError("Le référentiel choisi ne figure plus dans ce catalogue.")
         reference = choix
     if precedente and not choix and reference not in references:
         raise ValidationError("Le référentiel publié précédemment est introuvable. Choisissez comment publier.")
@@ -65,7 +66,8 @@ def publication_grist(request, classe, contexte, action, document):
     if identique:
         numero = derniere["Numero"]
     else:
-        numero = max((e["Numero"] for e in destination["editions"]), default=0) + 1
+        perimetre = destination["editions"] if numerotation_grist_globale(destination["editions"]) else editions
+        numero = max((e["Numero"] for e in perimetre), default=0) + 1
         publier_edition_grist(destination, reference, titre, numero, document)
     DestinationPublicationGrist.objects.update_or_create(
         ecole=classe.ecole, auteur=request.user, classe=classe, url=destination["url"],

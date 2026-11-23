@@ -153,10 +153,12 @@ class MisesAJour(Base):
         self.assertContains(refus, "Le référentiel a changé", status_code=400)
 
     def test_publication_grist_directe_memorise_la_destination_et_ne_duplique_pas(self):
-        self.adopter()
+        adoption = self.adopter()
         echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
         url = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
-        destination = {"url": url, "nom": "Ressources Cycle 1", "espace": "docs", "editions": []}
+        destination = {"url": url, "nom": "Ressources Cycle 1", "espace": "docs", "editions": [
+            {"Numero": 7, "Referentiel": "autre", "Titre": "Autre", "Contenu": "{}"},
+        ]}
         page = self.client.get(echange, {"volet": "exporter"})
         self.assertContains(page, 'value="publier-grist"')
         self.assertContains(page, 'id="url-grist"')
@@ -174,13 +176,17 @@ class MisesAJour(Base):
             self.assertContains(publication, "Édition 1 publiée")
             _, reference, titre, numero, document = publier.call_args.args
             self.assertEqual(numero, 1)
-            destination["editions"] = [{"Numero": 1, "Referentiel": reference, "Titre": titre,
-                                        "Contenu": contenu_grist(document)}]
+            destination["editions"].append({"Numero": 1, "Referentiel": reference, "Titre": titre,
+                                        "Contenu": contenu_grist(document)})
             reprise = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
             self.assertContains(reprise, "Édition 1 déjà publiée")
             self.assertContains(reprise, "Nouvelle édition")
             self.assertEqual(reprise.context["derniere_destination"].url, url)
             publier.assert_called_once()
+            self.adapter(adoption, classe=True, texte="Nouvelle formulation")
+            revision = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
+            self.assertContains(revision, "Édition 2 publiée")
+            self.assertEqual(publier.call_args.args[3], 2)
 
     def test_apercu_sans_projection_et_adaptation_prioritaire(self):
         ancienne, nouvelle = self.preparer()

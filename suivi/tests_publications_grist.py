@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase
 
-from .services.catalogues_externes import CATALOGUE_DEMONSTRATION, edition_grist
+from .services.catalogues_externes import CATALOGUE_DEMONSTRATION, edition_grist, lire_catalogue_grist
 from .services.import_sources_referentiels import lire_source
 from .services.publications_grist import contenu_grist, meme_contenu_grist, publier_edition_grist
 
@@ -27,7 +27,8 @@ class PublicationsGrist(SimpleTestCase):
         def mettre(prefixe, identifiant, chemin, *, corps):
             self.assertIn("noupdate=true", chemin)
             ligne, = json.loads(corps)["records"]
-            if not lignes:
+            if not any(all(ligne_existante.get(cle) == valeur for cle, valeur in ligne["require"].items())
+                       for ligne_existante in lignes):
                 lignes.append({**ligne["require"], **ligne["fields"]})
             raise ValidationError("Réponse perdue")
 
@@ -43,8 +44,13 @@ class PublicationsGrist(SimpleTestCase):
                 "suivi.services.catalogues_externes.lire_api", side_effect=lire):
             publier_edition_grist(destination, "langage-test", "Langage", 1, document)
             publier_edition_grist(destination, "langage-test", "Langage", 1, document)
+            publier_edition_grist(destination, "autre-reference", "Autre titre", 1, document)
             with self.assertRaisesMessage(ValidationError, "Ce numéro est déjà utilisé"):
-                publier_edition_grist(destination, "autre-reference", "Langage", 1, document)
+                publier_edition_grist(destination, "langage-test", "Langage", 1, {**document, "domaines": []})
+            autre, _ = lire_source(edition_grist(CATALOGUE_DEMONSTRATION, "autre-reference", 1))
+            self.assertEqual(autre["source"]["titre"], "Autre titre")
+            self.assertEqual([r["editions"] for r in lire_catalogue_grist(CATALOGUE_DEMONSTRATION)
+                              ["referentiels"]], [[1], [1]])
             recu, _ = lire_source(edition_grist(CATALOGUE_DEMONSTRATION, "langage-test", 1))
         self.assertEqual(recu["domaines"][0]["sous_domaines"][0]["competences"][0]["identite"], "identite-stable")
         self.assertEqual(recu["source"]["licence"], "CC0-1.0")

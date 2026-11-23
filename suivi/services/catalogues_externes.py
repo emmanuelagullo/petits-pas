@@ -83,27 +83,43 @@ def document_grist(url):
     return prefixe, document, url, nom
 
 
-def lire_catalogue_grist(url, *, avec_lignes=False):
-    prefixe, document, url, nom = document_grist(url)
+def numerotation_grist_globale(lignes):
+    """Les catalogues anciens relient Competences à Editions par le seul numéro."""
+    return any(not ligne.get("Contenu") for ligne in lignes)
+
+
+def referentiels_grist(lignes):
     referentiels = {}
     numeros = set()
-    lignes = lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
+    globale = numerotation_grist_globale(lignes)
     for ligne in lignes:
         cle = identifiant(ligne.get("Referentiel"), "Identifiant du référentiel")
         titre = texte(ligne.get("Titre"), "Titre du référentiel")
         numero = ligne.get("Numero")
-        if type(numero) is not int or numero < 1 or numero in numeros:
-            raise ValidationError("Chaque édition du document Grist doit avoir un numéro entier positif distinct.")
-        numeros.add(numero)
+        if type(numero) is not int or numero < 1:
+            raise ValidationError("Chaque édition doit avoir un numéro entier positif.")
+        cle_edition = numero if globale else (cle, numero)
+        if cle_edition in numeros:
+            raise ValidationError("Le catalogue contient des numéros d’édition en double. "
+                                  "Les anciennes éditions sans Contenu exigent des numéros distincts dans tout le catalogue."
+                                  if globale else "Deux éditions d’un même référentiel ont le même numéro.")
+        numeros.add(cle_edition)
         source = referentiels.setdefault(cle, {"titre": titre, "editions": [], "reference": cle})
         if source["titre"] != titre:
             raise ValidationError("Utilisez le même titre pour les éditions d’un référentiel.")
         source["editions"].append(numero)
-    if not referentiels:
-        raise ValidationError("Ce catalogue Grist ne contient aucune édition.")
     for source in referentiels.values():
         source["editions"].sort(reverse=True)
-    resultat = {"url": url, "nom": nom, "referentiels": list(referentiels.values())}
+    return list(referentiels.values())
+
+
+def lire_catalogue_grist(url, *, avec_lignes=False):
+    prefixe, document, url, nom = document_grist(url)
+    lignes = lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
+    referentiels = referentiels_grist(lignes)
+    if not referentiels:
+        raise ValidationError("Ce catalogue Grist ne contient aucune édition.")
+    resultat = {"url": url, "nom": nom, "referentiels": referentiels}
     return (resultat, lignes) if avec_lignes else resultat
 
 

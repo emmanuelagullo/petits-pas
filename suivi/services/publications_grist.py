@@ -3,7 +3,10 @@ import json
 
 from django.core.exceptions import ValidationError
 
-from .catalogues_externes import TAILLE_MAX, adresse_grist, document_grist, lignes_grist, lire_api, requete_api
+from .catalogues_externes import (
+    TAILLE_MAX, adresse_grist, document_grist, lignes_grist, lire_api,
+    numerotation_grist_globale, referentiels_grist, requete_api,
+)
 
 CHEMIN_EDITIONS = "/tables/Editions/records"
 COLONNES = {"Numero": {"Int", "Numeric"}, **{
@@ -34,17 +37,7 @@ def destination_grist(url, *, preparer_vierge=False):
         raise ValidationError("Publication impossible : la table Editions a des colonnes manquantes ou de type incorrect (%(colonnes)s).",
                               params={"colonnes": ", ".join(manquantes)})
     editions = editions_grist(prefixe, document)
-    numeros = [ligne.get("Numero") for ligne in editions]
-    if any(type(n) is not int or n < 1 for n in numeros) or len(numeros) != len(set(numeros)):
-        raise ValidationError("Les numéros de la table Editions doivent être des entiers positifs distincts.")
-    references = {}
-    for ligne in editions:
-        reference = ligne.get("Referentiel")
-        titre = ligne.get("Titre")
-        if not isinstance(reference, str) or not reference or not isinstance(titre, str) or not titre:
-            raise ValidationError("Vérifiez les titres et identifiants de la table Editions.")
-        if references.setdefault(reference, titre) != titre:
-            raise ValidationError("Un référentiel a plusieurs titres dans la table Editions.")
+    referentiels_grist(editions)
     return {"url": url, "nom": nom, "espace": prefixe.removeprefix("/o/"), "editions": editions}
 
 
@@ -88,10 +81,18 @@ def publier_edition_grist(destination, reference, titre, numero, document):
     prefixe, identifiant = adresse_grist(destination["url"])
     contenu = contenu_grist(document)
     champs = {"Referentiel": reference, "Titre": titre, "Contenu": contenu}
-    corps = json.dumps({"records": [{"require": {"Numero": numero}, "fields": champs}]},
+    globale = numerotation_grist_globale(destination.get("editions", ()))
+    cle = {"Numero": numero}
+    if not globale:
+        cle["Referentiel"] = reference
+    corps = json.dumps({"records": [{"require": cle, "fields": champs}]},
                        ensure_ascii=False).encode()
     if len(corps) > TAILLE_MAX:
         raise ValidationError("Cette édition est trop volumineuse pour la publication Grist. Téléchargez le ZIP.")
+
+    def correspond(ligne):
+        return all(ligne.get(nom) == valeur for nom, valeur in cle.items())
+
     try:
         requete_api(prefixe, identifiant, f"{CHEMIN_EDITIONS}?noparse=true&noupdate=true&onmany=none", corps=corps)
     except ValidationError as erreur:
@@ -101,10 +102,10 @@ def publier_edition_grist(destination, reference, titre, numero, document):
             editions = editions_grist(prefixe, identifiant)
         except ValidationError:
             raise erreur
-        if not any(ligne.get("Numero") == numero for ligne in editions):
+        if not any(correspond(ligne) for ligne in editions):
             raise erreur
     else:
         editions = editions_grist(prefixe, identifiant)
-    correspondantes = [ligne for ligne in editions if ligne.get("Numero") == numero]
+    correspondantes = [ligne for ligne in editions if correspond(ligne)]
     if len(correspondantes) != 1 or any(correspondantes[0].get(cle) != valeur for cle, valeur in champs.items()):
         raise ValidationError("Ce numéro est déjà utilisé ou l’écriture n’a pas été confirmée. Examinez de nouveau la destination.")

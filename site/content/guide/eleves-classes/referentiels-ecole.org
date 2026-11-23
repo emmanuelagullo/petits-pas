@@ -174,11 +174,13 @@ fichier. Voir [[{{< relref "/referentiels/partage-entre-ecoles" >}}][partager de
 * Découvrir et suivre des référentiels
 
 Dans *Référentiels de l’école*, ouvrez *Découvrir des référentiels*.
-Les référentiels embarqués et le catalogue Grist de démonstration y
-figurent. Ouvrez *Détails* pour retrouver les éditions et le lien du
-catalogue. *Ajouter un catalogue par lien* examine un document public de
-=grist.numerique.gouv.fr= contenant les tables =Editions= et =Competences=
-du pilote. Le lien reste disponible dans le répertoire de l’école.
+Les référentiels de l’instance et ceux fournis avec Petits Pas
+figurent dans le premier catalogue. Chaque catalogue en ligne regroupe
+ses propres référentiels. Ouvrez *Lien du catalogue* pour retrouver son
+adresse et *Détails* sur un référentiel pour voir ses éditions.
+*Ajouter un catalogue par lien* examine un document public de
+=grist.numerique.gouv.fr= compatible avec Petits Pas. Le lien reste
+disponible dans le répertoire de l’école.
 
 *Suivre* mémorise votre choix pour l’école. *Vérifier les éditions* relit
 les catalogues suivis. Examinez l’édition avant de confirmer l’import.
@@ -206,12 +208,15 @@ puis *Exporter un référentiel*.
 
 * Publier le référentiel d’une classe dans Grist
 
-Dans le partage du référentiel courant, collez le lien du document Grist
+Dans le partage du référentiel courant, collez le lien du catalogue Grist
 la première fois, puis cliquez sur *Publier dans Grist*. La dernière
 destination où vous avez publié pour cette école est proposée. Le bouton
-publie directement dans ce document. *Modifier la destination ou le
-référentiel* permet de choisir un autre document ou un référentiel déjà
-publié. Une édition au contenu identique ne crée pas de nouveau numéro.
+publie directement dans ce catalogue. *Choisir le catalogue ou le
+référentiel* permet de sélectionner un autre catalogue ou un référentiel
+déjà publié. Chaque référentiel commence à l’édition 1. Une nouvelle
+publication augmente son numéro si le contenu a changé. Les anciens
+catalogues qui relient leurs compétences au seul numéro d’édition
+conservent une numérotation commune.
 *Examiner le contenu* reste disponible pour relire l’édition.
 
 Dans un document Grist vierge, Petits Pas crée la table nécessaire lors
