@@ -30,7 +30,9 @@ class Illustration:
 
     @property
     def url_png(self):
-        return f"data:image/png;base64,{self.icone_png}" if self.icone_png else ""
+        from .icones_partagees import png_en_ligne
+
+        return f"data:image/png;base64,{png_en_ligne(self.icone_png)}" if self.icone_png else ""
 
     @property
     def statique(self):

@@ -172,6 +172,8 @@ def selection_classe(classe, utilisateur):
             if finale or initiale:
                 autorisees.add(ressource.pk)
     resultat[m.RessourceReferentiel] = Q(pk__in=autorisees)
+    from .icones_partagees import selection_icones
+    resultat[m.IconePartagee] = Q(empreinte__in=selection_icones(resultat))
     return resultat, etats
 
 

@@ -853,6 +853,12 @@ class EvenementAudit(models.Model):
         return f"{self.action} {self.modele}#{self.objet_id}"
 
 
+class IconePartagee(models.Model):
+    """PNG partagé, adressé par son empreinte dans les éditions et instantanés."""
+    empreinte = models.CharField(max_length=64, unique=True)
+    png = models.BinaryField()
+
+
 class BrouillonReferentiel(models.Model):
     """Une composition personnelle par école et année."""
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE)

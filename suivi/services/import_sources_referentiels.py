@@ -11,7 +11,7 @@ from django.db.models import Q
 from suivi.models import (DefinitionSourceCompetence, IdentiteSourceCompetence,
                           SourceReferentiel, VersionReferentiel)
 from suivi.identites_referentiels import competences_document, identifiant_source_ecole, reference_competence
-from suivi.icones_partagees import decoder_icone, encoder_icone
+from suivi.icones_partagees import conserver_png, decoder_icone, encoder_icone, png_en_ligne
 from suivi.presentation import catalogue_icones
 
 
@@ -168,7 +168,13 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
         raise ValidationError("La source existe avec une autre provenance ou description ; aucune modification effectuée.")
     empreinte = hashlib.sha256(json.dumps(contenu, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     version = source.versions.filter(numero=contenu["version"]).first() if source else None
-    if version and (version.empreinte != empreinte or version.contenu != contenu):
+    if version:
+        from copy import deepcopy
+        precedente = deepcopy(version.contenu)
+        for c in competences_document(precedente):
+            if c.get("icone_png"):
+                c["icone_png"] = png_en_ligne(c["icone_png"])
+    if version and precedente != contenu:
         raise ValidationError("Cette version existe avec un autre contenu ; publier un nouveau numéro de version.")
     empruntees = {}
     origines_manquantes = {}
@@ -210,6 +216,8 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
         )
         empruntees[reference], _ = IdentiteSourceCompetence.objects.get_or_create(
             source=origine, identifiant=cle)
+    from suivi.models import IconePartagee
+    conserver_png(contenu, IconePartagee)
     version = VersionReferentiel(source=source, numero=contenu["version"], empreinte=empreinte, contenu=contenu)
     version.full_clean()
     version.save()

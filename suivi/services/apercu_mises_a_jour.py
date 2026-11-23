@@ -5,6 +5,7 @@ import json
 from django.db.models import Q
 
 from suivi.identites_referentiels import reference_competence, references_suivi
+from suivi.icones_partagees import png_en_ligne
 from suivi.presentation import catalogue_icones
 from suivi.models import AdaptationCompetence, Competence, FormulationLocale, ReglagePresentation
 
@@ -45,7 +46,7 @@ def comparer_definition(ancien, nouveau, *, ordre=None):
         details.append(detail)
     if ancien.get("icone_png") != nouveau.get("icone_png"):
         details.append({"cle": "icone", "champ": "Icône de l’école",
-            "png_avant": ancien.get("icone_png"), "png_apres": nouveau.get("icone_png"),
+            "png_avant": png_en_ligne(ancien.get("icone_png")), "png_apres": png_en_ligne(nouveau.get("icone_png")),
             "avant": "Icône PNG" if ancien.get("icone_png") else "Sans icône PNG",
             "apres": "Icône PNG" if nouveau.get("icone_png") else "Sans icône PNG"})
     return details

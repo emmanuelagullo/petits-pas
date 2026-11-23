@@ -77,7 +77,7 @@ def arbre_version(ecole, contenu, *, niveaux=None, inclure_ids=(), masquer=True,
             continue
         if masquer and (not ligne["active"] or (masque_actuel and not actuelle.active)) and ligne["id"] not in inclure_ids:
             continue
-        competence = Competence(**{k: v for k, v in ligne.items() if k != "cle_definition"})
+        competence = Competence(**{k: v for k, v in ligne.items() if k not in ("cle_definition", "icone_png")})
         competence._contenu_referentiel = contenu
         competence.domaine = domaines[ligne["domaine_id"]]
         competence.sous_domaine = sous_domaines.get(ligne["sous_domaine_id"])

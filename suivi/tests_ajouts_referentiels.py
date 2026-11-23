@@ -59,11 +59,11 @@ class AjoutsLocaux(Base):
         from io import BytesIO
         from django.core.files.uploadedfile import SimpleUploadedFile
         from PIL import Image
-        from .models import Ecole
+        from .models import Ecole, IconePartagee
         from .services.import_sources_referentiels import importer_source
         from .services.paquets_referentiels import lire_paquet
         from .services.versions_sources_ecoles import definir_version_ecole
-        from .icones_partagees import decoder_icone
+        from .icones_partagees import decoder_icone, png_en_ligne
 
         locale = self.creer()
         image = BytesIO()
@@ -76,9 +76,43 @@ class AjoutsLocaux(Base):
         ecole = Ecole.objects.create(nom="Destinataire fictif")
         version, _, _ = importer_source(lire_paquet(paquet.content), ecole=ecole)
         definition = definir_version_ecole(ecole, version)["competences"][0]
-        with Image.open(BytesIO(decoder_icone(definition["icone_png"]))) as icone:
+        with Image.open(BytesIO(decoder_icone(png_en_ligne(definition["icone_png"])))) as icone:
             self.assertEqual(icone.size, (16, 16))
             self.assertEqual(icone.getpixel((0, 0)), (0, 0, 255, 255))
+
+        from zipfile import ZipFile
+        from .services.paquets_referentiels import exporter_paquet
+        from .presentation import illustration_effective
+        from .models import Competence
+        from .exports_ecole import selections
+
+        with ZipFile(BytesIO(paquet.content)) as archive:
+            self.assertEqual(len([nom for nom in archive.namelist() if nom.endswith(".png")]), 1)
+            self.assertIn(b"sha256:", archive.read("referentiel.yaml"))
+        ancien_zip = BytesIO()
+        with ZipFile(ancien_zip, "w") as archive:
+            archive.writestr("referentiel.yaml", lire_paquet(paquet.content))
+        version_retour, _, _ = importer_source(lire_paquet(ancien_zip.getvalue()), ecole=self.ecole)
+        self.assertEqual(IconePartagee.objects.count(), 1)
+        from .services.import_sources_referentiels import lire_source
+        self.assertEqual(lire_source(lire_paquet(exporter_paquet(version_retour))),
+                         lire_source(lire_paquet(paquet.content)))
+        self.assertEqual(IconePartagee.objects.filter(selections(ecole.pk)[IconePartagee]).count(), 1)
+
+        adoption = self.adopter(version_retour)
+        competence = Competence.objects.get(pk=adoption.contenu["competences"][0]["id"])
+        self.assertTrue(illustration_effective(self.ecole, competence, self.classe).url_png)
+        clore(utilisateur=self.enseignant, classe=self.classe)
+        self.assertTrue(illustration_effective(self.ecole, competence, self.classe).url_png)
+        from .views import _generer_pdf
+        from unittest.mock import patch
+        with patch("suivi.views._generer_pdf", wraps=_generer_pdf) as generer:
+            pdf = self.client.get(reverse("carnet_pdf", args=[self.eleve.pk]), {"contenu": "tout"})
+        self.assertEqual(pdf.status_code, 200)
+        self.assertTrue(pdf.content.startswith(b"%PDF"))
+        self.assertIn("data:image/png;base64,", generer.call_args.args[0])
+
+
 
     def test_partage_uniquement_les_phrases_cochees(self):
         from .services.import_sources_referentiels import lire_source

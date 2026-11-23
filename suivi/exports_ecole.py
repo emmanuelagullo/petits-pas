@@ -59,7 +59,7 @@ def selections(ecole_id):
     annees = set(m.Classe.objects.filter(ecole_id=ecole_id).values_list("annee_scolaire", flat=True))
     annees.update(m.ChoixEcoleAnnuel.objects.filter(ecole_id=ecole_id).values_list("annee_scolaire", flat=True))
     annees.update(m.ReferentielAnnuel.objects.filter(ecole_id=ecole_id).values_list("annee_scolaire", flat=True))
-    return {
+    selection = {
         m.Ecole: Q(pk=ecole_id), m.ParametresCarnet: e,
         m.PolitiqueDoubleFacteurEcole: e, m.Classe: e, m.Eleve: e,
         m.Scolarite: Q(eleve__ecole_id=ecole_id),
@@ -100,6 +100,10 @@ def selections(ecole_id):
         apps.get_model("comptes", "Invitation"): e,
         apps.get_model("comptes", "AnomalieGouvernance"): e,
     }
+
+    from .icones_partagees import selection_icones
+    selection[m.IconePartagee] = Q(empreinte__in=selection_icones(selection))
+    return selection
 
 
 def verifier_couverture(selection):

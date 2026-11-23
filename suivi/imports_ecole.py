@@ -122,6 +122,12 @@ class Projection:
                 if isinstance(champ, models.FileField):
                     for r in lignes:
                         self.media(r[champ.attname])
+        self.icones_png = {r["empreinte"]: r["png"] for r in self.lignes[m.IconePartagee]}
+        from .icones_partagees import empreinte_png, verifier_png
+        for empreinte, png in self.icones_png.items():
+            verifier_png(png)
+            if empreinte != empreinte_png(png):
+                raise ValidationError("Empreinte d’icône incorrecte dans la sauvegarde.")
         # Validation des JSON et de leurs références avant toute écriture serveur.
         self.transformer_json()
         with validation_sur(alias):
@@ -213,8 +219,13 @@ class Projection:
         if set(valeur) - permis:
             raise ValidationError("Champs d'instantané non pris en charge.")
         if "icone_png" in valeur:
-            from .icones_partagees import decoder_icone
-            decoder_icone(valeur["icone_png"])
+            from .icones_partagees import PREFIXE, decoder_icone
+            png = valeur["icone_png"]
+            if isinstance(png, str) and png.startswith(PREFIXE):
+                if png[len(PREFIXE):] not in self.icones_png:
+                    raise ValidationError("Icône référencée absente de la sauvegarde.")
+            else:
+                decoder_icone(png)
         if model:
             for champ in model._meta.concrete_fields:
                 if (champ.attname in valeur and not champ.is_relation
@@ -250,7 +261,18 @@ class Projection:
         # tandis que leurs projections d'école ont des PK dans les listes plates.
         if valeur.get('origine') == 'source_declaree' and 'competences' not in valeur:
             from .services.import_sources_referentiels import normaliser
-            normaliser({k: v for k, v in valeur.items() if k != 'origine'})
+            from base64 import b64encode
+            from .icones_partagees import PREFIXE
+            from .identites_referentiels import competences_document
+            document = copy.deepcopy({k: v for k, v in valeur.items() if k != 'origine'})
+            for competence in competences_document(document):
+                png = competence.get("icone_png")
+                if isinstance(png, str) and png.startswith(PREFIXE):
+                    donnees = self.icones_png.get(png[len(PREFIXE):])
+                    if donnees is None:
+                        raise ValidationError("Icône référencée absente de la sauvegarde.")
+                    competence["icone_png"] = b64encode(donnees).decode("ascii")
+            normaliser(document)
             return resultat
         if set(valeur) - set(RUBRIQUES) - {'format', 'origine', 'source', 'structure_seule'}:
             raise ValidationError("Structure de référentiel non prise en charge.")
@@ -394,6 +416,11 @@ class Projection:
                         raise ValidationError("Cycle de relations non pris en charge par l'import.")
                     for model in sorted(prets, key=lambda mod: mod._meta.label_lower):
                         for r in self.lignes[model]:
+                            if model is m.IconePartagee:
+                                icone, _ = model.objects.get_or_create(
+                                    empreinte=r["empreinte"], defaults={"png": r["png"]})
+                                self.ids[model][r["id"]] = icone.pk
+                                continue
                             if model is Utilisateur:
                                 values = dict(username=f'historique-{identifiant}-{r["id"]}',
                                     first_name=r['first_name'] or (r['username'] if not r['last_name'] else ''),

@@ -130,3 +130,10 @@ sont indiquées dans le formulaire de partage. L’icône est reconstruite
 à partir des pixels puis intégrée à la définition, ce qui permet de
 l’importer hors réseau avec le ZIP. Les choix d’illustration de l’école
 ou de la classe continuent de primer lors de la présentation.
+
+Les PNG partagés sont conservés par empreinte SHA-256. L’installation stocke
+une seule copie des octets, même si plusieurs versions, écoles ou instantanés
+les référencent. Le ZIP pédagogique embarque un fichier PNG par empreinte et
+vérifie celle-ci avant de lire la définition. Les anciens ZIP pédagogiques
+avec PNG intégré restent lisibles. Les exports de transfert incluent
+les PNG référencés par leur périmètre.

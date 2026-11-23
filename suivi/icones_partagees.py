@@ -46,3 +46,70 @@ def decoder_icone(valeur):
         raise ValidationError("L’icône PNG du référentiel est invalide.") from erreur
     verifier_png(donnees)
     return donnees
+
+
+PREFIXE = "sha256:"
+
+
+def empreinte_png(donnees):
+    from hashlib import sha256
+
+    return sha256(donnees).hexdigest()
+
+
+def references_png(objet):
+    if isinstance(objet, dict):
+        valeur = objet.get("icone_png")
+        if isinstance(valeur, str) and valeur.startswith(PREFIXE):
+            yield valeur[len(PREFIXE):]
+        for valeur in objet.values():
+            yield from references_png(valeur)
+    elif isinstance(objet, list):
+        for valeur in objet:
+            yield from references_png(valeur)
+
+
+def conserver_png(objet, modele):
+    if isinstance(objet, dict):
+        valeur = objet.get("icone_png")
+        if valeur and not valeur.startswith(PREFIXE):
+            donnees = b64decode(valeur)
+            empreinte = empreinte_png(donnees)
+            modele.objects.get_or_create(empreinte=empreinte, defaults={"png": donnees})
+            objet["icone_png"] = PREFIXE + empreinte
+        for valeur in objet.values():
+            conserver_png(valeur, modele)
+    elif isinstance(objet, list):
+        for valeur in objet:
+            conserver_png(valeur, modele)
+
+
+def png_en_ligne(valeur):
+    if not valeur or not valeur.startswith(PREFIXE):
+        return valeur
+    from .models import IconePartagee
+
+    donnees = IconePartagee.objects.filter(empreinte=valeur[len(PREFIXE):]).values_list("png", flat=True).first()
+    if donnees is None:
+        raise ValidationError("Une icône référencée est introuvable.")
+    return b64encode(donnees).decode("ascii")
+
+
+# Les projections et les instantanés référencent les mêmes octets que l’édition.
+CHAMPS_PNG = {
+    "VersionReferentiel": ("contenu",),
+    "VersionSourceEcole": ("contenu",),
+    "AdoptionReferentiel": ("contenu", "etat_final"),
+    "AdaptationCompetence": ("ajout",),
+}
+
+
+def selection_icones(selection):
+    empreintes = set()
+    for modele, filtre in selection.items():
+        champs = CHAMPS_PNG.get(modele.__name__)
+        if champs:
+            for valeurs in modele.objects.filter(filtre).values_list(*champs).iterator():
+                for valeur in valeurs:
+                    empreintes.update(references_png(valeur))
+    return empreintes

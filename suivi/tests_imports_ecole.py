@@ -81,7 +81,18 @@ class ImportEcoleTests(TransactionTestCase):
         annuel = m.ReferentielAnnuel.objects.get(ecole=self.ecole, annee_scolaire=self.classe.annee_scolaire)
         annuel.etat_initial['affichage_images'] = {'ecole': True, 'classes': {str(self.classe.pk): False}}
         annuel.save(update_fields=['etat_initial'])
-        clore(utilisateur=self.prof, classe=self.classe)
+        from io import BytesIO
+        from PIL import Image
+        from .icones_partagees import empreinte_png
+        png = BytesIO()
+        Image.new("RGB", (8, 8), "blue").save(png, format="PNG")
+        valeur = png.getvalue()
+        empreinte = empreinte_png(valeur)
+        m.IconePartagee.objects.create(empreinte=empreinte, png=valeur)
+        adoption_source = clore(utilisateur=self.prof, classe=self.classe)
+        illustration = next(iter(adoption_source.etat_final["illustrations"].values()))
+        illustration["icone_png"] = f"sha256:{empreinte}"
+        m.AdoptionReferentiel.objects.filter(pk=adoption_source.pk).update(etat_final=adoption_source.etat_final)
         m.ExportEcole.objects.filter(ecole=self.ecole).delete()
         export = m.ExportEcole.objects.create(ecole=self.ecole, demande_par=self.direction,
             mot_de_passe_local='!', expire_le=timezone.now() + timedelta(hours=24))
@@ -96,6 +107,8 @@ class ImportEcoleTests(TransactionTestCase):
         self.assertEqual(adoption.annuel.etat_initial['affichage_images'],
                          {'ecole': True, 'classes': {str(copie.pk): False}})
         self.assertIn('petits-pas', {i.get('credit') for i in adoption.etat_final['illustrations'].values()})
+        self.assertIn(f"sha256:{empreinte}", {i.get("icone_png") for i in adoption.etat_final["illustrations"].values()})
+        self.assertEqual(m.IconePartagee.objects.count(), 1)
 
     def test_origine_initialisation_conservee_par_export_et_import_sans_droits(self):
         from .services.creation_classe import creer_classe_avec_base

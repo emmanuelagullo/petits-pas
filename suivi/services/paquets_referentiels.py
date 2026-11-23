@@ -2,6 +2,7 @@
 from copy import deepcopy
 from hashlib import sha256
 from io import BytesIO
+import re
 from zipfile import BadZipFile, ZIP_DEFLATED, ZipFile
 
 import yaml
@@ -9,9 +10,9 @@ from django.contrib.staticfiles import finders
 from django.core.exceptions import ValidationError
 
 from suivi.identites_referentiels import competences_document, reference_competence
-from suivi.icones_partagees import encoder_icone
+from suivi.icones_partagees import MAX_PNG, PREFIXE, decoder_icone, empreinte_png, encoder_icone, png_en_ligne
 from suivi.presentation import catalogue_icones
-from .import_sources_referentiels import lire_source
+from .import_sources_referentiels import ChargeurSansDoublons, lire_source
 
 MAX_ARCHIVE = 16 * 1024 * 1024
 DOCUMENT = "referentiel.yaml"
@@ -86,9 +87,19 @@ def exporter_ajout(locale, definition, *, provenance, licence, icone="", formula
 
 
 def empaqueter(document):
-    document_yaml = yaml.safe_dump(document, allow_unicode=True).encode()
-    normalise, _ = lire_source(document_yaml)
-    fichiers = {DOCUMENT: document_yaml, **ressources(normalise)}
+    portable = deepcopy(document)
+    for c in competences_document(portable):
+        if c.get("icone_png"):
+            c["icone_png"] = png_en_ligne(c["icone_png"])
+    normalise, _ = lire_source(yaml.safe_dump(portable, allow_unicode=True))
+    fichiers = ressources(normalise)
+    for c in competences_document(portable):
+        if c.get("icone_png"):
+            donnees = decoder_icone(c["icone_png"])
+            empreinte = empreinte_png(donnees)
+            fichiers[f"icones/{empreinte}.png"] = donnees
+            c["icone_png"] = PREFIXE + empreinte
+    fichiers[DOCUMENT] = yaml.safe_dump(portable, allow_unicode=True).encode()
     if sum(map(len, fichiers.values())) > MAX_ARCHIVE:
         raise ValidationError("Le référentiel dépasse la taille maximale du paquet.")
     sortie = BytesIO()
@@ -108,10 +119,35 @@ def lire_paquet(donnees):
             if len(noms) != len(membres) or DOCUMENT not in noms or sum(m.file_size for m in membres) > MAX_ARCHIVE:
                 raise ValidationError("Paquet de référentiel invalide.")
             texte = archive.read(DOCUMENT).decode("utf-8")
+            document = yaml.load(texte, Loader=ChargeurSansDoublons)
+            png = {}
+            if isinstance(document, dict):
+                def restaurer(objet):
+                    if isinstance(objet, dict):
+                        valeur = objet.get("icone_png")
+                        if isinstance(valeur, str) and re.fullmatch(r"sha256:[0-9a-f]{64}", valeur):
+                            empreinte = valeur[len(PREFIXE):]
+                            nom = f"icones/{empreinte}.png"
+                            if nom not in noms or archive.getinfo(nom).file_size > MAX_PNG:
+                                raise ValidationError("Une icône PNG du paquet est absente ou trop grande.")
+                            if nom not in png:
+                                donnees_png = archive.read(nom)
+                                if empreinte_png(donnees_png) != empreinte:
+                                    raise ValidationError("L’empreinte d’une icône PNG ne correspond pas.")
+                                png[nom] = donnees_png
+                            objet["icone_png"] = encoder_icone(png[nom])
+                        for valeur in objet.values():
+                            restaurer(valeur)
+                    elif isinstance(objet, list):
+                        for valeur in objet:
+                            restaurer(valeur)
+
+                restaurer(document)
+            texte = yaml.safe_dump(document, allow_unicode=True)
             normalise, _ = lire_source(texte)
-            attendus = ressources(normalise)
+            attendus = {**ressources(normalise), **png}
             if noms != {DOCUMENT, *attendus} or any(archive.read(nom) != valeur for nom, valeur in attendus.items()):
                 raise ValidationError("Les icônes ou les crédits du paquet diffèrent du catalogue fourni.")
             return texte
-    except (BadZipFile, RuntimeError, NotImplementedError, UnicodeError) as erreur:
+    except (BadZipFile, RuntimeError, NotImplementedError, UnicodeError, yaml.YAMLError) as erreur:
         raise ValidationError("Paquet de référentiel illisible.") from erreur
