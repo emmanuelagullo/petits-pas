@@ -103,7 +103,7 @@ def selections(ecole_id):
 
 
 def verifier_couverture(selection):
-    excludes = {m.ExportEcole, m.ExportClasse, Utilisateur,
+    excludes = {m.ExportEcole, m.ExportClasse, m.BrouillonReferentiel, Utilisateur,
                 apps.get_model("comptes", "DoubleFacteurCompte"),
                 apps.get_model("comptes", "CodeSecoursDoubleFacteur"),
                 # Accès de l'appareil local : ni clés ni choix ne quittent l'appareil.

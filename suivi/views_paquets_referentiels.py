@@ -13,7 +13,7 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, V
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import competences_document, identifiant_source_ecole, reference_competence
-from .models import ChoixApplicationAnnuel, Classe, VersionReferentiel, annee_scolaire_pour
+from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, VersionReferentiel, annee_scolaire_pour
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
 from .services.apercu_mises_a_jour import comparer_documents
@@ -59,8 +59,14 @@ def publication(request, contexte, engagement):
 
 
 
-def brouillon_composition(request, cle, contexte, action):
-    brouillon = request.session.get(cle, {})
+def brouillon_composition(request, ecole, annee, contexte, action):
+    perimetre = BrouillonReferentiel.objects.filter(ecole=ecole, auteur=request.user, annee_scolaire=annee)
+    enregistre = perimetre.first()
+    revision = enregistre.revision if enregistre else 0
+    cle = f"composition:{request.user.pk}:{ecole.pk}:{annee}"
+    brouillon = enregistre.contenu if enregistre else request.session.get(cle, {})
+    contexte.update(brouillon_composition=brouillon, revision_brouillon=revision,
+                    composition_ouverte=bool(brouillon))
     if action in ("composer", "enregistrer_composition", "ajouter_ligne_composition"):
         champs = ("titre", "identifiant", "version", "provenance", "licence", "rubrique",
                   "nouvelle", "identite_nouvelle", "niveau_nouvelle")
@@ -73,9 +79,19 @@ def brouillon_composition(request, cle, contexte, action):
         brouillon["creations"] = [dict(zip(colonnes, valeurs)) for valeurs in zip(*listes)]
         if action == "ajouter_ligne_composition" and len(brouillon["creations"]) < 50:
             brouillon["creations"].append({"niveau": "PS"})
-        request.session[cle] = brouillon
+        if request.POST.get("revision_brouillon", "0") != str(revision):
+            raise ValidationError("Le brouillon a changé. Relisez la version enregistrée avant de modifier la composition.")
+        if enregistre:
+            if not perimetre.filter(revision=revision).update(contenu=brouillon, revision=revision + 1):
+                raise ValidationError("Le brouillon a changé. Rechargez la page.")
+        else:
+            BrouillonReferentiel.objects.create(ecole=ecole, auteur=request.user, annee_scolaire=annee,
+                                                contenu=brouillon)
+        revision += 1
+        request.session.pop(cle, None)
     contexte["brouillon_composition"] = brouillon
-    contexte["composition_ouverte"] = action in (
+    contexte["revision_brouillon"] = revision
+    contexte["composition_ouverte"] = bool(brouillon) or action in (
         "composer", "enregistrer_composition", "ajouter_ligne_composition")
     return brouillon
 
@@ -106,13 +122,12 @@ def paquets_referentiels(request, classe_pk=None):
         if classe is None:
             catalogue = catalogue_composition(versions.values())
             contexte["catalogue_composition"] = catalogue
-            cle_brouillon = f"composition:{request.user.pk}:{ecole.pk}:{annee}"
-            brouillon = brouillon_composition(request, cle_brouillon, contexte, action)
+            brouillon = brouillon_composition(request, ecole, annee, contexte, action)
             if action == "composer":
                 return telecharger_paquet(composer_paquet(
                     catalogue, brouillon, brouillon["reprises"], brouillon["creations"]))
             if action in ("enregistrer_composition", "ajouter_ligne_composition"):
-                contexte["message"] = "Brouillon conservé pour cette session."
+                contexte["message"] = "Brouillon enregistré pour cette année."
                 action = None
         engagement = {"auteur": request.user.pk, "ecole": ecole.pk, "classe": classe_pk, "annee": annee}
         if action == "publier" and (not request.user.is_superuser or classe is not None):

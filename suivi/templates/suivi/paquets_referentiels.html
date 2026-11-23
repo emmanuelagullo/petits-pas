@@ -85,6 +85,7 @@
 <summary>Composer une édition à partager</summary>
 <form method="post">
 {% csrf_token %}
+<input type="hidden" name="revision_brouillon" value="{{ revision_brouillon }}">
 <p><label>Titre <input name="titre" required maxlength="200" value="{{ brouillon_composition.titre }}"></label></p>
 <p><label>Identifiant du référentiel <input name="identifiant" value="{{ brouillon_composition.identifiant }}" required maxlength="120" pattern="[A-Za-z0-9][A-Za-z0-9._-]*"></label> Gardez cet identifiant pour les éditions suivantes.</p>
 <p><label>Numéro d’édition <input name="version" value="{{ brouillon_composition.version|default:"1" }}" required maxlength="80"></label></p>

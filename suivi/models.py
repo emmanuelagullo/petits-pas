@@ -853,6 +853,19 @@ class EvenementAudit(models.Model):
         return f"{self.action} {self.modele}#{self.objet_id}"
 
 
+class BrouillonReferentiel(models.Model):
+    """Une composition personnelle par école et année."""
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    annee_scolaire = models.CharField(max_length=9)
+    contenu = models.JSONField(default=dict)
+    revision = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=("ecole", "auteur", "annee_scolaire"), name="brouillon_referentiel_auteur_annee")]
+
+
 class SourceReferentiel(models.Model):
     """Une provenance déclarée, jamais déduite du texte d'une compétence."""
     identifiant = models.CharField(max_length=120, unique=True)

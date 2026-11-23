@@ -77,9 +77,14 @@ class CreationBaseClasse(Base):
                   "creation_rubrique": ["Explorer"], "creation_libelle": ["Compter"],
                   "creation_identite": ["compter"], "creation_niveau": ["MS"]}
         self.assertContains(self.client.post(url, {**champs, "action": "enregistrer_composition"}),
-                            "Brouillon conservé")
-        self.assertContains(self.client.get(url), 'value="Compter"')
-        reponse = self.client.post(url, {**champs, "action": "composer"})
+                            "Brouillon enregistré")
+        self.client.logout()
+        self.client.force_login(self.direction)
+        page = self.client.get(url)
+        self.assertContains(page, 'value="Compter"')
+        self.assertEqual(self.client.post(url, {**champs, "action": "composer"}).status_code, 400)
+        reponse = self.client.post(url, {**champs, "action": "composer",
+                                        "revision_brouillon": page.context["revision_brouillon"]})
         self.assertEqual(reponse["Content-Type"], "application/zip")
         contenu, _ = lire_source(lire_paquet(reponse.content))
         self.assertEqual([d["nom"] for d in contenu["domaines"]], ["Langage", "Explorer"])

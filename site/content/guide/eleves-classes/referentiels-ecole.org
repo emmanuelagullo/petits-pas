@@ -145,6 +145,6 @@ le catalogue de compétences ou l’écran d’adoption.
 
 Dans *Composer une édition à partager*, vous pouvez mélanger des reprises et
 des créations, ranger les créations dans plusieurs rubriques et conserver
-un brouillon dans la session en cours. Le téléchargement prépare l’édition
+un brouillon personnel pour l’école et l’année, accessible après reconnexion. Le téléchargement prépare l’édition
 numérotée à relire avant import. Gardez le même identifiant de référentiel
 pour les éditions successives et donnez un nouveau numéro à chaque révision.
