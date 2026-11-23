@@ -1,0 +1,68 @@
+{% if publication_grist_reussie %}
+<p class="message" role="status">Édition {{ publication_grist_reussie.numero }} publiée dans <a href="{{ publication_grist_reussie.url }}">{{ publication_grist_reussie.nom }}</a>.</p>
+{% elif confirmation_grist %}
+<h3>Confirmer la publication dans Grist</h3>
+<p>Document : <a href="{{ confirmation_grist.url }}">{{ confirmation_grist.nom }}</a>{% if confirmation_grist.espace %} · {{ confirmation_grist.espace }}{% endif %}</p>
+<p>{{ confirmation_grist.titre }} · {% if confirmation_grist.nouvelle_edition %}Nouvelle édition{% else %}Nouveau référentiel, édition{% endif %} {{ confirmation_grist.numero }}</p>
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
+<input type="hidden" name="jeton_destination" value="{{ jeton_destination }}">
+<button class="bouton" name="action" value="publier-grist">Publier l’édition {{ confirmation_grist.numero }}</button>
+<button class="bouton discret" name="action" value="destination-grist">Changer de destination</button>
+</form>
+{% elif formulaire_grist %}
+<h3>Publier dans Grist</h3>
+{% if destination_grist %}
+<p>Document : <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a>{% if destination_grist.espace %} · {{ destination_grist.espace }}{% endif %}</p>
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
+<input type="hidden" name="destination_grist" value="{{ destination_grist.url }}">
+<label for="reference-grist">Référentiel à publier</label>
+<select id="reference-grist" name="reference_grist">
+<option value="">Nouveau référentiel</option>
+{% for reference, titre in references_grist %}
+<option value="{{ reference }}"{% if reference == reference_grist %} selected{% endif %}>Nouvelle édition · {{ titre }}</option>
+{% endfor %}
+</select>
+<button class="bouton" name="action" value="apercu-grist-classe">Examiner la publication</button>
+</form>
+{% elif derniere_destination %}
+<p>Dernière destination : <a href="{{ derniere_destination.url }}">{{ derniere_destination.nom }}</a>{% if derniere_destination.espace %} · {{ derniere_destination.espace }}{% endif %}</p>
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
+<input type="hidden" name="destination_grist" value="{{ derniere_destination.url }}">
+<button class="bouton" name="action" value="destination-grist">Examiner cette destination</button>
+</form>
+{% endif %}
+<details{% if erreur or not destination_grist and not derniere_destination %} open{% endif %}>
+<summary class="bouton discret">Choisir une autre destination</summary>
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
+{% if destinations_grist %}
+<label for="destinations-grist">Destinations récentes</label>
+<select name="destination_grist" id="destinations-grist">
+<option value="">Choisir un document</option>
+{% for destination in destinations_grist %}<option value="{{ destination.url }}">{{ destination.nom }}{% if destination.espace %} · {{ destination.espace }}{% endif %} · {{ destination.publie_le|date:"d/m/Y" }}</option>{% endfor %}
+</select>
+{% endif %}
+<p><label for="url-grist">Ou coller le lien d’un document Grist préparé</label>
+<input type="url" name="url_grist" id="url-grist" maxlength="2000" value="{{ url_grist }}"></p>
+<button class="bouton discret" name="action" value="destination-grist">Examiner le document</button>
+</form>
+{% if modele_grist %}
+<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>
+{% else %}
+<p>Pour un nouveau document, préparez une table Editions avec Numero (entier), Referentiel, Titre et Contenu (texte), puis collez son lien.</p>
+{% endif %}
+</details>
+{% else %}
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
+<button class="bouton discret" name="action" value="destination-grist">Publier dans Grist</button>
+</form>
+{% endif %}

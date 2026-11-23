@@ -1353,3 +1353,22 @@ class PropositionReferentiel(models.Model):
     class Meta:
         ordering = ["-cree_le", "-pk"]
         indexes = [models.Index(fields=["classe", "etat"])]
+
+
+class DestinationPublicationGrist(models.Model):
+    """Dernière publication réussie pour une classe et un document."""
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
+    url = models.URLField(max_length=300)
+    nom = models.CharField(max_length=200)
+    espace = models.CharField(max_length=200, blank=True)
+    identifiant_local = models.CharField(max_length=120)
+    reference = models.CharField(max_length=120)
+    publie_le = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["ecole", "auteur", "classe", "url", "identifiant_local"],
+            name="destination_grist_classe_referentiel_unique",
+        )]

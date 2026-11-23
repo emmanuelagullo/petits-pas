@@ -198,3 +198,18 @@ formulations et leurs illustrations avant de télécharger le ZIP. Relisez
 les textes libres pour écarter toute mention individuelle. Les observations,
 les suivis ciblés et les photos ne sont pas exportés. Pour transmettre la
 base telle qu’elle a été publiée, utilisez *Exporter l’édition d’origine*.
+
+* Publier le référentiel d’une classe dans Grist
+
+Dans l’aperçu du référentiel à partager, choisissez *Publier dans Grist*.
+La dernière destination où vous avez publié pour cette école est proposée.
+Pour en choisir une autre, ouvrez *Choisir une autre destination*. Dans un
+document préalablement préparé, Petits Pas peut publier un nouveau
+référentiel ou ajouter une édition. Avant de confirmer, vérifiez le nom
+du document, le référentiel et le numéro proposés.
+
+Le document Grist de ce pilote doit contenir une table =Editions= avec
+=Numero= (entier), =Referentiel=, =Titre= et =Contenu= (texte). Petits Pas
+écrit une édition complète dans une ligne et vérifie sa présence. Le
+document doit autoriser l’écriture pour la connexion utilisée. Réservez
+les essais avec un document ouvert en écriture à des contenus fictifs.

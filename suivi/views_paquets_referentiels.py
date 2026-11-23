@@ -21,6 +21,7 @@ from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole,
 from .navigation import lien
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
+from .publication_grist import ACTIONS_GRIST, publication_grist
 from .services.apercu_mises_a_jour import comparer_documents, definitions_document
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
@@ -133,10 +134,13 @@ def apercu_document(document, ecole):
     }
 
 
+ACTIONS_PARTAGE = {"apercu-classe", "exporter-classe"} | ACTIONS_GRIST
+
+
 def partage_classe(request, classe, contexte, action):
     adoption = adoption_courante(classe)
     if not adoption or adoption.clos or classe.etat != Classe.ACTIVE:
-        if action in ("apercu-classe", "exporter-classe"):
+        if action in ACTIONS_PARTAGE:
             raise ValidationError("Cette classe ne dispose pas d’une base courante à partager.")
         return
     if action == "apercu-classe":
@@ -146,11 +150,11 @@ def partage_classe(request, classe, contexte, action):
             "provenance": adoption.version.source.provenance,
         })
     contexte["partage_classe"] = formulaire
-    if action not in ("apercu-classe", "exporter-classe"):
+    if action not in ACTIONS_PARTAGE:
         return
     contexte["volet"] = "exporter"
     engagement = {"auteur": request.user.pk, "adoption": adoption.pk}
-    if action == "exporter-classe":
+    if action != "apercu-classe":
         try:
             preparation = signing.loads(request.POST.get("jeton_partage", ""), salt="partage-referentiel-classe",
                                         max_age=1800)
@@ -166,9 +170,9 @@ def partage_classe(request, classe, contexte, action):
     version = donnees.pop("version")
     document = preparer_referentiel_classe(classe, donnees, version)
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
+    if action != "apercu-classe" and empreinte != preparation["empreinte"]:
+        raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
     if action == "exporter-classe":
-        if empreinte != preparation["empreinte"]:
-            raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
         return telecharger_paquet(empaqueter(document))
     normalise, _ = lire_source(lire_paquet(empaqueter(document)))
     lignes = []
@@ -182,10 +186,14 @@ def partage_classe(request, classe, contexte, action):
             c["icone"] for c in competences_document(normalise) if c["icone"]
         })],
     }
-    contexte["jeton_partage"] = signing.dumps(
-        {"engagement": engagement, "donnees": formulaire.cleaned_data, "empreinte": empreinte},
-        salt="partage-referentiel-classe",
-    )
+    if action == "apercu-classe":
+        contexte["jeton_partage"] = signing.dumps(
+            {"engagement": engagement, "donnees": formulaire.cleaned_data, "empreinte": empreinte},
+            salt="partage-referentiel-classe",
+        )
+    else:
+        contexte["jeton_partage"] = request.POST["jeton_partage"]
+        publication_grist(request, classe, contexte, action, normalise)
 
 
 @acces_requis
@@ -215,7 +223,7 @@ def paquets_referentiels(request, classe_pk=None):
             resultat = partage_classe(request, classe, contexte, action)
             if resultat:
                 return resultat
-            if action in ("apercu-classe", "exporter-classe"):
+            if action in ACTIONS_PARTAGE:
                 action = None
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
         edition = request.GET.get("edition")

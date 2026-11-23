@@ -35,15 +35,24 @@ class SansRedirection(HTTPRedirectHandler):
 
 
 def lire_api(prefixe, document, chemin=""):
+    return requete_api(prefixe, document, chemin)
+
+
+def requete_api(prefixe, document, chemin, *, corps=None):
+    headers = {"Accept": "application/json"}
+    if corps is not None:
+        headers["Content-Type"] = "application/json"
     requete = Request(f"https://{HOTE_GRIST}{prefixe}/api/docs/{document}{chemin}",
-                      headers={"Accept": "application/json"})
+                      data=corps, method="PUT" if corps is not None else "GET", headers=headers)
     try:
         with build_opener(SansRedirection()).open(requete, timeout=5) as reponse:
             donnees = reponse.read(TAILLE_MAX + 1)
         if len(donnees) > TAILLE_MAX:
             raise ValidationError("Le catalogue Grist dépasse la taille admise pour cet essai.")
-        return json.loads(donnees)
+        return json.loads(donnees) if donnees or corps is None else None
     except HTTPError as erreur:
+        if erreur.code in (401, 403) and corps is not None:
+            raise ValidationError("Grist n’autorise pas l’écriture dans ce document.") from erreur
         if erreur.code in (401, 403):
             raise ValidationError(
                 "Ce catalogue demande un accès Grist. Ouvrez le document chez le fournisseur pour vérifier son partage."
@@ -63,7 +72,7 @@ def lignes_grist(reponse):
         raise ValidationError("Le tableau Grist n’a pas le format attendu.") from erreur
 
 
-def lire_catalogue_grist(url):
+def document_grist(url):
     prefixe, document = adresse_grist(url)
     metadata = lire_api(prefixe, document)
     if not isinstance(metadata, dict):
@@ -71,9 +80,15 @@ def lire_catalogue_grist(url):
     nom = texte(metadata.get("name"), "Nom du catalogue")
     document = identifiant(metadata.get("id"), "Identifiant du document Grist", 64)
     url = f"https://{HOTE_GRIST}{prefixe}/{document}"
+    return prefixe, document, url, nom
+
+
+def lire_catalogue_grist(url, *, avec_lignes=False):
+    prefixe, document, url, nom = document_grist(url)
     referentiels = {}
     numeros = set()
-    for ligne in lignes_grist(lire_api(prefixe, document, "/tables/Editions/records")):
+    lignes = lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
+    for ligne in lignes:
         cle = identifiant(ligne.get("Referentiel"), "Identifiant du référentiel")
         titre = texte(ligne.get("Titre"), "Titre du référentiel")
         numero = ligne.get("Numero")
@@ -88,7 +103,8 @@ def lire_catalogue_grist(url):
         raise ValidationError("Ce catalogue Grist ne contient aucune édition.")
     for source in referentiels.values():
         source["editions"].sort(reverse=True)
-    return {"url": url, "nom": nom, "referentiels": list(referentiels.values())}
+    resultat = {"url": url, "nom": nom, "referentiels": list(referentiels.values())}
+    return (resultat, lignes) if avec_lignes else resultat
 
 
 def identite_grist(url, reference):
@@ -98,11 +114,24 @@ def identite_grist(url, reference):
 
 
 def edition_grist(url, reference, numero):
-    catalogue = lire_catalogue_grist(url)
+    catalogue, lignes = lire_catalogue_grist(url, avec_lignes=True)
     source = next((ligne for ligne in catalogue["referentiels"] if ligne["reference"] == reference), None)
     if not source or numero not in source["editions"]:
         raise ValidationError("Cette édition ne figure plus dans le catalogue Grist.")
     prefixe, document = adresse_grist(catalogue["url"])
+    for ligne in lignes:
+        if ligne.get("Numero") == numero and ligne.get("Referentiel") == reference and ligne.get("Contenu"):
+            contenu = texte(ligne["Contenu"], "Contenu de l’édition", TAILLE_MAX)
+            try:
+                edition = json.loads(contenu)
+                if not isinstance(edition, dict) or not isinstance(edition.get("source"), dict):
+                    raise ValueError
+                edition["source"]["identifiant"] = identite_grist(catalogue["url"], reference)
+                edition["source"]["titre"] = source["titre"]
+                edition["version"] = str(numero)
+            except ValueError as erreur:
+                raise ValidationError("Le contenu de l’édition Grist est illisible.") from erreur
+            return yaml.safe_dump(edition, allow_unicode=True)
     domaines = {}
     for ligne in lignes_grist(lire_api(prefixe, document, "/tables/Competences/records")):
         if ligne.get("Edition") != numero:

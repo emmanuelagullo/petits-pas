@@ -10,6 +10,7 @@
 <button class="bouton" name="action" value="exporter-classe">Télécharger le ZIP</button>
 <a class="bouton discret" href="?volet=exporter#export-referentiel">Annuler</a>
 </form>
+{% include "suivi/partiels/publication_grist.html" %}
 {% else %}
 <form method="post">
 {% csrf_token %}
