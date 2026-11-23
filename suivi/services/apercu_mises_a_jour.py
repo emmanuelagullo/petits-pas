@@ -5,7 +5,7 @@ import json
 from django.db.models import Q
 
 from suivi.presentation import catalogue_icones
-from suivi.models import AdaptationCompetence, Competence, CompetenceSourceEcole
+from suivi.models import AdaptationCompetence, Competence, CompetenceSourceEcole, FormulationLocale, ReglagePresentation
 
 
 def definitions(version):
@@ -32,7 +32,18 @@ def apercu_mise_a_jour(classe, actuelle, version):
     regles = list(AdaptationCompetence.objects.filter(
         Q(classe__isnull=True) | Q(classe=classe), ecole=classe.ecole,
         annee_scolaire=classe.annee_scolaire, competence_id__in=liaisons.values()).order_by("pk"))
-    empreinte = hashlib.sha256(json.dumps([(r.pk, r.revision) for r in regles]).encode()).hexdigest()
+    phrases_locales = list(FormulationLocale.objects.filter(
+        Q(classe__isnull=True) | Q(classe=classe), ecole=classe.ecole,
+        competence_id__in=liaisons.values(), origine__isnull=False
+    ).select_related("origine").order_by("pk"))
+    empreinte = hashlib.sha256(json.dumps([
+        [(r.pk, r.revision) for r in regles],
+        [(r.pk, r.mode, r.texte, r.classe_id, r.origine_id) for r in phrases_locales],
+    ]).encode()).hexdigest()
+    phrases_par_competence = {}
+    for r in phrases_locales:
+        phrases_par_competence.setdefault(r.competence_id, {}).setdefault(r.origine.code, {})[r.classe_id] = r
+    phrases_reprenables = {}
     materielles = Competence.objects.in_bulk(liaisons.values())
     champs = [("libelle", "Libellé"), ("code", "Code"), ("niveau", "Section"),
         ("domaine", "Domaine"), ("sous_domaine", "Sous-domaine"), ("attendus", "Attendus"),
@@ -101,10 +112,29 @@ def apercu_mise_a_jour(classe, actuelle, version):
                                     "visible": choix_classe.visible,
                                     "apres": choix_ecole.libelle if choix_ecole else nouveau["libelle"]}
                     libelles_reprenables[str(choix_classe.competence_id)] = choix_libelle
+            choix_phrases = []
+            formulations_avant = {f["code"]: f["texte"] for f in ancien["formulations"]}
+            for phrase in nouveau["formulations"]:
+                code = phrase["code"]
+                if code not in formulations_avant or phrase["texte"] == formulations_avant[code]:
+                    continue
+                regles_phrase = phrases_par_competence.get(liaisons.get(identite), {}).get(code, {})
+                locale = regles_phrase.get(classe.pk)
+                if not locale or locale.mode != ReglagePresentation.REMPLACER:
+                    continue
+                ecole = regles_phrase.get(None)
+                choix = {"id": locale.origine_id, "competence_id": locale.competence_id,
+                         "avant": locale.texte, "apres": phrase["texte"], "masquee": False}
+                if ecole and ecole.mode == ReglagePresentation.REMPLACER:
+                    choix["apres"] = ecole.texte
+                elif ecole and ecole.mode == ReglagePresentation.DESACTIVER:
+                    choix["masquee"] = True
+                choix_phrases.append(choix)
+                phrases_reprenables[str(locale.origine_id)] = choix
             if details:
                 modifiees.append({"avant": ancien["libelle"], "apres": nouveau["libelle"],
                     "changements": [d["champ"] for d in details], "adaptation": adaptation,
-                    "choix_libelle": choix_libelle,
+                    "choix_libelle": choix_libelle, "choix_phrases": choix_phrases,
                     "filtres": " ".join(d["cle"] for d in details), "details": details})
     # Un retrait ou un changement de section peut changer les possibilités de
     # saisie. Garder le garde-fou renforcé dans ces cas.
@@ -113,6 +143,7 @@ def apercu_mise_a_jour(classe, actuelle, version):
         for identite, ancien in avant.items()
     )
     return {"modifiees": modifiees, "adaptations": conservees,
+        "phrases_reprenables": phrases_reprenables,
         "continue_suivi": continue_suivi, "libelles_reprenables": libelles_reprenables,
         "ajoutees": [c["libelle"] for i, c in apres.items() if i not in avant],
         "retirees": [c["libelle"] for i, c in avant.items() if i not in apres],

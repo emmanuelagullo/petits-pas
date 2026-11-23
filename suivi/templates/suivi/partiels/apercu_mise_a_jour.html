@@ -5,9 +5,11 @@
 <section data-apercu-ecarts>
 <h3>Compétences modifiées</h3>
 {% if mise_a_jour.modifiees %}
-{% if mise_a_jour.libelles_reprenables and apercu.garde.permis %}
+{% if apercu.garde.permis %}
+{% if mise_a_jour.libelles_reprenables %}
 <p>Vos libellés de classe sont conservés par défaut. Cochez ceux pour lesquels vous souhaitez reprendre la proposition indiquée.</p>
-<p role="status" data-compteur-libelles hidden></p>
+{% endif %}
+<p role="status" data-compteur-reprises hidden></p>
 {% endif %}
 <label hidden data-filtre-ecarts>Afficher les modifications
 <select>
@@ -35,6 +37,12 @@
 {% if c.choix_libelle and apercu.garde.permis %}
 <label><input type="checkbox" name="reprendre_libelle" value="{{ c.choix_libelle.id }}" form="confirmer-edition-classe">
 Reprendre « {{ c.choix_libelle.apres }} » pour cette classe</label>
+{% endif %}
+{% if peut_regler_phrases and apercu.garde.permis %}
+{% for choix in c.choix_phrases %}
+<p><label><input type="checkbox" name="reprendre_phrase" value="{{ choix.id }}" form="confirmer-edition-classe">
+Quitter « {{ choix.avant }} » et {% if choix.masquee %}reprendre le masquage choisi par l’école{% else %}reprendre « {{ choix.apres }} »{% endif %}</label></p>
+{% endfor %}
 {% endif %}
 </details>
 {% endfor %}

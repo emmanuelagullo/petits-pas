@@ -56,7 +56,9 @@ def enregistrer_reglage(utilisateur, reglage):
 
 @transaction.atomic
 def enregistrer_formulation(*, utilisateur, competence, classe=None, cle=None, mode="remplacer", texte=""):
-    ecole = competence.domaine.ecole
+    ecole = Ecole.objects.select_for_update().get(pk=competence.domaine.ecole_id)
+    if classe is not None:
+        classe = Classe.objects.select_for_update().get(pk=classe.pk)
     verifier_droit(utilisateur, ecole, classe, competence)
     filtres = {"ecole": ecole, "classe": classe, "competence": competence}
     locale = None

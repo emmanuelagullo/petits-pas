@@ -56,7 +56,7 @@ def apercu_adoption(*, utilisateur, classe, version_id):
 
 
 @transaction.atomic
-def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None, initialisee_depuis_ecole=False, selection_manuelle=False, libelles_a_reprendre=()):
+def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None, initialisee_depuis_ecole=False, selection_manuelle=False, libelles_a_reprendre=(), phrases_a_reprendre=()):
     classe_fournie = classe
     # Même ordre de coordination que les choix d'école.
     _application_verrouillee(classe.annee_scolaire)
@@ -74,6 +74,13 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     if libelles_a_reprendre and (adaptations_attendues is None or
                                 not libelles_a_reprendre <= reprenables.keys()):
         raise ValidationError("Les libellés sélectionnés ne correspondent pas à l’aperçu.")
+    phrases_a_reprendre = set(phrases_a_reprendre)
+    phrases = mise_a_jour["phrases_reprenables"] if mise_a_jour else {}
+    if phrases_a_reprendre:
+        from .presentation import verifier_droit
+        if adaptations_attendues is None or not phrases_a_reprendre <= phrases.keys():
+            raise ValidationError("Les phrases sélectionnées ne correspondent pas à l’aperçu.")
+        verifier_droit(utilisateur, classe.ecole, classe)
     if initialisee_depuis_ecole:
         choix = choix_bases(classe.ecole, classe.annee_scolaire)
         if (AdoptionReferentiel.objects.filter(classe=classe).exists() or
@@ -99,6 +106,14 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
                 annee=classe.annee_scolaire, classe=classe,
                 competence=competences[choix["id"]], libelle=None, visible=choix["visible"],
                 revision_attendue=choix["revision"], adoption_attendue=adoption_attendue)
+    if phrases_a_reprendre:
+        from .presentation import enregistrer_formulation
+        from suivi.models import Competence, ReglagePresentation
+        selections = [phrases[cle] for cle in sorted(phrases_a_reprendre)]
+        competences = Competence.objects.in_bulk({c["competence_id"] for c in selections})
+        for choix in selections:
+            enregistrer_formulation(utilisateur=utilisateur, competence=competences[choix["competence_id"]],
+                                    classe=classe, cle=f"base-{choix['id']}", mode=ReglagePresentation.HERITER)
     contenu = definir_version_ecole(classe.ecole, version)
     annuel, _ = ReferentielAnnuel.objects.get_or_create(ecole=classe.ecole, annee_scolaire=classe.annee_scolaire,
                                                       defaults={"version_proposee": version})

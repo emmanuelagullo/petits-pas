@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import GERER_REFERENTIEL_CLASSE, VOIR_SUIVI, autorise, charger_classe_autorisee
+from .autorisations import GERER_REFERENTIEL_CLASSE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee
 from .contexte_ecole import ecole_courante
 from .referentiels import adoption_courante
 from .navigation import chemin_reglages_referentiel
@@ -42,7 +42,8 @@ def choisir_base_classe(request, classe_pk):
                     revisions_attendues=donnees["revisions"], adoption_attendue=donnees["adoption"],
                     adaptations_attendues=donnees.get("adaptations"), garde_attendue=donnees.get("garde"),
                     selection_manuelle=donnees.get("selection_manuelle", False),
-                    libelles_a_reprendre=request.POST.getlist("reprendre_libelle"))
+                    libelles_a_reprendre=request.POST.getlist("reprendre_libelle"),
+                    phrases_a_reprendre=request.POST.getlist("reprendre_phrase"))
                 messages.success(request, "La base de la classe est choisie. Aucune réussite n'a été créée ou transférée.")
                 return redirect("classe_detail", pk=classe.pk)
             if request.POST.get("action") != "apercu":
@@ -69,7 +70,7 @@ def choisir_base_classe(request, classe_pk):
                                         inclure_reglages=False)
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
         "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
-        "actuelle": actuelle, "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
+        "actuelle": actuelle, "peut_regler_phrases": autorise(request.user, MODIFIER_ETAT, classe), "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
 
 
 def choix_ecole_modifies(local, donnees):

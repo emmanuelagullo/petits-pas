@@ -111,6 +111,25 @@ class MisesAJour(Base):
         self.assertEqual(effective["libelle"], "Libellé école")
         self.assertFalse(effective["active"])
 
+    def test_reprendre_phrase_proposee(self):
+        from .services.presentation import enregistrer_formulation
+        from .presentation import formulations_effectives
+
+        ancienne, nouvelle = self.preparer(phrases=True)
+        competence = ancienne.usages.get().competence
+        phrase = competence.formulations.get(code="p1")
+        enregistrer_formulation(utilisateur=self.enseignant, competence=competence,
+                                classe=self.classe, cle=f"base-{phrase.pk}", texte="Choix de la classe")
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        apercu = self.client.post(url, {"action": "apercu", "version": nouvelle.pk})
+        self.assertContains(apercu, 'name="reprendre_phrase"')
+        confirmation = self.client.post(url, {"action": "confirmer", "jeton": apercu.context["jeton"],
+                                              "reprendre_phrase": str(phrase.pk)})
+        self.assertEqual(confirmation.status_code, 302)
+        self.classe.refresh_from_db()
+        self.classe.__dict__.pop("_adoption_referentiel_lecture", None)
+        self.assertIn("<prénom> partage une découverte.", formulations_effectives(competence, self.classe))
+
     def test_confirmation_refuse_adaptation_changee(self):
         ancienne, nouvelle = self.preparer()
         url = reverse("referentiel_classe", args=[self.classe.pk])

@@ -56,8 +56,11 @@ phrase retirée de la source n’est plus proposée ; son adaptation reste en ba
 et est retrouvée au retour de la proposition, sans réinterprétation. Cette
 conséquence est explicitée dans l’aperçu et le Guide. Les textes déjà enregistrés dans les
 traces ne sont pas réécrits. L'empreinte supplémentaire protège les libellés et
-masquages détaillés dans l'aperçu, pas une photographie des médias ou de toutes
-les phrases adaptées. Le détail des choix de présentation reste leur écran
+masquages détaillés dans l'aperçu, pas une photographie des médias. Elle couvre aussi les adaptations des
+phrases de la source pour l’école et la classe. Lorsqu’une phrase change
+de texte en conservant son code, la classe peut choisir de retrouver
+l’héritage de l’école ou de la nouvelle édition, dans la même confirmation
+que les libellés. Les phrases masquées et les choix non cochés sont conservés. Le détail des choix de présentation reste leur écran
 dédié ; il n'est pas dupliqué ici.
 
 * Démonstration et limites
