@@ -23,7 +23,10 @@
 {% url 'paquets_referentiels_classe' classe.pk as echange %}
 <p>{% if peut_importer_ecole %}<a class="bouton" href="{{ echange }}#import-referentiel">Importer dans le catalogue de l’école</a> {% endif %}
 <a class="bouton discret" href="{{ echange }}{% if peut_importer_ecole %}?volet=exporter#export-referentiel{% endif %}">Exporter un référentiel</a></p>
-{% if not peut_importer_ecole %}{% include "suivi/partiels/aide_import_referentiel.html" %}{% endif %}
+{% if not peut_importer_ecole and not peut_proposer_referentiel %}{% include "suivi/partiels/aide_import_referentiel.html" %}{% endif %}
+{% if peut_proposer_referentiel %}
+<p><a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">{% if peut_importer_ecole %}Mes propositions de référentiel{% else %}Proposer un référentiel à la direction{% endif %}</a></p>
+{% endif %}
 </section>
 <details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary>
 <p>Pour expliquer à l’équipe comment deux compétences se rapprochent. Ces repères facultatifs ne changent pas la liste de saisie et ne transfèrent aucune réussite. Vous pouvez utiliser les autres réglages sans en créer.</p>

@@ -6,6 +6,7 @@ from comptes.phrases_de_passe import proposer_phrase
 
 from .autorisations import ADMINISTRER_ECOLE, VOIR_CLASSE, autorise, classes_accessibles
 from .contexte_ecole import ecole_courante
+from .models import PropositionReferentiel
 
 
 def session_ecole(request):
@@ -52,6 +53,8 @@ def session_ecole(request):
         "ecole": ecole,
         "role": "direction" if direction else ("enseignant" if ecole else None),
         "est_direction": direction,
+        "propositions_referentiel_en_attente": SimpleLazyObject(lambda: PropositionReferentiel.objects.filter(
+            classe__ecole=ecole, etat=PropositionReferentiel.ATTENTE).count()) if direction else 0,
         "utilisateur_courant": utilisateur,
         "environnement_atelier": settings.ENVIRONNEMENT_ATELIER,
         "environnement_ephemere": settings.ENVIRONNEMENT_EPHEMERE,

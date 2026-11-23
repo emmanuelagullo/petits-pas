@@ -183,3 +183,5 @@ Voir [le parcours]({{< relref "/guide/observer/ajouter-reussite" >}}).
 Les Mésanges permettent de comparer les sous-domaines d’une base fournie.
 
 {{< capture-guide src="captures/referentiels/cycle1/sous-domaines.png" alt="Sous-domaines du référentiel étayé dans la classe fictive des Mésanges" caption="Le classement du référentiel reste visible dans le suivi." >}}
+
+Pour faire circuler vos propres éditions, voir [Partager des référentiels entre écoles]({{< relref "/referentiels/partage-entre-ecoles" >}}).

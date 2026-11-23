@@ -8,7 +8,8 @@
 {% url 'paquets_referentiels_ecole' as echange %}
 <p><a class="bouton" href="{{ echange }}?annee={{ annee }}#import-referentiel">Importer un référentiel</a>
 <a class="bouton discret" href="{{ echange }}?annee={{ annee }}&amp;volet=exporter#export-referentiel">Exporter un référentiel</a>
-<a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
+<a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a>
+<a class="bouton discret" href="{% url 'propositions_referentiels_ecole' %}">Propositions reçues</a></p>
 <p>Consultez les bases disponibles et adaptez les propositions de l’école. Les libellés, images et phrases proposés peuvent être repris ou adaptés par chaque classe. Choisissez d’abord les propositions pour l’année, puis créez les classes et invitez l’équipe. Les classes déjà préparées gardent leur base.</p>
 <details id="delegation-import" class="operations-avancees"{% if messages %} open{% endif %}>
 <summary>Autorisation d’import des responsables de classe</summary>

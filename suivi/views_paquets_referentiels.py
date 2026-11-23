@@ -107,6 +107,25 @@ def lignes_selection(versions, *, avec_source=False):
     return lignes
 
 
+def apercu_document(document, ecole):
+    contenu, _ = lire_source(document)
+    identifiant = contenu["source"]["identifiant"]
+    if ecole is not None:
+        identifiant = identifiant_source_ecole(ecole, identifiant)
+    precedente = VersionReferentiel.objects.filter(source__identifiant=identifiant, source__ecole=ecole
+        ).exclude(numero=contenu["version"]).order_by("-pk").first()
+    competences = list(competences_document(contenu))
+    icones = catalogue_icones()
+    return {
+        "apercu": contenu,
+        "comparaison_import": comparer_documents(precedente.contenu, contenu) if precedente else None,
+        "edition_comparee": precedente.numero if precedente else None,
+        "destination_import": "de l’école" if ecole else "de l’application",
+        "competences_importees": competences,
+        "icones_importees": [icones[cle] for cle in sorted({c["icone"] for c in competences if c["icone"]})],
+    }
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def paquets_referentiels(request, classe_pk=None):
@@ -217,22 +236,7 @@ def paquets_referentiels(request, classe_pk=None):
                     raise ValidationError("Choisissez le fichier à examiner.")
                 document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
                 importer_source(document, verifier_seulement=True, ecole=None if global_ else ecole)
-                contenu, _ = lire_source(document)
-                contexte["apercu"] = contenu
-                identifiant = contenu["source"]["identifiant"]
-                if not global_:
-                    identifiant = identifiant_source_ecole(ecole, identifiant)
-                precedente = VersionReferentiel.objects.filter(
-                    source__identifiant=identifiant, source__ecole=None if global_ else ecole
-                ).exclude(numero=contenu["version"]).order_by("-pk").first()
-                if precedente:
-                    contexte["comparaison_import"] = comparer_documents(precedente.contenu, contenu)
-                    contexte["edition_comparee"] = precedente.numero
-                contexte["destination_import"] = "de l’application" if global_ else "de l’école"
-                competences = list(competences_document(contenu))
-                contexte["competences_importees"] = competences
-                icones = catalogue_icones()
-                contexte["icones_importees"] = [icones[cle] for cle in sorted({c["icone"] for c in competences if c["icone"]})]
+                contexte.update(apercu_document(document, None if global_ else ecole))
                 attendu = {**engagement, "preparation": get_random_string(32), "global": global_}
                 request.session[SEL] = {"jeton": attendu, "document": document}
                 contexte["jeton"] = signing.dumps(attendu, salt=SEL)

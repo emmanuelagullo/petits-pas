@@ -1,0 +1,20 @@
+{% load static %}
+{% if apercu %}
+<h3>{{ apercu.source.titre }} — {{ apercu.version }}</h3>
+<p>Catalogue {{ destination_import }} · {{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
+{% if comparaison_import %}
+<details>
+<summary>Écarts avec l’édition {{ edition_comparee }} du catalogue</summary>
+<p>{{ comparaison_import.ajouts|length }} ajout(s) · {{ comparaison_import.retraits|length }} retrait(s) · {{ comparaison_import.modifications|length }} modification(s).</p>
+{% for libelle, details in comparaison_import.modifications %}
+<h4>{{ libelle }}</h4>
+<dl>{% for detail in details %}<dt>{{ detail.champ }}</dt><dd>{{ detail.avant }} → {{ detail.apres }}</dd>{% endfor %}</dl>
+{% endfor %}
+</details>
+{% endif %}
+<ul>{% for competence in competences_importees %}<li>{% if competence.icone_png %}<img src="data:image/png;base64,{{ competence.icone_png }}" alt="" width="32" height="32"> {% endif %}{{ competence.libelle }}</li>{% endfor %}</ul>
+{% if icones_importees %}
+<h4>Illustrations et crédits</h4>
+<ul>{% for icone in icones_importees %}<li><img src="{% static icone.fichier %}" alt="" width="32" height="32"> {{ icone.nom }} · {{ icone.credit }}</li>{% endfor %}</ul>
+{% endif %}
+{% endif %}

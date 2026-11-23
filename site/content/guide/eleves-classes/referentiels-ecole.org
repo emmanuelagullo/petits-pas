@@ -156,3 +156,17 @@ des créations, ranger les créations dans plusieurs rubriques et conserver
 un brouillon personnel pour l’école et l’année, accessible après reconnexion. Le téléchargement prépare l’édition
 numérotée à relire avant import. Gardez le même identifiant de référentiel
 pour les éditions successives et donnez un nouveau numéro à chaque révision.
+
+* Proposer un ZIP à la direction
+
+Depuis les réglages du référentiel de la classe, ouvrez *Proposer un
+référentiel à la direction*. Examinez le ZIP, ajoutez éventuellement une
+note, puis envoyez la proposition. La direction voit un compteur
+*Propositions reçues* dans le bandeau et peut examiner, accepter ou refuser
+la proposition. La décision figure dans *Mes propositions* pour la classe.
+Si l’école conserve une liste annuelle restrictive, l’édition doit encore
+être autorisée pour l’année. Chaque classe choisit ensuite si elle l’adopte.
+
+La proposition est visible aux comptes de la même installation. Si les
+postes utilisent des installations séparées, transmettez le ZIP comme
+fichier. Voir [[{{< relref "/referentiels/partage-entre-ecoles" >}}][partager des référentiels entre écoles]].

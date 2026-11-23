@@ -208,6 +208,33 @@ class ImportSources(TestCase):
         self.assertEqual(list(choix_bases(b, "2026-2027").versions), [version_b])
         self.assertFalse(SourceReferentiel.objects.filter(ecole__isnull=True).exists())
 
+    def test_zip_et_revision_echanges_entre_deux_ecoles(self):
+        from .models import Ecole
+        from .services.paquets_referentiels import exporter_paquet, lire_paquet
+        from .views_paquets_referentiels import apercu_document
+
+        origine = Ecole.objects.create(nom="École émettrice fictive")
+        destination = Ecole.objects.create(nom="École destinataire fictive")
+        recue = None
+        for numero, libelle, icone in (("1", "Je parle", "parler"), ("2", "Je prends la parole", "livre")):
+            source = document("edition-partagee", numero)
+            source["domaines"][0]["competences"][0].update(libelle=libelle, icone=icone)
+            edition = importer(source, ecole=origine)[0]
+            contenu = lire_paquet(exporter_paquet(edition))
+            apercu = apercu_document(contenu, destination)
+            self.assertEqual(apercu["apercu"]["source"]["licence"], "CC-BY-SA-4.0")
+            self.assertTrue(apercu["icones_importees"][0]["credit"])
+            if recue:
+                self.assertEqual(apercu["edition_comparee"], "1")
+                self.assertTrue(apercu["comparaison_import"]["modifications"])
+            nouvelle, cree, _ = importer_source(contenu, ecole=destination)
+            self.assertTrue(cree)
+            self.assertNotEqual(edition.source_id, nouvelle.source_id)
+            self.assertEqual(importer_source(contenu, ecole=destination)[:2], (nouvelle, False))
+            if recue:
+                self.assertEqual(recue.definitions.get().identite_id, nouvelle.definitions.get().identite_id)
+            recue = nouvelle
+
     def test_selection_scoped_cree_une_origine_locale_puis_la_retrouve(self):
         from .models import Ecole
 

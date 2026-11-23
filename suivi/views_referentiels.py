@@ -74,6 +74,7 @@ def choisir_base_classe(request, classe_pk):
                                         inclure_reglages=False)
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
         "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),
+        "peut_proposer_referentiel": classe.etat == classe.ACTIVE,
         "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
         "actuelle": actuelle, "edition_demandee": edition_demandee, "peut_regler_phrases": autorise(request.user, MODIFIER_ETAT, classe), "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
 

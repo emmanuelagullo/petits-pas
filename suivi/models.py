@@ -1332,3 +1332,23 @@ class RubriqueClasse(models.Model):
             raise ValidationError("La rubrique doit appartenir à l’école de la classe.")
         if self.sous_domaine_id and self.sous_domaine.domaine_id != self.domaine_id:
             raise ValidationError("La sous-rubrique doit appartenir à la rubrique indiquée.")
+
+
+class PropositionReferentiel(models.Model):
+    ATTENTE = "attente"
+    ACCEPTEE = "acceptee"
+    REFUSEE = "refusee"
+    ETATS = [(ATTENTE, "En attente"), (ACCEPTEE, "Ajoutée au catalogue"), (REFUSEE, "Refusée")]
+
+    classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
+    auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    titre = models.CharField(max_length=200)
+    numero = models.CharField(max_length=80)
+    document = models.TextField()
+    note = models.CharField(max_length=500, blank=True)
+    etat = models.CharField(max_length=10, choices=ETATS, default=ATTENTE)
+    cree_le = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-cree_le", "-pk"]
+        indexes = [models.Index(fields=["classe", "etat"])]

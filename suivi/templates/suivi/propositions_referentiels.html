@@ -1,0 +1,39 @@
+{% extends "suivi/base.html" %}
+{% load navigation_suivi %}
+{% block titre %}Propositions reçues{% endblock %}
+{% block contenu %}
+<div class="page-referentiel">
+{% ariane_gestion "Propositions reçues" %}
+<h1>Propositions reçues</h1>
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if proposition %}
+<p><a href="{% url 'propositions_referentiels_ecole' %}">Retour aux propositions reçues</a></p>
+<p>{{ proposition.auteur.get_full_name|default:proposition.auteur.username }} · {{ proposition.classe.libelle_avec_annee }}</p>
+{% if proposition.note %}<p>{{ proposition.note }}</p>{% endif %}
+{% if edition_a_autoriser %}
+<p>L’édition doit être autorisée pour {{ proposition.classe.annee_scolaire }} avant de pouvoir être choisie par cette classe.</p>
+<p><a class="bouton" href="{% url 'referentiels_ecole' %}?annee={{ proposition.classe.annee_scolaire }}#choix-ecole">Ouvrir les choix annuels de l’école</a></p>
+{% endif %}
+{% include "suivi/partiels/apercu_paquet_referentiel.html" %}
+{% if proposition.document %}
+<form method="post">
+{% csrf_token %}
+<button class="bouton" name="action" value="accepter">Ajouter au catalogue de l’école</button>
+<button class="bouton discret" name="action" value="refuser">Refuser</button>
+</form>
+{% else %}
+<p>{{ proposition.titre }} — {{ proposition.numero }} · {{ proposition.get_etat_display }}</p>
+{% endif %}
+{% else %}
+<ul class="liste">
+{% for proposition in propositions %}
+<li class="entree">
+<div><strong>{{ proposition.titre }} — {{ proposition.numero }}</strong>
+<p>{{ proposition.auteur.get_full_name|default:proposition.auteur.username }} · {{ proposition.classe.libelle_avec_annee }} · {{ proposition.get_etat_display }}</p></div>
+<a class="bouton discret" href="{% url 'examiner_proposition_referentiel' proposition.pk %}">{% if proposition.etat == "attente" %}Examiner le fichier{% else %}Voir la décision{% endif %}</a>
+</li>
+{% empty %}<li>Aucune proposition reçue.</li>{% endfor %}
+</ul>
+{% endif %}
+</div>
+{% endblock %}

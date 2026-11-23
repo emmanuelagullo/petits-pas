@@ -82,7 +82,7 @@ class CreationBaseClasse(Base):
         self.client.force_login(self.enseignant)
         page = self.client.get(reglages)
         self.assertContains(page, "Exporter un référentiel")
-        self.assertContains(page, "Transmettez-le à une personne qui gère l’école")
+        self.assertContains(page, "Proposer un référentiel à la direction")
         self.assertNotContains(page, "#import-referentiel")
         page = self.client.get(reverse("paquets_referentiels_classe", args=[self.classe.pk]))
         self.assertContains(page, ">Exporter un référentiel</h1>")
@@ -155,6 +155,54 @@ class CreationBaseClasse(Base):
         self.assertNotContains(page, "Ouvrir les choix annuels de l’école")
         source = SourceReferentiel.objects.get(ecole=self.ecole, identifiant_diffusion="nouvelle-deleguee")
         self.assertNotIn(source.versions.get(), choix_bases(self.ecole, self.annee).versions)
+
+    def test_proposer_un_zip_avertit_la_direction_et_attend_sa_decision(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from comptes.models import AppartenanceEcole, ResponsabiliteEcole
+        from .models import Ecole, PropositionReferentiel, SourceReferentiel
+        from .services.paquets_referentiels import empaqueter
+
+        proposer = reverse("proposer_referentiel_classe", args=[self.classe.pk])
+        recevoir = reverse("propositions_referentiels_ecole")
+        self.client.force_login(self.enseignant)
+        self.assertEqual(self.client.get(recevoir).status_code, 403)
+        autre_ecole = Ecole.objects.create(nom="Autre école fictive")
+        appartenance = AppartenanceEcole.objects.create(utilisateur=self.direction, ecole=autre_ecole)
+        ResponsabiliteEcole.objects.create(appartenance=appartenance)
+        for numero, action, etat in (("1", "accepter", "Ajoutée au catalogue"),
+                                      ("2", "refuser", "Refusée")):
+            fichier = SimpleUploadedFile("proposition.zip", empaqueter(document("proposition-fictive", numero)))
+            page = self.client.post(proposer, {"action": "examiner", "paquet": fichier})
+            self.assertContains(page, "Je parle")
+            self.assertEqual(self.client.post(proposer, {"action": "proposer",
+                "jeton": page.context["jeton"], "note": "À examiner"}).status_code, 302)
+            proposition = PropositionReferentiel.objects.get(numero=numero)
+            self.assertEqual(proposition.etat, PropositionReferentiel.ATTENTE)
+            examen = reverse("examiner_proposition_referentiel", args=[proposition.pk])
+            self.assertEqual(self.client.post(examen, {"action": "accepter"}).status_code, 403)
+            self.assertFalse(SourceReferentiel.objects.filter(ecole=self.ecole,
+                identifiant_diffusion="proposition-fictive", versions__numero=numero).exists())
+
+            self.client.force_login(self.direction)
+            session = self.client.session
+            session["ecole_id"] = autre_ecole.pk
+            session.save()
+            self.assertNotContains(self.client.get(recevoir), "Propositions reçues (1)")
+            self.assertEqual(self.client.get(examen).status_code, 404)
+            session = self.client.session
+            session["ecole_id"] = self.ecole.pk
+            session.save()
+            self.assertContains(self.client.get(recevoir), "Propositions reçues (1)")
+            self.assertContains(self.client.get(examen), "À examiner")
+            self.assertEqual(self.client.post(examen, {"action": action}).status_code, 302)
+            self.assertNotContains(self.client.get(recevoir), "Propositions reçues (1)")
+            self.assertEqual(self.client.post(examen, {"action": action}).status_code, 400)
+            self.assertEqual(SourceReferentiel.objects.filter(ecole=self.ecole,
+                identifiant_diffusion="proposition-fictive", versions__numero=numero).exists(), action == "accepter")
+            proposition.refresh_from_db()
+            self.assertEqual(proposition.document, "")
+            self.client.force_login(self.enseignant)
+            self.assertContains(self.client.get(proposer), etat)
 
     def test_brouillon_de_composition_repris_avec_plusieurs_rubriques(self):
         from suivi.services.import_sources_referentiels import lire_source
