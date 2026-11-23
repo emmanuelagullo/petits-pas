@@ -32,7 +32,9 @@ def composer_paquet(catalogue, donnees, references, creations=()):
         precedente = reprises.get(cle)
         if precedente:
             champs = ("libelle", "niveau", "icone", "formulations")
-            ecarts = comparer_definition({c: precedente[c] for c in champs}, {c: competence[c] for c in champs})
+            ecarts = comparer_definition(
+                {c: precedente.get(c) for c in (*champs, "icone_png")},
+                {c: competence.get(c) for c in (*champs, "icone_png")})
             if ecarts:
                 resume = ", ".join(f"{d['champ']} ({d['avant']} → {d['apres']})" for d in ecarts)
                 raise ValidationError(f"Deux définitions de « {competence['libelle']} » diffèrent : {resume}. "

@@ -29,8 +29,8 @@
 <tbody>
 {% for d in c.details %}
 <tr><th scope="row">{{ d.champ }}</th>
-<td>{% if d.icone_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_avant.fichier %}" alt=""> {{ d.icone_avant.nom }}{% else %}{{ d.avant }}{% endif %}</td>
-<td>{% if d.icone_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_apres.fichier %}" alt=""> {{ d.icone_apres.nom }}{% else %}{{ d.apres }}{% endif %}</td></tr>
+<td>{% if d.png_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="data:image/png;base64,{{ d.png_avant }}" alt="{{ d.avant }}">{% elif d.icone_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_avant.fichier %}" alt=""> {{ d.icone_avant.nom }}{% else %}{{ d.avant }}{% endif %}</td>
+<td>{% if d.png_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="data:image/png;base64,{{ d.png_apres }}" alt="{{ d.apres }}">{% elif d.icone_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_apres.fichier %}" alt=""> {{ d.icone_apres.nom }}{% else %}{{ d.apres }}{% endif %}</td></tr>
 {% endfor %}
 </tbody></table>
 {% if c.adaptation %}<p>Si vous gardez vos choix : <strong>{{ c.adaptation.libelle }}</strong> · {% if c.adaptation.visible %}montrée{% else %}masquée{% endif %} selon les choix de l’école ou de la classe.</p>{% endif %}

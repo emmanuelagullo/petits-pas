@@ -206,12 +206,15 @@ class Projection:
     def ligne_json(self, valeur, model=None):
         if not isinstance(valeur, dict):
             raise ValidationError("Ligne d'instantané invalide.")
-        permis = ({f.attname for f in model._meta.concrete_fields} | {'cle_definition', 'type_libelle'}
+        permis = ({f.attname for f in model._meta.concrete_fields} | {'cle_definition', 'type_libelle', 'icone_png'}
                   if model else set(REFERENCES) | {
                       'reference', 'libelle', 'code', 'niveau', 'origine',
-                      'provenance', 'icone', 'photo', 'credit', 'statut', 'date_observation', 'date_derniere_reussite', 'date_reussite_precedente', 'connu'})
+                      'provenance', 'icone', 'icone_png', 'photo', 'credit', 'statut', 'date_observation', 'date_derniere_reussite', 'date_reussite_precedente', 'connu'})
         if set(valeur) - permis:
             raise ValidationError("Champs d'instantané non pris en charge.")
+        if "icone_png" in valeur:
+            from .icones_partagees import decoder_icone
+            decoder_icone(valeur["icone_png"])
         if model:
             for champ in model._meta.concrete_fields:
                 if (champ.attname in valeur and not champ.is_relation

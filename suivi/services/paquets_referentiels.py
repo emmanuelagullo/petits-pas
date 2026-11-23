@@ -9,6 +9,7 @@ from django.contrib.staticfiles import finders
 from django.core.exceptions import ValidationError
 
 from suivi.identites_referentiels import competences_document, reference_competence
+from suivi.icones_partagees import encoder_icone
 from suivi.presentation import catalogue_icones
 from .import_sources_referentiels import lire_source
 
@@ -65,13 +66,15 @@ def exporter_selection(version, references):
     return empaqueter(document)
 
 
-def exporter_ajout(locale, definition, *, provenance, licence, icone="", formulations=()):
+def exporter_ajout(locale, definition, *, provenance, licence, icone="", formulations=(), image=None):
     if locale.suivi_libre:
         raise ValidationError("Une compétence de suivi ciblé ne peut pas être partagée.")
     origine = locale.definition["competences"][0]
     identifiant = origine["code"]
     competence = {"identite": identifiant, "code": "C1", "libelle": definition["libelle"],
                   "niveau": definition["niveau"], "icone": icone, "formulations": list(formulations)}
+    if image is not None:
+        competence["icone_png"] = encoder_icone(image)
     # La même fiche pédagogique produit la même édition sur un autre poste.
     empreinte = sha256(yaml.safe_dump(competence, allow_unicode=True).encode()).hexdigest()
     return empaqueter({

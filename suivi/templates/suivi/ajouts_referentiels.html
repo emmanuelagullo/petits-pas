@@ -26,13 +26,16 @@
 <details>
 <summary>Partager cette compétence</summary>
 <p>Le fichier contient la proposition « {{ proposee.libelle }} » pour le niveau {{ proposee.niveau }}.</p>
-<form method="post">
+<form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <p><label>Provenance <input name="provenance" required maxlength="4000"></label></p>
   <p><label>Licence <input name="licence" required maxlength="120"></label></p>
   <p><label>Icône du catalogue <select name="icone"><option value="">Sans icône</option>
   {% for cle, icone in icones_partage.items %}<option value="{{ cle }}">{{ icone.nom }}</option>{% endfor %}
   </select></label></p>
+  <p><label>Icône propre à l’école <input type="file" name="icone_png" accept="image/png"></label></p>
+  <p class="aide">PNG fixe, 256 × 256 pixels et 256 Kio au maximum. Laissez le choix du catalogue sur « Sans icône » pour utiliser ce fichier.</p>
+  <p><label><input type="checkbox" name="icone_generique" value="oui"> Cette image est générique, sans élève ni production d’élève, et je peux la partager.</label></p>
   {% if phrases_partage %}
   <fieldset><legend>Phrases proposées à partager</legend>
   <p>Cochez uniquement des formulations génériques, sans nom ni information sur un élève.</p>

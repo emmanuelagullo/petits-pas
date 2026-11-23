@@ -53,6 +53,8 @@ def definir_version_ecole(ecole, version):
                 "sous_domaine_id": sous_domaine.pk if sous_domaine else None, "code": c["code"],
                 "libelle": c["libelle"], "niveau": c["niveau"], "icone": c["icone"], "active": True,
                 "ordre": len(contenu["competences"]), "cle_definition": f"source-{identite.pk}"})
+            if c.get("icone_png"):
+                contenu["competences"][-1]["icone_png"] = c["icone_png"]
             for ordre, f in enumerate(c["formulations"]):
                 base, _ = FormulationProposee.objects.get_or_create(competence=competence, code=f["code"],
                     defaults={"texte": f["texte"], "ordre": ordre})

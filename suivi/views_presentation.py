@@ -25,7 +25,7 @@ from .views import acces_requis, _supprimer_media_apres_validation
 def url_illustration(illustration):
     if illustration.photo:
         return reverse("media_presentation", args=[illustration.reglage_id])
-    return static(illustration.statique) if illustration.statique else ""
+    return illustration.url_png or (static(illustration.statique) if illustration.statique else "")
 
 
 def _perimetre(request, classe_pk):

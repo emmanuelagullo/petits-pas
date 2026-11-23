@@ -50,7 +50,7 @@
 {% endfor %}
 </details>
 {% endif %}
-<ul>{% for competence in competences_importees %}<li>{{ competence.libelle }}</li>{% endfor %}</ul>
+<ul>{% for competence in competences_importees %}<li>{% if competence.icone_png %}<img src="data:image/png;base64,{{ competence.icone_png }}" alt="" width="32" height="32"> {% endif %}{{ competence.libelle }}</li>{% endfor %}</ul>
 {% if icones_importees %}
 <h4>Illustrations et crédits</h4>
 <ul>{% for icone in icones_importees %}<li><img src="{% static icone.fichier %}" alt="" width="32" height="32"> {{ icone.nom }} · {{ icone.credit }}</li>{% endfor %}</ul>

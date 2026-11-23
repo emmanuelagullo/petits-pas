@@ -11,6 +11,7 @@ from django.db.models import Q
 from suivi.models import (DefinitionSourceCompetence, IdentiteSourceCompetence,
                           SourceReferentiel, VersionReferentiel)
 from suivi.identites_referentiels import competences_document, identifiant_source_ecole, reference_competence
+from suivi.icones_partagees import decoder_icone, encoder_icone
 from suivi.presentation import catalogue_icones
 
 
@@ -85,7 +86,7 @@ def normaliser(document):
         for c in liste(valeurs, chemin):
             champs = ("identite", "code", "libelle", "niveau", "icone", "formulations")
             if document["format"] == 2:
-                champs += ("source_origine",)
+                champs += ("source_origine", "icone_png")
             c = objet(c, champs, "Compétence")
             identite = identifiant(c.get("identite"), "Identité")
             origine = {}
@@ -101,12 +102,17 @@ def normaliser(document):
             icone = texte(c.get("icone", ""), "Icône", 120, facultatif=True)
             if icone and icone not in catalogue_icones():
                 raise ValidationError(f"Icône inconnue : {icone}.")
+            personnalisee = {}
+            if "icone_png" in c:
+                if icone:
+                    raise ValidationError("Choisissez une seule illustration pour cette compétence.")
+                personnalisee["icone_png"] = encoder_icone(decoder_icone(c["icone_png"]))
             formulations, codes_phrases = [], set()
             for f in liste(c.get("formulations", []), "Phrases proposées"):
                 f = objet(f, ("code", "texte"), "Phrase proposée")
                 formulations.append({"code": unique(identifiant(f.get("code"), "Code de phrase", 80), codes_phrases, "Code de phrase"),
                                      "texte": texte(f.get("texte"), "Phrase proposée", 4000)})
-            resultat.append({**origine, "identite": identite, "code": code, "libelle": texte(c.get("libelle"), "Libellé", 300),
+            resultat.append({**origine, **personnalisee, "identite": identite, "code": code, "libelle": texte(c.get("libelle"), "Libellé", 300),
                              "niveau": niveau, "icone": icone, "formulations": formulations})
         return resultat
 

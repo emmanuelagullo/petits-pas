@@ -55,6 +55,31 @@ class AjoutsLocaux(Base):
         version_retour, _, _ = importer_source(document, ecole=self.ecole)
         self.assertEqual(definir_version_ecole(self.ecole, version_retour)["competences"][0]["id"], locale.competence_id)
 
+    def test_partage_icone_png_et_projection(self):
+        from io import BytesIO
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from PIL import Image
+        from .models import Ecole
+        from .services.import_sources_referentiels import importer_source
+        from .services.paquets_referentiels import lire_paquet
+        from .services.versions_sources_ecoles import definir_version_ecole
+        from .icones_partagees import decoder_icone
+
+        locale = self.creer()
+        image = BytesIO()
+        Image.new("RGB", (16, 16), "blue").save(image, format="PNG")
+        url = reverse("ajout_classe", args=[self.classe.pk, locale.pk])
+        paquet = self.client.post(url, {"action": "partager", "provenance": "Équipe",
+            "licence": "CC-BY-SA-4.0", "icone_generique": "oui",
+            "icone_png": SimpleUploadedFile("cercle.png", image.getvalue())})
+        self.assertEqual(paquet["Content-Type"], "application/zip")
+        ecole = Ecole.objects.create(nom="Destinataire fictif")
+        version, _, _ = importer_source(lire_paquet(paquet.content), ecole=ecole)
+        definition = definir_version_ecole(ecole, version)["competences"][0]
+        with Image.open(BytesIO(decoder_icone(definition["icone_png"]))) as icone:
+            self.assertEqual(icone.size, (16, 16))
+            self.assertEqual(icone.getpixel((0, 0)), (0, 0, 255, 255))
+
     def test_partage_uniquement_les_phrases_cochees(self):
         from .services.import_sources_referentiels import lire_source
         from .services.paquets_referentiels import lire_paquet

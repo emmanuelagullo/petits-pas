@@ -31,6 +31,9 @@ def clore(*, utilisateur, classe):
     def conserver(image):
         resultat = {"provenance": image.provenance, "icone": "", "photo": "",
                     "ressource_id": None, "credit": credit_illustration(image)}
+        if image.icone_png:
+            resultat["icone_png"] = image.icone_png
+            return resultat
         if image.photo:
             ressource, _ = RessourceReferentiel.objects.get_or_create(
                 annuel=adoption.annuel,

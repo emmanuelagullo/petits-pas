@@ -22,10 +22,15 @@ def catalogue_icones():
 class Illustration:
     provenance: str = "Référentiel importé"
     icone: str = ""
+    icone_png: str = ""
     photo: str = ""
     reglage_id: int | None = None
     ressource_id: int | None = None
     credit: str = ""
+
+    @property
+    def url_png(self):
+        return f"data:image/png;base64,{self.icone_png}" if self.icone_png else ""
 
     @property
     def statique(self):
@@ -105,7 +110,11 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
             # La reprise conserve les réglages disponibles, sans prétendre
             # reconstituer ceux qui avaient déjà été remplacés.
             identifiant = competence.pk if competence else None
-            resultat = Illustration(icone=competence.icone if competence else "")
+            from .referentiels import contenu_origine
+            definition = next((c for c in contenu_origine(adoption).get("competences", [])
+                               if c["id"] == identifiant), {})
+            resultat = Illustration(icone=definition.get("icone", competence.icone if competence else ""),
+                                    icone_png=definition.get("icone_png", ""))
             for classe_id, provenance in [(None, "École"), (classe.pk, "Classe")]:
                 for reglage in adoption.annuel.etat_initial.get("reglages", []):
                     if reglage["classe_id"] != classe_id or reglage["competence_id"] != identifiant:
@@ -120,15 +129,18 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
                         resultat = Illustration(provenance=provenance, icone=reglage["icone"],
                             photo=reglage["photo"], ressource_id=ressource.pk if ressource else None)
             return resultat
+    icone_png = ""
     if competence and classe:
         from .referentiels import definition_classe
         contenu = getattr(competence, "_contenu_referentiel", None) or definition_classe(classe, competence)
         if contenu and contenu.get("origine") == "source_declaree":
             from copy import copy
             competence = copy(competence)
-            competence.icone = next(c["icone"] for c in contenu["competences"] if c["id"] == competence.pk)
+            definition = next(c for c in contenu["competences"] if c["id"] == competence.pk)
+            competence.icone = definition["icone"]
+            icone_png = definition.get("icone_png", "")
     reglages = reglages if reglages is not None else reglages_du_perimetre(ecole, classe)
-    resultat = Illustration(icone=competence.icone if competence else "")
+    resultat = Illustration(icone=competence.icone if competence else "", icone_png=icone_png)
     identifiant = competence.pk if competence else None
     niveaux = [(None, "École")]
     if classe is not None:

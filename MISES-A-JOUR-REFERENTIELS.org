@@ -122,3 +122,11 @@ composition et indiquer les attributions avec la provenance. L'import relit
 l'édition avant de l'inscrire au catalogue. La publication pour l'année est
 un geste séparé réservé aux superutilisateurs ; elle conserve la proposition
 existante si l'application en a déjà une.
+
+Une compétence ajoutée peut être partagée avec une icône PNG fixe de
+256 × 256 pixels et 256 Kio au maximum. Joindre uniquement une image
+générique dont la diffusion est autorisée. La provenance et la licence
+sont indiquées dans le formulaire de partage. L’icône est reconstruite
+à partir des pixels puis intégrée à la définition, ce qui permet de
+l’importer hors réseau avec le ZIP. Les choix d’illustration de l’école
+ou de la classe continuent de primer lors de la présentation.

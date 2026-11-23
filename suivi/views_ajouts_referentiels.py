@@ -83,9 +83,14 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                 raise ValidationError("Une phrase choisie n’est plus proposée pour cette compétence.")
             formulations = [{"code": phrase["cle"], "texte": phrase["texte"]}
                             for phrase in phrases_partage if phrase["cle"] in choisies]
+            from .icones_partagees import MAX_PNG
+            image = request.FILES.get("icone_png")
+            if image and request.POST.get("icone_generique") != "oui":
+                raise ValidationError("Confirmez que l’icône est générique et partageable.")
             return telecharger_paquet(exporter_ajout(locale, proposee,
                 provenance=request.POST.get("provenance", ""), licence=request.POST.get("licence", ""),
-                icone=request.POST.get("icone", ""), formulations=formulations))
+                icone=request.POST.get("icone", ""), formulations=formulations,
+                image=image.read(MAX_PNG + 1) if image else None))
         except ValidationError as cause:
             messages.error(request, " ".join(cause.messages))
             return redirect(request.get_full_path())

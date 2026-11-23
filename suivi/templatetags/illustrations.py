@@ -22,7 +22,7 @@ def icone_liste(context, competence, classe=None):
         cache[cle] = reglages_du_perimetre(ecole, classe)
     illustration = illustration_effective(ecole, competence, classe, cache[cle])
     url = (reverse("media_presentation", args=[illustration.reglage_id]) if illustration.photo
-           else static(illustration.statique) if illustration.statique else "")
+           else illustration.url_png or (static(illustration.statique) if illustration.statique else ""))
     if not url:
         return ""
     return format_html('<img class="icone-liste" src="{}" alt="" loading="lazy" width="32" height="32">', url)

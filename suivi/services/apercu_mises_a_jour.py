@@ -43,6 +43,11 @@ def comparer_definition(ancien, nouveau, *, ordre=None):
         if cle == "icone":
             detail.update(icone_avant=icones.get(v1), icone_apres=icones.get(v2))
         details.append(detail)
+    if ancien.get("icone_png") != nouveau.get("icone_png"):
+        details.append({"cle": "icone", "champ": "Icône de l’école",
+            "png_avant": ancien.get("icone_png"), "png_apres": nouveau.get("icone_png"),
+            "avant": "Icône PNG" if ancien.get("icone_png") else "Sans icône PNG",
+            "apres": "Icône PNG" if nouveau.get("icone_png") else "Sans icône PNG"})
     return details
 
 

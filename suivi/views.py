@@ -2268,7 +2268,7 @@ def _contexte_carnet(request, pk, options=None, operation=PREVISUALISER_CARNET):
                 competence.afficher_illustration = avec_photos or not any(
                     trace.photo for trace in getattr(_observation, "traces_carnet", []))
                 competence.url_icone = ((reverse("media_referentiel", args=[eleve.pk, image.ressource_id]) if image.ressource_id else reverse("media_presentation", args=[image.reglage_id])) if image.photo
-                                        else static(image.statique) if image.statique else "")
+                                        else image.url_png or (static(image.statique) if image.statique else ""))
                 if competence.afficher_illustration and competence.url_icone:
                     a_illustrations = True
                     if credit := credit_illustration(image):
@@ -2445,6 +2445,8 @@ def _medias_pdf_carnet(contexte):
                 elif image.photo:
                     _competence.url_icone_pdf = _url_media_pdf(image.photo)
                     noms_media.append(image.photo)
+                elif image.url_png:
+                    _competence.url_icone_pdf = image.url_png
                 elif image.statique:
                     fichier = finders.find(image.statique)
                     if not fichier:
