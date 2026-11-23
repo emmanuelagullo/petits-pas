@@ -7,7 +7,7 @@ from django.urls import reverse
 from .tests import Base
 from . import tests_adoption_bases_referentiels as fixtures
 from .tests_import_sources_referentiels import document, importer
-from .models import AdoptionReferentiel, Competence, EtatAnnuelObservation, Observation, SourceReferentiel, Trace, VersionSourceEcole
+from .models import AdoptionReferentiel, Competence, DestinationPublicationGrist, EtatAnnuelObservation, Observation, SourceReferentiel, Trace, VersionSourceEcole
 from .services.adoption_bases_referentiels import apercu_adoption
 from .services.choix_bases_referentiels import publier_choix_application
 from .services.adaptations_referentiels import enregistrer_adaptation
@@ -178,6 +178,15 @@ class MisesAJour(Base):
             self.assertEqual(numero, 1)
             destination["editions"].append({"Numero": 1, "Referentiel": reference, "Titre": titre,
                                         "Contenu": contenu_grist(document)})
+            autre = "https://grist.numerique.gouv.fr/o/docs/autre-catalogue"
+            DestinationPublicationGrist.objects.create(
+                ecole=self.ecole, auteur=self.enseignant, classe=self.classe, url=autre,
+                nom="Dernier catalogue utilisé", identifiant_local="autre", reference="autre",
+            )
+            page = self.client.get(echange, {"volet": "exporter"})
+            self.assertContains(page, f'value="{url}" selected')
+            self.assertContains(page, "Dernier catalogue utilisé")
+            self.assertNotContains(page, f'value="{autre}" selected')
             reprise = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
             self.assertContains(reprise, "Édition 1 déjà publiée")
             self.assertContains(reprise, "Nouvelle édition")

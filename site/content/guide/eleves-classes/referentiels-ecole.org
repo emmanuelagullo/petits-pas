@@ -173,7 +173,11 @@ fichier. Voir [[{{< relref "/referentiels/partage-entre-ecoles" >}}][partager de
 
 * Découvrir et suivre des référentiels
 
-Dans *Référentiels de l’école*, ouvrez *Découvrir des référentiels*.
+Dans le volet *Importer*, les référentiels suivis apparaissent
+directement. Depuis une classe, la source de sa base adoptée passe en
+tête quand elle figure dans les catalogues connus. *Choisir un catalogue
+source* permet de sélectionner un catalogue ou de coller un lien Grist.
+Ouvrez *Découvrir des référentiels* pour gérer les suivis.
 Les référentiels de l’instance et ceux fournis avec Petits Pas
 figurent dans le premier catalogue. Chaque catalogue en ligne regroupe
 ses propres référentiels. Ouvrez *Lien du catalogue* pour retrouver son
@@ -210,8 +214,9 @@ puis *Exporter un référentiel*.
 
 Dans le partage du référentiel courant, collez le lien du catalogue Grist
 la première fois, puis cliquez sur *Publier dans Grist*. La dernière
-destination où vous avez publié pour cette école est proposée. Le bouton
-publie directement dans ce catalogue. *Choisir le catalogue ou le
+destination où vous avez publié ce référentiel dans cette école est
+proposée. Les catalogues suivis et les autres destinations déjà utilisées
+restent disponibles dans le sélecteur. *Choisir le catalogue ou le
 référentiel* permet de sélectionner un autre catalogue ou un référentiel
 déjà publié. Chaque référentiel commence à l’édition 1. Une nouvelle
 publication augmente son numéro si le contenu a changé. Les anciens

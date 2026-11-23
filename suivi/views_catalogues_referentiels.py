@@ -19,17 +19,9 @@ from .identites_referentiels import identifiant_source_ecole
 from .models import ChoixApplicationAnnuel, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .services.catalogue_fourni import REFERENTIELS_DEPART
-from .services.catalogues_externes import CATALOGUE_DEMONSTRATION, identite_grist, lire_catalogue_grist
+from .services.catalogues_externes import catalogues_grist_connus, identite_grist, lire_catalogue_grist
 from .services.choix_bases_referentiels import choix_bases, verifier_annee
 from .views import acces_requis
-
-CATALOGUES_FOURNIS = {
-    CATALOGUE_DEMONSTRATION: {
-        "url": CATALOGUE_DEMONSTRATION, "nom": "Catalogue de démonstration Petits Pas",
-        "referentiels": [{"reference": "demo-cycle1", "titre": "Langage en maternelle", "editions": [2, 1]}],
-    },
-}
-
 
 @lru_cache(maxsize=1)
 def referentiels_fournis():
@@ -66,7 +58,7 @@ def catalogue_instance(annee):
 def catalogues_visibles(reglages, instance):
     return {
         "petits-pas": instance,
-        **CATALOGUES_FOURNIS, **{cle: etat["catalogue"] for cle, etat in reglages.items() if "catalogue" in etat},
+        **catalogues_grist_connus(reglages),
     }
 
 

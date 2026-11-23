@@ -1,0 +1,7 @@
+<label for="{{ id_catalogue }}">{{ libelle }}</label>
+<select name="{{ champ_catalogue }}" id="{{ id_catalogue }}">
+<option value="">Choisir un catalogue</option>
+{% for catalogue in catalogues %}
+<option value="{{ catalogue.url }}"{% if catalogue.url == selection %} selected{% endif %}>{{ catalogue.nom }}{% if catalogue.espace %} · {{ catalogue.espace }}{% endif %}</option>
+{% endfor %}
+</select>

@@ -17,6 +17,19 @@ CATALOGUE_DEMONSTRATION = f"https://{HOTE_GRIST}/o/docs/mrfW7gsAGMZbJdgP5djGva"
 TAILLE_MAX = 1024 * 1024
 
 
+CATALOGUES_FOURNIS = {
+    CATALOGUE_DEMONSTRATION: {
+        "url": CATALOGUE_DEMONSTRATION, "nom": "Catalogue de démonstration Petits Pas",
+        "referentiels": [{"reference": "demo-cycle1", "titre": "Langage en maternelle", "editions": [2, 1]}],
+    },
+}
+
+
+def catalogues_grist_connus(reglages):
+    return {**CATALOGUES_FOURNIS,
+            **{cle: etat["catalogue"] for cle, etat in reglages.items() if "catalogue" in etat}}
+
+
 def adresse_grist(valeur):
     try:
         adresse = urlsplit(valeur.strip())

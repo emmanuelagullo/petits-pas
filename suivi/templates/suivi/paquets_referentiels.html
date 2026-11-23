@@ -18,7 +18,7 @@
 <div class="page-a-sommaire" data-sommaire-structure>
 {% include "suivi/partiels/sommaire_page.html" %}
 <div class="rubriques-edition">
-<details id="import-referentiel" data-zone-sommaire="titre-import-referentiel"{% if volet != "exporter" or erreur_import or message_import or apercu %} open{% endif %}>
+<details id="import-referentiel" data-zone-sommaire="titre-import-referentiel"{% if volet != "exporter" or erreur_import or message_import or apercu or catalogue_import %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Importer" titre_id="titre-import-referentiel" only %}
 <div class="contenu-echange">
 <p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>
@@ -35,6 +35,9 @@
 <a class="bouton{% if lien_reprise %} discret{% endif %}" href="{{ lien_adoption }}">Examiner l’adoption pour la classe</a></p>
 {% endif %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" %}
+{% if not jeton %}
+{% include "suivi/partiels/import_catalogue_grist.html" %}
+{% endif %}
 <form method="post" enctype="multipart/form-data"
       hx-post="{{ request.get_full_path }}" hx-encoding="multipart/form-data"
       hx-target="#etat-import-referentiel" hx-select="#etat-import-referentiel" hx-swap="outerHTML">
@@ -45,9 +48,6 @@
 <button class="bouton">Confirmer l’import</button>
 <a class="bouton discret" href="{{ retour_decouverte|default:request.get_full_path }}">Annuler</a>
 {% else %}
-{% if not classe and not retour_decouverte %}
-<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ annee }}&amp;depuis=echange">Parcourir les catalogues de référentiels</a></p>
-{% endif %}
 {% if peut_importer_global %}
 <p><label for="destination">Catalogue destinataire</label>
 <select id="destination" name="destination"><option value="ecole">École</option><option value="application">Application</option></select></p>

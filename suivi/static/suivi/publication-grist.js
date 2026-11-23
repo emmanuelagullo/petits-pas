@@ -20,9 +20,12 @@ document.addEventListener('input', event => {
   const form = event.target.closest('[data-publication-grist]');
   if (!form) return;
   const lien = form.elements.url_grist?.value.trim();
-  const documentRecent = form.elements.destination_grist?.selectedOptions[0]?.textContent;
+  const catalogue = form.elements.destination_grist?.selectedOptions[0];
+  const destination = catalogue?.value ? catalogue.textContent : '';
+  const initiale = form.querySelector('[data-destination-grist-initiale]');
+  if (initiale) initiale.hidden = true;
   const choix = form.elements.reference_grist?.selectedOptions[0]?.textContent;
   const resume = form.querySelector('[data-choix-grist]');
-  resume.textContent = [lien || documentRecent, choix].filter(Boolean).join(' · ');
+  resume.textContent = [lien || destination || 'Choisir un catalogue de destination', choix].filter(Boolean).join(' · ');
   resume.hidden = !resume.textContent;
 });

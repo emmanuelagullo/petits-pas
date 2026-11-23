@@ -17,16 +17,16 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, I
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import PartageReferentielClasseForm
-from .identites_referentiels import competences_document, identifiant_source_ecole
+from .identites_referentiels import competences_document, identifiant_diffusion, identifiant_source_ecole
 from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, InformationsPartageReferentielClasse, SourceReferentiel, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
-from .publication_grist import ACTIONS_GRIST, presenter_publication_grist, publication_grist
+from .publication_grist import ACTIONS_GRIST, historique_grist, presenter_publication_grist, publication_grist
 from .services.apercu_mises_a_jour import comparer_documents, definitions_document
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
-from .services.catalogues_externes import edition_grist
+from .services.catalogues_externes import catalogues_grist_connus, edition_grist, identite_grist, lire_catalogue_grist
 from .services.import_sources_referentiels import importer_source, lire_source
 from .services.paquets_referentiels import MAX_ARCHIVE, empaqueter, exporter_paquet, exporter_selection, lire_paquet
 from .services.partage_referentiel_classe import preparer_referentiel_classe
@@ -257,6 +257,38 @@ def partage_classe(request, classe, contexte, action):
 
 
 
+def presenter_import_grist(request, ecole, contexte):
+    reglages = ecole.catalogues_referentiels
+    catalogues = catalogues_grist_connus(reglages)
+    suggestions = dict(catalogues)
+    for publication in historique_grist(request, ecole):
+        suggestions.setdefault(publication.url, {"url": publication.url, "nom": publication.nom,
+                                                 "espace": publication.espace})
+    choix = request.GET.get("catalogue_import")
+    choisi = suggestions.get(choix)
+    if choisi and choix not in catalogues and request.method == "GET":
+        try:
+            catalogues[choix] = lire_catalogue_grist(choix)
+        except ValidationError as erreur:
+            contexte["erreur_catalogue_import"] = " ".join(erreur.messages)
+    base = contexte.get("base_du_partage")
+    source = identifiant_diffusion(base.source) if base else None
+    lignes = []
+    for url, catalogue in catalogues.items():
+        suivis = reglages.get(url, {}).get("suivis", ())
+        for referentiel in catalogue["referentiels"]:
+            reference = referentiel["reference"]
+            courant = source is not None and identite_grist(catalogue["url"], reference) == source
+            if choisi is not None and choix != url:
+                continue
+            if choisi is None and reference not in suivis and not courant:
+                continue
+            lignes.append({**referentiel, "url": catalogue["url"], "catalogue": catalogue["nom"],
+                           "derniere": referentiel["editions"][0], "courant": courant})
+    contexte.update(catalogues_import=suggestions.values(), catalogue_import=choisi,
+                    editions_import=sorted(lignes, key=lambda ligne: not ligne["courant"]))
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def paquets_referentiels(request, classe_pk=None):
@@ -290,6 +322,8 @@ def paquets_referentiels(request, classe_pk=None):
                 return resultat
             if action in ACTIONS_PARTAGE:
                 action = None
+        if peut_importer_ecole:
+            presenter_import_grist(request, ecole, contexte)
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
         edition = request.GET.get("edition")
         if edition is None and classe is not None:
@@ -332,7 +366,17 @@ def paquets_referentiels(request, classe_pk=None):
                 return telecharger_paquet(donnees)
             if not contexte["peut_importer"]:
                 raise PermissionDenied
-            if action == "importer":
+            if action == "ouvrir-catalogue-grist":
+                if not peut_importer_ecole:
+                    raise PermissionDenied
+                contexte["lien_catalogue_import"] = request.POST.get("lien_catalogue_import", "")[:2000]
+                catalogue = lire_catalogue_grist(contexte["lien_catalogue_import"])
+                contexte["catalogue_import"] = catalogue
+                contexte["editions_import"] = [
+                    {**ligne, "catalogue": catalogue["nom"], "url": catalogue["url"],
+                     "derniere": ligne["editions"][0]} for ligne in catalogue["referentiels"]
+                ]
+            elif action == "importer":
                 try:
                     attendu = signing.loads(request.POST.get("jeton", ""), salt=SEL, max_age=1800)
                 except signing.BadSignature as erreur:
@@ -388,8 +432,6 @@ def paquets_referentiels(request, classe_pk=None):
                 if (global_ and not request.user.is_superuser) or (not global_ and not peut_importer_ecole):
                     raise PermissionDenied
                 if action == "apercu-grist":
-                    if classe is not None:
-                        raise PermissionDenied
                     try:
                         numero = int(request.POST.get("numero", ""))
                     except ValueError as erreur:
@@ -412,7 +454,7 @@ def paquets_referentiels(request, classe_pk=None):
     except IntegrityError:
         contexte["erreur"] = "Le catalogue a changé pendant l’import. Consultez de nouveau l’aperçu."
     contexte["versions"] = versions.values()
-    contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer") and "erreur" in contexte
+    contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist") and "erreur" in contexte
     contexte["message_import"] = action == "importer" and "message" in contexte
     maj_import = action in ("apercu", "apercu-grist", "importer") and request.headers.get("HX-Request") == "true"
     return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte and not maj_import else 200)

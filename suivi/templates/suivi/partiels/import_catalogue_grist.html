@@ -1,0 +1,34 @@
+{% if erreur_catalogue_import %}<p class="message erreur" role="alert">{{ erreur_catalogue_import }}</p>{% endif %}
+{% if editions_import %}
+<h3>{% if catalogue_import %}{{ catalogue_import.nom }}{% else %}Référentiels à importer depuis un catalogue{% endif %}</h3>
+<ul class="liste">
+{% for ligne in editions_import %}
+<li class="entree">
+<div>
+<strong>{{ ligne.titre }}</strong>
+<p>{% if not catalogue_import %}{{ ligne.catalogue }} · {% endif %}Édition {{ ligne.derniere }}{% if ligne.courant %} · Source du référentiel de la classe{% endif %}</p>
+{% include "suivi/partiels/examiner_edition_grist.html" with examen_grist=request.get_full_path choix_edition=True %}
+</div>
+</li>
+{% endfor %}
+</ul>
+{% endif %}
+<details{% if catalogue_import or lien_catalogue_import %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir un catalogue source" only %}
+{% if catalogues_import %}
+<form method="get">
+<input type="hidden" name="annee" value="{{ annee }}">
+<p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="catalogue-import" champ_catalogue="catalogue_import" libelle="Catalogue source" catalogues=catalogues_import selection=catalogue_import.url only %}
+<button class="bouton discret">Afficher les référentiels</button></p>
+</form>
+{% endif %}
+<form method="post">
+{% csrf_token %}
+<p><label for="lien-catalogue-import">Lien du catalogue Grist</label>
+<input type="url" id="lien-catalogue-import" name="lien_catalogue_import" required maxlength="2000" value="{{ lien_catalogue_import }}"></p>
+<button class="bouton discret" name="action" value="ouvrir-catalogue-grist">Afficher les référentiels du lien</button>
+</form>
+{% if not classe and not retour_decouverte %}
+<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ annee }}&amp;depuis=echange">Parcourir les catalogues de référentiels</a></p>
+{% endif %}
+</details>

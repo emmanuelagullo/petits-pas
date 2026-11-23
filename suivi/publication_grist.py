@@ -3,36 +3,45 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .models import DestinationPublicationGrist
-from .services.catalogues_externes import numerotation_grist_globale
+from .services.catalogues_externes import catalogues_grist_connus, numerotation_grist_globale
 from .services.publications_grist import destination_grist, meme_contenu_grist, publier_edition_grist
 
 ACTIONS_GRIST = {"voir-grist", "publier-grist"}
 
 
-def historique_grist(request, classe):
-    return DestinationPublicationGrist.objects.filter(ecole=classe.ecole, auteur=request.user).order_by(
+def historique_grist(request, ecole):
+    return DestinationPublicationGrist.objects.filter(ecole=ecole, auteur=request.user).order_by(
         "-publie_le", "-pk"
     )
 
 
 def presenter_publication_grist(request, classe, contexte, identifiant):
-    historique = historique_grist(request, classe)
+    historique = historique_grist(request, classe.ecole)
+    precedente = historique.filter(identifiant_local=identifiant).first()
     destinations = {}
+    if precedente:
+        destinations[precedente.url] = {"url": precedente.url, "nom": precedente.nom, "espace": precedente.espace}
     for ligne in historique:
-        destinations.setdefault(ligne.url, ligne)
-    derniere = next(iter(destinations.values()), None)
-    precedente = historique.filter(classe=classe, url=derniere.url, identifiant_local=identifiant).first() if derniere else None
+        destinations.setdefault(ligne.url, {"url": ligne.url, "nom": ligne.nom, "espace": ligne.espace})
+    reglages = classe.ecole.catalogues_referentiels
+    for url, catalogue in catalogues_grist_connus(reglages).items():
+        if url not in destinations and (reglages.get(url, {}).get("suivis") or reglages.get(url, {}).get("catalogue")):
+            destinations[url] = {"url": url, "nom": catalogue["nom"]}
     contexte.update(
-        destinations_grist=list(destinations.values()), derniere_destination=derniere,
-        publication_connue=precedente, modele_grist=getattr(settings, "GRIST_MODELE_URL", ""),
+        destinations_grist=list(destinations.values()), derniere_destination=precedente,
+        publication_connue=precedente, choix_catalogue_grist=precedente.url if precedente else "",
+        modele_grist=getattr(settings, "GRIST_MODELE_URL", ""),
     )
 
 
 def publication_grist(request, classe, contexte, action, document):
     source = document["source"]
-    historique = historique_grist(request, classe)
-    url = request.POST.get("url_grist", "").strip() or request.POST.get("destination_grist", "")
-    contexte["url_grist"] = url
+    historique = historique_grist(request, classe.ecole)
+    saisie = request.POST.get("url_grist", "").strip()
+    choix_catalogue = request.POST.get("destination_grist", "")
+    url = saisie or choix_catalogue
+    contexte.update(url_grist=url, lien_grist_saisi=saisie,
+                    choix_catalogue_grist=choix_catalogue)
     if not url:
         raise ValidationError("Indiquez le lien du catalogue Grist.")
     if len(url) > 2000:
@@ -40,7 +49,7 @@ def publication_grist(request, classe, contexte, action, document):
     destination = destination_grist(url, preparer_vierge=action == "publier-grist")
     references = {edition["Referentiel"]: edition["Titre"] for edition in destination["editions"]}
     precedente = historique.filter(
-        classe=classe, url=destination["url"], identifiant_local=source["identifiant"],
+        url=destination["url"], identifiant_local=source["identifiant"],
     ).first()
     contexte.update(destination_grist=destination, references_grist=references.items())
     choix = request.POST.get("reference_grist", "")
@@ -76,4 +85,5 @@ def publication_grist(request, classe, contexte, action, document):
     )
     contexte.pop("url_grist", None)
     contexte.pop("destination_grist", None)
+    contexte.pop("lien_grist_saisi", None)
     contexte["publication_grist_reussie"] = {**destination, "numero": numero, "identique": identique}

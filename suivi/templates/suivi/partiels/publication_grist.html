@@ -6,29 +6,20 @@
 <p class="aide" data-choix-grist hidden></p>
 {% csrf_token %}
 {% if derniere_destination and not url_grist %}
-<p><strong>Catalogue de destination</strong> · <a href="{{ derniere_destination.url }}">{{ derniere_destination.nom }}</a>{% if derniere_destination.espace %} · {{ derniere_destination.espace }}{% endif %} · {% if publication_connue %}Nouvelle édition · {% if publication_connue.reference == informations_partage.identifiant %}{{ informations_partage.titre }}{% else %}{{ publication_connue.reference }}{% endif %}{% else %}Nouveau référentiel{% endif %}</p>
+<p data-destination-grist-initiale><strong>Catalogue de destination</strong> · <a href="{{ derniere_destination.url }}">{{ derniere_destination.nom }}</a>{% if derniere_destination.espace %} · {{ derniere_destination.espace }}{% endif %} · {% if publication_connue %}Nouvelle édition · {% if publication_connue.reference == informations_partage.identifiant %}{{ informations_partage.titre }}{% else %}{{ publication_connue.reference }}{% endif %}{% else %}Nouveau référentiel{% endif %}</p>
 {% endif %}
-{% if not derniere_destination or url_grist %}
-<p><label for="url-grist">Lien du catalogue Grist</label>
-<input type="url" id="url-grist" name="url_grist" maxlength="2000" value="{{ url_grist }}"{% if erreur_grist %} aria-describedby="erreur-grist"{% endif %}></p>
-{% if destination_grist %}<p>Catalogue de destination · <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a></p>{% else %}<p class="aide">Par défaut, Petits Pas crée un nouveau référentiel dans ce catalogue.</p>{% endif %}
-{% endif %}
-<details{% if erreur_grist or destination_grist %} open{% endif %}>
+{% if destination_grist %}<p>Catalogue de destination · <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a></p>{% endif %}
+<details{% if erreur_grist or destination_grist or not derniere_destination %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir le catalogue ou le référentiel" only %}
 {% if destinations_grist %}
-<p><label for="documents-recents-grist">Catalogues Grist récents</label>
-<select name="destination_grist" id="documents-recents-grist">
-{% for destination in destinations_grist %}<option value="{{ destination.url }}">{{ destination.nom }}{% if destination.espace %} · {{ destination.espace }}{% endif %}</option>{% endfor %}
-</select></p>
+<p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="documents-recents-grist" champ_catalogue="destination_grist" libelle="Catalogue de destination" catalogues=destinations_grist selection=choix_catalogue_grist only %}</p>
 {% endif %}
-{% if derniere_destination and not url_grist %}
-<p><label for="url-grist">Lien d’un autre catalogue Grist</label>
-<input type="url" id="url-grist" name="url_grist" maxlength="2000"></p>
-{% endif %}
+<p><label for="url-grist">Lien du catalogue Grist</label>
+<input type="url" id="url-grist" name="url_grist" maxlength="2000" value="{{ lien_grist_saisi }}"{% if erreur_grist %} aria-describedby="erreur-grist"{% endif %}></p>
 {% if references_grist or publication_connue %}
 <p><label for="reference-grist">Dans ce catalogue, publier…</label>
 <select id="reference-grist" name="reference_grist">
-<option value="">{% if publication_connue and not url_grist %}Une nouvelle édition du référentiel déjà publié par cette classe{% else %}Un nouveau référentiel, ou une nouvelle édition si cette classe l’a déjà publié ici{% endif %}</option>
+<option value="">{% if publication_connue and not url_grist %}Une nouvelle édition du référentiel déjà publié dans ce catalogue{% else %}Un nouveau référentiel, ou une nouvelle édition si cette classe l’a déjà publié ici{% endif %}</option>
 <option value="nouveau"{% if reference_grist == "nouveau" %} selected{% endif %}>Un nouveau référentiel</option>
 {% for reference, titre in references_grist %}
 <option value="{{ reference }}"{% if reference_grist == reference %} selected{% endif %}>Une nouvelle édition de {{ titre }}</option>

@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.urls import reverse
 
-from .models import AdoptionReferentiel, ChoixApplicationAnnuel, ChoixEcoleAnnuel, Observation, SourceReferentiel, VersionReferentiel
+from .models import AdoptionReferentiel, ChoixApplicationAnnuel, ChoixEcoleAnnuel, DestinationPublicationGrist, Observation, SourceReferentiel, VersionReferentiel
 from .services.catalogues_externes import CATALOGUE_DEMONSTRATION, identite_grist
 from .services.pedagogie import modifier_etat
 from .tests import Base
@@ -96,8 +96,36 @@ class CataloguesReferentiels(Base):
                 "action": "suivre", "catalogue": CATALOGUE_DEMONSTRATION, "reference": "demo-cycle1",
             }), decouvrir + "&filtre=")
             self.assertContains(self.client.get(decouvrir + "&filtre=suivis"), "Langage en maternelle")
+            url_import = reverse("paquets_referentiels_ecole") + f"?annee={annee}"
+            page = self.client.get(url_import)
+            self.assertContains(page, "Référentiels à importer depuis un catalogue")
+            self.assertContains(page, "Langage en maternelle")
+            autre_catalogue = "https://grist.numerique.gouv.fr/o/docs/catalogue-publie"
+            DestinationPublicationGrist.objects.create(
+                ecole=self.ecole, auteur=self.direction, classe=self.classe, url=autre_catalogue,
+                nom="Catalogue de publication", identifiant_local="langage", reference="demo-cycle1",
+            )
+            api.reset_mock()
+            page = self.client.get(url_import)
+            self.assertContains(page, "Catalogue de publication")
+            self.assertNotContains(page, f'value="{autre_catalogue}" selected')
+            api.assert_not_called()
+            page = self.client.get(url_import, {"catalogue_import": autre_catalogue})
+            self.assertContains(page, "Examiner cette édition")
+            api.assert_called()
+            page = self.client.post(url_import, {"action": "ouvrir-catalogue-grist",
+                                                  "lien_catalogue_import": CATALOGUE_DEMONSTRATION})
+            self.assertContains(page, "Examiner cette édition")
             premiere = importer(1)
             initiale = self.adopter(premiere)
+            echange_classe = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+            self.client.force_login(self.direction)
+            page = self.client.get(echange_classe)
+            self.assertContains(page, "Source du référentiel de la classe")
+            self.assertEqual(page.context["editions_import"][0]["reference"], "demo-cycle1")
+            page = self.client.post(echange_classe, {"action": "apercu-grist",
+                "catalogue": CATALOGUE_DEMONSTRATION, "reference": "demo-cycle1", "numero": 2})
+            self.assertContains(page, "Confirmer l’import")
             competence = initiale.usages.get().competence
             modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=competence, statut="reussi")
             observations = list(Observation.objects.values())
