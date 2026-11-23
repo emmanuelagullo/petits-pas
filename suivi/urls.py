@@ -2,6 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
 from . import views_catalogue, views_rubriques, views_suivi_libre
+from . import views_paquets_referentiels
 from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
@@ -30,6 +31,8 @@ urlpatterns = [
     path("gestion/referentiels/competence/<int:competence_pk>/", views_referentiels.adapter_competences, name="adaptation_competence_ecole"),
     path("classe/<int:classe_pk>/referentiel/competences/", views_referentiels.adapter_competences, name="adaptations_classe"),
     path("classe/<int:classe_pk>/referentiel/competence/<int:competence_pk>/", views_referentiels.adapter_competences, name="adaptation_competence_classe"),
+    path("gestion/referentiels/echange/", views_paquets_referentiels.paquets_referentiels, name="paquets_referentiels_ecole"),
+    path("classe/<int:classe_pk>/referentiel/echange/", views_paquets_referentiels.paquets_referentiels, name="paquets_referentiels_classe"),
     path("gestion/referentiels/", views_referentiels.choisir_bases_ecole, name="referentiels_ecole"),
     path("classe/<int:pk>/referentiel/rubriques/", views_rubriques.gerer_rubriques, name="gerer_rubriques"),
     path("classe/<int:classe_pk>/referentiel/", views_referentiels.choisir_base_classe, name="referentiel_classe"),

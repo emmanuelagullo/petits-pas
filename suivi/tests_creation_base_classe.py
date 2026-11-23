@@ -34,6 +34,34 @@ class CreationBaseClasse(Base):
         donnees.update(options)
         return self.client.post(self.creation, donnees)
 
+    def test_echange_depuis_ecole_et_classe(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from suivi.services.paquets_referentiels import lire_paquet
+        from suivi.models import SourceReferentiel
+
+        ecole = reverse("paquets_referentiels_ecole") + f"?annee={self.annee}&edition={self.a.pk}"
+        classe = reverse("paquets_referentiels_classe", args=[self.classe.pk]) + f"?edition={self.a.pk}"
+        for url in (ecole, classe):
+            page = self.client.get(url)
+            self.assertContains(page, "Télécharger la sélection")
+            fichier = self.client.post(url, {"action": "selection", "competence": "oser-parler"})
+            self.assertEqual(fichier["Content-Type"], "application/zip")
+        donnees = fichier.content
+
+        def envoyer(action, jeton=""):
+            return self.client.post(ecole, {"action": action, "jeton": jeton,
+                "paquet": SimpleUploadedFile("selection.zip", donnees)})
+
+        self.assertEqual(envoyer("apercu").status_code, 403)
+        self.direction.is_superuser = True
+        self.direction.save(update_fields=["is_superuser"])
+        apercu = envoyer("apercu")
+        self.assertContains(apercu, "Confirmer l’import")
+        self.assertFalse(SourceReferentiel.objects.filter(identifiant__startswith="selection-").exists())
+        self.assertContains(envoyer("importer", apercu.context["jeton"]), "Édition ajoutée")
+        self.assertContains(envoyer("importer", apercu.context["jeton"]), "figure déjà")
+        self.assertIn("source_origine: creation-a", lire_paquet(donnees))
+
     def test_defaut_adopte_a_la_creation_sans_mot_de_passe_ni_saisie(self):
         page = self.creer()
         classe = Classe.objects.get(nom="Nouvelle classe fictive")

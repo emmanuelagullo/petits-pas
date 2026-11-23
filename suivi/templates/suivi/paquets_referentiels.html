@@ -1,0 +1,53 @@
+{% extends "suivi/base.html" %}
+{% load static %}
+{% block titre %}Échanger un référentiel{% endblock %}
+{% block contenu %}
+<h1>Échanger un référentiel</h1>
+<p>{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l’école</a>{% endif %}</p>
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if message %}<p class="message" role="status">{{ message }}</p>{% endif %}
+<h2>Exporter une édition ou une sélection</h2>
+{% if versions %}
+<form method="get">
+<input type="hidden" name="annee" value="{{ annee }}">
+<label for="edition">Édition disponible</label>
+<select id="edition" name="edition">
+{% for v in versions %}<option value="{{ v.pk }}"{% if v.pk == edition.pk %} selected{% endif %}>{{ v.source.titre }} — {{ v.numero }}</option>{% endfor %}
+</select>
+<button class="bouton">Afficher l’édition</button>
+</form>
+{% endif %}
+{% if edition %}
+<form method="post">
+{% csrf_token %}
+<button class="bouton" name="action" value="edition">Télécharger l’édition complète</button>
+{% if competences %}
+<fieldset>
+<legend>Choisir des compétences</legend>
+{% for reference, libelle in competences %}<p><label><input type="checkbox" name="competence" value="{{ reference }}"> {{ libelle }}</label></p>{% endfor %}
+</fieldset>
+<button class="bouton" name="action" value="selection">Télécharger la sélection</button>
+{% endif %}
+</form>
+{% endif %}
+{% if peut_importer %}
+<h2>Importer au catalogue de l’application</h2>
+<p>La publication annuelle et l’adoption par une classe se font ensuite dans leurs écrans habituels.</p>
+{% if apercu %}
+<h3>{{ apercu.source.titre }} — {{ apercu.version }}</h3>
+<p>{{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
+<ul>{% for competence in competences_importees %}<li>{{ competence.libelle }}</li>{% endfor %}</ul>
+{% if icones_importees %}
+<h4>Illustrations et crédits</h4>
+<ul>{% for icone in icones_importees %}<li><img src="{% static icone.fichier %}" alt="" width="32" height="32"> {{ icone.nom }} · {{ icone.credit }}</li>{% endfor %}</ul>
+{% endif %}
+{% endif %}
+<form method="post" enctype="multipart/form-data">
+{% csrf_token %}
+{% if jeton %}<input type="hidden" name="jeton" value="{{ jeton }}">{% endif %}
+<label for="paquet">{% if jeton %}Sélectionner de nouveau le même fichier{% else %}Fichier ZIP{% endif %}</label>
+<input id="paquet" name="paquet" type="file" accept=".zip" required>
+<button class="bouton" name="action" value="{% if jeton %}importer{% else %}apercu{% endif %}">{% if jeton %}Confirmer l’import{% else %}Examiner le fichier{% endif %}</button>
+</form>
+{% endif %}
+{% endblock %}

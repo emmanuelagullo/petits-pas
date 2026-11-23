@@ -176,6 +176,21 @@ class ImportSources(TestCase):
         with self.assertRaisesMessage(ValidationError, "Identité d’origine inconnue"):
             importer({**doc, "version": "2"}, verifier_seulement=True)
 
+    def test_selection_reutilise_la_reference_d_origine(self):
+        from .services.paquets_referentiels import exporter_selection, lire_paquet
+        from .services.import_sources_referentiels import importer_source
+
+        origine, _, _ = importer(document())
+        reference = origine.definitions.get().identite
+        fichier = exporter_selection(origine, [reference.identifiant])
+        selection, cree, nombre = importer_source(lire_paquet(fichier))
+        self.assertTrue(cree)
+        self.assertEqual(nombre, 1)
+        self.assertEqual(selection.definitions.get().identite, reference)
+        self.assertFalse(importer_source(lire_paquet(fichier))[1])
+        with self.assertRaises(ValidationError):
+            exporter_selection(origine, ["inconnue"])
+
     def test_definition_autre_source_refusee(self):
         a, _, _ = importer(document())
         b, _, _ = importer(document("fictive-b"))

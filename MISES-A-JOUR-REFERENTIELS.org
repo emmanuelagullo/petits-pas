@@ -104,3 +104,10 @@ notices issues du catalogue fourni. =importer_source_referentiel FICHIER.zip
 --verifier= vérifie le paquet et les identités avant import. La commande
 d'import sans =--verifier= ajoute l'édition au catalogue fourni. L'adoption
 et les droits de publication annuels suivent les parcours existants.
+
+Les écrans de réglage de l'école et de la classe donnent accès à l'échange
+ZIP des éditions publiques autorisées pour l'année. Une sélection conserve
+les références d'origine et produit une édition distincte et reproductible.
+L'import au catalogue global est réservé aux superutilisateurs. Après examen,
+la confirmation demande le même fichier et vérifie son empreinte et son
+contexte. Les choix annuels et les adoptions se font séparément.

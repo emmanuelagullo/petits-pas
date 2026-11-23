@@ -5,6 +5,7 @@
 <div class="page-referentiel">
 {% if actuelle %}{% include "suivi/partiels/ariane.html" with page="Réglages du référentiel" %}{% else %}{% include "suivi/partiels/ariane.html" with page="Choisir le référentiel" %}{% endif %}
 <h1>{% if actuelle %}Réglages du référentiel{% else %}Choisir le référentiel{% endif %}</h1>
+<p><a href="{% url 'paquets_referentiels_classe' classe.pk %}">Échanger un référentiel</a></p>
 <p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des compétences sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
 <p><a href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels sans modifier les choix →</a></p>
 <section class="encadre adaptations-courantes" aria-labelledby="adaptations-courantes">

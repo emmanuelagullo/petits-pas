@@ -1,4 +1,6 @@
 """Archives de diffusion du catalogue, distinctes des sauvegardes d’école."""
+from copy import deepcopy
+from hashlib import sha256
 from io import BytesIO
 from zipfile import BadZipFile, ZIP_DEFLATED, ZipFile
 
@@ -6,7 +8,7 @@ import yaml
 from django.contrib.staticfiles import finders
 from django.core.exceptions import ValidationError
 
-from suivi.identites_referentiels import competences_document
+from suivi.identites_referentiels import competences_document, reference_competence
 from suivi.presentation import catalogue_icones
 from .import_sources_referentiels import lire_source
 
@@ -36,6 +38,34 @@ def exporter_paquet(version):
     document = dict(version.contenu)
     if version.source.ecole_id is not None or document.pop("origine", None) != "source_declaree":
         raise ValidationError("Choisissez une édition publique du catalogue.")
+    return empaqueter(document)
+
+
+def exporter_selection(version, references):
+    document = deepcopy(version.contenu)
+    if version.source.ecole_id is not None or document.pop("origine", None) != "source_declaree":
+        raise ValidationError("Choisissez une édition publique du catalogue.")
+    references = set(references)
+    disponibles = {reference_competence(c) for c in competences_document(document)}
+    if not references or not references <= disponibles:
+        raise ValidationError("Choisissez les compétences à exporter.")
+    for domaine in document["domaines"]:
+        groupes = [domaine, *domaine["sous_domaines"]]
+        for groupe in groupes:
+            groupe["competences"] = [c for c in groupe["competences"] if reference_competence(c) in references]
+            for c in groupe["competences"]:
+                c.setdefault("source_origine", version.source.identifiant)
+        domaine["sous_domaines"] = [s for s in domaine["sous_domaines"] if s["competences"]]
+    document["domaines"] = [d for d in document["domaines"] if d["competences"] or d["sous_domaines"]]
+    empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
+    document["format"] = 2
+    document["version"] = "1"
+    document["source"]["identifiant"] = f"selection-{empreinte}"
+    document["source"]["titre"] = f"Sélection · {document['source']['titre']}"[:200]
+    return empaqueter(document)
+
+
+def empaqueter(document):
     document_yaml = yaml.safe_dump(document, allow_unicode=True).encode()
     normalise, _ = lire_source(document_yaml)
     fichiers = {DOCUMENT: document_yaml, **ressources(normalise)}
