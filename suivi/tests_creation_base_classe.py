@@ -66,6 +66,24 @@ class CreationBaseClasse(Base):
         self.assertContains(self.client.post(ecole, confirmation), "figure déjà")
         self.assertIn("source_origine: creation-a", lire_paquet(donnees))
 
+    def test_brouillon_de_composition_repris_avec_plusieurs_rubriques(self):
+        from suivi.services.import_sources_referentiels import lire_source
+        from suivi.services.paquets_referentiels import lire_paquet
+
+        url = reverse("paquets_referentiels_ecole") + f"?annee={self.annee}"
+        champs = {"identifiant": "brouillon", "titre": "Brouillon fictif", "version": "1",
+                  "provenance": "Équipe", "licence": "CC-BY-SA-4.0", "rubrique": "Langage",
+                  "reprise": [f"{self.a.pk}:oser-parler"],
+                  "creation_rubrique": ["Explorer"], "creation_libelle": ["Compter"],
+                  "creation_identite": ["compter"], "creation_niveau": ["MS"]}
+        self.assertContains(self.client.post(url, {**champs, "action": "enregistrer_composition"}),
+                            "Brouillon conservé")
+        self.assertContains(self.client.get(url), 'value="Compter"')
+        reponse = self.client.post(url, {**champs, "action": "composer"})
+        self.assertEqual(reponse["Content-Type"], "application/zip")
+        contenu, _ = lire_source(lire_paquet(reponse.content))
+        self.assertEqual([d["nom"] for d in contenu["domaines"]], ["Langage", "Explorer"])
+
     def test_composer_importer_puis_publier_depuis_ecole(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
         from suivi.models import VersionReferentiel

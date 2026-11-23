@@ -35,6 +35,26 @@ class AjoutsLocaux(Base):
             adoption_attendue=adoption.pk if classe else None,
             domaine_id=adoption.contenu["domaines"][0]["id"], libelle="Je trie des objets fictifs", niveau="PS", **options)
 
+    def test_partage_portable_sans_donnees_de_suivi(self):
+        from .models import Ecole
+        from .services.import_sources_referentiels import importer_source
+        from .services.paquets_referentiels import lire_paquet
+        from .services.versions_sources_ecoles import definir_version_ecole
+
+        locale = self.creer()
+        url = reverse("ajout_classe", args=[self.classe.pk, locale.pk])
+        paquet = self.client.post(url, {"action": "partager", "provenance": "Équipe pédagogique",
+                                         "licence": "CC-BY-SA-4.0", "icone": "parler"})
+        self.assertEqual(paquet["Content-Type"], "application/zip")
+        document = lire_paquet(paquet.content)
+        autre = Ecole.objects.create(nom="Autre école fictive")
+        version, cree, _ = importer_source(document, ecole=autre)
+        self.assertTrue(cree)
+        self.assertEqual(importer_source(document, ecole=autre)[:2], (version, False))
+        self.assertNotEqual(definir_version_ecole(autre, version)["competences"][0]["id"], locale.competence_id)
+        version_retour, _, _ = importer_source(document, ecole=self.ecole)
+        self.assertEqual(definir_version_ecole(self.ecole, version_retour)["competences"][0]["id"], locale.competence_id)
+
     def test_catalogue_reunit_les_ajouts_et_signale_le_meme_libelle(self):
         locale = self.creer()
         cible = self.creer(suivi_libre=True)

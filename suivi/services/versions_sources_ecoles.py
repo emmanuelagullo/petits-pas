@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from suivi.identites_referentiels import identifiant_diffusion, reference_competence
-from suivi.models import (Attendu, Competence, CompetenceSourceEcole, Domaine, Ecole,
+from suivi.models import (Attendu, Competence, CompetenceLocale, CompetenceSourceEcole, Domaine, Ecole,
     FormulationProposee, SousDomaine, VersionSourceEcole)
 
 
@@ -37,8 +37,14 @@ def definir_version_ecole(ecole, version):
             identite = identites[reference_competence(c)]
             liaison = CompetenceSourceEcole.objects.filter(ecole=ecole, identite=identite).first()
             if liaison is None:
-                competence = Competence.objects.create(domaine=domaine, sous_domaine=sous_domaine,
-                    code=c["code"], libelle=c["libelle"], niveau=c["niveau"], icone=c["icone"])
+                locale = None
+                if (identite.source.ecole_id == ecole.pk and identite.identifiant.startswith("local-")
+                        and identifiant_diffusion(identite.source) == f"ajout-{identite.identifiant}"):
+                    locale = CompetenceLocale.objects.filter(ecole=ecole, suivi_libre=False,
+                        competence__code=identite.identifiant).select_related("competence").first()
+                competence = locale.competence if locale else Competence.objects.create(
+                    domaine=domaine, sous_domaine=sous_domaine, code=c["code"],
+                    libelle=c["libelle"], niveau=c["niveau"], icone=c["icone"])
                 liaison = CompetenceSourceEcole(ecole=ecole, identite=identite, competence=competence)
                 liaison.full_clean()
                 liaison.save()

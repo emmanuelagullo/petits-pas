@@ -208,6 +208,19 @@ class ImportSources(TestCase):
         self.assertEqual(list(choix_bases(b, "2026-2027").versions), [version_b])
         self.assertFalse(SourceReferentiel.objects.filter(ecole__isnull=True).exists())
 
+    def test_selection_scoped_cree_une_origine_locale_puis_la_retrouve(self):
+        from .models import Ecole
+
+        ecole = Ecole.objects.create(nom="Destination fictive")
+        doc = document("selection")
+        doc["format"] = 2
+        doc["domaines"][0]["competences"][0]["source_origine"] = "nouvelle-origine"
+        selection, _, _ = importer(doc, ecole=ecole)
+        identite = selection.definitions.get().identite
+        self.assertEqual(identite.source.ecole_id, ecole.pk)
+        origine, _, _ = importer(document("nouvelle-origine"), ecole=ecole)
+        self.assertEqual(origine.definitions.get().identite, identite)
+
     def test_definition_autre_source_refusee(self):
         a, _, _ = importer(document())
         b, _, _ = importer(document("fictive-b"))

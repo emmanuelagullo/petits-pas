@@ -155,7 +155,9 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
     if ecole is not None:
         identifiant = identifiant_source_ecole(ecole, identifiant)
     source = SourceReferentiel.objects.select_for_update().filter(identifiant=identifiant).first()
-    if source and (source.ecole_id != (ecole.pk if ecole else None) or any(getattr(source, c) != metadata[c]
+    provenance_a_completer = bool(source and ecole and not source.versions.exists()
+                                  and source.provenance == "" and source.licence == "")
+    if source and not provenance_a_completer and (source.ecole_id != (ecole.pk if ecole else None) or any(getattr(source, c) != metadata[c]
                       for c in ("titre", "provenance", "licence", "provisoire"))):
         raise ValidationError("La source existe avec une autre provenance ou description ; aucune modification effectuée.")
     empreinte = hashlib.sha256(json.dumps(contenu, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -163,6 +165,7 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
     if version and (version.empreinte != empreinte or version.contenu != contenu):
         raise ValidationError("Cette version existe avec un autre contenu ; publier un nouveau numéro de version.")
     empruntees = {}
+    origines_manquantes = {}
     for competence in competences_document(contenu):
         if "source_origine" not in competence:
             continue
@@ -172,10 +175,14 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
             perimetre |= Q(source__identifiant=identifiant_source_ecole(ecole, identifiant_origine),
                            source__ecole=ecole)
         origine = IdentiteSourceCompetence.objects.filter(perimetre, identifiant=competence["identite"]
-            ).order_by(models.F("source__ecole_id").asc(nulls_first=True), "pk").first()
+            ).order_by(models.F("source__ecole_id").asc(nulls_last=True), "pk").first()
+        reference = reference_competence(competence)
         if origine is None:
-            raise ValidationError(f"Identité d’origine inconnue : {reference_competence(competence)}.")
-        empruntees[reference_competence(competence)] = origine
+            if ecole is None or identifiant_origine.startswith(("reprise-ecole-", "catalogue-ecole-")):
+                raise ValidationError(f"Identité d’origine inconnue : {reference}.")
+            origines_manquantes[reference] = (identifiant_origine, competence["identite"])
+        else:
+            empruntees[reference] = origine
     if verifier_seulement:
         return version, False, len(identifiants)
     if version:
@@ -185,6 +192,18 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
                                    identifiant_diffusion=metadata["identifiant"] if ecole else "")
         source.full_clean()
         source.save()
+    if provenance_a_completer:
+        for champ in ("titre", "provenance", "licence", "provisoire"):
+            setattr(source, champ, metadata[champ])
+        source.full_clean()
+        source.save(update_fields=["titre", "provenance", "licence", "provisoire"])
+    for reference, (identifiant_origine, cle) in origines_manquantes.items():
+        origine, _ = SourceReferentiel.objects.get_or_create(
+            identifiant=identifiant_source_ecole(ecole, identifiant_origine), ecole=ecole,
+            defaults={"identifiant_diffusion": identifiant_origine, "titre": identifiant_origine},
+        )
+        empruntees[reference], _ = IdentiteSourceCompetence.objects.get_or_create(
+            source=origine, identifiant=cle)
     version = VersionReferentiel(source=source, numero=contenu["version"], empreinte=empreinte, contenu=contenu)
     version.full_clean()
     version.save()

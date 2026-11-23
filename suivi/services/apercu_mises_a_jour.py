@@ -9,9 +9,9 @@ from suivi.presentation import catalogue_icones
 from suivi.models import AdaptationCompetence, Competence, FormulationLocale, ReglagePresentation
 
 
-def definitions(version):
+def definitions_document(contenu):
     resultat = {}
-    for domaine in version.contenu.get("domaines", []):
+    for domaine in contenu.get("domaines", []):
         groupes = [(None, domaine.get("competences", []))]
         groupes += [(s, s["competences"]) for s in domaine.get("sous_domaines", [])]
         for sous, competences in groupes:
@@ -22,12 +22,49 @@ def definitions(version):
     return resultat
 
 
+def comparer_definition(ancien, nouveau, *, ordre=None):
+    champs = [("libelle", "Libellé"), ("code", "Code"), ("niveau", "Section"),
+        ("domaine", "Domaine"), ("sous_domaine", "Sous-domaine"), ("attendus", "Attendus"),
+        ("ordre", "Ordre de présentation"), ("icone", "Illustration proposée"), ("formulations", "Phrases proposées")]
+    def texte(valeur):
+        if isinstance(valeur, list):
+            return " ; ".join(v["texte"] for v in valeur) or "Aucune proposition"
+        return str(valeur) if valeur not in (None, "") else "Aucune proposition"
+
+    icones = catalogue_icones()
+    details = []
+    for cle, nom in champs:
+        if cle == "ordre" and ordre is None:
+            continue
+        v1, v2 = ordre if cle == "ordre" else (ancien.get(cle), nouveau.get(cle))
+        if v1 == v2:
+            continue
+        detail = {"cle": cle, "champ": nom, "avant": texte(v1), "apres": texte(v2)}
+        if cle == "icone":
+            detail.update(icone_avant=icones.get(v1), icone_apres=icones.get(v2))
+        details.append(detail)
+    return details
+
+
+def comparer_documents(avant, apres):
+    anciennes, nouvelles = definitions_document(avant), definitions_document(apres)
+    return {
+        "ajouts": [c["libelle"] for cle, c in nouvelles.items() if cle not in anciennes],
+        "retraits": [c["libelle"] for cle, c in anciennes.items() if cle not in nouvelles],
+        "modifications": [
+            (c["libelle"], details)
+            for cle, c in nouvelles.items()
+            if cle in anciennes and (details := comparer_definition(anciennes[cle], c))
+        ],
+    }
+
+
 def apercu_mise_a_jour(classe, actuelle, version):
     if not actuelle or actuelle.version_id == version.pk or actuelle.version.source_id != version.source_id:
         return None
     if version.contenu.get("origine") != "source_declaree":
         return None  # Une reprise ancienne n'établit pas d'identités sources.
-    avant, apres = definitions(actuelle.version), definitions(version)
+    avant, apres = definitions_document(actuelle.version.contenu), definitions_document(version.contenu)
     liaisons = references_suivi(classe.ecole, actuelle.version) | references_suivi(classe.ecole, version)
     regles = list(AdaptationCompetence.objects.filter(
         Q(classe__isnull=True) | Q(classe=classe), ecole=classe.ecole,
@@ -45,14 +82,6 @@ def apercu_mise_a_jour(classe, actuelle, version):
         phrases_par_competence.setdefault(r.competence_id, {}).setdefault(r.origine.code, {})[r.classe_id] = r
     phrases_reprenables = {}
     materielles = Competence.objects.in_bulk(liaisons.values())
-    champs = [("libelle", "Libellé"), ("code", "Code"), ("niveau", "Section"),
-        ("domaine", "Domaine"), ("sous_domaine", "Sous-domaine"), ("attendus", "Attendus"),
-        ("ordre", "Ordre de présentation"), ("icone", "Illustration proposée"), ("formulations", "Phrases proposées")]
-    def texte(valeur):
-        if isinstance(valeur, list):
-            return " ; ".join(v["texte"] for v in valeur) or "Aucune proposition"
-        return str(valeur) if valeur not in (None, "") else "Aucune proposition"
-
     communes = avant.keys() & apres.keys()
     # Comparer uniquement l'ordre relatif des identités conservées dans
     # chaque rubrique. Une insertion ou un retrait ne déplace pas les autres.
@@ -70,7 +99,6 @@ def apercu_mise_a_jour(classe, actuelle, version):
         return resultat
 
     positions_avant, positions_apres = positions(avant), positions(apres)
-    icones = catalogue_icones()
     modifiees, conservees, libelles_reprenables = [], [], {}
     for identite, nouveau in apres.items():
         ancien = avant.get(identite)
@@ -91,17 +119,8 @@ def apercu_mise_a_jour(classe, actuelle, version):
             adaptation = {"source": nouveau["libelle"], "libelle": libelle, "visible": visible}
             conservees.append(adaptation)
         if ancien:
-            details = []
-            for cle, nom in champs:
-                v1, v2 = ancien.get(cle), nouveau.get(cle)
-                if cle == "ordre":
-                    v1, v2 = positions_avant.get(identite), positions_apres.get(identite)
-                if v1 == v2:
-                    continue
-                detail = {"cle": cle, "champ": nom, "avant": texte(v1), "apres": texte(v2)}
-                if cle == "icone":
-                    detail.update(icone_avant=icones.get(v1), icone_apres=icones.get(v2))
-                details.append(detail)
+            details = comparer_definition(
+                ancien, nouveau, ordre=(positions_avant.get(identite), positions_apres.get(identite)))
             choix_libelle = None
             if ancien["libelle"] != nouveau["libelle"]:
                 choix_classe = next((r for r in locales if r.classe_id and r.libelle is not None), None)

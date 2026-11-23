@@ -22,6 +22,21 @@
 <p><a href="{{ index_url }}">Revenir aux compétences ajoutées</a></p>
 <h2>{{ courante.libelle }}</h2>
 {% if ouvert and adaptable %}{% if form.libelle_direct %}<p>Vous avez créé cette compétence dans la classe : vous pouvez modifier son libellé ci-dessous. Ses observations restent associées à cette compétence. Pour décrire une autre compétence, créez une nouvelle compétence.</p>{% elif not libelle_ecole %}<p>« Garder le libellé d’origine » conserve le texte saisi lors de la création de cet ajout. « Utiliser mon libellé » permet de le reformuler, tout en gardant la même compétence et ses observations.</p>{% endif %}{% endif %}
+{% if not locale.suivi_libre %}
+<details>
+<summary>Partager cette compétence</summary>
+<p>Le fichier contient la proposition « {{ proposee.libelle }} » pour le niveau {{ proposee.niveau }}.</p>
+<form method="post">
+  {% csrf_token %}
+  <p><label>Provenance <input name="provenance" required maxlength="4000"></label></p>
+  <p><label>Licence <input name="licence" required maxlength="120"></label></p>
+  <p><label>Icône du catalogue <select name="icone"><option value="">Sans icône</option>
+  {% for cle, icone in icones_partage.items %}<option value="{{ cle }}">{{ icone.nom }}</option>{% endfor %}
+  </select></label></p>
+  <button type="submit" class="bouton" name="action" value="partager">Télécharger la compétence</button>
+</form>
+</details>
+{% endif %}
 {% if classement %}
 <details{% if classement.errors %} open{% endif %}><summary>Corriger le classement</summary>
   <p>Classement actuel · {{ locale.competence.get_niveau_display }} · {{ locale.competence.domaine.nom }}{% if locale.competence.sous_domaine %} · {{ locale.competence.sous_domaine.nom }}{% endif %}</p>

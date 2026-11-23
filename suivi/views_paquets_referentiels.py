@@ -12,10 +12,11 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, VOIR_SUIVI,
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
-from .identites_referentiels import competences_document, reference_competence
+from .identites_referentiels import competences_document, identifiant_source_ecole, reference_competence
 from .models import ChoixApplicationAnnuel, Classe, VersionReferentiel, annee_scolaire_pour
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
+from .services.apercu_mises_a_jour import comparer_documents
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
 from .services.import_sources_referentiels import importer_source, lire_source
@@ -58,6 +59,27 @@ def publication(request, contexte, engagement):
 
 
 
+def brouillon_composition(request, cle, contexte, action):
+    brouillon = request.session.get(cle, {})
+    if action in ("composer", "enregistrer_composition", "ajouter_ligne_composition"):
+        champs = ("titre", "identifiant", "version", "provenance", "licence", "rubrique",
+                  "nouvelle", "identite_nouvelle", "niveau_nouvelle")
+        brouillon = {champ: request.POST.get(champ, "") for champ in champs}
+        brouillon["reprises"] = request.POST.getlist("reprise")
+        colonnes = ("rubrique", "libelle", "identite", "niveau")
+        listes = [request.POST.getlist(f"creation_{champ}") for champ in colonnes]
+        if len({len(liste) for liste in listes}) != 1 or len(listes[0]) > 50:
+            raise ValidationError("Le formulaire de composition a changé. Rechargez le brouillon.")
+        brouillon["creations"] = [dict(zip(colonnes, valeurs)) for valeurs in zip(*listes)]
+        if action == "ajouter_ligne_composition" and len(brouillon["creations"]) < 50:
+            brouillon["creations"].append({"niveau": "PS"})
+        request.session[cle] = brouillon
+    contexte["brouillon_composition"] = brouillon
+    contexte["composition_ouverte"] = action in (
+        "composer", "enregistrer_composition", "ajouter_ligne_composition")
+    return brouillon
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def paquets_referentiels(request, classe_pk=None):
@@ -84,14 +106,20 @@ def paquets_referentiels(request, classe_pk=None):
         if classe is None:
             catalogue = catalogue_composition(versions.values())
             contexte["catalogue_composition"] = catalogue
+            cle_brouillon = f"composition:{request.user.pk}:{ecole.pk}:{annee}"
+            brouillon = brouillon_composition(request, cle_brouillon, contexte, action)
             if action == "composer":
-                return telecharger_paquet(composer_paquet(catalogue, request.POST, request.POST.getlist("reprise")))
+                return telecharger_paquet(composer_paquet(
+                    catalogue, brouillon, brouillon["reprises"], brouillon["creations"]))
+            if action in ("enregistrer_composition", "ajouter_ligne_composition"):
+                contexte["message"] = "Brouillon conservé pour cette session."
+                action = None
         engagement = {"auteur": request.user.pk, "ecole": ecole.pk, "classe": classe_pk, "annee": annee}
         if action == "publier" and (not request.user.is_superuser or classe is not None):
             raise PermissionDenied
         if request.user.is_superuser and classe is None:
             publication(request, contexte, engagement)
-        if request.method == "POST" and action != "publier":
+        if action and action != "publier":
             if action in ("edition", "selection"):
                 if version is None:
                     raise PermissionDenied
@@ -149,6 +177,15 @@ def paquets_referentiels(request, classe_pk=None):
                 importer_source(document, verifier_seulement=True, ecole=None if global_ else ecole)
                 contenu, _ = lire_source(document)
                 contexte["apercu"] = contenu
+                identifiant = contenu["source"]["identifiant"]
+                if not global_:
+                    identifiant = identifiant_source_ecole(ecole, identifiant)
+                precedente = VersionReferentiel.objects.filter(
+                    source__identifiant=identifiant, source__ecole=None if global_ else ecole
+                ).exclude(numero=contenu["version"]).order_by("-pk").first()
+                if precedente:
+                    contexte["comparaison_import"] = comparer_documents(precedente.contenu, contenu)
+                    contexte["edition_comparee"] = precedente.numero
                 contexte["destination_import"] = "de l’application" if global_ else "de l’école"
                 competences = list(competences_document(contenu))
                 contexte["competences_importees"] = competences
