@@ -189,7 +189,9 @@ La lecture Grist de ce pilote s’effectue depuis le serveur Petits Pas.
 * Partager le référentiel courant d’une classe
 
 Dans les réglages du référentiel d’une classe active, ouvrez *Exporter un
-référentiel*, puis *Partager le référentiel de cette classe*. Renseignez le
+référentiel*. Le volet *Partager le référentiel courant de cette classe*
+s’affiche en premier. Depuis l’écran d’échange de l’école, choisissez une
+classe dans le volet *Exporter*. Renseignez le
 titre, le numéro d’édition, la provenance, les crédits et la licence.
 Gardez le même identifiant pour les révisions de votre référentiel.
 

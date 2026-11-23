@@ -119,6 +119,15 @@ class MisesAJour(Base):
         ancienne = self.adopter()
         self.adapter(ancienne, classe=False, texte="Libellé commun adapté")
         echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        self.client.force_login(self.direction)
+        page_ecole = self.client.get(reverse("paquets_referentiels_ecole"), {
+            "annee": self.classe.annee_scolaire, "volet": "exporter",
+        })
+        self.assertContains(page_ecole, f'href="{echange}?volet=exporter#export-referentiel"')
+        page_classe = self.client.get(echange, {"volet": "exporter"})
+        self.assertContains(page_classe, "Partager le référentiel courant de cette classe")
+        self.assertContains(page_classe, "publiez dans Grist")
+        self.client.force_login(self.enseignant)
         donnees = {"action": "apercu-classe", "titre": "Référentiel partagé", "identifiant": "collectif-test",
                    "version": "1", "provenance": "Équipe fictive", "licence": "CC0-1.0"}
         page = self.client.post(echange, donnees)

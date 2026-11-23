@@ -1,7 +1,7 @@
 {% if partage_classe %}
-<details{% if partage_classe.is_bound or apercu_partage %} open{% endif %}>
-<summary class="bouton">Partager le référentiel de cette classe</summary>
-<p>Le ZIP contient les compétences communes visibles, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus. Vérifiez les libellés, les formulations et les illustrations avant de partager.</p>
+<details{% if volet == "exporter" or not peut_importer or partage_classe.is_bound or apercu_partage %} open{% endif %}>
+<summary class="bouton">Partager le référentiel courant de cette classe</summary>
+<p>Examinez les compétences communes visibles, avec leurs adaptations et ajouts, puis téléchargez le ZIP ou publiez dans Grist. Les photos et les suivis individuels sont exclus.</p>
 {% if apercu_partage %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
 <form method="post">
@@ -19,4 +19,7 @@
 </form>
 {% endif %}
 </details>
+{% else %}
+<h3>Partager le référentiel courant de cette classe</h3>
+<p>{{ partage_classe_indisponible }}</p>
 {% endif %}

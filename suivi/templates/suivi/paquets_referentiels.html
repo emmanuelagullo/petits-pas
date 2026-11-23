@@ -64,7 +64,21 @@
 {% endif %}
 <details id="export-referentiel" data-zone-sommaire="titre-export-referentiel"{% if volet == "exporter" or not peut_importer %} open{% endif %}>
 <summary class="bouton discret"><h2 id="titre-export-referentiel" tabindex="-1" data-titre-sommaire>Exporter</h2></summary>
-{% if classe %}{% include "suivi/partiels/partager_referentiel_classe.html" %}{% endif %}
+{% if classe %}
+{% include "suivi/partiels/partager_referentiel_classe.html" %}
+{% else %}
+<h3>Partager le référentiel courant d’une classe</h3>
+<p>Choisissez une classe pour examiner son référentiel courant, le télécharger en ZIP ou le publier dans Grist.</p>
+{% if classes_partage %}
+<ul class="liste">
+{% for nom, url in classes_partage %}<li><a href="{{ url }}">{{ nom }}</a></li>{% endfor %}
+</ul>
+{% else %}
+<p>Aucune classe active avec une base adoptée et ouverte au suivi pour {{ annee }}.</p>
+{% endif %}
+<h3>Exporter une édition du catalogue de l’école</h3>
+{% endif %}
+{% if classe and versions %}<details{% if request.GET.edition %} open{% endif %}><summary class="bouton discret">Exporter une édition d’origine</summary>{% endif %}
 {% if versions %}
 <form method="get" action="#export-referentiel" data-choix-edition-partage>
 <input type="hidden" name="annee" value="{{ annee }}">
@@ -86,7 +100,8 @@
 {% endif %}
 </form>
 {% endif %}
-{% if not versions %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}
+{% if classe and versions %}</details>{% endif %}
+{% if not versions and not classe %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}
 </details>
 {% if not classe %}
 <details data-zone-sommaire="composer-referentiel"{% if composition_ouverte %} open{% endif %}>

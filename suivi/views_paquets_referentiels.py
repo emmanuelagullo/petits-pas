@@ -17,7 +17,7 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, I
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import PartageReferentielClasseForm
 from .identites_referentiels import competences_document, identifiant_source_ecole
-from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, VersionReferentiel, annee_scolaire_pour
+from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
@@ -140,6 +140,9 @@ ACTIONS_PARTAGE = {"apercu-classe", "exporter-classe"} | ACTIONS_GRIST
 def partage_classe(request, classe, contexte, action):
     adoption = adoption_courante(classe)
     if not adoption or adoption.clos or classe.etat != Classe.ACTIVE:
+        contexte["partage_classe_indisponible"] = (
+            "La classe doit être active et avoir une base adoptée, ouverte au suivi."
+        )
         if action in ACTIONS_PARTAGE:
             raise ValidationError("Cette classe ne dispose pas d’une base courante à partager.")
         return
@@ -235,6 +238,15 @@ def paquets_referentiels(request, classe_pk=None):
             contexte["edition"] = version
             contexte["competences"] = lignes_selection([version])
         if classe is None:
+            contexte["classes_partage"] = [
+                (adoption.classe.nom, lien("paquets_referentiels_classe", adoption.classe_id,
+                                         volet="exporter", ancre="export-referentiel"))
+                for adoption in AdoptionReferentiel.objects.filter(
+                    classe__ecole=ecole, classe__annee_scolaire=annee, classe__etat=Classe.ACTIVE,
+                    courante=True, clos=False,
+                ).select_related("classe").order_by("classe__nom", "classe_id")
+                if autorise(request.user, GERER_REFERENTIEL_CLASSE, adoption.classe)
+            ]
             catalogue = catalogue_composition(versions.values())
             contexte["catalogue_composition"] = lignes_selection(versions.values(), avec_source=True)
             brouillon = brouillon_composition(request, ecole, annee, contexte, action)
