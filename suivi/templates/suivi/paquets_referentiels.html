@@ -44,11 +44,14 @@
 <button class="bouton">Confirmer l’import</button>
 <a class="bouton discret" href="{{ retour_decouverte|default:request.get_full_path }}">Annuler</a>
 {% else %}
+{% if not classe and not retour_decouverte %}
+<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ annee }}&amp;depuis=echange">Découvrir des référentiels</a></p>
+{% endif %}
 {% if peut_importer_global %}
 <p><label for="destination">Catalogue destinataire</label>
 <select id="destination" name="destination"><option value="ecole">École</option><option value="application">Application</option></select></p>
 {% endif %}
-<label for="paquet">Fichier ZIP</label>
+<label for="paquet">Importer un fichier ZIP</label>
 <input id="paquet" name="paquet" type="file" accept=".zip" required>
 <input type="hidden" name="action" value="apercu">
 <button class="bouton">Examiner le fichier</button>

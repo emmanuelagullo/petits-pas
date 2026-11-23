@@ -5,6 +5,9 @@
 <div class="page-referentiel">
 {% ariane_referentiel "Découvrir des référentiels" None annee %}
 <h1>Découvrir des référentiels</h1>
+{% if depuis_echange %}
+<p><a href="{% url 'paquets_referentiels_ecole' %}?annee={{ annee }}#import-referentiel">Retour à l’import</a></p>
+{% endif %}
 {% if message %}<p class="message" role="status">{{ message }}</p>{% endif %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% for erreur in erreurs_verification %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endfor %}
@@ -14,6 +17,7 @@
       hx-target="#resultats-referentiels" hx-select="#resultats-referentiels" hx-swap="outerHTML" hx-replace-url="true"
       hx-sync="this:replace">
 <input type="hidden" name="annee" value="{{ annee }}">
+{% if depuis_echange %}<input type="hidden" name="depuis" value="echange">{% endif %}
 <label for="recherche-referentiels">Rechercher par nom ou éditeur</label>
 <input type="search" id="recherche-referentiels" name="q" value="{{ q }}" maxlength="200">
 <label for="filtre-referentiels">Afficher</label>

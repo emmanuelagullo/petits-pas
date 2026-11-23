@@ -84,8 +84,12 @@ def decouvrir_referentiels(request):
     filtre = request.GET.get("filtre", "")
     if filtre not in {"suivis", "mises-a-jour"}:
         filtre = ""
-    retour = lien("decouvrir_referentiels", annee=annee, q=q, filtre=filtre)
+    navigation = {"depuis": "echange"} if request.GET.get("depuis") == "echange" else {}
+    retour = lien("decouvrir_referentiels", annee=annee, q=q, filtre=filtre, **navigation)
     contexte = {"annee": annee, "q": q, "filtre": filtre, "retour": retour,
+                "depuis_echange": bool(navigation),
+                "examen_grist": lien("paquets_referentiels_ecole", annee=annee, origine="decouverte",
+                                     q=q, filtre=filtre, **navigation),
                 "peut_importer": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, ecole)}
     catalogues = catalogues_visibles(ecole.catalogues_referentiels)
     if request.method == "POST":

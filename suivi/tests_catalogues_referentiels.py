@@ -12,6 +12,21 @@ from . import tests_adoption_bases_referentiels as adoption_fixtures
 class CataloguesReferentiels(Base):
     adopter = adoption_fixtures.AdoptionBases.adopter
 
+    def test_decouverte_depuis_import_ecole_conserve_le_retour(self):
+        self.entrer("dir-mdp")
+        annee = self.classe.annee_scolaire
+        echange = reverse("paquets_referentiels_ecole")
+        decouvrir = reverse("decouvrir_referentiels")
+        self.assertContains(self.client.get(echange, {"annee": annee}),
+                            f'href="{decouvrir}?annee={annee}&amp;depuis=echange"')
+        page = self.client.get(decouvrir, {"annee": annee, "depuis": "echange", "q": "langage"})
+        self.assertContains(page, f'href="{echange}?annee={annee}#import-referentiel"')
+        self.assertContains(page, 'name="depuis" value="echange"')
+        self.assertIn("depuis=echange", page.context["examen_grist"])
+        retour = self.client.get(page.context["examen_grist"]).context["retour_decouverte"]
+        self.assertIn("depuis=echange", retour)
+        self.assertIn("q=langage", retour)
+
     def test_decouvrir_suivre_importer_et_adopter_une_revision_grist(self):
         self.entrer("dir-mdp")
         annee = self.classe.annee_scolaire

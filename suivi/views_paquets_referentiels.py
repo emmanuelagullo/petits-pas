@@ -148,6 +148,7 @@ def paquets_referentiels(request, classe_pk=None):
         contexte["retour_decouverte"] = lien(
             "decouvrir_referentiels", annee=annee, q=request.GET.get("q", "")[:200],
             filtre=request.GET.get("filtre", "")[:32],
+            **({"depuis": "echange"} if request.GET.get("depuis") == "echange" else {}),
         )
     try:
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
