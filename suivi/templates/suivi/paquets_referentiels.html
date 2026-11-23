@@ -64,6 +64,7 @@
 {% endif %}
 <details id="export-referentiel" data-zone-sommaire="titre-export-referentiel"{% if volet == "exporter" or not peut_importer %} open{% endif %}>
 <summary class="bouton discret"><h2 id="titre-export-referentiel" tabindex="-1" data-titre-sommaire>Exporter</h2></summary>
+{% if classe %}{% include "suivi/partiels/partager_referentiel_classe.html" %}{% endif %}
 {% if versions %}
 <form method="get" action="#export-referentiel" data-choix-edition-partage>
 <input type="hidden" name="annee" value="{{ annee }}">
@@ -79,7 +80,7 @@
 {% if edition %}
 <form method="post">
 {% csrf_token %}
-<button class="bouton discret" name="action" value="edition">Télécharger l’édition complète</button>
+<button class="bouton discret" name="action" value="edition">{% if classe %}Exporter l’édition d’origine{% else %}Télécharger l’édition complète{% endif %}</button>
 {% if competences %}
 {% include "suivi/partiels/selection_competences_partage.html" with lignes=competences champ="competence" cle_panneau="partage-export" telechargement=True %}
 {% endif %}

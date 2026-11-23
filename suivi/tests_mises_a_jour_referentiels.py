@@ -113,6 +113,24 @@ class MisesAJour(Base):
         self.assertEqual(list(Observation.objects.values()), observations)
         self.assertEqual(list(Trace.objects.values()), traces)
 
+    def test_partager_la_base_courante_exporte_le_libelle_adapte(self):
+        ancienne = self.adopter()
+        self.adapter(ancienne, classe=False, texte="Libellé commun adapté")
+        echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        donnees = {"action": "apercu-classe", "titre": "Référentiel partagé", "identifiant": "collectif-test",
+                   "version": "1", "provenance": "Équipe fictive", "licence": "CC0-1.0"}
+        page = self.client.post(echange, donnees)
+        self.assertContains(page, "Libellé commun adapté")
+        sortie = self.client.post(echange, {"action": "exporter-classe", "jeton_partage": page.context["jeton_partage"]})
+        self.assertEqual(sortie["Content-Type"], "application/zip")
+        document = lire_paquet(sortie.content)
+        self.assertIn("Libellé commun adapté", document)
+        self.assertIn("source_origine", document)
+        self.assertNotIn(self.eleve.prenom, document)
+        self.adapter(ancienne, classe=True, texte="Libellé modifié après aperçu")
+        refus = self.client.post(echange, {"action": "exporter-classe", "jeton_partage": page.context["jeton_partage"]})
+        self.assertContains(refus, "Le référentiel a changé", status_code=400)
+
     def test_apercu_sans_projection_et_adaptation_prioritaire(self):
         ancienne, nouvelle = self.preparer()
         self.adapter(ancienne, classe=False, texte="Proposition école fictive")

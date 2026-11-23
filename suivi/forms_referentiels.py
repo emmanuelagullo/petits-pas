@@ -139,3 +139,15 @@ class CorrespondanceCompetenceForm(forms.Form):
                     for r, c in catalogue.items()]
         self.fields["depart"].choices = choix
         self.fields["arrivee"].choices = choix
+
+
+class PartageReferentielClasseForm(forms.Form):
+    titre = forms.CharField(label="Titre du référentiel", max_length=200)
+    identifiant = forms.RegexField(
+        label="Identifiant du référentiel", regex=r"^[A-Za-z0-9][A-Za-z0-9._-]*\Z", max_length=120,
+        help_text="Gardez le même identifiant pour les prochaines éditions.",
+    )
+    version = forms.RegexField(label="Numéro d’édition", regex=r"^[A-Za-z0-9][A-Za-z0-9._-]*\Z",
+                               max_length=80, initial="1")
+    provenance = forms.CharField(label="Provenance et crédits", max_length=4000, widget=forms.Textarea(attrs={"rows": 3}))
+    licence = forms.CharField(label="Licence", max_length=120)

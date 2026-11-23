@@ -1,7 +1,7 @@
 {% load static %}
 {% if apercu %}
 <h3>{{ apercu.source.titre }} — {{ apercu.version }}</h3>
-<p>Catalogue {{ destination_import }} · {{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
+<p>{% if not partage %}Catalogue {{ destination_import }} · {% endif %}{{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
 {% if comparaison_import %}
 <details>
 <summary>Écarts avec l’édition {{ edition_comparee }} du catalogue</summary>
@@ -12,7 +12,7 @@
 {% endfor %}
 </details>
 {% endif %}
-<ul>{% for competence in competences_importees %}<li>{% if competence.icone_png %}<img src="data:image/png;base64,{{ competence.icone_png }}" alt="" width="32" height="32"> {% endif %}{{ competence.libelle }}</li>{% endfor %}</ul>
+<ul>{% for competence in competences_importees %}<li>{% if competence.icone_png %}<img src="data:image/png;base64,{{ competence.icone_png }}" alt="" width="32" height="32"> {% endif %}{{ competence.libelle }}{% if partage %} · {{ competence.rubrique }} · {{ competence.niveau }}{% if competence.formulations %}<ul>{% for formule in competence.formulations %}<li>{{ formule.texte }}</li>{% endfor %}</ul>{% endif %}{% endif %}</li>{% endfor %}</ul>
 {% if icones_importees %}
 <h4>Illustrations et crédits</h4>
 <ul>{% for icone in icones_importees %}<li><img src="{% static icone.fichier %}" alt="" width="32" height="32"> {{ icone.nom }} · {{ icone.credit }}</li>{% endfor %}</ul>

@@ -185,3 +185,16 @@ les catalogues suivis. Examinez l’édition avant de confirmer l’import.
 Chaque classe choisit ensuite si elle adopte l’édition. *Ne plus suivre*
 retire le suivi et laisse les éditions reçues dans le catalogue de l’école.
 La lecture Grist de ce pilote s’effectue depuis le serveur Petits Pas.
+
+* Partager le référentiel courant d’une classe
+
+Dans les réglages du référentiel d’une classe active, ouvrez *Exporter un
+référentiel*, puis *Partager le référentiel de cette classe*. Renseignez le
+titre, le numéro d’édition, la provenance, les crédits et la licence.
+Gardez le même identifiant pour les révisions de votre référentiel.
+
+Examinez les compétences communes visibles, leurs libellés, leurs
+formulations et leurs illustrations avant de télécharger le ZIP. Relisez
+les textes libres pour écarter toute mention individuelle. Les observations,
+les suivis ciblés et les photos ne sont pas exportés. Pour transmettre la
+base telle qu’elle a été publiée, utilisez *Exporter l’édition d’origine*.

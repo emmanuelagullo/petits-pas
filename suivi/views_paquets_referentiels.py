@@ -1,4 +1,7 @@
 """Diffusion des éditions publiques accessibles dans le contexte courant."""
+from hashlib import sha256
+
+import yaml
 from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
@@ -12,6 +15,7 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE, VOIR_SUIVI,
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
+from .forms_referentiels import PartageReferentielClasseForm
 from .identites_referentiels import competences_document, identifiant_source_ecole
 from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
@@ -22,7 +26,8 @@ from .services.choix_bases_referentiels import choix_bases, publier_choix_applic
 from .services.composition_referentiels import catalogue_composition, composer_paquet
 from .services.catalogues_externes import edition_grist
 from .services.import_sources_referentiels import importer_source, lire_source
-from .services.paquets_referentiels import MAX_ARCHIVE, exporter_paquet, exporter_selection, lire_paquet
+from .services.paquets_referentiels import MAX_ARCHIVE, empaqueter, exporter_paquet, exporter_selection, lire_paquet
+from .services.partage_referentiel_classe import preparer_referentiel_classe
 from .views import acces_requis
 
 SEL = "diffusion-referentiel"
@@ -128,6 +133,61 @@ def apercu_document(document, ecole):
     }
 
 
+def partage_classe(request, classe, contexte, action):
+    adoption = adoption_courante(classe)
+    if not adoption or adoption.clos or classe.etat != Classe.ACTIVE:
+        if action in ("apercu-classe", "exporter-classe"):
+            raise ValidationError("Cette classe ne dispose pas d’une base courante à partager.")
+        return
+    if action == "apercu-classe":
+        formulaire = PartageReferentielClasseForm(request.POST)
+    else:
+        formulaire = PartageReferentielClasseForm(initial={
+            "provenance": adoption.version.source.provenance,
+        })
+    contexte["partage_classe"] = formulaire
+    if action not in ("apercu-classe", "exporter-classe"):
+        return
+    contexte["volet"] = "exporter"
+    engagement = {"auteur": request.user.pk, "adoption": adoption.pk}
+    if action == "exporter-classe":
+        try:
+            preparation = signing.loads(request.POST.get("jeton_partage", ""), salt="partage-referentiel-classe",
+                                        max_age=1800)
+        except signing.BadSignature as erreur:
+            raise ValidationError("Examinez de nouveau le référentiel à partager.") from erreur
+        if preparation["engagement"] != engagement:
+            raise ValidationError("La base de la classe a changé. Examinez de nouveau le référentiel.")
+        donnees = dict(preparation["donnees"])
+    else:
+        if not formulaire.is_valid():
+            return
+        donnees = dict(formulaire.cleaned_data)
+    version = donnees.pop("version")
+    document = preparer_referentiel_classe(classe, donnees, version)
+    empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
+    if action == "exporter-classe":
+        if empreinte != preparation["empreinte"]:
+            raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
+        return telecharger_paquet(empaqueter(document))
+    normalise, _ = lire_source(lire_paquet(empaqueter(document)))
+    lignes = []
+    for domaine in normalise["domaines"]:
+        for groupe in [domaine, *domaine["sous_domaines"]]:
+            rubrique = domaine["nom"] if groupe is domaine else f'{domaine["nom"]} / {groupe["nom"]}'
+            lignes.extend({**competence, "rubrique": rubrique} for competence in groupe["competences"])
+    contexte["apercu_partage"] = {
+        "apercu": normalise, "competences_importees": lignes,
+        "icones_importees": [catalogue_icones()[cle] for cle in sorted({
+            c["icone"] for c in competences_document(normalise) if c["icone"]
+        })],
+    }
+    contexte["jeton_partage"] = signing.dumps(
+        {"engagement": engagement, "donnees": formulaire.cleaned_data, "empreinte": empreinte},
+        salt="partage-referentiel-classe",
+    )
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def paquets_referentiels(request, classe_pk=None):
@@ -151,6 +211,12 @@ def paquets_referentiels(request, classe_pk=None):
             **({"depuis": "echange"} if request.GET.get("depuis") == "echange" else {}),
         )
     try:
+        if classe is not None:
+            resultat = partage_classe(request, classe, contexte, action)
+            if resultat:
+                return resultat
+            if action in ("apercu-classe", "exporter-classe"):
+                action = None
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
         edition = request.GET.get("edition")
         if edition is None and classe is not None:
