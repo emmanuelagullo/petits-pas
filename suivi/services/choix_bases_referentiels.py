@@ -207,3 +207,16 @@ def apercu_choix_ecole(*, utilisateur, ecole, annee, restreindre, versions_ids, 
     return {"versions": versions, "proposee": proposee, "revisions": (application.revision if application else 0, local.revision if local else 0),
             "restreindre": restreindre, "versions_ids": sorted(ids), "proposee_id": proposee_id,
             "classes_conservees": list(conservees)}
+
+
+@transaction.atomic
+def regler_delegation_import(utilisateur, ecole, autorisee):
+    ecole = Ecole.objects.select_for_update().get(pk=ecole.pk)
+    if not autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole):
+        raise PermissionDenied
+    avant = ecole.import_referentiels_par_responsables
+    if avant != autorisee:
+        ecole.import_referentiels_par_responsables = autorisee
+        ecole.save(update_fields=["import_referentiels_par_responsables"])
+        journaliser(utilisateur, "referentiel.delegation_import", ecole,
+                    anciennes={"autorisee": avant}, nouvelles={"autorisee": autorisee})

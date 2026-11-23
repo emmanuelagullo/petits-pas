@@ -62,6 +62,7 @@ class Ecole(models.Model):
 
     nom = models.CharField(max_length=200)
     commune = models.CharField(max_length=200, blank=True)
+    import_referentiels_par_responsables = models.BooleanField(default=False)
     illustration_avec_photos = models.BooleanField(default=False)
     etat = models.CharField(max_length=12, choices=ETATS, default=ACTIVE)
     cree_le = models.DateTimeField(auto_now_add=True)

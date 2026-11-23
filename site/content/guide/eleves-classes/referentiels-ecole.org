@@ -132,16 +132,24 @@ Voir [[{{< relref "/guide/observer/ajouter-reussite" >}}][le suivi libre]].
 
 * Échanger et composer des compétences
 
-Dans *Référentiels de l’école → Échanger un référentiel*, choisissez une
+Dans *Référentiels de l’école → Exporter un référentiel*, choisissez une
 édition à télécharger ou sélectionnez les compétences à partager. Depuis le
 détail d’une compétence ajoutée, *Partager cette compétence* prépare un ZIP
 avec le libellé proposé, sa section, la provenance et la licence que vous
 indiquez, et éventuellement une icône fournie par le catalogue.
 
-Pour recevoir un fichier, choisissez *Examiner le fichier*, relisez la
+Pour recevoir un fichier, ouvrez *Importer un référentiel*, choisissez
+*Examiner le fichier*, relisez la
 provenance et les éventuels écarts, puis confirmez l’import. L’édition entre
 dans le catalogue de l’école. Le suivi des classes se modifie ensuite depuis
 le catalogue de compétences ou l’écran d’adoption.
+
+Dans *Référentiels de l’école → Autorisation d’import des responsables de classe*,
+la direction peut autoriser les responsables des classes actives à importer
+depuis leur classe. Le réglage est désactivé par défaut et vaut pour toute
+l’école. Les responsables importent dans le catalogue commun. Si l’école
+restreint les choix pour l’année, la direction doit encore autoriser l’édition
+avant qu’une classe puisse la choisir.
 
 Dans *Composer une édition à partager*, vous pouvez mélanger des reprises et
 des créations, ranger les créations dans plusieurs rubriques et conserver

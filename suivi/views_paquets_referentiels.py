@@ -1,7 +1,7 @@
 """Diffusion des éditions publiques accessibles dans le contexte courant."""
 from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -9,11 +9,11 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, VOIR_SUIVI,
+from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE, VOIR_SUIVI,
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import competences_document, identifiant_source_ecole
-from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, VersionReferentiel, annee_scolaire_pour
+from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, VersionReferentiel, annee_scolaire_pour
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
 from .services.apercu_mises_a_jour import comparer_documents, definitions_document
@@ -119,7 +119,8 @@ def paquets_referentiels(request, classe_pk=None):
     annee = classe.annee_scolaire if classe else request.GET.get("annee") or annee_scolaire_pour(timezone.localdate())
     versions = {}
     action = request.POST.get("action") if request.method == "POST" else None
-    peut_importer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
+    peut_importer_ecole = autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe or ecole)
+    peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": peut_importer_ecole or request.user.is_superuser,
                 "peut_importer_global": request.user.is_superuser}
     try:
@@ -168,10 +169,15 @@ def paquets_referentiels(request, classe_pk=None):
                     raise ValidationError("La préparation ou son contexte a changé. Examinez de nouveau le fichier.")
                 if attendu["global"] and not request.user.is_superuser:
                     raise PermissionDenied
-                if not attendu["global"] and not peut_importer_ecole:
-                    raise PermissionDenied
-                edition_importee, cree, _ = importer_source(
-                    preparation["document"], ecole=None if attendu["global"] else ecole)
+                with transaction.atomic():
+                    if not attendu["global"]:
+                        ecole = Ecole.objects.select_for_update().get(pk=ecole.pk)
+                        if classe is not None:
+                            classe = Classe.objects.select_related("ecole").get(pk=classe.pk, ecole=ecole)
+                        if not autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe or ecole):
+                            raise PermissionDenied
+                    edition_importee, cree, _ = importer_source(
+                        preparation["document"], ecole=None if attendu["global"] else ecole)
                 if not attendu["global"]:
                     candidates = [classe] if classe else [
                         c for c in ecole.classes.filter(annee_scolaire=annee).exclude(etat=Classe.ARCHIVEE)
@@ -179,11 +185,12 @@ def paquets_referentiels(request, classe_pk=None):
                     ]
                     edition_autorisee = edition_importee in choix_bases(ecole, annee).versions
                     contexte["edition_autorisee"] = edition_autorisee
-                    if not edition_autorisee:
+                    contexte["edition_a_autoriser"] = not edition_autorisee
+                    if not edition_autorisee and peut_gerer_ecole:
                         contexte["autoriser_edition_url"] = (
                             reverse("referentiels_ecole") + f"?annee={annee}#choix-ecole"
                         )
-                    elif len(candidates) == 1 and candidates[0].etat != Classe.ARCHIVEE:
+                    if edition_autorisee and len(candidates) == 1 and candidates[0].etat != Classe.ARCHIVEE:
                         cible_classe = candidates[0]
                         adoption = adoption_courante(cible_classe)
                         if (adoption and not adoption.clos and adoption.version_id != edition_importee.pk

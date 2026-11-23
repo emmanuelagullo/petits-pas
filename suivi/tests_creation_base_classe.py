@@ -107,6 +107,55 @@ class CreationBaseClasse(Base):
         self.assertContains(page, f'href="{lien}"')
         self.assertNotContains(page, "Examiner l’adoption pour la classe")
 
+    def test_delegation_import_depuis_la_classe_et_revocation_avant_confirmation(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .models import ChoixEcoleAnnuel, SourceReferentiel
+        from .services.paquets_referentiels import empaqueter
+
+        reglages = reverse("referentiels_ecole")
+        echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        ChoixEcoleAnnuel.objects.update_or_create(ecole=self.ecole, annee_scolaire=self.annee,
+                                                  defaults={"restreindre": True})
+
+        def deleguer(autoriser):
+            return self.client.post(reglages, {"action": "deleguer_import", "annee": self.annee,
+                "delegation": "oui" if autoriser else "", "mot_de_passe": "dir-mdp"})
+
+        def examiner(destination="ecole"):
+            paquet = SimpleUploadedFile("nouvelle.zip", empaqueter(document("nouvelle-deleguee")))
+            return self.client.post(echange, {"action": "apercu", "destination": destination, "paquet": paquet})
+
+        self.assertContains(self.client.get(reglages), "Autoriser les responsables de classe à importer")
+        self.client.force_login(self.enseignant)
+        self.assertEqual(examiner().status_code, 403)
+        self.assertEqual(deleguer(True).status_code, 403)
+
+        self.client.force_login(self.direction)
+        self.assertEqual(deleguer(True).status_code, 302)
+        self.client.force_login(self.enseignant)
+        self.assertContains(self.client.get(reverse("referentiel_classe", args=[self.classe.pk])),
+                            "Importer dans le catalogue de l’école")
+        self.assertEqual(self.client.get(reverse("paquets_referentiels_ecole")).status_code, 403)
+        self.assertEqual(examiner("application").status_code, 403)
+        jeton = examiner().context["jeton"]
+
+        self.client.force_login(self.direction)
+        self.assertEqual(deleguer(False).status_code, 302)
+        self.client.force_login(self.enseignant)
+        self.assertEqual(self.client.post(echange, {"action": "importer", "jeton": jeton}).status_code, 403)
+        self.assertFalse(SourceReferentiel.objects.filter(ecole=self.ecole,
+            identifiant_diffusion="nouvelle-deleguee").exists())
+
+        self.client.force_login(self.direction)
+        self.assertEqual(deleguer(True).status_code, 302)
+        self.client.force_login(self.enseignant)
+        jeton = examiner().context["jeton"]
+        page = self.client.post(echange, {"action": "importer", "jeton": jeton})
+        self.assertContains(page, "Une personne qui gère l’école doit autoriser cette édition")
+        self.assertNotContains(page, "Ouvrir les choix annuels de l’école")
+        source = SourceReferentiel.objects.get(ecole=self.ecole, identifiant_diffusion="nouvelle-deleguee")
+        self.assertNotIn(source.versions.get(), choix_bases(self.ecole, self.annee).versions)
+
     def test_brouillon_de_composition_repris_avec_plusieurs_rubriques(self):
         from suivi.services.import_sources_referentiels import lire_source
         from suivi.services.paquets_referentiels import lire_paquet

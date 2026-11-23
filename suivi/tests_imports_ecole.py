@@ -263,7 +263,7 @@ class ImportEcoleTests(TransactionTestCase):
         for sql in (
             "INSERT INTO django_migrations(app,name,applied) VALUES ('suivi','9999_future','2026-01-01');",
             "CREATE TRIGGER surprise AFTER UPDATE ON suivi_ecole BEGIN DELETE FROM suivi_trace; END;",
-            "INSERT INTO suivi_ecole(nom,commune,etat,cree_le,illustration_avec_photos) VALUES('autre','', 'active','2026-01-01',0);",
+            "INSERT INTO suivi_ecole(nom,commune,etat,cree_le,illustration_avec_photos,import_referentiels_par_responsables) VALUES('autre','', 'active','2026-01-01',0,0);",
             "UPDATE suivi_adoptionreferentiel SET etat_final='{\"structure_future\": 1}';",
         ):
             with self.subTest(sql=sql):

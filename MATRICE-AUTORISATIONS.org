@@ -219,6 +219,12 @@ l'éditeur, la date et les anciennes valeurs.
 | PR-04 | Voir le référentiel pédagogique                | A   | A   | A   | D   |
 | PR-05 | Paramétrer le référentiel actif de l'école     | A   | D   | D   | D   |
 | PR-06 | Gérer ses préférences personnelles             | A   | A   | A   | A   |
+| PR-07 | Importer un ZIP au catalogue de l’école        | A   | C   | D   | D   |
+| PR-08 | Régler la délégation d’import                  | C   | D   | D   | D   |
+
+- =PR-07= : depuis sa classe active si l’école délègue l’import. Le ZIP
+  rejoint le catalogue de l’école, selon ses choix annuels pour l’adoption.
+- =PR-08= : confirmation par le mot de passe de la direction.
 
 ** Médias privés et sorties de données
 

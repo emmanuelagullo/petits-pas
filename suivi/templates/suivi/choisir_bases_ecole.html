@@ -10,6 +10,17 @@
 <a class="bouton discret" href="{{ echange }}?annee={{ annee }}&amp;volet=exporter#export-referentiel">Exporter un référentiel</a>
 <a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
 <p>Consultez les bases disponibles et adaptez les propositions de l’école. Les libellés, images et phrases proposés peuvent être repris ou adaptés par chaque classe. Choisissez d’abord les propositions pour l’année, puis créez les classes et invitez l’équipe. Les classes déjà préparées gardent leur base.</p>
+<details id="delegation-import" class="operations-avancees"{% if messages %} open{% endif %}>
+<summary>Autorisation d’import des responsables de classe</summary>
+<p>Ce réglage s’applique à toutes les classes de l’école, quelle que soit l’année scolaire. Les éditions importées rejoignent le catalogue de l’école et restent soumises à ses choix annuels.</p>
+<form method="post">
+{% csrf_token %}
+<input type="hidden" name="annee" value="{{ annee }}">
+<p><label><input type="checkbox" name="delegation" value="oui"{% if ecole.import_referentiels_par_responsables %} checked{% endif %}> Autoriser les responsables de classe à importer des référentiels</label></p>
+<p>{{ confirmation_delegation.mot_de_passe.label_tag }} {{ confirmation_delegation.mot_de_passe }}</p>
+<button class="bouton discret" name="action" value="deleguer_import">Enregistrer l’autorisation</button>
+</form>
+</details>
 <form method="get">
 <label for="annee">Année scolaire</label>
 <input id="annee" name="annee" value="{{ annee }}" list="annees" required pattern="[0-9]{4}-[0-9]{4}" aria-describedby="aide-annee">
@@ -74,7 +85,7 @@
 <p>Utilisez « Ajouter les référentiels fournis » pour cette année. Si l’école a choisi une liste plus courte, adaptez aussi cette liste pour proposer les nouvelles sources aux classes.</p>
 {% else %}
 <p>Un fichier fourni avec Petits Pas n’est pas forcément disponible sur ce service. L’administration doit d’abord l’importer, puis l’autoriser pour l’année affichée. Sans publication annuelle, seule la trame initiale de l’école peut être proposée. Vérifiez aussi l’année et une éventuelle liste plus courte conservée par l’école.</p>
-<p>Le choix proposé par défaut ne limite pas la liste. Pour une offre absente des bases autorisées par l’application, contactez la personne qui administre le service en indiquant l’année et le référentiel attendu. La direction ne peut ni importer une source ni élargir les autorisations de l’application.</p>{% endif %}</details>
+<p>Le choix proposé par défaut ne limite pas la liste. Pour une offre absente des bases autorisées par l’application, contactez la personne qui administre le service en indiquant l’année et le référentiel attendu. La direction peut importer un ZIP dans le catalogue de l’école. L’administration du service gère le catalogue de l’application.</p>{% endif %}</details>
 <details><summary>Quel choix privilégier ?</summary>
 <p>Pour commencer, gardez les autorisations et le choix proposés par l'application. Choisissez une autre base proposée si l'équipe a un besoin pédagogique précis : les autres bases restent disponibles.</p>
 <p>Conservez une liste plus courte seulement si l'école souhaite limiter les nouveaux choix de ses classes. Ce choix concerne toute l'école pour l'année indiquée.</p>

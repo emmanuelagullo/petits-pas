@@ -17,6 +17,7 @@ from .models import Classe, Ecole
 ACCEDER_APPLICATION = "acceder_application"
 ADMINISTRER_ECOLE = "administrer_ecole"
 GERER_REFERENTIEL_ECOLE = "gerer_referentiel_ecole"
+IMPORTER_REFERENTIEL_ECOLE = "importer_referentiel_ecole"
 GERER_REFERENTIEL_CLASSE = "gerer_referentiel_classe"
 VOIR_CLASSES = "voir_classes"
 VOIR_CLASSE = "voir_classe"
@@ -237,6 +238,12 @@ def autorise(utilisateur, operation, ressource=None, *, ecole=None, date=None):
         return direction or affectations_actives(
             utilisateur, ecole=ecole, date=date, exiger_classe_active=False
         ).exists()
+    if operation == IMPORTER_REFERENTIEL_ECOLE:
+        return direction or (
+            classe is not None and classe.etat == Classe.ACTIVE
+            and ecole.import_referentiels_par_responsables
+            and affectations_actives(utilisateur, classe=classe, types=[AffectationClasse.RESPONSABLE], date=date).exists()
+        )
     if classe is None:
         return False
     if operation in {VOIR_CLASSE, VOIR_LISTE_ELEVES, VOIR_AFFECTATIONS_CLASSE}:

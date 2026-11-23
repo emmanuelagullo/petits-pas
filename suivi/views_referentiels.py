@@ -5,7 +5,8 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee
+from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE,
+                            MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .referentiels import adoption_courante
 from .navigation import chemin_reglages_referentiel
@@ -72,7 +73,7 @@ def choisir_base_classe(request, classe_pk):
     ariane = chemin_reglages_referentiel(classe, catalogue=bool(actuelle and peut_voir_catalogue),
                                         inclure_reglages=False)
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
-        "peut_importer_ecole": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
+        "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),
         "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
         "actuelle": actuelle, "edition_demandee": edition_demandee, "peut_regler_phrases": autorise(request.user, MODIFIER_ETAT, classe), "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
 
@@ -110,12 +111,23 @@ def choisir_bases_ecole(request):
         | set(ecole.classes.values_list("annee_scolaire", flat=True))
         | set(ChoixEcoleAnnuel.objects.filter(ecole=ecole).values_list("annee_scolaire", flat=True))
         | set(ChoixApplicationAnnuel.objects.values_list("annee_scolaire", flat=True)), reverse=True)
-    contexte = {"annee": annee, "annees": annees}
+    contexte = {"annee": annee, "annees": annees, "ecole": ecole,
+                "confirmation_delegation": ConfirmationReferentielForm()}
     try:
         verifier_annee(annee)
     except ValidationError as cause:
         contexte["erreur"] = " ".join(cause.messages)
         return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400)
+    if request.method == "POST" and request.POST.get("action") == "deleguer_import":
+        from .services.choix_bases_referentiels import regler_delegation_import
+        try:
+            verifier_confirmation(request)
+            regler_delegation_import(request.user, ecole, request.POST.get("delegation") == "oui")
+        except ValidationError as cause:
+            messages.error(request, " ".join(cause.messages))
+        else:
+            messages.success(request, "L’autorisation d’import des responsables de classe a été enregistrée.")
+        return redirect(f"{reverse('referentiels_ecole')}?annee={annee}#delegation-import")
     if request.method == "POST" and request.POST.get("action") == "completer_catalogue":
         if not settings.MODE_LOCAL:
             raise PermissionDenied
