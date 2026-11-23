@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from django.urls import reverse
 
-from .models import AdoptionReferentiel, Observation, SourceReferentiel
+from .models import AdoptionReferentiel, ChoixApplicationAnnuel, ChoixEcoleAnnuel, Observation, SourceReferentiel, VersionReferentiel
 from .services.catalogues_externes import CATALOGUE_DEMONSTRATION, identite_grist
 from .services.pedagogie import modifier_etat
 from .tests import Base
@@ -26,6 +26,28 @@ class CataloguesReferentiels(Base):
         retour = self.client.get(page.context["examen_grist"]).context["retour_decouverte"]
         self.assertIn("depuis=echange", retour)
         self.assertIn("q=langage", retour)
+
+    def test_catalogue_instance_consulte_selon_les_choix_de_lecole(self):
+        self.entrer("dir-mdp")
+        annee = self.classe.annee_scolaire
+        source = SourceReferentiel.objects.create(identifiant="instance-test", titre="Titre instance fictif")
+        version = VersionReferentiel.objects.create(source=source, numero="1", empreinte="a" * 64,
+                                                     contenu={"origine": "source_declaree"})
+        choix, _ = ChoixApplicationAnnuel.objects.update_or_create(annee_scolaire=annee,
+                                                                   defaults={"configure": True})
+        choix.versions_autorisees.add(version)
+        url = reverse("decouvrir_referentiels")
+        page = self.client.get(url, {"annee": annee})
+        self.assertContains(page, "Catalogue de cette instance Petits Pas")
+        self.assertContains(page, "Catalogue de démonstration Petits Pas")
+        self.assertContains(page, "Titre instance fictif", count=1)
+        self.assertContains(page, f'?annee={annee}&amp;version={version.pk}')
+        ChoixEcoleAnnuel.objects.update_or_create(ecole=self.ecole, annee_scolaire=annee,
+                                                  defaults={"restreindre": True})
+        page = self.client.get(url, {"annee": annee, "q": "titre instance fictif"})
+        self.assertContains(page, "Hors des choix autorisés à l’école")
+        self.assertNotContains(page, f'?annee={annee}&amp;version={version.pk}')
+        self.assertNotContains(page, "Catalogue de démonstration Petits Pas")
 
     def test_decouvrir_suivre_importer_et_adopter_une_revision_grist(self):
         self.entrer("dir-mdp")

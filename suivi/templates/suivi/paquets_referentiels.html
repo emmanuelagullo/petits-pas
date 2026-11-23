@@ -46,7 +46,7 @@
 <a class="bouton discret" href="{{ retour_decouverte|default:request.get_full_path }}">Annuler</a>
 {% else %}
 {% if not classe and not retour_decouverte %}
-<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ annee }}&amp;depuis=echange">Découvrir des référentiels</a></p>
+<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ annee }}&amp;depuis=echange">Parcourir les catalogues de référentiels</a></p>
 {% endif %}
 {% if peut_importer_global %}
 <p><label for="destination">Catalogue destinataire</label>

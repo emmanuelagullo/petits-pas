@@ -16,11 +16,11 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE, autorise
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import identifiant_source_ecole
-from .models import Ecole, VersionReferentiel, annee_scolaire_pour
+from .models import ChoixApplicationAnnuel, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .services.catalogue_fourni import REFERENTIELS_DEPART
 from .services.catalogues_externes import CATALOGUE_DEMONSTRATION, identite_grist, lire_catalogue_grist
-from .services.choix_bases_referentiels import verifier_annee
+from .services.choix_bases_referentiels import choix_bases, verifier_annee
 from .views import acces_requis
 
 CATALOGUES_FOURNIS = {
@@ -43,9 +43,29 @@ def referentiels_fournis():
     return resultat
 
 
-def catalogues_visibles(reglages):
+def catalogue_instance(annee):
+    referentiels = {source["identifiant_local"]: {**source, "fourni": True}
+                   for source in referentiels_fournis()}
+    choix = ChoixApplicationAnnuel.objects.filter(annee_scolaire=annee, configure=True).first()
+    if choix:
+        versions = choix.versions_autorisees.filter(source__ecole__isnull=True,
+            contenu__origine="source_declaree").select_related("source").order_by("-pk")
+        for version in versions:
+            source = version.source
+            ligne = referentiels.setdefault(source.identifiant, {
+                "reference": source.identifiant, "identifiant_local": source.identifiant,
+                "titre": source.titre, "provenance": source.provenance, "licence": source.licence,
+            })
+            ligne.setdefault("versions_instance", []).append(version)
+        for ligne in referentiels.values():
+            if "versions_instance" in ligne:
+                ligne["editions"] = [version.numero for version in ligne["versions_instance"]]
+    return {"nom": "Catalogue de cette instance Petits Pas", "referentiels": list(referentiels.values())}
+
+
+def catalogues_visibles(reglages, instance):
     return {
-        "petits-pas": {"nom": "Petits Pas", "referentiels": referentiels_fournis()},
+        "petits-pas": instance,
         **CATALOGUES_FOURNIS, **{cle: etat["catalogue"] for cle, etat in reglages.items() if "catalogue" in etat},
     }
 
@@ -91,7 +111,8 @@ def decouvrir_referentiels(request):
                 "examen_grist": lien("paquets_referentiels_ecole", annee=annee, origine="decouverte",
                                      q=q, filtre=filtre, **navigation),
                 "peut_importer": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, ecole)}
-    catalogues = catalogues_visibles(ecole.catalogues_referentiels)
+    instance = catalogue_instance(annee)
+    catalogues = catalogues_visibles(ecole.catalogues_referentiels, instance)
     if request.method == "POST":
         try:
             action = request.POST.get("action")
@@ -127,11 +148,14 @@ def decouvrir_referentiels(request):
             Q(source__ecole=ecole) | Q(source__ecole__isnull=True)).values_list(
             "source__identifiant", "numero").order_by("pk"):
         versions.setdefault(identifiant, []).append(numero)
-    lignes = []
+    autorisees = {version.pk for version in choix_bases(ecole, annee).versions}
+    groupes = []
     contexte["a_des_suivis"] = any(etat.get("suivis") for etat in regles.values())
     texte_recherche = slugify(q)
     termes = texte_recherche.split("-") if texte_recherche else []
-    for cle, catalogue in catalogues_visibles(regles).items():
+    for cle, catalogue in catalogues_visibles(regles, instance).items():
+        lignes = []
+        ajoute = contexte.get("catalogue_ajoute", {}).get("url") == cle
         for source in catalogue["referentiels"]:
             reference = source["reference"]
             url = catalogue.get("url")
@@ -139,13 +163,20 @@ def decouvrir_referentiels(request):
             locales = versions.get(identifiant, [])
             derniere = source["editions"][0]
             suivi = reference in regles.get(cle, {}).get("suivis", ())
-            mise_a_jour = bool(locales) and str(derniere) not in locales
-            ligne = {**source, "cle": cle, "catalogue": catalogue["nom"], "url": url,
+            mise_a_jour = bool(url and locales) and str(derniere) not in locales
+            ligne = {**source, "cle": cle, "url": url,
                      "suivi": suivi, "locales": locales, "derniere": derniere, "mise_a_jour": mise_a_jour,
                      "locale": str(derniere) in locales}
-            ajoute = contexte.get("catalogue_ajoute", {}).get("url") == cle
+            version_consultable = next((version for version in source.get("versions_instance", ())
+                                        if version.pk in autorisees), None)
+            if version_consultable:
+                ligne["consultation"] = lien("consulter_referentiels_ecole", annee=annee,
+                                             version=version_consultable.pk)
+                ligne["edition_consultable"] = version_consultable.numero
             if ajoute or (all(terme in slugify(f'{source["titre"]} {catalogue["nom"]}') for terme in termes)
                           and (filtre != "suivis" or suivi) and (filtre != "mises-a-jour" or mise_a_jour)):
                 lignes.append(ligne)
-    contexte["lignes"] = lignes
+        if ajoute or lignes or (not q and not filtre):
+            groupes.append({"nom": catalogue["nom"], "url": catalogue.get("url"), "lignes": lignes})
+    contexte.update(groupes=groupes, nombre_resultats=sum(len(groupe["lignes"]) for groupe in groupes))
     return render(request, "suivi/decouvrir_referentiels.html", contexte)

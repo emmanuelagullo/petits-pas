@@ -6,27 +6,27 @@
 <p class="aide" data-choix-grist hidden></p>
 {% csrf_token %}
 {% if derniere_destination and not url_grist %}
-<p><strong>Destination Grist</strong> · <a href="{{ derniere_destination.url }}">{{ derniere_destination.nom }}</a>{% if derniere_destination.espace %} · {{ derniere_destination.espace }}{% endif %} · {% if publication_connue %}Nouvelle édition · {% if publication_connue.reference == informations_partage.identifiant %}{{ informations_partage.titre }}{% else %}{{ publication_connue.reference }}{% endif %}{% else %}Nouveau référentiel{% endif %}</p>
+<p><strong>Catalogue de destination</strong> · <a href="{{ derniere_destination.url }}">{{ derniere_destination.nom }}</a>{% if derniere_destination.espace %} · {{ derniere_destination.espace }}{% endif %} · {% if publication_connue %}Nouvelle édition · {% if publication_connue.reference == informations_partage.identifiant %}{{ informations_partage.titre }}{% else %}{{ publication_connue.reference }}{% endif %}{% else %}Nouveau référentiel{% endif %}</p>
 {% endif %}
 {% if not derniere_destination or url_grist %}
-<p><label for="url-grist">Lien du document Grist</label>
+<p><label for="url-grist">Lien du catalogue Grist</label>
 <input type="url" id="url-grist" name="url_grist" maxlength="2000" value="{{ url_grist }}"{% if erreur_grist %} aria-describedby="erreur-grist"{% endif %}></p>
-{% if destination_grist %}<p>Document · <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a></p>{% else %}<p class="aide">Par défaut, Petits Pas crée un nouveau référentiel à cette adresse.</p>{% endif %}
+{% if destination_grist %}<p>Catalogue de destination · <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a></p>{% else %}<p class="aide">Par défaut, Petits Pas crée un nouveau référentiel dans ce catalogue.</p>{% endif %}
 {% endif %}
 <details{% if erreur_grist or destination_grist %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier la destination ou le référentiel" only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir le catalogue ou le référentiel" only %}
 {% if destinations_grist %}
-<p><label for="documents-recents-grist">Documents Grist récents</label>
+<p><label for="documents-recents-grist">Catalogues Grist récents</label>
 <select name="destination_grist" id="documents-recents-grist">
 {% for destination in destinations_grist %}<option value="{{ destination.url }}">{{ destination.nom }}{% if destination.espace %} · {{ destination.espace }}{% endif %}</option>{% endfor %}
 </select></p>
 {% endif %}
 {% if derniere_destination and not url_grist %}
-<p><label for="url-grist">Ou coller le lien d’un autre document</label>
+<p><label for="url-grist">Lien d’un autre catalogue Grist</label>
 <input type="url" id="url-grist" name="url_grist" maxlength="2000"></p>
 {% endif %}
 {% if references_grist or publication_connue %}
-<p><label for="reference-grist">Dans ce document, publier…</label>
+<p><label for="reference-grist">Dans ce catalogue, publier…</label>
 <select id="reference-grist" name="reference_grist">
 <option value="">{% if publication_connue and not url_grist %}Une nouvelle édition du référentiel déjà publié par cette classe{% else %}Un nouveau référentiel, ou une nouvelle édition si cette classe l’a déjà publié ici{% endif %}</option>
 <option value="nouveau"{% if reference_grist == "nouveau" %} selected{% endif %}>Un nouveau référentiel</option>
@@ -36,7 +36,7 @@
 </select></p>
 {% endif %}
 {% if not destination_grist %}
-<p><button class="bouton discret" name="action" value="voir-grist">Choisir un référentiel déjà publié</button></p>
+<p><button class="bouton discret" name="action" value="voir-grist">Voir les référentiels de ce catalogue</button></p>
 {% endif %}
 {% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
 </details>
