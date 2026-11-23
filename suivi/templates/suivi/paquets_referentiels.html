@@ -68,7 +68,8 @@
 {% csrf_token %}
 {% if jeton %}
 <input type="hidden" name="jeton" value="{{ jeton }}">
-<button class="bouton" name="action" value="importer">Confirmer l’import</button>
+<input type="hidden" name="action" value="importer">
+<button class="bouton">Confirmer l’import</button>
 <a class="bouton discret" href="{{ request.get_full_path }}">Annuler</a>
 {% else %}
 {% if peut_importer_global %}
@@ -77,7 +78,8 @@
 {% endif %}
 <label for="paquet">Fichier ZIP</label>
 <input id="paquet" name="paquet" type="file" accept=".zip" required>
-<button class="bouton" name="action" value="apercu">Examiner le fichier</button>
+<input type="hidden" name="action" value="apercu">
+<button class="bouton">Examiner le fichier</button>
 {% endif %}
 </form>
 </section>

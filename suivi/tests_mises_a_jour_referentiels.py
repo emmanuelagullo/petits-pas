@@ -1,15 +1,17 @@
 from django.core.exceptions import PermissionDenied
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from .tests import Base
 from . import tests_adoption_bases_referentiels as fixtures
 from .tests_import_sources_referentiels import document, importer
-from .models import AdoptionReferentiel, Competence, EtatAnnuelObservation, Observation, VersionSourceEcole
+from .models import AdoptionReferentiel, Competence, EtatAnnuelObservation, Observation, SourceReferentiel, Trace, VersionSourceEcole
 from .services.adoption_bases_referentiels import apercu_adoption
 from .services.choix_bases_referentiels import publier_choix_application
 from .services.adaptations_referentiels import enregistrer_adaptation
 from .services.contextes_referentiels import usage_pour_saisie
-from .services.pedagogie import modifier_etat
+from .services.pedagogie import enregistrer_trace, modifier_etat
+from .services.paquets_referentiels import lire_paquet
 from .referentiels import contenu_adoption
 
 
@@ -51,6 +53,65 @@ class MisesAJour(Base):
             competence=ancienne.usages.get().competence, classe=self.classe if classe else None,
             adoption_attendue=ancienne.pk if classe else None,
             revision_attendue=0, libelle=texte, visible=False if classe else None)
+
+    def test_zip_au_catalogue_puis_revision_de_classe_conserve_le_suivi(self):
+        echange = reverse("paquets_referentiels_ecole") + f"?annee={self.classe.annee_scolaire}"
+        classe = reverse("referentiel_classe", args=[self.classe.pk])
+
+        def recevoir(version, deja_recue=False):
+            self.client.force_login(self.direction)
+            fichier = self.client.post(echange + f"&edition={version.pk}", {"action": "edition"})
+            self.assertEqual(fichier["Content-Type"], "application/zip")
+            page = self.client.post(echange, {"action": "apercu", "destination": "ecole",
+                "paquet": SimpleUploadedFile("referentiel.zip", fichier.content)})
+            self.assertContains(page, "Confirmer l’import")
+            if version.numero != self.a.numero:
+                self.assertEqual(page.context["edition_comparee"], self.a.numero)
+            resultat = self.client.post(echange, {"action": "importer", "jeton": page.context["jeton"]})
+            self.assertContains(resultat, "figure déjà" if deja_recue else "Édition ajoutée au catalogue")
+            return SourceReferentiel.objects.get(
+                ecole=self.ecole, identifiant_diffusion=version.contenu["source"]["identifiant"]
+            ).versions.get(numero=version.numero)
+
+        locale = recevoir(self.a)
+        self.client.force_login(self.enseignant)
+        ancienne = self.adopter(locale)
+        competence = ancienne.usages.get().competence
+        modifier_etat(utilisateur=self.enseignant, eleve=self.eleve, competence=competence, statut="reussi")
+        enregistrer_trace(utilisateur=self.enseignant, eleve=self.eleve, competence=competence,
+            scolarite=self.eleve.scolarites.get(classe=self.classe), valeurs={"commentaire": "Trace fictive privée"})
+        self.adapter(ancienne)
+        etats = list(EtatAnnuelObservation.objects.values())
+        observations = list(Observation.objects.values())
+
+        traces = list(Trace.objects.values())
+        sortie = self.client.post(reverse("paquets_referentiels_classe", args=[self.classe.pk]),
+                                  {"action": "edition"})
+        self.assertEqual(sortie["Content-Type"], "application/zip")
+        self.assertNotIn("Trace fictive privée", lire_paquet(sortie.content))
+
+        doc = document(version="2")
+        doc["domaines"][0]["competences"][0].update(libelle="Je prends la parole", icone="livre")
+        nouvelle = importer(doc)[0]
+        publier_choix_application(annee=self.classe.annee_scolaire,
+            versions_ids=[self.a.pk, nouvelle.pk], proposee_id=nouvelle.pk, revision_attendue=1)
+        revision = recevoir(nouvelle)
+        self.assertEqual(recevoir(nouvelle, deja_recue=True), revision)
+        self.assertTrue(AdoptionReferentiel.objects.filter(pk=ancienne.pk, courante=True).exists())
+
+        self.client.force_login(self.enseignant)
+        page = self.client.post(classe, {"action": "apercu", "version": revision.pk})
+        self.assertContains(page, "Je prends la parole")
+        self.assertContains(page, "Mon texte fictif")
+        confirmation = self.client.post(classe, {"action": "confirmer", "jeton": page.context["jeton"]})
+        self.assertEqual(confirmation.status_code, 302)
+        actuelle = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        self.assertEqual(actuelle.version_id, revision.pk)
+        self.assertEqual(actuelle.usages.get().competence_id, competence.pk)
+        self.assertEqual(contenu_adoption(actuelle)["competences"][0]["libelle"], "Mon texte fictif")
+        self.assertEqual(list(EtatAnnuelObservation.objects.values()), etats)
+        self.assertEqual(list(Observation.objects.values()), observations)
+        self.assertEqual(list(Trace.objects.values()), traces)
 
     def test_apercu_sans_projection_et_adaptation_prioritaire(self):
         ancienne, nouvelle = self.preparer()
