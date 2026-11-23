@@ -38,12 +38,12 @@ def lire_api(prefixe, document, chemin=""):
     return requete_api(prefixe, document, chemin)
 
 
-def requete_api(prefixe, document, chemin, *, corps=None):
+def requete_api(prefixe, document, chemin, *, corps=None, methode=None):
     headers = {"Accept": "application/json"}
     if corps is not None:
         headers["Content-Type"] = "application/json"
     requete = Request(f"https://{HOTE_GRIST}{prefixe}/api/docs/{document}{chemin}",
-                      data=corps, method="PUT" if corps is not None else "GET", headers=headers)
+                      data=corps, method=methode or ("PUT" if corps is not None else "GET"), headers=headers)
     try:
         with build_opener(SansRedirection()).open(requete, timeout=5) as reponse:
             donnees = reponse.read(TAILLE_MAX + 1)

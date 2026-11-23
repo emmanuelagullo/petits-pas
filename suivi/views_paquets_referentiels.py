@@ -273,6 +273,10 @@ def paquets_referentiels(request, classe_pk=None):
     peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": peut_importer_ecole or request.user.is_superuser,
                 "peut_importer_global": request.user.is_superuser}
+    if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":
+        contexte["retour_export_ecole"] = lien(
+            "paquets_referentiels_ecole", annee=annee, volet="exporter", ancre="export-referentiel",
+        )
     if classe is None and request.GET.get("origine") == "decouverte":
         contexte["retour_decouverte"] = lien(
             "decouvrir_referentiels", annee=annee, q=request.GET.get("q", "")[:200],
@@ -298,7 +302,7 @@ def paquets_referentiels(request, classe_pk=None):
         if classe is None:
             contexte["classes_partage"] = [
                 (adoption.classe.nom, lien("paquets_referentiels_classe", adoption.classe_id,
-                                         volet="exporter", ancre="export-referentiel"))
+                                         volet="exporter", depuis="export-ecole", ancre="export-referentiel"))
                 for adoption in AdoptionReferentiel.objects.filter(
                     classe__ecole=ecole, classe__annee_scolaire=annee, classe__etat=Classe.ACTIVE,
                     courante=True, clos=False,

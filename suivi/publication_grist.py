@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .models import DestinationPublicationGrist
-from .services.publications_grist import contenu_grist, destination_grist, publier_edition_grist
+from .services.publications_grist import destination_grist, meme_contenu_grist, publier_edition_grist
 
 ACTIONS_GRIST = {"voir-grist", "publier-grist"}
 
@@ -36,7 +36,7 @@ def publication_grist(request, classe, contexte, action, document):
         raise ValidationError("Indiquez le lien du document Grist.")
     if len(url) > 2000:
         raise ValidationError("Le lien Grist est trop long.")
-    destination = destination_grist(url)
+    destination = destination_grist(url, preparer_vierge=action == "publier-grist")
     references = {edition["Referentiel"]: edition["Titre"] for edition in destination["editions"]}
     precedente = historique.filter(
         classe=classe, url=destination["url"], identifiant_local=source["identifiant"],
@@ -58,7 +58,7 @@ def publication_grist(request, classe, contexte, action, document):
     editions = [e for e in destination["editions"] if e["Referentiel"] == reference]
     derniere = max(editions, key=lambda e: e["Numero"], default=None)
     nouvelle_edition = bool(choix and choix != "nouveau") or bool(precedente and not choix)
-    identique = derniere and derniere.get("Contenu") == contenu_grist(document)
+    identique = derniere and meme_contenu_grist(derniere, document)
     if derniere and not nouvelle_edition and not identique:
         raise ValidationError("Cet identifiant existe déjà. Choisissez ce référentiel pour ajouter une édition.")
     titre = references.get(reference, source["titre"])

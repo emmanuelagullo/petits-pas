@@ -15,19 +15,23 @@ def editions_grist(prefixe, document):
     return lignes_grist(lire_api(prefixe, document, CHEMIN_EDITIONS))
 
 
-def destination_grist(url):
+def destination_grist(url, *, preparer_vierge=False):
     prefixe, document, url, nom = document_grist(url)
     try:
         tables = lire_api(prefixe, document, "/tables")
-        if "Editions" not in {table["id"] for table in tables["tables"]}:
-            raise ValidationError("Ce document ne contient pas la table Editions du modèle Petits Pas.")
+        noms = {table["id"] for table in tables["tables"]}
+        if "Editions" not in noms:
+            if not preparer_vierge or not document_vierge(prefixe, document, noms):
+                raise ValidationError("Ce document ne contient pas de table Editions compatible. "
+                                      "Choisissez un document Grist vierge ou un catalogue Petits Pas.")
+            creer_table_editions(prefixe, document)
         colonnes = {c["id"]: c["fields"]["type"]
                     for c in lire_api(prefixe, document, "/tables/Editions/columns")["columns"]}
     except (KeyError, TypeError) as erreur:
         raise ValidationError("Le schéma du document Grist est illisible.") from erreur
     manquantes = [nom for nom, types in COLONNES.items() if colonnes.get(nom) not in types]
     if manquantes:
-        raise ValidationError("Vérifiez les colonnes de la table Editions : %(colonnes)s.",
+        raise ValidationError("Publication impossible : la table Editions a des colonnes manquantes ou de type incorrect (%(colonnes)s).",
                               params={"colonnes": ", ".join(manquantes)})
     editions = editions_grist(prefixe, document)
     numeros = [ligne.get("Numero") for ligne in editions]
@@ -42,6 +46,37 @@ def destination_grist(url):
         if references.setdefault(reference, titre) != titre:
             raise ValidationError("Un référentiel a plusieurs titres dans la table Editions.")
     return {"url": url, "nom": nom, "espace": prefixe.removeprefix("/o/"), "editions": editions}
+
+
+def document_vierge(prefixe, document, tables):
+    return not tables or (
+        tables == {"Table1"}
+        and not lignes_grist(lire_api(prefixe, document, "/tables/Table1/records?limit=1"))
+    )
+
+
+def creer_table_editions(prefixe, document):
+    colonnes = [{"id": nom, "fields": {"type": "Int" if nom == "Numero" else "Text"}} for nom in COLONNES]
+    corps = json.dumps({"tables": [{"id": "Editions", "columns": colonnes}]}).encode()
+    try:
+        requete_api(prefixe, document, "/tables", corps=corps, methode="POST")
+    except ValidationError:
+        # Un autre envoi a pu créer la table entre-temps. Le schéma sera vérifié ensuite.
+        if "Editions" not in {table["id"] for table in lire_api(prefixe, document, "/tables")["tables"]}:
+            raise
+
+
+def meme_contenu_grist(edition, document):
+    try:
+        ancien = json.loads(edition.get("Contenu") or "")
+    except (TypeError, ValueError):
+        return False
+    if not isinstance(ancien, dict):
+        return False
+    actuel = json.loads(contenu_grist(document))
+    ancien.pop("version", None)
+    actuel.pop("version", None)
+    return ancien == actuel
 
 
 def contenu_grist(document):

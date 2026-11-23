@@ -1,7 +1,7 @@
 {% if publication_grist_reussie %}
 <p class="message" role="status">Édition {{ publication_grist_reussie.numero }} {% if publication_grist_reussie.identique %}déjà publiée{% else %}publiée{% endif %} dans <a href="{{ publication_grist_reussie.url }}">{{ publication_grist_reussie.nom }}</a>.</p>
 {% endif %}
-{% if erreur_grist %}<p class="message erreur" role="alert" id="erreur-grist">{{ erreur_grist }}</p>{% endif %}
+{% if erreur_grist %}<ul class="messages"><li class="error" role="alert" id="erreur-grist"><strong>Publication Grist impossible.</strong> {{ erreur_grist }}</li></ul>{% endif %}
 <form method="post" action="#export-referentiel" data-publication-grist>
 <p class="aide" data-choix-grist hidden></p>
 {% csrf_token %}
@@ -13,13 +13,8 @@
 <input type="url" id="url-grist" name="url_grist" maxlength="2000" value="{{ url_grist }}"{% if erreur_grist %} aria-describedby="erreur-grist"{% endif %}></p>
 {% if destination_grist %}<p>Document · <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a></p>{% else %}<p class="aide">Par défaut, Petits Pas crée un nouveau référentiel à cette adresse.</p>{% endif %}
 {% endif %}
-<p class="actions">
-<button class="bouton" name="action" value="publier-grist">Publier dans Grist</button>
-<button class="bouton discret" name="action" value="telecharger-classe">Télécharger le ZIP</button>
-<button class="bouton discret" name="action" value="apercu-classe">Examiner le contenu</button>
-</p>
 <details{% if erreur_grist or destination_grist %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Changer de destination" only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier la destination ou le référentiel" only %}
 {% if destinations_grist %}
 <p><label for="documents-recents-grist">Documents Grist récents</label>
 <select name="destination_grist" id="documents-recents-grist">
@@ -30,15 +25,24 @@
 <p><label for="url-grist">Ou coller le lien d’un autre document</label>
 <input type="url" id="url-grist" name="url_grist" maxlength="2000"></p>
 {% endif %}
-<p><label for="reference-grist">Référentiel à publier</label>
+{% if references_grist or publication_connue %}
+<p><label for="reference-grist">Dans ce document, publier…</label>
 <select id="reference-grist" name="reference_grist">
-<option value="">Choix habituel pour ce document</option>
-<option value="nouveau"{% if reference_grist == "nouveau" %} selected{% endif %}>Nouveau référentiel</option>
+<option value="">{% if publication_connue and not url_grist %}Une nouvelle édition du référentiel déjà publié par cette classe{% else %}Un nouveau référentiel, ou une nouvelle édition si cette classe l’a déjà publié ici{% endif %}</option>
+<option value="nouveau"{% if reference_grist == "nouveau" %} selected{% endif %}>Un nouveau référentiel</option>
 {% for reference, titre in references_grist %}
-<option value="{{ reference }}"{% if reference_grist == reference %} selected{% endif %}>Nouvelle édition · {{ titre }}</option>
+<option value="{{ reference }}"{% if reference_grist == reference %} selected{% endif %}>Une nouvelle édition de {{ titre }}</option>
 {% endfor %}
-</select>
-<button class="bouton discret" name="action" value="voir-grist">Voir les référentiels du document</button></p>
+</select></p>
+{% endif %}
+{% if not destination_grist %}
+<p><button class="bouton discret" name="action" value="voir-grist">Choisir un référentiel déjà publié</button></p>
+{% endif %}
 {% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
 </details>
+<p class="actions">
+<button class="bouton" name="action" value="publier-grist">Publier dans Grist</button>
+<button class="bouton discret" name="action" value="telecharger-classe">Télécharger le ZIP</button>
+<button class="bouton discret" name="action" value="apercu-classe">Examiner le contenu</button>
+</p>
 </form>

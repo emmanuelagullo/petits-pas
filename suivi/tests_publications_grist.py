@@ -6,7 +6,7 @@ from django.test import SimpleTestCase
 
 from .services.catalogues_externes import CATALOGUE_DEMONSTRATION, edition_grist
 from .services.import_sources_referentiels import lire_source
-from .services.publications_grist import publier_edition_grist
+from .services.publications_grist import contenu_grist, meme_contenu_grist, publier_edition_grist
 
 
 class PublicationsGrist(SimpleTestCase):
@@ -48,3 +48,33 @@ class PublicationsGrist(SimpleTestCase):
             recu, _ = lire_source(edition_grist(CATALOGUE_DEMONSTRATION, "langage-test", 1))
         self.assertEqual(recu["domaines"][0]["sous_domaines"][0]["competences"][0]["identite"], "identite-stable")
         self.assertEqual(recu["source"]["licence"], "CC0-1.0")
+        edition = {"Contenu": contenu_grist(document)}
+        self.assertTrue(meme_contenu_grist(edition, {**document, "version": "5"}))
+        self.assertFalse(meme_contenu_grist(edition, {**document, "domaines": []}))
+
+    def test_un_document_vierge_est_prepare_seulement_pour_publier(self):
+        from .services.publications_grist import destination_grist
+
+        colonnes = {"columns": [{"id": nom, "fields": {"type": type_colonne}} for nom, type_colonne in (
+            ("Numero", "Int"), ("Referentiel", "Text"), ("Titre", "Text"), ("Contenu", "Text"),
+        )]}
+        reponses = {
+            "/tables": {"tables": [{"id": "Table1"}]},
+            "/tables/Table1/records?limit=1": {"records": []},
+            "/tables/Editions/columns": colonnes,
+            "/tables/Editions/records": {"records": []},
+        }
+        with patch("suivi.services.publications_grist.document_grist", return_value=(
+                "/o/docs", "exemple", CATALOGUE_DEMONSTRATION, "Document de test",
+        )), patch("suivi.services.publications_grist.lire_api", side_effect=lambda p, d, c: reponses[c]), patch(
+                "suivi.services.publications_grist.requete_api") as ecrire:
+            with self.assertRaises(ValidationError):
+                destination_grist(CATALOGUE_DEMONSTRATION)
+            ecrire.assert_not_called()
+            self.assertEqual(destination_grist(CATALOGUE_DEMONSTRATION, preparer_vierge=True)["editions"], [])
+            self.assertEqual(ecrire.call_args.kwargs["methode"], "POST")
+            reponses["/tables/Table1/records?limit=1"] = {"records": [{"fields": {"A": "Donnée existante"}}]}
+            ecrire.reset_mock()
+            with self.assertRaises(ValidationError):
+                destination_grist(CATALOGUE_DEMONSTRATION, preparer_vierge=True)
+            ecrire.assert_not_called()

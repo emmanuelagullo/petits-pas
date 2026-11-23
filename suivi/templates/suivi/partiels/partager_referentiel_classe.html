@@ -1,6 +1,6 @@
+{% if retour_export_ecole %}<p><a class="bouton discret" href="{{ retour_export_ecole }}">Choisir une autre classe</a></p>{% endif %}
+<h3>Partager le référentiel courant de cette classe</h3>
 {% if partage_classe %}
-<details{% if volet == "exporter" or not peut_importer or modifier_partage or apercu_partage %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Partager le référentiel courant de cette classe" principal=True only %}
 <p><strong>{{ informations_partage.titre }}</strong> · {{ informations_partage.licence|default:"Licence à vérifier" }} · Édition {{ informations_partage.version }}</p>
 <p>Dérivé de {{ base_du_partage.source.titre }}, édition {{ base_du_partage.numero }}.</p>
 {% if modifier_partage %}
@@ -34,8 +34,6 @@
 </details>
 
 {% endif %}
-</details>
 {% else %}
-<h3>Partager le référentiel courant de cette classe</h3>
 <p>{{ partage_classe_indisponible }}</p>
 {% endif %}

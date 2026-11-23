@@ -209,11 +209,14 @@ puis *Exporter un référentiel*.
 Dans le partage du référentiel courant, collez le lien du document Grist
 la première fois, puis cliquez sur *Publier dans Grist*. La dernière
 destination où vous avez publié pour cette école est proposée. Le bouton
-publie directement dans ce document. *Changer de destination* permet de
-choisir un autre document ou de préciser le référentiel à mettre à jour.
+publie directement dans ce document. *Modifier la destination ou le
+référentiel* permet de choisir un autre document ou un référentiel déjà
+publié. Une édition au contenu identique ne crée pas de nouveau numéro.
 *Examiner le contenu* reste disponible pour relire l’édition.
 
-Le document Grist de ce pilote doit contenir une table =Editions= avec
+Dans un document Grist vierge, Petits Pas crée la table nécessaire lors
+de la première publication. Un document déjà utilisé doit contenir une
+table =Editions= avec
 =Numero= (entier), =Referentiel=, =Titre= et =Contenu= (texte). Petits Pas
 écrit une édition complète dans une ligne et vérifie sa présence. Le
 document doit autoriser l’écriture pour la connexion utilisée. Réservez

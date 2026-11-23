@@ -124,7 +124,7 @@ class MisesAJour(Base):
         page_ecole = self.client.get(reverse("paquets_referentiels_ecole"), {
             "annee": self.classe.annee_scolaire, "volet": "exporter",
         })
-        self.assertContains(page_ecole, f'href="{echange}?volet=exporter#export-referentiel"')
+        self.assertContains(page_ecole, f'href="{echange}?volet=exporter&amp;depuis=export-ecole#export-referentiel"')
         page_classe = self.client.get(echange, {"volet": "exporter"})
         self.assertContains(page_classe, "Partager le référentiel courant de cette classe")
         self.assertContains(page_classe, "Publier dans Grist")
@@ -132,6 +132,9 @@ class MisesAJour(Base):
         self.assertContains(page_ecole, 'id="edition"')
         self.assertContains(page_classe, '<summary class="bouton bouton-depliant discret">Modifier les informations</summary>')
         self.assertContains(page_classe, "Référentiel de " + self.classe.nom)
+        depuis_ecole = self.client.get(echange, {"volet": "exporter", "depuis": "export-ecole"})
+        self.assertContains(depuis_ecole, "Choisir une autre classe")
+        self.assertContains(depuis_ecole, "Exporter depuis l’école")
         direct = self.client.post(echange, {"action": "telecharger-classe"})
         self.assertEqual(direct["Content-Type"], "application/zip")
         self.client.force_login(self.enseignant)
