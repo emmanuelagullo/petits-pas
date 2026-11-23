@@ -9,6 +9,7 @@ from django.db import transaction
 
 from suivi.models import (DefinitionSourceCompetence, IdentiteSourceCompetence,
                           SourceReferentiel, VersionReferentiel)
+from suivi.identites_referentiels import competences_document, reference_competence
 from suivi.presentation import catalogue_icones
 
 
@@ -56,8 +57,8 @@ def liste(valeur, chemin):
 
 def normaliser(document):
     document = objet(document, ("format", "source", "version", "domaines", "structure_seule"), "Document")
-    if type(document.get("format")) is not int or document["format"] != 1:
-        raise ValidationError("Format attendu : 1.")
+    if type(document.get("format")) is not int or document["format"] not in (1, 2):
+        raise ValidationError("Format attendu : 1 ou 2.")
     source = objet(document.get("source"), ("identifiant", "titre", "provenance", "licence", "provisoire"), "Source")
     source = {"identifiant": identifiant(source.get("identifiant"), "Identifiant de source"),
               "titre": texte(source.get("titre"), "Titre"),
@@ -81,8 +82,17 @@ def normaliser(document):
     def competences(valeurs, chemin):
         resultat = []
         for c in liste(valeurs, chemin):
-            c = objet(c, ("identite", "code", "libelle", "niveau", "icone", "formulations"), "Compétence")
-            identite = unique(identifiant(c.get("identite"), "Identité"), identites, "Identité")
+            champs = ("identite", "code", "libelle", "niveau", "icone", "formulations")
+            if document["format"] == 2:
+                champs += ("source_origine",)
+            c = objet(c, champs, "Compétence")
+            identite = identifiant(c.get("identite"), "Identité")
+            origine = {}
+            if "source_origine" in c:
+                origine_source = identifiant(c["source_origine"], "Source d’origine")
+                if origine_source != source["identifiant"]:
+                    origine["source_origine"] = origine_source
+            unique(reference_competence({"identite": identite, **origine}), identites, "Identité")
             code = unique(identifiant(c.get("code"), "Code de compétence", 20), codes_competences, "Code de compétence")
             niveau = c.get("niveau", "PS")
             if niveau not in ("PS", "MS", "GS"):
@@ -95,7 +105,7 @@ def normaliser(document):
                 f = objet(f, ("code", "texte"), "Phrase proposée")
                 formulations.append({"code": unique(identifiant(f.get("code"), "Code de phrase", 80), codes_phrases, "Code de phrase"),
                                      "texte": texte(f.get("texte"), "Phrase proposée", 4000)})
-            resultat.append({"identite": identite, "code": code, "libelle": texte(c.get("libelle"), "Libellé", 300),
+            resultat.append({**origine, "identite": identite, "code": code, "libelle": texte(c.get("libelle"), "Libellé", 300),
                              "niveau": niveau, "icone": icone, "formulations": formulations})
         return resultat
 
@@ -121,7 +131,7 @@ def normaliser(document):
         raise ValidationError("Une structure seule ne contient aucune compétence.")
     if not domaines or (not structure and not identites):
         raise ValidationError("Au moins un domaine et une compétence sont nécessaires.")
-    contenu = {"format": 1, "origine": "source_declaree", "source": source, "version": numero, "domaines": domaines}
+    contenu = {"format": document["format"], "origine": "source_declaree", "source": source, "version": numero, "domaines": domaines}
     if structure:
         contenu["structure_seule"] = True
     return contenu, identites
@@ -148,6 +158,17 @@ def importer_source(contenu_yaml, *, verifier_seulement=False):
     version = source.versions.filter(numero=contenu["version"]).first() if source else None
     if version and (version.empreinte != empreinte or version.contenu != contenu):
         raise ValidationError("Cette version existe avec un autre contenu ; publier un nouveau numéro de version.")
+    empruntees = {}
+    for competence in competences_document(contenu):
+        if "source_origine" not in competence:
+            continue
+        origine = IdentiteSourceCompetence.objects.filter(
+            source__identifiant=competence["source_origine"], source__ecole__isnull=True,
+            identifiant=competence["identite"],
+        ).first()
+        if origine is None:
+            raise ValidationError(f"Identité d’origine inconnue : {reference_competence(competence)}.")
+        empruntees[reference_competence(competence)] = origine
     if verifier_seulement:
         return version, False, len(identifiants)
     if version:
@@ -160,7 +181,9 @@ def importer_source(contenu_yaml, *, verifier_seulement=False):
     version.full_clean()
     version.save()
     for identifiant_source in sorted(identifiants):
-        identite, _ = IdentiteSourceCompetence.objects.get_or_create(source=source, identifiant=identifiant_source)
+        identite = empruntees.get(identifiant_source)
+        if identite is None:
+            identite, _ = IdentiteSourceCompetence.objects.get_or_create(source=source, identifiant=identifiant_source)
         definition = DefinitionSourceCompetence(identite=identite, version=version)
         definition.full_clean()
         definition.save()

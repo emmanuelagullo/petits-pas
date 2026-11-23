@@ -5,6 +5,7 @@ from uuid import uuid4
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from suivi.identites_referentiels import reference_competence
 from suivi.models import (Attendu, Competence, CompetenceSourceEcole, Domaine, Ecole,
     FormulationProposee, SousDomaine, VersionSourceEcole)
 
@@ -25,11 +26,14 @@ def definir_version_ecole(ecole, version):
                "domaines": [], "sous_domaines": [], "attendus": [], "competences": [], "formulations": []}
     if version.contenu.get("structure_seule"):
         contenu["structure_seule"] = True
-    identites = {d.identite.identifiant: d.identite for d in version.definitions.select_related("identite")}
+    identites = {
+        (i.identifiant if i.source_id == version.source_id else f"{i.source.identifiant}/{i.identifiant}"): i
+        for i in (d.identite for d in version.definitions.select_related("identite__source"))
+    }
 
     def ajouter_competences(valeurs, domaine, sous_domaine=None):
         for c in valeurs:
-            identite = identites[c["identite"]]
+            identite = identites[reference_competence(c)]
             liaison = CompetenceSourceEcole.objects.filter(ecole=ecole, identite=identite).first()
             if liaison is None:
                 competence = Competence.objects.create(domaine=domaine, sous_domaine=sous_domaine,

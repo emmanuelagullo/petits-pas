@@ -5,18 +5,24 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import IntegrityError
 
 from suivi.services.import_sources_referentiels import importer_source
+from suivi.services.paquets_referentiels import MAX_ARCHIVE, lire_paquet
 
 
 class Command(BaseCommand):
     help = "Importe une version au catalogue fourni, sans changer les écoles ni les suivis."
 
     def add_arguments(self, parser):
-        parser.add_argument("fichier", help="Fichier YAML versionné")
+        parser.add_argument("fichier", help="Fichier YAML versionné ou paquet ZIP")
         parser.add_argument("--verifier", action="store_true", help="Valide le fichier et les conflits, sans écriture.")
 
     def handle(self, *args, **options):
         try:
-            contenu = Path(options["fichier"]).read_text(encoding="utf-8")
+            chemin = Path(options["fichier"])
+            if chemin.suffix.lower() == ".zip":
+                with chemin.open("rb") as fichier:
+                    contenu = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
+            else:
+                contenu = chemin.read_text(encoding="utf-8")
             version, cree, nombre = importer_source(contenu, verifier_seulement=options["verifier"])
         except (OSError, UnicodeError) as erreur:
             raise CommandError("Impossible de lire le fichier YAML en UTF-8.") from erreur

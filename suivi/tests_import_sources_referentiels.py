@@ -155,6 +155,27 @@ class ImportSources(TestCase):
             fichier.write_text("format: [", encoding="utf-8")
             with self.assertRaises(CommandError): call_command("importer_source_referentiel", str(fichier))
 
+    def test_edition_composee_retrouve_identite_et_archive_transportable(self):
+        from .services.paquets_referentiels import exporter_paquet, lire_paquet
+
+        source, _, _ = importer(document())
+        doc = document("composition")
+        doc["format"] = 2
+        competence = doc["domaines"][0]["competences"][0]
+        competence.update(source_origine="fictive-a", icone="parler", libelle="Expression orale")
+        composee, _, _ = importer(doc)
+        self.assertEqual(composee.definitions.get().identite, source.definitions.get().identite)
+        with TemporaryDirectory() as repertoire:
+            chemin = Path(repertoire) / "edition.zip"
+            chemin.write_bytes(exporter_paquet(composee))
+            sortie = StringIO()
+            call_command("importer_source_referentiel", str(chemin), stdout=sortie)
+            self.assertIn("déjà présente", sortie.getvalue())
+        self.assertEqual(lire_paquet(exporter_paquet(composee)).count("fictive-a"), 1)
+        competence["source_origine"] = "inconnue"
+        with self.assertRaisesMessage(ValidationError, "Identité d’origine inconnue"):
+            importer({**doc, "version": "2"}, verifier_seulement=True)
+
     def test_definition_autre_source_refusee(self):
         a, _, _ = importer(document())
         b, _, _ = importer(document("fictive-b"))
@@ -163,6 +184,21 @@ class ImportSources(TestCase):
 
 
 class ImportSansChangementDuSuivi(Base):
+    def test_projection_composee_reutilise_competence_et_phrase(self):
+        from .services.versions_sources_ecoles import definir_version_ecole
+
+        doc = document()
+        doc["domaines"][0]["competences"][0]["formulations"] = [{"code": "p1", "texte": "Je parle."}]
+        origine, _, _ = importer(doc)
+        avant = definir_version_ecole(self.ecole, origine)
+        doc["source"] = {**doc["source"], "identifiant": "composition"}
+        doc["format"] = 2
+        doc["domaines"][0]["competences"][0].update(source_origine="fictive-a", code="C01")
+        edition, _, _ = importer(doc)
+        apres = definir_version_ecole(self.ecole, edition)
+        self.assertEqual(avant["competences"][0]["id"], apres["competences"][0]["id"])
+        self.assertEqual(avant["formulations"][0]["id"], apres["formulations"][0]["id"])
+
     def test_import_conserve_adoption_observations_et_traces(self):
         self.creer_trace(commentaire="Trace fictive conservée")
         reprendre(self.ecole.pk)

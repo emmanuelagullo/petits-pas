@@ -4,8 +4,9 @@ import json
 
 from django.db.models import Q
 
+from suivi.identites_referentiels import reference_competence, references_suivi
 from suivi.presentation import catalogue_icones
-from suivi.models import AdaptationCompetence, Competence, CompetenceSourceEcole, FormulationLocale, ReglagePresentation
+from suivi.models import AdaptationCompetence, Competence, FormulationLocale, ReglagePresentation
 
 
 def definitions(version):
@@ -15,7 +16,7 @@ def definitions(version):
         groupes += [(s, s["competences"]) for s in domaine.get("sous_domaines", [])]
         for sous, competences in groupes:
             for c in competences:
-                resultat[c["identite"]] = {**c, "domaine": domaine["nom"],
+                resultat[reference_competence(c)] = {**c, "domaine": domaine["nom"],
                     "sous_domaine": sous["nom"] if sous else "",
                     "attendus": domaine.get("attendus", []), "ordre": len(resultat)}
     return resultat
@@ -27,8 +28,7 @@ def apercu_mise_a_jour(classe, actuelle, version):
     if version.source.ecole_id is not None:
         return None  # Une reprise ancienne n'établit pas d'identités sources.
     avant, apres = definitions(actuelle.version), definitions(version)
-    liaisons = dict(CompetenceSourceEcole.objects.filter(ecole=classe.ecole,
-        identite__source=version.source).values_list("identite__identifiant", "competence_id"))
+    liaisons = references_suivi(classe.ecole, actuelle.version) | references_suivi(classe.ecole, version)
     regles = list(AdaptationCompetence.objects.filter(
         Q(classe__isnull=True) | Q(classe=classe), ecole=classe.ecole,
         annee_scolaire=classe.annee_scolaire, competence_id__in=liaisons.values()).order_by("pk"))

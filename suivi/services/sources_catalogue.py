@@ -2,9 +2,10 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 
+from suivi.identites_referentiels import reference_competence, references_suivi
 from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, VOIR_SUIVI, autorise
-from suivi.models import AdaptationCompetence, Classe, CompetenceLocale, CompetenceSourceEcole
+from suivi.models import AdaptationCompetence, Classe, CompetenceLocale
 from suivi.referentiels import adoption_courante, contenu_adoption, contenu_origine
 from .ajouts_referentiels import _verrouiller, catalogue_reprises, reprendre_ajout
 from .choix_bases_referentiels import _application_verrouillee, choix_bases
@@ -30,10 +31,10 @@ def lignes_source(version, adoption, *, utilisateur, classe):
     if version and version.source.ecole_id is None:
         for domaine in version.contenu["domaines"]:
             for c in domaine["competences"]:
-                yield c["identite"], c, domaine["nom"], ""
+                yield reference_competence(c), c, domaine["nom"], ""
             for sous in domaine["sous_domaines"]:
                 for c in sous["competences"]:
-                    yield c["identite"], c, domaine["nom"], sous["nom"]
+                    yield reference_competence(c), c, domaine["nom"], sous["nom"]
         return
     contenu = version.contenu if version else contenu_adoption(adoption)
     domaines = {d["id"]: d["nom"] for d in contenu.get("domaines", [])}
@@ -50,9 +51,7 @@ def lignes_source(version, adoption, *, utilisateur, classe):
 def competence_id_source(classe, version, reference, candidat):
     if not version or version.source.ecole_id is not None:
         return candidat["id"]
-    return CompetenceSourceEcole.objects.filter(ecole=classe.ecole,
-        identite__source=version.source, identite__identifiant=reference
-    ).values_list("competence_id", flat=True).first()
+    return references_suivi(classe.ecole, version).get(reference)
 
 
 def extrait(contenu, ligne):
@@ -80,8 +79,8 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
     if version:
         contenu = definir_version_ecole(classe.ecole, version)
         if version.source.ecole_id is None:
-            definition = version.definitions.get(identite__identifiant=reference)
-            ligne = next(c for c in contenu["competences"] if c["cle_definition"] == f"source-{definition.identite_id}")
+            identifiant = references_suivi(classe.ecole, version)[reference]
+            ligne = next(c for c in contenu["competences"] if c["id"] == identifiant)
         else:
             ligne = candidate
     else:

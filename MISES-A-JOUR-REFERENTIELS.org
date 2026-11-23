@@ -87,3 +87,20 @@ Construction Hugo, vérification visuelle navigateur et PostgreSQL non exécuté
 ici : Hugo et navigateur local absents, aucune instance PostgreSQL disponible.
 La validation CI et l'essai Render restent nécessaires ; aucun serveur n'a été
 modifié depuis cet environnement.
+
+* Éditions composées et transport du catalogue fourni
+
+Le format YAML 2 accepte le champ facultatif =source_origine= au niveau d'une
+compétence. Pour reprendre une compétence, indiquer la source publique
+d'origine et son =identite=, en conservant aussi le code des phrases reprises.
+La source d'origine doit déjà être installée sur le catalogue destinataire.
+Pour une nouvelle compétence, choisir une identité dans la source de
+l'édition et omettre =source_origine=. Le =code= reste propre à l'édition.
+Les fichiers au format 1 conservent leurs identités et leurs empreintes.
+
+=python3 manage.py exporter_source_referentiel SOURCE VERSION FICHIER.zip=
+exporte une édition publique complète, avec les illustrations et leurs
+notices issues du catalogue fourni. =importer_source_referentiel FICHIER.zip
+--verifier= vérifie le paquet et les identités avant import. La commande
+d'import sans =--verifier= ajoute l'édition au catalogue fourni. L'adoption
+et les droits de publication annuels suivent les parcours existants.

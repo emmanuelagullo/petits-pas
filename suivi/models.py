@@ -904,7 +904,15 @@ class DefinitionSourceCompetence(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.identite_id and self.version_id and self.identite.source_id != self.version.source_id:
-            raise ValidationError("La définition et l'identité doivent appartenir à la même source.")
+            from .identites_referentiels import competences_document
+
+            contenu = self.version.contenu
+            source = self.identite.source
+            if (contenu.get("format") != 2 or source.ecole_id is not None or not any(
+                c.get("source_origine") == source.identifiant and c.get("identite") == self.identite.identifiant
+                for c in competences_document(contenu)
+            )):
+                raise ValidationError("La définition doit déclarer l’identité d’origine de la compétence.")
 
 
 class CompetenceSourceEcole(models.Model):

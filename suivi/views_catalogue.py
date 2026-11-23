@@ -299,9 +299,8 @@ def catalogue(request, pk, saisie_collective=False):
         disponibles = [dict(reference=ref, competence=c, domaine=nom, sous_domaine=sous)
                        for ref, c, nom, sous in externes]
         if version and version.source.ecole_id is None:
-            from .models import CompetenceSourceEcole
-            ids = dict(CompetenceSourceEcole.objects.filter(ecole=classe.ecole, identite__source=version.source)
-                       .values_list("identite__identifiant", "competence_id"))
+            from .identites_referentiels import references_suivi
+            ids = references_suivi(classe.ecole, version)
         else:
             ids = {ref: c["id"] for ref, c, _, _ in externes}
         for ligne in disponibles:
