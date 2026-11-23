@@ -45,9 +45,11 @@ def apercu_adoption(*, utilisateur, classe, version_id):
         (l["depart_id"] in nouveaux_ids | locaux and l["arrivee_id"] in anciens_ids | locaux) or
         (l["arrivee_id"] in nouveaux_ids | locaux and l["depart_id"] in anciens_ids | locaux)]
     meme = bool(actuelle and actuelle.version_id == version_id)
+    mise_a_jour = apercu_mise_a_jour(classe, actuelle, version)
     return {"version": version, "adoption_id": actuelle.pk if actuelle else None,
-            "garde": garde_adoption(classe, version_id, choix),
-            "mise_a_jour": apercu_mise_a_jour(classe, actuelle, version),
+            "garde": garde_adoption(classe, version_id, choix,
+                                    continue_suivi=bool(mise_a_jour and mise_a_jour["continue_suivi"])),
+            "mise_a_jour": mise_a_jour,
             "revisions": choix.revisions, "communes": len(anciens_ids & nouveaux_ids),
             "nouvelles": nombre - len(anciens_ids & nouveaux_ids),
             "correspondances": liens, "ajouts": len(locaux), "hors_base": len(anciens_ids - nouveaux_ids), "meme": meme}
@@ -98,7 +100,7 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     journaliser(utilisateur, "referentiel.base_classe", adoption,
         anciennes={"adoption": apercu["adoption_id"]}, nouvelles={"version": version.pk, "initialisee_depuis_ecole": initialisee_depuis_ecole,
                     "selection_manuelle": selection_manuelle})
-    if garde["permission"]["classe"]:
+    if garde["niveau"] != "info" and garde["permission"]["classe"]:
         consommer_permission(utilisateur, classe)
     classe_fournie._adoption_referentiel_lecture = adoption
     return adoption

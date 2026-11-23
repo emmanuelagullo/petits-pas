@@ -4,23 +4,27 @@
 
 Les permissions application/année, école/année et classe annuelle sont
 fermées par défaut. Elles sont indépendantes de la liste des bases autorisées
-et du choix proposé. Un changement après saisies nécessite les trois accords.
-Une ouverture de classe permet un seul changement effectif, puis se referme
-atomiquement. Conserver la même base ne consomme pas cette ouverture.
+et du choix proposé. Un changement classé rouge nécessite les trois accords.
+Une ouverture de classe est consommée lors d'un changement renforcé, puis se
+referme atomiquement. Un choix ordinaire ne consomme pas cette ouverture.
 Retirer une permission ne change aucune adoption et n'empêche pas les saisies
 sur la base actuelle. Une nouvelle année commence sans permission reconduite.
 
 Le classement est commun à l'aperçu et au service d'adoption : info pour
 conserver la base ou choisir initialement le défaut avant saisies, orange pour
-les autres choix avant saisies, rouge après saisies. Une autre version de la
-même source suit ces règles. États annuels connus, traces contextualisées et
+les autres choix avant saisies, rouge après saisies. Une révision d'une même
+source déclarée suit le parcours ordinaire si elle conserve toutes les
+identités de l'édition active et leur section. Elle peut modifier les libellés,
+le classement et les propositions, ainsi qu'ajouter des compétences. Les
+retraits, changements de section et changements de source conservent le
+classement renforcé. États annuels connus, traces contextualisées et
 traces communes comptent, y compris supprimées logiquement et avec un élève
 déplacé. Une observation sans état connu, pour un élève scolarisé dans la
 classe, entraîne une alerte conservatrice sans inventer son année.
 
 L'empreinte de l'aperçu comprend le risque et les permissions/révisions. Sous
 les verrous application, école, classe, l'adoption les recalcule : une saisie
-nouvelle ou un retrait de permission impose un nouvel aperçu. Les lecteurs,
+nouvelle qui change le niveau ou un retrait de permission impose un nouvel aperçu. Les lecteurs,
 identités et parcours ne changent pas ; aucun acquis n'est transféré.
 
 Migration 0025 additive : les adoptions existantes sont conservées. La commande

@@ -382,6 +382,27 @@ seul mode local. Les clés ne sont conservées qu'en empreinte, ne figurent dans
 aucun journal, et `CleSecoursLocale` comme `RecoursLocalEcole` restent hors des
 exports d'école.
 
+## Référentiels et partage pédagogique
+
+- Factoriser la résolution d'identité, la comparaison et le calcul de l'effet
+  pour la classe. L'aperçu et la confirmation utilisent le même service ; la
+  confirmation recalcule sous les verrous existants. Les entrées école/classe
+  et les profils serveur, PWA et bureau doivent partager les règles métier.
+- Distinguer la définition publiée, la compétence suivie et son usage annuel.
+  Préserver observations, traces, adaptations et clôtures. Une correspondance
+  pédagogique documente un lien entre deux identités ; elle ne transfère aucun
+  acquis. Lire MISES-A-JOUR-REFERENTIELS.org, GARDE-FOUS-REFERENTIELS.org et
+  CORRESPONDANCES-REFERENTIELS.org.
+- Conserver une action principale et un retour à la liste filtrée. Afficher la
+  portée et le résultat effectif avant confirmation. Orange et rouge signalent
+  l'impact sur le suivi ; les erreurs de fichier ou de champ restent des
+  diagnostics de validation. Préserver les sélections hors filtre et distinguer
+  les éléments visibles, cochés et retenus.
+- Pour un futur partage pédagogique, distinguer l'ajout au catalogue de la
+  décision de classe. Exclure les données d'élèves, le suivi libre ciblé et les
+  médias privés. Vérifier les droits et l'isolation entre écoles sur serveur,
+  ainsi que les échanges entre profils, y compris la PWA hors ligne.
+
 ## Aides contextuelles et erreurs compréhensibles
 
 Pour chaque champ ou action dont le sens n'est pas évident, expliquer l'intention,

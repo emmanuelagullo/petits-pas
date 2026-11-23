@@ -66,7 +66,14 @@ def apercu_mise_a_jour(classe, actuelle, version):
                     "details": [{"champ": nom, "avant": texte(ancien.get(cle)),
                         "apres": texte(nouveau.get(cle))} for cle, nom in champs
                         if ancien.get(cle) != nouveau.get(cle)]})
+    # Un retrait ou un changement de section peut changer les possibilités de
+    # saisie. Garder le garde-fou renforcé dans ces cas.
+    continue_suivi = avant.keys() <= apres.keys() and all(
+        ancien["niveau"] == apres[identite]["niveau"]
+        for identite, ancien in avant.items()
+    )
     return {"modifiees": modifiees, "adaptations": conservees,
+        "continue_suivi": continue_suivi,
         "ajoutees": [c["libelle"] for i, c in apres.items() if i not in avant],
         "retirees": [c["libelle"] for i, c in avant.items() if i not in apres],
         "empreinte_adaptations": empreinte}

@@ -38,12 +38,12 @@ def saisies_classe(classe):
             "ambigu": ambigu}
 
 
-def garde_adoption(classe, version_id, choix):
+def garde_adoption(classe, version_id, choix, *, continue_suivi=False):
     actuelle = AdoptionReferentiel.objects.filter(classe=classe, courante=True).first()
     meme = bool(actuelle and actuelle.version_id == version_id)
     saisies = saisies_classe(classe)
     permission = permissions(classe.ecole, classe.annee_scolaire, classe)
-    niveau = "info" if meme or (not actuelle and not saisies["presentes"] and
+    niveau = "info" if meme or continue_suivi or (not actuelle and not saisies["presentes"] and
                                choix.proposee and choix.proposee.pk == version_id) else (
                                "rouge" if saisies["presentes"] else "orange")
     return {"niveau": niveau, "saisies": saisies["presentes"], "ambigu": saisies["ambigu"],

@@ -25,8 +25,8 @@
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><label><input type="checkbox" name="selection_manuelle" value="1"> Partir d’un suivi vide</label><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}
 <details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — changer la base de compétences</summary>
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Modifier la base de toute la classe" resume="Choisir un autre référentiel peut éloigner cette classe du référentiel commun de l’école, même avant les premières saisies, et compliquer les comparaisons avec les autres classes et les autres années. Privilégiez les adaptations courantes lorsque la base vous convient." %}
-<p>Changements après saisies : {% if permission.effective %}<strong>exception ouverte pour un seul changement</strong>{% else %}<strong>interdits au niveau {{ permission.blocage }}</strong>{% endif %}.</p>
+<p>Consultez les effets pour la classe avant de choisir une autre édition ou un autre référentiel.</p>
+<p>Changements majeurs après saisies : {% if permission.effective %}<strong>exception ouverte pour un seul changement</strong>{% else %}<strong>interdits au niveau {{ permission.blocage }}</strong>{% endif %}.</p>
 <p><a href="{% url 'permissions_referentiels_classe' classe.pk %}">Autorisation exceptionnelle de cette classe</a></p>
 <h2>Choisir le référentiel de la classe</h2>
 {% if actuelle.clos %}
@@ -53,7 +53,9 @@
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Avant les premières saisies" resume="Ce choix concerne toute la classe et peut l’éloigner du référentiel commun de l’école. Les compétences peuvent différer de celles des autres classes et des années précédentes. Discutez ce choix avec l’équipe avant de confirmer." %}
 {% endif %}
 <p>Ce choix concerne toute la classe pour les prochaines saisies. Les observations, commentaires et photos déjà enregistrés sont conservés.</p>
-<p><strong>{{ apercu.version.source.titre }}</strong> — version {{ apercu.version.numero }}.</p>
+{% if actuelle %}<p>Dans le suivi de la classe actuellement : <strong>{{ actuelle.version.source.titre }}</strong> — édition {{ actuelle.version.numero }}.</p>{% endif %}
+<p>Édition proposée : <strong>{{ apercu.version.source.titre }}</strong> — édition {{ apercu.version.numero }}.</p>
+{% if apercu.mise_a_jour.continue_suivi %}<p>Cette édition conserve les compétences de la base actuelle dans les mêmes sections. Vos choix locaux restent prioritaires.</p>{% endif %}
 {% if apercu.selection_manuelle %}<p>Les nombres ci-dessous décrivent le catalogue. Les compétences de la base rejoignent le suivi selon les choix de la classe.</p>{% endif %}
 <ul><li>{{ apercu.communes }} compétence{{ apercu.communes|pluralize }} avec la même identité.</li>
 <li>{{ apercu.nouvelles }} nouvelle{{ apercu.nouvelles|pluralize }} compétence{{ apercu.nouvelles|pluralize }}.</li>

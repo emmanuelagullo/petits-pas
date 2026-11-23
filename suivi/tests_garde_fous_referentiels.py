@@ -233,9 +233,27 @@ class GardeFous(Base):
         self.assertTrue(page.context["clos"])
         self.assertFalse(page.context["jeton"])
 
-    def test_mise_a_jour_de_source_apres_saisies_reste_bloquee(self):
+    def test_revision_compatible_apres_saisies_conserve_suivi_et_permission(self):
         self.saisir()
-        nouvelle = importer(document(version="2"))[0]
+        self.ouvrir()
+        doc = document(version="2")
+        doc["domaines"][0]["competences"][0]["libelle"] = "Je prends la parole"
+        nouvelle = importer(doc)[0]
+        publier_choix_application(annee=self.classe.annee_scolaire, versions_ids=[self.a.pk, nouvelle.pk],
+                                 proposee_id=nouvelle.pk, revision_attendue=2)
+        apercu = self.apercu(nouvelle)
+        self.assertEqual(apercu["garde"]["niveau"], "info")
+        etats = list(EtatAnnuelObservation.objects.values())
+        adoption = self.appliquer(apercu)
+        self.assertEqual(adoption.usages.get().competence_id, self.competence.pk)
+        self.assertEqual(list(EtatAnnuelObservation.objects.values()), etats)
+        self.assertTrue(PermissionChangementClasse.objects.get(classe=self.classe).ouverte)
+
+    def test_revision_avec_retrait_apres_saisies_reste_bloquee(self):
+        self.saisir()
+        doc = document(version="2")
+        doc["domaines"][0]["competences"][0]["identite"] = "autre-apprentissage"
+        nouvelle = importer(doc)[0]
         publier_choix_application(annee=self.classe.annee_scolaire, versions_ids=[self.a.pk, nouvelle.pk],
                                  proposee_id=nouvelle.pk, revision_attendue=1)
         apercu = self.apercu(nouvelle)
