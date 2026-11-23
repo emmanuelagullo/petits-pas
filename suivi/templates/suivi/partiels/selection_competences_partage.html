@@ -1,12 +1,19 @@
 <fieldset class="groupe-filtres" data-selection-partage>
 <legend>{% if telechargement %}Choisir des compétences{% else %}Compétences à reprendre{% endif %}</legend>
-<div class="groupes-filtres" data-filtres-partage hidden>
+<div class="barre-filtres-edition" data-barre-filtres data-barre-partage hidden>
+<div>
 <label>Rechercher une compétence <input type="search" data-recherche maxlength="300"></label>
+<p data-etat role="status"></p>
+</div>
+<details id="{{ cle_panneau }}" data-panneau-filtre data-memoire-filtre="{{ cle_panneau }}">
+<summary class="bouton discret">Filtres</summary>
+<div class="groupes-filtres" data-filtres-partage>
 <label>Domaine <select data-domaine><option value="">Tous les domaines</option></select></label>
 <label>Section <select data-niveau><option value="">Toutes les sections</option><option>PS</option><option>MS</option><option>GS</option></select></label>
 <label><input type="checkbox" data-cochees> Afficher uniquement les compétences cochées</label>
 </div>
-<p data-etat role="status" hidden></p>
+</details>
+</div>
 <ul class="liste">
 {% for ligne in lignes %}
 <li class="entree" data-ligne data-domaine="{{ ligne.domaine }}" data-niveau="{{ ligne.niveau }}">

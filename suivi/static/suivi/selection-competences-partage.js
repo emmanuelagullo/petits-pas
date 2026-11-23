@@ -1,6 +1,6 @@
 for (const zone of document.querySelectorAll('[data-selection-partage]')) {
   const filtres = zone.querySelector('[data-filtres-partage]');
-  const recherche = filtres.querySelector('[data-recherche]');
+  const recherche = zone.querySelector('[data-recherche]');
   const domaine = filtres.querySelector('[data-domaine]');
   const niveau = filtres.querySelector('[data-niveau]');
   const cochees = filtres.querySelector('[data-cochees]');
@@ -36,7 +36,9 @@ for (const zone of document.querySelectorAll('[data-selection-partage]')) {
     for (const ligne of lignes) ligne.element.hidden = !pageVisible.has(ligne);
     const total = lignes.filter(ligne => ligne.case.checked).length;
     const horsFiltre = total - visibles.filter(ligne => ligne.case.checked).length;
-    etat.textContent = `${visibles.length} résultat(s) · ${total} sélectionnée(s), dont ${horsFiltre} hors filtre.`;
+    const actifs = [domaine.value, niveau.value, cochees.checked ? 'Compétences cochées' : ''].filter(Boolean);
+    etat.textContent = `${visibles.length} résultat(s) · ${total} sélectionnée(s), dont ${horsFiltre} hors filtre.`
+      + (actifs.length ? ` Filtres actifs : ${actifs.join(' · ')}.` : '');
     pages.hidden = nombrePages === 1;
     precedente.disabled = page === 0;
     suivante.disabled = page === nombrePages - 1;
@@ -51,8 +53,7 @@ for (const zone of document.querySelectorAll('[data-selection-partage]')) {
     page = 0;
     afficher();
   }
-  filtres.hidden = false;
-  etat.hidden = false;
+  zone.querySelector('[data-barre-partage]').hidden = false;
   recherche.addEventListener('input', filtrer);
   filtres.addEventListener('change', filtrer);
   zone.addEventListener('change', event => {
@@ -61,4 +62,20 @@ for (const zone of document.querySelectorAll('[data-selection-partage]')) {
   precedente.addEventListener('click', () => { page -= 1; afficher(); });
   suivante.addEventListener('click', () => { page += 1; afficher(); });
   afficher();
+}
+
+
+const choixEdition = document.querySelector('[data-choix-edition-partage]');
+if (choixEdition) {
+  const edition = choixEdition.elements.edition;
+  const initiale = edition.value;
+  choixEdition.querySelector('[data-afficher-edition]').hidden = true;
+  edition.addEventListener('change', () => {
+    const coches = document.querySelector('[data-selection-partage] input[name="competence"]:checked, [data-selection-partage] input[name="reprise"]:checked');
+    if (coches && !window.confirm('Changer d’édition recharge la page. Voulez-vous quitter la sélection en cours ?')) {
+      edition.value = initiale;
+      return;
+    }
+    choixEdition.requestSubmit();
+  });
 }

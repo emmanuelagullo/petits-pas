@@ -44,6 +44,8 @@ class CreationBaseClasse(Base):
         for url in (ecole, classe):
             page = self.client.get(url)
             self.assertContains(page, "Télécharger la sélection")
+            self.assertContains(page, 'href="#import-referentiel"')
+            self.assertContains(page, 'data-memoire-filtre="partage-export"')
             fichier = self.client.post(url, {"action": "selection", "competence": "oser-parler"})
             self.assertEqual(fichier["Content-Type"], "application/zip")
         donnees = fichier.content
@@ -65,6 +67,19 @@ class CreationBaseClasse(Base):
         confirmation["jeton"] = examiner().context["jeton"]
         self.assertContains(self.client.post(ecole, confirmation), "figure déjà")
         self.assertIn("source_origine: creation-a", lire_paquet(donnees))
+
+    def test_echange_presente_la_base_de_classe_et_explique_le_droit_import(self):
+        self.creer()
+        classe = Classe.objects.get(nom="Nouvelle classe fictive")
+        url = reverse("paquets_referentiels_classe", args=[classe.pk])
+        self.assertEqual(self.client.get(url).context["edition"], self.a)
+        self.assertEqual(self.client.get(url, {"edition": self.b.pk}).context["edition"], self.b)
+
+        self.client.force_login(self.enseignant)
+        page = self.client.get(reverse("paquets_referentiels_classe", args=[self.classe.pk]))
+        self.assertContains(page, "transmettez-le à une personne habilitée")
+        self.assertNotContains(page, 'href="#import-referentiel"')
+        self.assertNotContains(page, 'id="import-referentiel"')
 
     def test_brouillon_de_composition_repris_avec_plusieurs_rubriques(self):
         from suivi.services.import_sources_referentiels import lire_source

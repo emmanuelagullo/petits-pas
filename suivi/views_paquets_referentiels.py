@@ -124,7 +124,11 @@ def paquets_referentiels(request, classe_pk=None):
                 "peut_importer_global": request.user.is_superuser}
     try:
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
-        version = versions.get(request.GET.get("edition"))
+        edition = request.GET.get("edition")
+        if edition is None and classe is not None:
+            adoption = adoption_courante(classe)
+            edition = str(adoption.version_id) if adoption else None
+        version = versions.get(edition)
         if version:
             contexte["edition"] = version
             contexte["competences"] = lignes_selection([version])
