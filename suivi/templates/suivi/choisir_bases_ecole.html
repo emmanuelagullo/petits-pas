@@ -5,8 +5,10 @@
 <div class="page-referentiel">
 {% ariane_gestion "Référentiels de l’école" %}
 <h1>Référentiels de l'école</h1>
-<p><a href="{% url 'paquets_referentiels_ecole' %}?annee={{ annee }}">Échanger un référentiel</a></p>
-<p><a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
+{% url 'paquets_referentiels_ecole' as echange %}
+<p><a class="bouton" href="{{ echange }}?annee={{ annee }}#import-referentiel">Importer un référentiel</a>
+<a class="bouton discret" href="{{ echange }}?annee={{ annee }}#export-referentiel">Exporter un référentiel</a>
+<a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a></p>
 <p>Consultez les bases disponibles et adaptez les propositions de l’école. Les libellés, images et phrases proposés peuvent être repris ou adaptés par chaque classe. Choisissez d’abord les propositions pour l’année, puis créez les classes et invitez l’équipe. Les classes déjà préparées gardent leur base.</p>
 <form method="get">
 <label for="annee">Année scolaire</label>

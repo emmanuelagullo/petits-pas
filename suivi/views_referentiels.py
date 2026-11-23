@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import GERER_REFERENTIEL_CLASSE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee
+from .autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee
 from .contexte_ecole import ecole_courante
 from .referentiels import adoption_courante
 from .navigation import chemin_reglages_referentiel
@@ -72,6 +72,7 @@ def choisir_base_classe(request, classe_pk):
     ariane = chemin_reglages_referentiel(classe, catalogue=bool(actuelle and peut_voir_catalogue),
                                         inclure_reglages=False)
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
+        "peut_importer_ecole": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
         "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
         "actuelle": actuelle, "edition_demandee": edition_demandee, "peut_regler_phrases": autorise(request.user, MODIFIER_ETAT, classe), "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
 
@@ -94,7 +95,6 @@ def choisir_bases_ecole(request):
     from django.urls import reverse
     from django.utils import timezone
 
-    from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
     from .forms_referentiels import ChoixEcoleForm
     from .models import ChoixApplicationAnnuel, ChoixEcoleAnnuel, annee_scolaire_pour
     from .services.choix_bases_referentiels import (apercu_choix_ecole, choix_superieurs,
@@ -193,7 +193,6 @@ def adapter_competences(request, classe_pk=None, competence_pk=None):
     from django.utils import timezone
 
     from .adaptations_referentiels import contenu_adapte, contenu_avec_emprunts, contenus_ecole
-    from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
     from .forms_referentiels import AdaptationCompetenceForm
     from .models import AdaptationCompetence, AdoptionReferentiel, Competence, annee_scolaire_pour
     from .navigation import chemin_retour_competences, retour_competences
@@ -374,7 +373,6 @@ def consulter_referentiels(request, classe_pk=None):
 def permissions_referentiels(request, classe_pk=None):
     from django.core.exceptions import PermissionDenied
     from django.utils import timezone
-    from .autorisations import GERER_REFERENTIEL_ECOLE, autorise
     from .models import AdoptionReferentiel, annee_scolaire_pour
     from .services.garde_fous_referentiels import permissions, regler_permission
     from .services.choix_bases_referentiels import verifier_annee

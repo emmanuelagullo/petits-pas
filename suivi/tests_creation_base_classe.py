@@ -44,7 +44,7 @@ class CreationBaseClasse(Base):
         for url in (ecole, classe):
             page = self.client.get(url)
             self.assertContains(page, "Télécharger la sélection")
-            self.assertContains(page, 'href="#import-referentiel"')
+            self.assertContains(page, 'data-sommaire-page')
             self.assertContains(page, 'data-memoire-filtre="partage-export"')
             fichier = self.client.post(url, {"action": "selection", "competence": "oser-parler"})
             self.assertEqual(fichier["Content-Type"], "application/zip")
@@ -59,7 +59,9 @@ class CreationBaseClasse(Base):
         self.assertContains(apercu, "Confirmer l’import")
         self.assertFalse(SourceReferentiel.objects.filter(identifiant_diffusion__startswith="selection-").exists())
         confirmation = {"action": "importer", "jeton": apercu.context["jeton"]}
-        self.assertContains(self.client.post(ecole, confirmation), "Édition ajoutée au catalogue de l’école")
+        resultat = self.client.post(ecole, confirmation)
+        self.assertContains(resultat, "Édition ajoutée au catalogue de l’école")
+        self.assertContains(resultat, f"Cette édition fait partie des choix autorisés pour {self.annee}.")
         source = SourceReferentiel.objects.get(identifiant_diffusion__startswith="selection-")
         self.assertEqual(source.ecole_id, self.ecole.pk)
         self.assertIn(source.versions.get(), choix_bases(self.ecole, self.annee).versions)
@@ -75,11 +77,35 @@ class CreationBaseClasse(Base):
         self.assertEqual(self.client.get(url).context["edition"], self.a)
         self.assertEqual(self.client.get(url, {"edition": self.b.pk}).context["edition"], self.b)
 
+        reglages = reverse("referentiel_classe", args=[self.classe.pk])
+        self.assertContains(self.client.get(reglages), "Importer dans le catalogue de l’école")
         self.client.force_login(self.enseignant)
+        page = self.client.get(reglages)
+        self.assertContains(page, "Exporter un référentiel")
+        self.assertContains(page, "Transmettez-le à une personne qui gère l’école")
+        self.assertNotContains(page, "#import-referentiel")
         page = self.client.get(reverse("paquets_referentiels_classe", args=[self.classe.pk]))
-        self.assertContains(page, "transmettez-le à une personne habilitée")
-        self.assertNotContains(page, 'href="#import-referentiel"')
+        self.assertContains(page, ">Exporter un référentiel</h1>")
+        self.assertContains(page, "Transmettez-le à une personne qui gère l’école")
+        self.assertNotContains(page, "data-sommaire-page")
         self.assertNotContains(page, 'id="import-referentiel"')
+
+    def test_import_signale_une_edition_non_autorisee_par_les_choix_annuels(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .models import ChoixEcoleAnnuel
+        from .services.paquets_referentiels import empaqueter
+
+        ChoixEcoleAnnuel.objects.update_or_create(ecole=self.ecole, annee_scolaire=self.annee,
+                                                  defaults={"restreindre": True})
+        url = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        fichier = SimpleUploadedFile("nouvelle.zip", empaqueter(document("nouvelle-fictive")))
+        apercu = self.client.post(url, {"action": "apercu", "paquet": fichier})
+        page = self.client.post(url, {"action": "importer", "jeton": apercu.context["jeton"]},
+                                headers={"HX-Request": "true"})
+        self.assertContains(page, "Édition ajoutée au catalogue de l’école")
+        lien = reverse("referentiels_ecole") + f"?annee={self.annee}#choix-ecole"
+        self.assertContains(page, f'href="{lien}"')
+        self.assertNotContains(page, "Examiner l’adoption pour la classe")
 
     def test_brouillon_de_composition_repris_avec_plusieurs_rubriques(self):
         from suivi.services.import_sources_referentiels import lire_source

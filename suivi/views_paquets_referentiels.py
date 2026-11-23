@@ -177,7 +177,13 @@ def paquets_referentiels(request, classe_pk=None):
                         c for c in ecole.classes.filter(annee_scolaire=annee).exclude(etat=Classe.ARCHIVEE)
                         if autorise(request.user, GERER_REFERENTIEL_CLASSE, c)
                     ]
-                    if len(candidates) == 1 and edition_importee in choix_bases(ecole, annee).versions:
+                    edition_autorisee = edition_importee in choix_bases(ecole, annee).versions
+                    contexte["edition_autorisee"] = edition_autorisee
+                    if not edition_autorisee:
+                        contexte["autoriser_edition_url"] = (
+                            reverse("referentiels_ecole") + f"?annee={annee}#choix-ecole"
+                        )
+                    elif len(candidates) == 1 and candidates[0].etat != Classe.ARCHIVEE:
                         cible_classe = candidates[0]
                         adoption = adoption_courante(cible_classe)
                         if (adoption and not adoption.clos and adoption.version_id != edition_importee.pk
@@ -186,10 +192,11 @@ def paquets_referentiels(request, classe_pk=None):
                                 reverse("catalogue_competences", args=[cible_classe.pk]) +
                                 f"?source=version-{edition_importee.pk}"
                             )
-                        contexte["lien_adoption"] = (
-                            reverse("referentiel_classe", args=[candidates[0].pk]) +
-                            f"?edition={edition_importee.pk}#choisir-referentiel"
-                        )
+                        if not adoption or not adoption.clos:
+                            contexte["lien_adoption"] = (
+                                reverse("referentiel_classe", args=[cible_classe.pk]) +
+                                f"?edition={edition_importee.pk}#choisir-referentiel"
+                            )
                 request.session.pop(SEL, None)
                 cible = "de l’application" if attendu["global"] else "de l’école"
                 contexte["message"] = (f"Édition ajoutée au catalogue {cible}." if cree else
