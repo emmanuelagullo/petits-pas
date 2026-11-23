@@ -1372,3 +1372,11 @@ class DestinationPublicationGrist(models.Model):
             fields=["ecole", "auteur", "classe", "url", "identifiant_local"],
             name="destination_grist_classe_referentiel_unique",
         )]
+
+
+class InformationsPartageReferentielClasse(models.Model):
+    """Dernières informations choisies pour une édition partagée."""
+    classe = models.OneToOneField(Classe, on_delete=models.CASCADE)
+    donnees = models.JSONField(default=dict)
+    adoption = models.ForeignKey(AdoptionReferentiel, on_delete=models.CASCADE)
+    licences_sources = models.JSONField(default=list)

@@ -78,7 +78,7 @@
 {% endif %}
 <h3>Exporter une édition du catalogue de l’école</h3>
 {% endif %}
-{% if classe and versions %}<details{% if request.GET.edition %} open{% endif %}><summary class="bouton discret">Exporter une édition d’origine</summary>{% endif %}
+{% if classe and versions %}<details{% if request.GET.edition %} open{% endif %}><summary class="bouton discret">Télécharger une édition du catalogue</summary>{% endif %}
 {% if versions %}
 <form method="get" action="#export-referentiel" data-choix-edition-partage>
 <input type="hidden" name="annee" value="{{ annee }}">
@@ -94,7 +94,7 @@
 {% if edition %}
 <form method="post">
 {% csrf_token %}
-<button class="bouton discret" name="action" value="edition">{% if classe %}Exporter l’édition d’origine{% else %}Télécharger l’édition complète{% endif %}</button>
+<button class="bouton discret" name="action" value="edition">{% if classe %}Télécharger cette édition{% else %}Télécharger l’édition complète{% endif %}</button>
 {% if competences %}
 {% include "suivi/partiels/selection_competences_partage.html" with lignes=competences champ="competence" cle_panneau="partage-export" telechargement=True %}
 {% endif %}

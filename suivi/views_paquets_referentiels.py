@@ -5,11 +5,12 @@ import yaml
 from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.crypto import get_random_string
+from django.utils.crypto import get_random_string, salted_hmac
 from django.views.decorators.http import require_http_methods
 
 from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE, VOIR_SUIVI,
@@ -17,7 +18,7 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, I
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import PartageReferentielClasseForm
 from .identites_referentiels import competences_document, identifiant_source_ecole
-from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, VersionReferentiel, annee_scolaire_pour
+from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, InformationsPartageReferentielClasse, SourceReferentiel, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
@@ -134,7 +135,26 @@ def apercu_document(document, ecole):
     }
 
 
-ACTIONS_PARTAGE = {"apercu-classe", "exporter-classe"} | ACTIONS_GRIST
+ACTIONS_DIRECTES_PARTAGE = {"apercu-classe", "telecharger-classe", "choisir-grist"}
+ACTIONS_PARTAGE = ACTIONS_DIRECTES_PARTAGE | {"exporter-classe"} | ACTIONS_GRIST
+
+
+def informations_partage(classe, adoption):
+    source = adoption.version.source
+    enregistrees = InformationsPartageReferentielClasse.objects.filter(classe=classe).first()
+    if enregistrees:
+        return enregistrees.donnees, enregistrees.adoption_id != adoption.pk
+    identifiant = salted_hmac("referentiel-partage-classe", str(classe.pk), algorithm="sha256").hexdigest()
+    licence = source.licence
+    if licence.casefold() in {"non renseignée", "non renseigné", "inconnue"}:
+        licence = ""
+    return {
+        "titre": f"Référentiel de {classe.nom}",
+        "identifiant": f"classe-{identifiant}",
+        "version": "1",
+        "provenance": f"Dérivé de {source.titre}, édition {adoption.version.numero}. {source.provenance}"[:4000],
+        "licence": licence,
+    }, False
 
 
 def partage_classe(request, classe, contexte, action):
@@ -146,38 +166,62 @@ def partage_classe(request, classe, contexte, action):
         if action in ACTIONS_PARTAGE:
             raise ValidationError("Cette classe ne dispose pas d’une base courante à partager.")
         return
-    if action == "apercu-classe":
-        formulaire = PartageReferentielClasseForm(request.POST)
-    else:
-        formulaire = PartageReferentielClasseForm(initial={
-            "provenance": adoption.version.source.provenance,
-        })
+    initial, base_changee = informations_partage(classe, adoption)
+    contexte.update(base_du_partage=adoption.version, informations_partage=initial,
+                    modifier_partage=base_changee or not initial["licence"])
+    direct = action in ACTIONS_DIRECTES_PARTAGE
+    formulaire = PartageReferentielClasseForm(request.POST if direct and "titre" in request.POST else None,
+                                              initial=initial)
     contexte["partage_classe"] = formulaire
     if action not in ACTIONS_PARTAGE:
         return
     contexte["volet"] = "exporter"
     engagement = {"auteur": request.user.pk, "adoption": adoption.pk}
-    if action != "apercu-classe":
+    if direct:
+        if formulaire.is_bound and not formulaire.is_valid():
+            contexte["modifier_partage"] = True
+            return
+        donnees = formulaire.cleaned_data if formulaire.is_bound else initial
+        formulaire = PartageReferentielClasseForm(donnees)
+        contexte["partage_classe"] = formulaire
+        if not formulaire.is_valid() or (base_changee and "titre" not in request.POST):
+            contexte["modifier_partage"] = True
+            return
+        donnees = formulaire.cleaned_data
+    else:
         try:
             preparation = signing.loads(request.POST.get("jeton_partage", ""), salt="partage-referentiel-classe",
                                         max_age=1800)
         except signing.BadSignature as erreur:
-            raise ValidationError("Examinez de nouveau le référentiel à partager.") from erreur
+            raise ValidationError("Réessayez de partager le référentiel.") from erreur
         if preparation["engagement"] != engagement:
-            raise ValidationError("La base de la classe a changé. Examinez de nouveau le référentiel.")
-        donnees = dict(preparation["donnees"])
-    else:
-        if not formulaire.is_valid():
-            return
-        donnees = dict(formulaire.cleaned_data)
-    version = donnees.pop("version")
-    document = preparer_referentiel_classe(classe, donnees, version)
+            raise ValidationError("La base de la classe a changé. Reprenez le partage du référentiel.")
+        donnees = preparation["donnees"]
+    contexte["informations_partage"] = donnees
+    document = preparer_referentiel_classe(classe, {k: v for k, v in donnees.items() if k != "version"}, donnees["version"])
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
-    if action != "apercu-classe" and empreinte != preparation["empreinte"]:
+    if not direct and empreinte != preparation["empreinte"]:
         raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
-    if action == "exporter-classe":
-        return telecharger_paquet(empaqueter(document))
-    normalise, _ = lire_source(lire_paquet(empaqueter(document)))
+    origines = {c["source_origine"] for c in competences_document(document) if c.get("source_origine")}
+    sources = SourceReferentiel.objects.filter(
+        Q(ecole=classe.ecole, identifiant_diffusion__in=origines) | Q(ecole__isnull=True, identifiant__in=origines)
+    )
+    licences = sorted(set(sources.values_list("licence", flat=True)) | {adoption.version.source.licence})
+    if direct and not request.POST.get("titre") and any(licence != donnees["licence"] for licence in licences):
+        if not InformationsPartageReferentielClasse.objects.filter(
+            classe=classe, adoption=adoption, donnees=donnees, licences_sources=licences,
+        ).exists():
+            contexte["modifier_partage"] = True
+            return
+    contexte["modifier_partage"] = False
+    enregistrement = {"donnees": donnees, "adoption": adoption, "licences_sources": licences}
+    paquet = empaqueter(document)
+    if action in ("telecharger-classe", "exporter-classe"):
+        InformationsPartageReferentielClasse.objects.update_or_create(
+            classe=classe, defaults=enregistrement,
+        )
+        return telecharger_paquet(paquet)
+    normalise, _ = lire_source(lire_paquet(paquet))
     lignes = []
     for domaine in normalise["domaines"]:
         for groupe in [domaine, *domaine["sous_domaines"]]:
@@ -189,14 +233,20 @@ def partage_classe(request, classe, contexte, action):
             c["icone"] for c in competences_document(normalise) if c["icone"]
         })],
     }
-    if action == "apercu-classe":
+    if direct:
         contexte["jeton_partage"] = signing.dumps(
-            {"engagement": engagement, "donnees": formulaire.cleaned_data, "empreinte": empreinte},
+            {"engagement": engagement, "donnees": donnees, "empreinte": empreinte},
             salt="partage-referentiel-classe",
         )
     else:
         contexte["jeton_partage"] = request.POST["jeton_partage"]
+    if action == "choisir-grist" or action in ACTIONS_GRIST:
         publication_grist(request, classe, contexte, action, normalise)
+        if contexte.get("publication_grist_reussie"):
+            InformationsPartageReferentielClasse.objects.update_or_create(
+                classe=classe, defaults=enregistrement,
+            )
+
 
 
 @acces_requis

@@ -126,7 +126,10 @@ class MisesAJour(Base):
         self.assertContains(page_ecole, f'href="{echange}?volet=exporter#export-referentiel"')
         page_classe = self.client.get(echange, {"volet": "exporter"})
         self.assertContains(page_classe, "Partager le référentiel courant de cette classe")
-        self.assertContains(page_classe, "publiez dans Grist")
+        self.assertContains(page_classe, "Publier dans Grist")
+        self.assertContains(page_classe, "Référentiel de " + self.classe.nom)
+        direct = self.client.post(echange, {"action": "telecharger-classe"})
+        self.assertEqual(direct["Content-Type"], "application/zip")
         self.client.force_login(self.enseignant)
         donnees = {"action": "apercu-classe", "titre": "Référentiel partagé", "identifiant": "collectif-test",
                    "version": "1", "provenance": "Équipe fictive", "licence": "CC0-1.0"}

@@ -1,22 +1,46 @@
 {% if partage_classe %}
-<details{% if volet == "exporter" or not peut_importer or partage_classe.is_bound or apercu_partage %} open{% endif %}>
+<details{% if volet == "exporter" or not peut_importer or modifier_partage or apercu_partage %} open{% endif %}>
 <summary class="bouton">Partager le référentiel courant de cette classe</summary>
-<p>Examinez les compétences communes visibles, avec leurs adaptations et ajouts, puis téléchargez le ZIP ou publiez dans Grist. Les photos et les suivis individuels sont exclus.</p>
-{% if apercu_partage %}
-{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
-<form method="post">
+<p><strong>{{ informations_partage.titre }}</strong> · {{ informations_partage.licence|default:"Licence à vérifier" }} · Édition {{ informations_partage.version }}</p>
+<p>Dérivé de {{ base_du_partage.source.titre }}, édition {{ base_du_partage.numero }}.</p>
+{% if modifier_partage %}
+<p class="message" role="status">Vérifiez les informations de partage, notamment la licence, avant de continuer.</p>
+{% endif %}
+{% if not modifier_partage and not formulaire_grist and not apercu_partage %}
+<form method="post" class="actions">
 {% csrf_token %}
-<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
-<button class="bouton" name="action" value="exporter-classe">Télécharger le ZIP</button>
-<a class="bouton discret" href="?volet=exporter#export-referentiel">Annuler</a>
+<button class="bouton" name="action" value="telecharger-classe">Télécharger le ZIP</button>
+<button class="bouton discret" name="action" value="choisir-grist">Publier dans Grist</button>
+<button class="bouton discret" name="action" value="apercu-classe">Examiner le contenu</button>
 </form>
-{% include "suivi/partiels/publication_grist.html" %}
-{% else %}
+{% endif %}
+<details{% if modifier_partage %} open{% endif %}>
+<summary class="bouton discret">Modifier les informations</summary>
 <form method="post">
 {% csrf_token %}
 {{ partage_classe.as_p }}
-<button class="bouton" name="action" value="apercu-classe">Examiner le référentiel à partager</button>
+<p class="actions">
+<button class="bouton" name="action" value="telecharger-classe">Télécharger le ZIP</button>
+<button class="bouton discret" name="action" value="choisir-grist">Publier dans Grist</button>
+<button class="bouton discret" name="action" value="apercu-classe">Examiner le contenu</button>
+</p>
 </form>
+</details>
+{% if apercu_partage and not formulaire_grist %}
+<details open><summary class="bouton discret">Contenu à partager</summary>
+<p>Le référentiel contient les compétences communes visibles, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
+{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
+{% if jeton_partage %}
+<form method="post" class="actions">
+{% csrf_token %}
+<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
+<button class="bouton" name="action" value="exporter-classe">Télécharger ce ZIP</button>
+<button class="bouton discret" name="action" value="destination-grist">Publier ce référentiel dans Grist</button>
+</form>
+{% endif %}
+</details>
+{% elif formulaire_grist %}
+{% include "suivi/partiels/publication_grist.html" %}
 {% endif %}
 </details>
 {% else %}

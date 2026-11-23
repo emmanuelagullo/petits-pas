@@ -191,15 +191,17 @@ La lecture Grist de ce pilote s’effectue depuis le serveur Petits Pas.
 Dans les réglages du référentiel d’une classe active, ouvrez *Exporter un
 référentiel*. Le volet *Partager le référentiel courant de cette classe*
 s’affiche en premier. Depuis l’écran d’échange de l’école, choisissez une
-classe dans le volet *Exporter*. Renseignez le
-titre, le numéro d’édition, la provenance, les crédits et la licence.
-Gardez le même identifiant pour les révisions de votre référentiel.
+classe dans le volet *Exporter*. Le titre, la licence et l’édition
+s’affichent avec la base adoptée. *Modifier les informations* permet
+d’ajuster les valeurs proposées. Gardez le même identifiant pour les
+révisions de votre référentiel et choisissez un nouveau numéro si le
+contenu de l’édition ZIP a changé.
 
-Examinez les compétences communes visibles, leurs libellés, leurs
-formulations et leurs illustrations avant de télécharger le ZIP. Relisez
+Téléchargez le ZIP ou publiez dans Grist. *Examiner le contenu* permet
+de relire les compétences, leurs formulations et leurs illustrations. Relisez
 les textes libres pour écarter toute mention individuelle. Les observations,
 les suivis ciblés et les photos ne sont pas exportés. Pour transmettre la
-base telle qu’elle a été publiée, utilisez *Exporter l’édition d’origine*.
+base telle qu’elle a été publiée, utilisez *Télécharger une édition du catalogue*.
 
 * Publier le référentiel d’une classe dans Grist
 
