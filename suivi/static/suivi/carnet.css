@@ -1249,3 +1249,31 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 .ligne-competence-edition[hidden] { display: none; }
 
 .rubriques-edition > details > summary > [data-titre-sommaire] { display: inline; font: inherit; }
+
+/* Les chevrons des panneaux natifs suivent le même repère que les boutons
+   de panneaux pilotés par JavaScript, sans état supplémentaire à synchroniser. */
+summary.bouton-depliant {
+  display: inline-flex;
+  align-items: center;
+  gap: .35em;
+  list-style: none;
+  box-sizing: border-box;
+}
+summary.bouton-depliant::-webkit-details-marker { display: none; }
+summary.bouton-depliant::marker { content: ''; }
+summary.bouton-depliant::before { content: '▸'; flex: 0 0 1em; }
+details[open] > summary.bouton-depliant::before { content: '▾'; }
+
+.echange-referentiel .rubriques-edition > details {
+  padding: 0;
+}
+.echange-referentiel .rubriques-edition > details > summary.bouton-depliant {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  border-block-end: 1px solid transparent;
+}
+.echange-referentiel .rubriques-edition > details[open] > summary.bouton-depliant {
+  border-block-end-color: var(--trait);
+}
+.contenu-echange { padding: .65rem .85rem .85rem; }

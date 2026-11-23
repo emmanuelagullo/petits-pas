@@ -2,7 +2,7 @@
 {% load static navigation_suivi %}
 {% block titre %}{% if peut_importer %}Échanger un référentiel{% else %}Exporter un référentiel{% endif %}{% endblock %}
 {% block contenu %}
-<div class="page-referentiel">
+<div class="page-referentiel echange-referentiel">
 {% if peut_importer %}
 {% ariane_referentiel "Échanger un référentiel" classe annee %}
 <h1 id="haut-page-suivi" tabindex="-1">Échanger un référentiel</h1>
@@ -19,7 +19,8 @@
 {% include "suivi/partiels/sommaire_page.html" %}
 <div class="rubriques-edition">
 <details id="import-referentiel" data-zone-sommaire="titre-import-referentiel"{% if volet != "exporter" or erreur_import or message_import or apercu %} open{% endif %}>
-<summary class="bouton discret"><h2 id="titre-import-referentiel" tabindex="-1" data-titre-sommaire>Importer</h2></summary>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Importer" titre_id="titre-import-referentiel" only %}
+<div class="contenu-echange">
 <p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>
 <div id="etat-import-referentiel">
 {% if erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
@@ -58,12 +59,14 @@
 {% endif %}
 </form>
 </div>
+</div>
 </details>
 {% else %}
 <div class="rubriques-edition">
 {% endif %}
 <details id="export-referentiel" data-zone-sommaire="titre-export-referentiel"{% if volet == "exporter" or not peut_importer %} open{% endif %}>
-<summary class="bouton discret"><h2 id="titre-export-referentiel" tabindex="-1" data-titre-sommaire>Exporter</h2></summary>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Exporter" titre_id="titre-export-referentiel" only %}
+<div class="contenu-echange">
 {% if classe %}
 {% include "suivi/partiels/partager_referentiel_classe.html" %}
 {% else %}
@@ -77,9 +80,10 @@
 <p>Aucune classe active avec une base adoptée et ouverte au suivi pour {{ annee }}.</p>
 {% endif %}
 <h3>Exporter une édition du catalogue de l’école</h3>
+<p class="aide">Téléchargez une édition telle qu’elle figure au catalogue de l’école.</p>
 {% endif %}
-{% if classe and versions %}<details{% if request.GET.edition %} open{% endif %}><summary class="bouton discret">Télécharger une édition du catalogue</summary>{% endif %}
-{% if versions %}
+{% if not classe or request.GET.edition %}
+{% if versions and not classe %}
 <form method="get" action="#export-referentiel" data-choix-edition-partage>
 <input type="hidden" name="annee" value="{{ annee }}">
 <input type="hidden" name="volet" value="exporter">
@@ -94,18 +98,20 @@
 {% if edition %}
 <form method="post">
 {% csrf_token %}
-<button class="bouton discret" name="action" value="edition">{% if classe %}Télécharger cette édition{% else %}Télécharger l’édition complète{% endif %}</button>
+<button class="bouton discret" name="action" value="edition">Télécharger l’édition complète</button>
 {% if competences %}
 {% include "suivi/partiels/selection_competences_partage.html" with lignes=competences champ="competence" cle_panneau="partage-export" telechargement=True %}
 {% endif %}
 </form>
 {% endif %}
-{% if classe and versions %}</details>{% endif %}
-{% if not versions and not classe %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}
+{% if not versions %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}
+{% endif %}
+</div>
 </details>
 {% if not classe %}
 <details data-zone-sommaire="composer-referentiel"{% if composition_ouverte %} open{% endif %}>
-<summary class="bouton discret"><h2 id="composer-referentiel" tabindex="-1" data-titre-sommaire>Composer une édition</h2></summary>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Composer une édition" titre_id="composer-referentiel" only %}
+<div class="contenu-echange">
 <form method="post">
 {% csrf_token %}
 <input type="hidden" name="revision_brouillon" value="{{ revision_brouillon }}">
@@ -135,6 +141,7 @@
 <button class="bouton discret" name="action" value="enregistrer_composition" formnovalidate>Conserver le brouillon</button>
 <button class="bouton discret" name="action" value="ajouter_ligne_composition" formnovalidate>Ajouter une compétence</button>
 </form>
+</div>
 </details>
 {% endif %}
 {% if a_publier %}

@@ -38,7 +38,7 @@
 </form>
 {% endif %}
 <details{% if erreur or not destination_grist and not derniere_destination %} open{% endif %}>
-<summary class="bouton discret">Choisir une autre destination</summary>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir une autre destination" only %}
 <form method="post">
 {% csrf_token %}
 <input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">

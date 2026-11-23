@@ -201,7 +201,8 @@ Téléchargez le ZIP ou publiez dans Grist. *Examiner le contenu* permet
 de relire les compétences, leurs formulations et leurs illustrations. Relisez
 les textes libres pour écarter toute mention individuelle. Les observations,
 les suivis ciblés et les photos ne sont pas exportés. Pour transmettre la
-base telle qu’elle a été publiée, utilisez *Télécharger une édition du catalogue*.
+base telle qu’elle figure au catalogue, ouvrez *Référentiels de l’école*,
+puis *Exporter un référentiel*.
 
 * Publier le référentiel d’une classe dans Grist
 

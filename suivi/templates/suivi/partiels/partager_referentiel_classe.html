@@ -1,6 +1,6 @@
 {% if partage_classe %}
 <details{% if volet == "exporter" or not peut_importer or modifier_partage or apercu_partage %} open{% endif %}>
-<summary class="bouton">Partager le référentiel courant de cette classe</summary>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Partager le référentiel courant de cette classe" principal=True only %}
 <p><strong>{{ informations_partage.titre }}</strong> · {{ informations_partage.licence|default:"Licence à vérifier" }} · Édition {{ informations_partage.version }}</p>
 <p>Dérivé de {{ base_du_partage.source.titre }}, édition {{ base_du_partage.numero }}.</p>
 {% if modifier_partage %}
@@ -15,7 +15,7 @@
 </form>
 {% endif %}
 <details{% if modifier_partage %} open{% endif %}>
-<summary class="bouton discret">Modifier les informations</summary>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier les informations" only %}
 <form method="post">
 {% csrf_token %}
 {{ partage_classe.as_p }}
@@ -27,7 +27,7 @@
 </form>
 </details>
 {% if apercu_partage and not formulaire_grist %}
-<details open><summary class="bouton discret">Contenu à partager</summary>
+<details open>{% include "suivi/partiels/bouton_depliant.html" with libelle="Contenu à partager" only %}
 <p>Le référentiel contient les compétences communes visibles, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
 {% if jeton_partage %}
