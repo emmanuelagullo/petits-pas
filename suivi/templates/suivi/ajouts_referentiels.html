@@ -33,6 +33,14 @@
   <p><label>Icône du catalogue <select name="icone"><option value="">Sans icône</option>
   {% for cle, icone in icones_partage.items %}<option value="{{ cle }}">{{ icone.nom }}</option>{% endfor %}
   </select></label></p>
+  {% if phrases_partage %}
+  <fieldset><legend>Phrases proposées à partager</legend>
+  <p>Cochez uniquement des formulations génériques, sans nom ni information sur un élève.</p>
+  {% for phrase in phrases_partage %}
+  <p><label><input type="checkbox" name="phrase" value="{{ phrase.cle }}"> {{ phrase.texte }}</label></p>
+  {% endfor %}
+  </fieldset>
+  {% endif %}
   <button type="submit" class="bouton" name="action" value="partager">Télécharger la compétence</button>
 </form>
 </details>

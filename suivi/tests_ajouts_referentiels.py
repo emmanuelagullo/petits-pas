@@ -55,6 +55,25 @@ class AjoutsLocaux(Base):
         version_retour, _, _ = importer_source(document, ecole=self.ecole)
         self.assertEqual(definir_version_ecole(self.ecole, version_retour)["competences"][0]["id"], locale.competence_id)
 
+    def test_partage_uniquement_les_phrases_cochees(self):
+        from .services.import_sources_referentiels import lire_source
+        from .services.paquets_referentiels import lire_paquet
+        from .services.presentation import enregistrer_formulation
+
+        locale = self.creer()
+        partagee = enregistrer_formulation(utilisateur=self.enseignant, competence=locale.competence,
+                                          classe=self.classe, texte="Je trie par forme.")
+        enregistrer_formulation(utilisateur=self.enseignant, competence=locale.competence,
+                                classe=self.classe, texte="Je trie par couleur.")
+        url = reverse("ajout_classe", args=[self.classe.pk, locale.pk])
+        donnees = {"action": "partager", "provenance": "Équipe", "licence": "CC-BY-SA-4.0"}
+        for choix, attendues in (([], []), ([f"locale-{partagee.pk}"], ["Je trie par forme."])):
+            reponse = self.client.post(url, {**donnees, "phrase": choix})
+            self.assertEqual(reponse["Content-Type"], "application/zip")
+            contenu, _ = lire_source(lire_paquet(reponse.content))
+            phrases = contenu["domaines"][0]["competences"][0]["formulations"]
+            self.assertEqual([phrase["texte"] for phrase in phrases], attendues)
+
     def test_catalogue_reunit_les_ajouts_et_signale_le_meme_libelle(self):
         locale = self.creer()
         cible = self.creer(suivi_libre=True)

@@ -65,13 +65,13 @@ def exporter_selection(version, references):
     return empaqueter(document)
 
 
-def exporter_ajout(locale, definition, *, provenance, licence, icone=""):
+def exporter_ajout(locale, definition, *, provenance, licence, icone="", formulations=()):
     if locale.suivi_libre:
         raise ValidationError("Une compétence de suivi ciblé ne peut pas être partagée.")
     origine = locale.definition["competences"][0]
     identifiant = origine["code"]
     competence = {"identite": identifiant, "code": "C1", "libelle": definition["libelle"],
-                  "niveau": definition["niveau"], "icone": icone}
+                  "niveau": definition["niveau"], "icone": icone, "formulations": list(formulations)}
     # La même fiche pédagogique produit la même édition sur un autre poste.
     empreinte = sha256(yaml.safe_dump(competence, allow_unicode=True).encode()).hexdigest()
     return empaqueter({

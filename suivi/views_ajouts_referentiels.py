@@ -18,7 +18,7 @@ from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
 from .rubriques import contenu_classement
 from .referentiels import adoption_courante
-from .presentation import catalogue_icones
+from .presentation import catalogue_icones, propositions
 from .services.ajouts_referentiels import (
     catalogue_reprises, corriger_classement, creer_ajout, etat_classement,
     peut_corriger_classement, proposer_ajout, reprendre_ajout, utilisations_classement,
@@ -70,6 +70,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         classe=classe, competence=locale.competence).first() if locale else None
     definition = definition_effective_ajout(locale) if locale else None
     proposee = contenu_adapte(ecole, annee, definition)["competences"][0] if locale else None
+    phrases_partage = propositions(locale.competence, classe) if locale and not locale.suivi_libre else []
     if request.method == "POST" and request.POST.get("action") == "partager":
         from .services.paquets_referentiels import exporter_ajout
         from .views_paquets_referentiels import telecharger_paquet
@@ -77,9 +78,14 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         if not locale or locale.suivi_libre:
             raise PermissionDenied
         try:
+            choisies = set(request.POST.getlist("phrase"))
+            if not choisies <= {phrase["cle"] for phrase in phrases_partage}:
+                raise ValidationError("Une phrase choisie n’est plus proposée pour cette compétence.")
+            formulations = [{"code": phrase["cle"], "texte": phrase["texte"]}
+                            for phrase in phrases_partage if phrase["cle"] in choisies]
             return telecharger_paquet(exporter_ajout(locale, proposee,
                 provenance=request.POST.get("provenance", ""), licence=request.POST.get("licence", ""),
-                icone=request.POST.get("icone", "")))
+                icone=request.POST.get("icone", ""), formulations=formulations))
         except ValidationError as cause:
             messages.error(request, " ".join(cause.messages))
             return redirect(request.get_full_path())
@@ -206,7 +212,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
         "direction": direction, "ouvert": ouvert, "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
+        "origine": origine, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
         "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
         "classement": classement, "usages_classement": usages_visibles,
