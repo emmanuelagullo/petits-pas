@@ -28,7 +28,7 @@ def sources_catalogue(utilisateur, classe, adoption):
 
 
 def lignes_source(version, adoption, *, utilisateur, classe):
-    if version and version.source.ecole_id is None:
+    if version and version.contenu.get("origine") == "source_declaree":
         for domaine in version.contenu["domaines"]:
             for c in domaine["competences"]:
                 yield reference_competence(c), c, domaine["nom"], ""
@@ -49,7 +49,7 @@ def lignes_source(version, adoption, *, utilisateur, classe):
 
 
 def competence_id_source(classe, version, reference, candidat):
-    if not version or version.source.ecole_id is not None:
+    if not version or version.contenu.get("origine") != "source_declaree":
         return candidat["id"]
     return references_suivi(classe.ecole, version).get(reference)
 
@@ -78,7 +78,7 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
         raise ValidationError("Cette compétence n’est plus disponible dans la source choisie.")
     if version:
         contenu = definir_version_ecole(classe.ecole, version)
-        if version.source.ecole_id is None:
+        if version.contenu.get("origine") == "source_declaree":
             identifiant = references_suivi(classe.ecole, version)[reference]
             ligne = next(c for c in contenu["competences"] if c["id"] == identifiant)
         else:

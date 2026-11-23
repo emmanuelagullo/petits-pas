@@ -5,7 +5,7 @@ from uuid import uuid4
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from suivi.identites_referentiels import reference_competence
+from suivi.identites_referentiels import identifiant_diffusion, reference_competence
 from suivi.models import (Attendu, Competence, CompetenceSourceEcole, Domaine, Ecole,
     FormulationProposee, SousDomaine, VersionSourceEcole)
 
@@ -15,7 +15,8 @@ def definir_version_ecole(ecole, version):
     if version.source.ecole_id is not None:
         if version.source.ecole_id != ecole.pk:
             raise ValidationError("Cette version appartient à une autre école.")
-        return deepcopy(version.contenu)
+        if version.contenu.get("origine") != "source_declaree":
+            return deepcopy(version.contenu)
     if version.contenu.get("origine") != "source_declaree":
         raise ValidationError("La version n'est pas une source fournie déclarée.")
     Ecole.objects.select_for_update().get(pk=ecole.pk)
@@ -27,7 +28,7 @@ def definir_version_ecole(ecole, version):
     if version.contenu.get("structure_seule"):
         contenu["structure_seule"] = True
     identites = {
-        (i.identifiant if i.source_id == version.source_id else f"{i.source.identifiant}/{i.identifiant}"): i
+        (i.identifiant if i.source_id == version.source_id else f"{identifiant_diffusion(i.source)}/{i.identifiant}"): i
         for i in (d.identite for d in version.definitions.select_related("identite__source"))
     }
 

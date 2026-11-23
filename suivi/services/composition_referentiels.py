@@ -20,7 +20,7 @@ def composer_paquet(catalogue, donnees, references):
         if reference not in catalogue:
             raise ValidationError("Une compétence sélectionnée n’est plus disponible.")
         version, competence = catalogue[reference]
-        origine = competence.get("source_origine", version.source.identifiant)
+        origine = competence.get("source_origine", version.contenu["source"]["identifiant"])
         if origine == donnees.get("identifiant"):
             raise ValidationError("Choisissez un identifiant différent des sources reprises.")
         competences.append({**competence, "source_origine": origine})

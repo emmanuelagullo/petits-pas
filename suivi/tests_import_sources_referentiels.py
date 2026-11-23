@@ -191,6 +191,23 @@ class ImportSources(TestCase):
         with self.assertRaises(ValidationError):
             exporter_selection(origine, ["inconnue"])
 
+    def test_catalogues_d_ecole_isoles_et_idempotents(self):
+        from .models import Ecole
+        from .services.choix_bases_referentiels import choix_bases
+
+        a = Ecole.objects.create(nom="A")
+        b = Ecole.objects.create(nom="B")
+        fichier = yaml.safe_dump(document("edition-partagee"))
+        version_a, cree, _ = importer_source(fichier, ecole=a)
+        self.assertTrue(cree)
+        self.assertEqual(importer_source(fichier, ecole=a)[:2], (version_a, False))
+        self.assertNotIn(version_a, choix_bases(b, "2026-2027").versions)
+        version_b, cree, _ = importer_source(fichier, ecole=b)
+        self.assertTrue(cree)
+        self.assertNotEqual(version_a.source_id, version_b.source_id)
+        self.assertEqual(list(choix_bases(b, "2026-2027").versions), [version_b])
+        self.assertFalse(SourceReferentiel.objects.filter(ecole__isnull=True).exists())
+
     def test_definition_autre_source_refusee(self):
         a, _, _ = importer(document())
         b, _, _ = importer(document("fictive-b"))

@@ -34,6 +34,8 @@ def verifier_annee(annee):
 
 
 def _superieur(ecole, annee, application):
+    catalogue_ecole = list(VersionReferentiel.objects.filter(source__ecole=ecole,
+        contenu__origine="source_declaree").select_related("source").order_by("source__titre", "pk"))
     if application and application.configure:
         ids = application.versions_autorisees.values_list("pk", flat=True)
         versions = list(VersionReferentiel.objects.filter(pk__in=ids, source__ecole__isnull=True,
@@ -43,13 +45,13 @@ def _superieur(ecole, annee, application):
             locale = ChoixEcoleAnnuel.objects.filter(ecole=ecole, annee_scolaire=annee
                 ).select_related("version_proposee__source").first()
             historique = locale.version_proposee if locale else None
-            if historique and historique.source.ecole_id == ecole.pk:
+            if historique and historique.source.ecole_id == ecole.pk and historique not in catalogue_ecole:
                 versions.append(historique)
-        return versions, application.version_proposee_id
+        return versions + catalogue_ecole, application.version_proposee_id
     # Compatibilité : une base locale reprise ne devient pas une source nationale.
     initiale = VersionReferentiel.objects.filter(source__ecole=ecole,
         source__identifiant=f"reprise-ecole-{ecole.pk}", numero="initial").select_related("source").first()
-    return ([initiale], initiale.pk) if initiale else ([], None)
+    return ([initiale] + catalogue_ecole, initiale.pk) if initiale else (catalogue_ecole, None)
 
 
 def choix_bases(ecole, annee):

@@ -856,6 +856,7 @@ class EvenementAudit(models.Model):
 class SourceReferentiel(models.Model):
     """Une provenance déclarée, jamais déduite du texte d'une compétence."""
     identifiant = models.CharField(max_length=120, unique=True)
+    identifiant_diffusion = models.CharField(max_length=120, blank=True, default="")
     titre = models.CharField(max_length=200)
     provenance = models.TextField(blank=True)
     licence = models.CharField(max_length=120, blank=True)
@@ -908,8 +909,8 @@ class DefinitionSourceCompetence(models.Model):
 
             contenu = self.version.contenu
             source = self.identite.source
-            if (contenu.get("format") != 2 or source.ecole_id is not None or not any(
-                c.get("source_origine") == source.identifiant and c.get("identite") == self.identite.identifiant
+            if (contenu.get("format") != 2 or source.ecole_id not in (None, self.version.source.ecole_id) or not any(
+                c.get("source_origine") == (source.identifiant_diffusion or source.identifiant) and c.get("identite") == self.identite.identifiant
                 for c in competences_document(contenu)
             )):
                 raise ValidationError("La définition doit déclarer l’identité d’origine de la compétence.")

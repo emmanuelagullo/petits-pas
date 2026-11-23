@@ -1,11 +1,12 @@
 {% extends "suivi/base.html" %}
-{% load static %}
+{% load static navigation_suivi %}
 {% block titre %}Échanger un référentiel{% endblock %}
 {% block contenu %}
+<div class="page-referentiel">
+{% ariane_referentiel "Échanger un référentiel" classe annee %}
 <h1>Échanger un référentiel</h1>
-<p>{% if classe %}<a href="{% url 'referentiel_classe' classe.pk %}">Référentiel de la classe</a>{% else %}<a href="{% url 'referentiels_ecole' %}?annee={{ annee }}">Référentiels de l’école</a>{% endif %}</p>
-{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
-{% if message %}<p class="message" role="status">{{ message }}</p>{% endif %}
+{% if erreur and not erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if message and not message_import %}<p class="message" role="status">{{ message }}</p>{% endif %}
 <h2>Exporter une édition ou une sélection</h2>
 {% if versions %}
 <form method="get">
@@ -20,7 +21,7 @@
 {% if edition %}
 <form method="post">
 {% csrf_token %}
-<button class="bouton" name="action" value="edition">Télécharger l’édition complète</button>
+<button class="bouton discret" name="action" value="edition">Télécharger l’édition complète</button>
 {% if competences %}
 <fieldset>
 <legend>Choisir des compétences</legend>
@@ -30,26 +31,45 @@
 {% endif %}
 </form>
 {% endif %}
+<section id="import-referentiel" aria-labelledby="titre-import-referentiel">
 {% if peut_importer %}
-<h2>Importer au catalogue de l’application</h2>
-<p>La publication annuelle et l’adoption par une classe se font ensuite dans leurs écrans habituels.</p>
+<h2 id="titre-import-referentiel">Importer une édition</h2>
+<p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>
+{% if erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if message_import %}<p class="message" role="status">{{ message }}</p>{% endif %}
+{% if lien_adoption %}
+<p>{% if lien_reprise %}<a class="bouton" href="{{ lien_reprise }}">Choisir des compétences à reprendre</a>{% endif %}
+<a class="bouton{% if lien_reprise %} discret{% endif %}" href="{{ lien_adoption }}">Examiner l’adoption pour la classe</a></p>
+{% endif %}
 {% if apercu %}
 <h3>{{ apercu.source.titre }} — {{ apercu.version }}</h3>
-<p>{{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
+<p>Catalogue {{ destination_import }} · {{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
 <ul>{% for competence in competences_importees %}<li>{{ competence.libelle }}</li>{% endfor %}</ul>
 {% if icones_importees %}
 <h4>Illustrations et crédits</h4>
 <ul>{% for icone in icones_importees %}<li><img src="{% static icone.fichier %}" alt="" width="32" height="32"> {{ icone.nom }} · {{ icone.credit }}</li>{% endfor %}</ul>
 {% endif %}
 {% endif %}
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data"
+      hx-post="{{ request.get_full_path }}" hx-encoding="multipart/form-data"
+      hx-target="#import-referentiel" hx-select="#import-referentiel" hx-swap="outerHTML">
 {% csrf_token %}
-{% if jeton %}<input type="hidden" name="jeton" value="{{ jeton }}">{% endif %}
-<label for="paquet">{% if jeton %}Sélectionner de nouveau le même fichier{% else %}Fichier ZIP{% endif %}</label>
+{% if jeton %}
+<input type="hidden" name="jeton" value="{{ jeton }}">
+<button class="bouton" name="action" value="importer">Confirmer l’import</button>
+<a class="bouton discret" href="{{ request.get_full_path }}">Annuler</a>
+{% else %}
+{% if peut_importer_global %}
+<p><label for="destination">Catalogue destinataire</label>
+<select id="destination" name="destination"><option value="ecole">École</option><option value="application">Application</option></select></p>
+{% endif %}
+<label for="paquet">Fichier ZIP</label>
 <input id="paquet" name="paquet" type="file" accept=".zip" required>
-<button class="bouton" name="action" value="{% if jeton %}importer{% else %}apercu{% endif %}">{% if jeton %}Confirmer l’import{% else %}Examiner le fichier{% endif %}</button>
+<button class="bouton" name="action" value="apercu">Examiner le fichier</button>
+{% endif %}
 </form>
 {% endif %}
+</section>
 {% if not classe %}
 <details>
 <summary>Composer une édition à partager</summary>
@@ -91,4 +111,5 @@
 <button class="bouton" name="action" value="publier">Autoriser cette édition</button>
 </form>
 {% endif %}
+</div>
 {% endblock %}

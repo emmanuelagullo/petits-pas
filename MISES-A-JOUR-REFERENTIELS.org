@@ -108,9 +108,12 @@ et les droits de publication annuels suivent les parcours existants.
 Les écrans de réglage de l'école et de la classe donnent accès à l'échange
 ZIP des éditions publiques autorisées pour l'année. Une sélection conserve
 les références d'origine et produit une édition distincte et reproductible.
-L'import au catalogue global est réservé aux superutilisateurs. Après examen,
-la confirmation demande le même fichier et vérifie son empreinte et son
-contexte. Les choix annuels et les adoptions se font séparément.
+L’équipe habilitée à gérer les référentiels de l’école peut importer dans le
+catalogue de l’école. Le dépôt au catalogue global reste réservé aux
+superutilisateurs. L’aperçu prépare une édition dans la session courante ;
+la confirmation vérifie la préparation et le contexte puis ajoute l’édition.
+Une classe unique habilitée dans l’année peut ouvrir le choix d’adoption
+avec l’édition présélectionnée. Les restrictions annuelles restent en vigueur.
 
 Depuis l'écran d'échange de l'école, le formulaire de composition prépare
 une édition ZIP numérotée à partir des compétences publiques autorisées et

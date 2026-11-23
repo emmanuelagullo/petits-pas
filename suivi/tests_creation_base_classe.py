@@ -48,18 +48,22 @@ class CreationBaseClasse(Base):
             self.assertEqual(fichier["Content-Type"], "application/zip")
         donnees = fichier.content
 
-        def envoyer(action, jeton=""):
-            return self.client.post(ecole, {"action": action, "jeton": jeton,
+        def examiner(destination="ecole"):
+            return self.client.post(ecole, {"action": "apercu", "destination": destination,
                 "paquet": SimpleUploadedFile("selection.zip", donnees)})
 
-        self.assertEqual(envoyer("apercu").status_code, 403)
-        self.direction.is_superuser = True
-        self.direction.save(update_fields=["is_superuser"])
-        apercu = envoyer("apercu")
+        self.assertEqual(examiner("application").status_code, 403)
+        apercu = examiner()
         self.assertContains(apercu, "Confirmer l’import")
-        self.assertFalse(SourceReferentiel.objects.filter(identifiant__startswith="selection-").exists())
-        self.assertContains(envoyer("importer", apercu.context["jeton"]), "Édition ajoutée")
-        self.assertContains(envoyer("importer", apercu.context["jeton"]), "figure déjà")
+        self.assertFalse(SourceReferentiel.objects.filter(identifiant_diffusion__startswith="selection-").exists())
+        confirmation = {"action": "importer", "jeton": apercu.context["jeton"]}
+        self.assertContains(self.client.post(ecole, confirmation), "Édition ajoutée au catalogue de l’école")
+        source = SourceReferentiel.objects.get(identifiant_diffusion__startswith="selection-")
+        self.assertEqual(source.ecole_id, self.ecole.pk)
+        self.assertIn(source.versions.get(), choix_bases(self.ecole, self.annee).versions)
+        self.assertEqual(self.client.post(ecole, confirmation).status_code, 400)
+        confirmation["jeton"] = examiner().context["jeton"]
+        self.assertContains(self.client.post(ecole, confirmation), "figure déjà")
         self.assertIn("source_origine: creation-a", lire_paquet(donnees))
 
     def test_composer_importer_puis_publier_depuis_ecole(self):
@@ -77,13 +81,11 @@ class CreationBaseClasse(Base):
         self.direction.is_superuser = True
         self.direction.save(update_fields=["is_superuser"])
 
-        def envoyer(action, jeton=""):
-            return self.client.post(url, {"action": action, "jeton": jeton,
-                "paquet": SimpleUploadedFile("edition.zip", composition.content)})
-
-        apercu = envoyer("apercu")
+        apercu = self.client.post(url, {"action": "apercu", "destination": "application",
+            "paquet": SimpleUploadedFile("edition.zip", composition.content)})
         self.assertContains(apercu, "Présenter une idée")
-        self.assertContains(envoyer("importer", apercu.context["jeton"]), "Édition ajoutée")
+        self.assertContains(self.client.post(url, {"action": "importer", "jeton": apercu.context["jeton"]}),
+                            "Édition ajoutée")
         version = VersionReferentiel.objects.get(source__identifiant="parcours-compose")
         choix_avant = choix_bases(self.ecole, self.annee)
         self.assertNotIn(version, choix_avant.versions)

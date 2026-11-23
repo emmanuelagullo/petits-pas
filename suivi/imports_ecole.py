@@ -416,6 +416,13 @@ class Projection:
                                     values['identifiant'] = (f'reprise-ecole-{values["ecole_id"]}'
                                         if r['identifiant'] == f'reprise-ecole-{self.ecole.pk}'
                                         else f'import-{identifiant}-{r["id"]}')
+                                    if r["ecole_id"] is None:
+                                        values["identifiant_diffusion"] = r["identifiant"]
+                                    if values.get("identifiant_diffusion"):
+                                        from .identites_referentiels import identifiant_source_ecole
+                                        ecole_importee = m.Ecole.objects.get(pk=values["ecole_id"])
+                                        values["identifiant"] = identifiant_source_ecole(
+                                            ecole_importee, values["identifiant_diffusion"])
                             objet = model(**values)
                             model.objects.bulk_create([objet])
                             self.ids[model][r['id']] = objet.pk

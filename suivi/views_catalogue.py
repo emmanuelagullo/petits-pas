@@ -298,7 +298,7 @@ def catalogue(request, pk, saisie_collective=False):
         externes = externes_par_source[source]
         disponibles = [dict(reference=ref, competence=c, domaine=nom, sous_domaine=sous)
                        for ref, c, nom, sous in externes]
-        if version and version.source.ecole_id is None:
+        if version and version.contenu.get("origine") == "source_declaree":
             from .identites_referentiels import references_suivi
             ids = references_suivi(classe.ecole, version)
         else:

@@ -30,7 +30,7 @@ def apercu_adoption(*, utilisateur, classe, version_id):
         nouveaux_ids = {c["id"] for c in contenu_adoption(actuelle).get("competences", [])}
         nouveaux_ids -= locaux
         nombre = len(nouveaux_ids)
-    elif version.source.ecole_id is not None:
+    elif version.contenu.get("origine") != "source_declaree":
         nouveaux_ids = {c["id"] for c in version.contenu.get("competences", [])}
         nouveaux_ids -= locaux
         nombre = len(nouveaux_ids)

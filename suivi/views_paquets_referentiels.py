@@ -1,20 +1,21 @@
 """Diffusion des éditions publiques accessibles dans le contexte courant."""
-import hashlib
-
 from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE,
+from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, VOIR_SUIVI,
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import competences_document, reference_competence
-from .models import ChoixApplicationAnnuel, VersionReferentiel, annee_scolaire_pour
+from .models import ChoixApplicationAnnuel, Classe, VersionReferentiel, annee_scolaire_pour
 from .presentation import catalogue_icones
+from .referentiels import adoption_courante
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
 from .services.import_sources_referentiels import importer_source, lire_source
@@ -68,16 +69,18 @@ def paquets_referentiels(request, classe_pk=None):
         raise PermissionDenied
     annee = classe.annee_scolaire if classe else request.GET.get("annee") or annee_scolaire_pour(timezone.localdate())
     versions = {}
-    contexte = {"classe": classe, "annee": annee, "peut_importer": request.user.is_superuser}
+    action = request.POST.get("action") if request.method == "POST" else None
+    peut_importer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
+    contexte = {"classe": classe, "annee": annee, "peut_importer": peut_importer_ecole or request.user.is_superuser,
+                "peut_importer_global": request.user.is_superuser}
     try:
-        versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.source.ecole_id is None}
+        versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
         version = versions.get(request.GET.get("edition"))
         if version:
             contexte["edition"] = version
             contexte["competences"] = [
                 (reference_competence(c), c["libelle"]) for c in competences_document(version.contenu)
             ]
-        action = request.POST.get("action") if request.method == "POST" else None
         if classe is None:
             catalogue = catalogue_composition(versions.values())
             contexte["catalogue_composition"] = catalogue
@@ -95,38 +98,73 @@ def paquets_referentiels(request, classe_pk=None):
                 donnees = (exporter_paquet(version) if action == "edition" else
                            exporter_selection(version, request.POST.getlist("competence")))
                 return telecharger_paquet(donnees)
-            if not request.user.is_superuser:
+            if not contexte["peut_importer"]:
                 raise PermissionDenied
-            fichier = request.FILES.get("paquet")
-            if not fichier:
-                raise ValidationError("Choisissez le fichier à examiner.")
-            donnees = fichier.read(MAX_ARCHIVE + 1)
-            if action not in ("importer", "apercu"):
-                raise ValidationError("Action inconnue.")
-            document = lire_paquet(donnees)
-            engagement = {**engagement, "empreinte": hashlib.sha256(donnees).hexdigest()}
             if action == "importer":
                 try:
                     attendu = signing.loads(request.POST.get("jeton", ""), salt=SEL, max_age=1800)
                 except signing.BadSignature as erreur:
                     raise ValidationError("Préparez de nouveau l’aperçu du fichier.") from erreur
-                if attendu != engagement:
-                    raise ValidationError("Le fichier ou le contexte diffère de l’aperçu.")
-                _, cree, _ = importer_source(document)
-                contexte["message"] = ("Édition ajoutée au catalogue de l’application." if cree else
-                                       "Cette édition figure déjà dans le catalogue de l’application.")
-            else:
-                importer_source(document, verifier_seulement=True)
+                preparation = request.session.get(SEL)
+                if not preparation or attendu != preparation["jeton"] or any(
+                    attendu.get(cle) != valeur for cle, valeur in engagement.items()
+                ):
+                    raise ValidationError("La préparation ou son contexte a changé. Examinez de nouveau le fichier.")
+                if attendu["global"] and not request.user.is_superuser:
+                    raise PermissionDenied
+                if not attendu["global"] and not peut_importer_ecole:
+                    raise PermissionDenied
+                edition_importee, cree, _ = importer_source(
+                    preparation["document"], ecole=None if attendu["global"] else ecole)
+                if not attendu["global"]:
+                    candidates = [classe] if classe else [
+                        c for c in ecole.classes.filter(annee_scolaire=annee).exclude(etat=Classe.ARCHIVEE)
+                        if autorise(request.user, GERER_REFERENTIEL_CLASSE, c)
+                    ]
+                    if len(candidates) == 1 and edition_importee in choix_bases(ecole, annee).versions:
+                        cible_classe = candidates[0]
+                        adoption = adoption_courante(cible_classe)
+                        if (adoption and not adoption.clos and adoption.version_id != edition_importee.pk
+                                and autorise(request.user, VOIR_SUIVI, cible_classe)):
+                            contexte["lien_reprise"] = (
+                                reverse("catalogue_competences", args=[cible_classe.pk]) +
+                                f"?source=version-{edition_importee.pk}"
+                            )
+                        contexte["lien_adoption"] = (
+                            reverse("referentiel_classe", args=[candidates[0].pk]) +
+                            f"?edition={edition_importee.pk}#choisir-referentiel"
+                        )
+                request.session.pop(SEL, None)
+                cible = "de l’application" if attendu["global"] else "de l’école"
+                contexte["message"] = (f"Édition ajoutée au catalogue {cible}." if cree else
+                                       f"Cette édition figure déjà dans le catalogue {cible}.")
+            elif action == "apercu":
+                global_ = request.POST.get("destination") == "application"
+                if (global_ and not request.user.is_superuser) or (not global_ and not peut_importer_ecole):
+                    raise PermissionDenied
+                fichier = request.FILES.get("paquet")
+                if not fichier:
+                    raise ValidationError("Choisissez le fichier à examiner.")
+                document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
+                importer_source(document, verifier_seulement=True, ecole=None if global_ else ecole)
                 contenu, _ = lire_source(document)
                 contexte["apercu"] = contenu
+                contexte["destination_import"] = "de l’application" if global_ else "de l’école"
                 competences = list(competences_document(contenu))
                 contexte["competences_importees"] = competences
                 icones = catalogue_icones()
                 contexte["icones_importees"] = [icones[cle] for cle in sorted({c["icone"] for c in competences if c["icone"]})]
-                contexte["jeton"] = signing.dumps(engagement, salt=SEL)
+                attendu = {**engagement, "preparation": get_random_string(32), "global": global_}
+                request.session[SEL] = {"jeton": attendu, "document": document}
+                contexte["jeton"] = signing.dumps(attendu, salt=SEL)
+            else:
+                raise ValidationError("Action inconnue.")
     except ValidationError as erreur:
         contexte["erreur"] = " ".join(erreur.messages)
     except IntegrityError:
         contexte["erreur"] = "Le catalogue a changé pendant l’import. Consultez de nouveau l’aperçu."
     contexte["versions"] = versions.values()
-    return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte else 200)
+    contexte["erreur_import"] = action in ("apercu", "importer") and "erreur" in contexte
+    contexte["message_import"] = action == "importer" and "message" in contexte
+    maj_import = action in ("apercu", "importer") and request.headers.get("HX-Request") == "true"
+    return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte and not maj_import else 200)

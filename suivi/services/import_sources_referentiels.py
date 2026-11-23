@@ -5,11 +5,12 @@ import re
 
 import yaml
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import models, transaction
+from django.db.models import Q
 
 from suivi.models import (DefinitionSourceCompetence, IdentiteSourceCompetence,
                           SourceReferentiel, VersionReferentiel)
-from suivi.identites_referentiels import competences_document, reference_competence
+from suivi.identites_referentiels import competences_document, identifiant_source_ecole, reference_competence
 from suivi.presentation import catalogue_icones
 
 
@@ -65,7 +66,7 @@ def normaliser(document):
               "provenance": texte(source.get("provenance"), "Provenance", 4000),
               "licence": texte(source.get("licence"), "Licence", 120),
               "provisoire": source.get("provisoire")}
-    if source["identifiant"].startswith("reprise-ecole-"):
+    if source["identifiant"].startswith(("reprise-ecole-", "catalogue-ecole-")):
         raise ValidationError("Cet identifiant est réservé aux reprises de bases existantes.")
     if type(source["provisoire"]) is not bool:
         raise ValidationError("Provisoire doit valoir true ou false.")
@@ -146,12 +147,15 @@ def lire_source(contenu_yaml):
 
 
 @transaction.atomic
-def importer_source(contenu_yaml, *, verifier_seulement=False):
+def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
     contenu, identifiants = lire_source(contenu_yaml)
     metadata = contenu["source"]
     # Le verrou sérialise les imports successifs d'une source déjà créée.
-    source = SourceReferentiel.objects.select_for_update().filter(identifiant=metadata["identifiant"]).first()
-    if source and (source.ecole_id is not None or any(getattr(source, c) != metadata[c]
+    identifiant = metadata["identifiant"]
+    if ecole is not None:
+        identifiant = identifiant_source_ecole(ecole, identifiant)
+    source = SourceReferentiel.objects.select_for_update().filter(identifiant=identifiant).first()
+    if source and (source.ecole_id != (ecole.pk if ecole else None) or any(getattr(source, c) != metadata[c]
                       for c in ("titre", "provenance", "licence", "provisoire"))):
         raise ValidationError("La source existe avec une autre provenance ou description ; aucune modification effectuée.")
     empreinte = hashlib.sha256(json.dumps(contenu, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
@@ -162,10 +166,13 @@ def importer_source(contenu_yaml, *, verifier_seulement=False):
     for competence in competences_document(contenu):
         if "source_origine" not in competence:
             continue
-        origine = IdentiteSourceCompetence.objects.filter(
-            source__identifiant=competence["source_origine"], source__ecole__isnull=True,
-            identifiant=competence["identite"],
-        ).first()
+        identifiant_origine = competence["source_origine"]
+        perimetre = Q(source__identifiant=identifiant_origine, source__ecole__isnull=True)
+        if ecole is not None:
+            perimetre |= Q(source__identifiant=identifiant_source_ecole(ecole, identifiant_origine),
+                           source__ecole=ecole)
+        origine = IdentiteSourceCompetence.objects.filter(perimetre, identifiant=competence["identite"]
+            ).order_by(models.F("source__ecole_id").asc(nulls_first=True), "pk").first()
         if origine is None:
             raise ValidationError(f"Identité d’origine inconnue : {reference_competence(competence)}.")
         empruntees[reference_competence(competence)] = origine
@@ -174,7 +181,8 @@ def importer_source(contenu_yaml, *, verifier_seulement=False):
     if version:
         return version, False, len(identifiants)
     if source is None:
-        source = SourceReferentiel(**metadata)
+        source = SourceReferentiel(**{**metadata, "identifiant": identifiant}, ecole=ecole,
+                                   identifiant_diffusion=metadata["identifiant"] if ecole else "")
         source.full_clean()
         source.save()
     version = VersionReferentiel(source=source, numero=contenu["version"], empreinte=empreinte, contenu=contenu)

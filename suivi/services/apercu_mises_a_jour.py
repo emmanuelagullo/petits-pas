@@ -25,7 +25,7 @@ def definitions(version):
 def apercu_mise_a_jour(classe, actuelle, version):
     if not actuelle or actuelle.version_id == version.pk or actuelle.version.source_id != version.source_id:
         return None
-    if version.source.ecole_id is not None:
+    if version.contenu.get("origine") != "source_declaree":
         return None  # Une reprise ancienne n'établit pas d'identités sources.
     avant, apres = definitions(actuelle.version), definitions(version)
     liaisons = references_suivi(classe.ecole, actuelle.version) | references_suivi(classe.ecole, version)

@@ -63,6 +63,9 @@ def choisir_base_classe(request, classe_pk):
             erreur = " ".join(cause.messages)
     disponibles = {v.pk for v in choix.versions}
     selection_id = actuelle.version_id if actuelle and actuelle.version_id in disponibles else (choix.proposee.pk if choix.proposee else None)
+    edition_demandee = next((v.pk for v in choix.versions if str(v.pk) == request.GET.get("edition")), None)
+    if edition_demandee is not None:
+        selection_id = edition_demandee
     from .services.garde_fous_referentiels import permissions
     confirmation_form = ConfirmationReferentielForm(renforcee=bool(apercu and apercu["garde"]["niveau"] != "info"))
     peut_voir_catalogue = autorise(request.user, VOIR_SUIVI, classe)
@@ -70,7 +73,7 @@ def choisir_base_classe(request, classe_pk):
                                         inclure_reglages=False)
     return render(request, "suivi/choisir_base_classe.html", {"classe": classe, "choix": choix,
         "permission": permissions(ecole, classe.annee_scolaire, classe), "confirmation_form": confirmation_form,
-        "actuelle": actuelle, "peut_regler_phrases": autorise(request.user, MODIFIER_ETAT, classe), "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
+        "actuelle": actuelle, "edition_demandee": edition_demandee, "peut_regler_phrases": autorise(request.user, MODIFIER_ETAT, classe), "peut_voir_catalogue": peut_voir_catalogue, "ariane": ariane, "selection_id": selection_id, "apercu": apercu, "jeton": jeton, "erreur": erreur}, status=400 if erreur else 200)
 
 
 def choix_ecole_modifies(local, donnees):
