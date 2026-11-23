@@ -14,11 +14,13 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, I
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import competences_document, identifiant_source_ecole
 from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, VersionReferentiel, annee_scolaire_pour
+from .navigation import lien
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
 from .services.apercu_mises_a_jour import comparer_documents, definitions_document
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
+from .services.catalogues_externes import edition_grist
 from .services.import_sources_referentiels import importer_source, lire_source
 from .services.paquets_referentiels import MAX_ARCHIVE, exporter_paquet, exporter_selection, lire_paquet
 from .views import acces_requis
@@ -142,6 +144,11 @@ def paquets_referentiels(request, classe_pk=None):
     peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": peut_importer_ecole or request.user.is_superuser,
                 "peut_importer_global": request.user.is_superuser}
+    if classe is None and request.GET.get("origine") == "decouverte":
+        contexte["retour_decouverte"] = lien(
+            "decouvrir_referentiels", annee=annee, q=request.GET.get("q", "")[:200],
+            filtre=request.GET.get("filtre", "")[:32],
+        )
     try:
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
         edition = request.GET.get("edition")
@@ -227,14 +234,23 @@ def paquets_referentiels(request, classe_pk=None):
                 cible = "de l’application" if attendu["global"] else "de l’école"
                 contexte["message"] = (f"Édition ajoutée au catalogue {cible}." if cree else
                                        f"Cette édition figure déjà dans le catalogue {cible}.")
-            elif action == "apercu":
-                global_ = request.POST.get("destination") == "application"
+            elif action in ("apercu", "apercu-grist"):
+                global_ = action == "apercu" and request.POST.get("destination") == "application"
                 if (global_ and not request.user.is_superuser) or (not global_ and not peut_importer_ecole):
                     raise PermissionDenied
-                fichier = request.FILES.get("paquet")
-                if not fichier:
-                    raise ValidationError("Choisissez le fichier à examiner.")
-                document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
+                if action == "apercu-grist":
+                    if classe is not None:
+                        raise PermissionDenied
+                    try:
+                        numero = int(request.POST.get("numero", ""))
+                    except ValueError as erreur:
+                        raise ValidationError("Choisissez une édition Grist à examiner.") from erreur
+                    document = edition_grist(request.POST.get("catalogue", ""), request.POST.get("reference"), numero)
+                else:
+                    fichier = request.FILES.get("paquet")
+                    if not fichier:
+                        raise ValidationError("Choisissez le fichier à examiner.")
+                    document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
                 importer_source(document, verifier_seulement=True, ecole=None if global_ else ecole)
                 contexte.update(apercu_document(document, None if global_ else ecole))
                 attendu = {**engagement, "preparation": get_random_string(32), "global": global_}
@@ -247,7 +263,7 @@ def paquets_referentiels(request, classe_pk=None):
     except IntegrityError:
         contexte["erreur"] = "Le catalogue a changé pendant l’import. Consultez de nouveau l’aperçu."
     contexte["versions"] = versions.values()
-    contexte["erreur_import"] = action in ("apercu", "importer") and "erreur" in contexte
+    contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer") and "erreur" in contexte
     contexte["message_import"] = action == "importer" and "message" in contexte
-    maj_import = action in ("apercu", "importer") and request.headers.get("HX-Request") == "true"
+    maj_import = action in ("apercu", "apercu-grist", "importer") and request.headers.get("HX-Request") == "true"
     return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte and not maj_import else 200)

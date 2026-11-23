@@ -1,0 +1,6 @@
+<div class="documents-referentiel">
+<section><h3>Origine du référentiel</h3><p>{{ source.provenance|urlize|linebreaksbr }}</p>
+{% if liens_source.documents %}<h4>Consulter les documents cités</h4><ul>{% for titre, url in liens_source.documents %}<li><a href="{{ url }}">{{ titre }}</a></li>{% endfor %}</ul>{% endif %}</section>
+<section><h3>Conditions de réutilisation</h3><p>{{ source.licence|default:"Non renseignées"|urlize|linebreaksbr }}</p>
+{% if liens_source.licences %}<ul>{% for titre, url in liens_source.licences %}<li><a href="{{ url }}">Lire la licence {{ titre }}</a></li>{% endfor %}</ul>{% endif %}</section>
+</div>

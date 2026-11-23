@@ -11,6 +11,7 @@
 <h1 id="haut-page-suivi" tabindex="-1">Exporter un référentiel</h1>
 {% include "suivi/partiels/aide_import_referentiel.html" %}
 {% endif %}
+{% if retour_decouverte %}<p><a href="{{ retour_decouverte }}">Retour à Découvrir des référentiels</a></p>{% endif %}
 {% if erreur and not erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if message and not message_import %}<p class="message" role="status">{{ message }}</p>{% endif %}
 {% if peut_importer %}
@@ -41,7 +42,7 @@
 <input type="hidden" name="jeton" value="{{ jeton }}">
 <input type="hidden" name="action" value="importer">
 <button class="bouton">Confirmer l’import</button>
-<a class="bouton discret" href="{{ request.get_full_path }}">Annuler</a>
+<a class="bouton discret" href="{{ retour_decouverte|default:request.get_full_path }}">Annuler</a>
 {% else %}
 {% if peut_importer_global %}
 <p><label for="destination">Catalogue destinataire</label>

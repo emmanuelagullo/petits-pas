@@ -2,7 +2,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
 from . import views_catalogue, views_rubriques, views_suivi_libre
-from . import views_paquets_referentiels, views_propositions_referentiels
+from . import views_paquets_referentiels, views_propositions_referentiels, views_catalogues_referentiels
 from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
@@ -21,6 +21,7 @@ urlpatterns = [
     path("gestion/referentiels/permissions/", views_referentiels.permissions_referentiels, name="permissions_referentiels_ecole"),
     path("classe/<int:classe_pk>/referentiel/consulter/", views_referentiels.consulter_referentiels, name="consulter_referentiels_classe"),
     path("gestion/referentiels/consulter/", views_referentiels.consulter_referentiels, name="consulter_referentiels_ecole"),
+    path("gestion/referentiels/decouvrir/", views_catalogues_referentiels.decouvrir_referentiels, name="decouvrir_referentiels"),
     path("gestion/referentiels/correspondances/", views_correspondances_referentiels.correspondances, name="correspondances_ecole"),
     path("classe/<int:classe_pk>/referentiel/correspondances/", views_correspondances_referentiels.correspondances, name="correspondances_classe"),
     path("gestion/referentiels/ajouts/", views_ajouts_referentiels.ajouts, name="ajouts_ecole"),

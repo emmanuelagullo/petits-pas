@@ -1,0 +1,88 @@
+{% extends "suivi/base.html" %}
+{% load static navigation_suivi %}
+{% block titre %}Découvrir des référentiels{% endblock %}
+{% block contenu %}
+<div class="page-referentiel">
+{% ariane_referentiel "Découvrir des référentiels" None annee %}
+<h1>Découvrir des référentiels</h1>
+{% if message %}<p class="message" role="status">{{ message }}</p>{% endif %}
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% for erreur in erreurs_verification %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endfor %}
+{% url "decouvrir_referentiels" as decouvrir %}
+<form method="get" action="{{ decouvrir }}" class="filtres-referentiel"
+      hx-get="{{ decouvrir }}" hx-trigger="submit, input changed delay:250ms from:#recherche-referentiels, change from:#filtre-referentiels"
+      hx-target="#resultats-referentiels" hx-select="#resultats-referentiels" hx-swap="outerHTML" hx-replace-url="true"
+      hx-sync="this:replace">
+<input type="hidden" name="annee" value="{{ annee }}">
+<label for="recherche-referentiels">Rechercher par nom ou éditeur</label>
+<input type="search" id="recherche-referentiels" name="q" value="{{ q }}" maxlength="200">
+<label for="filtre-referentiels">Afficher</label>
+<select id="filtre-referentiels" name="filtre">
+<option value="">Tous</option>
+<option value="suivis"{% if filtre == "suivis" %} selected{% endif %}>Suivis</option>
+<option value="mises-a-jour"{% if filtre == "mises-a-jour" %} selected{% endif %}>Mises à jour disponibles</option>
+</select>
+<button class="bouton discret">Rechercher</button>
+</form>
+<div id="resultats-referentiels">
+<div class="actions">
+{% if a_des_suivis %}
+<form method="post" action="{{ retour }}">{% csrf_token %}
+<button class="bouton" name="action" value="verifier">Vérifier les éditions</button>
+</form>
+{% endif %}
+<details{% if url_saisie and erreur %} open{% endif %}>
+<summary class="bouton{% if a_des_suivis %} discret{% endif %}">Ajouter un catalogue par lien</summary>
+<form method="post" action="{{ retour }}">{% csrf_token %}
+<label for="url-catalogue">Lien d’un document Grist public</label>
+<input type="url" id="url-catalogue" name="url" required maxlength="2000" value="{{ url_saisie }}">
+<button class="bouton" name="action" value="ajouter">Examiner le catalogue</button>
+</form>
+</details>
+</div>
+<p class="aide" role="status">{{ lignes|length }} résultat{{ lignes|length|pluralize }}</p>
+<ul class="liste">
+{% for ligne in lignes %}
+<li class="entree">
+<div>
+<strong>{{ ligne.titre }}</strong>
+<p>{{ ligne.catalogue }} · Édition {{ ligne.derniere }}{% if ligne.url and not ligne.locale %} disponible{% endif %}{% if ligne.locales %} · À l’école : {{ ligne.locales|join:", " }}{% endif %}{% if ligne.suivi %} · Suivi{% endif %}</p>
+<div class="actions">
+{% if not ligne.suivi and not ligne.mise_a_jour %}
+{% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre" %}
+{% endif %}
+{% if ligne.url and peut_importer and not ligne.locale %}
+{% include "suivi/partiels/examiner_edition_grist.html" %}
+{% endif %}
+</div>
+<details>
+<summary class="bouton discret">Détails</summary>
+{% if ligne.provenance %}{% include "suivi/partiels/provenance_referentiel.html" with source=ligne %}{% endif %}
+<p>Éditions connues : {{ ligne.editions|join:", " }}</p>
+{% if ligne.url %}
+<p><a href="{{ ligne.url }}">Ouvrir chez le fournisseur</a></p>
+<div data-lien-catalogue>
+<label>Lien du catalogue <input type="url" readonly value="{{ ligne.url }}" size="30"></label>
+<button class="bouton discret" type="button" data-copier-lien hidden>Copier le lien du catalogue</button>
+<span role="status"></span>
+</div>
+{% if peut_importer %}
+{% include "suivi/partiels/examiner_edition_grist.html" with choix_edition=True %}
+{% endif %}
+{% endif %}
+{% if ligne.suivi %}
+{% include "suivi/partiels/suivre_referentiel.html" with action="ne-plus-suivre" libelle="Ne plus suivre" %}
+{% elif ligne.mise_a_jour %}
+{% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre" %}
+{% endif %}
+</details>
+</div>
+</li>
+{% empty %}
+<li>Aucun référentiel ne correspond à cette recherche.</li>
+{% endfor %}
+</ul>
+</div>
+</div>
+<script src="{% static 'suivi/liens-catalogues.js' %}" defer></script>
+{% endblock %}

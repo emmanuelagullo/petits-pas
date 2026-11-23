@@ -1,0 +1,6 @@
+<form method="post" action="{{ retour }}">
+{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ ligne.cle }}">
+<input type="hidden" name="reference" value="{{ ligne.reference }}">
+<button class="bouton discret" name="action" value="{{ action }}">{{ libelle }}</button>
+</form>

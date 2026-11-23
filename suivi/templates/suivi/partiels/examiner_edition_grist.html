@@ -1,0 +1,11 @@
+<form method="post" action="{% url 'paquets_referentiels_ecole' %}?annee={{ annee }}&amp;origine=decouverte&amp;q={{ q|urlencode }}&amp;filtre={{ filtre|urlencode }}">
+{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ ligne.url }}">
+<input type="hidden" name="reference" value="{{ ligne.reference }}">
+{% if choix_edition %}
+<label>Édition à examiner <select name="numero">{% for numero in ligne.editions %}<option>{{ numero }}</option>{% endfor %}</select></label>
+{% else %}
+<input type="hidden" name="numero" value="{{ ligne.derniere }}">
+{% endif %}
+<button class="bouton{% if choix_edition or not ligne.mise_a_jour %} discret{% endif %}" name="action" value="apercu-grist">{% if choix_edition %}Examiner cette édition{% elif ligne.mise_a_jour %}Voir les changements{% else %}Examiner l’édition{% endif %}</button>
+</form>

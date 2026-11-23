@@ -170,3 +170,18 @@ Si l’école conserve une liste annuelle restrictive, l’édition doit encore
 La proposition est visible aux comptes de la même installation. Si les
 postes utilisent des installations séparées, transmettez le ZIP comme
 fichier. Voir [[{{< relref "/referentiels/partage-entre-ecoles" >}}][partager des référentiels entre écoles]].
+
+* Découvrir et suivre des référentiels
+
+Dans *Référentiels de l’école*, ouvrez *Découvrir des référentiels*.
+Les référentiels embarqués et le catalogue Grist de démonstration y
+figurent. Ouvrez *Détails* pour retrouver les éditions et le lien du
+catalogue. *Ajouter un catalogue par lien* examine un document public de
+=grist.numerique.gouv.fr= contenant les tables =Editions= et =Competences=
+du pilote. Le lien reste disponible dans le répertoire de l’école.
+
+*Suivre* mémorise votre choix pour l’école. *Vérifier les éditions* relit
+les catalogues suivis. Examinez l’édition avant de confirmer l’import.
+Chaque classe choisit ensuite si elle adopte l’édition. *Ne plus suivre*
+retire le suivi et laisse les éditions reçues dans le catalogue de l’école.
+La lecture Grist de ce pilote s’effectue depuis le serveur Petits Pas.
