@@ -1,0 +1,26 @@
+<fieldset class="groupe-filtres" data-selection-partage>
+<legend>{% if telechargement %}Choisir des compétences{% else %}Compétences à reprendre{% endif %}</legend>
+<div class="groupes-filtres" data-filtres-partage hidden>
+<label>Rechercher une compétence <input type="search" data-recherche maxlength="300"></label>
+<label>Domaine <select data-domaine><option value="">Tous les domaines</option></select></label>
+<label>Section <select data-niveau><option value="">Toutes les sections</option><option>PS</option><option>MS</option><option>GS</option></select></label>
+<label><input type="checkbox" data-cochees> Afficher uniquement les compétences cochées</label>
+</div>
+<p data-etat role="status" hidden></p>
+<ul class="liste">
+{% for ligne in lignes %}
+<li class="entree" data-ligne data-domaine="{{ ligne.domaine }}" data-niveau="{{ ligne.niveau }}">
+<label><input type="checkbox" name="{{ champ }}" value="{{ ligne.reference }}"{% if ligne.reference in selection %} checked{% endif %}>
+<strong>{{ ligne.libelle }}</strong>
+<br>{{ ligne.domaine }}{% if ligne.sous_domaine %} · {{ ligne.sous_domaine }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if ligne.edition %} · {{ ligne.edition }}{% endif %}
+</label>
+</li>
+{% endfor %}
+</ul>
+<nav data-pages hidden aria-label="Pages des compétences">
+<button type="button" class="bouton discret" data-precedente>Page précédente</button>
+<span data-position></span>
+<button type="button" class="bouton discret" data-suivante>Page suivante</button>
+</nav>
+{% if telechargement %}<button class="bouton" name="action" value="selection" data-telecharger>Télécharger la sélection</button>{% endif %}
+</fieldset>

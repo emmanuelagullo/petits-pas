@@ -23,11 +23,7 @@
 {% csrf_token %}
 <button class="bouton discret" name="action" value="edition">Télécharger l’édition complète</button>
 {% if competences %}
-<fieldset>
-<legend>Choisir des compétences</legend>
-{% for reference, libelle in competences %}<p><label><input type="checkbox" name="competence" value="{{ reference }}"> {{ libelle }}</label></p>{% endfor %}
-</fieldset>
-<button class="bouton" name="action" value="selection">Télécharger la sélection</button>
+{% include "suivi/partiels/selection_competences_partage.html" with lignes=competences champ="competence" telechargement=True %}
 {% endif %}
 </form>
 {% endif %}
@@ -93,11 +89,7 @@
 <p><label>Licence <input name="licence" value="{{ brouillon_composition.licence }}" required maxlength="120"></label></p>
 <p><label>Nom de la rubrique <input name="rubrique" value="{{ brouillon_composition.rubrique }}" required maxlength="200"></label></p>
 {% if catalogue_composition %}
-<fieldset><legend>Compétences à reprendre</legend>
-{% for reference, entree in catalogue_composition.items %}
-<p><label><input type="checkbox" name="reprise" value="{{ reference }}"{% if reference in brouillon_composition.reprises %} checked{% endif %}> {{ entree.1.libelle }} · {{ entree.0.source.titre }} — {{ entree.0.numero }}</label></p>
-{% endfor %}
-</fieldset>
+{% include "suivi/partiels/selection_competences_partage.html" with lignes=catalogue_composition champ="reprise" selection=brouillon_composition.reprises %}
 {% endif %}
 <fieldset><legend>Ajouter une compétence</legend>
 <p><label>Libellé <input name="nouvelle" value="{{ brouillon_composition.nouvelle }}" maxlength="300"></label></p>
@@ -133,4 +125,5 @@
 </form>
 {% endif %}
 </div>
+<script src="{% static 'suivi/selection-competences-partage.js' %}" defer></script>
 {% endblock %}

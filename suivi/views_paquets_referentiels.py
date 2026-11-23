@@ -12,11 +12,11 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, VOIR_SUIVI,
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
-from .identites_referentiels import competences_document, identifiant_source_ecole, reference_competence
+from .identites_referentiels import competences_document, identifiant_source_ecole
 from .models import BrouillonReferentiel, ChoixApplicationAnnuel, Classe, VersionReferentiel, annee_scolaire_pour
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
-from .services.apercu_mises_a_jour import comparer_documents
+from .services.apercu_mises_a_jour import comparer_documents, definitions_document
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
 from .services.import_sources_referentiels import importer_source, lire_source
@@ -96,6 +96,17 @@ def brouillon_composition(request, ecole, annee, contexte, action):
     return brouillon
 
 
+def lignes_selection(versions, *, avec_source=False):
+    lignes = []
+    for version in versions:
+        for reference, competence in definitions_document(version.contenu).items():
+            lignes.append({**competence,
+                "reference": f"{version.pk}:{reference}" if avec_source else reference,
+                "edition": f"{version.source.titre} — {version.numero}" if avec_source else "",
+            })
+    return lignes
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def paquets_referentiels(request, classe_pk=None):
@@ -116,12 +127,10 @@ def paquets_referentiels(request, classe_pk=None):
         version = versions.get(request.GET.get("edition"))
         if version:
             contexte["edition"] = version
-            contexte["competences"] = [
-                (reference_competence(c), c["libelle"]) for c in competences_document(version.contenu)
-            ]
+            contexte["competences"] = lignes_selection([version])
         if classe is None:
             catalogue = catalogue_composition(versions.values())
-            contexte["catalogue_composition"] = catalogue
+            contexte["catalogue_composition"] = lignes_selection(versions.values(), avec_source=True)
             brouillon = brouillon_composition(request, ecole, annee, contexte, action)
             if action == "composer":
                 return telecharger_paquet(composer_paquet(
