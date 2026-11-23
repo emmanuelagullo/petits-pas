@@ -1,4 +1,5 @@
 {% extends "suivi/base.html" %}
+{% load static %}
 {% block titre %}{% if actuelle %}Réglages du référentiel{% else %}Choisir le référentiel{% endif %}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
@@ -45,6 +46,7 @@
 </form>
 {% else %}<p>Aucune base n'est autorisée pour un nouveau choix. Les classes déjà renseignées gardent leur suivi ; contactez la direction.</p>{% endif %}
 {% if apercu %}
+<script src="{% static 'suivi/apercu-ecarts.js' %}" defer></script>
 <h2>Avant de confirmer</h2>
 {% if apercu.garde.niveau == "rouge" %}
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="rouge" titre="Cette classe a déjà des saisies" resume="Vous changez les prochaines compétences proposées à toute la classe. Les anciens parcours sont conservés. Les compétences d’une autre identité ne reçoivent aucune réussite. Revenir ensuite ne supprimera pas les saisies faites entre-temps." details="Les compétences qui sortent de la base restent dans les parcours, mais quittent les prochaines saisies. Les identités conservées retrouvent leur suivi. Les ajouts locaux restent disponibles. Une mise à jour peut aussi modifier les textes, images et phrases des carnets ouverts ; les années closes restent figées." %}

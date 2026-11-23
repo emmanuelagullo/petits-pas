@@ -1,12 +1,37 @@
 {% if mise_a_jour %}
 <h2>Ce qui change dans cette source</h2>
 <p>Vous choisissez une autre version de la même source. Les compétences conservées gardent leur suivi. Vos libellés et masquages restent prioritaires sur les propositions de cette version.</p>
-<details><summary>{{ mise_a_jour.modifiees|length }} compétence{{ mise_a_jour.modifiees|length|pluralize }} modifiée{{ mise_a_jour.modifiees|length|pluralize }} dans la source</summary>
+{% load static %}
+<section data-apercu-ecarts>
+<h3>Compétences modifiées</h3>
+{% if mise_a_jour.modifiees %}
+<label hidden data-filtre-ecarts>Afficher les modifications
+<select>
+<option value="">Toutes</option>
+<option value="libelle">Libellés</option>
+<option value="formulations">Phrases proposées</option>
+<option value="icone">Illustrations proposées</option>
+<option value="domaine sous_domaine ordre">Classement</option>
+<option value="adaptation">Choix locaux conservés</option>
+</select></label>
+<p role="status" data-compteur-ecarts hidden></p>
 {% for c in mise_a_jour.modifiees %}
-<p><strong>{{ c.avant }}</strong> → {{ c.apres }}<br>Changements : {{ c.changements|join:", " }}.{% if c.adaptation %} Un choix de l’école ou de la classe reste appliqué ; voir ci-dessous.{% endif %}</p>
-{% for d in c.details %}<p>{{ d.champ }} : {{ d.avant }} → <strong>{{ d.apres }}</strong>.</p>{% endfor %}
-{% empty %}<p>Aucune définition de compétence conservée n’a changé.</p>{% endfor %}
+<details open data-ecart="{{ c.filtres }}{% if c.adaptation %} adaptation{% endif %}">
+<summary><strong>{{ c.apres }}</strong> · {{ c.changements|join:", " }}</summary>
+<table>
+<thead><tr><th scope="col">Champ</th><th scope="col">Édition utilisée</th><th scope="col">Édition proposée</th></tr></thead>
+<tbody>
+{% for d in c.details %}
+<tr><th scope="row">{{ d.champ }}</th>
+<td>{% if d.icone_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_avant.fichier %}" alt=""> {{ d.icone_avant.nom }}{% else %}{{ d.avant }}{% endif %}</td>
+<td>{% if d.icone_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_apres.fichier %}" alt=""> {{ d.icone_apres.nom }}{% else %}{{ d.apres }}{% endif %}</td></tr>
+{% endfor %}
+</tbody></table>
+{% if c.adaptation %}<p>Après adoption : <strong>{{ c.adaptation.libelle }}</strong> · {% if c.adaptation.visible %}montrée{% else %}masquée{% endif %} selon les choix de l’école ou de la classe.</p>{% endif %}
 </details>
+{% endfor %}
+{% else %}<p>Aucune définition de compétence conservée n’a changé.</p>{% endif %}
+</section>
 <details><summary>{{ mise_a_jour.ajoutees|length }} compétence{{ mise_a_jour.ajoutees|length|pluralize }} ajoutée{{ mise_a_jour.ajoutees|length|pluralize }}</summary>
 {% for libelle in mise_a_jour.ajoutees %}<p>{{ libelle }}</p>{% empty %}<p>Aucun ajout.</p>{% endfor %}
 <p>Chaque nouvelle compétence possède son propre suivi. Aucun rapprochement ne copie une réussite.</p>

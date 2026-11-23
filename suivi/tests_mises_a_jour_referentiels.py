@@ -38,7 +38,7 @@ class MisesAJour(Base):
             c["formulations"] = [{"code": "p1", "texte": "<prénom> partage une découverte."}]
         if retirer:
             c["identite"] = "autre-apprentissage"
-        doc["domaines"][0]["competences"].append({"identite": "ecouter", "code": "L03",
+        doc["domaines"][0]["competences"].insert(0, {"identite": "ecouter", "code": "L03",
             "libelle": "J’écoute mes camarades", "niveau": "PS"})
         nouvelle = importer(doc)[0]
         publier_choix_application(annee=self.classe.annee_scolaire,
@@ -63,6 +63,7 @@ class MisesAJour(Base):
         detail = apercu["mise_a_jour"]
         self.assertEqual(detail["modifiees"][0]["avant"], "Je parle")
         self.assertIn("Phrases proposées", detail["modifiees"][0]["changements"])
+        self.assertNotIn("Ordre de présentation", detail["modifiees"][0]["changements"])
         self.assertEqual(detail["ajoutees"], ["J’écoute mes camarades"])
         self.assertEqual(detail["retirees"], [])
         self.assertEqual(detail["adaptations"][0]["libelle"], "Mon texte fictif")
@@ -97,6 +98,10 @@ class MisesAJour(Base):
         url = reverse("referentiel_classe", args=[self.classe.pk])
         page = self.client.post(url, {"action": "apercu", "version": nouvelle.pk})
         self.assertContains(page, "Adopter cette version pour la classe")
+        self.assertContains(page, 'data-apercu-ecarts')
+        self.assertContains(page, "Édition utilisée")
+        self.assertContains(page, "Édition proposée")
+        self.assertContains(page, 'class="icone-liste"', count=2)
         jeton = page.context["jeton"]
         self.adapter(ancienne)
         page = self.client.post(url, {"action": "confirmer", "mot_de_passe": "ens-mdp", "jeton": jeton})

@@ -12,6 +12,11 @@ Pour deux versions différentes d'une même source fournie, l'aperçu compare
 les identités déclarées, les libellés, codes, sections, groupes, attendus,
 ordre, illustrations et phrases proposées. Les listes détaillent les ajouts,
 retraits et modifications, sans écrire de projection ni créer de compétence.
+L'aperçu des modifications peut être filtré par champ. Ce filtre change
+l'affichage ; la confirmation porte sur toute l'édition. Les illustrations
+fournies sont présentées avant et après. Le classement compare l'ordre
+relatif des compétences conservées dans la même rubrique, indépendamment
+des insertions, retraits et déplacements vers une autre rubrique.
 Une reprise historique ne fournit pas de filiation source supposée.
 
 Les différences avec les adaptations ne sont pas des erreurs bloquantes :

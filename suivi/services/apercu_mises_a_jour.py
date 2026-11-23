@@ -4,6 +4,7 @@ import json
 
 from django.db.models import Q
 
+from suivi.presentation import catalogue_icones
 from suivi.models import AdaptationCompetence, Competence, CompetenceSourceEcole
 
 
@@ -41,11 +42,30 @@ def apercu_mise_a_jour(classe, actuelle, version):
             return " ; ".join(v["texte"] for v in valeur) or "Aucune proposition"
         return str(valeur) if valeur not in (None, "") else "Aucune proposition"
 
+    communes = avant.keys() & apres.keys()
+    # Comparer uniquement l'ordre relatif des identités conservées dans
+    # chaque rubrique. Une insertion ou un retrait ne déplace pas les autres.
+    def positions(definitions):
+        rangs, resultat = {}, {}
+        for identite, c in definitions.items():
+            if identite not in communes:
+                continue
+            groupe = (c["domaine"], c["sous_domaine"])
+            autre = apres[identite] if definitions is avant else avant[identite]
+            if groupe != (autre["domaine"], autre["sous_domaine"]):
+                continue
+            rangs[groupe] = rangs.get(groupe, 0) + 1
+            resultat[identite] = rangs[groupe]
+        return resultat
+
+    positions_avant, positions_apres = positions(avant), positions(apres)
+    icones = catalogue_icones()
     modifiees, conservees = [], []
     for identite, nouveau in apres.items():
         ancien = avant.get(identite)
         locales = [r for r in regles if r.competence_id == liaisons.get(identite)
             and (r.libelle is not None or r.visible is not None)]
+        adaptation = None
         if locales:
             # Résoudre dans le même ordre que le lecteur commun : école, classe.
             locales.sort(key=lambda r: r.classe_id is not None)
@@ -57,15 +77,24 @@ def apercu_mise_a_jour(classe, actuelle, version):
                     libelle = r.libelle
                 if r.visible is not None:
                     visible = r.visible
-            conservees.append({"source": nouveau["libelle"], "libelle": libelle, "visible": visible})
+            adaptation = {"source": nouveau["libelle"], "libelle": libelle, "visible": visible}
+            conservees.append(adaptation)
         if ancien:
-            changements = [nom for cle, nom in champs if ancien.get(cle) != nouveau.get(cle)]
-            if changements:
+            details = []
+            for cle, nom in champs:
+                v1, v2 = ancien.get(cle), nouveau.get(cle)
+                if cle == "ordre":
+                    v1, v2 = positions_avant.get(identite), positions_apres.get(identite)
+                if v1 == v2:
+                    continue
+                detail = {"cle": cle, "champ": nom, "avant": texte(v1), "apres": texte(v2)}
+                if cle == "icone":
+                    detail.update(icone_avant=icones.get(v1), icone_apres=icones.get(v2))
+                details.append(detail)
+            if details:
                 modifiees.append({"avant": ancien["libelle"], "apres": nouveau["libelle"],
-                    "changements": changements, "adaptation": bool(locales),
-                    "details": [{"champ": nom, "avant": texte(ancien.get(cle)),
-                        "apres": texte(nouveau.get(cle))} for cle, nom in champs
-                        if ancien.get(cle) != nouveau.get(cle)]})
+                    "changements": [d["champ"] for d in details], "adaptation": adaptation,
+                    "filtres": " ".join(d["cle"] for d in details), "details": details})
     # Un retrait ou un changement de section peut changer les possibilités de
     # saisie. Garder le garde-fou renforcé dans ces cas.
     continue_suivi = avant.keys() <= apres.keys() and all(
