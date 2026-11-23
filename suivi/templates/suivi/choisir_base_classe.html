@@ -26,7 +26,7 @@
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><label><input type="checkbox" name="selection_manuelle" value="1"> Partir d’un suivi vide</label><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}
 <details class="operations-avancees"{% if apercu or erreur %} open{% endif %}><summary>Avancé — changer la base de compétences</summary>
-<p>Consultez les effets pour la classe avant de choisir une autre édition ou un autre référentiel.</p>
+<p>Consultez les effets avant de confirmer. Choisir un autre référentiel peut éloigner la classe du référentiel commun de l’école.</p>
 <p>Changements majeurs après saisies : {% if permission.effective %}<strong>exception ouverte pour un seul changement</strong>{% else %}<strong>interdits au niveau {{ permission.blocage }}</strong>{% endif %}.</p>
 <p><a href="{% url 'permissions_referentiels_classe' classe.pk %}">Autorisation exceptionnelle de cette classe</a></p>
 <h2>Choisir le référentiel de la classe</h2>
