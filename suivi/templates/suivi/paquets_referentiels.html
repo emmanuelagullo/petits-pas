@@ -17,8 +17,8 @@
 <div class="page-a-sommaire" data-sommaire-structure>
 {% include "suivi/partiels/sommaire_page.html" %}
 <div>
-<section id="import-referentiel" aria-labelledby="titre-import-referentiel" data-zone-sommaire="titre-import-referentiel">
-<h2 id="titre-import-referentiel" tabindex="-1" data-titre-sommaire>Importer</h2>
+<details id="import-referentiel" data-zone-sommaire="titre-import-referentiel"{% if volet != "exporter" or erreur_import or message_import or apercu %} open{% endif %}>
+<summary class="bouton discret"><h2 id="titre-import-referentiel" tabindex="-1" data-titre-sommaire>Importer</h2></summary>
 <p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>
 <div id="etat-import-referentiel">
 {% if erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
@@ -72,13 +72,14 @@
 {% endif %}
 </form>
 </div>
-</section>
+</details>
 {% endif %}
-<section id="export-referentiel"{% if peut_importer %} aria-labelledby="titre-export-referentiel" data-zone-sommaire="titre-export-referentiel"{% else %} aria-label="Export"{% endif %}>
-{% if peut_importer %}<h2 id="titre-export-referentiel" tabindex="-1" data-titre-sommaire>Exporter</h2>{% endif %}
+<details id="export-referentiel" data-zone-sommaire="titre-export-referentiel"{% if volet == "exporter" or not peut_importer %} open{% endif %}>
+<summary class="bouton discret"><h2 id="titre-export-referentiel" tabindex="-1" data-titre-sommaire>Exporter</h2></summary>
 {% if versions %}
 <form method="get" action="#export-referentiel" data-choix-edition-partage>
 <input type="hidden" name="annee" value="{{ annee }}">
+<input type="hidden" name="volet" value="exporter">
 <label for="edition">Édition disponible</label>
 <select id="edition" name="edition" required>
 <option value=""{% if not edition %} selected{% endif %} disabled>Choisir une édition</option>
@@ -97,12 +98,10 @@
 </form>
 {% endif %}
 {% if not versions %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}
-</section>
+</details>
 {% if not classe %}
-<section aria-labelledby="composer-referentiel" data-zone-sommaire="composer-referentiel">
-<h2 id="composer-referentiel" tabindex="-1" data-titre-sommaire>Composer</h2>
-<details{% if composition_ouverte %} open{% endif %}>
-<summary>Composer une édition à partager</summary>
+<details data-zone-sommaire="composer-referentiel"{% if composition_ouverte %} open{% endif %}>
+<summary class="bouton discret"><h2 id="composer-referentiel" tabindex="-1" data-titre-sommaire>Composer une édition</h2></summary>
 <form method="post">
 {% csrf_token %}
 <input type="hidden" name="revision_brouillon" value="{{ revision_brouillon }}">
@@ -133,7 +132,6 @@
 <button class="bouton discret" name="action" value="ajouter_ligne_composition" formnovalidate>Ajouter une compétence</button>
 </form>
 </details>
-</section>
 {% endif %}
 {% if a_publier %}
 <section aria-labelledby="publier-referentiel" data-zone-sommaire="publier-referentiel">

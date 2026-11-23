@@ -11,6 +11,8 @@
   let active;
   function rejoindre(titre) {
     if (!titre) return;
+    const volet = titre.closest('summary')?.parentElement;
+    if (volet?.matches('details')) volet.open = true;
     titre.focus({preventScroll: true});
     if (!large.matches) sommaire.open = false;
     signaler(titre.id);

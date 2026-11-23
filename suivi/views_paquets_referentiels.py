@@ -120,7 +120,7 @@ def paquets_referentiels(request, classe_pk=None):
     versions = {}
     action = request.POST.get("action") if request.method == "POST" else None
     peut_importer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
-    contexte = {"classe": classe, "annee": annee, "peut_importer": peut_importer_ecole or request.user.is_superuser,
+    contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": peut_importer_ecole or request.user.is_superuser,
                 "peut_importer_global": request.user.is_superuser}
     try:
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}

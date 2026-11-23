@@ -1247,3 +1247,5 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 [data-rubrique-total] { color: #535d65; margin-inline-start: .4rem; }
 .ligne-competence-edition { display: block; margin-inline-start: 1rem; }
 .ligne-competence-edition[hidden] { display: none; }
+
+.page-a-sommaire summary > [data-titre-sommaire] { display: inline; font: inherit; }

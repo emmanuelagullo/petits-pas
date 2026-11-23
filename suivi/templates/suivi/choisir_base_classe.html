@@ -22,7 +22,7 @@
 <h2 id="importer-partager">{% if peut_importer_ecole %}Importer ou partager{% else %}Partager un référentiel{% endif %}</h2>
 {% url 'paquets_referentiels_classe' classe.pk as echange %}
 <p>{% if peut_importer_ecole %}<a class="bouton" href="{{ echange }}#import-referentiel">Importer dans le catalogue de l’école</a> {% endif %}
-<a class="bouton discret" href="{{ echange }}{% if peut_importer_ecole %}#export-referentiel{% endif %}">Exporter un référentiel</a></p>
+<a class="bouton discret" href="{{ echange }}{% if peut_importer_ecole %}?volet=exporter#export-referentiel{% endif %}">Exporter un référentiel</a></p>
 {% if not peut_importer_ecole %}{% include "suivi/partiels/aide_import_referentiel.html" %}{% endif %}
 </section>
 <details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary>
