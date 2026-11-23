@@ -80,27 +80,33 @@ if bucket not in existants:
     s3.create_bucket(Bucket=bucket)
 PY
 
-./start-persistent.sh >"${journal}" 2>&1 &
+PYTHONUNBUFFERED=1 ./start-persistent.sh >"${journal}" 2>&1 &
 application_pid=$!
 
-application_prete=0
-for _ in $(seq 1 60); do
-    if curl --fail --silent \
+# Le délai couvre aussi les migrations PostgreSQL et collectstatic.
+debut_demarrage=${SECONDS}
+delai_demarrage=300
+while true; do
+    if ! kill -0 "${application_pid}" 2>/dev/null; then
+        statut_application=0
+        wait "${application_pid}" || statut_application=$?
+        application_pid=""
+        echo "L’application s’est arrêtée avant /health/ (code ${statut_application})." >&2
+        exit 1
+    fi
+    if curl --fail --silent --connect-timeout 1 --max-time 2 \
         --header "X-Forwarded-Proto: https" \
         http://127.0.0.1:8000/health/ \
         | grep -q '"status": "ok"'; then
-        application_prete=1
+        echo "L’application est prête après $((SECONDS - debut_demarrage)) s."
         break
     fi
-    if ! kill -0 "${application_pid}" 2>/dev/null; then
-        break
+    if (( SECONDS - debut_demarrage >= delai_demarrage )); then
+        echo "L’application est encore active après ${delai_demarrage} s, mais /health/ n’a pas renvoyé le statut ok." >&2
+        exit 1
     fi
     sleep 1
 done
-if [[ ${application_prete} -ne 1 ]]; then
-    echo "L’application n’a pas répondu correctement à /health/." >&2
-    exit 1
-fi
 
 python3 manage.py shell -c '
 from django.core.files.storage import default_storage
