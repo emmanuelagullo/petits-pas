@@ -13,14 +13,48 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE,
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import competences_document, reference_competence
-from .models import annee_scolaire_pour
+from .models import ChoixApplicationAnnuel, VersionReferentiel, annee_scolaire_pour
 from .presentation import catalogue_icones
-from .services.choix_bases_referentiels import choix_bases
+from .services.choix_bases_referentiels import choix_bases, publier_choix_application
+from .services.composition_referentiels import catalogue_composition, composer_paquet
 from .services.import_sources_referentiels import importer_source, lire_source
 from .services.paquets_referentiels import MAX_ARCHIVE, exporter_paquet, exporter_selection, lire_paquet
 from .views import acces_requis
 
 SEL = "diffusion-referentiel"
+SEL_PUBLICATION = "publication-referentiel"
+
+
+def telecharger_paquet(donnees):
+    reponse = HttpResponse(donnees, content_type="application/zip")
+    reponse["Content-Disposition"] = 'attachment; filename="referentiel.zip"'
+    return reponse
+
+
+def publication(request, contexte, engagement):
+    annee = contexte["annee"]
+    politique = ChoixApplicationAnnuel.objects.filter(annee_scolaire=annee).first()
+    autorisees = set(politique.versions_autorisees.values_list("pk", flat=True)) if politique else set()
+    proposee = politique.version_proposee_id if politique else None
+    revision = politique.revision if politique else 0
+    editions = VersionReferentiel.objects.filter(source__ecole__isnull=True,
+        contenu__origine="source_declaree").exclude(pk__in=autorisees).select_related("source")
+    contexte["a_publier"] = editions
+    contexte["jeton_publication"] = signing.dumps({**engagement, "revision": revision}, salt=SEL_PUBLICATION)
+    if request.method != "POST" or request.POST.get("action") != "publier":
+        return
+    try:
+        attendu = signing.loads(request.POST.get("jeton_publication", ""), salt=SEL_PUBLICATION, max_age=1800)
+        edition = editions.get(pk=int(request.POST.get("publier_edition", "")))
+    except (signing.BadSignature, ValueError, VersionReferentiel.DoesNotExist) as erreur:
+        raise ValidationError("Choisissez de nouveau une édition à publier.") from erreur
+    if attendu != {**engagement, "revision": revision}:
+        raise ValidationError("La publication a changé. Relisez les choix de l’année.")
+    publier_choix_application(annee=annee, versions_ids=sorted(autorisees | {edition.pk}),
+        proposee_id=proposee or edition.pk, revision_attendue=revision)
+    contexte["message"] = "Édition autorisée pour l’année. Les classes conservent leur base."
+    contexte.pop("a_publier", None)
+
 
 
 @acces_requis
@@ -43,16 +77,24 @@ def paquets_referentiels(request, classe_pk=None):
             contexte["competences"] = [
                 (reference_competence(c), c["libelle"]) for c in competences_document(version.contenu)
             ]
-        if request.method == "POST":
-            action = request.POST.get("action")
+        action = request.POST.get("action") if request.method == "POST" else None
+        if classe is None:
+            catalogue = catalogue_composition(versions.values())
+            contexte["catalogue_composition"] = catalogue
+            if action == "composer":
+                return telecharger_paquet(composer_paquet(catalogue, request.POST, request.POST.getlist("reprise")))
+        engagement = {"auteur": request.user.pk, "ecole": ecole.pk, "classe": classe_pk, "annee": annee}
+        if action == "publier" and (not request.user.is_superuser or classe is not None):
+            raise PermissionDenied
+        if request.user.is_superuser and classe is None:
+            publication(request, contexte, engagement)
+        if request.method == "POST" and action != "publier":
             if action in ("edition", "selection"):
                 if version is None:
                     raise PermissionDenied
                 donnees = (exporter_paquet(version) if action == "edition" else
                            exporter_selection(version, request.POST.getlist("competence")))
-                reponse = HttpResponse(donnees, content_type="application/zip")
-                reponse["Content-Disposition"] = 'attachment; filename="referentiel.zip"'
-                return reponse
+                return telecharger_paquet(donnees)
             if not request.user.is_superuser:
                 raise PermissionDenied
             fichier = request.FILES.get("paquet")
@@ -62,8 +104,7 @@ def paquets_referentiels(request, classe_pk=None):
             if action not in ("importer", "apercu"):
                 raise ValidationError("Action inconnue.")
             document = lire_paquet(donnees)
-            engagement = {"empreinte": hashlib.sha256(donnees).hexdigest(), "auteur": request.user.pk,
-                          "ecole": ecole.pk, "classe": classe_pk, "annee": annee}
+            engagement = {**engagement, "empreinte": hashlib.sha256(donnees).hexdigest()}
             if action == "importer":
                 try:
                     attendu = signing.loads(request.POST.get("jeton", ""), salt=SEL, max_age=1800)

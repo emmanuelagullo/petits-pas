@@ -41,9 +41,13 @@ def apercu_adoption(*, utilisateur, classe, version_id):
     anciens_ids = {c["id"] for c in contenu_adoption(actuelle).get("competences", [])} if actuelle else set()
     anciens_ids -= locaux
     from suivi.correspondances_referentiels import correspondances_classe
-    liens = [l for l in correspondances_classe(classe) if
-        (l["depart_id"] in nouveaux_ids | locaux and l["arrivee_id"] in anciens_ids | locaux) or
-        (l["arrivee_id"] in nouveaux_ids | locaux and l["depart_id"] in anciens_ids | locaux)]
+    avant, apres = anciens_ids | locaux, nouveaux_ids | locaux
+    liens = []
+    for lien in correspondances_classe(classe):
+        depart, arrivee = lien["depart_id"], lien["arrivee_id"]
+        if (depart in apres and arrivee in avant) or (arrivee in apres and depart in avant):
+            liens.append({**lien,
+                "succession": lien["type_lien"] == "remplace" and depart in apres - avant and arrivee in avant - apres})
     meme = bool(actuelle and actuelle.version_id == version_id)
     mise_a_jour = apercu_mise_a_jour(classe, actuelle, version)
     return {"version": version, "adoption_id": actuelle.pk if actuelle else None,

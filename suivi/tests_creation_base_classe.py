@@ -62,6 +62,41 @@ class CreationBaseClasse(Base):
         self.assertContains(envoyer("importer", apercu.context["jeton"]), "figure déjà")
         self.assertIn("source_origine: creation-a", lire_paquet(donnees))
 
+    def test_composer_importer_puis_publier_depuis_ecole(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from suivi.models import VersionReferentiel
+
+        url = reverse("paquets_referentiels_ecole") + f"?annee={self.annee}"
+        composition = self.client.post(url, {
+            "action": "composer", "identifiant": "parcours-compose", "titre": "Parcours composé",
+            "version": "1", "provenance": "Exemple de test", "licence": "CC-BY-SA-4.0",
+            "rubrique": "Langage", "reprise": [f"{self.a.pk}:oser-parler"],
+            "nouvelle": "Présenter une idée", "identite_nouvelle": "presenter", "niveau_nouvelle": "PS",
+        })
+        self.assertEqual(composition["Content-Type"], "application/zip")
+        self.direction.is_superuser = True
+        self.direction.save(update_fields=["is_superuser"])
+
+        def envoyer(action, jeton=""):
+            return self.client.post(url, {"action": action, "jeton": jeton,
+                "paquet": SimpleUploadedFile("edition.zip", composition.content)})
+
+        apercu = envoyer("apercu")
+        self.assertContains(apercu, "Présenter une idée")
+        self.assertContains(envoyer("importer", apercu.context["jeton"]), "Édition ajoutée")
+        version = VersionReferentiel.objects.get(source__identifiant="parcours-compose")
+        choix_avant = choix_bases(self.ecole, self.annee)
+        self.assertNotIn(version, choix_avant.versions)
+        page = self.client.get(url)
+        publication = self.client.post(url, {"action": "publier", "publier_edition": version.pk,
+            "jeton_publication": page.context["jeton_publication"]})
+        self.assertContains(publication, "Édition autorisée pour l’année")
+        choix_apres = choix_bases(self.ecole, self.annee)
+        self.assertIn(version, choix_apres.versions)
+        self.assertEqual(choix_avant.proposee, choix_apres.proposee)
+        self.assertEqual(version.definitions.count(), 2)
+        self.assertTrue(version.definitions.filter(identite=self.a.definitions.get().identite).exists())
+
     def test_defaut_adopte_a_la_creation_sans_mot_de_passe_ni_saisie(self):
         page = self.creer()
         classe = Classe.objects.get(nom="Nouvelle classe fictive")

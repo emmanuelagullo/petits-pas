@@ -111,3 +111,11 @@ les références d'origine et produit une édition distincte et reproductible.
 L'import au catalogue global est réservé aux superutilisateurs. Après examen,
 la confirmation demande le même fichier et vérifie son empreinte et son
 contexte. Les choix annuels et les adoptions se font séparément.
+
+Depuis l'écran d'échange de l'école, le formulaire de composition prépare
+une édition ZIP numérotée à partir des compétences publiques autorisées et
+d'une compétence nouvelle facultative. Donner un identifiant stable à la
+composition et indiquer les attributions avec la provenance. L'import relit
+l'édition avant de l'inscrire au catalogue. La publication pour l'année est
+un geste séparé réservé aux superutilisateurs ; elle conserve la proposition
+existante si l'application en a déjà une.
