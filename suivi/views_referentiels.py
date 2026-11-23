@@ -113,7 +113,7 @@ def choisir_bases_ecole(request):
         | set(ChoixEcoleAnnuel.objects.filter(ecole=ecole).values_list("annee_scolaire", flat=True))
         | set(ChoixApplicationAnnuel.objects.values_list("annee_scolaire", flat=True)), reverse=True)
     contexte = {"annee": annee, "annees": annees, "ecole": ecole,
-                "confirmation_delegation": ConfirmationReferentielForm()}
+                "confirmation_delegation": ConfirmationReferentielForm(auto_id="delegation_%s")}
     try:
         verifier_annee(annee)
     except ValidationError as cause:

@@ -11,6 +11,7 @@
 <a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a>
 <a class="bouton discret" href="{% url 'propositions_referentiels_ecole' %}">Propositions reçues</a></p>
 <p>Consultez les bases disponibles et adaptez les propositions de l’école. Les libellés, images et phrases proposés peuvent être repris ou adaptés par chaque classe. Choisissez d’abord les propositions pour l’année, puis créez les classes et invitez l’équipe. Les classes déjà préparées gardent leur base.</p>
+{% if not apercu %}
 <details id="delegation-import" class="operations-avancees"{% if messages %} open{% endif %}>
 <summary>Autorisation d’import des responsables de classe</summary>
 <p>Ce réglage s’applique à toutes les classes de l’école, quelle que soit l’année scolaire. Les éditions importées rejoignent le catalogue de l’école et restent soumises à ses choix annuels.</p>
@@ -22,6 +23,7 @@
 <button class="bouton discret" name="action" value="deleguer_import">Enregistrer l’autorisation</button>
 </form>
 </details>
+{% endif %}
 <form method="get">
 <label for="annee">Année scolaire</label>
 <input id="annee" name="annee" value="{{ annee }}" list="annees" required pattern="[0-9]{4}-[0-9]{4}" aria-describedby="aide-annee">
