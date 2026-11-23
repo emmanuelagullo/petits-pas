@@ -60,7 +60,7 @@ def apercu_mise_a_jour(classe, actuelle, version):
 
     positions_avant, positions_apres = positions(avant), positions(apres)
     icones = catalogue_icones()
-    modifiees, conservees = [], []
+    modifiees, conservees, libelles_reprenables = [], [], {}
     for identite, nouveau in apres.items():
         ancien = avant.get(identite)
         locales = [r for r in regles if r.competence_id == liaisons.get(identite)
@@ -91,9 +91,20 @@ def apercu_mise_a_jour(classe, actuelle, version):
                 if cle == "icone":
                     detail.update(icone_avant=icones.get(v1), icone_apres=icones.get(v2))
                 details.append(detail)
+            choix_libelle = None
+            if ancien["libelle"] != nouveau["libelle"]:
+                choix_classe = next((r for r in locales if r.classe_id and r.libelle is not None), None)
+                choix_ecole = next((r for r in locales if not r.classe_id and r.libelle is not None), None)
+                if choix_classe:
+                    choix_libelle = {"id": choix_classe.competence_id,
+                                    "revision": choix_classe.revision,
+                                    "visible": choix_classe.visible,
+                                    "apres": choix_ecole.libelle if choix_ecole else nouveau["libelle"]}
+                    libelles_reprenables[str(choix_classe.competence_id)] = choix_libelle
             if details:
                 modifiees.append({"avant": ancien["libelle"], "apres": nouveau["libelle"],
                     "changements": [d["champ"] for d in details], "adaptation": adaptation,
+                    "choix_libelle": choix_libelle,
                     "filtres": " ".join(d["cle"] for d in details), "details": details})
     # Un retrait ou un changement de section peut changer les possibilités de
     # saisie. Garder le garde-fou renforcé dans ces cas.
@@ -102,7 +113,7 @@ def apercu_mise_a_jour(classe, actuelle, version):
         for identite, ancien in avant.items()
     )
     return {"modifiees": modifiees, "adaptations": conservees,
-        "continue_suivi": continue_suivi,
+        "continue_suivi": continue_suivi, "libelles_reprenables": libelles_reprenables,
         "ajoutees": [c["libelle"] for i, c in apres.items() if i not in avant],
         "retirees": [c["libelle"] for i, c in avant.items() if i not in apres],
         "empreinte_adaptations": empreinte}

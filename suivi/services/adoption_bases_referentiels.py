@@ -56,7 +56,7 @@ def apercu_adoption(*, utilisateur, classe, version_id):
 
 
 @transaction.atomic
-def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None, initialisee_depuis_ecole=False, selection_manuelle=False):
+def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adoption_attendue, adaptations_attendues=None, garde_attendue=None, initialisee_depuis_ecole=False, selection_manuelle=False, libelles_a_reprendre=()):
     classe_fournie = classe
     # Même ordre de coordination que les choix d'école.
     _application_verrouillee(classe.annee_scolaire)
@@ -69,6 +69,11 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     if adaptations_attendues is not None and (not mise_a_jour or
             mise_a_jour["empreinte_adaptations"] != adaptations_attendues):
         raise ValidationError("Les adaptations ont changé. Consultez à nouveau les conséquences avant de confirmer.")
+    libelles_a_reprendre = set(libelles_a_reprendre)
+    reprenables = mise_a_jour["libelles_reprenables"] if mise_a_jour else {}
+    if libelles_a_reprendre and (adaptations_attendues is None or
+                                not libelles_a_reprendre <= reprenables.keys()):
+        raise ValidationError("Les libellés sélectionnés ne correspondent pas à l’aperçu.")
     if initialisee_depuis_ecole:
         choix = choix_bases(classe.ecole, classe.annee_scolaire)
         if (AdoptionReferentiel.objects.filter(classe=classe).exists() or
@@ -84,6 +89,16 @@ def adopter_base(*, utilisateur, classe, version_id, revisions_attendues, adopti
     version = apercu["version"]
     if adoption_attendue is not None:
         selection_manuelle = AdoptionReferentiel.objects.get(pk=adoption_attendue).selection_manuelle
+    if libelles_a_reprendre:
+        from .adaptations_referentiels import enregistrer_adaptation
+        from suivi.models import Competence
+        competences = Competence.objects.in_bulk(libelles_a_reprendre)
+        for identifiant in sorted(libelles_a_reprendre):
+            choix = reprenables[identifiant]
+            enregistrer_adaptation(utilisateur=utilisateur, ecole=classe.ecole,
+                annee=classe.annee_scolaire, classe=classe,
+                competence=competences[choix["id"]], libelle=None, visible=choix["visible"],
+                revision_attendue=choix["revision"], adoption_attendue=adoption_attendue)
     contenu = definir_version_ecole(classe.ecole, version)
     annuel, _ = ReferentielAnnuel.objects.get_or_create(ecole=classe.ecole, annee_scolaire=classe.annee_scolaire,
                                                       defaults={"version_proposee": version})

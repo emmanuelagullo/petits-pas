@@ -70,7 +70,7 @@
 {% include "suivi/partiels/apercu_mise_a_jour.html" with mise_a_jour=apercu.mise_a_jour %}
 {% include "suivi/partiels/correspondances_competences.html" with correspondances=apercu.correspondances %}
 {% if apercu.garde.permis %}
-{% if apercu.meme %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Conserver cette base" %}{% elif apercu.mise_a_jour %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Adopter cette version pour la classe" %}{% else %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Choisir cette base pour la classe" %}{% endif %}
+{% if apercu.meme %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Conserver cette base" %}{% elif apercu.mise_a_jour %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Adopter cette version pour la classe" confirmation_id="confirmer-edition-classe" %}{% else %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Choisir cette base pour la classe" %}{% endif %}
 {% if apercu.garde.niveau == "rouge" %}<p>L’autorisation de classe sera refermée après ce changement. Si l’école n’a plus besoin d’exceptions, la direction peut aussi refermer son autorisation.</p>{% endif %}
 {% else %}<p><strong>Changement interdit au niveau {{ apercu.garde.permission.blocage }}.</strong> Consultez l’autorisation exceptionnelle de cette classe ; si le blocage vient de l’école, contactez la direction, ou le gestionnaire de l’application si celui-ci l’interdit.</p>{% endif %}
 {% endif %}

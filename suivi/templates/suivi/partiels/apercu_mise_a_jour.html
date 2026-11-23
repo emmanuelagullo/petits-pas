@@ -5,6 +5,10 @@
 <section data-apercu-ecarts>
 <h3>Compétences modifiées</h3>
 {% if mise_a_jour.modifiees %}
+{% if mise_a_jour.libelles_reprenables and apercu.garde.permis %}
+<p>Vos libellés de classe sont conservés par défaut. Cochez ceux pour lesquels vous souhaitez reprendre la proposition indiquée.</p>
+<p role="status" data-compteur-libelles hidden></p>
+{% endif %}
 <label hidden data-filtre-ecarts>Afficher les modifications
 <select>
 <option value="">Toutes</option>
@@ -27,7 +31,11 @@
 <td>{% if d.icone_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_apres.fichier %}" alt=""> {{ d.icone_apres.nom }}{% else %}{{ d.apres }}{% endif %}</td></tr>
 {% endfor %}
 </tbody></table>
-{% if c.adaptation %}<p>Après adoption : <strong>{{ c.adaptation.libelle }}</strong> · {% if c.adaptation.visible %}montrée{% else %}masquée{% endif %} selon les choix de l’école ou de la classe.</p>{% endif %}
+{% if c.adaptation %}<p>Si vous gardez vos choix : <strong>{{ c.adaptation.libelle }}</strong> · {% if c.adaptation.visible %}montrée{% else %}masquée{% endif %} selon les choix de l’école ou de la classe.</p>{% endif %}
+{% if c.choix_libelle and apercu.garde.permis %}
+<label><input type="checkbox" name="reprendre_libelle" value="{{ c.choix_libelle.id }}" form="confirmer-edition-classe">
+Reprendre « {{ c.choix_libelle.apres }} » pour cette classe</label>
+{% endif %}
 </details>
 {% endfor %}
 {% else %}<p>Aucune définition de compétence conservée n’a changé.</p>{% endif %}

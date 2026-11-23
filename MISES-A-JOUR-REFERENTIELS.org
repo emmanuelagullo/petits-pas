@@ -26,6 +26,13 @@ ordre que le lecteur commun. Les adaptations des compétences retirées restent
 enregistrées pour leur parcours et un éventuel retour. Aucun rapprochement par
 code ou texte, ni correspondance, ne transfère un acquis.
 
+Lorsque la source change un libellé personnalisé par la classe, l'aperçu
+permet de reprendre la proposition effective (celle de l'école lorsqu'elle
+existe, sinon celle de la nouvelle édition). La sélection peut porter sur
+plusieurs compétences. Elle enlève uniquement la dérogation de libellé de la
+classe ; le masquage et le rangement sont conservés. L'adoption et ces choix
+sont enregistrés dans une même transaction.
+
 * Confirmation et conservation
 
 La confirmation existante lie compte, classe, version, adoption courante et

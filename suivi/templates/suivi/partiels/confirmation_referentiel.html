@@ -1,4 +1,4 @@
-<form method="post">{% csrf_token %}
+<form method="post"{% if confirmation_id %} id="{{ confirmation_id }}"{% endif %}>{% csrf_token %}
 <input type="hidden" name="jeton" value="{{ jeton }}">
 {% if annee %}<input type="hidden" name="annee" value="{{ annee }}">{% endif %}
 {{ confirmation_form.as_p }}

@@ -4,7 +4,7 @@ from django.urls import reverse
 from .tests import Base
 from . import tests_adoption_bases_referentiels as fixtures
 from .tests_import_sources_referentiels import document, importer
-from .models import Competence, EtatAnnuelObservation, Observation, VersionSourceEcole
+from .models import AdoptionReferentiel, Competence, EtatAnnuelObservation, Observation, VersionSourceEcole
 from .services.adoption_bases_referentiels import apercu_adoption
 from .services.choix_bases_referentiels import publier_choix_application
 from .services.adaptations_referentiels import enregistrer_adaptation
@@ -92,6 +92,24 @@ class MisesAJour(Base):
         self.assertContains(page, "Je parle")
         self.adopter(self.a)
         self.assertEqual(self.classe._adoption_referentiel_lecture.usages.get().competence_id, competence.pk)
+
+    def test_reprendre_libelle_classe_conserve_masquage_et_choix_ecole(self):
+        ancienne, nouvelle = self.preparer()
+        self.adapter(ancienne, classe=False, texte="Libellé école")
+        self.adapter(ancienne)
+        competence_id = ancienne.usages.get().competence_id
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        page = self.client.post(url, {"action": "apercu", "version": nouvelle.pk})
+        self.assertContains(page, "Reprendre « Libellé école »")
+        donnees = {"action": "confirmer", "jeton": page.context["jeton"]}
+        refus = self.client.post(url, {**donnees, "reprendre_libelle": ["inconnu"]})
+        self.assertEqual(refus.status_code, 400)
+        confirmation = self.client.post(url, {**donnees, "reprendre_libelle": [str(competence_id)]})
+        self.assertEqual(confirmation.status_code, 302)
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        effective = next(c for c in contenu_adoption(adoption)["competences"] if c["id"] == competence_id)
+        self.assertEqual(effective["libelle"], "Libellé école")
+        self.assertFalse(effective["active"])
 
     def test_confirmation_refuse_adaptation_changee(self):
         ancienne, nouvelle = self.preparer()

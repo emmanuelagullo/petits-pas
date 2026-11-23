@@ -41,7 +41,8 @@ def choisir_base_classe(request, classe_pk):
                 adopter_base(utilisateur=request.user, classe=classe, version_id=donnees["version"],
                     revisions_attendues=donnees["revisions"], adoption_attendue=donnees["adoption"],
                     adaptations_attendues=donnees.get("adaptations"), garde_attendue=donnees.get("garde"),
-                    selection_manuelle=donnees.get("selection_manuelle", False))
+                    selection_manuelle=donnees.get("selection_manuelle", False),
+                    libelles_a_reprendre=request.POST.getlist("reprendre_libelle"))
                 messages.success(request, "La base de la classe est choisie. Aucune réussite n'a été créée ou transférée.")
                 return redirect("classe_detail", pk=classe.pk)
             if request.POST.get("action") != "apercu":
