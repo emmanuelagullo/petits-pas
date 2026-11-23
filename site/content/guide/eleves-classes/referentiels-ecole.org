@@ -206,12 +206,12 @@ puis *Exporter un référentiel*.
 
 * Publier le référentiel d’une classe dans Grist
 
-Dans l’aperçu du référentiel à partager, choisissez *Publier dans Grist*.
-La dernière destination où vous avez publié pour cette école est proposée.
-Pour en choisir une autre, ouvrez *Choisir une autre destination*. Dans un
-document préalablement préparé, Petits Pas peut publier un nouveau
-référentiel ou ajouter une édition. Avant de confirmer, vérifiez le nom
-du document, le référentiel et le numéro proposés.
+Dans le partage du référentiel courant, collez le lien du document Grist
+la première fois, puis cliquez sur *Publier dans Grist*. La dernière
+destination où vous avez publié pour cette école est proposée. Le bouton
+publie directement dans ce document. *Changer de destination* permet de
+choisir un autre document ou de préciser le référentiel à mettre à jour.
+*Examiner le contenu* reste disponible pour relire l’édition.
 
 Le document Grist de ce pilote doit contenir une table =Editions= avec
 =Numero= (entier), =Referentiel=, =Titre= et =Contenu= (texte). Petits Pas

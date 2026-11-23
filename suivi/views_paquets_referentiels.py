@@ -22,7 +22,7 @@ from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationA
 from .navigation import lien
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
-from .publication_grist import ACTIONS_GRIST, publication_grist
+from .publication_grist import ACTIONS_GRIST, presenter_publication_grist, publication_grist
 from .services.apercu_mises_a_jour import comparer_documents, definitions_document
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
@@ -135,8 +135,8 @@ def apercu_document(document, ecole):
     }
 
 
-ACTIONS_DIRECTES_PARTAGE = {"apercu-classe", "telecharger-classe", "choisir-grist"}
-ACTIONS_PARTAGE = ACTIONS_DIRECTES_PARTAGE | {"exporter-classe"} | ACTIONS_GRIST
+ACTIONS_DIRECTES_PARTAGE = {"apercu-classe", "telecharger-classe", "enregistrer-partage"} | ACTIONS_GRIST
+ACTIONS_PARTAGE = ACTIONS_DIRECTES_PARTAGE | {"exporter-classe"}
 
 
 def informations_partage(classe, adoption):
@@ -173,6 +173,7 @@ def partage_classe(request, classe, contexte, action):
     formulaire = PartageReferentielClasseForm(request.POST if direct and "titre" in request.POST else None,
                                               initial=initial)
     contexte["partage_classe"] = formulaire
+    presenter_publication_grist(request, classe, contexte, initial["identifiant"])
     if action not in ACTIONS_PARTAGE:
         return
     contexte["volet"] = "exporter"
@@ -221,7 +222,20 @@ def partage_classe(request, classe, contexte, action):
             classe=classe, defaults=enregistrement,
         )
         return telecharger_paquet(paquet)
+    if action == "enregistrer-partage":
+        InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
+        presenter_publication_grist(request, classe, contexte, donnees["identifiant"])
+        return
     normalise, _ = lire_source(lire_paquet(paquet))
+    if action in ACTIONS_GRIST:
+        try:
+            publication_grist(request, classe, contexte, action, normalise)
+        except ValidationError as erreur:
+            contexte["erreur_grist"] = " ".join(erreur.messages)
+        if contexte.get("publication_grist_reussie"):
+            InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
+            presenter_publication_grist(request, classe, contexte, donnees["identifiant"])
+        return
     lignes = []
     for domaine in normalise["domaines"]:
         for groupe in [domaine, *domaine["sous_domaines"]]:
@@ -240,12 +254,6 @@ def partage_classe(request, classe, contexte, action):
         )
     else:
         contexte["jeton_partage"] = request.POST["jeton_partage"]
-    if action == "choisir-grist" or action in ACTIONS_GRIST:
-        publication_grist(request, classe, contexte, action, normalise)
-        if contexte.get("publication_grist_reussie"):
-            InformationsPartageReferentielClasse.objects.update_or_create(
-                classe=classe, defaults=enregistrement,
-            )
 
 
 

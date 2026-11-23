@@ -44,10 +44,14 @@ def destination_grist(url):
     return {"url": url, "nom": nom, "espace": prefixe.removeprefix("/o/"), "editions": editions}
 
 
+def contenu_grist(document):
+    return json.dumps({cle: valeur for cle, valeur in document.items() if cle != "origine"},
+                      ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
 def publier_edition_grist(destination, reference, titre, numero, document):
     prefixe, identifiant = adresse_grist(destination["url"])
-    contenu = json.dumps({cle: valeur for cle, valeur in document.items() if cle != "origine"},
-                         ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    contenu = contenu_grist(document)
     champs = {"Referentiel": reference, "Titre": titre, "Contenu": contenu}
     corps = json.dumps({"records": [{"require": {"Numero": numero}, "fields": champs}]},
                        ensure_ascii=False).encode()

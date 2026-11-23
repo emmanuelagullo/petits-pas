@@ -6,13 +6,8 @@
 {% if modifier_partage %}
 <p class="message" role="status">Vérifiez les informations de partage, notamment la licence, avant de continuer.</p>
 {% endif %}
-{% if not modifier_partage and not formulaire_grist and not apercu_partage %}
-<form method="post" class="actions">
-{% csrf_token %}
-<button class="bouton" name="action" value="telecharger-classe">Télécharger le ZIP</button>
-<button class="bouton discret" name="action" value="choisir-grist">Publier dans Grist</button>
-<button class="bouton discret" name="action" value="apercu-classe">Examiner le contenu</button>
-</form>
+{% if not modifier_partage %}
+{% include "suivi/partiels/publication_grist.html" %}
 {% endif %}
 <details{% if modifier_partage %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier les informations" only %}
@@ -20,13 +15,11 @@
 {% csrf_token %}
 {{ partage_classe.as_p }}
 <p class="actions">
-<button class="bouton" name="action" value="telecharger-classe">Télécharger le ZIP</button>
-<button class="bouton discret" name="action" value="choisir-grist">Publier dans Grist</button>
-<button class="bouton discret" name="action" value="apercu-classe">Examiner le contenu</button>
+<button class="bouton discret" name="action" value="enregistrer-partage">Enregistrer les informations</button>
 </p>
 </form>
 </details>
-{% if apercu_partage and not formulaire_grist %}
+{% if apercu_partage %}
 <details open>{% include "suivi/partiels/bouton_depliant.html" with libelle="Contenu à partager" only %}
 <p>Le référentiel contient les compétences communes visibles, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
@@ -35,12 +28,11 @@
 {% csrf_token %}
 <input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
 <button class="bouton" name="action" value="exporter-classe">Télécharger ce ZIP</button>
-<button class="bouton discret" name="action" value="destination-grist">Publier ce référentiel dans Grist</button>
+
 </form>
 {% endif %}
 </details>
-{% elif formulaire_grist %}
-{% include "suivi/partiels/publication_grist.html" %}
+
 {% endif %}
 </details>
 {% else %}

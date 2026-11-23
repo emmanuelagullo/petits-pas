@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
@@ -13,6 +13,7 @@ from .services.choix_bases_referentiels import publier_choix_application
 from .services.adaptations_referentiels import enregistrer_adaptation
 from .services.contextes_referentiels import usage_pour_saisie
 from .services.pedagogie import enregistrer_trace, modifier_etat
+from .services.publications_grist import contenu_grist
 from .services.paquets_referentiels import lire_paquet
 from .referentiels import contenu_adoption
 
@@ -148,31 +149,35 @@ class MisesAJour(Base):
         refus = self.client.post(echange, {"action": "exporter-classe", "jeton_partage": page.context["jeton_partage"]})
         self.assertContains(refus, "Le référentiel a changé", status_code=400)
 
-    def test_publication_grist_confirmee_memorise_la_destination(self):
+    def test_publication_grist_directe_memorise_la_destination_et_ne_duplique_pas(self):
         self.adopter()
         echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
         url = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
         destination = {"url": url, "nom": "Ressources Cycle 1", "espace": "docs", "editions": []}
-        page = self.client.post(echange, {"action": "apercu-classe", "titre": "Référentiel partagé",
-            "identifiant": "collectif-test", "version": "1", "provenance": "Équipe fictive", "licence": "CC0-1.0"})
-        donnees = {"jeton_partage": page.context["jeton_partage"]}
+        page = self.client.get(echange, {"volet": "exporter"})
+        self.assertContains(page, 'value="publier-grist"')
+        self.assertContains(page, 'id="url-grist"')
+        donnees = {"action": "publier-grist", "url_grist": url}
         with patch("suivi.publication_grist.destination_grist", return_value=destination), patch(
                 "suivi.publication_grist.publier_edition_grist") as publier:
-            page = self.client.post(echange, {**donnees, "action": "destination-grist", "url_grist": url})
-            self.assertContains(page, "Ressources Cycle 1")
-            self.assertFalse(page.context["destinations_grist"])
-            page = self.client.post(echange, {**donnees, "action": "apercu-grist-classe", "destination_grist": url})
-            self.assertContains(page, "Publier l’édition 1")
-            publier.assert_not_called()
-            publication = self.client.post(echange, {**donnees, "action": "publier-grist",
-                "jeton_destination": page.context["jeton_destination"]})
+            publier.side_effect = ValidationError("Grist refuse l’écriture.")
+            refus = self.client.post(echange, donnees)
+            self.assertContains(refus, "Grist refuse l’écriture.")
+            self.assertContains(refus, f'value="{url}"')
+            self.assertFalse(refus.context["destinations_grist"])
+            publier.reset_mock()
+            publier.side_effect = None
+            publication = self.client.post(echange, donnees)
             self.assertContains(publication, "Édition 1 publiée")
-            self.assertEqual(publier.call_args.args[1:4], ("collectif-test", "Référentiel partagé", 1))
-            page = self.client.post(echange, {**donnees, "action": "destination-grist"})
-            self.assertEqual(page.context["derniere_destination"].url, url)
-            destination["editions"] = [{"Numero": 1, "Referentiel": "collectif-test", "Titre": "Référentiel partagé"}]
-            page = self.client.post(echange, {**donnees, "action": "destination-grist", "url_grist": url})
-            self.assertEqual(page.context["reference_grist"], "collectif-test")
+            _, reference, titre, numero, document = publier.call_args.args
+            self.assertEqual(numero, 1)
+            destination["editions"] = [{"Numero": 1, "Referentiel": reference, "Titre": titre,
+                                        "Contenu": contenu_grist(document)}]
+            reprise = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
+            self.assertContains(reprise, "Édition 1 déjà publiée")
+            self.assertContains(reprise, "Nouvelle édition")
+            self.assertEqual(reprise.context["derniere_destination"].url, url)
+            publier.assert_called_once()
 
     def test_apercu_sans_projection_et_adaptation_prioritaire(self):
         ancienne, nouvelle = self.preparer()
