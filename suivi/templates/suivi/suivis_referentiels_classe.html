@@ -5,7 +5,7 @@
 <div class="page-referentiel">
 {% ariane_referentiel "Catalogues et suivis" classe classe.annee_scolaire %}
 <h1>Catalogues et suivis</h1>
-<p>Suivis de {{ classe.libelle_avec_annee }}</p>
+<p>Suivis de {{ classe.libelle_avec_annee }}. Les nouveautés marquées comme vues le sont pour toute l’équipe de cette classe.</p>
 {% if mode_pwa %}<p><a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Espace de partage Grist</a></p>{% endif %}
 {% for ligne in lignes %}
 {% if ligne.suivi %}
@@ -39,11 +39,12 @@
 <p>Une source suivie n’est plus disponible. <button class="bouton discret" name="action" value="ne-plus-suivre">Retirer ce suivi</button></p>
 </form>
 {% endfor %}
-<details>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Référentiels à suivre" only %}
+{% if groupes %}<h2>Sources à suivre</h2>{% endif %}
+{% for groupe in groupes %}
+<details{% if groupes|length == 1 %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom only %}
 <ul class="liste">
-{% for ligne in lignes %}
-{% if not ligne.suivi %}
+{% for ligne in groupe.lignes %}
 <li class="entree">{{ ligne.titre }}
 <div class="actions">
 <a class="bouton discret" href="{{ ligne.lire }}">Parcourir les compétences</a>
@@ -53,9 +54,9 @@
 </form>
 </div>
 </li>
-{% endif %}
 {% endfor %}
 </ul>
 </details>
+{% endfor %}
 </div>
 {% endblock %}

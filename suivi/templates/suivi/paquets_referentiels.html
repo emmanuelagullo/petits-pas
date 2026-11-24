@@ -1,9 +1,13 @@
 {% extends "suivi/base.html" %}
 {% load static navigation_suivi %}
-{% block titre %}{% if peut_importer %}Échanger un référentiel{% else %}Exporter un référentiel{% endif %}{% endblock %}
+{% block titre %}{% if classe and not peut_importer %}Partager le référentiel de la classe{% elif peut_importer %}Échanger un référentiel{% else %}Exporter un référentiel{% endif %}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel echange-referentiel">
-{% if peut_importer %}
+{% if classe and not peut_importer %}
+{% ariane_referentiel "Partager le référentiel de la classe" classe annee %}
+<h1 id="haut-page-suivi" tabindex="-1">Partager le référentiel de la classe</h1>
+{% include "suivi/partiels/aide_import_referentiel.html" %}
+{% elif peut_importer %}
 {% ariane_referentiel "Échanger un référentiel" classe annee %}
 <h1 id="haut-page-suivi" tabindex="-1">Échanger un référentiel</h1>
 {% else %}
@@ -64,9 +68,13 @@
 {% else %}
 <div class="rubriques-edition">
 {% endif %}
+{% if classe and not peut_importer %}
+<section id="export-referentiel" aria-labelledby="haut-page-suivi">
+{% else %}
 <details id="export-referentiel" data-zone-sommaire="titre-export-referentiel"{% if volet == "exporter" or not peut_importer %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Exporter" titre_id="titre-export-referentiel" only %}
 <div class="contenu-echange">
+{% endif %}
 {% if classe %}
 {% include "suivi/partiels/partager_referentiel_classe.html" %}
 {% else %}
@@ -106,8 +114,8 @@
 {% endif %}
 {% if not versions %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}
 {% endif %}
-</div>
-</details>
+{% if classe and not peut_importer %}</section>{% else %}</div>
+</details>{% endif %}
 {% if not classe %}
 <details data-zone-sommaire="composer-referentiel"{% if composition_ouverte %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Composer une édition" titre_id="composer-referentiel" only %}

@@ -271,5 +271,28 @@ def suivis_classe(request, classe_pk):
             SuiviSourceClasse.objects.filter(classe=classe, reference=cible).delete()
             return redirect(retour)
         raise Http404
+    catalogues = {
+        identifiant_source_ecole(ecole, identite_grist(catalogue["url"], referentiel["reference"])):
+            (catalogue["url"], catalogue["nom"])
+        for catalogue in catalogues_grist_connus(ecole.catalogues_referentiels).values()
+        for referentiel in catalogue["referentiels"]
+    }
+    groupes = {}
+    for ligne in lignes:
+        if ligne["suivi"]:
+            continue
+        version = ligne["version"]
+        if ligne["autre"]:
+            cle, nom = "classes", "Référentiels des classes de l’école"
+        elif version.source.identifiant_diffusion.startswith("classe-grist-"):
+            cle, nom = "espace-grist", "Référentiels reçus de l’espace Grist"
+        elif version.source.identifiant in catalogues:
+            cle, nom = catalogues[version.source.identifiant]
+        elif version.source.ecole_id:
+            cle, nom = "ecole", "Référentiels reçus par l’école"
+        else:
+            cle, nom = "instance", "Catalogue de cette instance Petits Pas"
+        groupes.setdefault(cle, {"nom": nom, "lignes": []})["lignes"].append(ligne)
     return render(request, "suivi/suivis_referentiels_classe.html",
-                  {"classe": classe, "lignes": lignes, "indisponibles": set(suivis) - disponibles.keys()})
+                  {"classe": classe, "lignes": lignes, "groupes": list(groupes.values()),
+                   "indisponibles": set(suivis) - disponibles.keys()})
