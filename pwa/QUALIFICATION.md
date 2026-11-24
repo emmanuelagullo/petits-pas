@@ -522,3 +522,20 @@ classe hors ligne et la reconnecter. Vérifier la réception dans le deuxième
 profil, le remplacement de la ligne distante et l’absence d’import du contenu
 propre à chaque installation. Suspendre puis réactiver et vérifier que
 l’identifiant reste stable.
+
+### Contributions au référentiel d’équipe
+
+Dans un espace Grist fictif partagé, ouvrir **Référentiel d’équipe**. Une
+contribution part d’un ZIP de référentiel et, après la première édition, de la
+version de départ indiquée dans le formulaire. Elle est enregistrée localement
+avant envoi. Les contributions de l’équipe occupent leur propre table Grist,
+avec une ligne par empreinte et un envoi idempotent. L’import au catalogue de
+l’école est explicite. Le choix annuel de la classe reste celui du parcours
+habituel.
+
+Avec deux installations, partir de la même édition. Enregistrer un ajout
+distinct sur chacune hors ligne. Rétablir les connexions dans l’ordre inverse
+et réunir les contributions. Vérifier les deux ajouts et répéter un envoi.
+Rejouer avec deux modifications incompatibles du même libellé. Contrôler les
+versions disponibles puis déposer un ZIP de résolution. Vérifier l’absence
+de changement de référentiel principal après ajout au catalogue.

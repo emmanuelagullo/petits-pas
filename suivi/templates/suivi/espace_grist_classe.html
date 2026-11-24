@@ -5,6 +5,7 @@
 {% ariane_referentiel "Espace de partage" classe classe.annee_scolaire %}
 <h1>Espace de partage</h1>
 {% if partage.actif %}
+<p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>
 <div data-invitation-grist="{{ partage.url }}" hidden>
 <button type="button" class="bouton discret">Copier le lien d’invitation</button>
 <p role="status"></p>

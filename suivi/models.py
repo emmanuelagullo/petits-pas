@@ -1403,3 +1403,20 @@ class PartageGristClasse(models.Model):
     actif = models.BooleanField(default=True)
     nom_espace = models.CharField(max_length=200, blank=True)
     derniere_empreinte = models.CharField(max_length=64, blank=True)
+
+
+class ContributionReferentielEquipe(models.Model):
+    """Édition immuable conservée localement avant et après sa diffusion."""
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE)
+    document_grist = models.CharField(max_length=64)
+    empreinte = models.CharField(max_length=64)
+    edition = models.JSONField()
+    envoyee = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["ecole", "document_grist", "empreinte"],
+                name="contribution_equipe_unique",
+            ),
+        ]

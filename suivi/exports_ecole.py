@@ -109,7 +109,7 @@ def selections(ecole_id):
 def verifier_couverture(selection):
     excludes = {m.ExportEcole, m.ExportClasse, m.BrouillonReferentiel, m.PropositionReferentiel, Utilisateur,
                 # Une copie indépendante choisit ses propres publications et destinations.
-                m.DestinationPublicationGrist, m.InformationsPartageReferentielClasse, m.SuiviSourceClasse, m.PartageGristClasse,
+                m.DestinationPublicationGrist, m.InformationsPartageReferentielClasse, m.SuiviSourceClasse, m.PartageGristClasse, m.ContributionReferentielEquipe,
                 apps.get_model("comptes", "DoubleFacteurCompte"),
                 apps.get_model("comptes", "CodeSecoursDoubleFacteur"),
                 # Accès de l'appareil local : ni clés ni choix ne quittent l'appareil.

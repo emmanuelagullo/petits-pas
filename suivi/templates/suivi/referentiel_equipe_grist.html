@@ -1,0 +1,56 @@
+{% extends "suivi/base.html" %}
+{% load navigation_suivi %}
+{% block titre %}Référentiel d’équipe{% endblock %}
+{% block contenu %}
+{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire %}
+<h1>Référentiel d’équipe</h1>
+{% if erreur %}<ul class="messages"><li role="alert" class="error">{{ erreur }}</li></ul>{% endif %}
+{% if conflits %}
+<div class="avertissement-referentiel avertissement-orange">
+<p>Les deux contributions restent disponibles. Téléchargez-les pour préparer une édition qui résout les différences.</p>
+<ul>{% for conflit in conflits %}<li>{{ conflit.chemin|join:" › " }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+{% for identifiant, document, competences in tetes %}
+<section class="encadre">
+<h2>{{ document.source.titre }} · {{ document.version }}</h2>
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu" only %}
+{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=document competences_importees=competences partage=True only %}
+</details>
+<p><a class="bouton discret" href="?edition={{ identifiant }}">Télécharger le ZIP</a></p>
+</section>
+{% empty %}
+<p>Aucune édition d’équipe reçue ou enregistrée pour cet espace.</p>
+{% endfor %}
+{% if a_reunir %}
+<form method="post">{% csrf_token %}
+{% for identifiant in a_reunir %}<input type="hidden" name="parent" value="{{ identifiant }}">{% endfor %}
+<button class="bouton discret" name="action" value="fusionner">Réunir les contributions</button>
+</form>
+{% endif %}
+{% if edition_unique %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="edition" value="{{ edition_unique }}">
+<button class="bouton discret" name="action" value="catalogue">Ajouter l’édition au catalogue de l’école</button>
+</form>
+{% endif %}
+<form method="post" enctype="multipart/form-data" class="encadre">
+{% csrf_token %}
+{% if editions %}
+<p><label for="parent">Édition de départ</label>
+<select id="parent" name="parent" required>
+{% for identifiant, document in editions %}<option value="{{ identifiant }}">{{ document.source.titre }} · {{ document.version }} ({{ identifiant|slice:":8" }})</option>{% endfor %}
+</select></p>
+{% endif %}
+{% if a_reunir %}
+{% for identifiant in a_reunir %}<input type="hidden" name="tete" value="{{ identifiant }}">{% endfor %}
+<p><label><input type="checkbox" name="resoudre" value="oui"> Cette édition résout les différences entre les deux contributions affichées</label></p>
+{% endif %}
+<p><label for="paquet">ZIP du référentiel d’équipe</label> <input id="paquet" type="file" name="paquet" accept=".zip" required></p>
+<div class="actions">
+<button class="bouton" name="action" value="ajouter">Enregistrer la contribution</button>
+<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
+</div>
+</form>
+{% endblock %}

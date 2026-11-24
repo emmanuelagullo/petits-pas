@@ -215,6 +215,8 @@ def synchroniser(request):
             travaux.append({"id": str(partage.identifiant),
                 "api": f"https://{HOTE_GRIST}{prefixe}/api/docs/{document}",
                 "table": TABLE, "nom": partage.classe.nom,
+                "transfert_equipe": (reverse("transfert_equipe_grist", args=[partage.classe_id])
+                                     + "?" + urlencode({"espace": document})),
                 "nom_espace": partage.nom_espace or nom_espace_propose(partage.classe),
                 "contenu": contenu if cle != partage.derniere_empreinte else None,
                 "empreinte": cle, "recues": recues, "erreur": erreur})

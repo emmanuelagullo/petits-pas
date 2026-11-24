@@ -93,3 +93,51 @@ class PartageGristPWA(Base):
         reponse = self.client.get(invitation, {"grist": "https://grist.numerique.gouv.fr/document-fictif"})
         self.assertRedirects(reponse, reverse("connexion"))
         self.assertTrue(self.client.session["suivant"].startswith(invitation + "?grist="))
+
+    def test_journal_equipe_offline_et_fusion_apres_reception_des_branches(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from .models import ContributionReferentielEquipe
+        from .services.journal_referentiel_equipe import contribution, identifiant_contribution
+        from .services.paquets_referentiels import empaqueter
+        from .tests_import_sources_referentiels import document
+
+        self.adopter()
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        adresse = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        self.client.post(espace, {"grist": adresse, "confirmer": "oui"})
+        equipe = reverse("referentiel_equipe_grist", args=[self.classe.pk])
+        transfert = reverse("transfert_equipe_grist", args=[self.classe.pk]) + "?espace=document-fictif"
+        depart = document()
+        fichier = SimpleUploadedFile("equipe.zip", empaqueter(depart))
+        self.assertRedirects(self.client.post(equipe, {"action": "ajouter", "paquet": fichier}), equipe)
+        base = self.client.get(transfert).json()["a_envoyer"][0]
+        self.assertEqual(ContributionReferentielEquipe.objects.count(), 1)
+        self.assertFalse(ContributionReferentielEquipe.objects.get().envoyee)
+        self.assertEqual(self.client.post(transfert, base, content_type="application/json").status_code, 200)
+
+        têtes = []
+        for n in (3, 2):
+            doc = document(version=str(n))
+            doc["domaines"][0]["competences"].append(
+                {"identite": f"ajout-{n}", "code": f"A{n}", "libelle": f"Ajout {n}", "niveau": "PS"},
+            )
+            edition = contribution([base["empreinte"]], doc)
+            cle = identifiant_contribution(edition)
+            têtes.append(cle)
+            for _ in range(2):
+                self.assertEqual(self.client.post(transfert, {"edition": edition, "empreinte": cle},
+                                                  content_type="application/json").status_code, 200)
+        self.assertEqual(ContributionReferentielEquipe.objects.count(), 3)
+        self.assertRedirects(self.client.post(equipe, {"action": "fusionner", "parent": sorted(têtes)}), equipe)
+        a_envoyer = self.client.get(transfert).json()["a_envoyer"]
+        self.assertEqual(len(a_envoyer), 1)
+        fusion = a_envoyer[0]["edition"]
+        self.assertEqual(fusion["parents"], sorted(têtes))
+        self.assertEqual({c["identite"] for c in fusion["document"]["domaines"][0]["competences"]},
+                         {"oser-parler", "ajout-2", "ajout-3"})
+        self.assertEqual(VersionReferentiel.objects.count(), 1)
+        self.assertRedirects(self.client.post(equipe, {"action": "catalogue", "edition": a_envoyer[0]["empreinte"]}),
+                             equipe)
+        self.assertEqual(VersionReferentiel.objects.filter(source__identifiant_diffusion="equipe-grist-document-fictif").count(), 1)
+        self.assertEqual(self.client.get(transfert.replace("document-fictif", "autre-document")).status_code, 409)

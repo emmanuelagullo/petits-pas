@@ -88,6 +88,33 @@
     return demander(adresse, opérations);
   }
 
+  async function synchroniserÉquipe(partage) {
+    const transfert = partage.transfert_equipe;
+    const table = 'PetitsPasContributions';
+    const index = `${partage.api}/tables/${table}/records`;
+    const {connues, a_envoyer} = await demander(transfert);
+    const {tables} = await grist(partage.api + '/tables');
+    if (!a_envoyer.length && !tables.some(t => t.id === table)) return;
+    if (!tables.some(t => t.id === table)) await préparer(partage.api, table, ['Empreinte', 'Edition']);
+    const transmettre = ligne => {
+      const options = json('POST', ligne);
+      options.headers['X-CSRFToken'] = csrf;
+      return demander(transfert, options);
+    };
+    if (a_envoyer.length) {
+      const ligne = a_envoyer[0];
+      await grist(index + '?noparse=true&noupdate=true&onmany=none',
+        json('PUT', {records: [{require: {Empreinte: ligne.empreinte},
+          fields: {Edition: JSON.stringify(ligne.edition)}}]}));
+    }
+    const {records} = await grist(index);
+    const acquittées = new Set(connues);
+    for (const {fields} of records) {
+      if (acquittées.has(fields.Empreinte) && fields.Empreinte !== a_envoyer[0]?.empreinte) continue;
+      await transmettre({empreinte: fields.Empreinte, edition: JSON.parse(fields.Edition)});
+    }
+  }
+
   async function vérifier() {
     if (enCours || !navigator.onLine) return;
     enCours = true;
@@ -97,6 +124,7 @@
         const affiché = nomEspace?.dataset.partage === partage.id;
         try {
           const résultat = await synchroniser(partage, new Set(propres));
+          await synchroniserÉquipe(partage);
           if (affiché && résultat.nom) nomEspace.textContent = résultat.nom;
           if (affiché && etat) etat.textContent = partage.erreur || (résultat.erreurs
             ? 'Des référentiels reçus sont illisibles.' : 'Synchronisation terminée.');
