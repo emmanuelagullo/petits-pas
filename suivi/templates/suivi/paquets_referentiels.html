@@ -6,14 +6,12 @@
 {% if classe and not peut_importer %}
 {% ariane_referentiel "Partager le référentiel de la classe" classe annee %}
 <h1 id="haut-page-suivi" tabindex="-1">Partager le référentiel de la classe</h1>
-{% include "suivi/partiels/aide_import_referentiel.html" %}
 {% elif peut_importer %}
 {% ariane_referentiel "Échanger un référentiel" classe annee %}
 <h1 id="haut-page-suivi" tabindex="-1">Échanger un référentiel</h1>
 {% else %}
 {% ariane_referentiel "Exporter un référentiel" classe annee %}
 <h1 id="haut-page-suivi" tabindex="-1">Exporter un référentiel</h1>
-{% include "suivi/partiels/aide_import_referentiel.html" %}
 {% endif %}
 {% if retour_decouverte %}<p><a href="{{ retour_decouverte }}">Retour à Découvrir des référentiels</a></p>{% endif %}
 {% if erreur and not erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}

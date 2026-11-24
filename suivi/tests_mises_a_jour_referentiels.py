@@ -164,6 +164,9 @@ class MisesAJour(Base):
         self.assertContains(page, 'id="url-grist"')
         self.assertContains(page, "Voir le contenu à partager")
         self.assertContains(page, "Télécharger le ZIP", count=1)
+        self.assertContains(page, 'value="telecharger-classe" formnovalidate')
+        self.assertNotContains(page, "Vous avez reçu un fichier ZIP")
+        self.assertNotContains(self.client.get(echange), "Vous avez reçu un fichier ZIP")
         self.assertNotContains(page, "Examiner le contenu")
         donnees = {"action": "publier-grist", "url_grist": url}
         with patch("suivi.publication_grist.destination_grist", return_value=destination), patch(

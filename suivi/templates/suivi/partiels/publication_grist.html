@@ -30,9 +30,9 @@
 {% endfor %}
 </select></p>
 {% endif %}
-{% if not destination_grist %}
-<p><button class="bouton discret" name="action" value="voir-grist">Voir les référentiels de ce catalogue</button></p>
-{% endif %}
+<p{% if destination_grist %} hidden data-catalogue-consulte="{{ destination_grist.url }}"{% endif %}>
+<button class="bouton discret" name="action" value="voir-grist">Voir les référentiels de ce catalogue</button>
+</p>
 <details{% if nom_catalogue_saisi %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du catalogue" only %}
 <p><label for="nom-catalogue-grist">Nom affiché dans Petits Pas</label>
@@ -41,8 +41,9 @@ placeholder="{{ nom_catalogue_propose }}"></p>
 </details>
 {% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
 </details>
+<p class="aide" id="aide-destination-grist" data-aide-destination-grist hidden>Choisissez un catalogue ou collez son lien pour publier dans Grist.</p>
 <p class="actions">
-<button class="bouton" name="action" value="publier-grist">Publier dans Grist</button>
-<button class="bouton discret" name="action" value="telecharger-classe">Télécharger le ZIP</button>
+<button class="bouton" name="action" value="publier-grist" aria-describedby="aide-destination-grist">Publier dans Grist</button>
+<button class="bouton discret" name="action" value="telecharger-classe" formnovalidate>Télécharger le ZIP</button>
 </p>
 </form>
