@@ -16,52 +16,10 @@
 {% elif source %}
   {% if disponibles %}
   <h2>{{ nom_source }}</h2>
-  <ul class="liste">
-    {% for ligne in disponibles %}
-    <li{% if ligne.ancre %} id="{{ ligne.ancre }}" tabindex="-1"{% endif %}>
-      <strong>{{ ligne.competence.libelle }}</strong>
-      <small> · {{ ligne.competence.niveau }} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %} · {% if ligne.deja_suivie %}Déjà suivie{% else %}Hors suivi{% endif %}</small>
-      {% if ligne.gestion.competence_masquee %}<small> · Compétence masquée</small>{% endif %}
-      {% if ligne.gestion.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
-      {% include "suivi/partiels/menu_competence_catalogue.html" with ligne=ligne.gestion %}
-      {% if deplacement and ligne.gestion.competence.pk == deplacement.competence.id %}
-        {% include "suivi/partiels/deplacement_competence_catalogue.html" %}
-      {% endif %}
-      <div class="actions">
-        {% if ligne.deja_suivie %}
-        <a class="bouton discret" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
-        {% elif ligne.choix_portee %}
-        <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
-        {% elif not ligne.gestion.competence_masquee %}
-        <form method="post" action="{{ url_resultats }}">
-          {% csrf_token %}
-          <input type="hidden" name="reference" value="{{ ligne.reference }}">
-          <input type="hidden" name="adoption" value="{{ adoption.pk }}">
-          <button class="bouton discret" type="submit" name="action" value="ajouter_depuis_source">Ajouter au référentiel de la classe</button>
-        </form>
-        {% endif %}
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
+  {% include "suivi/partiels/rubriques_competences.html" with lignes=disponibles entree="suivi/partiels/catalogue_entree_source.html" niveau_domaine=3 niveau_sous_domaine=4 %}
   {% endif %}
-{% elif q and lignes %}
-  <ul class="liste">
-    {% for ligne in lignes %}{% include "suivi/partiels/catalogue_entree.html" with afficher_classement=True %}{% endfor %}
-  </ul>
 {% else %}
-  {% regroup lignes by domaine_affiche_id as groupes_domaines %}
-  {% for groupe_domaine in groupes_domaines %}
-  <section class="domaine"><h2>{{ groupe_domaine.list.0.domaine }}</h2>
-    {% regroup groupe_domaine.list by sous_domaine_affiche_id as sous_groupes %}
-    {% for sous_groupe in sous_groupes %}
-    {% if sous_groupe.grouper %}<h3>{{ sous_groupe.list.0.sous_domaine }}</h3>{% endif %}
-    <ul class="liste">
-      {% for ligne in sous_groupe.list %}{% include "suivi/partiels/catalogue_entree.html" %}{% endfor %}
-    </ul>
-    {% endfor %}
-  </section>
-  {% endfor %}
+  {% include "suivi/partiels/rubriques_competences.html" with entree="suivi/partiels/catalogue_entree.html" %}
 {% endif %}
 {% if not nombre and not recherches_elargies %}<p>{% if vue_suivi %}Aucune compétence dans le suivi pour cette section.{% else %}Aucune compétence ne correspond à la recherche.{% endif %}</p>{% endif %}
 </div>

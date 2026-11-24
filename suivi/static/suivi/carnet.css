@@ -1277,3 +1277,17 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
   border-block-end-color: var(--trait);
 }
 .contenu-echange { padding: .65rem .85rem .85rem; }
+
+/* Même présentation pour les compétences d'une classe et les éditions reçues. */
+.rubriques-competences > .domaine { margin-block: .6rem; }
+.rubriques-competences summary.bouton-depliant {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  text-align: start;
+  white-space: normal;
+}
+.rubriques-competences summary > :is(h2, h3, h4, h5) { margin: 0; font: inherit; }
+.rubriques-competences > .domaine > summary { font-weight: 650; }
+.rubriques-competences .sous-domaine { margin: .4rem .6rem; }
+.rubriques-competences .liste { margin: .4rem .6rem .6rem; }

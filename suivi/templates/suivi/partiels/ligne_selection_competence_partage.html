@@ -1,0 +1,6 @@
+<li class="entree" data-ligne data-domaine="{{ ligne.domaine }}" data-niveau="{{ ligne.niveau }}" data-sous-domaine="{{ ligne.sous_domaine }}">
+<label><input type="checkbox" name="{{ champ }}" value="{{ ligne.reference }}"{% if ligne.reference in selection %} checked{% endif %}>
+<strong>{{ ligne.libelle }}</strong>
+<br>{{ ligne.domaine }}{% if ligne.sous_domaine %} · {{ ligne.sous_domaine }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if ligne.edition %} · {{ ligne.edition }}{% endif %}
+</label>
+</li>

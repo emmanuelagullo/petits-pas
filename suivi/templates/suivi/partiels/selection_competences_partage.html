@@ -9,21 +9,13 @@
 <summary class="bouton discret">Filtres</summary>
 <div class="groupes-filtres" data-filtres-partage>
 <label>Domaine <select data-domaine><option value="">Tous les domaines</option></select></label>
+<label>Sous-domaine <select data-sous-domaine><option value="">Tous les sous-domaines</option></select></label>
 <label>Section <select data-niveau><option value="">Toutes les sections</option><option>PS</option><option>MS</option><option>GS</option></select></label>
 <label><input type="checkbox" data-cochees> Afficher uniquement les compétences cochées</label>
 </div>
 </details>
 </div>
-<ul class="liste">
-{% for ligne in lignes %}
-<li class="entree" data-ligne data-domaine="{{ ligne.domaine }}" data-niveau="{{ ligne.niveau }}">
-<label><input type="checkbox" name="{{ champ }}" value="{{ ligne.reference }}"{% if ligne.reference in selection %} checked{% endif %}>
-<strong>{{ ligne.libelle }}</strong>
-<br>{{ ligne.domaine }}{% if ligne.sous_domaine %} · {{ ligne.sous_domaine }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if ligne.edition %} · {{ ligne.edition }}{% endif %}
-</label>
-</li>
-{% endfor %}
-</ul>
+{% include "suivi/partiels/rubriques_competences.html" with entree="suivi/partiels/ligne_selection_competence_partage.html" q="" niveau_domaine=4 niveau_sous_domaine=5 %}
 <nav data-pages hidden aria-label="Pages des compétences">
 <button type="button" class="bouton discret" data-precedente>Page précédente</button>
 <span data-position></span>

@@ -8,17 +8,17 @@ from .referentiels import contenu_adoption
 def lignes_consultation(version, adoption=None):
     contenu = contenu_adoption(adoption) if adoption else version.contenu
     lignes = []
-    if adoption or version.source.ecole_id is not None:
+    if adoption or contenu.get("origine") != "source_declaree":
         domaines = {d["id"]: d["nom"] for d in contenu.get("domaines", [])}
         groupes = {s["id"]: s["nom"] for s in contenu.get("sous_domaines", [])}
         for c in contenu.get("competences", []):
             lignes.append({**c, "domaine": domaines.get(c["domaine_id"], ""),
-                           "groupe": groupes.get(c.get("sous_domaine_id"), "")})
+                           "sous_domaine": groupes.get(c.get("sous_domaine_id"), "")})
     else:
         for d in contenu.get("domaines", []):
             for groupe, competences in [("", d["competences"])] + [(s["nom"], s["competences"]) for s in d["sous_domaines"]]:
                 for c in competences:
-                    lignes.append({**c, "domaine": d["nom"], "groupe": groupe, "active": True})
+                    lignes.append({**c, "domaine": d["nom"], "sous_domaine": groupe, "active": True})
     from .models import CompetenceLocale
     libres = set(CompetenceLocale.objects.filter(suivi_libre=True).values_list("competence_id", flat=True))
     return [c for c in lignes if c.get("id") not in libres]

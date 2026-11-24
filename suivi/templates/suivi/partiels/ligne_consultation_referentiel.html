@@ -1,0 +1,1 @@
+<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{% if afficher_classement %}{{ ligne.domaine }}{% if ligne.sous_domaine %} · {{ ligne.sous_domaine }}{% endif %} · {% endif %}{{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>

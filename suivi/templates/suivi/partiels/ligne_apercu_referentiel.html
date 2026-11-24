@@ -1,0 +1,1 @@
+<li>{% if ligne.icone_png %}<img src="data:image/png;base64,{{ ligne.icone_png }}" alt="" width="32" height="32"> {% endif %}{{ ligne.libelle }}{% if partage %} · {{ ligne.niveau }}{% if ligne.formulations %}<ul>{% for formule in ligne.formulations %}<li>{{ formule.texte }}</li>{% endfor %}</ul>{% endif %}{% endif %}</li>

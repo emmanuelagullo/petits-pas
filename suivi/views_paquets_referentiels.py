@@ -123,7 +123,7 @@ def apercu_document(document, ecole):
         identifiant = identifiant_source_ecole(ecole, identifiant)
     precedente = VersionReferentiel.objects.filter(source__identifiant=identifiant, source__ecole=ecole
         ).exclude(numero=contenu["version"]).order_by("-pk").first()
-    competences = list(competences_document(contenu))
+    competences = list(definitions_document(contenu).values())
     icones = catalogue_icones()
     return {
         "apercu": contenu,
@@ -236,13 +236,8 @@ def partage_classe(request, classe, contexte, action):
             InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
             presenter_publication_grist(request, classe, contexte, donnees["identifiant"])
         return
-    lignes = []
-    for domaine in normalise["domaines"]:
-        for groupe in [domaine, *domaine["sous_domaines"]]:
-            rubrique = domaine["nom"] if groupe is domaine else f'{domaine["nom"]} / {groupe["nom"]}'
-            lignes.extend({**competence, "rubrique": rubrique} for competence in groupe["competences"])
     contexte["apercu_partage"] = {
-        "apercu": normalise, "competences_importees": lignes,
+        "apercu": normalise, "competences_importees": list(definitions_document(normalise).values()),
         "icones_importees": [catalogue_icones()[cle] for cle in sorted({
             c["icone"] for c in competences_document(normalise) if c["icone"]
         })],

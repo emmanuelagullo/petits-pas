@@ -50,14 +50,7 @@
   </div>
   </fieldset>
   <fieldset class="groupe-filtres"><legend>Classement</legend>
-  <label for="domaine">Domaine</label>
-  <select id="domaine" name="domaine">
-    {% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}
-  </select>
-  <label for="sous_domaine">Sous-domaine</label>
-  <select id="sous_domaine" name="sous_domaine">
-    {% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}
-  </select>
+  {% include "suivi/partiels/filtres_classement_competences.html" %}
   {% if a_des_competences_masquees %}
   <label><input type="checkbox" name="inclure_competences_masquees" value="1"{% if inclure_competences_masquees %} checked{% endif %}> Inclure les compétences masquées</label>
   {% endif %}

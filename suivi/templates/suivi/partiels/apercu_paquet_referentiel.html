@@ -3,16 +3,18 @@
 <h3>{{ apercu.source.titre }} — {{ apercu.version }}</h3>
 <p>{% if not partage %}Catalogue {{ destination_import }} · {% endif %}{{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
 {% if comparaison_import %}
+<p>Depuis l’édition {{ edition_comparee }} du catalogue · {{ comparaison_import.ajouts|length }} ajout{{ comparaison_import.ajouts|length|pluralize }} · {{ comparaison_import.modifications|length }} modification{{ comparaison_import.modifications|length|pluralize }} · {{ comparaison_import.retraits|length }} retrait{{ comparaison_import.retraits|length|pluralize }}</p>
 <details>
-<summary>Écarts avec l’édition {{ edition_comparee }} du catalogue</summary>
-<p>{{ comparaison_import.ajouts|length }} ajout(s) · {{ comparaison_import.retraits|length }} retrait(s) · {{ comparaison_import.modifications|length }} modification(s).</p>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir les changements" only %}
+{% if comparaison_import.ajouts %}<h4>Ajouts</h4><ul>{% for libelle in comparaison_import.ajouts %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
+{% if comparaison_import.retraits %}<h4>Retraits</h4><ul>{% for libelle in comparaison_import.retraits %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
 {% for libelle, details in comparaison_import.modifications %}
 <h4>{{ libelle }}</h4>
 <dl>{% for detail in details %}<dt>{{ detail.champ }}</dt><dd>{{ detail.avant }} → {{ detail.apres }}</dd>{% endfor %}</dl>
 {% endfor %}
 </details>
 {% endif %}
-<ul>{% for competence in competences_importees %}<li>{% if competence.icone_png %}<img src="data:image/png;base64,{{ competence.icone_png }}" alt="" width="32" height="32"> {% endif %}{{ competence.libelle }}{% if partage %} · {{ competence.rubrique }} · {{ competence.niveau }}{% if competence.formulations %}<ul>{% for formule in competence.formulations %}<li>{{ formule.texte }}</li>{% endfor %}</ul>{% endif %}{% endif %}</li>{% endfor %}</ul>
+{% include "suivi/partiels/rubriques_competences.html" with lignes=competences_importees entree="suivi/partiels/ligne_apercu_referentiel.html" niveau_domaine=4 niveau_sous_domaine=5 %}
 {% if icones_importees %}
 <h4>Illustrations et crédits</h4>
 <ul>{% for icone in icones_importees %}<li><img src="{% static icone.fichier %}" alt="" width="32" height="32"> {{ icone.nom }} · {{ icone.credit }}</li>{% endfor %}</ul>

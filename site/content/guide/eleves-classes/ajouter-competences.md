@@ -18,11 +18,11 @@ statut = "disponible"
    autorisé ou les compétences d’une autre classe accessible.
 2. Sur un résultat, **Voir le suivi** ouvre la liste des élèves de cette
    compétence. **Ajouter au suivi**, quand il est proposé, permet de choisir
-   les élèves concernés. **Ajouter au référentiel de la classe**, quand il
+   les élèves concernés. **Ajouter cette compétence à la classe**, quand il
    est proposé, rend la compétence disponible à toute la classe.
 3. Si une correspondance est écartée par les filtres, suivre le lien proposé
    pour la retrouver. Si la recherche ne trouve pas la compétence, ouvrir
-   **Créer « … »**, puis choisir **Ajouter au référentiel de la classe**
+   **Créer « … »**, puis choisir **Ajouter cette compétence à la classe**
    ou **Suivre pour les élèves sélectionnés**. Le premier choix vaut aussi
    pour les futurs inscrits. Le second porte sur les élèves choisis.
 4. Vérifier le libellé, la section, le domaine et le sous-domaine si utile,

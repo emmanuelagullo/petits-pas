@@ -361,13 +361,18 @@ def consulter_referentiels(request, classe_pk=None):
     if mode not in ("source", "classe") or (mode == "classe" and not adoption):
         raise Http404
     lignes = lignes_consultation(version, adoption) if version else []
-    catalogue = [{cle: c.get(cle, "") for cle in ("libelle", "domaine", "groupe", "niveau", "code", "active")} for c in lignes]
     total = len(lignes)
     domaines = list(dict.fromkeys(c["domaine"] for c in lignes))
     recherche = request.GET.get("q", "").strip()[:300]
     domaine = request.GET.get("domaine", "")
+    groupes = list(dict.fromkeys(c["sous_domaine"] for c in lignes if c["sous_domaine"]
+                                 and (not domaine or c["domaine"] == domaine)))
+    sous_domaine = request.GET.get("sous_domaine", "")
+    if sous_domaine not in groupes:
+        sous_domaine = ""
     niveau = request.GET.get("niveau", "")
     lignes = [c for c in lignes if (not domaine or c["domaine"] == domaine)
+              and (not sous_domaine or c["sous_domaine"] == sous_domaine)
               and (not niveau or c["niveau"] == niveau)]
     lignes = rechercher_apprentissages(lignes, recherche)
     page = Paginator(lignes, 60).get_page(request.GET.get("page"))
@@ -377,7 +382,8 @@ def consulter_referentiels(request, classe_pk=None):
         "versions": versions.values(), "version": version, "historique": historiques.get(version_id),
         "disponible": version_id in {v.pk for v in disponibles}, "lecture": mode,
         "liens_source": liens_documentaires(version.source) if version else {},
-        "catalogue": catalogue, "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
+        "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
+        "groupes": groupes, "sous_domaine": sous_domaine,
         "domaines": domaines, "domaine": domaine, "niveau": niveau})
 
 

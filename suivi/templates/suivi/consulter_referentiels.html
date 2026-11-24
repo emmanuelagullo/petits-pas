@@ -1,5 +1,4 @@
 {% extends "suivi/base.html" %}
-{% load static %}
 {% block titre %}Consulter les référentiels — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
@@ -20,24 +19,38 @@
 {% include "suivi/partiels/provenance_referentiel.html" with source=version.source %}
 </details>
 {% if lecture == 'classe' %}<p>La liste ci-dessous présente les libellés utilisés par la classe, avec ses adaptations et ajouts{% if historique.clos %}, conservée à la clôture{% endif %}.</p>{% else %}<p>La liste ci-dessous présente les libellés de la base fournie, sans les reformulations, masquages ni ajouts de l’école ou de la classe.</p>{% endif %}
-<form method="get" class="filtres-referentiel" data-recherche-referentiel data-lecture="{{ lecture }}">
+<form method="get" action="{{ request.path }}" class="encadre recherche-catalogue"
+      hx-get="{{ request.path }}" hx-trigger="input changed delay:250ms from:#q, change from:#niveau, change from:body target:#sous_domaine, change from:#domaine"
+      hx-target="#resultats-consultation" hx-select="#resultats-consultation" hx-swap="outerHTML"
+      hx-select-oob="#sous_domaine:outerHTML" hx-replace-url="true" hx-sync="this:replace">
 <input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="annee" value="{{ annee }}">
-<fieldset class="groupe-filtres"><legend>Compétences à afficher</legend><div class="groupes-filtres">
-{% if historique %}<div><label for="lecture">Libellés à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Libellés de la base fournie</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select></div>{% endif %}
-<div><label for="domaine">Domaine</label><select id="domaine" name="domaine"><option value="">Tous les domaines</option>{% for nom in domaines %}<option{% if domaine == nom %} selected{% endif %}>{{ nom }}</option>{% endfor %}</select></div>
-<div><label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Toutes les sections</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
-<p class="aide">Les sections de classement ne remplacent pas les repères d'âge des programmes.</p></div></div></fieldset>
-<div class="recherche-referentiel">
-<div class="champ-recherche"><label for="q">Rechercher une compétence</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300"></div>
-<button class="bouton discret">Filtrer les compétences</button>
+<label for="q">Rechercher une compétence</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300">
+<div class="actions">
+<button class="bouton discret">Rechercher</button>
+</div>
+<div class="barre-filtres-edition" data-barre-filtres>
+<details data-panneau-filtre class="details-filtres-catalogue">
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Filtres" only %}
+<div class="groupes-filtres">
+<fieldset class="groupe-filtres"><legend>Présentation et section</legend>
+{% if historique %}<label for="lecture">Libellés à afficher</label><select name="lecture" id="lecture"><option value="source"{% if lecture == 'source' %} selected{% endif %}>Libellés du référentiel fourni</option><option value="classe"{% if lecture == 'classe' %} selected{% endif %}>Présentation de la classe</option></select>{% endif %}
+<label for="niveau">Section de classement</label><select id="niveau" name="niveau"><option value="">Tout le cycle</option><option{% if niveau == 'PS' %} selected{% endif %}>PS</option><option{% if niveau == 'MS' %} selected{% endif %}>MS</option><option{% if niveau == 'GS' %} selected{% endif %}>GS</option></select>
+<p class="aide">Les sections de classement ne remplacent pas les repères d’âge des programmes.</p>
+</fieldset>
+<fieldset class="groupe-filtres"><legend>Classement</legend>
+{% include "suivi/partiels/filtres_classement_competences.html" %}
+</fieldset>
+</div>
+</details>
 </div>
 </form>
-<p data-compteur-referentiel role="status" aria-live="polite">{{ page.paginator.count }} résultat{{ page.paginator.count|pluralize }}.</p>
-<ul class="liste" data-resultats-referentiel>{% for ligne in page %}<li class="entree"><div><strong>{{ ligne.libelle }}</strong><p>{{ ligne.domaine }}{% if ligne.groupe %} · {{ ligne.groupe }}{% endif %} · {{ ligne.niveau }} · {{ ligne.code }}{% if not ligne.active %} · masquée pour les prochaines saisies{% endif %}</p></div></li>{% empty %}<li>Aucune compétence ne correspond à ces filtres.</li>{% endfor %}</ul>
-{% if page.has_other_pages %}<nav data-pagination-serveur aria-label="Pages des compétences">{% if page.has_previous %}<a href="?{{ params }}&amp;page={{ page.previous_page_number }}">Page précédente</a>{% endif %} · Page {{ page.number }} sur {{ page.paginator.num_pages }} · {% if page.has_next %}<a href="?{{ params }}&amp;page={{ page.next_page_number }}">Page suivante</a>{% endif %}</nav>{% endif %}
-<nav data-pagination-locale hidden aria-label="Pages des compétences"><button type="button" class="bouton discret" data-precedent>Page précédente</button> <span data-position></span> <button type="button" class="bouton discret" data-suivant>Page suivante</button></nav>
-{{ catalogue|json_script:"catalogue-referentiel" }}
-<script src="{% static 'suivi/recherche_referentiel.js' %}" defer></script>
+<div id="resultats-consultation">
+<p role="status">{{ page.paginator.count }} résultat{{ page.paginator.count|pluralize }}{% if domaine %} · {{ domaine }}{% endif %}{% if sous_domaine %} · {{ sous_domaine }}{% endif %}{% if niveau %} · {{ niveau }}{% endif %}</p>
+{% if page.object_list %}
+{% include "suivi/partiels/rubriques_competences.html" with lignes=page.object_list entree="suivi/partiels/ligne_consultation_referentiel.html" q=recherche niveau_domaine=3 niveau_sous_domaine=4 %}
+{% else %}<p>Aucune compétence ne correspond à ces filtres.</p>{% endif %}
+{% if page.has_other_pages %}<nav aria-label="Pages des compétences">{% if page.has_previous %}<a href="?{{ params }}&amp;page={{ page.previous_page_number }}">Page précédente</a>{% endif %} · Page {{ page.number }} sur {{ page.paginator.num_pages }} · {% if page.has_next %}<a href="?{{ params }}&amp;page={{ page.next_page_number }}">Page suivante</a>{% endif %}</nav>{% endif %}
+</div>
 {% else %}<p>Aucun référentiel disponible pour cette année.</p>{% endif %}
 </div>
 {% endblock %}

@@ -79,7 +79,7 @@ Reprendre une compétence conserve son identité.
 
 *Suivre pour les élèves sélectionnés* limite le suivi aux élèves cochés.
 *Tout sélectionner* coche les élèves actuellement inscrits.
-*Ajouter au référentiel de la classe* rend la compétence disponible pour les
+*Ajouter cette compétence à la classe* rend la compétence disponible pour les
 élèves actuels et les futurs inscrits. Aucune réussite n’est enregistrée
 automatiquement par cet ajout. Modifier ensuite la sélection conserve les
 observations et les traces déjà saisies.

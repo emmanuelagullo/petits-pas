@@ -20,9 +20,10 @@
 </form>
 </details>
 {% if apercu_partage %}
-<details open>{% include "suivi/partiels/bouton_depliant.html" with libelle="Contenu à partager" only %}
-<p>Le référentiel contient les compétences communes visibles, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
+<p>{{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }} à partager, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
+<details>{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
+</details>
 {% if jeton_partage %}
 <form method="post" class="actions">
 {% csrf_token %}
@@ -31,7 +32,6 @@
 
 </form>
 {% endif %}
-</details>
 
 {% endif %}
 {% else %}

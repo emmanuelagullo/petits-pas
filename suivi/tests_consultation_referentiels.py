@@ -37,14 +37,25 @@ class ConsultationReferentiels(Base):
         self.assertEqual(self.client.get(self.url, {"version": hors.pk}).status_code, 404)
         self.assertEqual(self.client.get(self.url, {"version": self.version.pk, "lecture": "classe"}).status_code, 404)
 
-    def test_catalogue_local_complet_malgre_filtres_sans_donnees_de_suivi(self):
-        page = self.client.get(self.url, {"version": self.version.pk, "q": "introuvable"})
-        self.assertEqual(page.context["page"].paginator.count, 0)
-        self.assertEqual(len(page.context["catalogue"]), 1)
-        self.assertEqual(set(page.context["catalogue"][0]),
-                         {"libelle", "domaine", "groupe", "niveau", "code", "active"})
-        self.assertContains(page, 'id="catalogue-referentiel"')
-        self.assertContains(page, 'data-recherche-referentiel')
+    def test_consultation_reutilise_les_rubriques_et_le_filtre_de_classement(self):
+        page = self.client.get(self.url, {"version": self.version.pk})
+        self.assertTemplateUsed(page, "suivi/partiels/rubriques_competences.html")
+        self.assertTemplateUsed(page, "suivi/partiels/filtres_classement_competences.html")
+        self.assertContains(page, 'hx-select="#resultats-consultation"')
+        self.assertNotContains(page, 'id="catalogue-referentiel"')
+
+    def test_consulter_une_edition_recue_avec_un_filtre_de_sous_domaine(self):
+        doc = document("recu-fictif")
+        doc["domaines"][0]["sous_domaines"] = [{
+            "code": "ECOUTE", "nom": "Écouter",
+            "competences": [{"identite": "ecouter", "code": "L02", "libelle": "J’écoute", "niveau": "PS"}],
+        }]
+        version = importer(doc, ecole=self.ecole)[0]
+        page = self.client.get(self.url, {"version": version.pk, "domaine": "Langage", "sous_domaine": "Écouter"})
+        self.assertEqual(page.context["groupes"], ["Écouter"])
+        self.assertEqual(page.context["page"].paginator.count, 1)
+        self.assertContains(page, "J’écoute")
+        self.assertNotContains(page, "Je parle")
 
     def test_associe_consulte_sans_droit_de_changer(self):
         from comptes.models import AffectationClasse
