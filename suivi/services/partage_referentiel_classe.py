@@ -90,10 +90,34 @@ def preparer_referentiel_classe(classe, source, version):
 
 
 
-def licences_referentiel_partage(adoption, document):
+def sources_referentiel_partage(adoption, document):
     origines = {c["source_origine"] for c in competences_document(document) if c.get("source_origine")}
     sources = SourceReferentiel.objects.filter(
         Q(ecole=adoption.classe.ecole, identifiant_diffusion__in=origines) |
         Q(ecole__isnull=True, identifiant__in=origines)
     )
-    return sorted(set(sources.values_list("licence", flat=True)) | {adoption.version.source.licence})
+    base = adoption.version.source
+    par_reference = {identifiant_diffusion(source): (source.titre, source.licence.strip())
+                     for source in sources.order_by("pk")}
+    for source in sources.filter(ecole=adoption.classe.ecole):
+        par_reference[identifiant_diffusion(source)] = (source.titre, source.licence.strip())
+    par_reference[identifiant_diffusion(base)] = (base.titre, base.licence.strip())
+    return [par_reference.get(reference, (reference, "")) for reference in
+            sorted(origines | {identifiant_diffusion(base)})]
+
+
+def licences_referentiel_partage(adoption, document):
+    return sorted({licence for _, licence in sources_referentiel_partage(adoption, document)})
+
+
+def verifier_licence_synchronisation(adoption, document):
+    sources = sources_referentiel_partage(adoption, document)
+    inconnues = [titre for titre, licence in sources if licence.casefold() in
+                 {"", "non renseignée", "non renseigné", "inconnue"}]
+    if inconnues:
+        raise ValidationError("Licence à vérifier pour %(sources)s.",
+                              params={"sources": ", ".join(inconnues)})
+    if len({licence for _, licence in sources}) != 1:
+        raise ValidationError("Vérifiez les licences des sources : %(sources)s.",
+                              params={"sources": ", ".join(f"{titre} ({licence})" for titre, licence in sources)})
+    return sources[0][1]

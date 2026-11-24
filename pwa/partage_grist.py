@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 from uuid import UUID
 
 import yaml
+from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404, JsonResponse
@@ -20,7 +21,7 @@ from suivi.models import Classe, PartageGristClasse, SourceReferentiel, VersionR
 from suivi.referentiels import adoption_courante
 from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist
 from suivi.services.import_sources_referentiels import importer_source
-from suivi.services.partage_referentiel_classe import licences_referentiel_partage, preparer_referentiel_classe
+from suivi.services.partage_referentiel_classe import preparer_referentiel_classe, verifier_licence_synchronisation
 from suivi.views import acces_requis
 
 TABLE = "PetitsPasClasses"
@@ -34,16 +35,25 @@ def empreinte(texte):
     return hashlib.sha256(texte.encode()).hexdigest()
 
 
-def projection(partage):
-    classe = partage.classe
-    identifiant = f"classe-grist-{partage.identifiant}"
+def nom_espace_propose(classe):
+    return f"École {classe.ecole.nom} · Partage entre classes"[:200]
+
+
+def document_projection(classe, identifiant):
+    identifiant = f"classe-grist-{identifiant}"
     titre = f"Référentiel de {classe.nom}"
     document = preparer_referentiel_classe(classe, {
         "identifiant": identifiant, "titre": titre, "provenance": "Espace de partage Petits Pas",
-        "licence": partage.licence,
+        "licence": "",
     }, "courante")
-    if licences_referentiel_partage(adoption_courante(classe), document) != [partage.licence]:
-        raise ValidationError("Vérifiez la licence des compétences avant le prochain envoi.")
+    document["source"]["licence"] = verifier_licence_synchronisation(adoption_courante(classe), document)
+    return document
+
+
+def projection(partage):
+    document = document_projection(partage.classe, partage.identifiant)
+    if document["source"]["licence"] != partage.licence:
+        raise ValidationError("La licence a changé. Confirmez à nouveau le partage de cette classe.")
     # Les références d’origine restent celles émises par la projection d’export.
     return texte_json(document)
 
@@ -77,6 +87,16 @@ def espace_classe(request, pk):
     classe = charger_classe_autorisee(request.user, pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
     partage = PartageGristClasse.objects.filter(classe=classe).first()
     erreur = ""
+    champ_erreur = ""
+    erreur_licence = ""
+    licence = ""
+    adoption = adoption_courante(classe)
+    if adoption and not adoption.clos and classe.etat == Classe.ACTIVE:
+        try:
+            licence = document_projection(classe, partage.identifiant if partage else "preparation")["source"]["licence"]
+        except ValidationError as cause:
+            erreur_licence = " ".join(cause.messages)
+    nom_saisi = request.POST.get("nom_espace", "").strip()
     invitation = request.GET.get("grist", "")
     if request.method == "GET" and invitation:
         try:
@@ -92,30 +112,40 @@ def espace_classe(request, pk):
             PartageGristClasse.objects.filter(classe=classe).update(actif=False)
             return redirect("espace_grist_classe", pk=pk)
         try:
-            adoption = adoption_courante(classe)
             if classe.etat != Classe.ACTIVE or not adoption or adoption.clos:
                 raise ValidationError("Choisissez le référentiel d’une classe active avant de la connecter.")
+            champ_erreur = "grist"
             prefixe, document = adresse_grist(request.POST.get("grist", ""))
-            licence = adoption.version.source.licence.strip()
-            if not licence or licence.casefold() in {"non renseignée", "non renseigné", "inconnue"}:
-                raise ValidationError("La licence du référentiel doit être renseignée avant le partage.")
+            champ_erreur = ""
+            if erreur_licence:
+                raise ValidationError(erreur_licence)
             if request.POST.get("confirmer") != "oui":
+                champ_erreur = "confirmer"
                 raise ValidationError("Confirmez le partage de vos compétences communes dans cet espace.")
+            if len(nom_saisi) > 200:
+                champ_erreur = "nom_espace"
+                raise ValidationError("Le nom de l’espace est limité à 200 caractères.")
             url = f"https://{HOTE_GRIST}{prefixe}/{document}"
+            nom_initial = nom_saisi or nom_espace_propose(classe)
             with transaction.atomic():
                 Classe.objects.select_for_update().get(pk=classe.pk)
                 partage, cree = PartageGristClasse.objects.get_or_create(classe=classe,
-                    defaults={"url": url, "licence": licence})
+                    defaults={"url": url, "licence": licence, "nom_espace": nom_initial})
                 if not cree and (partage.url != url or partage.licence != licence or not partage.actif):
-                    partage.url, partage.nom_espace, partage.derniere_empreinte = url, "", ""
+                    if partage.url != url:
+                        partage.nom_espace = nom_initial
+                    partage.url, partage.derniere_empreinte = url, ""
                     partage.licence, partage.actif = licence, True
                     partage.save(update_fields=["url", "nom_espace", "derniere_empreinte", "licence", "actif"])
-            return redirect("espace_grist_classe", pk=pk)
+            messages.info(request, "Espace rejoint. La synchronisation démarre depuis les suivis de la classe.")
+            return redirect(reverse("suivis_referentiels_classe", args=[pk]) + "#espace-partage")
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     return render(request, "suivi/espace_grist_classe.html", {"classe": classe, "partage": partage,
         "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
-        "erreur": erreur, "mode_pwa": True}, status=400 if erreur else 200)
+        "erreur": erreur, "champ_erreur": champ_erreur, "licence": licence, "erreur_licence": erreur_licence,
+        "confirmer": request.POST.get("confirmer") == "oui", "nom_saisi": nom_saisi,
+        "nom_propose": nom_espace_propose(classe), "mode_pwa": True}, status=400 if erreur else 200)
 
 
 def partages_autorises(request):
@@ -185,6 +215,7 @@ def synchroniser(request):
             travaux.append({"id": str(partage.identifiant),
                 "api": f"https://{HOTE_GRIST}{prefixe}/api/docs/{document}",
                 "table": TABLE, "nom": partage.classe.nom,
+                "nom_espace": partage.nom_espace or nom_espace_propose(partage.classe),
                 "contenu": contenu if cle != partage.derniere_empreinte else None,
                 "empreinte": cle, "recues": recues, "erreur": erreur})
         return JsonResponse({"partages": travaux, "propres": propres})

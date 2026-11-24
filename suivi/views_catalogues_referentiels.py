@@ -293,6 +293,10 @@ def suivis_classe(request, classe_pk):
         else:
             cle, nom = "instance", "Catalogue de cette instance Petits Pas"
         groupes.setdefault(cle, {"nom": nom, "lignes": []})["lignes"].append(ligne)
+    partage_grist = None
+    if getattr(settings, "MODE_PWA", False):
+        from .models import PartageGristClasse
+        partage_grist = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": lignes, "groupes": list(groupes.values()),
-                   "indisponibles": set(suivis) - disponibles.keys()})
+                   "indisponibles": set(suivis) - disponibles.keys(), "partage_grist": partage_grist})

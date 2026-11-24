@@ -51,7 +51,6 @@
     const {api, table, id, nom, contenu, empreinte} = partage;
     const index = `${api}/tables/${table}/records`;
     const documents = `${api}/tables/PetitsPasContenus/records`;
-    const document = await grist(api);
     await préparer(api, table, ['Identifiant', 'Nom', 'Empreinte']);
     await préparer(api, 'PetitsPasContenus', ['Identifiant', 'Contenu']);
     await préparer(api, 'PetitsPasEspace', ['Identifiant', 'Nom']);
@@ -59,7 +58,7 @@
     let metadata = await grist(espace);
     if (!metadata.records.some(r => r.fields.Identifiant === 'espace')) {
       await grist(espace + '?noparse=true&noupdate=true&onmany=none', json('PUT', {
-        records: [{require: {Identifiant: 'espace'}, fields: {Nom: document.name}}],
+        records: [{require: {Identifiant: 'espace'}, fields: {Nom: partage.nom_espace}}],
       }));
       metadata = await grist(espace);
     }
@@ -84,7 +83,7 @@
       const réponse = await grist(`${documents}?filter=${filtre}`);
       if (réponse.records.length === 1) lignes.push(réponse.records[0].fields);
     }
-    const opérations = json('POST', {id, api, lignes, nom: nomPartage || document.name, confirme});
+    const opérations = json('POST', {id, api, lignes, nom: nomPartage || partage.nom_espace, confirme});
     opérations.headers['X-CSRFToken'] = csrf;
     return demander(adresse, opérations);
   }

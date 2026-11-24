@@ -162,6 +162,9 @@ class MisesAJour(Base):
         page = self.client.get(echange, {"volet": "exporter"})
         self.assertContains(page, 'value="publier-grist"')
         self.assertContains(page, 'id="url-grist"')
+        self.assertContains(page, "Voir le contenu à partager")
+        self.assertContains(page, "Télécharger le ZIP", count=1)
+        self.assertNotContains(page, "Examiner le contenu")
         donnees = {"action": "publier-grist", "url_grist": url}
         with patch("suivi.publication_grist.destination_grist", return_value=destination), patch(
                 "suivi.publication_grist.publier_edition_grist") as publier:
@@ -174,6 +177,8 @@ class MisesAJour(Base):
             publier.side_effect = None
             publication = self.client.post(echange, donnees)
             self.assertContains(publication, "Édition 1 publiée")
+            self.assertContains(publication, f"Catalogue de {self.ecole.nom}")
+            self.assertNotContains(publication, destination["nom"])
             _, reference, titre, numero, document = publier.call_args.args
             self.assertEqual(numero, 1)
             destination["editions"].append({"Numero": 1, "Referentiel": reference, "Titre": titre,
@@ -187,14 +192,17 @@ class MisesAJour(Base):
             self.assertContains(page, f'value="{url}" selected')
             self.assertContains(page, "Dernier catalogue utilisé")
             self.assertNotContains(page, f'value="{autre}" selected')
-            reprise = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
+            reprise = self.client.post(echange, {"action": "publier-grist", "destination_grist": url,
+                                                "nom_catalogue_grist": "Ressources de l’équipe"})
             self.assertContains(reprise, "Édition 1 déjà publiée")
             self.assertContains(reprise, "Nouvelle édition")
             self.assertEqual(reprise.context["derniere_destination"].url, url)
+            self.assertEqual(reprise.context["derniere_destination"].nom, "Ressources de l’équipe")
             publier.assert_called_once()
             self.adapter(adoption, classe=True, texte="Nouvelle formulation")
             revision = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
             self.assertContains(revision, "Édition 2 publiée")
+            self.assertContains(revision, "Ressources de l’équipe")
             self.assertEqual(publier.call_args.args[3], 2)
 
     def test_apercu_sans_projection_et_adaptation_prioritaire(self):

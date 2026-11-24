@@ -1,13 +1,16 @@
 {% if retour_export_ecole %}<p><a class="bouton discret" href="{{ retour_export_ecole }}">Choisir une autre classe</a></p>{% endif %}
 {% if peut_importer %}<h3>Partager le référentiel courant de cette classe</h3>{% endif %}
 {% if partage_classe %}
-<p><strong>{{ informations_partage.titre }}</strong> · {{ informations_partage.licence|default:"Licence à vérifier" }} · Édition {{ informations_partage.version }}</p>
+<p><strong>{{ informations_partage.titre }}</strong> · {% if informations_partage.licence %}{{ informations_partage.licence }}{% else %}<span class="pastille alerte">Licence à vérifier</span>{% endif %} · Édition {{ informations_partage.version }}</p>
 <p>Dérivé de {{ base_du_partage.source.titre }}, édition {{ base_du_partage.numero }}.</p>
 {% if modifier_partage %}
 <p class="message" role="status">Vérifiez les informations de partage, notamment la licence, avant de continuer.</p>
 {% endif %}
-{% if not modifier_partage %}
-{% include "suivi/partiels/publication_grist.html" %}
+{% if apercu_partage %}
+<p>{{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }} à partager, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
+<details>{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
+{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
+</details>
 {% endif %}
 <details{% if modifier_partage %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier les informations" only %}
@@ -19,20 +22,8 @@
 </p>
 </form>
 </details>
-{% if apercu_partage %}
-<p>{{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }} à partager, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
-<details>{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
-{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
-</details>
-{% if jeton_partage %}
-<form method="post" class="actions">
-{% csrf_token %}
-<input type="hidden" name="jeton_partage" value="{{ jeton_partage }}">
-<button class="bouton" name="action" value="exporter-classe">Télécharger ce ZIP</button>
-
-</form>
-{% endif %}
-
+{% if not modifier_partage %}
+{% include "suivi/partiels/publication_grist.html" %}
 {% endif %}
 {% else %}
 <p>{{ partage_classe_indisponible }}</p>

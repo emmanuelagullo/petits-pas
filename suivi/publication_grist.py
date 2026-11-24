@@ -28,6 +28,7 @@ def presenter_publication_grist(request, classe, contexte, identifiant):
         if url not in destinations and (reglages.get(url, {}).get("suivis") or reglages.get(url, {}).get("catalogue")):
             destinations[url] = {"url": url, "nom": catalogue["nom"]}
     contexte.update(
+        nom_catalogue_propose=f"Catalogue de {classe.ecole.nom}"[:200],
         destinations_grist=list(destinations.values()), derniere_destination=precedente,
         publication_connue=precedente, choix_catalogue_grist=precedente.url if precedente else "",
         modele_grist=getattr(settings, "GRIST_MODELE_URL", ""),
@@ -46,7 +47,16 @@ def publication_grist(request, classe, contexte, action, document):
         raise ValidationError("Indiquez le lien du catalogue Grist.")
     if len(url) > 2000:
         raise ValidationError("Le lien Grist est trop long.")
-    destination = destination_grist(url, preparer_vierge=action == "publier-grist")
+    nom_saisi = request.POST.get("nom_catalogue_grist", "").strip()
+    contexte["nom_catalogue_saisi"] = nom_saisi
+    if len(nom_saisi) > 200:
+        raise ValidationError("Le nom du catalogue est limité à 200 caractères.")
+    destination = dict(destination_grist(url, preparer_vierge=action == "publier-grist"))
+    catalogue = catalogues_grist_connus(classe.ecole.catalogues_referentiels).get(destination["url"], {})
+    dernier = historique.filter(url=destination["url"]).first()
+    dernier_nom = dernier.nom if dernier and dernier.nom != destination["nom"] else ""
+    destination["nom"] = (nom_saisi or dernier_nom or catalogue.get("nom") or
+                          contexte["nom_catalogue_propose"])
     references = {edition["Referentiel"]: edition["Titre"] for edition in destination["editions"]}
     precedente = historique.filter(
         url=destination["url"], identifiant_local=source["identifiant"],

@@ -10,7 +10,11 @@
 {% endif %}
 {% if destination_grist %}<p>Catalogue de destination · <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a></p>{% endif %}
 <details{% if erreur_grist or destination_grist or not derniere_destination %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir le catalogue ou le référentiel" only %}
+{% if derniere_destination or destination_grist %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Changer de catalogue" only %}
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir un catalogue" only %}
+{% endif %}
 {% if destinations_grist %}
 <p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="documents-recents-grist" champ_catalogue="destination_grist" libelle="Catalogue de destination" catalogues=destinations_grist selection=choix_catalogue_grist only %}</p>
 {% endif %}
@@ -29,11 +33,16 @@
 {% if not destination_grist %}
 <p><button class="bouton discret" name="action" value="voir-grist">Voir les référentiels de ce catalogue</button></p>
 {% endif %}
+<details{% if nom_catalogue_saisi %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du catalogue" only %}
+<p><label for="nom-catalogue-grist">Nom affiché dans Petits Pas</label>
+<input id="nom-catalogue-grist" name="nom_catalogue_grist" maxlength="200" value="{{ nom_catalogue_saisi }}"
+placeholder="{{ nom_catalogue_propose }}"></p>
+</details>
 {% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
 </details>
 <p class="actions">
 <button class="bouton" name="action" value="publier-grist">Publier dans Grist</button>
 <button class="bouton discret" name="action" value="telecharger-classe">Télécharger le ZIP</button>
-<button class="bouton discret" name="action" value="apercu-classe">Examiner le contenu</button>
 </p>
 </form>

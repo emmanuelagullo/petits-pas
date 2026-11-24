@@ -31,7 +31,9 @@ class PartageGristPWA(Base):
         grist = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
         self.assertContains(self.client.get(espace, {"grist": grist}), grist)
         self.assertFalse(PartageGristClasse.objects.exists())
-        self.assertRedirects(self.client.post(espace, {"grist": grist, "confirmer": "oui"}), espace)
+        suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        self.assertRedirects(self.client.post(espace, {"grist": grist, "confirmer": "oui"}),
+                             suivis + "#espace-partage")
         url = reverse("synchroniser_grist")
         données = self.client.get(url).json()
         travail = données["partages"][0]
@@ -53,6 +55,17 @@ class PartageGristPWA(Base):
         self.assertEqual(self.client.get(url).json()["partages"], [])
         self.client.post(espace, {"grist": grist, "confirmer": "oui"})
         self.assertEqual(self.client.get(url).json()["partages"][0]["id"], travail["id"])
+
+    def test_licence_manquante_indique_la_source_sans_connecter_la_classe(self):
+        self.adopter()
+        self.a.source.licence = "Non renseignée"
+        self.a.source.save(update_fields=["licence"])
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        grist = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        reponse = self.client.post(espace, {"grist": grist, "confirmer": "oui", "nom_espace": "Équipe"})
+        self.assertContains(reponse, "Licence à vérifier pour " + self.a.source.titre, status_code=400)
+        self.assertContains(reponse, 'value="Équipe"', status_code=400)
+        self.assertFalse(PartageGristClasse.objects.exists())
 
     def test_invitation_prefill_sans_ecriture_puis_reouverture_sans_effet(self):
         self.adopter()

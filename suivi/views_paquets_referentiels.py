@@ -159,6 +159,23 @@ def informations_partage(classe, adoption):
     }, False
 
 
+def presenter_contenu_partage(classe, contexte, donnees):
+    source = {k: v for k, v in donnees.items() if k != "version"}
+    document = preparer_referentiel_classe(classe, source, donnees["version"])
+    # Une licence manquante n'empêche pas de consulter la projection.
+    a_lire = {**document, "source": {**document["source"], "licence": source["licence"] or "À vérifier"}}
+    paquet = empaqueter(a_lire)
+    normalise, _ = lire_source(lire_paquet(paquet))
+    icones = catalogue_icones()
+    contexte["apercu_partage"] = {
+        "apercu": normalise, "competences_importees": list(definitions_document(normalise).values()),
+        "icones_importees": [icones[cle] for cle in sorted({
+            c["icone"] for c in competences_document(normalise) if c["icone"]
+        })],
+    }
+    return document, paquet, normalise
+
+
 def partage_classe(request, classe, contexte, action):
     adoption = adoption_courante(classe)
     if not adoption or adoption.clos or classe.etat != Classe.ACTIVE:
@@ -177,6 +194,8 @@ def partage_classe(request, classe, contexte, action):
     contexte["partage_classe"] = formulaire
     presenter_publication_grist(request, classe, contexte, initial["identifiant"])
     if action not in ACTIONS_PARTAGE:
+        if contexte.get("volet") in ("exporter", "", None):
+            presenter_contenu_partage(classe, contexte, initial)
         return
     contexte["volet"] = "exporter"
     engagement = {"auteur": request.user.pk, "adoption": adoption.pk}
@@ -201,7 +220,7 @@ def partage_classe(request, classe, contexte, action):
             raise ValidationError("La base de la classe a changé. Reprenez le partage du référentiel.")
         donnees = preparation["donnees"]
     contexte["informations_partage"] = donnees
-    document = preparer_referentiel_classe(classe, {k: v for k, v in donnees.items() if k != "version"}, donnees["version"])
+    document, paquet, normalise = presenter_contenu_partage(classe, contexte, donnees)
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
     if not direct and empreinte != preparation["empreinte"]:
         raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
@@ -214,7 +233,6 @@ def partage_classe(request, classe, contexte, action):
             return
     contexte["modifier_partage"] = False
     enregistrement = {"donnees": donnees, "adoption": adoption, "licences_sources": licences}
-    paquet = empaqueter(document)
     if action in ("telecharger-classe", "exporter-classe"):
         InformationsPartageReferentielClasse.objects.update_or_create(
             classe=classe, defaults=enregistrement,
@@ -224,7 +242,6 @@ def partage_classe(request, classe, contexte, action):
         InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
         presenter_publication_grist(request, classe, contexte, donnees["identifiant"])
         return
-    normalise, _ = lire_source(lire_paquet(paquet))
     if action in ACTIONS_GRIST:
         try:
             publication_grist(request, classe, contexte, action, normalise)
@@ -234,12 +251,6 @@ def partage_classe(request, classe, contexte, action):
             InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
             presenter_publication_grist(request, classe, contexte, donnees["identifiant"])
         return
-    contexte["apercu_partage"] = {
-        "apercu": normalise, "competences_importees": list(definitions_document(normalise).values()),
-        "icones_importees": [catalogue_icones()[cle] for cle in sorted({
-            c["icone"] for c in competences_document(normalise) if c["icone"]
-        })],
-    }
     if direct:
         contexte["jeton_partage"] = signing.dumps(
             {"engagement": engagement, "donnees": donnees, "empreinte": empreinte},
