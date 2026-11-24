@@ -35,7 +35,43 @@
 {% for message in choix.avertissements %}<p class="message">{{ message }}</p>{% endfor %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if not actuelle and choix.proposee %}<form method="post">{% csrf_token %}<input type="hidden" name="version" value="{{ choix.proposee.pk }}"><p>Pour commencer : {{ choix.proposee.source.titre }} — {{ choix.proposee.numero }}.</p><label><input type="checkbox" name="selection_manuelle" value="1"> Partir d’un suivi vide</label><button class="bouton" name="action" value="apercu">Préparer le choix proposé</button></form>{% endif %}
-<details id="choisir-referentiel" class="operations-avancees"{% if apercu or erreur or edition_demandee %} open{% endif %}><summary>Avancé — changer la base de compétences</summary>
+{% if apercu %}
+<script src="{% static 'suivi/apercu-ecarts.js' %}" defer></script>
+<h2 id="choisir-referentiel">{% if apercu.mise_a_jour %}Mettre à jour le référentiel{% else %}Avant de confirmer{% endif %}</h2>
+{% if apercu.garde.niveau == "rouge" %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="rouge" titre="Cette classe a déjà des saisies" resume="Vous changez les prochaines compétences proposées à toute la classe. Les anciens parcours sont conservés. Les compétences d’une autre identité ne reçoivent aucune réussite. Revenir ensuite ne supprimera pas les saisies faites entre-temps." details="Les compétences qui sortent de la base restent dans les parcours, mais quittent les prochaines saisies. Les identités conservées retrouvent leur suivi. Les ajouts locaux restent disponibles. Une mise à jour peut aussi modifier les textes, images et phrases des carnets ouverts ; les années closes restent figées." %}
+{% if apercu.garde.ambigu %}<p class="message">Des observations anciennes ne peuvent pas être situées avec certitude. Cette opération demande les mêmes précautions qu’un changement après saisies.</p>{% endif %}
+{% elif apercu.garde.niveau == "orange" %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Avant les premières saisies" resume="Ce choix concerne toute la classe et peut l’éloigner du référentiel commun de l’école. Les compétences peuvent différer de celles des autres classes et des années précédentes. Discutez ce choix avec l’équipe avant de confirmer." %}
+{% endif %}
+<p>Ce choix concerne toute la classe pour les prochaines saisies. Les observations, commentaires et photos déjà enregistrés sont conservés.</p>
+{% if actuelle %}<p>Dans le suivi de la classe actuellement : <strong>{{ actuelle.version.source.titre }}</strong> — édition {{ actuelle.version.numero }}.</p>{% endif %}
+<p>Édition proposée : <strong>{{ apercu.version.source.titre }}</strong> — édition {{ apercu.version.numero }}.</p>
+{% if apercu.mise_a_jour.continue_suivi %}<p>Cette édition conserve les compétences de la base actuelle dans les mêmes sections. Vos choix locaux restent prioritaires.</p>{% endif %}
+{% if apercu.selection_manuelle %}<p>Les nouvelles compétences restent disponibles à l’ajout. La classe choisit lesquelles elle souhaite utiliser.</p>{% endif %}
+{% if not apercu.mise_a_jour %}<ul><li>{{ apercu.communes }} compétence{{ apercu.communes|pluralize }} avec la même identité.</li>
+<li>{{ apercu.nouvelles }} nouvelle{{ apercu.nouvelles|pluralize }} compétence{{ apercu.nouvelles|pluralize }}.</li>
+<li>{{ apercu.hors_base }} compétence{{ apercu.hors_base|pluralize }} de la base actuelle hors de cette base.</li><li>{{ apercu.ajouts }} ajout{{ apercu.ajouts|pluralize }} local{{ apercu.ajouts|pluralize }} conservé{{ apercu.ajouts|pluralize }} dans cette classe.</li></ul>{% endif %}
+{% if apercu.mise_a_jour %}
+{% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=apercu.mise_a_jour.ajoutees modifications=apercu.mise_a_jour.modifiees retraits=apercu.mise_a_jour.retirees only %}
+{% if apercu.mise_a_jour.retirees %}<p>Les compétences retirées quittent les prochaines saisies, avec leurs observations conservées dans les parcours.</p>{% endif %}
+{% endif %}
+{% if apercu.garde.permis %}
+{% if apercu.meme %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Conserver cette base" %}{% elif apercu.mise_a_jour %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Mettre à jour le référentiel de la classe" confirmation_id="confirmer-edition-classe" %}{% else %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Choisir cette base pour la classe" %}{% endif %}
+{% if apercu.garde.niveau == "rouge" %}<p>L’autorisation de classe sera refermée après ce changement. Si l’école n’a plus besoin d’exceptions, la direction peut aussi refermer son autorisation.</p>{% endif %}
+{% else %}<p><strong>Changement interdit au niveau {{ apercu.garde.permission.blocage }}.</strong> Consultez l’autorisation exceptionnelle de cette classe ; si le blocage vient de l’école, contactez la direction, ou le gestionnaire de l’application si celui-ci l’interdit.</p>{% endif %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir les changements" only %}
+<details><summary>Quel effet sur les saisies et l’historique ?</summary>
+<p>Une identité conservée retrouve le même suivi. Un code ou une phrase identique ne suffit pas à reconnaître la même compétence. Les nouvelles compétences commencent avec leur propre suivi, sans réussite copiée.</p>
+<p>Les ajouts locaux retenus restent présents lors du changement de base, avec leur identité et leurs observations. Ils sont comptés séparément des compétences de la base.</p>
+<p>Les compétences hors de la base choisie quittent les prochaines saisies, mais restent dans les parcours déjà renseignés. Pour reprendre leur saisie, il faut choisir une base autorisée qui les contient.</p>
+<p>Les anciennes bases et leurs origines restent enregistrées. Aucun commentaire ni aucune photo n'est effacé par ce choix.</p></details>
+{% include "suivi/partiels/apercu_mise_a_jour.html" with mise_a_jour=apercu.mise_a_jour %}
+{% include "suivi/partiels/correspondances_competences.html" with correspondances=apercu.correspondances %}
+</details>
+{% endif %}
+<details{% if not apercu %} id="choisir-referentiel"{% endif %} class="operations-avancees"{% if erreur %} open{% endif %}><summary>Avancé — changer la base de compétences</summary>
 <p>Consultez les effets avant de confirmer. Choisir un autre référentiel peut éloigner la classe du référentiel commun de l’école.</p>
 <p>Changements majeurs après saisies : {% if permission.effective %}<strong>exception ouverte pour un seul changement</strong>{% else %}<strong>interdits au niveau {{ permission.blocage }}</strong>{% endif %}.</p>
 <p><a href="{% url 'permissions_referentiels_classe' classe.pk %}">Autorisation exceptionnelle de cette classe</a></p>
@@ -55,35 +91,6 @@
 <button class="bouton" name="action" value="apercu">Voir les conséquences</button>
 </form>
 {% else %}<p>Aucune base n'est autorisée pour un nouveau choix. Les classes déjà renseignées gardent leur suivi ; contactez la direction.</p>{% endif %}
-{% if apercu %}
-<script src="{% static 'suivi/apercu-ecarts.js' %}" defer></script>
-<h2>Avant de confirmer</h2>
-{% if apercu.garde.niveau == "rouge" %}
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="rouge" titre="Cette classe a déjà des saisies" resume="Vous changez les prochaines compétences proposées à toute la classe. Les anciens parcours sont conservés. Les compétences d’une autre identité ne reçoivent aucune réussite. Revenir ensuite ne supprimera pas les saisies faites entre-temps." details="Les compétences qui sortent de la base restent dans les parcours, mais quittent les prochaines saisies. Les identités conservées retrouvent leur suivi. Les ajouts locaux restent disponibles. Une mise à jour peut aussi modifier les textes, images et phrases des carnets ouverts ; les années closes restent figées." %}
-{% if apercu.garde.ambigu %}<p class="message">Des observations anciennes ne peuvent pas être situées avec certitude. Cette opération demande les mêmes précautions qu’un changement après saisies.</p>{% endif %}
-{% elif apercu.garde.niveau == "orange" %}
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Avant les premières saisies" resume="Ce choix concerne toute la classe et peut l’éloigner du référentiel commun de l’école. Les compétences peuvent différer de celles des autres classes et des années précédentes. Discutez ce choix avec l’équipe avant de confirmer." %}
-{% endif %}
-<p>Ce choix concerne toute la classe pour les prochaines saisies. Les observations, commentaires et photos déjà enregistrés sont conservés.</p>
-{% if actuelle %}<p>Dans le suivi de la classe actuellement : <strong>{{ actuelle.version.source.titre }}</strong> — édition {{ actuelle.version.numero }}.</p>{% endif %}
-<p>Édition proposée : <strong>{{ apercu.version.source.titre }}</strong> — édition {{ apercu.version.numero }}.</p>
-{% if apercu.mise_a_jour.continue_suivi %}<p>Cette édition conserve les compétences de la base actuelle dans les mêmes sections. Vos choix locaux restent prioritaires.</p>{% endif %}
-{% if apercu.selection_manuelle %}<p>Les nombres ci-dessous décrivent le catalogue. Les compétences de la base rejoignent le suivi selon les choix de la classe.</p>{% endif %}
-<ul><li>{{ apercu.communes }} compétence{{ apercu.communes|pluralize }} avec la même identité.</li>
-<li>{{ apercu.nouvelles }} nouvelle{{ apercu.nouvelles|pluralize }} compétence{{ apercu.nouvelles|pluralize }}.</li>
-<li>{{ apercu.hors_base }} compétence{{ apercu.hors_base|pluralize }} de la base actuelle hors de cette base.</li><li>{{ apercu.ajouts }} ajout{{ apercu.ajouts|pluralize }} local{{ apercu.ajouts|pluralize }} conservé{{ apercu.ajouts|pluralize }} dans cette classe.</li></ul>
-<details><summary>Que signifient ces nombres ?</summary>
-<p>Une identité conservée retrouve le même suivi. Un code ou une phrase identique ne suffit pas à reconnaître la même compétence. Les nouvelles compétences commencent avec leur propre suivi, sans réussite copiée.</p>
-<p>Les ajouts locaux retenus restent présents lors du changement de base, avec leur identité et leurs observations. Ils sont comptés séparément des compétences de la base.</p>
-<p>Les compétences hors de la base choisie quittent les prochaines saisies, mais restent dans les parcours déjà renseignés. Pour reprendre leur saisie, il faut choisir une base autorisée qui les contient.</p>
-<p>Les anciennes bases et leurs origines restent enregistrées. Aucun commentaire ni aucune photo n'est effacé par ce choix.</p></details>
-{% include "suivi/partiels/apercu_mise_a_jour.html" with mise_a_jour=apercu.mise_a_jour %}
-{% include "suivi/partiels/correspondances_competences.html" with correspondances=apercu.correspondances %}
-{% if apercu.garde.permis %}
-{% if apercu.meme %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Conserver cette base" %}{% elif apercu.mise_a_jour %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Adopter cette version pour la classe" confirmation_id="confirmer-edition-classe" %}{% else %}{% include "suivi/partiels/confirmation_referentiel.html" with bouton_confirmation="Choisir cette base pour la classe" %}{% endif %}
-{% if apercu.garde.niveau == "rouge" %}<p>L’autorisation de classe sera refermée après ce changement. Si l’école n’a plus besoin d’exceptions, la direction peut aussi refermer son autorisation.</p>{% endif %}
-{% else %}<p><strong>Changement interdit au niveau {{ apercu.garde.permission.blocage }}.</strong> Consultez l’autorisation exceptionnelle de cette classe ; si le blocage vient de l’école, contactez la direction, ou le gestionnaire de l’application si celui-ci l’interdit.</p>{% endif %}
-{% endif %}
 <details><summary>Choix proposé et autres possibilités</summary><p>Le choix proposé est le point de départ prévu pour cette année. Les autres bases de la liste sont également autorisées. Pour une première utilisation, gardez le choix proposé sauf besoin pédagogique précis discuté avec l'équipe.</p>
 <p>Une source corrigée ou une base nouvellement importée ne remplace jamais votre choix de classe toute seule. Les restrictions concernent les nouveaux choix, pas l'effacement des anciens parcours.</p></details>
 </details>

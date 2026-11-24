@@ -275,11 +275,25 @@ class MisesAJour(Base):
         self.classe.__dict__.pop("_adoption_referentiel_lecture", None)
         self.assertIn("<prénom> partage une découverte.", formulations_effectives(competence, self.classe))
 
+    def test_mise_a_jour_depuis_le_resume_sans_ouvrir_la_comparaison(self):
+        ancienne, nouvelle = self.preparer()
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        page = self.client.get(url)
+        self.assertContains(page, "1 ajout · 1 modification · 0 retrait")
+        self.assertContains(page, "Voir les changements")
+        self.assertContains(page, "Mettre à jour le référentiel de la classe")
+        self.assertNotContains(page, 'name="mot_de_passe"')
+        self.assertTrue(AdoptionReferentiel.objects.get(pk=ancienne.pk).courante)
+        self.assertFalse(VersionSourceEcole.objects.filter(version=nouvelle).exists())
+        reponse = self.client.post(url, {"action": "confirmer", "jeton": page.context["jeton"]})
+        self.assertEqual(reponse.status_code, 302)
+        self.assertTrue(AdoptionReferentiel.objects.filter(classe=self.classe, version=nouvelle, courante=True).exists())
+
     def test_confirmation_refuse_adaptation_changee(self):
         ancienne, nouvelle = self.preparer()
         url = reverse("referentiel_classe", args=[self.classe.pk])
         page = self.client.post(url, {"action": "apercu", "version": nouvelle.pk})
-        self.assertContains(page, "Adopter cette version pour la classe")
+        self.assertContains(page, "Mettre à jour le référentiel de la classe")
         self.assertContains(page, 'data-apercu-ecarts')
         self.assertContains(page, "Édition utilisée")
         self.assertContains(page, "Édition proposée")

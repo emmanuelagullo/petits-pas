@@ -1,7 +1,6 @@
 {% if mise_a_jour %}
 <h2>Ce qui change dans cette source</h2>
 <p>Vous choisissez une autre version de la même source. Les compétences conservées gardent leur suivi. Vos libellés et masquages restent prioritaires sur les propositions de cette version.</p>
-{% load static %}
 <section data-apercu-ecarts>
 <h3>Compétences modifiées</h3>
 {% if mise_a_jour.modifiees %}
@@ -22,17 +21,9 @@
 </select></label>
 <p role="status" data-compteur-ecarts hidden></p>
 {% for c in mise_a_jour.modifiees %}
-<details open data-ecart="{{ c.filtres }}{% if c.adaptation %} adaptation{% endif %}">
+<details data-ecart="{{ c.filtres }}{% if c.adaptation %} adaptation{% endif %}">
 <summary><strong>{{ c.apres }}</strong> · {{ c.changements|join:", " }}</summary>
-<table>
-<thead><tr><th scope="col">Champ</th><th scope="col">Édition utilisée</th><th scope="col">Édition proposée</th></tr></thead>
-<tbody>
-{% for d in c.details %}
-<tr><th scope="row">{{ d.champ }}</th>
-<td>{% if d.png_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="data:image/png;base64,{{ d.png_avant }}" alt="{{ d.avant }}">{% elif d.icone_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_avant.fichier %}" alt=""> {{ d.icone_avant.nom }}{% else %}{{ d.avant }}{% endif %}</td>
-<td>{% if d.png_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="data:image/png;base64,{{ d.png_apres }}" alt="{{ d.apres }}">{% elif d.icone_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_apres.fichier %}" alt=""> {{ d.icone_apres.nom }}{% else %}{{ d.apres }}{% endif %}</td></tr>
-{% endfor %}
-</tbody></table>
+{% include "suivi/partiels/details_ecarts_referentiel.html" with ecarts=c.details titre_avant="Édition utilisée" titre_apres="Édition proposée" only %}
 {% if c.adaptation %}<p>Si vous gardez vos choix : <strong>{{ c.adaptation.libelle }}</strong> · {% if c.adaptation.visible %}montrée{% else %}masquée{% endif %} selon les choix de l’école ou de la classe.</p>{% endif %}
 {% if c.choix_libelle and apercu.garde.permis %}
 <label><input type="checkbox" name="reprendre_libelle" value="{{ c.choix_libelle.id }}" form="confirmer-edition-classe">

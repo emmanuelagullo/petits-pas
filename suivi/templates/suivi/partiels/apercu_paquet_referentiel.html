@@ -3,14 +3,15 @@
 <h3>{{ apercu.source.titre }} — {{ apercu.version }}</h3>
 <p>{% if not partage %}Catalogue {{ destination_import }} · {% endif %}{{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>
 {% if comparaison_import %}
-<p>Depuis l’édition {{ edition_comparee }} du catalogue · {{ comparaison_import.ajouts|length }} ajout{{ comparaison_import.ajouts|length|pluralize }} · {{ comparaison_import.modifications|length }} modification{{ comparaison_import.modifications|length|pluralize }} · {{ comparaison_import.retraits|length }} retrait{{ comparaison_import.retraits|length|pluralize }}</p>
+<p>Comparaison avec l’édition {{ edition_comparee }} reçue par l’école.</p>
+{% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=comparaison_import.ajouts modifications=comparaison_import.modifications retraits=comparaison_import.retraits only %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Voir les changements" only %}
 {% if comparaison_import.ajouts %}<h4>Ajouts</h4><ul>{% for libelle in comparaison_import.ajouts %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
 {% if comparaison_import.retraits %}<h4>Retraits</h4><ul>{% for libelle in comparaison_import.retraits %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
 {% for libelle, details in comparaison_import.modifications %}
 <h4>{{ libelle }}</h4>
-<dl>{% for detail in details %}<dt>{{ detail.champ }}</dt><dd>{{ detail.avant }} → {{ detail.apres }}</dd>{% endfor %}</dl>
+{% include "suivi/partiels/details_ecarts_referentiel.html" with ecarts=details titre_avant="Édition reçue" titre_apres="Édition à importer" only %}
 {% endfor %}
 </details>
 {% endif %}

@@ -16,6 +16,20 @@ from .views import acces_requis
 from .confirmations_referentiels import ConfirmationReferentielForm, verifier_confirmation
 
 
+def preparer_choix_classe(request, classe, actuelle, version_id):
+    apercu = apercu_adoption(utilisateur=request.user, classe=classe, version_id=version_id)
+    apercu["selection_manuelle"] = (actuelle.selection_manuelle if actuelle
+                                   else request.POST.get("selection_manuelle") == "1")
+    mise_a_jour = apercu["mise_a_jour"]
+    jeton = signing.dumps({
+        "classe": classe.pk, "auteur": request.user.pk, "version": version_id,
+        "revisions": apercu["revisions"], "adoption": apercu["adoption_id"],
+        "garde": apercu["garde"]["empreinte"], "selection_manuelle": apercu["selection_manuelle"],
+        "adaptations": mise_a_jour["empreinte_adaptations"] if mise_a_jour else None,
+    }, salt="base-classe")
+    return apercu, jeton
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def choisir_base_classe(request, classe_pk):
@@ -53,13 +67,7 @@ def choisir_base_classe(request, classe_pk):
                 version_id = int(request.POST.get("version", ""))
             except ValueError as cause:
                 raise ValidationError("Choisissez une base autorisée.") from cause
-            apercu = apercu_adoption(utilisateur=request.user, classe=classe, version_id=version_id)
-            apercu["selection_manuelle"] = (actuelle.selection_manuelle if actuelle
-                                            else request.POST.get("selection_manuelle") == "1")
-            jeton = signing.dumps({"classe": classe.pk, "auteur": request.user.pk,
-                "version": version_id, "revisions": apercu["revisions"], "adoption": apercu["adoption_id"],
-                "garde": apercu["garde"]["empreinte"], "selection_manuelle": apercu["selection_manuelle"],
-                "adaptations": apercu["mise_a_jour"]["empreinte_adaptations"] if apercu["mise_a_jour"] else None}, salt="base-classe")
+            apercu, jeton = preparer_choix_classe(request, classe, actuelle, version_id)
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     disponibles = {v.pk for v in choix.versions}
@@ -67,6 +75,16 @@ def choisir_base_classe(request, classe_pk):
     edition_demandee = next((v.pk for v in choix.versions if str(v.pk) == request.GET.get("edition")), None)
     if edition_demandee is not None:
         selection_id = edition_demandee
+    if request.method == "GET" and actuelle and not actuelle.clos:
+        cible = edition_demandee
+        if not request.GET.get("edition"):
+            # Les numéros d'édition sont des libellés. L'ordre d'enregistrement
+            # indique ce qui vient d'être reçu, sans inventer un ordre éditorial.
+            cible = max((v.pk for v in choix.versions if v.source_id == actuelle.version.source_id
+                         and v.pk > actuelle.version_id), default=None)
+        if cible is not None and cible != actuelle.version_id:
+            apercu, jeton = preparer_choix_classe(request, classe, actuelle, cible)
+            selection_id = cible
     from .services.garde_fous_referentiels import permissions
     confirmation_form = ConfirmationReferentielForm(renforcee=bool(apercu and apercu["garde"]["niveau"] != "info"))
     peut_voir_catalogue = autorise(request.user, VOIR_SUIVI, classe)

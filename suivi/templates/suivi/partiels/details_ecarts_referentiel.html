@@ -1,0 +1,10 @@
+{% load static %}
+<table>
+<thead><tr><th scope="col">Champ</th><th scope="col">{{ titre_avant }}</th><th scope="col">{{ titre_apres }}</th></tr></thead>
+<tbody>
+{% for d in ecarts %}
+<tr><th scope="row">{{ d.champ }}</th>
+<td>{% if d.png_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="data:image/png;base64,{{ d.png_avant }}" alt="{{ d.avant }}">{% elif d.icone_avant %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_avant.fichier %}" alt=""> {{ d.icone_avant.nom }}{% else %}{{ d.avant }}{% endif %}</td>
+<td>{% if d.png_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="data:image/png;base64,{{ d.png_apres }}" alt="{{ d.apres }}">{% elif d.icone_apres %}<img class="icone-liste" width="32" height="32" loading="lazy" src="{% static d.icone_apres.fichier %}" alt=""> {{ d.icone_apres.nom }}{% else %}{{ d.apres }}{% endif %}</td></tr>
+{% endfor %}
+</tbody></table>

@@ -105,12 +105,17 @@ exception reconduite. Les classes closes conservent leur présentation finale.
 
 * Adopter une autre version de la même source
 
-Choisir la version dans Avancé, puis *Voir les conséquences*. L’aperçu détaille
-les compétences modifiées, ajoutées ou retirées et les adaptations conservées.
-L’avertissement est orange avant saisies, rouge après saisies ; les permissions
-et confirmations sont les mêmes que pour un changement de base.
+Ouvrir *Réglages du référentiel*. Lorsqu’une autre édition de la même source
+a été reçue depuis celle utilisée par la classe et peut être choisie, un résumé
+affiche les ajouts, les modifications et les retraits. Cliquer sur
+*Mettre à jour le référentiel de la classe*. Le volet *Voir les changements*
+permet de relire les écarts et les adaptations conservées. Son ouverture est
+facultative.
 
-Utiliser *Adopter cette version pour la classe* avec votre mot de passe.
+Pour examiner une autre édition, la choisir dans *Avancé*, puis cliquer sur
+*Voir les conséquences*. Si l’opération demande une confirmation renforcée,
+Petits Pas en indique la raison et demande le mot de passe avant de l’appliquer.
+
 Vos libellés et masquages restent prioritaires pour les identités conservées.
 Les illustrations et phrases suivent la version adoptée lorsque vous gardez
 les propositions. Une phrase retirée n’est plus proposée ; son adaptation
