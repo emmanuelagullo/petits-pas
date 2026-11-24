@@ -35,7 +35,7 @@ from .sqlite_import import securiser_lecture
 EXCLUS = {
     m.PolitiqueDoubleFacteurEcole, m.DemandeRapprochementEleve, m.AccesParcoursEleve,
     m.EvenementAudit, m.ChoixApplicationAnnuel, m.ChoixEcoleAnnuel,
-    m.PermissionChangementClasse, m.BrouillonReferentiel, m.PropositionReferentiel, m.SuiviSourceClasse, m.PartageGristClasse, m.ContributionReferentielEquipe,
+    m.PermissionChangementClasse, m.BrouillonReferentiel, m.PropositionReferentiel, m.SuiviSourceClasse, m.PartageGristClasse, m.ContributionReferentielEquipe, m.ReceptionReferentielGrist,
     *(apps.get_model('comptes', nom) for nom in (
         'AppartenanceEcole', 'ResponsabiliteEcole', 'AffectationClasse',
         'Invitation', 'AnomalieGouvernance')),

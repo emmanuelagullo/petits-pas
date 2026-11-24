@@ -1420,3 +1420,14 @@ class ContributionReferentielEquipe(models.Model):
                 name="contribution_equipe_unique",
             ),
         ]
+
+
+class ReceptionReferentielGrist(models.Model):
+    """Provenance d’un référentiel reçu, indépendante de son identité durable."""
+    source = models.ForeignKey(SourceReferentiel, on_delete=models.CASCADE, related_name="receptions_grist")
+    document_grist = models.CharField(max_length=64)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["source", "document_grist"], name="reception_referentiel_grist_unique",
+        )]

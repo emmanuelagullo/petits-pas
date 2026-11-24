@@ -19,7 +19,7 @@ from django.views.decorators.http import require_http_methods
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, autorise, charger_classe_autorisee
 from suivi.contexte_ecole import ecole_courante
 from suivi.identites_referentiels import identifiant_source_ecole
-from suivi.models import Classe, PartageGristClasse, SourceReferentiel, VersionReferentiel
+from suivi.models import Classe, PartageGristClasse, ReceptionReferentielGrist, SourceReferentiel, VersionReferentiel
 from suivi.referentiels import adoption_courante
 from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist
 from suivi.services.import_sources_referentiels import importer_source
@@ -196,10 +196,11 @@ def recevoir_projection(partage, ligne, propres):
     }
     cle = empreinte(contenu)
     precedente = existante.versions.order_by("-pk").first() if existante else None
-    if precedente and precedente.numero[:64] == cle:
-        return
-    document["version"] = cle if precedente is None else f"{cle}-{int_to_base36(precedente.pk)}"
-    importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=ecole)
+    if not precedente or precedente.numero[:64] != cle:
+        document["version"] = cle if precedente is None else f"{cle}-{int_to_base36(precedente.pk)}"
+        precedente, _, _ = importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=ecole)
+    ReceptionReferentielGrist.objects.get_or_create(source=precedente.source,
+                                                  document_grist=adresse_grist(partage.url)[1])
 
 
 @partage_local
@@ -210,14 +211,15 @@ def synchroniser(request):
         ecole = ecole_courante(request)
         propres = [str(pk) for pk in PartageGristClasse.objects.filter(classe__ecole=ecole)
                    .values_list("identifiant", flat=True)]
-        recues = {}
-        for identifiant, numero in VersionReferentiel.objects.filter(
-                source__ecole=ecole, source__identifiant_diffusion__startswith="classe-grist-"
-        ).order_by("-pk").values_list("source__identifiant_diffusion", "numero"):
-            recues.setdefault(identifiant.removeprefix("classe-grist-"), numero[:64])
         travaux = []
         for partage in partages_autorises(request):
             prefixe, document = adresse_grist(partage.url)
+            recues = {}
+            for identifiant, numero in VersionReferentiel.objects.filter(
+                    source__ecole=ecole, source__identifiant_diffusion__startswith="classe-grist-",
+                    source__receptions_grist__document_grist=document,
+            ).order_by("-pk").values_list("source__identifiant_diffusion", "numero"):
+                recues.setdefault(identifiant.removeprefix("classe-grist-"), numero[:64])
             erreur = ""
             try:
                 contenu = projection(partage)

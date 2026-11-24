@@ -23,7 +23,7 @@ from .identites_referentiels import identifiant_source_ecole
 from .models import ChoixApplicationAnnuel, DestinationPublicationGrist, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .services.catalogue_fourni import REFERENTIELS_DEPART
-from .services.catalogues_externes import catalogues_grist_connus, enregistrer_nom_catalogue_grist, identite_grist, lire_catalogue_grist
+from .services.catalogues_externes import adresse_grist, catalogues_grist_connus, enregistrer_nom_catalogue_grist, identite_grist, lire_catalogue_grist
 from .services.choix_bases_referentiels import choix_bases, verifier_annee
 from .views import acces_requis
 
@@ -296,12 +296,42 @@ def suivis_classe(request, classe_pk):
         for catalogue in catalogues_grist_connus(ecole.catalogues_referentiels).values()
         for referentiel in catalogue["referentiels"]
     }
+    from .models import PartageGristClasse, ReceptionReferentielGrist
+
+    partage_grist = None
+    document_espace = ""
+    if settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False):
+        partage_grist = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
+        if partage_grist:
+            document_espace = adresse_grist(partage_grist.url)[1]
+    documents = {}
+    for source_id, document in ReceptionReferentielGrist.objects.filter(
+            source_id__in={ligne["version"].source_id for ligne in lignes if ligne["version"]}
+    ).order_by("document_grist").values_list("source_id", "document_grist"):
+        documents.setdefault(source_id, []).append(document)
+    noms_espaces = {}
+    for partage in PartageGristClasse.objects.filter(classe__ecole=ecole).exclude(nom_espace=""):
+        noms_espaces[adresse_grist(partage.url)[1]] = partage.nom_espace
+    if partage_grist and partage_grist.nom_espace:
+        noms_espaces[document_espace] = partage_grist.nom_espace
+    recus_espace = [ligne for ligne in lignes if document_espace and ligne["version"]
+                    and document_espace in documents.get(ligne["version"].source_id, ())]
+    ancre_espace = "referentiels-espace-" + document_espace
+    a_decouvrir_espace = any(not ligne["suivi"] for ligne in recus_espace)
     groupes = {}
     for ligne in lignes:
         if ligne["suivi"]:
             continue
         version = ligne["version"]
         if version and version.contenu.get("origine") == "etat_initial_repris":
+            continue
+        for document in documents.get(version.source_id, ()) if version else ():
+            cle = "referentiels-espace-" + document
+            groupes.setdefault(cle, {
+                "nom": noms_espaces.get(document, "Référentiels reçus d’un espace de partage"),
+                "ancre": cle, "ouvrir": request.GET.get("groupe") == document, "lignes": [],
+            })["lignes"].append(ligne)
+        if version and version.source_id in documents:
             continue
         if ligne["autre"]:
             cle, nom = "classes", "Référentiels des classes de l’école"
@@ -314,14 +344,14 @@ def suivis_classe(request, classe_pk):
         else:
             cle, nom = "instance", "Catalogue Petits Pas"
         groupes.setdefault(cle, {"nom": nom, "lignes": []})["lignes"].append(ligne)
-    partage_grist = None
-    if settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False):
-        from .models import PartageGristClasse
-        partage_grist = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
                    "ouvrir_espace": request.GET.get("espace") == "1",
+                   "recus_espace": bool(recus_espace),
+                   "lien_referentiels_espace": (
+                       lien("suivis_referentiels_classe", classe.pk, decouvrir=1, groupe=document_espace,
+                            ancre=ancre_espace) if a_decouvrir_espace else "#referentiels-suivis"),
                    "ouvrir_decouverte": not suivis or request.GET.get("decouvrir") == "1",
                    "classe_active": classe.etat == classe.ACTIVE, "groupes": list(groupes.values()),
                    "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),

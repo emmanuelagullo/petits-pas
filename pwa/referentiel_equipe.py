@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, charger_classe_autorisee
 from suivi.contexte_ecole import ecole_courante
-from suivi.models import ContributionReferentielEquipe, PartageGristClasse
+from suivi.models import ContributionReferentielEquipe, PartageGristClasse, ReceptionReferentielGrist
 from suivi.services.catalogues_externes import TAILLE_MAX, adresse_grist
 from suivi.services.import_sources_referentiels import importer_source, normaliser
 from suivi.services.apercu_mises_a_jour import definitions_document
@@ -87,7 +87,9 @@ def espace(request, pk):
                 reference = "equipe-grist-" + perimetre["document_grist"]
                 document = {**document, "version": tetes[0],
                             "source": {**document["source"], "identifiant": reference, "provisoire": True}}
-                importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=classe.ecole)
+                version, _, _ = importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=classe.ecole)
+                ReceptionReferentielGrist.objects.get_or_create(source=version.source,
+                    document_grist=perimetre["document_grist"])
                 messages.success(request, "Édition ajoutée au catalogue de l’école. La classe conserve son référentiel.")
                 return redirect("referentiel_equipe_grist", pk=pk)
             parents = request.POST.getlist("parent")
