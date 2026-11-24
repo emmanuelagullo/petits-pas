@@ -22,9 +22,18 @@ def sources_catalogue(utilisateur, classe, adoption):
     versions.update({v.pk: v for v in VersionReferentiel.objects.filter(
         source__ecole=classe.ecole, contenu__origine="source_declaree"
     ).select_related("source").order_by("source__titre", "pk")})
+    dernieres_distantes = {
+        v.source_id: v.pk for v in sorted(versions.values(), key=lambda v: v.pk)
+        if v.source.identifiant_diffusion.startswith("classe-grist-")
+    }
     for version in versions.values():
+        if version.pk != dernieres_distantes.get(version.source_id, version.pk):
+            continue
         if version.pk != adoption.version_id:
-            sources[f"version-{version.pk}"] = (str(version.source.titre) + f" · {version.numero}", version, None)
+            titre = version.source.titre
+            if version.source_id not in dernieres_distantes:
+                titre += f" · {version.numero}"
+            sources[f"version-{version.pk}"] = (titre, version, None)
     for autre in Classe.objects.filter(ecole=classe.ecole, etat=Classe.ACTIVE,
                                         annee_scolaire__lte=classe.annee_scolaire
                                         ).exclude(pk=classe.pk).order_by("-annee_scolaire", "nom", "pk"):

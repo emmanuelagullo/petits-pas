@@ -6,6 +6,7 @@
 {% ariane_referentiel "Catalogues et suivis" classe classe.annee_scolaire %}
 <h1>Catalogues et suivis</h1>
 <p>Suivis de {{ classe.libelle_avec_annee }}</p>
+{% if mode_pwa %}<p><a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Espace de partage Grist</a></p>{% endif %}
 {% for ligne in lignes %}
 {% if ligne.suivi %}
 <section class="encadre">

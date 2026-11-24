@@ -2,9 +2,10 @@
 from hashlib import sha256
 
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 
-from suivi.identites_referentiels import identifiant_diffusion
-from suivi.models import AdaptationCompetence, CompetenceLocale, CompetenceSourceEcole
+from suivi.identites_referentiels import competences_document, identifiant_diffusion
+from suivi.models import AdaptationCompetence, CompetenceLocale, CompetenceSourceEcole, SourceReferentiel
 from suivi.presentation import illustration_effective, propositions
 from suivi.referentiels import adoption_courante, arbre_version, contenu_adoption
 from suivi.rubriques import rubriques_saisissables
@@ -86,3 +87,13 @@ def preparer_referentiel_classe(classe, source, version):
     return {"format": 2, "version": version, "source": {**source, "provisoire": True},
             "domaines": domaines, "structure_seule": not any(
                 d["competences"] or any(s["competences"] for s in d["sous_domaines"]) for d in domaines)}
+
+
+
+def licences_referentiel_partage(adoption, document):
+    origines = {c["source_origine"] for c in competences_document(document) if c.get("source_origine")}
+    sources = SourceReferentiel.objects.filter(
+        Q(ecole=adoption.classe.ecole, identifiant_diffusion__in=origines) |
+        Q(ecole__isnull=True, identifiant__in=origines)
+    )
+    return sorted(set(sources.values_list("licence", flat=True)) | {adoption.version.source.licence})

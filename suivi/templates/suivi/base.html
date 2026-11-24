@@ -18,6 +18,10 @@
 {% endif %}
 </head>
 <body>
+{% if mode_pwa and request.user.is_authenticated and not generation_pdf %}
+<div hidden data-synchroniser-grist="{% url 'synchroniser_grist' %}">{% csrf_token %}</div>
+<script src="{% static 'suivi/partage-grist.js' %}" defer></script>
+{% endif %}
 {% if not generation_pdf and not mode_local and not mode_pwa %}
 <aside id="annonce-maintenance" class="encadre sans-impression" hidden data-url="{% url 'maintenance_annonce' %}">
   Une maintenance interrompra temporairement l’accès à Petits Pas

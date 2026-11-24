@@ -498,3 +498,27 @@ jour et récupération. Les tests de scripts, transport et le vrai Pyodide
 utilisent aussi le wheel final. Aucun nouveau parcours scolaire ni migration.
 Les plateformes terrain et la CI distante restent à confirmer ; pas de
 publication PWA depuis cette livraison.
+
+## Espace pédagogique Grist dans la PWA
+
+La connexion se fait depuis les suivis d’une classe active et demande une
+confirmation. L’application envoie sa projection pédagogique commune depuis
+le navigateur. À la réception, l’index distant est lu séparément du contenu.
+Le contenu des identifiants locaux n’est ni demandé ni importé. Une version
+reçue est conservée dans le catalogue de l’école, avec le même parcours
+d’ajout de compétence qu’une autre édition reçue. La suspension arrête les
+prochains échanges et laisse le référentiel local ainsi que la ligne distante
+déjà publiée en place.
+
+La recette se joue dans deux profils PWA indépendants, sur un document Grist
+public et fictif. Les tables `PetitsPasEspace`, `PetitsPasClasses` et
+`PetitsPasContenus` sont dédiées à cet échange. Le champ `Nom` de l’espace
+est initialisé depuis le titre du document. Chaque classe a un émetteur.
+Un même identifiant dans deux restaurations simultanément actives ne constitue
+pas un dispositif de coédition.
+
+Vérifier la connexion, la réception dans le filtre Source, puis modifier une
+classe hors ligne et la reconnecter. Vérifier la réception dans le deuxième
+profil, le remplacement de la ligne distante et l’absence d’import du contenu
+propre à chaque installation. Suspendre puis réactiver et vérifier que
+l’identifiant reste stable.

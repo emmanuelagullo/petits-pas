@@ -18,7 +18,7 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, I
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import PartageReferentielClasseForm
 from .identites_referentiels import competences_document, identifiant_diffusion, identifiant_source_ecole
-from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, InformationsPartageReferentielClasse, SourceReferentiel, VersionReferentiel, annee_scolaire_pour
+from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, InformationsPartageReferentielClasse, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
@@ -29,7 +29,7 @@ from .services.composition_referentiels import catalogue_composition, composer_p
 from .services.catalogues_externes import catalogues_grist_connus, edition_grist, identite_grist, lire_catalogue_grist
 from .services.import_sources_referentiels import importer_source, lire_source
 from .services.paquets_referentiels import MAX_ARCHIVE, empaqueter, exporter_paquet, exporter_selection, lire_paquet
-from .services.partage_referentiel_classe import preparer_referentiel_classe
+from .services.partage_referentiel_classe import licences_referentiel_partage, preparer_referentiel_classe
 from .views import acces_requis
 
 SEL = "diffusion-referentiel"
@@ -205,11 +205,7 @@ def partage_classe(request, classe, contexte, action):
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
     if not direct and empreinte != preparation["empreinte"]:
         raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
-    origines = {c["source_origine"] for c in competences_document(document) if c.get("source_origine")}
-    sources = SourceReferentiel.objects.filter(
-        Q(ecole=classe.ecole, identifiant_diffusion__in=origines) | Q(ecole__isnull=True, identifiant__in=origines)
-    )
-    licences = sorted(set(sources.values_list("licence", flat=True)) | {adoption.version.source.licence})
+    licences = licences_referentiel_partage(adoption, document)
     if direct and not request.POST.get("titre") and any(licence != donnees["licence"] for licence in licences):
         if not InformationsPartageReferentielClasse.objects.filter(
             classe=classe, adoption=adoption, donnees=donnees, licences_sources=licences,

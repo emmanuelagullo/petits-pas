@@ -1392,3 +1392,14 @@ class SuiviSourceClasse(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["classe", "reference"], name="suivi_source_unique_classe"),
         ]
+
+
+class PartageGristClasse(models.Model):
+    """Rattachement d'une classe locale à un espace pédagogique Grist."""
+    classe = models.OneToOneField(Classe, on_delete=models.CASCADE)
+    identifiant = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    url = models.URLField(max_length=300)
+    licence = models.CharField(max_length=120)
+    actif = models.BooleanField(default=True)
+    nom_espace = models.CharField(max_length=200, blank=True)
+    derniere_empreinte = models.CharField(max_length=64, blank=True)
