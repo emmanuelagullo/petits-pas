@@ -19,6 +19,7 @@ def definitions_document(contenu):
             for c in competences:
                 resultat[reference_competence(c)] = {**c, "domaine": domaine["nom"],
                     "sous_domaine": sous["nom"] if sous else "",
+                    "domaine_affiche_id": domaine["code"], "sous_domaine_affiche_id": sous["code"] if sous else None,
                     "attendus": domaine.get("attendus", []), "ordre": len(resultat)}
     return resultat
 

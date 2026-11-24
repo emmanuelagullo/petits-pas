@@ -315,9 +315,10 @@ class AdoptionBases(Base):
         self.assertEqual(AdaptationCompetence.objects.get(classe=destination).competence_id, competence.pk)
         self.assertFalse(Observation.objects.exists())
         affectation.delete()
-        self.assertEqual(self.client.get(url).status_code, 403)
-        self.assertEqual(self.client.post(url, {"action": "ajouter_depuis_source",
-            "adoption": adoption.pk, "reference": str(competence.pk)}).status_code, 403)
+        self.assertContains(self.client.get(url), competence.libelle)
+        self.assertEqual(self.client.get(reverse("grille_classe", args=[autre.pk])).status_code, 404)
+        self.assertRedirects(self.client.post(url, {"action": "ajouter_depuis_source",
+            "adoption": adoption.pk, "reference": str(competence.pk)}), url + f"#c{competence.pk}")
 
     def test_recherche_retrouve_un_suivi_cible_reutilisable(self):
         from .services.ajouts_referentiels import creer_ajout

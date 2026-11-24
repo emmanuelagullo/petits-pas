@@ -36,6 +36,7 @@
       const groupes = contenu.content.querySelector('[data-options-groupes]').content;
       const nombre = Number(contenu.content.querySelector('[data-nombre-resultats]').dataset.nombreResultats);
       const creationOuverte = actions.querySelector('details[open]');
+      const focusCreation = actions.contains(document.activeElement);
       actions.replaceChildren(contenu.content.querySelector('[data-actions-creation]').content.cloneNode(true));
       filtres.replaceChildren(contenu.content.querySelector('[data-filtres-actifs]').content.cloneNode(true));
       effacer.replaceChildren(contenu.content.querySelector('[data-effacer-recherche]').content.cloneNode(true));
@@ -45,7 +46,9 @@
       url.searchParams.set('domaine', domaine.value);
       url.searchParams.set('sous_domaine', groupe.value);
       resultats.replaceChildren(contenu.content);
-      if (creationOuverte && !form.elements.q.matches(':focus')) actions.querySelector('details')?.setAttribute('open', '');
+      const nouveauDepliant = actions.querySelector('details');
+      if (creationOuverte && nouveauDepliant) nouveauDepliant.open = true;
+      if (focusCreation) (nouveauDepliant?.querySelector('summary') || form.elements.q).focus({preventScroll: true});
       resultats.inert = false;
       history.replaceState(history.state, '', url);
       etat.textContent = `${nombre} résultat${nombre > 1 ? 's' : ''}`;

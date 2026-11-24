@@ -103,3 +103,9 @@ et [choisir une base]({{< relref "/guide/eleves-classes/choisir-referentiel" >}}
 Pour commencer depuis la fiche d’un élève ou dans **Saisir pour toute la classe**, utiliser **+ Ajouter une compétence** quand le bouton est proposé dans la rubrique.
 
 Voir [le suivi libre et ses règles]({{< relref "/guide/observer/ajouter-reussite" >}}).
+
+Dans **Compétences**, la recherche conserve l’ordre des domaines et sous-domaines.
+Les rubriques qui contiennent des résultats s’ouvrent pendant la recherche.
+Dans le filtre **Source**, les référentiels des autres classes actives de
+l’école montrent leurs compétences communes visibles. Leurs suivis d’élèves
+restent accessibles selon les autorisations habituelles.

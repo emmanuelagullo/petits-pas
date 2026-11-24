@@ -186,7 +186,7 @@ adresse et *Détails* sur un référentiel pour voir ses éditions.
 =grist.numerique.gouv.fr= compatible avec Petits Pas. Le lien reste
 disponible dans le répertoire de l’école.
 
-*Suivre* mémorise votre choix pour l’école. *Vérifier les éditions* relit
+*Suivre* mémorise votre choix pour l’école. *Vérifier les nouveautés* relit
 les catalogues suivis. Examinez l’édition avant de confirmer l’import.
 Chaque classe choisit ensuite si elle adopte l’édition. *Ne plus suivre*
 retire le suivi et laisse les éditions reçues dans le catalogue de l’école.
@@ -231,3 +231,6 @@ table =Editions= avec
 écrit une édition complète dans une ligne et vérifie sa présence. Le
 document doit autoriser l’écriture pour la connexion utilisée. Réservez
 les essais avec un document ouvert en écriture à des contenus fictifs.
+
+Utiliser *Suivre ce catalogue* pour vérifier ses nouveautés avant même de
+choisir un référentiel à suivre.

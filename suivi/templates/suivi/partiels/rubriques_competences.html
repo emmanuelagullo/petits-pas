@@ -1,25 +1,19 @@
-{% if q %}
-<ul class="liste">
-  {% for ligne in lignes %}{% include entree with afficher_classement=True %}{% endfor %}
-</ul>
-{% else %}
-{% regroup lignes by domaine as domaines_competences %}
+{% regroup lignes by domaine_affiche_id|default:domaines_competences.domaine as domaines_competences %}
 <div class="rubriques-competences">
 {% for domaine_competences in domaines_competences %}
-  <details class="domaine"{% if domaines_competences|length == 1 or domaine or afficher_rubriques_ouvertes %} open{% endif %}>
+  <details class="domaine"{% if domaines_competences|length == 1 or domaine or q or afficher_rubriques_ouvertes %} open{% endif %}>
     {% include "suivi/partiels/bouton_depliant.html" with libelle=domaine_competences.list.0.domaine niveau_titre=niveau_domaine|default:2 only %}
-    {% regroup domaine_competences.list by sous_domaine as sous_domaines_competences %}
+    {% regroup domaine_competences.list by sous_domaine_affiche_id|default:sous_domaines_competences.sous_domaine as sous_domaines_competences %}
     {% for groupe_competences in sous_domaines_competences %}
-      {% if groupe_competences.grouper %}
-        <details class="sous-domaine"{% if sous_domaines_competences|length == 1 or sous_domaine or afficher_rubriques_ouvertes %} open{% endif %}>
-          {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe_competences.grouper niveau_titre=niveau_sous_domaine|default:3 only %}
+      {% if groupe_competences.list.0.sous_domaine %}
+        <details class="sous-domaine"{% if sous_domaines_competences|length == 1 or sous_domaine or q or afficher_rubriques_ouvertes %} open{% endif %}>
+          {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe_competences.list.0.sous_domaine niveau_titre=niveau_sous_domaine|default:3 only %}
       {% endif %}
       <ul class="liste">
         {% for ligne in groupe_competences.list %}{% include entree %}{% endfor %}
       </ul>
-      {% if groupe_competences.grouper %}</details>{% endif %}
+      {% if groupe_competences.list.0.sous_domaine %}</details>{% endif %}
     {% endfor %}
   </details>
 {% endfor %}
 </div>
-{% endif %}

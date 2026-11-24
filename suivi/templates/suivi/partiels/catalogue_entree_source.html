@@ -3,13 +3,12 @@
   <small> · {{ ligne.competence.niveau }}{% if afficher_classement %} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}{% endif %} · {% if ligne.deja_suivie %}Déjà suivie{% else %}Hors suivi{% endif %}</small>
   {% if ligne.gestion.competence_masquee %}<small> · Compétence masquée</small>{% endif %}
   {% if ligne.gestion.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
-  {% include "suivi/partiels/menu_competence_catalogue.html" with ligne=ligne.gestion %}
   {% if deplacement and ligne.gestion.competence.pk == deplacement.competence.id %}
     {% include "suivi/partiels/deplacement_competence_catalogue.html" %}
   {% endif %}
   <div class="actions">
     {% if ligne.deja_suivie %}
-    <a class="bouton discret" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
+    <a class="bouton" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
     {% elif ligne.choix_portee %}
     <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
     {% elif not ligne.gestion.competence_masquee %}
@@ -20,5 +19,6 @@
       <button class="bouton discret" type="submit" name="action" value="ajouter_depuis_source">Ajouter cette compétence à la classe</button>
     </form>
     {% endif %}
+    {% include "suivi/partiels/menu_competence_catalogue.html" with ligne=ligne.gestion %}
   </div>
 </li>

@@ -57,6 +57,20 @@ class ConsultationReferentiels(Base):
         self.assertContains(page, "J’écoute")
         self.assertNotContains(page, "Je parle")
 
+    def test_la_recherche_garde_l_ordre_et_distingue_les_rubriques_homonymes(self):
+        doc = document("rubriques-fictives")
+        premier = doc["domaines"][0]
+        premier["nom"] = "Même domaine"
+        premier["competences"][0]["libelle"] = "Je parle à mes camarades"
+        doc["domaines"].append({
+            "code": "AUTRE", "nom": "Même domaine",
+            "competences": [{"identite": "parler", "code": "A01", "libelle": "Je parle", "niveau": "PS"}],
+        })
+        version = importer(doc, ecole=self.ecole)[0]
+        page = self.client.get(self.url, {"version": version.pk, "q": "Je parle"})
+        self.assertContains(page, "<h3>Même domaine</h3>", count=2)
+        self.assertEqual([ligne["code"] for ligne in page.context["page"]], ["L01", "A01"])
+
     def test_associe_consulte_sans_droit_de_changer(self):
         from comptes.models import AffectationClasse
         # Modifier l'affectation fictive existante ; ne pas créer un rôle supplémentaire.

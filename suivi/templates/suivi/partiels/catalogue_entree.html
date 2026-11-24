@@ -1,12 +1,11 @@
 <li{% if not ligne.disponible %} id="c{{ ligne.competence.pk }}" tabindex="-1"{% endif %}>
   {% include "suivi/partiels/ligne_catalogue.html" %}
-  {% include "suivi/partiels/menu_competence_catalogue.html" %}
   {% if ligne.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
   {% if afficher_classement %}<small> · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>{% endif %}
-  {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.competence.active %}
+  {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.competence.active or ligne.deplacement %}
   <div class="actions">
     {% if ligne.competence.active and not ligne.disponible and not ligne.rubrique_masquee %}
-    <a class="bouton discret" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
+    <a class="bouton" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
     {% endif %}
     {% if ligne.choix_portee and not ligne.competence_masquee %}
     <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
@@ -19,6 +18,7 @@
       <button class="bouton discret" type="submit" name="action" value="ajouter_au_suivi">Ajouter cette compétence à la classe</button>
     </form>
     {% endif %}
+    {% include "suivi/partiels/menu_competence_catalogue.html" %}
   </div>
   {% endif %}
   {% if deplacement and ligne.competence.pk == deplacement.competence.id %}

@@ -62,7 +62,11 @@ def catalogues_visibles(reglages, instance):
     }
 
 
-def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=None, suivre=False):
+def catalogue_suivi(etat):
+    return etat.get("suivre_catalogue", bool(etat.get("suivis")))
+
+
+def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=None, suivre=False, suivre_catalogue=None):
     with transaction.atomic():
         ecole = Ecole.objects.select_for_update().get(pk=ecole.pk)
         if not autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole):
@@ -70,6 +74,8 @@ def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=
         etat = ecole.catalogues_referentiels.setdefault(cle, {})
         if catalogue is not None:
             etat["catalogue"] = catalogue
+        if suivre_catalogue is not None:
+            etat["suivre_catalogue"] = suivre_catalogue
         if reference is not None:
             suivis = set(etat.get("suivis", ()))
             if suivre:
@@ -77,6 +83,8 @@ def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=
             else:
                 suivis.discard(reference)
             etat["suivis"] = sorted(suivis)
+            if suivre and "suivre_catalogue" not in etat:
+                etat["suivre_catalogue"] = True
         ecole.save(update_fields=["catalogues_referentiels"])
     return ecole
 
@@ -114,15 +122,24 @@ def decouvrir_referentiels(request):
                 ecole = enregistrer_catalogue(ecole, request.user, catalogue["url"], catalogue=catalogue)
                 contexte.update(catalogue_ajoute=catalogue, message="Catalogue disponible. Choisissez les référentiels à suivre.")
             elif action == "verifier":
-                erreurs = []
+                erreurs, nouveautes = [], set()
                 for cle, catalogue in catalogues.items():
-                    if catalogue.get("url") and ecole.catalogues_referentiels.get(cle, {}).get("suivis"):
+                    if catalogue.get("url") and catalogue_suivi(ecole.catalogues_referentiels.get(cle, {})):
                         try:
                             actualise = lire_catalogue_grist(catalogue["url"])
+                            connues = {ligne["reference"] for ligne in catalogue["referentiels"]}
+                            nouveautes.update((cle, ligne["reference"]) for ligne in actualise["referentiels"]
+                                              if ligne["reference"] not in connues)
                             ecole = enregistrer_catalogue(ecole, request.user, cle, catalogue=actualise)
                         except ValidationError as erreur:
                             erreurs.append(f'{catalogue["nom"]} — {" ".join(erreur.messages)}')
-                contexte.update(erreurs_verification=erreurs, message="Vérification terminée.")
+                contexte.update(erreurs_verification=erreurs, nouveautes=nouveautes, message="Vérification terminée.")
+            elif action in {"suivre-catalogue", "ne-plus-suivre-catalogue"}:
+                cle = request.POST.get("catalogue")
+                if not catalogues.get(cle, {}).get("url"):
+                    raise ValidationError("Ce catalogue en ligne n’est pas disponible.")
+                enregistrer_catalogue(ecole, request.user, cle, suivre_catalogue=action == "suivre-catalogue")
+                return redirect(retour)
             elif action in {"suivre", "ne-plus-suivre"}:
                 cle, reference = request.POST.get("catalogue"), request.POST.get("reference")
                 if not any(ligne["reference"] == reference for ligne in catalogues.get(cle, {}).get("referentiels", [])):
@@ -142,7 +159,8 @@ def decouvrir_referentiels(request):
         versions.setdefault(identifiant, []).append(numero)
     autorisees = {version.pk for version in choix_bases(ecole, annee).versions}
     groupes = []
-    contexte["a_des_suivis"] = any(etat.get("suivis") for etat in regles.values())
+    contexte["a_des_suivis"] = any(catalogue.get("url") and catalogue_suivi(regles.get(cle, {}))
+                                   for cle, catalogue in catalogues_visibles(regles, instance).items())
     texte_recherche = slugify(q)
     termes = texte_recherche.split("-") if texte_recherche else []
     for cle, catalogue in catalogues_visibles(regles, instance).items():
@@ -157,6 +175,7 @@ def decouvrir_referentiels(request):
             suivi = reference in regles.get(cle, {}).get("suivis", ())
             mise_a_jour = bool(url and locales) and str(derniere) not in locales
             ligne = {**source, "cle": cle, "url": url,
+                     "nouveau": (cle, reference) in contexte.get("nouveautes", ()),
                      "suivi": suivi, "locales": locales, "derniere": derniere, "mise_a_jour": mise_a_jour,
                      "locale": str(derniere) in locales}
             version_consultable = next((version for version in source.get("versions_instance", ())
@@ -165,10 +184,11 @@ def decouvrir_referentiels(request):
                 ligne["consultation"] = lien("consulter_referentiels_ecole", annee=annee,
                                              version=version_consultable.pk)
                 ligne["edition_consultable"] = version_consultable.numero
-            if ajoute or (all(terme in slugify(f'{source["titre"]} {catalogue["nom"]}') for terme in termes)
+            if ligne["nouveau"] or ajoute or (all(terme in slugify(f'{source["titre"]} {catalogue["nom"]}') for terme in termes)
                           and (filtre != "suivis" or suivi) and (filtre != "mises-a-jour" or mise_a_jour)):
                 lignes.append(ligne)
         if ajoute or lignes or (not q and not filtre):
-            groupes.append({"nom": catalogue["nom"], "url": catalogue.get("url"), "lignes": lignes})
+            groupes.append({"nom": catalogue["nom"], "url": catalogue.get("url"), "lignes": lignes,
+                            "cle": cle, "suivi": catalogue_suivi(regles.get(cle, {}))})
     contexte.update(groupes=groupes, nombre_resultats=sum(len(groupe["lignes"]) for groupe in groupes))
     return render(request, "suivi/decouvrir_referentiels.html", contexte)

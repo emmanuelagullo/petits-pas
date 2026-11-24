@@ -49,6 +49,20 @@ class CataloguesReferentiels(Base):
         self.assertNotContains(page, f'?annee={annee}&amp;version={version.pk}')
         self.assertNotContains(page, "Catalogue de démonstration Petits Pas")
 
+    def test_suivre_un_catalogue_sans_suivre_encore_de_referentiel(self):
+        self.entrer("dir-mdp")
+        url = reverse("decouvrir_referentiels")
+        reponse = self.client.post(url, {"action": "suivre-catalogue", "catalogue": CATALOGUE_DEMONSTRATION})
+        self.assertEqual(reponse.status_code, 302)
+        with patch("suivi.views_catalogues_referentiels.lire_catalogue_grist", return_value={
+            "nom": "Catalogue fictif", "url": CATALOGUE_DEMONSTRATION,
+            "referentiels": [{"reference": "nouveau", "titre": "Nouveau référentiel", "editions": [1]}],
+        }) as lire:
+            page = self.client.post(url, {"action": "verifier"})
+        lire.assert_called_once_with(CATALOGUE_DEMONSTRATION)
+        self.assertContains(page, "Nouveau référentiel")
+        self.assertTrue(page.context["groupes"][-1]["lignes"][0]["nouveau"])
+
     def test_decouvrir_suivre_importer_et_adopter_une_revision_grist(self):
         self.entrer("dir-mdp")
         annee = self.classe.annee_scolaire

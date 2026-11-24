@@ -2,25 +2,32 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 
-from suivi.identites_referentiels import reference_competence, references_suivi
+from suivi.identites_referentiels import references_suivi
 from suivi.audit import journaliser
-from suivi.autorisations import GERER_REFERENTIEL_CLASSE, VOIR_SUIVI, autorise
-from suivi.models import AdaptationCompetence, Classe, CompetenceLocale
-from suivi.referentiels import adoption_courante, contenu_adoption, contenu_origine
+from suivi.autorisations import GERER_REFERENTIEL_CLASSE, autorise
+from suivi.models import AdaptationCompetence, Classe, CompetenceLocale, VersionReferentiel
+from suivi.referentiels import adoption_courante, contenu_origine
 from .ajouts_referentiels import _verrouiller, catalogue_reprises, reprendre_ajout
 from .choix_bases_referentiels import _application_verrouillee, choix_bases
 from .versions_sources_ecoles import definir_version_ecole
+from .partage_referentiel_classe import contenu_commun_classe
+from .apercu_mises_a_jour import definitions_document
 
 
 def sources_catalogue(utilisateur, classe, adoption):
+    if not autorise(utilisateur, GERER_REFERENTIEL_CLASSE, classe):
+        raise PermissionDenied
     sources = {}
-    for version in choix_bases(classe.ecole, classe.annee_scolaire).versions:
+    versions = {v.pk: v for v in choix_bases(classe.ecole, classe.annee_scolaire).versions}
+    versions.update({v.pk: v for v in VersionReferentiel.objects.filter(
+        source__ecole=classe.ecole, contenu__origine="source_declaree"
+    ).select_related("source").order_by("source__titre", "pk")})
+    for version in versions.values():
         if version.pk != adoption.version_id:
             sources[f"version-{version.pk}"] = (str(version.source.titre) + f" · {version.numero}", version, None)
-    for autre in Classe.objects.filter(ecole=classe.ecole, annee_scolaire__lte=classe.annee_scolaire
+    for autre in Classe.objects.filter(ecole=classe.ecole, etat=Classe.ACTIVE,
+                                        annee_scolaire__lte=classe.annee_scolaire
                                         ).exclude(pk=classe.pk).order_by("-annee_scolaire", "nom", "pk"):
-        if not autorise(utilisateur, VOIR_SUIVI, autre):
-            continue
         autre_adoption = adoption_courante(autre)
         if autre_adoption:
             sources[f"classe-{autre.pk}"] = (f"{autre.nom} · {autre.annee_scolaire}", None, autre_adoption)
@@ -29,23 +36,22 @@ def sources_catalogue(utilisateur, classe, adoption):
 
 def lignes_source(version, adoption, *, utilisateur, classe):
     if version and version.contenu.get("origine") == "source_declaree":
-        for domaine in version.contenu["domaines"]:
-            for c in domaine["competences"]:
-                yield reference_competence(c), c, domaine["nom"], ""
-            for sous in domaine["sous_domaines"]:
-                for c in sous["competences"]:
-                    yield reference_competence(c), c, domaine["nom"], sous["nom"]
+        for reference, c in definitions_document(version.contenu).items():
+            yield reference, c, c["domaine"], c["sous_domaine"]
         return
-    contenu = version.contenu if version else contenu_adoption(adoption)
+    contenu = version.contenu if version else contenu_commun_classe(adoption)
     domaines = {d["id"]: d["nom"] for d in contenu.get("domaines", [])}
     sous_domaines = {d["id"]: d["nom"] for d in contenu.get("sous_domaines", [])}
-    reprises = set(catalogue_reprises(utilisateur=utilisateur, ecole=classe.ecole,
-        annee=classe.annee_scolaire, classe=classe).values_list("competence_id", flat=True))
-    exclus = set(CompetenceLocale.objects.filter(ecole=classe.ecole).exclude(
-        competence_id__in=reprises).values_list("competence_id", flat=True))
+    exclus = set()
+    if version:
+        reprises = catalogue_reprises(utilisateur=utilisateur, ecole=classe.ecole,
+            annee=classe.annee_scolaire, classe=classe).values_list("competence_id", flat=True)
+        exclus = set(CompetenceLocale.objects.filter(ecole=classe.ecole).exclude(
+            competence_id__in=reprises).values_list("competence_id", flat=True))
     for c in contenu.get("competences", []):
-        if c["active"] and c["id"] not in exclus:
-            yield str(c["id"]), c, domaines[c["domaine_id"]], sous_domaines.get(c["sous_domaine_id"], "")
+        if c["active"] and c["id"] not in exclus and c["domaine_id"] in domaines:
+            yield str(c["id"]), {**c, "domaine_affiche_id": c["domaine_id"],
+                                 "sous_domaine_affiche_id": c.get("sous_domaine_id")}, domaines[c["domaine_id"]], sous_domaines.get(c["sous_domaine_id"], "")
 
 
 def competence_id_source(classe, version, reference, candidat):
@@ -84,14 +90,15 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
         else:
             ligne = candidate
     else:
-        contenu = contenu_adoption(autre)
-        ligne = candidate
+        contenu = contenu_commun_classe(autre)
+        ligne = next(c for c in contenu["competences"] if c["id"] == candidate["id"])
     revision = AdaptationCompetence.objects.filter(classe=classe, competence_id=ligne["id"]
         ).values_list("revision", flat=True).first() or 0
     if revision_attendue is not None and revision != revision_attendue:
         raise ValidationError("Le suivi a changé. Rechargez le formulaire de sélection.")
     locale = CompetenceLocale.objects.filter(ecole=classe.ecole, competence_id=ligne["id"]).first()
-    if locale:
+    if locale and catalogue_reprises(utilisateur=utilisateur, ecole=classe.ecole,
+            annee=classe.annee_scolaire, classe=classe).filter(pk=locale.pk).exists():
         reprendre_ajout(utilisateur=utilisateur, ecole=classe.ecole, annee=classe.annee_scolaire,
                        classe=classe, locale=locale, adoption_attendue=adoption.pk)
         return locale.competence

@@ -111,6 +111,8 @@ def lignes_selection(versions, *, avec_source=False):
         for reference, competence in definitions_document(version.contenu).items():
             lignes.append({**competence,
                 "reference": f"{version.pk}:{reference}" if avec_source else reference,
+                "domaine_affiche_id": (f'{version.pk}:{competence["domaine_affiche_id"]}'
+                                       if avec_source else competence["domaine_affiche_id"]),
                 "edition": f"{version.source.titre} — {version.numero}" if avec_source else "",
             })
     return lignes

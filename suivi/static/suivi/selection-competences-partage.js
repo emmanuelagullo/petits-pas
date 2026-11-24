@@ -22,7 +22,7 @@ for (const zone of document.querySelectorAll('[data-selection-partage]')) {
     const choix = select.value;
     const valeurs = new Set(lignesProposees.map(ligne => ligne.element.dataset[champ]).filter(Boolean));
     select.length = 1;
-    for (const nom of [...valeurs].sort((a, b) => a.localeCompare(b, 'fr'))) {
+    for (const nom of valeurs) {
       select.add(new Option(nom, nom));
     }
     select.value = valeurs.has(choix) ? choix : '';

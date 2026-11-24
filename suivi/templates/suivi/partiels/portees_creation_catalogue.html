@@ -1,0 +1,7 @@
+{% if portee_classe and url_creation_classe %}
+<p><a class="bouton{% if not principale %} discret{% endif %}" href="{{ url_creation_classe }}">Ajouter cette compétence à la classe</a><br>
+<small>Disponible pour les élèves actuels et les futurs inscrits.</small></p>
+{% elif not portee_classe and url_creation_ciblee %}
+<p><a class="bouton{% if not principale %} discret{% endif %}" href="{{ url_creation_ciblee }}">Suivre pour les élèves sélectionnés</a><br>
+<small>Les élèves inscrits plus tard ne seront pas ajoutés automatiquement.</small></p>
+{% endif %}

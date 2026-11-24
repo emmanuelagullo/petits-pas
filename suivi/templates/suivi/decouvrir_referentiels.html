@@ -32,7 +32,7 @@
 <div class="actions">
 {% if a_des_suivis %}
 <form method="post" action="{{ retour }}">{% csrf_token %}
-<button class="bouton" name="action" value="verifier">Vérifier les éditions</button>
+<button class="bouton" name="action" value="verifier">Vérifier les nouveautés</button>
 </form>
 {% endif %}
 <details{% if url_saisie and erreur %} open{% endif %}>
@@ -49,6 +49,12 @@
 <section>
 <h2>{{ groupe.nom }}</h2>
 {% if groupe.url %}
+<form method="post" action="{{ retour }}">
+{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ groupe.cle }}">
+{% if groupe.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre-catalogue">Ne plus suivre ce catalogue</button>
+{% else %}<button class="bouton discret" name="action" value="suivre-catalogue">Suivre ce catalogue</button>{% endif %}
+</form>
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Lien du catalogue" only %}
 <p><a href="{{ groupe.url }}">Ouvrir le catalogue dans Grist</a></p>
@@ -63,7 +69,7 @@
 {% for ligne in groupe.lignes %}
 <li class="entree">
 <div>
-<strong>{{ ligne.titre }}</strong>
+<strong>{{ ligne.titre }}</strong>{% if ligne.nouveau %} · Nouveau{% endif %}
 <p>Édition {{ ligne.derniere }}{% if ligne.url and ligne.locales %} · À l’école : {{ ligne.locales|join:", " }}{% elif ligne.versions_instance and not ligne.consultation %} · Hors des choix autorisés à l’école{% elif ligne.fourni and not ligne.versions_instance %} · Fourni avec Petits Pas{% endif %}{% if ligne.suivi %} · Suivi{% endif %}</p>
 <div class="actions">
 {% if ligne.consultation %}<a class="bouton discret" href="{{ ligne.consultation }}">Consulter l’édition {{ ligne.edition_consultable }}</a>{% endif %}

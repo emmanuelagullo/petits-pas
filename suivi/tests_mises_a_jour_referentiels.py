@@ -275,6 +275,18 @@ class MisesAJour(Base):
         self.classe.__dict__.pop("_adoption_referentiel_lecture", None)
         self.assertIn("<prénom> partage une découverte.", formulations_effectives(competence, self.classe))
 
+    def test_une_rubrique_masquee_est_absente_de_la_vue_commune_et_du_partage(self):
+        from .models import RubriqueClasse
+        from .services.partage_referentiel_classe import contenu_commun_classe, preparer_referentiel_classe
+
+        adoption = self.adopter()
+        domaine = contenu_adoption(adoption)["domaines"][0]
+        RubriqueClasse.objects.create(classe=self.classe, domaine_id=domaine["id"],
+                                      nom=domaine["nom"], ordre=domaine["ordre"], masquee=True)
+        self.assertEqual(contenu_commun_classe(adoption)["competences"], [])
+        paquet = preparer_referentiel_classe(self.classe, {"identifiant": "classe-fictive"}, "1")
+        self.assertEqual(paquet["domaines"], [])
+
     def test_mise_a_jour_depuis_le_resume_sans_ouvrir_la_comparaison(self):
         ancienne, nouvelle = self.preparer()
         url = reverse("referentiel_classe", args=[self.classe.pk])

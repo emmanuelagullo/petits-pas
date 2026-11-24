@@ -6,11 +6,12 @@ from django.http import Http404
 from django.urls import reverse
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import redirect, render
+from django.template.defaultfilters import truncatechars
 from django.views.decorators.http import require_http_methods
 
 from .autorisations import GERER_REFERENTIEL_CLASSE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee
 from .catalogue_competences import catalogue_classe
-from .consultation_referentiels import cle_recherche_libelle, rechercher_apprentissages
+from .consultation_referentiels import cle_recherche_libelle, recherche_par_rubriques, rechercher_apprentissages
 from .contexte_ecole import ecole_courante
 from .forms_suivi_libre import PorteeCatalogueForm
 from .gestion_catalogue import changer_visibilite, deplacer
@@ -35,11 +36,10 @@ def criteres_catalogue(request):
 
 
 def recherche_catalogue(lignes, q, *, externe=False):
-    if not q:
-        return lignes
-    index = [{"libelle": ligne["competence"]["libelle"] if externe else ligne["competence"].libelle, "ligne": ligne}
-             for ligne in lignes]
-    return [item["ligne"] for item in rechercher_apprentissages(index, q)]
+    def texte(ligne):
+        return ligne["competence"]["libelle"] if externe else ligne["competence"].libelle
+
+    return recherche_par_rubriques(lignes, q, texte=texte)
 
 
 SECTIONS = {"PS": "Petite section", "MS": "Moyenne section", "GS": "Grande section"}
@@ -288,7 +288,9 @@ def catalogue(request, pk, saisie_collective=False):
         if not cle or identifiant == source:
             continue
         index = [{"libelle": c["libelle"], "ligne": dict(
-            competence=c, domaine=nom, sous_domaine=sous)} for _, c, nom, sous in externes]
+            competence=c, domaine=nom, sous_domaine=sous,
+                                  domaine_affiche_id=c.get("domaine_affiche_id", nom),
+                                  sous_domaine_affiche_id=c.get("sous_domaine_affiche_id", sous))} for _, c, nom, sous in externes]
         correspondances.extend(
             (l, identifiant, l["competence"]["libelle"], l["competence"]["niveau"], sources[identifiant][0])
             for l in (item["ligne"] for item in rechercher_apprentissages(index, q))
@@ -296,7 +298,9 @@ def catalogue(request, pk, saisie_collective=False):
     if source:
         _, version, autre = sources[source]
         externes = externes_par_source[source]
-        disponibles = [dict(reference=ref, competence=c, domaine=nom, sous_domaine=sous)
+        disponibles = [dict(reference=ref, competence=c, domaine=nom, sous_domaine=sous,
+                                  domaine_affiche_id=c.get("domaine_affiche_id", nom),
+                                  sous_domaine_affiche_id=c.get("sous_domaine_affiche_id", sous))
                        for ref, c, nom, sous in externes]
         if version and version.contenu.get("origine") == "source_declaree":
             from .identites_referentiels import references_suivi
@@ -325,12 +329,15 @@ def catalogue(request, pk, saisie_collective=False):
     else:
         disponibles = []
     categories = disponibles if source else lignes
-    domaines = sorted({l["domaine"] for l in categories} | ({classement["nom"]} if classement and not source else set()))
+    domaines = list(dict.fromkeys(l["domaine"] for l in categories))
+    if classement and not source and classement["nom"] not in domaines:
+        domaines.append(classement["nom"])
     if domaine not in domaines:
         domaine = ""
-    groupes = sorted({l["sous_domaine"] for l in categories
-                     if l["sous_domaine"] and (not domaine or l["domaine"] == domaine)}
-                     | ({groupe["nom"]} if groupe and domaine == classement.get("nom") and not source else set()))
+    groupes = list(dict.fromkeys(l["sous_domaine"] for l in categories
+                                 if l["sous_domaine"] and (not domaine or l["domaine"] == domaine)))
+    if groupe and domaine == classement.get("nom") and not source and groupe["nom"] not in groupes:
+        groupes.append(groupe["nom"])
     if sous_domaine not in groupes:
         sous_domaine = ""
     ids_ajoutables = {c["id"] for c in contenu_origine(adoption).get("competences", [])} if ouvert and gerer else set()
@@ -444,6 +451,7 @@ def catalogue(request, pk, saisie_collective=False):
         "inclure_masquees": inclure_masquees, "rubriques_masquees": bool(domaines_masques or groupes_masques),
         "saisie_collective": saisie_collective, "vue_suivi": vue_suivi, "domaines_suivi": domaines_suivi,
         "effectif": effectif, "filtre": niveau or "tous", "responsable": cibler,
+        "libelle_creation": f"Créer « {truncatechars(q, 55)} »",
         "creer_en_priorite": bool(cle and not correspondances), "creation_proposee": bool(cle and not exacte), "recherches_elargies": recherches_elargies,
         "classe": classe, "adoption": adoption, "ariane": chemin_classe(classe),
         "q": q, "niveau": niveau, "domaine": domaine,

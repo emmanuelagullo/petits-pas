@@ -3,6 +3,7 @@ import re
 import unicodedata
 
 from .referentiels import contenu_adoption
+from .services.apercu_mises_a_jour import definitions_document
 
 
 def lignes_consultation(version, adoption=None):
@@ -11,14 +12,19 @@ def lignes_consultation(version, adoption=None):
     if adoption or contenu.get("origine") != "source_declaree":
         domaines = {d["id"]: d["nom"] for d in contenu.get("domaines", [])}
         groupes = {s["id"]: s["nom"] for s in contenu.get("sous_domaines", [])}
-        for c in contenu.get("competences", []):
+        def rangs(rubriques):
+            return {r["id"]: i for i, r in enumerate(rubriques)}
+        ordre_domaines = rangs(contenu.get("domaines", []))
+        ordre_groupes = rangs(contenu.get("sous_domaines", []))
+        for c in sorted(contenu.get("competences", []), key=lambda c: (
+            ordre_domaines.get(c["domaine_id"], len(ordre_domaines)),
+            ordre_groupes.get(c.get("sous_domaine_id"), -1),
+        )):
             lignes.append({**c, "domaine": domaines.get(c["domaine_id"], ""),
-                           "sous_domaine": groupes.get(c.get("sous_domaine_id"), "")})
+                           "sous_domaine": groupes.get(c.get("sous_domaine_id"), ""),
+                           "domaine_affiche_id": c["domaine_id"], "sous_domaine_affiche_id": c.get("sous_domaine_id")})
     else:
-        for d in contenu.get("domaines", []):
-            for groupe, competences in [("", d["competences"])] + [(s["nom"], s["competences"]) for s in d["sous_domaines"]]:
-                for c in competences:
-                    lignes.append({**c, "domaine": d["nom"], "sous_domaine": groupe, "active": True})
+        lignes = [{**definition, "active": True} for definition in definitions_document(contenu).values()]
     from .models import CompetenceLocale
     libres = set(CompetenceLocale.objects.filter(suivi_libre=True).values_list("competence_id", flat=True))
     return [c for c in lignes if c.get("id") not in libres]
@@ -47,6 +53,21 @@ def _distance(a, b):
                 suivante[-1] = min(suivante[-1], precedente[j - 2] + 1)
         precedente, ligne = ligne, suivante
     return ligne[-1]
+
+
+def classement_rubrique(ligne):
+    return (ligne.get("domaine_affiche_id", ligne["domaine"]),
+            ligne.get("sous_domaine_affiche_id", ligne["sous_domaine"]))
+
+
+def recherche_par_rubriques(lignes, recherche, *, texte=None):
+    """Conserver l’ordre de lecture des rubriques et classer les résultats dans chacune."""
+    if not recherche:
+        return lignes
+    ordre = {cle: i for i, cle in enumerate(dict.fromkeys(map(classement_rubrique, lignes)))}
+    index = [{"libelle": texte(ligne) if texte else ligne["libelle"], "ligne": ligne} for ligne in lignes]
+    resultats = (item["ligne"] for item in rechercher_apprentissages(index, recherche))
+    return sorted(resultats, key=lambda ligne: ordre[classement_rubrique(ligne)])
 
 
 def rechercher_apprentissages(lignes, recherche):

@@ -7,6 +7,36 @@ from suivi.identites_referentiels import identifiant_diffusion
 from suivi.models import AdaptationCompetence, CompetenceLocale, CompetenceSourceEcole
 from suivi.presentation import illustration_effective, propositions
 from suivi.referentiels import adoption_courante, arbre_version, contenu_adoption
+from suivi.rubriques import rubriques_saisissables
+
+
+def arbre_commun_classe(adoption, contenu):
+    """Arbre pédagogique partagé par la consultation de classe et les exports."""
+    classe = adoption.classe
+    exclus = set(CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True)
+                 .values_list("competence_id", flat=True))
+    exclus.update(AdaptationCompetence.objects.filter(
+        classe=classe, annee_scolaire=classe.annee_scolaire, selection_eleves=True,
+    ).values_list("competence_id", flat=True))
+    for domaine in rubriques_saisissables(arbre_version(classe.ecole, contenu, masque_actuel=False), classe):
+        domaine.visibles = [c for c in domaine.visibles if c.pk not in exclus]
+        yield domaine
+
+
+def contenu_commun_classe(adoption):
+    brut = contenu_adoption(adoption)
+    contenu = {**brut, "domaines": [], "sous_domaines": [], "competences": []}
+    definitions = {c["id"]: c for c in brut["competences"]}
+    domaines = {d["id"]: d for d in brut["domaines"]}
+    groupes = {g["id"]: g for g in brut.get("sous_domaines", [])}
+    for domaine in arbre_commun_classe(adoption, brut):
+        contenu["domaines"].append(domaines[domaine.pk])
+        contenu["sous_domaines"].extend(groupes[g.pk] for g in domaine.sous_domaines_lus)
+        for groupe in [None, *domaine.sous_domaines_lus]:
+            cle = groupe.pk if groupe else None
+            contenu["competences"].extend(definitions[c.pk] for c in domaine.visibles
+                                          if c.sous_domaine_id == cle)
+    return contenu
 
 
 def preparer_referentiel_classe(classe, source, version):
@@ -14,11 +44,6 @@ def preparer_referentiel_classe(classe, source, version):
     if adoption is None:
         raise ValidationError("Choisissez d’abord une base pour cette classe.")
     contenu = contenu_adoption(adoption)
-    exclus = set(CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=True)
-                 .values_list("competence_id", flat=True))
-    exclus.update(AdaptationCompetence.objects.filter(
-        classe=classe, annee_scolaire=classe.annee_scolaire, selection_eleves=True,
-    ).values_list("competence_id", flat=True))
     origines = {
         liaison.competence_id: liaison.identite
         for liaison in CompetenceSourceEcole.objects.filter(
@@ -27,15 +52,13 @@ def preparer_referentiel_classe(classe, source, version):
     }
 
     domaines = []
-    for domaine in arbre_version(classe.ecole, contenu, masque_actuel=False):
+    for domaine in arbre_commun_classe(adoption, contenu):
         groupes = {None: []}
         sous_domaines = []
         for sous in domaine.sous_domaines_lus:
             groupes[sous.pk] = []
             sous_domaines.append({"code": sous.code, "nom": sous.nom, "competences": groupes[sous.pk]})
         for competence in domaine.visibles:
-            if competence.pk in exclus:
-                continue
             origine = origines.get(competence.pk)
             cle = sha256(f"{classe.ecole_id}/{competence.pk}".encode()).hexdigest()
             definition = {

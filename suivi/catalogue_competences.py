@@ -70,18 +70,20 @@ def catalogue_classe(classe, utilisateur, *, reprises_ciblees=False):
         resultats.append({
             "competence": competence, "locale": locale, "portee": portee,
             "domaine": origine_rubrique(domaine) or domaine.nom,
-            "domaine_affiche_id": domaine.pk,
+            "domaine_affiche_id": domaine.pk, "ordre_domaine": domaine.ordre,
             "sous_domaine": sous.nom if sous else "",
-            "sous_domaine_affiche_id": sous.pk if sous else None,
+            "sous_domaine_affiche_id": sous.pk if sous else None, "ordre_sous_domaine": sous.ordre if sous else -1,
             "nombre": comptes.get(competence.pk, 0),
             "suivis": selections.get(competence.pk, suivis.get(locale.pk, 0) if locale else 0),
             "disponible": competence.pk not in presentes,
             "url": (lien("ajouts_classe", classe.pk, ancre=f"ajout-{locale.pk}") if competence.pk not in presentes
                     else lien("saisie_competence", classe.pk, competence.pk)),
         })
-    return sorted(resultats, key=lambda l: (
-        cle_alphabetique(l["domaine"]), l["domaine"], l["domaine_affiche_id"], cle_alphabetique(l["sous_domaine"]),
-        l["sous_domaine"], l["sous_domaine_affiche_id"] or 0, cle_alphabetique(l["competence"].libelle),
+    return sorted(resultats, key=lambda ligne: (
+        ligne["ordre_domaine"],
+        ligne["domaine_affiche_id"],
+        ligne["ordre_sous_domaine"],
+        ligne["sous_domaine_affiche_id"] or 0, cle_alphabetique(ligne["competence"].libelle),
     ))
 
 
