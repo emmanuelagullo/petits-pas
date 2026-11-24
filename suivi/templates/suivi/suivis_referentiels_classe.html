@@ -1,0 +1,60 @@
+{% extends "suivi/base.html" %}
+{% load navigation_suivi %}
+{% block titre %}Catalogues et suivis{% endblock %}
+{% block contenu %}
+<div class="page-referentiel">
+{% ariane_referentiel "Catalogues et suivis" classe classe.annee_scolaire %}
+<h1>Catalogues et suivis</h1>
+<p>Suivis de {{ classe.libelle_avec_annee }}</p>
+{% for ligne in lignes %}
+{% if ligne.suivi %}
+<section class="encadre">
+<h2>{{ ligne.titre }}</h2>
+{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
+{% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=ligne.ajoutees modifications=ligne.modifiees retraits=ligne.retirees only %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir les changements" only %}
+{% if ligne.ajoutees %}<h3>Ajouts</h3><ul>{% for libelle in ligne.ajoutees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
+{% if ligne.modifiees %}<h3>Modifications</h3><ul>{% for libelle in ligne.modifiees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
+{% if ligne.retirees %}<h3>Retraits</h3><ul>{% for libelle in ligne.retirees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
+</details>
+{% else %}<p>Aucun changement depuis votre dernière consultation enregistrée.</p>{% endif %}
+<div class="actions">
+{% if ligne.adopter %}<a class="bouton" href="{{ ligne.adopter }}">Mettre à jour le référentiel de la classe</a>{% endif %}
+<a class="bouton{% if ligne.adopter %} discret{% endif %}" href="{{ ligne.lire }}">Parcourir les compétences</a>
+<form method="post">{% csrf_token %}
+<input type="hidden" name="source" value="{{ ligne.reference }}">
+<input type="hidden" name="empreinte" value="{{ ligne.empreinte }}">
+{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}<button class="bouton discret" name="action" value="marquer-vu">Marquer comme vu</button>{% endif %}
+<button class="bouton discret" name="action" value="ne-plus-suivre">Ne plus suivre</button>
+</form>
+</div>
+</section>
+{% endif %}
+{% endfor %}
+{% for reference in indisponibles %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="source" value="{{ reference }}">
+<p>Une source suivie n’est plus disponible. <button class="bouton discret" name="action" value="ne-plus-suivre">Retirer ce suivi</button></p>
+</form>
+{% endfor %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Référentiels à suivre" only %}
+<ul class="liste">
+{% for ligne in lignes %}
+{% if not ligne.suivi %}
+<li class="entree">{{ ligne.titre }}
+<div class="actions">
+<a class="bouton discret" href="{{ ligne.lire }}">Parcourir les compétences</a>
+<form method="post">{% csrf_token %}
+<input type="hidden" name="source" value="{{ ligne.reference }}">
+<button class="bouton discret" name="action" value="suivre">Suivre ce référentiel</button>
+</form>
+</div>
+</li>
+{% endif %}
+{% endfor %}
+</ul>
+</details>
+</div>
+{% endblock %}

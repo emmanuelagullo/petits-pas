@@ -1,9 +1,12 @@
 """Découverte et suivi des référentiels à l’échelle d’une école."""
+import hashlib
+import json
 from functools import lru_cache
 from pathlib import Path
 
 import yaml
 from django.conf import settings
+from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -192,3 +195,81 @@ def decouvrir_referentiels(request):
                             "cle": cle, "suivi": catalogue_suivi(regles.get(cle, {}))})
     contexte.update(groupes=groupes, nombre_resultats=sum(len(groupe["lignes"]) for groupe in groupes))
     return render(request, "suivi/decouvrir_referentiels.html", contexte)
+
+
+def empreinte_suivi(valeur):
+    return hashlib.sha256(json.dumps(valeur, sort_keys=True).encode()).hexdigest()
+
+
+@acces_requis
+@require_http_methods(["GET", "POST"])
+def suivis_classe(request, classe_pk):
+    from .autorisations import GERER_REFERENTIEL_CLASSE, charger_classe_autorisee
+    from .models import SuiviSourceClasse
+    from .referentiels import adoption_courante
+    from .services.sources_catalogue import lignes_source, sources_catalogue
+
+    ecole = ecole_courante(request)
+    classe = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
+    adoption = adoption_courante(classe)
+    autorisees = {v.pk for v in choix_bases(ecole, classe.annee_scolaire).versions}
+    retour = lien("suivis_referentiels_classe", classe.pk)
+    disponibles = {}
+    if adoption and not adoption.clos:
+        sources = sources_catalogue(request.user, classe, adoption)
+        sources[f"version-{adoption.version_id}"] = (
+            adoption.version.source.titre, adoption.version, None)
+        for cle, (titre, version, autre) in sources.items():
+            reference = f"source-{version.source_id}" if version else cle
+            ligne = disponibles.get(reference)
+            if ligne and version.pk <= ligne["version"].pk:
+                continue
+            disponibles[reference] = {"cle": cle, "titre": titre, "version": version, "autre": autre}
+
+    suivis = {s.reference: s for s in SuiviSourceClasse.objects.filter(classe=classe)}
+    action = request.POST.get("action")
+    cible = request.POST.get("source")
+    lignes = []
+    for reference, ligne in disponibles.items():
+        version, autre = ligne["version"], ligne["autre"]
+        suivi = suivis.get(reference)
+        courant = bool(version and version.source_id == adoption.version.source_id)
+        etat = {}
+        empreinte = ""
+        if suivi or (action == "suivre" and reference == cible):
+            etat = {
+                ref: {"libelle": c["libelle"], "empreinte": empreinte_suivi([
+                    d, s, {cle: c.get(cle) for cle in ("libelle", "niveau", "icone", "icone_png", "formulations")},
+                ])}
+                for ref, c, d, s in lignes_source(version, autre, utilisateur=request.user, classe=classe)
+            }
+            empreinte = empreinte_suivi(etat)
+        avant = suivi.etat_examine if suivi else etat
+        ajoutees = [c["libelle"] for ref, c in etat.items() if ref not in avant]
+        retirees = [c["libelle"] for ref, c in avant.items() if ref not in etat]
+        modifiees = [c["libelle"] for ref, c in etat.items() if ref in avant and c != avant[ref]]
+        lire = lien("catalogue_competences", classe.pk, source=ligne["cle"]) if not (
+            version and version.pk == adoption.version_id) else lien("catalogue_competences", classe.pk)
+        adopter = (lien("referentiel_classe", classe.pk, edition=version.pk, ancre="choisir-referentiel")
+                    if courant and version.pk != adoption.version_id and version.pk in autorisees else "")
+        lignes.append({**ligne, "reference": reference, "suivi": suivi, "empreinte": empreinte,
+                       "ajoutees": ajoutees, "retirees": retirees, "modifiees": modifiees,
+                       "lire": lire, "adopter": adopter})
+        if reference == cible and action in {"suivre", "marquer-vu"}:
+            if action == "marquer-vu" and (not suivi or empreinte != request.POST.get("empreinte")):
+                messages.error(request, "Le référentiel a changé. Consultez les nouveautés à nouveau.")
+                return redirect(retour)
+            if action == "suivre":
+                SuiviSourceClasse.objects.get_or_create(classe=classe, reference=reference,
+                                                       defaults={"etat_examine": etat})
+            else:
+                if not SuiviSourceClasse.objects.filter(pk=suivi.pk, etat_examine=avant).update(etat_examine=etat):
+                    messages.error(request, "Le suivi a changé. Consultez les nouveautés à nouveau.")
+            return redirect(retour)
+    if request.method == "POST":
+        if action == "ne-plus-suivre":
+            SuiviSourceClasse.objects.filter(classe=classe, reference=cible).delete()
+            return redirect(retour)
+        raise Http404
+    return render(request, "suivi/suivis_referentiels_classe.html",
+                  {"classe": classe, "lignes": lignes, "indisponibles": set(suivis) - disponibles.keys()})

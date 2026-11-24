@@ -22,6 +22,7 @@ urlpatterns = [
     path("classe/<int:classe_pk>/referentiel/consulter/", views_referentiels.consulter_referentiels, name="consulter_referentiels_classe"),
     path("gestion/referentiels/consulter/", views_referentiels.consulter_referentiels, name="consulter_referentiels_ecole"),
     path("gestion/referentiels/decouvrir/", views_catalogues_referentiels.decouvrir_referentiels, name="decouvrir_referentiels"),
+    path("classe/<int:classe_pk>/referentiel/suivis/", views_catalogues_referentiels.suivis_classe, name="suivis_referentiels_classe"),
     path("gestion/referentiels/correspondances/", views_correspondances_referentiels.correspondances, name="correspondances_ecole"),
     path("classe/<int:classe_pk>/referentiel/correspondances/", views_correspondances_referentiels.correspondances, name="correspondances_classe"),
     path("gestion/referentiels/ajouts/", views_ajouts_referentiels.ajouts, name="ajouts_ecole"),

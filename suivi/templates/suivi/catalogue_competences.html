@@ -10,6 +10,7 @@
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
 <div class="actions entete-catalogue">
   <h1>Compétences de {{ classe.nom }}</h1>
+  {% if peut_regler_referentiel and adoption %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Catalogues et suivis</a>{% endif %}
   {% if peut_regler_referentiel %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>{% if adoption and not adoption.clos %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Partager le référentiel de la classe</a>{% endif %}{% endif %}
 </div>
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}

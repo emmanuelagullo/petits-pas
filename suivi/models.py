@@ -1380,3 +1380,15 @@ class InformationsPartageReferentielClasse(models.Model):
     donnees = models.JSONField(default=dict)
     adoption = models.ForeignKey(AdoptionReferentiel, on_delete=models.CASCADE)
     licences_sources = models.JSONField(default=list)
+
+
+class SuiviSourceClasse(models.Model):
+    """Dernier état examiné par l’équipe, propre à cette installation."""
+    classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
+    reference = models.CharField(max_length=64)
+    etat_examine = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["classe", "reference"], name="suivi_source_unique_classe"),
+        ]

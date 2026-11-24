@@ -1,10 +1,11 @@
 {% extends "suivi/base.html" %}
 {% load static navigation_suivi %}
-{% block titre %}Découvrir des référentiels{% endblock %}
+{% block titre %}Catalogues et suivis{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-{% ariane_referentiel "Découvrir des référentiels" None annee %}
-<h1>Découvrir des référentiels</h1>
+{% ariane_referentiel "Catalogues et suivis" None annee %}
+<h1>Catalogues et suivis</h1>
+<p>Suivis de l’école</p>
 {% if depuis_echange %}
 <p><a href="{% url 'paquets_referentiels_ecole' %}?annee={{ annee }}#import-referentiel">Retour à l’import</a></p>
 {% endif %}

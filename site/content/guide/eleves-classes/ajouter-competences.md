@@ -109,3 +109,8 @@ Les rubriques qui contiennent des résultats s’ouvrent pendant la recherche.
 Dans le filtre **Source**, les référentiels des autres classes actives de
 l’école montrent leurs compétences communes visibles. Leurs suivis d’élèves
 restent accessibles selon les autorisations habituelles.
+
+Depuis **Compétences → Catalogues et suivis**, suivez un référentiel pour retrouver ses
+nouveautés. **Voir les changements** détaille les écarts. **Marquer comme vu**
+enregistre l’état examiné par l’équipe. Une nouvelle édition peut être choisie
+depuis le résumé de mise à jour quand elle appartient au référentiel de la classe.

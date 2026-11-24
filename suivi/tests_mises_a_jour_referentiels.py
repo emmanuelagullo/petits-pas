@@ -287,6 +287,28 @@ class MisesAJour(Base):
         paquet = preparer_referentiel_classe(self.classe, {"identifiant": "classe-fictive"}, "1")
         self.assertEqual(paquet["domaines"], [])
 
+    def test_suivi_de_source_signale_une_edition_sans_l_adopter(self):
+        from .models import SuiviSourceClasse
+
+        ancienne = self.adopter()
+        url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        reference = f"source-{self.a.source_id}"
+        self.assertRedirects(self.client.post(url, {"action": "suivre", "source": reference}), url)
+        doc = document(version="2")
+        doc["domaines"][0]["competences"][0]["libelle"] = "Je prends la parole"
+        version = importer(doc)[0]
+        publier_choix_application(annee=self.classe.annee_scolaire,
+            versions_ids=[self.a.pk, version.pk], proposee_id=version.pk, revision_attendue=1)
+        page = self.client.get(url)
+        self.assertContains(page, "0 ajout · 1 modification · 0 retrait")
+        self.assertContains(page, "Mettre à jour le référentiel de la classe")
+        self.assertTrue(AdoptionReferentiel.objects.get(pk=ancienne.pk).courante)
+        ligne = next(l for l in page.context["lignes"] if l["reference"] == reference)
+        self.assertRedirects(self.client.post(url, {"action": "marquer-vu", "source": reference,
+                                                  "empreinte": ligne["empreinte"]}), url)
+        self.assertContains(self.client.get(url), "Aucun changement depuis votre dernière consultation")
+        self.assertTrue(SuiviSourceClasse.objects.filter(classe=self.classe, reference=reference).exists())
+
     def test_mise_a_jour_depuis_le_resume_sans_ouvrir_la_comparaison(self):
         ancienne, nouvelle = self.preparer()
         url = reverse("referentiel_classe", args=[self.classe.pk])
