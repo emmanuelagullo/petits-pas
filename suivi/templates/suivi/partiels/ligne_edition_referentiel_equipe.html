@@ -1,0 +1,19 @@
+<li class="entree">
+<strong>{{ ligne.libelle }}</strong> · {{ ligne.niveau }}
+<details{% if reference_editee == ligne.reference %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier" only %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="parent" value="{{ identifiant }}">
+<input type="hidden" name="reference" value="{{ ligne.reference }}">
+<p><label>Libellé de la compétence <input name="libelle" maxlength="300" value="{% if reference_editee == ligne.reference %}{{ saisie_libelle }}{% else %}{{ ligne.libelle }}{% endif %}" required></label></p>
+<p><label>Section
+<select name="niveau">
+{% for niveau in niveaux %}<option value="{{ niveau }}"{% if reference_editee == ligne.reference and saisie_niveau == niveau or reference_editee != ligne.reference and niveau == ligne.niveau %} selected{% endif %}>{{ niveau }}</option>{% endfor %}
+</select></label></p>
+<div class="actions">
+<button class="bouton" name="action" value="modifier-competence">Enregistrer</button>
+<button class="bouton discret" name="action" value="retirer-competence" formnovalidate>Retirer de cette édition</button>
+</div>
+</form>
+</details>
+</li>

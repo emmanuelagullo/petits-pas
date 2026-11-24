@@ -6,7 +6,12 @@
 {% ariane_referentiel "Catalogues et partage" classe classe.annee_scolaire parcours="competences" %}
 <h1>Catalogues et partage</h1>
 <p>Suivis de {{ classe.libelle_avec_annee }}. Les nouveautés marquées comme vues le sont pour toute l’équipe de cette classe.</p>
-{% if classe_active and partage_grist_disponible %}<details id="espace-partage"{% if ouvrir_espace %} open{% endif %}>
+{% if classe_active %}<details id="espace-partage"{% if ouvrir_espace %} open{% endif %}>
+{% if not partage_grist_disponible %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" niveau_titre=2 only %}
+<p>Modifiez un référentiel commun avec les collègues de l’école.</p>
+<p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>
+{% else %}
 {% if partage_grist %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" resume=partage_grist.nom_espace niveau_titre=2 only %}
 {% else %}
@@ -23,6 +28,7 @@
 {% endif %}
 {% endif %}
 <p><a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace{% else %}Rejoindre un espace{% endif %}</a></p>
+{% endif %}
 </details>{% endif %}
 <details id="referentiels-suivis" open>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Référentiels suivis" niveau_titre=2 only %}

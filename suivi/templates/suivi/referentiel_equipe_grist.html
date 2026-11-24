@@ -2,26 +2,53 @@
 {% load navigation_suivi %}
 {% block titre %}Référentiel d’équipe{% endblock %}
 {% block contenu %}
-{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="equipe" %}
+{% if partage_grist_disponible %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="equipe" %}
+{% else %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="partage" %}{% endif %}
 <h1>Référentiel d’équipe</h1>
 {% if erreur %}<ul class="messages"><li role="alert" class="error">{{ erreur }}</li></ul>{% endif %}
 {% if conflits %}
 <div class="avertissement-referentiel avertissement-orange">
-<p>Les deux contributions restent disponibles. Téléchargez-les pour préparer une édition qui résout les différences.</p>
+<p>Les deux contributions restent disponibles.</p>
+{% if choix_conflits %}
+<form method="post">{% csrf_token %}
+{% for identifiant in a_reunir %}<input type="hidden" name="parent" value="{{ identifiant }}">{% endfor %}
+{% for conflit in conflits %}
+<fieldset>
+<legend>{{ conflit.chemin|join:" › " }}</legend>
+{% if conflit.locale != None %}<label><input type="radio" name="conflit-{{ forloop.counter }}" value="locale" required> Première édition · {{ conflit.locale|truncatechars:180 }}</label>
+{% else %}<label><input type="radio" name="conflit-{{ forloop.counter }}" value="locale" required> Première édition · Retrait</label>{% endif %}
+{% if conflit.distante != None %}<label><input type="radio" name="conflit-{{ forloop.counter }}" value="distante" required> Deuxième édition · {{ conflit.distante|truncatechars:180 }}</label>
+{% else %}<label><input type="radio" name="conflit-{{ forloop.counter }}" value="distante" required> Deuxième édition · Retrait</label>{% endif %}
+</fieldset>
+{% endfor %}
+<button class="bouton" name="action" value="resoudre-conflits">Enregistrer la résolution</button>
+</form>
+{% else %}
+<p>Téléchargez les versions pour préparer un ZIP qui résout les déplacements incompatibles.</p>
+{% endif %}
 <ul>{% for conflit in conflits %}<li>{{ conflit.chemin|join:" › " }}</li>{% endfor %}</ul>
 </div>
 {% endif %}
 {% for identifiant, document, competences in tetes %}
 <section class="encadre">
 <h2>{{ document.source.titre }} · {{ document.version }}</h2>
+{% if edition_unique %}
+{% include "suivi/partiels/rubriques_competences.html" with lignes=competences entree="suivi/partiels/ligne_edition_referentiel_equipe.html" niveau_domaine=3 niveau_sous_domaine=4 %}
+{% else %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu" only %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=document competences_importees=competences partage=True only %}
 </details>
+{% endif %}
 <p><a class="bouton discret" href="?edition={{ identifiant }}">Télécharger le ZIP</a></p>
 </section>
 {% empty %}
 <p>Aucune édition d’équipe reçue ou enregistrée pour cet espace.</p>
+{% if not editions %}
+<form method="post">{% csrf_token %}
+<button class="bouton" name="action" value="initialiser">Créer le référentiel d’équipe à partir de cette classe</button>
+</form>
+{% endif %}
 {% endfor %}
 {% if a_reunir %}
 <form method="post">{% csrf_token %}
@@ -30,6 +57,16 @@
 </form>
 {% endif %}
 {% if edition_unique %}
+<details{% if erreur and request.POST.action == "ajouter-competence" %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter une compétence au référentiel d’équipe" principal=True only %}
+<form method="post" class="encadre">{% csrf_token %}
+<input type="hidden" name="parent" value="{{ edition_unique }}">
+<p><label>Libellé <input name="libelle" maxlength="300" value="{% if request.POST.action == 'ajouter-competence' %}{{ saisie_libelle }}{% endif %}" required></label></p>
+<p><label>Rubrique <select name="rubrique">{% for cle, nom in rubriques_edition %}<option value="{{ cle }}"{% if request.POST.rubrique == cle %} selected{% endif %}>{{ nom }}</option>{% endfor %}</select></label></p>
+<p><label>Section <select name="niveau">{% for niveau in niveaux %}<option value="{{ niveau }}"{% if saisie_niveau == niveau %} selected{% endif %}>{{ niveau }}</option>{% endfor %}</select></label></p>
+<button class="bouton" name="action" value="ajouter-competence">Ajouter la compétence</button>
+</form>
+</details>
 <form method="post">{% csrf_token %}
 <input type="hidden" name="edition" value="{{ edition_unique }}">
 <button class="bouton discret" name="action" value="catalogue">Ajouter l’édition au catalogue de l’école</button>
@@ -50,7 +87,8 @@
 <p><label for="paquet">ZIP du référentiel d’équipe</label> <input id="paquet" type="file" name="paquet" accept=".zip" required></p>
 <div class="actions">
 <button class="bouton" name="action" value="ajouter">Enregistrer la contribution</button>
-<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
+{% if partage_grist_disponible %}<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
+{% else %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Retour à Catalogues et partage</a>{% endif %}
 </div>
 </form>
 {% endblock %}

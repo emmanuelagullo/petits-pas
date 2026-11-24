@@ -21,7 +21,7 @@ class ConflitReferentiel:
     distante: object
 
 
-def fusionner_referentiel_equipe(base, locale, distante):
+def fusionner_referentiel_equipe(base, locale, distante, *, choix=None):
     """Retourne le document à valider ou les conflits, sans publier de version.
 
     Les entrées sont des documents de diffusion validés. Le numéro de la
@@ -30,6 +30,9 @@ def fusionner_referentiel_equipe(base, locale, distante):
     conflits = []
 
     def conflit(chemin, avant, ici, ailleurs):
+        choix_champ = (choix or {}).get(chemin)
+        if choix_champ in ("locale", "distante") and chemin[-1] != "emplacement":
+            return ici if choix_champ == "locale" else ailleurs
         valeurs = [None if valeur is _ABSENT else valeur for valeur in (avant, ici, ailleurs)]
         conflits.append(ConflitReferentiel(chemin, *valeurs))
         return avant

@@ -2,6 +2,7 @@
 import json
 
 import yaml
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
@@ -10,15 +11,16 @@ from django.views.decorators.http import require_http_methods
 
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, charger_classe_autorisee
 from suivi.contexte_ecole import ecole_courante
-from suivi.models import ContributionReferentielEquipe, PartageGristClasse, ReceptionReferentielGrist
+from suivi.models import Classe, ContributionReferentielEquipe, PartageGristClasse, ReceptionReferentielGrist
 from suivi.services.catalogues_externes import TAILLE_MAX, adresse_grist
+from suivi.services.edition_referentiel_equipe import modifier_edition_equipe, rubriques_equipe
 from suivi.services.import_sources_referentiels import importer_source, normaliser
 from suivi.services.apercu_mises_a_jour import definitions_document
 from suivi.services.journal_referentiel_equipe import (
     contribution, fusionner_tetes, identifiant_contribution, terminaisons, verifier_contribution,
 )
 from suivi.services.paquets_referentiels import MAX_ARCHIVE, empaqueter, lire_paquet
-from .partage_grist import partage_local
+from .partage_grist import document_projection, partage_local
 from suivi.views import acces_requis
 from suivi.views_paquets_referentiels import telecharger_paquet
 
@@ -26,10 +28,16 @@ from suivi.views_paquets_referentiels import telecharger_paquet
 def espace_et_journal(request, pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
-    partage = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
-    if partage is None:
+    if classe.etat != Classe.ACTIVE:
         raise Http404
-    _, document_grist = adresse_grist(partage.url)
+    if settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False):
+        partage = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
+        if partage is None:
+            raise Http404
+        _, document_grist = adresse_grist(partage.url)
+    else:
+        # Le journal serveur est partagé dans la base de l'école.
+        document_grist = ""
     journal = ContributionReferentielEquipe.objects.filter(ecole=ecole, document_grist=document_grist)
     return classe, journal, {"ecole": ecole, "document_grist": document_grist}
 
@@ -63,7 +71,6 @@ def transfert(request, pk):
     return JsonResponse({"ok": True})
 
 
-@partage_local
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def espace(request, pk):
@@ -84,21 +91,46 @@ def espace(request, pk):
                 if len(tetes) != 1 or request.POST.get("edition") != tetes[0]:
                     raise ValidationError("Réunissez les contributions avant d’ajouter cette édition au catalogue.")
                 document = editions[tetes[0]]["document"]
-                reference = "equipe-grist-" + perimetre["document_grist"]
+                document_grist = perimetre["document_grist"]
+                reference = "equipe-grist-" + document_grist if document_grist else "equipe-ecole"
                 document = {**document, "version": tetes[0],
                             "source": {**document["source"], "identifiant": reference, "provisoire": True}}
                 version, _, _ = importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=classe.ecole)
-                ReceptionReferentielGrist.objects.get_or_create(source=version.source,
-                    document_grist=perimetre["document_grist"])
+                if document_grist:
+                    ReceptionReferentielGrist.objects.get_or_create(source=version.source, document_grist=document_grist)
                 messages.success(request, "Édition ajoutée au catalogue de l’école. La classe conserve son référentiel.")
                 return redirect("referentiel_equipe_grist", pk=pk)
             parents = request.POST.getlist("parent")
-            if action == "fusionner":
+            if action == "initialiser":
+                if editions:
+                    raise ValidationError("Un référentiel d’équipe est déjà disponible. Rechargez la page.")
+                document = document_projection(classe, "equipe")
+                document_grist = perimetre["document_grist"]
+                reference = "equipe-grist-" + document_grist if document_grist else "equipe-ecole"
+                document["source"].update(identifiant=reference,
+                                          titre=f"Référentiel d’équipe de {classe.ecole.nom}"[:200])
+                document["version"] = "initiale"
+                edition = contribution((), document)
+            elif action in ("fusionner", "resoudre-conflits"):
                 if parents != tetes[:2] or len(parents) != 2:
                     raise ValidationError("Les contributions ont changé. Relisez les versions reçues.")
                 edition, conflits = fusionner_tetes(editions, *parents)
+                if conflits and action == "resoudre-conflits":
+                    choix = {conflit.chemin: request.POST.get(f"conflit-{i}")
+                             for i, conflit in enumerate(conflits, start=1)}
+                    if any(cote not in ("locale", "distante") for cote in choix.values()):
+                        return render_espace(request, classe, editions, tetes,
+                                             erreur="Choisissez une version pour chaque différence.", conflits=conflits)
+                    edition, conflits = fusionner_tetes(editions, *parents, choix=choix)
                 if conflits:
                     return render_espace(request, classe, editions, tetes, conflits=conflits)
+            elif action in ("ajouter-competence", "modifier-competence", "retirer-competence"):
+                if len(parents) != 1 or parents[0] not in editions:
+                    raise ValidationError("La version de départ n’est plus disponible.")
+                document = modifier_edition_equipe(editions[parents[0]]["document"], action, request.POST)
+                if document == editions[parents[0]]["document"]:
+                    return redirect("referentiel_equipe_grist", pk=pk)
+                edition = contribution(parents, document)
             else:
                 if action == "ajouter" and request.POST.get("resoudre") == "oui":
                     if (len(tetes) < 2 or request.POST.getlist("tete") != tetes[:2]
@@ -131,10 +163,18 @@ def render_espace(request, classe, editions, tetes, *, erreur="", conflits=()):
     for cle in tetes:
         document = editions[cle]["document"]
         contenu, _ = normaliser(document)
-        apercus.append((cle, document, list(definitions_document(contenu).values())))
+        apercus.append((cle, document, [{**ligne, "reference": reference}
+                                       for reference, ligne in definitions_document(contenu).items()]))
     return render(request, "suivi/referentiel_equipe_grist.html", {
         "classe": classe, "tetes": apercus, "a_reunir": tetes[:2] if len(tetes) >= 2 else [],
         "edition_unique": tetes[0] if len(tetes) == 1 else "",
+        "rubriques_edition": ([(cle, nom) for cle, nom, _ in rubriques_equipe(editions[tetes[0]]["document"])]
+                              if len(tetes) == 1 else []),
+        "niveaux": ("PS", "MS", "GS"),
+        "reference_editee": request.POST.get("reference", "") if erreur else "",
+        "saisie_libelle": request.POST.get("libelle", ""),
+        "saisie_niveau": request.POST.get("niveau", ""),
         "editions": [(cle, edition["document"]) for cle, edition in editions.items()],
         "erreur": erreur, "conflits": conflits,
+        "choix_conflits": bool(conflits) and all(c.chemin[-1] != "emplacement" for c in conflits),
     }, status=400 if erreur else 200)

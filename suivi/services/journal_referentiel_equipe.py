@@ -54,7 +54,7 @@ def ancetres(editions, identifiant):
     return visites
 
 
-def fusionner_tetes(editions, a, b):
+def fusionner_tetes(editions, a, b, *, choix=None):
     """Réconcilie deux contributions qui ont un ancêtre commun unique."""
     communs = ancetres(editions, a) & ancetres(editions, b)
     bases = communs - {parent for enfant in communs for parent in editions[enfant]["parents"]}
@@ -62,10 +62,10 @@ def fusionner_tetes(editions, a, b):
         raise ValidationError("Ces contributions n’ont pas de version commune unique.")
     base = bases.pop()
     resultat, conflits = fusionner_referentiel_equipe(
-        editions[base]["document"], editions[a]["document"], editions[b]["document"],
+        editions[base]["document"], editions[a]["document"], editions[b]["document"], choix=choix,
     )
     if conflits:
         return None, conflits
-    resultat["version"] = "fusion-" + hashlib.sha256(("".join(sorted([a, b]))).encode()).hexdigest()
+    resultat["version"] = "fusion-" + identifiant_contribution({"parents": sorted([a, b]), "document": resultat})
     normaliser(resultat)
     return contribution((a, b), resultat), []

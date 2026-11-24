@@ -50,6 +50,9 @@ class PartageGristPWA(Base):
             self.assertEqual(self.client.post(url, confirmation, content_type="application/json").json(),
                              {"erreurs": 0, "nom": "Mon École partagée"})
         self.assertEqual(VersionReferentiel.objects.filter(source__titre="Référentiel du collègue").count(), 1)
+        page = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
+        self.assertContains(page, "Voir les référentiels de cet espace")
+        self.assertContains(page, 'id="referentiels-espace-document-fictif" open')
         self.assertIsNone(self.client.get(url).json()["partages"][0]["contenu"])
         self.client.post(espace, {"action": "suspendre"})
         self.assertEqual(self.client.get(url).json()["partages"], [])
@@ -165,3 +168,33 @@ class PartageGristPWA(Base):
         self.assertContains(erreur, "Cochez cette case pour confirmer", status_code=400)
         self.assertContains(erreur, 'aria-required="true" aria-invalid="true"', status_code=400)
         self.assertFalse(PartageGristClasse.objects.exists())
+
+    @override_settings(ROOT_URLCONF="carnet.urls", MODE_LOCAL=False, MODE_PWA=False)
+    def test_edition_directe_du_referentiel_equipe_sur_le_serveur(self):
+        from .models import ContributionReferentielEquipe
+        from .services.journal_referentiel_equipe import terminaisons
+
+        adoption = self.adopter()
+        equipe = reverse("referentiel_equipe_grist", args=[self.classe.pk])
+        self.assertRedirects(self.client.post(equipe, {"action": "initialiser"}), equipe)
+        base = ContributionReferentielEquipe.objects.get()
+        self.assertEqual(base.document_grist, "")
+        self.assertRedirects(self.client.post(equipe, {
+            "action": "ajouter-competence", "parent": base.empreinte, "rubrique": "LANG",
+            "libelle": "Ajout commun", "niveau": "GS",
+        }), equipe)
+        modifiee = ContributionReferentielEquipe.objects.exclude(pk=base.pk).get()
+        competence = next(c for c in modifiee.edition["document"]["domaines"][0]["competences"]
+                          if c["libelle"] == "Ajout commun")
+        self.assertRedirects(self.client.post(equipe, {
+            "action": "modifier-competence", "parent": modifiee.empreinte,
+            "reference": competence["identite"], "libelle": "Ajout renommé", "niveau": "GS",
+        }), equipe)
+        page = self.client.get(equipe)
+        self.assertContains(page, "Ajout renommé")
+        editions = dict(ContributionReferentielEquipe.objects.values_list("empreinte", "edition"))
+        nouvelle = editions[terminaisons(editions)[0]]["document"]
+        self.assertTrue(any(c["identite"] == competence["identite"] and c["libelle"] == "Ajout renommé"
+                            for c in nouvelle["domaines"][0]["competences"]))
+        adoption.refresh_from_db()
+        self.assertTrue(adoption.courante)
