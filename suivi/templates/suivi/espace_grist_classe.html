@@ -20,9 +20,9 @@
 {% endif %}
 <form method="post" class="encadre">
 {% csrf_token %}
-<label for="grist">Lien du document Grist d’essai</label>
+<label for="grist">Lien du document Grist</label>
 <input id="grist" name="grist" type="url" value="{{ grist }}" maxlength="300" required{% if champ_erreur == "grist" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
-<p>La synchronisation publie les rubriques et compétences communes visibles, avec leurs textes et illustrations pédagogiques. Utilisez un document de test et des données fictives. Un document public est accessible aux personnes qui obtiennent son lien.</p>
+<p>La synchronisation publie les rubriques et compétences communes visibles, avec leurs textes et illustrations pédagogiques. Un document public est accessible aux personnes qui obtiennent son lien.</p>
 <label><input name="confirmer" type="checkbox" value="oui" aria-required="true"{% if confirmer %} checked{% endif %}{% if champ_erreur == "confirmer" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}> Partager le référentiel de cette classe dans cet espace</label>
 {% if champ_erreur == "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement">{{ erreur }}</li></ul>{% endif %}
 <p>Nom proposé pour un nouvel espace · <strong>{{ nom_propose }}</strong></p>
