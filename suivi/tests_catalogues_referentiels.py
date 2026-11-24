@@ -82,6 +82,8 @@ class CataloguesReferentiels(Base):
         def reponse_api(prefixe, document, chemin=""):
             if not chemin:
                 return metadata
+            if chemin == "/tables":
+                return {"tables": [{"id": "Editions"}, {"id": "Competences"}]}
             lignes = editions if "/Editions/" in chemin else competences
             return {"records": [{"fields": ligne} for ligne in lignes]}
 

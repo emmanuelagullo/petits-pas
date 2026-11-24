@@ -1,11 +1,19 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path, reverse_lazy
 
+from pwa import partage_grist, referentiel_equipe
+
 from . import views_catalogue, views_rubriques, views_suivi_libre
 from . import views_paquets_referentiels, views_propositions_referentiels, views_catalogues_referentiels
 from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
+    path("classe/<int:pk>/referentiel/equipe-grist/", referentiel_equipe.espace, name="referentiel_equipe_grist"),
+    path("classe/<int:pk>/referentiel/equipe-grist/transfert/", referentiel_equipe.transfert,
+         name="transfert_equipe_grist"),
+    path("pwa/invitation-grist/", partage_grist.invitation_grist, name="invitation_grist"),
+    path("classe/<int:pk>/referentiel/espace-grist/", partage_grist.espace_classe, name="espace_grist_classe"),
+    path("pwa/partage-grist/", partage_grist.synchroniser, name="synchroniser_grist"),
     path("classe/<int:pk>/grille/", views.grille_competence, name="grille_classe"),
     path("classe/<int:pk>/grille.pdf", views.grille_competence_pdf, name="grille_classe_pdf"),
     path("classe/<int:pk>/catalogue-competences/", views_catalogue.catalogue, name="catalogue_competences"),

@@ -180,8 +180,7 @@ class MisesAJour(Base):
             publier.side_effect = None
             publication = self.client.post(echange, donnees)
             self.assertContains(publication, "Édition 1 publiée")
-            self.assertContains(publication, f"Catalogue de {self.ecole.nom}")
-            self.assertNotContains(publication, destination["nom"])
+            self.assertContains(publication, destination["nom"])
             _, reference, titre, numero, document = publier.call_args.args
             self.assertEqual(numero, 1)
             destination["editions"].append({"Numero": 1, "Referentiel": reference, "Titre": titre,
@@ -200,12 +199,12 @@ class MisesAJour(Base):
             self.assertContains(reprise, "Édition 1 déjà publiée")
             self.assertContains(reprise, "Nouvelle édition")
             self.assertEqual(reprise.context["derniere_destination"].url, url)
-            self.assertEqual(reprise.context["derniere_destination"].nom, "Ressources de l’équipe")
+            self.assertEqual(reprise.context["derniere_destination"].nom, destination["nom"])
             publier.assert_called_once()
             self.adapter(adoption, classe=True, texte="Nouvelle formulation")
             revision = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
             self.assertContains(revision, "Édition 2 publiée")
-            self.assertContains(revision, "Ressources de l’équipe")
+            self.assertContains(revision, destination["nom"])
             self.assertEqual(publier.call_args.args[3], 2)
 
     def test_apercu_sans_projection_et_adaptation_prioritaire(self):
@@ -303,20 +302,25 @@ class MisesAJour(Base):
 
         ancienne = self.adopter()
         url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        page = self.client.get(url)
+        self.assertContains(page, "Aucun référentiel n’est encore suivi par cette classe.")
+        self.assertContains(page, '<details id="decouvrir-referentiels" open>')
         reference = f"source-{self.a.source_id}"
-        self.assertRedirects(self.client.post(url, {"action": "suivre", "source": reference}), url)
+        self.assertRedirects(self.client.post(url, {"action": "suivre", "source": reference}), url + "#referentiels-suivis")
         doc = document(version="2")
         doc["domaines"][0]["competences"][0]["libelle"] = "Je prends la parole"
         version = importer(doc)[0]
         publier_choix_application(annee=self.classe.annee_scolaire,
             versions_ids=[self.a.pk, version.pk], proposee_id=version.pk, revision_attendue=1)
         page = self.client.get(url)
+        self.assertContains(page, '<details id="decouvrir-referentiels">')
+        self.assertNotContains(page, "Aucun référentiel n’est encore suivi par cette classe.")
         self.assertContains(page, "0 ajout · 1 modification · 0 retrait")
         self.assertContains(page, "Mettre à jour le référentiel de la classe")
         self.assertTrue(AdoptionReferentiel.objects.get(pk=ancienne.pk).courante)
         ligne = next(l for l in page.context["lignes"] if l["reference"] == reference)
         self.assertRedirects(self.client.post(url, {"action": "marquer-vu", "source": reference,
-                                                  "empreinte": ligne["empreinte"]}), url)
+                                                  "empreinte": ligne["empreinte"]}), url + "#referentiels-suivis")
         self.assertContains(self.client.get(url), "Aucun changement depuis votre dernière consultation")
         self.assertTrue(SuiviSourceClasse.objects.filter(classe=self.classe, reference=reference).exists())
 

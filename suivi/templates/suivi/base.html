@@ -18,7 +18,7 @@
 {% endif %}
 </head>
 <body>
-{% if mode_pwa and request.user.is_authenticated and not generation_pdf %}
+{% if partage_grist_disponible and request.user.is_authenticated and not generation_pdf %}
 <div hidden data-synchroniser-grist="{% url 'synchroniser_grist' %}">{% csrf_token %}</div>
 <script src="{% static 'suivi/partage-grist.js' %}" defer></script>
 {% endif %}

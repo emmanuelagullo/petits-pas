@@ -35,6 +35,11 @@ class PublicationsGrist(SimpleTestCase):
         def lire(prefixe, identifiant, chemin=""):
             if not chemin:
                 return {"name": "Document fictif", "id": identifiant}
+            if chemin == "/tables":
+                return {"tables": [{"id": "Editions"}, {"id": "PetitsPasEspace"}]}
+            if chemin == "/tables/PetitsPasEspace/records":
+                return {"records": [{"fields": {"Identifiant": "espace", "Nom": "Espace fictif"}},
+                                    {"fields": {"Identifiant": "catalogue", "Nom": "Catalogue fictif"}}]}
             self.assertEqual(chemin, "/tables/Editions/records")
             return {"records": [{"fields": ligne} for ligne in lignes]}
 
@@ -49,8 +54,9 @@ class PublicationsGrist(SimpleTestCase):
                 publier_edition_grist(destination, "langage-test", "Langage", 1, {**document, "domaines": []})
             autre, _ = lire_source(edition_grist(CATALOGUE_DEMONSTRATION, "autre-reference", 1))
             self.assertEqual(autre["source"]["titre"], "Autre titre")
-            self.assertEqual([r["editions"] for r in lire_catalogue_grist(CATALOGUE_DEMONSTRATION)
-                              ["referentiels"]], [[1], [1]])
+            catalogue = lire_catalogue_grist(CATALOGUE_DEMONSTRATION)
+            self.assertEqual(catalogue["nom"], "Catalogue fictif")
+            self.assertEqual([r["editions"] for r in catalogue["referentiels"]], [[1], [1]])
             recu, _ = lire_source(edition_grist(CATALOGUE_DEMONSTRATION, "langage-test", 1))
         self.assertEqual(recu["domaines"][0]["sous_domaines"][0]["competences"][0]["identite"], "identite-stable")
         self.assertEqual(recu["source"]["licence"], "CC0-1.0")
@@ -84,3 +90,21 @@ class PublicationsGrist(SimpleTestCase):
             with self.assertRaises(ValidationError):
                 destination_grist(CATALOGUE_DEMONSTRATION, preparer_vierge=True)
             ecrire.assert_not_called()
+
+    def test_initialisation_du_nom_sans_ecraser_le_nom_partage(self):
+        from .services.catalogues_externes import enregistrer_nom_catalogue_grist
+
+        reponses = {
+            "/tables": {"tables": [{"id": "Editions"}, {"id": "PetitsPasEspace"}]},
+            "/tables/PetitsPasEspace/records": {
+                "records": [{"fields": {"Identifiant": "catalogue", "Nom": "Nom partagé"}}],
+            },
+        }
+        module = "suivi.services.catalogues_externes."
+        with patch(module + "lire_api", side_effect=lambda p, d, chemin: reponses[chemin]), patch(
+                module + "requete_api") as ecrire:
+            self.assertEqual(enregistrer_nom_catalogue_grist(CATALOGUE_DEMONSTRATION, "Proposition"),
+                             "Nom partagé")
+        self.assertIn("noupdate=true", ecrire.call_args.args[2])
+        self.assertEqual(json.loads(ecrire.call_args.kwargs["corps"])["records"][0]["require"],
+                         {"Identifiant": "catalogue"})

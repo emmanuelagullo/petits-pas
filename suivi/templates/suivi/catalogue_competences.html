@@ -8,11 +8,16 @@
 <div class="actions"><a class="bouton discret" href="{% url 'grille_classe' classe.pk %}{% if niveau %}?filtres=1&amp;niveaux={{ niveau }}{% endif %}">Grille de suivi</a></div>
 {% else %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
+<h1>Compétences de {{ classe.nom }}</h1>
+{% if adoption %}
 <div class="actions entete-catalogue">
-  <h1>Compétences de {{ classe.nom }}</h1>
-  {% if peut_regler_referentiel and adoption %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Catalogues et suivis</a>{% endif %}
-  {% if peut_regler_referentiel %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>{% if adoption and not adoption.clos %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Partager le référentiel de la classe</a>{% endif %}{% endif %}
+  <p>Référentiel de la classe · <strong>{% if adoption.version.contenu.origine == "etat_initial_repris" %}Référentiel historique de la classe{% else %}{{ adoption.version.source.titre }}{% endif %}</strong>{% if adoption.version.contenu.origine != "etat_initial_repris" %} · édition {{ adoption.version.numero }}{% endif %}</p>
+  {% if peut_regler_referentiel %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>{% endif %}
 </div>
+{% elif peut_regler_referentiel %}
+<p><a class="bouton" href="{% url 'referentiel_classe' classe.pk %}">Choisir le référentiel</a></p>
+{% endif %}
+{% if peut_regler_referentiel %}<p><a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Catalogues et partage</a></p>{% endif %}
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
 <form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
@@ -30,12 +35,12 @@
   <details data-panneau-filtre class="details-filtres-catalogue">
   <summary class="bouton discret">Filtres</summary>
   <div class="groupes-filtres">
-  <fieldset class="groupe-filtres"><legend>Source et section</legend>
+  <fieldset class="groupe-filtres"><legend>Référentiel et section</legend>
   {% if sources %}
   <div>
-  <label for="source">Source</label>
+  <label for="source">Référentiel</label>
   <select id="source" name="source">
-    <option value="">Catalogue de cette classe</option>
+    <option value="">Référentiel de la classe</option>
     {% for cle, choix in sources.items %}<option value="{{ cle }}"{% if source == cle %} selected{% endif %}>{{ choix.0 }}</option>{% endfor %}
   </select>
   </div>

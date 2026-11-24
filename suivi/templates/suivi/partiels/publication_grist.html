@@ -33,12 +33,15 @@
 <p{% if destination_grist %} hidden data-catalogue-consulte="{{ destination_grist.url }}"{% endif %}>
 <button class="bouton discret" name="action" value="voir-grist">Voir les référentiels de ce catalogue</button>
 </p>
+{% if destination_grist.nom_a_initialiser or not destination_grist and not derniere_destination %}
+<p class="aide">Nom proposé pour un nouveau catalogue · <strong>{{ nom_catalogue_saisi|default:nom_catalogue_propose }}</strong></p>
 <details{% if nom_catalogue_saisi %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du catalogue" only %}
-<p><label for="nom-catalogue-grist">Nom affiché dans Petits Pas</label>
+<p><label for="nom-catalogue-grist">Nom du nouveau catalogue Grist</label>
 <input id="nom-catalogue-grist" name="nom_catalogue_grist" maxlength="200" value="{{ nom_catalogue_saisi }}"
 placeholder="{{ nom_catalogue_propose }}"></p>
 </details>
+{% endif %}
 {% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
 </details>
 <p class="aide" id="aide-destination-grist" data-aide-destination-grist hidden>Choisissez un catalogue ou collez son lien pour publier dans Grist.</p>

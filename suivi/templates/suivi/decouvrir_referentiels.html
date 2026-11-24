@@ -5,7 +5,10 @@
 <div class="page-referentiel">
 {% ariane_referentiel "Catalogues et suivis" None annee %}
 <h1>Catalogues et suivis</h1>
-<p>Suivis de l’école</p>
+<p>{% if peut_gerer %}Suivis de l’école{% else %}Catalogues disponibles dans l’école{% endif %}</p>
+{% if depuis_classe %}
+<p><a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe_origine.pk %}?decouvrir=1#decouvrir-referentiels">Retour aux catalogues de la classe</a></p>
+{% endif %}
 {% if depuis_echange %}
 <p><a href="{% url 'paquets_referentiels_ecole' %}?annee={{ annee }}#import-referentiel">Retour à l’import</a></p>
 {% endif %}
@@ -18,6 +21,7 @@
       hx-target="#resultats-referentiels" hx-select="#resultats-referentiels" hx-swap="outerHTML" hx-replace-url="true"
       hx-sync="this:replace">
 <input type="hidden" name="annee" value="{{ annee }}">
+{% if depuis_classe %}<input type="hidden" name="classe" value="{{ classe_origine.pk }}">{% endif %}
 {% if depuis_echange %}<input type="hidden" name="depuis" value="echange">{% endif %}
 <label for="recherche-referentiels">Rechercher par nom de référentiel ou de catalogue</label>
 <input type="search" id="recherche-referentiels" name="q" value="{{ q }}" maxlength="200">
@@ -30,13 +34,13 @@
 <button class="bouton discret">Rechercher</button>
 </form>
 <div id="resultats-referentiels">
-<div class="actions">
+{% if peut_gerer %}<div class="actions">
 {% if a_des_suivis %}
 <form method="post" action="{{ retour }}">{% csrf_token %}
 <button class="bouton" name="action" value="verifier">Vérifier les nouveautés</button>
 </form>
 {% endif %}
-<details{% if url_saisie and erreur %} open{% endif %}>
+<details id="ajouter-catalogue"{% if depuis_classe or url_saisie and erreur %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter un catalogue par lien" only %}
 <form method="post" action="{{ retour }}">{% csrf_token %}
 <label for="url-catalogue">Lien du catalogue Grist</label>
@@ -44,21 +48,29 @@
 <button class="bouton" name="action" value="ajouter">Examiner le catalogue</button>
 </form>
 </details>
-</div>
+</div>{% endif %}
 <p class="aide" role="status">{{ nombre_resultats }} référentiel{{ nombre_resultats|pluralize }}</p>
 {% for groupe in groupes %}
 <section>
 <h2>{{ groupe.nom }}</h2>
 {% if groupe.url %}
-<form method="post" action="{{ retour }}">
+{% if peut_gerer %}<form method="post" action="{{ retour }}">
 {% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ groupe.cle }}">
 {% if groupe.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre-catalogue">Ne plus suivre ce catalogue</button>
 {% else %}<button class="bouton discret" name="action" value="suivre-catalogue">Suivre ce catalogue</button>{% endif %}
-</form>
+</form>{% endif %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Lien du catalogue" only %}
 <p><a href="{{ groupe.url }}">Ouvrir le catalogue dans Grist</a></p>
+{% if peut_gerer %}<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier le nom du catalogue" only %}
+<form method="post" action="{{ retour }}">{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ groupe.cle }}">
+<label>Nom enregistré dans Grist <input name="nom_catalogue" maxlength="200" required value="{{ groupe.nom }}"></label>
+<button class="bouton discret" name="action" value="renommer-catalogue">Enregistrer le nom</button>
+</form>
+</details>{% endif %}
 <div data-lien-catalogue>
 <label>Lien du catalogue Grist <input type="url" readonly value="{{ groupe.url }}" size="30"></label>
 <button class="bouton discret" type="button" data-copier-lien hidden>Copier le lien du catalogue</button>
@@ -74,7 +86,7 @@
 <p>Édition {{ ligne.derniere }}{% if ligne.url and ligne.locales %} · À l’école : {{ ligne.locales|join:", " }}{% elif ligne.versions_instance and not ligne.consultation %} · Hors des choix autorisés à l’école{% elif ligne.fourni and not ligne.versions_instance %} · Fourni avec Petits Pas{% endif %}{% if ligne.suivi %} · Suivi{% endif %}</p>
 <div class="actions">
 {% if ligne.consultation %}<a class="bouton discret" href="{{ ligne.consultation }}">Consulter l’édition {{ ligne.edition_consultable }}</a>{% endif %}
-{% if not ligne.suivi and not ligne.mise_a_jour %}
+{% if peut_gerer and not ligne.suivi and not ligne.mise_a_jour %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre" %}
 {% endif %}
 {% if ligne.url and peut_importer and not ligne.locale %}
@@ -90,9 +102,9 @@
 {% include "suivi/partiels/examiner_edition_grist.html" with choix_edition=True %}
 {% endif %}
 {% endif %}
-{% if ligne.suivi %}
+{% if peut_gerer and ligne.suivi %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="ne-plus-suivre" libelle="Ne plus suivre" %}
-{% elif ligne.mise_a_jour %}
+{% elif peut_gerer and ligne.mise_a_jour %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre" %}
 {% endif %}
 </details>

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 
 from .models import DestinationPublicationGrist
-from .services.catalogues_externes import catalogues_grist_connus, numerotation_grist_globale
+from .services.catalogues_externes import catalogues_grist_connus, enregistrer_nom_catalogue_grist, numerotation_grist_globale
 from .services.publications_grist import destination_grist, meme_contenu_grist, publier_edition_grist
 
 ACTIONS_GRIST = {"voir-grist", "publier-grist"}
@@ -52,11 +52,10 @@ def publication_grist(request, classe, contexte, action, document):
     if len(nom_saisi) > 200:
         raise ValidationError("Le nom du catalogue est limité à 200 caractères.")
     destination = dict(destination_grist(url, preparer_vierge=action == "publier-grist"))
-    catalogue = catalogues_grist_connus(classe.ecole.catalogues_referentiels).get(destination["url"], {})
-    dernier = historique.filter(url=destination["url"]).first()
-    dernier_nom = dernier.nom if dernier and dernier.nom != destination["nom"] else ""
-    destination["nom"] = (nom_saisi or dernier_nom or catalogue.get("nom") or
-                          contexte["nom_catalogue_propose"])
+    if destination.get("nom_a_initialiser"):
+        destination["nom"] = nom_saisi or contexte["nom_catalogue_propose"]
+        if action == "publier-grist":
+            destination["nom"] = enregistrer_nom_catalogue_grist(destination["url"], destination["nom"])
     references = {edition["Referentiel"]: edition["Titre"] for edition in destination["editions"]}
     precedente = historique.filter(
         url=destination["url"], identifiant_local=source["identifiant"],

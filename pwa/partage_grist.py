@@ -1,10 +1,12 @@
 """Synchronisation de projections pédagogiques depuis le navigateur."""
 import hashlib
 import json
+from functools import wraps
 from urllib.parse import urlencode
 from uuid import UUID
 
 import yaml
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -25,6 +27,15 @@ from suivi.services.partage_referentiel_classe import preparer_referentiel_class
 from suivi.views import acces_requis
 
 TABLE = "PetitsPasClasses"
+
+
+def partage_local(vue):
+    @wraps(vue)
+    def appel(request, *args, **kwargs):
+        if not (settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False)):
+            raise Http404
+        return vue(request, *args, **kwargs)
+    return appel
 
 
 def texte_json(objet):
@@ -58,6 +69,7 @@ def projection(partage):
     return texte_json(document)
 
 
+@partage_local
 @acces_requis
 @require_http_methods(["GET"])
 def invitation_grist(request):
@@ -80,6 +92,7 @@ def invitation_grist(request):
     return render(request, "suivi/invitation_grist.html", {"classes": classes})
 
 
+@partage_local
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def espace_classe(request, pk):
@@ -189,6 +202,7 @@ def recevoir_projection(partage, ligne, propres):
     importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=ecole)
 
 
+@partage_local
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def synchroniser(request):

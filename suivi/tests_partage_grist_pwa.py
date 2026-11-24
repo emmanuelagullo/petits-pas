@@ -141,3 +141,11 @@ class PartageGristPWA(Base):
                              equipe)
         self.assertEqual(VersionReferentiel.objects.filter(source__identifiant_diffusion="equipe-grist-document-fictif").count(), 1)
         self.assertEqual(self.client.get(transfert.replace("document-fictif", "autre-document")).status_code, 409)
+
+    @override_settings(ROOT_URLCONF="carnet.urls")
+    def test_routes_partage_communes_en_mode_binaire_et_protegees_sur_serveur(self):
+        self.adopter()
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        self.assertContains(self.client.get(espace), "Rejoindre l’espace de partage")
+        with self.settings(MODE_LOCAL=False, MODE_PWA=False):
+            self.assertEqual(self.client.get(espace).status_code, 404)

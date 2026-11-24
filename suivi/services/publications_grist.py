@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 
 from .catalogues_externes import (
     TAILLE_MAX, adresse_grist, document_grist, lignes_grist, lire_api,
-    numerotation_grist_globale, referentiels_grist, requete_api,
+    nom_catalogue_grist, numerotation_grist_globale, referentiels_grist, requete_api,
 )
 
 CHEMIN_EDITIONS = "/tables/Editions/records"
@@ -38,7 +38,9 @@ def destination_grist(url, *, preparer_vierge=False):
                               params={"colonnes": ", ".join(manquantes)})
     editions = editions_grist(prefixe, document)
     referentiels_grist(editions)
-    return {"url": url, "nom": nom, "espace": prefixe.removeprefix("/o/"), "editions": editions}
+    nom_partage = nom_catalogue_grist(prefixe, document, noms)
+    return {"url": url, "nom": nom_partage or nom, "nom_a_initialiser": not nom_partage and not editions,
+            "espace": prefixe.removeprefix("/o/"), "editions": editions}
 
 
 def document_vierge(prefixe, document, tables):

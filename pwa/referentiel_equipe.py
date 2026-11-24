@@ -18,6 +18,7 @@ from suivi.services.journal_referentiel_equipe import (
     contribution, fusionner_tetes, identifiant_contribution, terminaisons, verifier_contribution,
 )
 from suivi.services.paquets_referentiels import MAX_ARCHIVE, empaqueter, lire_paquet
+from .partage_grist import partage_local
 from suivi.views import acces_requis
 from suivi.views_paquets_referentiels import telecharger_paquet
 
@@ -40,6 +41,7 @@ def enregistrer(journal, perimetre, edition, identifiant, *, envoyee=False):
         journal.filter(pk=objet.pk).update(envoyee=True)
 
 
+@partage_local
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def transfert(request, pk):
@@ -61,6 +63,7 @@ def transfert(request, pk):
     return JsonResponse({"ok": True})
 
 
+@partage_local
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def espace(request, pk):

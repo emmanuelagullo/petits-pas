@@ -16,13 +16,14 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE, autorise
+from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE,
+                            autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import identifiant_source_ecole
-from .models import ChoixApplicationAnnuel, Ecole, VersionReferentiel, annee_scolaire_pour
+from .models import ChoixApplicationAnnuel, DestinationPublicationGrist, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .services.catalogue_fourni import REFERENTIELS_DEPART
-from .services.catalogues_externes import catalogues_grist_connus, identite_grist, lire_catalogue_grist
+from .services.catalogues_externes import catalogues_grist_connus, enregistrer_nom_catalogue_grist, identite_grist, lire_catalogue_grist
 from .services.choix_bases_referentiels import choix_bases, verifier_annee
 from .views import acces_requis
 
@@ -96,8 +97,7 @@ def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=
 @require_http_methods(["GET", "POST"])
 def decouvrir_referentiels(request):
     ecole = ecole_courante(request)
-    if not autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
-        raise PermissionDenied
+    peut_gerer = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     annee = request.GET.get("annee") or annee_scolaire_pour(timezone.localdate())
     try:
         verifier_annee(annee)
@@ -108,9 +108,19 @@ def decouvrir_referentiels(request):
     if filtre not in {"suivis", "mises-a-jour"}:
         filtre = ""
     navigation = {"depuis": "echange"} if request.GET.get("depuis") == "echange" else {}
+    retour_classe = request.GET.get("classe", "")
+    if retour_classe.isdecimal() and len(retour_classe) < 18:
+        classe = charger_classe_autorisee(request.user, int(retour_classe), GERER_REFERENTIEL_CLASSE, ecole=ecole)
+        navigation["classe"] = classe.pk
+    else:
+        classe = None
+    if not peut_gerer and (classe is None or request.method == "POST"):
+        raise PermissionDenied
     retour = lien("decouvrir_referentiels", annee=annee, q=q, filtre=filtre, **navigation)
     contexte = {"annee": annee, "q": q, "filtre": filtre, "retour": retour,
-                "depuis_echange": bool(navigation),
+                "depuis_echange": navigation.get("depuis") == "echange",
+                "classe_origine": classe, "peut_gerer": peut_gerer,
+                "depuis_classe": bool(classe),
                 "examen_grist": lien("paquets_referentiels_ecole", annee=annee, origine="decouverte",
                                      q=q, filtre=filtre, **navigation),
                 "peut_importer": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, ecole)}
@@ -124,6 +134,16 @@ def decouvrir_referentiels(request):
                 catalogue = lire_catalogue_grist(contexte["url_saisie"])
                 ecole = enregistrer_catalogue(ecole, request.user, catalogue["url"], catalogue=catalogue)
                 contexte.update(catalogue_ajoute=catalogue, message="Catalogue disponible. Choisissez les référentiels à suivre.")
+            elif action == "renommer-catalogue":
+                cle = request.POST.get("catalogue")
+                catalogue = catalogues.get(cle)
+                if not catalogue or not catalogue.get("url"):
+                    raise ValidationError("Choisissez un catalogue Grist connu de l’école.")
+                nom = enregistrer_nom_catalogue_grist(catalogue["url"], request.POST.get("nom_catalogue", ""),
+                                                       remplacer=True)
+                ecole = enregistrer_catalogue(ecole, request.user, cle, catalogue={**catalogue, "nom": nom})
+                DestinationPublicationGrist.objects.filter(ecole=ecole, url=catalogue["url"]).update(nom=nom)
+                contexte["message"] = "Nom enregistré dans Grist."
             elif action == "verifier":
                 erreurs, nouveautes = [], set()
                 for cle, catalogue in catalogues.items():
@@ -183,7 +203,7 @@ def decouvrir_referentiels(request):
                      "locale": str(derniere) in locales}
             version_consultable = next((version for version in source.get("versions_instance", ())
                                         if version.pk in autorisees), None)
-            if version_consultable:
+            if version_consultable and peut_gerer:
                 ligne["consultation"] = lien("consulter_referentiels_ecole", annee=annee,
                                              version=version_consultable.pk)
                 ligne["edition_consultable"] = version_consultable.numero
@@ -204,7 +224,6 @@ def empreinte_suivi(valeur):
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def suivis_classe(request, classe_pk):
-    from .autorisations import GERER_REFERENTIEL_CLASSE, charger_classe_autorisee
     from .models import SuiviSourceClasse
     from .referentiels import adoption_courante
     from .services.sources_catalogue import lignes_source, sources_catalogue
@@ -213,7 +232,7 @@ def suivis_classe(request, classe_pk):
     classe = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
     adoption = adoption_courante(classe)
     autorisees = {v.pk for v in choix_bases(ecole, classe.annee_scolaire).versions}
-    retour = lien("suivis_referentiels_classe", classe.pk)
+    retour = lien("suivis_referentiels_classe", classe.pk, ancre="referentiels-suivis")
     disponibles = {}
     if adoption and not adoption.clos:
         sources = sources_catalogue(request.user, classe, adoption)
@@ -282,6 +301,8 @@ def suivis_classe(request, classe_pk):
         if ligne["suivi"]:
             continue
         version = ligne["version"]
+        if version and version.contenu.get("origine") == "etat_initial_repris":
+            continue
         if ligne["autre"]:
             cle, nom = "classes", "Référentiels des classes de l’école"
         elif version.source.identifiant_diffusion.startswith("classe-grist-"):
@@ -289,14 +310,19 @@ def suivis_classe(request, classe_pk):
         elif version.source.identifiant in catalogues:
             cle, nom = catalogues[version.source.identifiant]
         elif version.source.ecole_id:
-            cle, nom = "ecole", "Référentiels reçus par l’école"
+            cle, nom = "ecole", "Catalogue de l’école"
         else:
-            cle, nom = "instance", "Catalogue de cette instance Petits Pas"
+            cle, nom = "instance", "Catalogue Petits Pas"
         groupes.setdefault(cle, {"nom": nom, "lignes": []})["lignes"].append(ligne)
     partage_grist = None
-    if getattr(settings, "MODE_PWA", False):
+    if settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False):
         from .models import PartageGristClasse
         partage_grist = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
     return render(request, "suivi/suivis_referentiels_classe.html",
-                  {"classe": classe, "lignes": lignes, "groupes": list(groupes.values()),
+                  {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
+                   "adoption": adoption, "a_des_suivis": bool(suivis),
+                   "ouvrir_decouverte": not suivis or request.GET.get("decouvrir") == "1",
+                   "classe_active": classe.etat == classe.ACTIVE, "groupes": list(groupes.values()),
+                   "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
+                   "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),
                    "indisponibles": set(suivis) - disponibles.keys(), "partage_grist": partage_grist})

@@ -126,13 +126,56 @@ def referentiels_grist(lignes):
     return list(referentiels.values())
 
 
+TABLE_NOMS_GRIST = "PetitsPasEspace"
+NOMS_GRIST = f"/tables/{TABLE_NOMS_GRIST}/records"
+
+
+def tables_grist(prefixe, document):
+    try:
+        return {table["id"] for table in lire_api(prefixe, document, "/tables")["tables"]}
+    except (KeyError, TypeError) as erreur:
+        raise ValidationError("Le schéma du document Grist est illisible.") from erreur
+
+
+def nom_catalogue_grist(prefixe, document, tables):
+    if TABLE_NOMS_GRIST not in tables:
+        return ""
+    lignes = lignes_grist(lire_api(prefixe, document, NOMS_GRIST))
+    noms = [ligne.get("Nom") for ligne in lignes if ligne.get("Identifiant") == "catalogue"]
+    if len(noms) > 1:
+        raise ValidationError("Plusieurs noms sont enregistrés pour ce catalogue.")
+    return texte(noms[0], "Nom du catalogue") if noms else ""
+
+
+def enregistrer_nom_catalogue_grist(url, nom, *, remplacer=False):
+    prefixe, document = adresse_grist(url)
+    nom = texte(nom.strip(), "Nom du catalogue")
+    tables = tables_grist(prefixe, document)
+    if "Editions" not in tables:
+        raise ValidationError("Ce document ne contient pas de catalogue Petits Pas.")
+    if TABLE_NOMS_GRIST not in tables:
+        colonnes = [{"id": cle, "fields": {"type": "Text"}} for cle in ("Identifiant", "Nom")]
+        corps = json.dumps({"tables": [{"id": TABLE_NOMS_GRIST, "columns": colonnes}]}).encode()
+        try:
+            requete_api(prefixe, document, "/tables", corps=corps, methode="POST")
+        except ValidationError:
+            if TABLE_NOMS_GRIST not in tables_grist(prefixe, document):
+                raise
+    corps = json.dumps({"records": [{"require": {"Identifiant": "catalogue"},
+                                     "fields": {"Nom": nom}}]}, ensure_ascii=False).encode()
+    options = "?noparse=true&onmany=none" + ("" if remplacer else "&noupdate=true")
+    requete_api(prefixe, document, NOMS_GRIST + options, corps=corps)
+    return nom_catalogue_grist(prefixe, document, {TABLE_NOMS_GRIST})
+
+
 def lire_catalogue_grist(url, *, avec_lignes=False):
     prefixe, document, url, nom = document_grist(url)
     lignes = lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
     referentiels = referentiels_grist(lignes)
     if not referentiels:
         raise ValidationError("Ce catalogue Grist ne contient aucune édition.")
-    resultat = {"url": url, "nom": nom, "referentiels": referentiels}
+    nom_partage = nom_catalogue_grist(prefixe, document, tables_grist(prefixe, document))
+    resultat = {"url": url, "nom": nom_partage or nom, "referentiels": referentiels}
     return (resultat, lignes) if avec_lignes else resultat
 
 
