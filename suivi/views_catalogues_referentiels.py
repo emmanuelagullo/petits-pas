@@ -321,6 +321,7 @@ def suivis_classe(request, classe_pk):
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
+                   "ouvrir_espace": request.GET.get("espace") == "1",
                    "ouvrir_decouverte": not suivis or request.GET.get("decouvrir") == "1",
                    "classe_active": classe.etat == classe.ACTIVE, "groupes": list(groupes.values()),
                    "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),

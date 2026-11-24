@@ -26,13 +26,21 @@ def ariane_eleve(context, page, eleve, parent=False):
 
 
 @register.inclusion_tag("suivi/partiels/ariane.html", takes_context=True)
-def ariane_referentiel(context, page, classe, annee):
+def ariane_referentiel(context, page, classe, annee, parcours="reglages"):
     if context.get("retour_export_ecole"):
         chemin = [("Gérer l’école", lien("gestion")),
                   ("Référentiels de l’école", lien("referentiels_ecole", annee=annee)),
                   ("Exporter depuis l’école", context["retour_export_ecole"])]
     elif classe:
-        chemin = chemin_reglages_referentiel(classe, catalogue=autorise(context["request"].user, VOIR_SUIVI, classe))
+        chemin = chemin_reglages_referentiel(
+            classe, catalogue=autorise(context["request"].user, VOIR_SUIVI, classe),
+            inclure_reglages=parcours == "reglages",
+        )
+        if parcours in ("partage", "equipe"):
+            parametres = {"decouvrir": 1, "ancre": "decouvrir-referentiels"} if context.get("depuis_classe") else {}
+            chemin.append(("Catalogues et partage", lien("suivis_referentiels_classe", classe.pk, **parametres)))
+        if parcours == "equipe":
+            chemin.append(("Espace de partage", lien("espace_grist_classe", classe.pk)))
     else:
         chemin = [("Gérer l’école", lien("gestion")),
                   ("Référentiels de l’école", lien("referentiels_ecole", annee=annee))]

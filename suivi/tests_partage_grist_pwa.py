@@ -33,7 +33,7 @@ class PartageGristPWA(Base):
         self.assertFalse(PartageGristClasse.objects.exists())
         suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
         self.assertRedirects(self.client.post(espace, {"grist": grist, "confirmer": "oui"}),
-                             suivis + "#espace-partage")
+                             suivis + "?espace=1#espace-partage")
         url = reverse("synchroniser_grist")
         données = self.client.get(url).json()
         travail = données["partages"][0]
@@ -149,3 +149,19 @@ class PartageGristPWA(Base):
         self.assertContains(self.client.get(espace), "Rejoindre l’espace de partage")
         with self.settings(MODE_LOCAL=False, MODE_PWA=False):
             self.assertEqual(self.client.get(espace).status_code, 404)
+
+
+    def test_ariane_et_confirmation_du_partage(self):
+        self.adopter()
+        suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        page = self.client.get(suivis)
+        self.assertContains(page, '<li aria-current="page">Catalogues et partage</li>')
+        ariane = page.content.decode().split('aria-label="Fil d’Ariane"', 1)[1].split("</nav>", 1)[0]
+        self.assertIn("Compétences", ariane)
+        self.assertNotIn("Réglages du référentiel", ariane)
+        self.assertContains(self.client.get(espace), "automatique")
+        erreur = self.client.post(espace, {"grist": "https://grist.numerique.gouv.fr/document-fictif"})
+        self.assertContains(erreur, "Cochez cette case pour confirmer", status_code=400)
+        self.assertContains(erreur, 'aria-required="true" aria-invalid="true"', status_code=400)
+        self.assertFalse(PartageGristClasse.objects.exists())

@@ -2,7 +2,7 @@
 {% load navigation_suivi %}
 {% block titre %}Espace de partage{% endblock %}
 {% block contenu %}
-{% ariane_referentiel "Espace de partage" classe classe.annee_scolaire %}
+{% ariane_referentiel "Espace de partage" classe classe.annee_scolaire parcours="partage" %}
 <h1>Espace de partage</h1>
 {% if partage.actif %}
 <p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>
@@ -12,7 +12,7 @@
 </div><p data-nom-espace data-partage="{{ partage.identifiant }}">{{ partage.nom_espace|default:"Espace Grist" }}</p><p role="status" data-etat-espace>Synchronisation en attente.</p>
 <form method="post">{% csrf_token %}<button name="action" value="suspendre" class="bouton discret">Suspendre la synchronisation</button></form>
 {% endif %}
-{% if erreur %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement"><strong>Raccordement impossible.</strong> {{ erreur }}</li></ul>{% endif %}
+{% if erreur and champ_erreur != "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement"><strong>Raccordement impossible.</strong> {{ erreur }}</li></ul>{% endif %}
 {% if licence %}<p>Licence du référentiel partagé · <strong>{{ licence }}</strong></p>{% endif %}
 {% if erreur_licence %}
 <p><span class="pastille alerte">Licence à vérifier</span> {% if erreur != erreur_licence %}{{ erreur_licence }}{% endif %}</p>
@@ -23,10 +23,12 @@
 <label for="grist">Lien du document Grist d’essai</label>
 <input id="grist" name="grist" type="url" value="{{ grist }}" maxlength="300" required{% if champ_erreur == "grist" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
 <p>La synchronisation publie les rubriques et compétences communes visibles, avec leurs textes et illustrations pédagogiques. Utilisez un document de test et des données fictives. Un document public est accessible aux personnes qui obtiennent son lien.</p>
-<label><input name="confirmer" type="checkbox" value="oui" required{% if confirmer %} checked{% endif %}{% if champ_erreur == "confirmer" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}> Partager le référentiel de cette classe dans cet espace</label>
+<label><input name="confirmer" type="checkbox" value="oui" aria-required="true"{% if confirmer %} checked{% endif %}{% if champ_erreur == "confirmer" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}> Partager le référentiel de cette classe dans cet espace</label>
+{% if champ_erreur == "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement">{{ erreur }}</li></ul>{% endif %}
 <p>Nom proposé pour un nouvel espace · <strong>{{ nom_propose }}</strong></p>
 <details{% if nom_saisi %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du nouvel espace" only %}
+{% if nom_saisi %}{% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du nouvel espace" only %}
+{% else %}{% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du nouvel espace" resume="automatique" only %}{% endif %}
 <label for="nom-espace">Nom à utiliser si l’espace n’est pas encore nommé</label>
 <input id="nom-espace" name="nom_espace" maxlength="200" value="{{ nom_saisi }}" placeholder="{{ nom_propose }}"{% if champ_erreur == "nom_espace" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
 </details>

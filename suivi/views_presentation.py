@@ -10,11 +10,11 @@ from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 
-from .autorisations import ADMINISTRER_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee, classes_accessibles
+from .autorisations import ADMINISTRER_ECOLE, GERER_REFERENTIEL_CLASSE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee, classes_accessibles
 from .contexte_ecole import ecole_courante
 from .forms_presentation import AffichageIllustrationForm, IllustrationForm
 from .models import Competence, ParametresCarnet, ReglagePresentation
-from .navigation import chemin_classe
+from .navigation import chemin_classe, chemin_reglages_referentiel, lien
 from .referentiels import arbre_competences, competence_classe
 from .presentation import affichage_avec_photos, catalogue_icones, illustration_effective, propositions
 from .services.presentation import enregistrer_affichage, enregistrer_formulation, enregistrer_reglage, verifier_droit
@@ -106,7 +106,13 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         index_url = reverse("presentation_classe", args=[classe.pk])
     else:
         index_url = reverse("presentation_ecole")
-    ariane = chemin_classe(classe) if classe else [("Gérer l’école", reverse("gestion"))]
+    if classe and autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
+        ariane = chemin_reglages_referentiel(classe, catalogue=autorise(request.user, VOIR_SUIVI, classe))
+    elif classe:
+        ariane = chemin_classe(classe)
+    else:
+        ariane = [("Gérer l’école", reverse("gestion")),
+                  ("Référentiels de l’école", lien("referentiels_ecole"))]
     titre = "Couverture, illustrations et formulations"
     if competence:
         ariane.append((titre, index_url))

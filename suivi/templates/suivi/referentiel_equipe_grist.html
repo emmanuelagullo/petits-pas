@@ -2,7 +2,7 @@
 {% load navigation_suivi %}
 {% block titre %}Référentiel d’équipe{% endblock %}
 {% block contenu %}
-{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire %}
+{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="equipe" %}
 <h1>Référentiel d’équipe</h1>
 {% if erreur %}<ul class="messages"><li role="alert" class="error">{{ erreur }}</li></ul>{% endif %}
 {% if conflits %}

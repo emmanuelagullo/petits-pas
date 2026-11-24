@@ -3,8 +3,9 @@
 {% block titre %}Catalogues et suivis{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-{% ariane_referentiel "Catalogues et suivis" None annee %}
-<h1>Catalogues et suivis</h1>
+{% if depuis_classe %}{% ariane_referentiel "Catalogues de l’école" classe_origine annee parcours="partage" %}
+{% else %}{% ariane_referentiel "Catalogues et suivis" None annee %}{% endif %}
+<h1>{% if depuis_classe %}Catalogues de l’école{% else %}Catalogues et suivis{% endif %}</h1>
 <p>{% if peut_gerer %}Suivis de l’école{% else %}Catalogues disponibles dans l’école{% endif %}</p>
 {% if depuis_classe %}
 <p><a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe_origine.pk %}?decouvrir=1#decouvrir-referentiels">Retour aux catalogues de la classe</a></p>

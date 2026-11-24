@@ -3,18 +3,24 @@
 {% block titre %}Catalogues et partage{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-{% ariane_referentiel "Catalogues et partage" classe classe.annee_scolaire %}
+{% ariane_referentiel "Catalogues et partage" classe classe.annee_scolaire parcours="competences" %}
 <h1>Catalogues et partage</h1>
 <p>Suivis de {{ classe.libelle_avec_annee }}. Les nouveautés marquées comme vues le sont pour toute l’équipe de cette classe.</p>
-{% if classe_active and partage_grist_disponible %}<section id="espace-partage">
+{% if classe_active and partage_grist_disponible %}<details id="espace-partage"{% if ouvrir_espace %} open{% endif %}>
+{% if partage_grist %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" resume=partage_grist.nom_espace niveau_titre=2 only %}
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" resume="Aucun espace rejoint" niveau_titre=2 only %}
+{% endif %}
+<p>Partagez automatiquement les compétences communes de votre classe avec les collègues qui utilisent le même espace.</p>
 {% if partage_grist %}
 <p data-nom-espace data-partage="{{ partage_grist.identifiant }}">{{ partage_grist.nom_espace|default:"Espace de partage Grist" }}</p>
 <p role="status" data-etat-espace>Synchronisation en attente.</p>
 {% endif %}
-<p><a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace de partage{% else %}Espace de partage Grist{% endif %}</a></p>
-</section>{% endif %}
-<section id="referentiels-suivis">
-<h2>Référentiels suivis</h2>
+<p><a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace{% else %}Rejoindre un espace{% endif %}</a></p>
+</details>{% endif %}
+<details id="referentiels-suivis" open>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Référentiels suivis" niveau_titre=2 only %}
 {% if not a_des_suivis %}<p>Aucun référentiel n’est encore suivi par cette classe.</p>{% endif %}
 {% for ligne in lignes %}
 <section class="encadre">
@@ -46,7 +52,6 @@
 <p>Un référentiel suivi n’est plus disponible. <button class="bouton discret" name="action" value="ne-plus-suivre">Retirer ce suivi</button></p>
 </form>
 {% endfor %}
-</section>
 <details id="decouvrir-referentiels"{% if ouvrir_decouverte %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Suivre d’autres référentiels" only %}
 <p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}{% if peut_gerer_catalogues %}#ajouter-catalogue{% endif %}">{% if peut_gerer_catalogues %}Parcourir ou ajouter un catalogue{% else %}Parcourir les catalogues de l’école{% endif %}</a></p>
@@ -70,14 +75,19 @@
 </details>
 {% endfor %}
 </details>
-<section>
-<h2>Partager ou recevoir un référentiel</h2>
+</details>
+<details id="echanger-referentiels">
+{% if peut_importer_ecole %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Échanger des référentiels" resume="Partager · Importer" niveau_titre=2 only %}
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Échanger des référentiels" resume="Partager · Proposer à la direction" niveau_titre=2 only %}
+{% endif %}
 <div class="actions">
 {% if classe_active and adoption and not adoption.clos %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
 {% if peut_importer_ecole %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer une édition</a>
 {% elif classe_active %}<a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">Proposer un référentiel à la direction</a>{% endif %}
 {% if peut_gerer_catalogues %}<a class="bouton discret" href="{% url 'referentiels_ecole' %}?annee={{ classe.annee_scolaire }}">Choix annuels de l’école</a>{% endif %}
 </div>
-</section>
+</details>
 </div>
 {% endblock %}

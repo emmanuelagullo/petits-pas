@@ -134,7 +134,7 @@ def espace_classe(request, pk):
                 raise ValidationError(erreur_licence)
             if request.POST.get("confirmer") != "oui":
                 champ_erreur = "confirmer"
-                raise ValidationError("Confirmez le partage de vos compétences communes dans cet espace.")
+                raise ValidationError("Cochez cette case pour confirmer le partage du référentiel de la classe.")
             if len(nom_saisi) > 200:
                 champ_erreur = "nom_espace"
                 raise ValidationError("Le nom de l’espace est limité à 200 caractères.")
@@ -151,7 +151,7 @@ def espace_classe(request, pk):
                     partage.licence, partage.actif = licence, True
                     partage.save(update_fields=["url", "nom_espace", "derniere_empreinte", "licence", "actif"])
             messages.info(request, "Espace rejoint. La synchronisation démarre depuis les suivis de la classe.")
-            return redirect(reverse("suivis_referentiels_classe", args=[pk]) + "#espace-partage")
+            return redirect(reverse("suivis_referentiels_classe", args=[pk]) + "?espace=1#espace-partage")
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     return render(request, "suivi/espace_grist_classe.html", {"classe": classe, "partage": partage,
