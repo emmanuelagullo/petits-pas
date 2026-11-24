@@ -20,6 +20,7 @@ from .exports_classe import autorise_export_classe, creer_zip_classe
 from .exports_ecole import racine
 from .models import Classe, ExportClasse
 from .navigation import chemin_classe
+from .noms_archives import nom_zip
 from .paquet_local import preparer_restauration
 from .views_exports import ExportForm, _confirmer, servir_export
 
@@ -42,6 +43,7 @@ def _classe(request, pk):
 
 def _copie_locale(request, classe, empreinte):
     export = ExportClasse(classe=classe, demande_par=request.user, mot_de_passe_local=empreinte)
+    nom = nom_zip("classe", classe.ecole.nom, classe.nom, classe.annee_scolaire)
     with tempfile.TemporaryDirectory(prefix=".export-classe-") as dossier:
         travail = Path(dossier)
         if getattr(settings, "MODE_PWA", False):
@@ -60,11 +62,11 @@ def _copie_locale(request, classe, empreinte):
                 shutil.rmtree(verifie.etape)
                 fichier.seek(0)
                 response = FileResponse(fichier, as_attachment=True,
-                    filename=f"petits-pas-classe-{classe.pk}-{timezone.now():%Y%m%d}.zip")
+                    filename=nom)
             except BaseException:
                 fichier.close()
                 raise
-        response["Content-Disposition"] = f'attachment; filename="petits-pas-classe-{classe.pk}-{timezone.now():%Y%m%d}.zip"'
+        response["Content-Disposition"] = f'attachment; filename="{nom}"'
         response["Cache-Control"] = "private, no-store"
         response["X-Content-Type-Options"] = "nosniff"
         # Cette extraction ne renouvelle pas le rappel de sauvegarde complète.
@@ -129,4 +131,6 @@ def telecharger_export_classe(request, pk, identifiant):
         etat="pret", expire_le__gt=timezone.now())
     if request.session.get("export_classe_confirme") != str(identifiant):
         return redirect("exporter_classe", pk=classe.pk)
-    return servir_export(request, export, f"classe-{classe.pk}", "classe.export_telecharge")
+    return servir_export(request, export, nom_zip("classe", classe.ecole.nom, classe.nom,
+                                                  classe.annee_scolaire, date=export.cree_le),
+                         "classe.export_telecharge")

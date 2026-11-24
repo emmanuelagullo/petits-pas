@@ -76,7 +76,8 @@ def espace(request, pk):
         tetes = terminaisons(editions)
         if request.method == "GET" and request.GET.get("edition") in tetes:
             document = editions[request.GET["edition"]]["document"]
-            return telecharger_paquet(empaqueter(document))
+            return telecharger_paquet(empaqueter(document), document["source"]["titre"],
+                                      edition=document["version"])
         if request.method == "POST":
             action = request.POST.get("action")
             if action == "catalogue":

@@ -13,6 +13,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from comptes.models import Utilisateur, AppartenanceEcole, ResponsabiliteEcole, AffectationClasse
+from .noms_archives import enregistrer_nom_zip, nom_zip
 from . import models as m
 from .autorisations import affectation_active, peut_telecharger_media_original, autorise, VOIR_SUIVI
 from .export_projection import initialiser_projection, validation_sur
@@ -381,6 +382,7 @@ def produire_classe(export):
             raise ValidationError("L'autorisation d'export de la classe n'est plus disponible.")
         with archive.open("rb") as f:
             empreinte = hashlib.file_digest(f, "sha256").hexdigest()
+        enregistrer_nom_zip(travail, nom_zip("classe", export.ecole.nom, export.classe.nom, export.classe.annee_scolaire, date=export.cree_le))
         m.ExportClasse.objects.filter(pk=export.pk, identifiant=export.identifiant).update(
             etat="pret", mot_de_passe_local="", identifiant_local=identifiant,
             instantane_le=instantane, expire_le=timezone.now() + timedelta(hours=24),

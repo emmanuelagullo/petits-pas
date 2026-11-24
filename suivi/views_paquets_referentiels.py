@@ -31,14 +31,16 @@ from .services.import_sources_referentiels import importer_source, lire_source
 from .services.paquets_referentiels import MAX_ARCHIVE, empaqueter, exporter_paquet, exporter_selection, lire_paquet
 from .services.partage_referentiel_classe import licences_referentiel_partage, preparer_referentiel_classe
 from .views import acces_requis
+from .noms_archives import nom_zip
 
 SEL = "diffusion-referentiel"
 SEL_PUBLICATION = "publication-referentiel"
 
 
-def telecharger_paquet(donnees):
+def telecharger_paquet(donnees, titre=None, *, edition=None, type_archive="referentiel", date=None):
     reponse = HttpResponse(donnees, content_type="application/zip")
-    reponse["Content-Disposition"] = 'attachment; filename="referentiel.zip"'
+    nom = nom_zip(type_archive, titre, edition=edition, date=date)
+    reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
     return reponse
 
 
@@ -237,7 +239,7 @@ def partage_classe(request, classe, contexte, action):
         InformationsPartageReferentielClasse.objects.update_or_create(
             classe=classe, defaults=enregistrement,
         )
-        return telecharger_paquet(paquet)
+        return telecharger_paquet(paquet, donnees["titre"], edition=donnees["version"], date=timezone.now())
     if action == "enregistrer-partage":
         InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
         presenter_publication_grist(request, classe, contexte, donnees["identifiant"])
@@ -352,7 +354,8 @@ def paquets_referentiels(request, classe_pk=None):
             brouillon = brouillon_composition(request, ecole, annee, contexte, action)
             if action == "composer":
                 return telecharger_paquet(composer_paquet(
-                    catalogue, brouillon, brouillon["reprises"], brouillon["creations"]))
+                    catalogue, brouillon, brouillon["reprises"], brouillon["creations"]),
+                    brouillon["titre"], edition=brouillon["version"], date=timezone.now())
             if action in ("enregistrer_composition", "ajouter_ligne_composition"):
                 contexte["message"] = "Brouillon enregistré pour cette année."
                 action = None
@@ -367,7 +370,9 @@ def paquets_referentiels(request, classe_pk=None):
                     raise PermissionDenied
                 donnees = (exporter_paquet(version) if action == "edition" else
                            exporter_selection(version, request.POST.getlist("competence")))
-                return telecharger_paquet(donnees)
+                return telecharger_paquet(donnees, version.source.titre,
+                    edition=version.numero if action == "edition" else None,
+                    type_archive="referentiel" if action == "edition" else "referentiel-selection")
             if not contexte["peut_importer"]:
                 raise PermissionDenied
             if action == "ouvrir-catalogue-grist":

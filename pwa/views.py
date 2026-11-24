@@ -5,6 +5,8 @@ from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_safe
 from suivi.autorisations import GENERER_CARNET
+from suivi.contexte_ecole import ecole_courante
+from suivi.noms_archives import nom_zip
 from suivi.views import (
     acces_requis, direction_requise, _contexte_carnet,
 )
@@ -26,8 +28,8 @@ def sauvegardes_progressives(request):
             creer_sauvegarde(Path("/data"), fichier, taille_bloc=1024**2)
         noter_export(Path("/data"))
         response = HttpResponse(content_type="application/zip")
-        from django.utils import timezone
-        response["Content-Disposition"] = f'attachment; filename="petits-pas-{timezone.now():%Y%m%d-%H%M%S}.zip"'
+        nom = nom_zip("sauvegarde", ecole_courante(request).nom)
+        response["Content-Disposition"] = f'attachment; filename="{nom}"'
         response.pwa_export = True
         return response
     if request.method == "POST" and request.POST.get("action") == "restaurer":

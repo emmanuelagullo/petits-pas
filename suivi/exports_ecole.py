@@ -23,6 +23,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from comptes.models import Utilisateur
+from .noms_archives import enregistrer_nom_zip, nom_zip
 from . import models as m
 from .autorisations import est_direction
 from .paquet_local import creer_sauvegarde, preparer_restauration
@@ -308,6 +309,7 @@ def produire(export):
         export.ecole.refresh_from_db()
         if not autorise_export(export.demande_par, export.ecole):
             raise ValidationError("L'autorisation d'export n'est plus disponible.")
+        enregistrer_nom_zip(travail, nom_zip("ecole", export.ecole.nom, date=export.cree_le))
         m.ExportEcole.objects.filter(pk=export.pk, identifiant=export.identifiant).update(
             etat="pret", mot_de_passe_local="", identifiant_local=identifiant_local, instantane_le=instantane,
             expire_le=timezone.now() + timedelta(hours=24), taille_zip=archive.stat().st_size,

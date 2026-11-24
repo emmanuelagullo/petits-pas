@@ -90,7 +90,8 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             return telecharger_paquet(exporter_ajout(locale, proposee,
                 provenance=request.POST.get("provenance", ""), licence=request.POST.get("licence", ""),
                 icone=request.POST.get("icone", ""), formulations=formulations,
-                image=image.read(MAX_PNG + 1) if image else None))
+                image=image.read(MAX_PNG + 1) if image else None),
+                locale.competence.libelle, type_archive="referentiel-ajout")
         except ValidationError as cause:
             messages.error(request, " ".join(cause.messages))
             return redirect(request.get_full_path())

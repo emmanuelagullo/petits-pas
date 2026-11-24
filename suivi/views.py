@@ -73,6 +73,7 @@ from .double_facteur import Exigence, exigence_double_facteur
 from .services.double_facteur import (
     journaliser_securite_compte, refus_reinitialisation, reinitialiser_par_la_direction,
 )
+from .noms_archives import nom_zip
 from .navigation import (
     chemin_classe, chemin_collectif, chemin_competence, filtre_competences, lien,
 )
@@ -703,7 +704,7 @@ def sauvegardes_locales(request):
                 fichier.seek(0)
                 return FileResponse(
                     fichier, as_attachment=True,
-                    filename=f"petits-pas-{timezone.now():%Y%m%d-%H%M%S}.zip",
+                    filename=nom_zip("sauvegarde", ecole_courante(request).nom),
                     content_type="application/zip",
                 )
             except Exception:
@@ -2517,8 +2518,8 @@ def _archive_carnets(request, classe, eleves, options):
             noms_utilises.add(candidat)
             fichiers.writestr(candidat, contenu)
     reponse = HttpResponse(archive.getvalue(), content_type="application/zip")
-    nom_classe = slugify(classe.nom) or "classe"
-    reponse["Content-Disposition"] = f'attachment; filename="carnets-{nom_classe}.zip"'
+    nom = nom_zip("carnets", classe.nom, classe.annee_scolaire)
+    reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
     nouvelles = {"nombre_eleves": len(eleves), "taille": len(archive.getvalue())}
     journaliser(request.user, "zip.classe_genere", classe, nouvelles=nouvelles)
     journaliser(request.user, "zip.classe_telecharge", classe, nouvelles=nouvelles)

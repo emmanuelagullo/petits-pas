@@ -19,6 +19,7 @@ from django.views.decorators.http import require_http_methods, require_safe
 from .audit import journaliser
 from .contexte_ecole import ecole_courante
 from .exports_ecole import autorise_export, dossier, racine
+from .noms_archives import nom_zip, relire_nom_zip
 from .models import Ecole, ExportEcole
 
 
@@ -147,13 +148,15 @@ def telecharger_export_ecole(request, identifiant):
         raise Http404
     if request.session.get("export_confirme") != str(identifiant):
         return redirect("exporter_ecole")
-    return servir_export(request, export, f"ecole-{ecole.pk}", "ecole.export_telecharge")
+    return servir_export(request, export, nom_zip("ecole", ecole.nom, date=export.cree_le), "ecole.export_telecharge")
 
 
 def servir_export(request, export, nom, evenement):
     identifiant = export.identifiant
+    destination = dossier(export)
+    nom = relire_nom_zip(destination, nom)
     try:
-        fichier = (dossier(export) / "ecole.zip").open("rb")
+        fichier = (destination / "ecole.zip").open("rb")
     except FileNotFoundError:
         raise Http404
     etag = '"' + export.empreinte + '"'
@@ -185,7 +188,7 @@ def servir_export(request, export, nom, evenement):
     response["ETag"] = etag
     response["Cache-Control"] = "private, no-store"
     response["X-Content-Type-Options"] = "nosniff"
-    response["Content-Disposition"] = f'attachment; filename="petits-pas-{nom}-{export.cree_le:%Y%m%d}.zip"'
+    response["Content-Disposition"] = f'attachment; filename="{nom}"'
     if statut == 206:
         response["Content-Range"] = f"bytes {debut}-{fin}/{export.taille_zip}"
     return response

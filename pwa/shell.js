@@ -277,7 +277,11 @@ async function exporterRecuperation(etat) {
     recoveryWorker = new Worker(WORKER, {type: 'module'});
     const value = await requestWorker(recoveryWorker, {kind: 'recovery', essai: ESSAI, apercu: APERCU}, {onTimeout: () => recoveryWorker.terminate()});
     const url = URL.createObjectURL(value.file);
-    const link = document.createElement('a'); link.href = url; link.download = 'petits-pas-recuperation.zip'; link.click();
+    const date = new Date().toISOString().slice(0, 19).replace('T', '-').replaceAll(':', '');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `petits-pas-recuperation-${date}.zip`;
+    link.click();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     etat.textContent = 'Téléchargement du ZIP de récupération lancé.';
   } catch (error) {
