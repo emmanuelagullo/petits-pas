@@ -133,9 +133,32 @@ async function local(request) {
     headers.push(['Referer', request.referrer]);
   }
   return new Promise(resolve => {
-    const timeout = setTimeout(() => { if (upload) stopUpload(); channel.port1.close(); resolve(new Response('Transport interrompu ; résultat incertain. Fermez puis rouvrez Petits Pas.', {status: 503})); }, 16 * 60 * 1000);
+    let terminé = false;
+    function terminer() {
+      if (terminé) return false;
+      terminé = true;
+      clearTimeout(timeout);
+      clearInterval(surveillance);
+      request.signal.removeEventListener('abort', interrompre);
+      if (upload) stopUpload();
+      channel.port1.close();
+      return true;
+    }
+    function interrompre() {
+      if (terminer()) resolve(new Response(
+        'Transport interrompu ; résultat incertain. Fermez puis rouvrez Petits Pas.', {status: 503}));
+    }
+    const timeout = setTimeout(interrompre, 16 * 60 * 1000);
+    // Une fermeture du propriétaire peut laisser le port sans réponse et
+    // retenir l’ancien service worker, même si le navigateur ne signale pas
+    // l’annulation de la requête.
+    const surveillance = setInterval(() => {
+      self.clients.get(owner.id).then(client => { if (!client) interrompre(); }, () => {});
+    }, 2000);
+    request.signal.addEventListener('abort', interrompre, {once: true});
+    if (request.signal.aborted) { interrompre(); return; }
     channel.port1.onmessage = event => {
-      clearTimeout(timeout); if (upload) stopUpload(); channel.port1.close();
+      if (!terminer()) return;
       const r = event.data;
       if (!r.ok) { resolve(new Response(r.error, {status: 507})); return; }
       let content = r.body;
@@ -152,8 +175,9 @@ async function local(request) {
       }
       resolve(new Response(request.method === 'HEAD' || [204, 304].includes(r.status) ? null : content, {status: r.status, headers: r.headers}));
     };
-    owner.postMessage({kind: 'http', request: {url: request.url, method: request.method, headers, body,
+    try { owner.postMessage({kind: 'http', request: {url: request.url, method: request.method, headers, body,
       ...(upload ? {inputPort:upload.port2} : {})}}, [channel.port2, raw, ...(upload ? [upload.port2] : [])]);
+    } catch { interrompre(); }
   });
 }
 async function hasRuntime(client) {

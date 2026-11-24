@@ -6,6 +6,8 @@ const BASE = new URL('./', import.meta.url).pathname;
 const status = document.querySelector('#status');
 const frame = document.querySelector('#app');
 let worker, registration, ready = false, installPrompt;
+let applyingUpdate = false;
+const pendingHttp = new Set();
 const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone;
 const changement = document.querySelector('#changer-espace');
 changement.hidden = ESSAI || APERCU;
@@ -188,12 +190,19 @@ navigator.serviceWorker?.addEventListener('message', async event => {
   }
   if (event.source !== navigator.serviceWorker.controller || event.data?.kind !== 'http' || !event.ports[0]) return;
   const port = event.ports[0];
+  if (applyingUpdate) {
+    port.postMessage({ok: true, status: 503, headers: [], body: new TextEncoder().encode('Mise à jour en cours.')});
+    port.close();
+    return;
+  }
+  const operation = rpc(event.data);
+  pendingHttp.add(operation);
   const started = performance.now();
   const waiting = setInterval(() => {
     status.textContent = `Opération en cours depuis ${Math.floor((performance.now() - started) / 1000)} s. Gardez cette page ouverte ; les gros ZIP peuvent prendre plusieurs minutes.`;
   }, 5000);
   try {
-    const value = await rpc(event.data);
+    const value = await operation;
     showVolume(value.durability);
     status.textContent = value.result.status >= 400
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
@@ -203,7 +212,7 @@ navigator.serviceWorker?.addEventListener('message', async event => {
   } catch (error) {
     status.textContent = String(error.message);
     port.postMessage({ok: false, error: 'Opération interrompue. Fermez puis rouvrez Petits Pas ; ne répétez pas automatiquement cette saisie.'});
-  } finally { clearInterval(waiting); port.close(); }
+  } finally { pendingHttp.delete(operation); clearInterval(waiting); port.close(); }
 });
 persist.onclick = async () => {
   persist.disabled = true;
@@ -240,14 +249,23 @@ updateRetry.onclick = checkUpdate.onclick;
 document.querySelector('#update').onclick = async event => {
   event.target.disabled = true;
   try {
-    if (!registration?.waiting) throw new Error('Mise à jour indisponible');
+    const candidate = registration?.waiting;
+    if (!candidate) throw new Error('Mise à jour indisponible');
+    // Fermer l’admission avant le checkpoint : une requête d’arrière-plan
+    // abandonnée au moment d’arrêter le moteur retient l’ancien service worker.
+    applyingUpdate = true;
+    await Promise.allSettled(pendingHttp);
     if (ready) await rpc({kind: 'checkpoint'});
     ready = false; frame.hidden = true; frame.src = 'about:blank';
     worker?.terminate(); worker = null;
     status.textContent = 'Mise à jour en cours…';
     navigator.serviceWorker.addEventListener('controllerchange', () => location.reload(), {once: true});
-    registration.waiting.postMessage({kind: 'activate-update'});
-  } catch (error) { status.textContent = String(error.message); event.target.disabled = false; }
+    candidate.postMessage({kind: 'activate-update'});
+  } catch (error) {
+    applyingUpdate = false;
+    status.textContent = String(error.message);
+    event.target.disabled = false;
+  }
 };
 const boutonsRecuperation = document.querySelectorAll('#recovery, #rescue');
 async function exporterRecuperation(etat) {
