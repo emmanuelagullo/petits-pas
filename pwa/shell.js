@@ -327,7 +327,10 @@ try {
     status.textContent = '';
     frame.hidden = false;
     document.querySelector('#apercu').disabled = false;
-    frame.src = BASE + 'app/';
+    const invitation = new URL(location.href).searchParams.get('grist');
+    frame.src = BASE + (invitation !== null && !ESSAI && !APERCU
+      ? 'app/pwa/invitation-grist/?' + new URLSearchParams({grist: invitation})
+      : 'app/');
     await new Promise(() => {}); // Possession du verrou jusqu'à fermeture du document.
   });
 } catch (error) {

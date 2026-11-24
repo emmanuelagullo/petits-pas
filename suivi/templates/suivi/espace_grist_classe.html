@@ -4,7 +4,11 @@
 {% block contenu %}
 {% ariane_referentiel "Espace de partage" classe classe.annee_scolaire %}
 <h1>Espace de partage</h1>
-{% if partage.actif %}<p data-nom-espace data-partage="{{ partage.identifiant }}">{{ partage.nom_espace|default:"Espace Grist" }}</p><p role="status" data-etat-espace>Synchronisation en attente.</p>
+{% if partage.actif %}
+<div data-invitation-grist="{{ partage.url }}" hidden>
+<button type="button" class="bouton discret">Copier le lien d’invitation</button>
+<p role="status"></p>
+</div><p data-nom-espace data-partage="{{ partage.identifiant }}">{{ partage.nom_espace|default:"Espace Grist" }}</p><p role="status" data-etat-espace>Synchronisation en attente.</p>
 <form method="post">{% csrf_token %}<button name="action" value="suspendre" class="bouton discret">Suspendre la synchronisation</button></form>
 {% endif %}
 {% if erreur %}<p role="alert" class="message erreur">{{ erreur }}</p>{% endif %}

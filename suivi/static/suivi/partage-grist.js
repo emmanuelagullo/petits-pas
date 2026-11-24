@@ -1,4 +1,19 @@
 (() => {
+  const invitation = document.querySelector('[data-invitation-grist]');
+  if (invitation && navigator.clipboard && window.parent !== window) {
+    const lien = new URL('.', window.parent.location.href);
+    lien.searchParams.set('grist', invitation.dataset.invitationGrist);
+    const message = invitation.querySelector('[role=status]');
+    invitation.hidden = false;
+    invitation.querySelector('button').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(lien.href);
+        message.textContent = 'Lien d’invitation copié.';
+      } catch {
+        message.textContent = 'Lien d’invitation : ' + lien.href;
+      }
+    });
+  }
   const zone = document.querySelector('[data-synchroniser-grist]');
   if (!zone) return;
   const adresse = zone.dataset.synchroniserGrist;

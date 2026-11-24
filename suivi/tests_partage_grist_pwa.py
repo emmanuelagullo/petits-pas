@@ -9,7 +9,7 @@ from . import tests_mises_a_jour_referentiels as fixtures
 from .tests import Base
 
 
-@override_settings(ROOT_URLCONF="pwa.urls")
+@override_settings(ROOT_URLCONF="pwa.urls", MODE_LOCAL=True)
 class PartageGristPWA(Base):
     adopter = fixtures.MisesAJour.adopter
 
@@ -53,3 +53,30 @@ class PartageGristPWA(Base):
         self.assertEqual(self.client.get(url).json()["partages"], [])
         self.client.post(espace, {"grist": grist, "confirmer": "oui"})
         self.assertEqual(self.client.get(url).json()["partages"][0]["id"], travail["id"])
+
+    def test_invitation_prefill_sans_ecriture_puis_reouverture_sans_effet(self):
+        self.adopter()
+        invitation = reverse("invitation_grist")
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        grist = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        destination = self.client.get(invitation, {"grist": grist}, follow=True)
+        self.assertContains(destination, grist)
+        self.assertFalse(PartageGristClasse.objects.exists())
+        self.assertContains(self.client.get(invitation, {"grist": "https://example.org/abc"}),
+                            "Collez le lien", status_code=400)
+        self.client.post(espace, {"grist": grist, "confirmer": "oui"})
+        partage = PartageGristClasse.objects.get()
+        identifiant = partage.identifiant
+        self.client.post(espace, {"action": "suspendre"})
+        self.assertRedirects(self.client.get(espace, {"grist": grist}), espace)
+        self.assertRedirects(self.client.get(espace, {"grist": grist.replace("/o/docs", "")}), espace)
+        partage.refresh_from_db()
+        self.assertEqual(partage.identifiant, identifiant)
+        self.assertFalse(partage.actif)
+
+    def test_invitation_conservee_par_le_parcours_de_connexion(self):
+        self.client.logout()
+        invitation = reverse("invitation_grist")
+        reponse = self.client.get(invitation, {"grist": "https://grist.numerique.gouv.fr/document-fictif"})
+        self.assertRedirects(reponse, reverse("connexion"))
+        self.assertTrue(self.client.session["suivant"].startswith(invitation + "?grist="))

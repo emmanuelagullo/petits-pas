@@ -1,6 +1,7 @@
 """Synchronisation de projections pédagogiques depuis le navigateur."""
 import hashlib
 import json
+from urllib.parse import urlencode
 from uuid import UUID
 
 import yaml
@@ -8,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils.http import int_to_base36
 from django.views.decorators.http import require_http_methods
 
@@ -47,12 +49,44 @@ def projection(partage):
 
 
 @acces_requis
+@require_http_methods(["GET"])
+def invitation_grist(request):
+    try:
+        prefixe, document = adresse_grist(request.GET.get("grist", ""))
+    except ValidationError as cause:
+        return render(request, "suivi/invitation_grist.html", {"erreur": cause.messages[0]}, status=400)
+    url = f"https://{HOTE_GRIST}{prefixe}/{document}"
+    ecole = ecole_courante(request)
+    classes = []
+    for classe in Classe.objects.filter(ecole=ecole, etat=Classe.ACTIVE).order_by("nom", "pk"):
+        if not autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
+            continue
+        adoption = adoption_courante(classe)
+        if adoption and not adoption.clos:
+            classes.append((classe, reverse("espace_grist_classe", args=[classe.pk])
+                            + "?" + urlencode({"grist": url})))
+    if len(classes) == 1:
+        return redirect(classes[0][1])
+    return render(request, "suivi/invitation_grist.html", {"classes": classes})
+
+
+@acces_requis
 @require_http_methods(["GET", "POST"])
 def espace_classe(request, pk):
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
     partage = PartageGristClasse.objects.filter(classe=classe).first()
     erreur = ""
+    invitation = request.GET.get("grist", "")
+    if request.method == "GET" and invitation:
+        try:
+            prefixe, document = adresse_grist(invitation)
+            invitation = f"https://{HOTE_GRIST}{prefixe}/{document}"
+            if partage and adresse_grist(partage.url)[1] == document:
+                return redirect("espace_grist_classe", pk=pk)
+        except ValidationError as cause:
+            erreur = cause.messages[0]
+            invitation = ""
     if request.method == "POST":
         if request.POST.get("action") == "suspendre":
             PartageGristClasse.objects.filter(classe=classe).update(actif=False)
@@ -80,7 +114,7 @@ def espace_classe(request, pk):
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     return render(request, "suivi/espace_grist_classe.html", {"classe": classe, "partage": partage,
-        "grist": request.POST.get("grist") or (partage.url if partage else request.GET.get("grist", "")),
+        "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
         "erreur": erreur, "mode_pwa": True}, status=400 if erreur else 200)
 
 

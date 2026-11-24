@@ -1,0 +1,18 @@
+{% extends "suivi/base.html" %}
+{% block titre %}Invitation à un espace de partage{% endblock %}
+{% block contenu %}
+<h1>Invitation à un espace de partage</h1>
+{% if erreur %}
+<p role="alert" class="message erreur">{{ erreur }}</p>
+{% elif classes %}
+<p>Choisissez la classe à relier à cet espace Grist.</p>
+<ul>
+{% for classe, lien in classes %}
+<li><a class="bouton" href="{{ lien }}">{{ classe.nom }}</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<p>Choisissez d’abord un référentiel pour une classe active que vous gérez.</p>
+{% endif %}
+<a class="bouton discret" href="{% url 'accueil' %}">Retour à l’accueil</a>
+{% endblock %}

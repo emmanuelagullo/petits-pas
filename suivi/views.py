@@ -562,13 +562,15 @@ def installation_locale(request):
             return render(request, "suivi/installation_locale.html", {"formulaire": formulaire})
         login(request, utilisateur, backend="django.contrib.auth.backends.ModelBackend")
         request.session["ecole_id"] = ecole.pk
-        request.session.pop("suivant", None)
+        suivant = request.session.pop("suivant", "")
         if classe:
             messages.success(request, "École et classe créées. Vous pouvez ajouter les élèves.")
             suite = reverse("importer_eleves", args=[classe.pk])
         else:
             messages.success(request, "École créée. Vous pouvez maintenant préparer une classe.")
             suite = reverse("gestion")
+        if getattr(settings, "MODE_PWA", False) and suivant.split("?", 1)[0] == reverse("invitation_grist"):
+            suite = suivant
         if cle_secours:
             _remettre_cle_secours(request, cle_secours, suite=suite,
                                   preuve=not formulaire.cleaned_data["dernier_recours"])
