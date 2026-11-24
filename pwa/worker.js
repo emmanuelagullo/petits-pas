@@ -44,7 +44,13 @@ async function process(message) {
     config = await (await fetch('./config.json')).json();
     const started = performance.now();
     progress("Lecture des données conservées sur cet appareil…");
-    const restored = await load(config.version, message.kind === 'recovery');
+    let restored;
+    try {
+      restored = await load(config.version, message.kind === 'recovery');
+    } catch (error) {
+      if (error.name !== 'NotFoundError') throw error;
+      throw new Error('Lecture des données locales : NotFoundError · ' + error.message, {cause: error});
+    }
     if (message.kind === 'recovery' && !restored) throw new Error("Aucune donnée locale à exporter.");
     progress('Chargement du moteur Python…');
     const {loadPyodide, version: runtimeVersion} = await import('./runtime/pyodide.mjs');

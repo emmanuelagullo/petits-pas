@@ -204,13 +204,25 @@ navigator.serviceWorker?.addEventListener('message', async event => {
   try {
     const value = await operation;
     showVolume(value.durability);
-    status.textContent = value.result.status >= 400
+    const refusCsrf = value.result.headers?.some(([nom, valeur]) =>
+      nom.toLowerCase() === 'x-petits-pas-refus' && valeur === 'csrf');
+    status.textContent = !refusCsrf && value.result.status >= 400
       ? `Demande refusée (${value.result.status}). Les données restent sur cet appareil.`
       : '';
     port.postMessage({ok: true, ...value.result}, value.result.body?.buffer ? [value.result.body.buffer] : []);
     if (value.result.ouvrir_apercu) setTimeout(() => location.assign(BASE + 'apercu.html'), 0);
   } catch (error) {
-    status.textContent = String(error.message);
+    const detail = String(error.message);
+    if (detail.includes('NotFoundError')) {
+      const lecture = ['GET', 'HEAD'].includes(event.data.request.method);
+      const etape = lecture ? 'Ouverture d’une page ou d’un fichier' : 'Traitement du formulaire';
+      status.textContent = lecture
+        ? 'Un fichier local est introuvable. Rouvrez Petits Pas puis réessayez de l’ouvrir.'
+        : 'Un fichier local est introuvable. Rouvrez Petits Pas et vérifiez la dernière saisie enregistrée.';
+      document.querySelector('#diagnostic').textContent = etape + ' · ' + detail;
+    } else {
+      status.textContent = detail;
+    }
     port.postMessage({ok: false, error: 'Opération interrompue. Fermez puis rouvrez Petits Pas ; ne répétez pas automatiquement cette saisie.'});
   } finally { pendingHttp.delete(operation); clearInterval(waiting); port.close(); }
 });
@@ -285,7 +297,13 @@ async function exporterRecuperation(etat) {
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     etat.textContent = 'Téléchargement du ZIP de récupération lancé.';
   } catch (error) {
-    etat.textContent = String(error.message);
+    const detail = String(error.message);
+    if (detail.includes('NotFoundError')) {
+      etat.textContent = 'Le navigateur n’a pas retrouvé un fichier nécessaire au ZIP de récupération. Rouvrez Petits Pas avant de réessayer.';
+      document.querySelector('#diagnostic').textContent = 'Préparation du ZIP de récupération · ' + detail;
+    } else {
+      etat.textContent = detail;
+    }
   } finally {
     recoveryWorker?.terminate();
     boutonsRecuperation.forEach(bouton => { bouton.disabled = false; });
@@ -345,6 +363,8 @@ try {
   const aide = document.querySelector('#failure-help');
   if (!navigateurCompatible) {
     aide.textContent = 'Ce navigateur ne fournit pas toutes les fonctions nécessaires. Essayez Chrome ou Edge récent. Le programme Windows ou Linux est une autre possibilité.';
+  } else if (String(error.message).includes('NotFoundError')) {
+    aide.textContent = 'Le navigateur n’a pas retrouvé un fichier nécessaire à l’ouverture de cette école. Rouvrez Petits Pas et, si le problème persiste, essayez « Récupérer un ZIP ». Conservez les données du site.';
   } else if (String(error.message).includes("Base issue d'une version plus récente ou incompatible.")) {
     aide.textContent = 'Cette version de Petits Pas ne peut pas ouvrir les données enregistrées. Utilisez « Récupérer un ZIP » pour télécharger une copie de récupération. Ne supprimez pas les données du site.';
   }

@@ -1,0 +1,19 @@
+{% load static %}<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demande interrompue · Petits Pas</title>
+<link rel="stylesheet" href="{% static 'suivi/carnet.css' %}">
+</head>
+<body>
+<main class="page-referentiel">
+<section id="reprise-csrf" class="encadre" role="alert" tabindex="-1">
+<h1>Cette demande n’a pas été enregistrée</h1>
+<p>Votre connexion a peut-être expiré ou cette page est restée ouverte après une reconnexion ou un redémarrage de Petits Pas.</p>
+<p>Revenez à l’application et reconnectez-vous si nécessaire. Vérifiez la dernière saisie enregistrée avant de refaire l’action.</p>
+<p><a class="bouton" href="{{ accueil_reprise }}">Revenir à Petits Pas</a></p>
+</section>
+</main>
+</body>
+</html>

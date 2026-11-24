@@ -19,6 +19,7 @@ SECRET_KEY = os.environ.get(
 )
 DEBUG = os.environ.get("CARNET_DEBUG", "1") == "1"
 ALLOWED_HOSTS = os.environ.get("CARNET_HOSTS", "*").split(",")
+CSRF_FAILURE_VIEW = "suivi.erreurs_http.refus_csrf"
 CSRF_TRUSTED_ORIGINS = [
     o for o in os.environ.get("CARNET_CSRF_ORIGINS", "").split(",") if o
 ]

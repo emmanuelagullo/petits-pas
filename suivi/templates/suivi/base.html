@@ -7,6 +7,7 @@
 {% if not generation_pdf %}
 <link rel="stylesheet" href="{% static 'suivi/carnet.css' %}">
 <script src="{% static 'suivi/htmx.min.js' %}" defer></script>
+<script src="{% static 'suivi/reprise-csrf.js' %}" defer></script>
 {% if not mode_local and not mode_pwa %}
 <script src="{% static 'suivi/maintenance.js' %}" defer></script>
 {% endif %}
