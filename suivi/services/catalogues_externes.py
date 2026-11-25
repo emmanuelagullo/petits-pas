@@ -143,6 +143,48 @@ def tables_grist(prefixe, document):
         raise ValidationError("Le schéma du document Grist est illisible.") from erreur
 
 
+MODES_CATALOGUE_GRIST = {
+    "competences": "Compétences",
+    "complet": "Compétences et icônes",
+    "icones": "Icônes seules",
+}
+
+
+def mode_catalogue_grist(prefixe, document, tables):
+    if TABLE_NOMS_GRIST not in tables:
+        return "complet"
+    lignes = lignes_grist(lire_api(prefixe, document, NOMS_GRIST))
+    modes = [ligne.get("Nom") for ligne in lignes if ligne.get("Identifiant") == "mode-contenu"]
+    if not modes:
+        return "complet"
+    if len(modes) != 1 or not isinstance(modes[0], str) or modes[0] not in MODES_CATALOGUE_GRIST:
+        raise ValidationError("Le mode de contenu du catalogue Grist est invalide.")
+    return modes[0]
+
+
+def preparer_metadonnees_grist(prefixe, document, tables):
+    if TABLE_NOMS_GRIST not in tables:
+        colonnes = [{"id": cle, "fields": {"type": "Text"}} for cle in ("Identifiant", "Nom")]
+        corps = json.dumps({"tables": [{"id": TABLE_NOMS_GRIST, "columns": colonnes}]}).encode()
+        try:
+            requete_api(prefixe, document, "/tables", corps=corps, methode="POST")
+        except ValidationError:
+            if TABLE_NOMS_GRIST not in tables_grist(prefixe, document):
+                raise
+
+
+def enregistrer_mode_catalogue_grist(url, mode):
+    if mode not in MODES_CATALOGUE_GRIST:
+        raise ValidationError("Choisissez les contenus du catalogue.")
+    prefixe, document = adresse_grist(url)
+    preparer_metadonnees_grist(prefixe, document, tables_grist(prefixe, document))
+    corps = json.dumps({"records": [{"require": {"Identifiant": "mode-contenu"},
+                                      "fields": {"Nom": mode}}]}).encode()
+    requete_api(prefixe, document, NOMS_GRIST + "?noparse=true&onmany=none", corps=corps)
+    if mode_catalogue_grist(prefixe, document, {TABLE_NOMS_GRIST}) != mode:
+        raise ValidationError("Le changement de contenu du catalogue n’a pas été confirmé.")
+
+
 def nom_catalogue_grist(prefixe, document, tables):
     if TABLE_NOMS_GRIST not in tables:
         return ""
@@ -159,14 +201,7 @@ def enregistrer_nom_catalogue_grist(url, nom, *, remplacer=False):
     tables = tables_grist(prefixe, document)
     if "Editions" not in tables:
         raise ValidationError("Ce document ne contient pas de catalogue Petits Pas.")
-    if TABLE_NOMS_GRIST not in tables:
-        colonnes = [{"id": cle, "fields": {"type": "Text"}} for cle in ("Identifiant", "Nom")]
-        corps = json.dumps({"tables": [{"id": TABLE_NOMS_GRIST, "columns": colonnes}]}).encode()
-        try:
-            requete_api(prefixe, document, "/tables", corps=corps, methode="POST")
-        except ValidationError:
-            if TABLE_NOMS_GRIST not in tables_grist(prefixe, document):
-                raise
+    preparer_metadonnees_grist(prefixe, document, tables)
     corps = json.dumps({"records": [{"require": {"Identifiant": "catalogue"},
                                      "fields": {"Nom": nom}}]}, ensure_ascii=False).encode()
     options = "?noparse=true&onmany=none" + ("" if remplacer else "&noupdate=true")
@@ -178,10 +213,14 @@ def lire_catalogue_grist(url, *, avec_lignes=False):
     prefixe, document, url, nom = document_grist(url)
     lignes = lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
     referentiels = referentiels_grist(lignes)
-    if not referentiels:
+    tables = tables_grist(prefixe, document)
+    mode = mode_catalogue_grist(prefixe, document, tables)
+    if not referentiels and mode != "icones":
         raise ValidationError("Ce catalogue Grist ne contient aucune édition.")
-    nom_partage = nom_catalogue_grist(prefixe, document, tables_grist(prefixe, document))
-    resultat = {"url": url, "nom": nom_partage or nom, "referentiels": referentiels}
+    nom_partage = nom_catalogue_grist(prefixe, document, tables)
+    resultat = {"url": url, "nom": nom_partage or nom,
+                "referentiels": [] if mode == "icones" else referentiels,
+                "mode_contenu": mode, "libelle_contenu": MODES_CATALOGUE_GRIST[mode]}
     return (resultat, lignes) if avec_lignes else resultat
 
 

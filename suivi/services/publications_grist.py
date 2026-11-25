@@ -6,8 +6,8 @@ from copy import deepcopy
 from django.core.exceptions import ValidationError
 
 from .catalogues_externes import (
-    CHEMIN_ICONES_GRIST, TABLE_ICONES_GRIST, TAILLE_MAX, adresse_grist, document_grist, lignes_grist, lire_api,
-    lire_icone_grist, nom_catalogue_grist, numerotation_grist_globale, referentiels_grist, requete_api, tables_grist,
+    CHEMIN_ICONES_GRIST, MODES_CATALOGUE_GRIST, TABLE_ICONES_GRIST, TAILLE_MAX, adresse_grist, document_grist, lignes_grist, lire_api,
+    lire_icone_grist, mode_catalogue_grist, nom_catalogue_grist, numerotation_grist_globale, referentiels_grist, requete_api, tables_grist,
 )
 
 from suivi.icones_partagees import externaliser_png
@@ -43,8 +43,10 @@ def destination_grist(url, *, preparer_vierge=False):
     editions = editions_grist(prefixe, document)
     referentiels_grist(editions)
     nom_partage = nom_catalogue_grist(prefixe, document, noms)
+    mode = mode_catalogue_grist(prefixe, document, noms)
     return {"url": url, "nom": nom_partage or nom, "nom_a_initialiser": not nom_partage and not editions,
-            "espace": prefixe.removeprefix("/o/"), "editions": editions}
+            "espace": prefixe.removeprefix("/o/"), "editions": editions,
+            "mode_contenu": mode, "libelle_contenu": MODES_CATALOGUE_GRIST[mode]}
 
 
 def document_preparable(prefixe, document, tables):

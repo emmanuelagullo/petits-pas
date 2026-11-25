@@ -91,6 +91,28 @@ class PublicationsGrist(SimpleTestCase):
                 destination_grist(CATALOGUE_DEMONSTRATION, preparer_vierge=True)
             ecrire.assert_not_called()
 
+    def test_mode_icones_masque_les_editions_sans_les_effacer(self):
+        from .services.catalogues_externes import lire_catalogue_grist
+
+        edition = {"Numero": 1, "Referentiel": "source", "Titre": "Source", "Contenu": "{}"}
+        mode = {"Identifiant": "mode-contenu", "Nom": "icones"}
+
+        def api(prefixe, document, chemin=""):
+            if chemin == "/tables":
+                return {"tables": [{"id": "Editions"}, {"id": "PetitsPasEspace"}]}
+            if chemin == "/tables/Editions/records":
+                return {"records": [{"fields": edition}]}
+            if chemin == "/tables/PetitsPasEspace/records":
+                return {"records": [{"fields": mode}]}
+            return {"name": "Catalogue", "id": document}
+
+        with patch("suivi.services.catalogues_externes.lire_api", side_effect=api):
+            masque, lignes = lire_catalogue_grist(CATALOGUE_DEMONSTRATION, avec_lignes=True)
+            self.assertEqual(masque["referentiels"], [])
+            self.assertEqual(lignes, [edition])
+            mode["Nom"] = "complet"
+            self.assertEqual(lire_catalogue_grist(CATALOGUE_DEMONSTRATION)["referentiels"][0]["editions"], [1])
+
     def test_initialisation_du_nom_sans_ecraser_le_nom_partage(self):
         from .services.catalogues_externes import enregistrer_nom_catalogue_grist
 

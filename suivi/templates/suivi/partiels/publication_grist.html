@@ -1,3 +1,7 @@
+{% if mode_grist_enregistre %}<p class="message" role="status">Contenu du catalogue enregistré.</p>{% endif %}
+{% if publication_icones_grist %}
+<p class="message" role="status">{{ publication_icones_grist.nombre }} icône{{ publication_icones_grist.nombre|pluralize }} publiée{{ publication_icones_grist.nombre|pluralize }} dans {{ publication_icones_grist.nom }}.</p>
+{% endif %}
 {% if publication_grist_reussie %}
 <p class="message" role="status">Édition {{ publication_grist_reussie.numero }} {% if publication_grist_reussie.identique %}déjà publiée{% else %}publiée{% endif %} dans <a href="{{ publication_grist_reussie.url }}">{{ publication_grist_reussie.nom }}</a>.</p>
 {% if mode_pwa %}
@@ -62,6 +66,16 @@ placeholder="{{ nom_catalogue_propose }}"></p>
 {% endif %}
 <p><label><input type="checkbox" name="inclure_icones_fournies" value="oui"{% if inclure_icones_fournies %} checked{% endif %}> Joindre les fichiers des icônes fournies avec Petits Pas au ZIP</label></p>
 <p class="aide">Petits Pas retrouve déjà ces icônes à l’import. Joignez leurs fichiers si vous comptez ouvrir le ZIP en dehors de Petits Pas.</p>
+</details>
+<details{% if request.POST.mode_contenu_grist %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Contenu du catalogue Grist" only %}
+<p><label for="mode-contenu-grist">Contenu affiché par le catalogue</label>
+<select name="mode_contenu_grist" id="mode-contenu-grist">
+<option value="">Conserver le choix du catalogue{% if destination_grist.mode_contenu %} ({{ destination_grist.libelle_contenu }}){% endif %}</option>
+{% for valeur, libelle in modes_catalogue_grist.items %}<option value="{{ valeur }}"{% if request.POST.mode_contenu_grist == valeur %} selected{% endif %}>{{ libelle }}</option>{% endfor %}
+</select></p>
+<p class="aide">Ce réglage concerne tout le catalogue. Les éditions déjà publiées restent enregistrées dans Grist.</p>
+{% if destination_grist %}<button class="bouton discret" name="action" value="enregistrer-mode-grist">Enregistrer le contenu du catalogue</button>{% endif %}
 </details>
 <p class="actions">
 <button class="bouton" name="action" value="publier-grist" aria-describedby="aide-destination-grist">Publier dans Grist</button>

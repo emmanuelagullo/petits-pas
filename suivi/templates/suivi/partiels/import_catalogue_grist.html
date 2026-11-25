@@ -1,3 +1,4 @@
+{% if catalogue_import.libelle_contenu %}<p><strong>{{ catalogue_import.nom }}</strong> · {{ catalogue_import.libelle_contenu }}</p>{% endif %}
 {% if erreur_catalogue_import %}<p class="message erreur" role="alert">{{ erreur_catalogue_import }}</p>{% endif %}
 {% if editions_import %}
 <h3>{% if catalogue_import %}{{ catalogue_import.nom }}{% else %}Référentiels à importer depuis un catalogue{% endif %}</h3>
