@@ -629,7 +629,12 @@ class ReglagePresentation(models.Model):
             raise ValidationError("La classe doit appartenir à l'école.")
         if self.competence_id and self.competence.domaine.ecole_id != self.ecole_id:
             raise ValidationError("La compétence doit appartenir à l'école.")
-        if self.icone and (not self.competence_id or self.icone not in catalogue_icones()):
+        from .icones_partagees import PREFIXE
+
+        recue = self.icone.startswith(PREFIXE) and IconeRecueEcole.objects.filter(
+            ecole_id=self.ecole_id, icone__empreinte=self.icone[len(PREFIXE):],
+        ).exists()
+        if self.icone and (not self.competence_id or (not recue and self.icone not in catalogue_icones())):
             raise ValidationError("Icône inconnue ou inapplicable à la couverture.")
         if self.mode == self.REMPLACER and bool(self.icone) == bool(self.photo):
             raise ValidationError("Choisissez une seule illustration : icône fournie ou image importée.")
@@ -859,6 +864,14 @@ class IconePartagee(models.Model):
     """PNG partagé, adressé par son empreinte dans les éditions et instantanés."""
     empreinte = models.CharField(max_length=64, unique=True)
     png = models.BinaryField()
+
+
+class IconeRecueEcole(models.Model):
+    ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE)
+    icone = models.ForeignKey(IconePartagee, on_delete=models.PROTECT)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=("ecole", "icone"), name="icone_recue_ecole_unique")]
 
 
 class BrouillonReferentiel(models.Model):

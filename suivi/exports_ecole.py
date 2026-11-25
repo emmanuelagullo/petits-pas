@@ -71,7 +71,7 @@ def selections(ecole_id):
         m.Attendu: Q(domaine__ecole_id=ecole_id),
         m.Competence: Q(domaine__ecole_id=ecole_id),
         m.FormulationProposee: Q(competence__domaine__ecole_id=ecole_id),
-        m.ReglagePresentation: e, m.FormulationLocale: e,
+        m.ReglagePresentation: e, m.FormulationLocale: e, m.IconeRecueEcole: e,
         m.Observation: Q(eleve__ecole_id=ecole_id),
         m.TraceCommune: Q(classe__ecole_id=ecole_id),
         m.Trace: Q(observation__eleve__ecole_id=ecole_id),
@@ -103,7 +103,8 @@ def selections(ecole_id):
     }
 
     from .icones_partagees import selection_icones
-    selection[m.IconePartagee] = Q(empreinte__in=selection_icones(selection))
+    icones_recues = m.IconeRecueEcole.objects.filter(selection[m.IconeRecueEcole]).values("icone_id")
+    selection[m.IconePartagee] = Q(empreinte__in=selection_icones(selection)) | Q(pk__in=icones_recues)
     return selection
 
 

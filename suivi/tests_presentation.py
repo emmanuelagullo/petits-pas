@@ -42,6 +42,24 @@ class HeritagePresentation(Base):
         enregistrer_reglage(self.enseignant, classe)
         self.assertEqual(illustration_effective(self.ecole, self.competence, self.classe).icone, "livre")
 
+    def test_icone_recue_appartient_au_catalogue_de_son_ecole(self):
+        from .forms_presentation import IllustrationForm
+        from .icones_partagees import empreinte_png
+        from .models import IconePartagee, IconeRecueEcole
+
+        png = image_fictive().read()
+        empreinte = empreinte_png(png)
+        icone = IconePartagee.objects.create(empreinte=empreinte, png=png)
+        reglage = ReglagePresentation(ecole=self.ecole, classe=self.classe, competence=self.competence)
+        donnees = {"mode": "remplacer", "icone": "sha256:" + empreinte}
+        self.assertFalse(IllustrationForm(donnees, instance=reglage).is_valid())
+        IconeRecueEcole.objects.create(ecole=self.ecole, icone=icone)
+        form = IllustrationForm(donnees, instance=reglage)
+        self.assertTrue(form.is_valid(), form.errors)
+        enregistrer_reglage(self.enseignant, form.save(commit=False))
+        self.assertEqual(illustration_effective(self.ecole, self.competence, self.classe).icone_png,
+                         donnees["icone"])
+
     def test_desactivation_ecole_autorise_un_choix_de_classe(self):
         enregistrer_reglage(self.direction, ReglagePresentation(
             ecole=self.ecole, competence=self.competence, mode="desactiver"))

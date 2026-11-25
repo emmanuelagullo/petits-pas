@@ -45,12 +45,12 @@
     <div class="champ-presentation">{{ champ.as_field_group }}</div>
     {% if champ.name == 'icone' %}
     <details class="galerie-images" data-galerie-images hidden>
-      <summary>Voir les {{ images_fournies|length }} images fournies</summary>
+      <summary>Voir les {{ images_fournies|length }} icônes pédagogiques</summary>
       <p>Choisissez un dessin, puis enregistrez l’illustration. Une image illustre la compétence ; elle ne représente pas le travail d’un élève.</p>
       <div class="grille-images">
         {% for cle, image in images_fournies.items %}
         <button type="button" data-choisir-image="{{ cle }}" aria-pressed="false">
-          <img src="{% static image.fichier %}" alt="" width="48" height="48" loading="lazy">
+          <img src="{{ image.url }}" alt="" width="48" height="48" loading="lazy">
           <span>{{ image.nom }}</span>
         </button>
         {% endfor %}

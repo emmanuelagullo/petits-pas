@@ -1,6 +1,7 @@
 {% if catalogue_import.url and catalogue_import.mode_contenu != "competences" %}
 <form method="post">{% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ catalogue_import.url }}">
+<button class="bouton discret" name="action" value="importer-icones-grist">Importer les icônes dans l’école</button>
 <button class="bouton discret" name="action" value="telecharger-icones-grist">Télécharger les icônes du catalogue</button>
 </form>
 {% endif %}

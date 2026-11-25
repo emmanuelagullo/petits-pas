@@ -55,6 +55,7 @@ urlpatterns = [
     path("gestion/presentation/competence/<int:competence_pk>/", views_presentation.regler_presentation, name="presentation_competence_ecole"),
     path("classe/<int:classe_pk>/presentation/", views_presentation.regler_presentation, name="presentation_classe"),
     path("classe/<int:classe_pk>/presentation/competence/<int:competence_pk>/", views_presentation.regler_presentation, name="presentation_competence_classe"),
+    path("media/icones-recues/<str:empreinte>/", views_presentation.icone_recue, name="icone_recue"),
     path("media/presentation/<int:pk>/", views_presentation.media_presentation, name="media_presentation"),
     path("health/", views.health, name="health"),
     path("", views.accueil, name="accueil"),

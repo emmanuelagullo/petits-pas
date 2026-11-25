@@ -98,6 +98,12 @@ def reglages_du_perimetre(ecole, classe=None):
             for r in ReglagePresentation.objects.filter(filtre, ecole=ecole)}
 
 
+def champs_icone_reglage(icone):
+    from .icones_partagees import PREFIXE
+
+    return {"icone_png": icone} if icone.startswith(PREFIXE) else {"icone": icone}
+
+
 def illustration_effective(ecole, competence=None, classe=None, reglages=None, historique=False):
     if classe is not None:
         if classe.ecole_id != ecole.pk:
@@ -128,7 +134,7 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
                         from .models import RessourceReferentiel
                         ressource = (RessourceReferentiel.objects.filter(annuel=adoption.annuel,
                                      fichier=reglage["photo"]).first() if reglage["photo"] else None)
-                        resultat = Illustration(provenance=provenance, icone=reglage["icone"],
+                        resultat = Illustration(provenance=provenance, **champs_icone_reglage(reglage["icone"]),
                             photo=reglage["photo"], ressource_id=ressource.pk if ressource else None)
             return resultat
     icone_png = ""
@@ -160,7 +166,7 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
         if reglage.mode == ReglagePresentation.REMPLACER:
             resultat = Illustration(
                 provenance=provenance,
-                icone=reglage.icone,
+                **champs_icone_reglage(reglage.icone),
                 photo=reglage.photo.name if reglage.photo else "",
                 reglage_id=reglage.pk,
             )

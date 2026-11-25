@@ -3,7 +3,7 @@ import mimetypes
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.files.storage import default_storage
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.templatetags.static import static
 from django.urls import reverse
@@ -13,7 +13,8 @@ from django.views.decorators.http import require_safe
 from .autorisations import ADMINISTRER_ECOLE, GERER_REFERENTIEL_CLASSE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee, classes_accessibles
 from .contexte_ecole import ecole_courante
 from .forms_presentation import AffichageIllustrationForm, IllustrationForm
-from .models import Competence, ParametresCarnet, ReglagePresentation
+from .models import Competence, IconeRecueEcole, ParametresCarnet, ReglagePresentation
+from .icones_partagees import PREFIXE
 from .navigation import chemin_classe, chemin_reglages_referentiel, lien
 from .referentiels import arbre_competences, competence_classe
 from .presentation import affichage_avec_photos, catalogue_icones, illustration_effective, propositions
@@ -127,6 +128,12 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
             if lignes:
                 domaines.append((domaine, lignes))
     parametres, _ = ParametresCarnet.objects.get_or_create(ecole=ecole)
+    images = {cle: {**image, "url": static(image["fichier"])}
+              for cle, image in catalogue_icones().items()} if competence else {}
+    if competence:
+        for cle, nom in form.fields["icone"].choices:
+            if cle.startswith(PREFIXE):
+                images[cle] = {"nom": nom, "url": reverse("icone_recue", args=[cle[len(PREFIXE):]])}
     return render(request, "suivi/presentation.html", {
         "ecole": ecole, "classe": classe, "competence": competence,
         "form": form, "erreur": erreur, "illustration": illustration,
@@ -136,10 +143,23 @@ def regler_presentation(request, classe_pk=None, competence_pk=None):
         "illustration_url": url_illustration(illustration), "ariane": ariane, "page": page,
         "domaines": domaines,
         "afficher_sous_domaines": parametres.afficher_sous_domaines,
-        "icones_apercu": {cle: static(valeur["fichier"]) for cle, valeur in catalogue_icones().items()},
-        "images_fournies": catalogue_icones() if competence else {},
+        "icones_apercu": {cle: image["url"] for cle, image in images.items()},
+        "images_fournies": images,
         "propositions": propositions(competence, classe, inclure_masquees=True) if competence else [],
     })
+
+
+@never_cache
+@acces_requis
+@require_safe
+def icone_recue(request, empreinte):
+    ecole = ecole_courante(request)
+    if not (autorise(request.user, ADMINISTRER_ECOLE, ecole)
+            or classes_accessibles(request.user, VOIR_SUIVI, ecole=ecole).exists()):
+        raise Http404
+    lien_icone = get_object_or_404(IconeRecueEcole.objects.select_related("icone"),
+                                   ecole=ecole, icone__empreinte=empreinte)
+    return HttpResponse(bytes(lien_icone.icone.png), content_type="image/png")
 
 
 @never_cache

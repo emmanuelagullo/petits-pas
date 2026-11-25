@@ -19,7 +19,7 @@ class ImagePriveeInput(forms.ClearableFileInput):
 
 
 class IllustrationForm(forms.ModelForm):
-    icone = forms.ChoiceField(label="Image fournie", required=False)
+    icone = forms.ChoiceField(label="Icône pédagogique", required=False)
 
     class Meta:
         model = ReglagePresentation
@@ -32,6 +32,15 @@ class IllustrationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["icone"].choices = [("", "Aucune image fournie")]
         self.fields["icone"].choices += [(cle, valeur["nom"]) for cle, valeur in catalogue_icones().items()]
+        if self.instance.competence_id:
+            from .icones_partagees import PREFIXE
+            from .models import IconeRecueEcole
+
+            self.fields["icone"].choices += [
+                (PREFIXE + cle, f"Icône reçue · {cle[:12]}")
+                for cle in IconeRecueEcole.objects.filter(ecole_id=self.instance.ecole_id)
+                .order_by("icone__empreinte").values_list("icone__empreinte", flat=True)
+            ]
         if self.instance.competence_id is None:
             self.fields.pop("icone")
         self.fields["mode"].widget.attrs["title"] = "Utiliser l'image proposée, choisir votre image ou ne pas afficher d'image."

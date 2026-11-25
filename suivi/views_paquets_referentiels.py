@@ -420,25 +420,30 @@ def paquets_referentiels(request, classe_pk=None):
                     type_archive="referentiel" if action == "edition" else "referentiel-selection")
             if not contexte["peut_importer"]:
                 raise PermissionDenied
-            if action in ("telecharger-icones-grist", "importer-icones-zip"):
-                from .models import IconePartagee
+            if action in ("telecharger-icones-grist", "importer-icones-zip", "importer-icones-grist"):
+                from .models import IconePartagee, IconeRecueEcole
                 from .services.catalogues_externes import icones_catalogue_grist
                 from .services.paquets_referentiels import empaqueter_icones, lire_paquet_icones
 
                 if not peut_importer_ecole:
                     raise PermissionDenied
-                if action == "telecharger-icones-grist":
+                if action != "importer-icones-zip":
                     url = request.POST.get("catalogue", "")
                     ressources = icones_catalogue_grist(url)
-                    return telecharger_paquet(empaqueter_icones(ressources), type_archive="icones",
-                                              nombre_competences=0)
-                fichier = request.FILES.get("icones_zip")
-                if not fichier:
-                    raise ValidationError("Choisissez un ZIP d’icônes.")
-                ressources = lire_paquet_icones(fichier.read(MAX_ARCHIVE + 1))
+                    if action == "telecharger-icones-grist":
+                        return telecharger_paquet(empaqueter_icones(ressources), type_archive="icones",
+                                                  nombre_competences=0)
+                    if not ressources:
+                        raise ValidationError("Ce catalogue ne contient aucune icône ajoutée.")
+                else:
+                    fichier = request.FILES.get("icones_zip")
+                    if not fichier:
+                        raise ValidationError("Choisissez un ZIP d’icônes.")
+                    ressources = lire_paquet_icones(fichier.read(MAX_ARCHIVE + 1))
                 with transaction.atomic():
                     for cle, png in ressources.items():
-                        IconePartagee.objects.get_or_create(empreinte=cle, defaults={"png": png})
+                        icone, _ = IconePartagee.objects.get_or_create(empreinte=cle, defaults={"png": png})
+                        IconeRecueEcole.objects.get_or_create(ecole=ecole, icone=icone)
                 contexte["message"] = f"Icônes vérifiées et enregistrées : {len(ressources)}."
             elif action == "ouvrir-catalogue-grist":
                 if not peut_importer_ecole:
@@ -532,7 +537,7 @@ def paquets_referentiels(request, classe_pk=None):
     except IntegrityError:
         contexte["erreur"] = "Le catalogue a changé pendant l’import. Consultez de nouveau l’aperçu."
     contexte["versions"] = versions.values()
-    contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist", "telecharger-icones-grist", "importer-icones-zip") and "erreur" in contexte
-    contexte["message_import"] = action in ("importer", "importer-icones-zip") and "message" in contexte
+    contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist", "telecharger-icones-grist", "importer-icones-zip", "importer-icones-grist") and "erreur" in contexte
+    contexte["message_import"] = action in ("importer", "importer-icones-zip", "importer-icones-grist") and "message" in contexte
     maj_import = action in ("apercu", "apercu-grist", "importer") and request.headers.get("HX-Request") == "true"
     return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte and not maj_import else 200)

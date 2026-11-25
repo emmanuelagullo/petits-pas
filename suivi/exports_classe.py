@@ -174,7 +174,9 @@ def selection_classe(classe, utilisateur):
                 autorisees.add(ressource.pk)
     resultat[m.RessourceReferentiel] = Q(pk__in=autorisees)
     from .icones_partagees import selection_icones
-    resultat[m.IconePartagee] = Q(empreinte__in=selection_icones(resultat))
+    resultat[m.IconeRecueEcole] = Q(ecole_id=classe.ecole_id)
+    icones_recues = m.IconeRecueEcole.objects.filter(resultat[m.IconeRecueEcole]).values("icone_id")
+    resultat[m.IconePartagee] = Q(empreinte__in=selection_icones(resultat)) | Q(pk__in=icones_recues)
     return resultat, etats
 
 
