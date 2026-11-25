@@ -45,10 +45,8 @@ placeholder="{{ nom_catalogue_propose }}"></p>
 {% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
 </details>
 <p class="aide" id="aide-destination-grist" data-aide-destination-grist hidden>Choisissez un catalogue ou collez son lien pour publier dans Grist.</p>
-<details{% if inclure_icones %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Options du partage" only %}
-<p><label><input type="checkbox" name="inclure_icones" value="oui"{% if inclure_icones %} checked{% endif %}> Inclure les icônes personnalisées</label></p>
-</details>
+<p><label><input type="checkbox" name="inclure_icones" value="oui" aria-describedby="aide-icones-partage"{% if inclure_icones %} checked{% endif %}> Inclure les icônes ajoutées au référentiel</label><br>
+<span id="aide-icones-partage" class="aide">Les icônes fournies avec Petits Pas sont incluses. Les photos du suivi restent privées.</span></p>
 <p class="actions">
 <button class="bouton" name="action" value="publier-grist" aria-describedby="aide-destination-grist">Publier dans Grist</button>
 <button class="bouton discret" name="action" value="telecharger-classe" formnovalidate>Télécharger le ZIP</button>
