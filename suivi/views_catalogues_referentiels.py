@@ -275,13 +275,13 @@ def suivis_classe(request, classe_pk):
                         divergences.setdefault(ref, []).append({
                             "titre": ligne["titre"], "libelle": competence["libelle"],
                             "signature": empreinte_suivi([competence.get(c) for c in
-                                ("libelle", "niveau", "icone", "icone_png", "formulations")]),
+                                ("libelle", "niveau", "icone", "icone_png", "formulations", "active")]),
                             "url": lien("catalogue_competences", classe.pk, source=ligne["cle"],
                                         q=competence["libelle"]),
                         })
             etat = {
                 ref: {"libelle": c["libelle"], "empreinte": empreinte_suivi([
-                    d, s, {cle: c.get(cle) for cle in ("libelle", "niveau", "icone", "icone_png", "formulations")},
+                    d, s, {cle: c.get(cle) for cle in ("libelle", "niveau", "icone", "icone_png", "formulations", "active")},
                 ])}
                 for ref, c, d, s in definitions
             }

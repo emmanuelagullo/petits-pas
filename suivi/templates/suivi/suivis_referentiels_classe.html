@@ -45,7 +45,7 @@
 <fieldset><legend>{{ choix.competence }} · {{ choix.libelle }}</legend>
 {% for candidat in choix.candidats %}
 <p><label><input type="radio" name="choix" value="{{ candidat.jeton }}" required{% if candidat.choisie %} checked{% endif %}>
-{{ candidat.titre }} · édition {{ candidat.edition }}{% if choix.champ != "illustration" %} · {{ candidat.valeur }}{% elif candidat.valeur.0 %} · {{ candidat.valeur.0 }}{% elif candidat.valeur.1 %} · Icône PNG{% else %} · Sans illustration{% endif %}</label></p>
+{{ candidat.titre }} · édition {{ candidat.edition }}{% if choix.champ == "formulations" %} · {% for phrase in candidat.valeur %}{{ phrase.texte }}{% if not forloop.last %} / {% endif %}{% empty %}Aucune phrase{% endfor %}{% elif choix.champ == "active" %} · {% if candidat.valeur %}Disponible{% else %}Non proposée à la saisie{% endif %}{% elif choix.champ != "illustration" %} · {{ candidat.valeur }}{% elif candidat.valeur.0 %} · {{ candidat.valeur.0 }}{% elif candidat.valeur.1 %} · Icône PNG{% else %} · Sans illustration{% endif %}</label></p>
 {% endfor %}
 <button class="bouton discret">Retenir cette source</button>
 </fieldset></form>

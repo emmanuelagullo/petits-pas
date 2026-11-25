@@ -196,7 +196,7 @@ def propositions(competence, classe=None, inclure_masquees=False):
     if classe:
         from .referentiels import definition_classe
         contenu = getattr(competence, "_contenu_referentiel", None) or definition_classe(classe, competence)
-        if contenu and contenu.get("origine") == "source_declaree":
+        if contenu:
             from types import SimpleNamespace
             bases = [SimpleNamespace(pk=f["id"], texte=f["texte"], active=f["active"])
                      for f in contenu["formulations"] if f["competence_id"] == competence.pk]

@@ -96,7 +96,7 @@ def normaliser(document):
         for c in liste(valeurs, chemin):
             champs = ("identite", "code", "libelle", "niveau", "icone", "formulations")
             if document["format"] == 2:
-                champs += ("source_origine", "icone_png", "variante_de")
+                champs += ("source_origine", "icone_png", "variante_de", "active")
             c = objet(c, champs, "Compétence")
             identite = identifiant(c.get("identite"), "Identité")
             origine = {}
@@ -113,6 +113,10 @@ def normaliser(document):
             if icone and icone not in catalogue_icones():
                 raise ValidationError(f"Icône inconnue : {icone}.")
             personnalisee = {}
+            if "active" in c:
+                if type(c["active"]) is not bool:
+                    raise ValidationError("La disponibilité doit être vraie ou fausse.")
+                personnalisee["active"] = c["active"]
             if "variante_de" in c:
                 personnalisee["variante_de"] = normaliser_filiation(c["variante_de"])
             if "icone_png" in c:
@@ -256,4 +260,7 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
         definition = DefinitionSourceCompetence(identite=identite, version=version)
         definition.full_clean()
         definition.save()
+    from .heritage_sources import preparer_phrases_heritees
+
+    preparer_phrases_heritees(version)
     return version, True, len(identifiants)

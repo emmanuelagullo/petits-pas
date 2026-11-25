@@ -1,0 +1,15 @@
+name: Grist — recette facultative
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  grist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+      - name: Vérifier les écritures et lectures Grist
+        env:
+          PETITS_PAS_GRIST_ESSAI: ${{ secrets.PETITS_PAS_GRIST_ESSAI }}
+        run: python3 scripts/verifier-grist.py

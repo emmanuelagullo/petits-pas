@@ -55,7 +55,7 @@ def definir_version_ecole(ecole, version):
             competence = liaison.competence
             contenu["competences"].append({"id": competence.pk, "domaine_id": domaine.pk,
                 "sous_domaine_id": sous_domaine.pk if sous_domaine else None, "code": c["code"],
-                "libelle": c["libelle"], "niveau": c["niveau"], "icone": c["icone"], "active": True,
+                "libelle": c["libelle"], "niveau": c["niveau"], "icone": c["icone"], "active": c.get("active", True),
                 "ordre": len(contenu["competences"]), "cle_definition": f"source-{identite.pk}"})
             if c.get("icone_png"):
                 contenu["competences"][-1]["icone_png"] = c["icone_png"]

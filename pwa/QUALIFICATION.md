@@ -523,6 +523,12 @@ profil, le remplacement de la ligne distante et l’absence d’import du conten
 propre à chaque installation. Suspendre puis réactiver et vérifier que
 l’identifiant reste stable.
 
+Le workflow GitHub **Grist — recette facultative** se lance manuellement.
+Renseigner le secret `PETITS_PAS_GRIST_ESSAI` avec le lien d’un document
+fictif dédié, ouvert en écriture. Le job vérifie l’API réelle avec deux
+identifiants dans une table temporaire, puis retire cette table.
+La recette ci-dessus couvre séparément le navigateur et deux profils Petits Pas.
+
 ### Contributions au référentiel d’équipe
 
 Dans un espace Grist fictif partagé, ouvrir **Référentiel d’équipe**. Une

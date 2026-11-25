@@ -8,7 +8,7 @@
     <a class="bouton" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
     {% endif %}
     {% if ligne.choix_portee and not ligne.competence_masquee %}
-    <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
+    <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter cette compétence à la classe</a>
     {% elif ligne.ajout_au_suivi %}
     <form method="post" action="{{ url_resultats }}">
       {% csrf_token %}

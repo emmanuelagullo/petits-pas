@@ -79,7 +79,10 @@ class AjoutsLocaux(Base):
         def publier(source, numero, libelle):
             doc = document(source, str(numero))
             doc["format"] = 2
-            doc["domaines"][0]["competences"][0].update(identite=identite, libelle=libelle)
+            doc["domaines"][0]["competences"][0].update(
+                identite=identite, libelle=libelle, active=numero < 3,
+                formulations=[{"code": "p1", "texte": libelle}],
+            )
             return importer(doc, ecole=self.ecole)[0]
 
         initiale = publier("catalogue-un", 1, "Libellé de départ")
@@ -96,7 +99,11 @@ class AjoutsLocaux(Base):
             return next(c["libelle"] for c in contenu_adoption(adoption)["competences"] if c["id"] == competence.pk)
 
         self.assertEqual(libelle_effectif(), "Libellé commun")
+        from .presentation import formulations_effectives
+
+        self.assertIn("Libellé commun", formulations_effectives(competence, self.classe))
         publier("catalogue-un", 3, "Libellé divergent")
+        self.assertIn("Libellé commun", formulations_effectives(competence, self.classe))
         self.assertEqual(libelle_effectif(), "Libellé commun")
 
     def test_partage_portable_sans_donnees_de_suivi(self):

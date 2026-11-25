@@ -1,9 +1,10 @@
 """Propositions des éditions suivies pour les compétences déjà présentes."""
 from suivi.identites_referentiels import est_uuid_portable
-from suivi.models import CompetenceSourceEcole, SuiviSourceClasse, VersionReferentiel
+from suivi.models import CompetenceSourceEcole, FormulationProposee, SuiviSourceClasse, VersionReferentiel
 from .apercu_mises_a_jour import definitions_document
 
-CHAMPS = {"libelle": "Libellé", "illustration": "Illustration", "niveau": "Section"}
+CHAMPS = {"libelle": "Libellé", "illustration": "Illustration", "niveau": "Section",
+          "formulations": "Phrases proposées", "active": "Disponibilité à la saisie"}
 
 
 def propositions_suivies(classe, ids=None):
@@ -30,7 +31,10 @@ def propositions_suivies(classe, ids=None):
             if pk is None:
                 continue
             champs = {"libelle": definition["libelle"], "niveau": definition["niveau"],
+                      "formulations": definition["formulations"],
                       "illustration": [definition.get("icone", ""), definition.get("icone_png", "")]}
+            if "active" in definition:
+                champs["active"] = definition["active"]
             for champ, valeur in champs.items():
                 resultat.setdefault(pk, {}).setdefault(champ, []).append({
                     "source": source_id, "titre": version.source.titre, "edition": version.numero,
@@ -71,8 +75,16 @@ def appliquer_heritage(classe, contenu, principale):
                 valeur = memoire.get((choix[0]["uuid"], champ), {}).get("valeur")
             if valeur is None:
                 continue
-            if champ in ("libelle", "niveau"):
+            if champ in ("libelle", "niveau", "active"):
                 definition[champ] = valeur
+            elif champ == "formulations":
+                pk = definition["id"]
+                existantes = {f.code: f.pk for f in FormulationProposee.objects.filter(competence_id=pk)}
+                if all(f["code"] in existantes for f in valeur):
+                    contenu["formulations"] = [
+                        f for f in contenu.get("formulations", []) if f["competence_id"] != pk
+                    ] + [{**f, "id": existantes[f["code"]], "competence_id": pk,
+                          "ordre": ordre, "active": True} for ordre, f in enumerate(valeur)]
             else:
                 definition["icone"], png = valeur
                 if png:
@@ -117,3 +129,15 @@ def memoriser_avant_nouvelle_edition(source):
                     modifie = True
         if modifie:
             suivi.save(update_fields=["memoire_heritage"])
+
+def preparer_phrases_heritees(version):
+    definitions = definitions_document(version.contenu)
+    liaisons = CompetenceSourceEcole.objects.filter(
+        identite__definitions__version=version, identite__identifiant__startswith="pp-",
+    ).values_list("identite__identifiant", "competence_id")
+    for uuid, pk in liaisons:
+        if est_uuid_portable(uuid):
+            for ordre, phrase in enumerate(definitions[uuid]["formulations"]):
+                FormulationProposee.objects.get_or_create(
+                    competence_id=pk, code=phrase["code"], defaults={"texte": phrase["texte"], "ordre": ordre},
+                )
