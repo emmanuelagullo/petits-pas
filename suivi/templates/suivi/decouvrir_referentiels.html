@@ -41,7 +41,7 @@
 <button class="bouton" name="action" value="verifier">Vérifier les nouveautés</button>
 </form>
 {% endif %}
-<details id="ajouter-catalogue"{% if depuis_classe or url_saisie and erreur %} open{% endif %}>
+<details id="ajouter-catalogue"{% if depuis_classe or invitation_catalogue or url_saisie and erreur %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter un catalogue par lien" only %}
 <form method="post" action="{{ retour }}">{% csrf_token %}
 <label for="url-catalogue">Lien du catalogue Grist</label>

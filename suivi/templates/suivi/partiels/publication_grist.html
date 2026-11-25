@@ -1,5 +1,12 @@
 {% if publication_grist_reussie %}
 <p class="message" role="status">Édition {{ publication_grist_reussie.numero }} {% if publication_grist_reussie.identique %}déjà publiée{% else %}publiée{% endif %} dans <a href="{{ publication_grist_reussie.url }}">{{ publication_grist_reussie.nom }}</a>.</p>
+{% if mode_pwa %}
+<div data-invitation-grist="{{ publication_grist_reussie.url }}" data-usage-grist="suivre" hidden>
+<button type="button" class="bouton discret">Copier un lien de suivi</button>
+<p role="status"></p>
+</div>
+{% endif %}
+
 {% endif %}
 {% if erreur_grist %}<ul class="messages"><li class="error" role="alert" id="erreur-grist"><strong>Publication Grist impossible.</strong> {{ erreur_grist }}</li></ul>{% endif %}
 <form method="post" action="#export-referentiel" data-publication-grist>

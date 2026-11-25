@@ -349,9 +349,10 @@ try {
     status.textContent = '';
     frame.hidden = false;
     document.querySelector('#apercu').disabled = false;
-    const invitation = new URL(location.href).searchParams.get('grist');
+    const parametres = new URL(location.href).searchParams;
+    const invitation = parametres.get('grist');
     frame.src = BASE + (invitation !== null && !ESSAI && !APERCU
-      ? 'app/pwa/invitation-grist/?' + new URLSearchParams({grist: invitation})
+      ? 'app/pwa/invitation-grist/?' + new URLSearchParams({grist: invitation, usage: parametres.get('usage') || 'collaborer'})
       : 'app/');
     await new Promise(() => {}); // Possession du verrou jusqu'à fermeture du document.
   });

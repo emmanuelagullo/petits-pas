@@ -39,10 +39,11 @@
   {% if sources %}
   <div>
   <label for="source">Référentiel</label>
-  <select id="source" name="source">
-    <option value="">Référentiel de la classe</option>
+  <select id="source" name="source" aria-describedby="aide-referentiel-catalogue">
+    <option value="">Compétences de la classe</option>
     {% for cle, choix in sources.items %}<option value="{{ cle }}"{% if source == cle %} selected{% endif %}>{{ choix.0 }}</option>{% endfor %}
   </select>
+  <p class="aide" id="aide-referentiel-catalogue">Le choix initial affiche les compétences de la base, les ajouts de la classe et les ajouts locaux disponibles pour elle. Pour parcourir un autre référentiel, sélectionnez-le ici.</p>
   </div>
   {% endif %}
   <div>

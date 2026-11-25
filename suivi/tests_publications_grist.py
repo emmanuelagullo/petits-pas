@@ -132,3 +132,12 @@ class PublicationsGrist(SimpleTestCase):
             with self.assertRaises(ValidationError):
                 publier_icones_grist("/o/docs", "document-fictif", {empreinte: png})
             ecrire.assert_not_called()
+
+    def test_un_espace_de_partage_peut_recevoir_la_table_editions(self):
+        from .services.publications_grist import document_preparable
+
+        tables = {"PetitsPasEspace", "PetitsPasClasses", "PetitsPasContenus", "PetitsPasContributions"}
+        self.assertTrue(document_preparable("/o/docs", "fictif", tables))
+        self.assertFalse(document_preparable("/o/docs", "fictif", tables | {"Registre"}))
+        with patch("suivi.services.publications_grist.lire_api", return_value={"records": []}):
+            self.assertTrue(document_preparable("/o/docs", "fictif", tables | {"Table1"}))

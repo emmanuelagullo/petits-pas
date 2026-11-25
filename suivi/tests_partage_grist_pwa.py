@@ -198,3 +198,12 @@ class PartageGristPWA(Base):
                             for c in nouvelle["domaines"][0]["competences"]))
         adoption.refresh_from_db()
         self.assertTrue(adoption.courante)
+
+    def test_invitation_suivi_prefill_sans_raccorder_la_classe(self):
+        self.client.force_login(self.direction)
+        invitation = reverse("invitation_grist")
+        grist = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        page = self.client.get(invitation, {"grist": grist, "usage": "suivre"}, follow=True)
+        self.assertContains(page, f'value="{grist}"')
+        self.assertContains(page, 'id="ajouter-catalogue" open')
+        self.assertFalse(PartageGristClasse.objects.exists())

@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils.http import int_to_base36
 from django.views.decorators.http import require_http_methods
 
-from suivi.autorisations import GERER_REFERENTIEL_CLASSE, autorise, charger_classe_autorisee
+from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise, charger_classe_autorisee
 from suivi.contexte_ecole import ecole_courante
 from suivi.identites_referentiels import identifiant_source_ecole
 from suivi.models import Classe, PartageGristClasse, ReceptionReferentielGrist, SourceReferentiel, VersionReferentiel
@@ -79,6 +79,13 @@ def invitation_grist(request):
         return render(request, "suivi/invitation_grist.html", {"erreur": cause.messages[0]}, status=400)
     url = f"https://{HOTE_GRIST}{prefixe}/{document}"
     ecole = ecole_courante(request)
+    if request.GET.get("usage") == "suivre":
+        if not autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
+            return render(request, "suivi/invitation_grist.html", {
+                "invitation_suivi": True,
+                "erreur": "Une personne qui gère les catalogues de l’école doit ouvrir ce lien pour examiner le catalogue.",
+            }, status=403)
+        return redirect(reverse("decouvrir_referentiels") + "?" + urlencode({"catalogue_invite": url}) + "#ajouter-catalogue")
     classes = []
     for classe in Classe.objects.filter(ecole=ecole, etat=Classe.ACTIVE).order_by("nom", "pk"):
         if not autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):

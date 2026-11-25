@@ -80,8 +80,8 @@
 <p>{% if classe %}Cet ajout sera retenu uniquement dans cette classe pour cette année.{% else %}Cet ajout sera proposé à l'école pour cette année. Aucune classe ne le recevra automatiquement.{% endif %} Aucune image ni phrase n'est obligatoire.</p>
 {% if ouvert %}<form method="post" data-formulaire-modifie{% if form.errors or doublons %} data-brouillon{% endif %}>{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}
 {% if variante and relais_possible %}
-<p><label><input type="checkbox" name="relais" value="oui" aria-describedby="effet-variante"{% if request.POST.relais == "oui" or not request.POST and request.GET.relais == "1" %} checked{% endif %}> Utiliser la variante pour les prochaines saisies</label></p>
-<p class="aide" id="effet-variante">Ce choix masque l’original pour les prochaines saisies de toute la classe. Son historique reste accessible.</p>
+<p><label><input type="checkbox" name="relais" value="oui" aria-describedby="effet-variante"{% if request.POST.relais == "oui" %} checked{% endif %}> Masquer l’original pour les prochaines saisies</label></p>
+<p class="aide" id="effet-variante">La variante sera disponible pour toute la classe. L’original restera consultable avec ses observations.</p>
 {% endif %}
 {% include "suivi/partiels/doublons_competences.html" %}<button class="bouton" type="submit" data-enregistrer{% if not jeton %} disabled{% endif %}>{% if variante %}Ajouter la variante à la classe{% else %}Créer la compétence{% endif %}</button>{% include "suivi/partiels/annuler_modifications.html" %}</form>{% endif %}
 <h2>{% if classe %}Ajouts retenus ou disponibles{% else %}Ajouts de l'école et des classes{% endif %}</h2>
@@ -94,8 +94,9 @@
 </div></li>{% empty %}<li>Aucun ajout disponible pour le moment.</li>{% endfor %}</ul>
 {% endif %}
 {% if not jeton %}<p><a href="{{ index_url }}">Reconsulter les ajouts avant d'enregistrer</a></p>{% endif %}
-<details><summary>Créer, reprendre ou simplement reformuler ?</summary>
+<details><summary>Reformuler, reprendre, créer ou faire une variante ?</summary>
 <p>Pour la même compétence, adaptez le libellé de la compétence existante. Créer un ajout décrit une autre compétence : il commence avec son propre suivi, même si son texte ressemble à une autre compétence.</p>
+<p>Créer une variante reprend la définition actuelle et ouvre un suivi séparé. Vous pouvez choisir de masquer l’original pour les prochaines saisies.</p>
 <p>Reprendre conserve l'identité et l'origine d'un ajout. Cette action ne copie aucune réussite dans la nouvelle classe ou année. Une proposition de l'école reste un choix pour chaque classe.</p>
 <p>Les ajouts retenus restent présents lors d'un changement de base en cours d'année, dans un groupe « Ajouts » qui conserve le domaine choisi. À la rentrée, reprenez seulement ceux dont la nouvelle classe a besoin. Les libellés et masquages de l'année précédente ne sont pas recopiés.</p>
 <p>À la clôture, le carnet garde le dernier état de la classe. Les changements ultérieurs des propositions de l'école ne le modifient plus. Les correspondances entre compétences expliquent un rapprochement sans transférer de réussite.</p></details>

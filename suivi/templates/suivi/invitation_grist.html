@@ -1,7 +1,7 @@
 {% extends "suivi/base.html" %}
-{% block titre %}Invitation à un espace de partage{% endblock %}
+{% block titre %}{% if invitation_suivi %}Invitation à suivre un catalogue{% else %}Invitation à un espace de partage{% endif %}{% endblock %}
 {% block contenu %}
-<h1>Invitation à un espace de partage</h1>
+<h1>{% if invitation_suivi %}Invitation à suivre un catalogue{% else %}Invitation à un espace de partage{% endif %}</h1>
 {% if erreur %}
 <p role="alert" class="message erreur">{{ erreur }}</p>
 {% elif classes %}

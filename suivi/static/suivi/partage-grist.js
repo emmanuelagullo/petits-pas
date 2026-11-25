@@ -3,6 +3,7 @@
   if (invitation && navigator.clipboard && window.parent !== window) {
     const lien = new URL('.', window.parent.location.href);
     lien.searchParams.set('grist', invitation.dataset.invitationGrist);
+    if (invitation.dataset.usageGrist) lien.searchParams.set('usage', invitation.dataset.usageGrist);
     const message = invitation.querySelector('[role=status]');
     invitation.hidden = false;
     invitation.querySelector('button').addEventListener('click', async () => {

@@ -37,9 +37,21 @@ SEL = "diffusion-referentiel"
 SEL_PUBLICATION = "publication-referentiel"
 
 
-def telecharger_paquet(donnees, titre=None, *, edition=None, type_archive="referentiel", date=None):
+def telecharger_paquet(donnees, titre=None, *, edition=None, type_archive="referentiel", date=None,
+                       nombre_competences=None):
+    compteurs = []
+    if nombre_competences is not None:
+        from io import BytesIO
+        from zipfile import ZipFile
+
+        with ZipFile(BytesIO(donnees)) as archive:
+            icones = sum(nom.startswith("icones/") for nom in archive.namelist())
+        if nombre_competences:
+            compteurs.append(f"{nombre_competences}-competence{'s' if nombre_competences > 1 else ''}")
+        if icones:
+            compteurs.append(f"{icones}-icone{'s' if icones > 1 else ''}")
     reponse = HttpResponse(donnees, content_type="application/zip")
-    nom = nom_zip(type_archive, titre, edition=edition, date=date)
+    nom = nom_zip(type_archive, titre, *compteurs, edition=edition, date=date)
     reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
     return reponse
 
@@ -245,7 +257,8 @@ def partage_classe(request, classe, contexte, action):
         InformationsPartageReferentielClasse.objects.update_or_create(
             classe=classe, defaults=enregistrement,
         )
-        return telecharger_paquet(paquet, donnees["titre"], edition=donnees["version"], date=timezone.now())
+        return telecharger_paquet(paquet, donnees["titre"], edition=donnees["version"], date=timezone.now(),
+                                  nombre_competences=len(contexte["apercu_partage"]["competences_importees"]))
     if action == "enregistrer-partage":
         InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
         presenter_publication_grist(request, classe, contexte, donnees["identifiant"])

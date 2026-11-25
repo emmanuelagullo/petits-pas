@@ -28,9 +28,9 @@ def destination_grist(url, *, preparer_vierge=False):
         tables = lire_api(prefixe, document, "/tables")
         noms = {table["id"] for table in tables["tables"]}
         if "Editions" not in noms:
-            if not preparer_vierge or not document_vierge(prefixe, document, noms):
+            if not preparer_vierge or not document_preparable(prefixe, document, noms):
                 raise ValidationError("Ce document ne contient pas de table Editions compatible. "
-                                      "Choisissez un document Grist vierge ou un catalogue Petits Pas.")
+                                      "Choisissez un document vierge, un espace de partage ou un catalogue Petits Pas.")
             creer_table_editions(prefixe, document)
         colonnes = {c["id"]: c["fields"]["type"]
                     for c in lire_api(prefixe, document, "/tables/Editions/columns")["columns"]}
@@ -47,9 +47,12 @@ def destination_grist(url, *, preparer_vierge=False):
             "espace": prefixe.removeprefix("/o/"), "editions": editions}
 
 
-def document_vierge(prefixe, document, tables):
-    return not tables or (
-        tables == {"Table1"}
+def document_preparable(prefixe, document, tables):
+    tables_application = {"PetitsPasEspace", "PetitsPasClasses", "PetitsPasContenus",
+                          "PetitsPasContributions", TABLE_ICONES_GRIST}
+    externes = tables - tables_application
+    return not externes or (
+        externes == {"Table1"}
         and not lignes_grist(lire_api(prefixe, document, "/tables/Table1/records?limit=1"))
     )
 

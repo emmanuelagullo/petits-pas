@@ -124,6 +124,15 @@ def decouvrir_referentiels(request):
                 "examen_grist": lien("paquets_referentiels_ecole", annee=annee, origine="decouverte",
                                      q=q, filtre=filtre, **navigation),
                 "peut_importer": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, ecole)}
+    invitation = request.GET.get("catalogue_invite", "")
+    if invitation and peut_gerer:
+        try:
+            adresse_grist(invitation)
+        except ValidationError as cause:
+            contexte["erreur"] = " ".join(cause.messages)
+        else:
+            contexte["url_saisie"] = invitation
+            contexte["invitation_catalogue"] = True
     instance = catalogue_instance(annee)
     catalogues = catalogues_visibles(ecole.catalogues_referentiels, instance)
     if request.method == "POST":
