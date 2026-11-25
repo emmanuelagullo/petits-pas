@@ -12,7 +12,8 @@ from django.views.decorators.http import require_http_methods
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, charger_classe_autorisee
 from suivi.contexte_ecole import ecole_courante
 from suivi.models import Classe, ContributionReferentielEquipe, PartageGristClasse, ReceptionReferentielGrist
-from suivi.services.catalogues_externes import TAILLE_MAX, adresse_grist
+from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist
+from suivi.services.publications_grist import contenu_grist
 from suivi.services.edition_referentiel_equipe import modifier_edition_equipe, rubriques_equipe
 from suivi.services.import_sources_referentiels import importer_source, normaliser
 from suivi.services.apercu_mises_a_jour import definitions_document
@@ -87,6 +88,28 @@ def espace(request, pk):
                                       edition=document["version"])
         if request.method == "POST":
             action = request.POST.get("action")
+            if action == "preparer-publication-grist":
+                partage = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
+                if not perimetre["document_grist"] or not partage:
+                    raise ValidationError("Cette classe ne participe pas à un espace Grist.")
+                if len(tetes) != 1 or request.POST.get("edition") != tetes[0]:
+                    raise ValidationError("L’édition d’équipe a changé. Rechargez cette page.")
+                if not journal.filter(empreinte=tetes[0], envoyee=True).exists():
+                    raise ValidationError("Synchronisez l’édition d’équipe depuis l’espace de partage.")
+                prefixe, identifiant = adresse_grist(partage.url)
+                if identifiant != perimetre["document_grist"]:
+                    raise ValidationError("L’espace de partage a changé. Rechargez cette page.")
+                document, _ = normaliser(editions[tetes[0]]["document"])
+                reference = "equipe-grist-" + identifiant
+                document["source"]["identifiant"] = reference
+                # La contribution détermine le contenu, indépendamment du numéro
+                # d’édition attribué au moment de publier dans le catalogue.
+                document["version"] = tetes[0]
+                return JsonResponse({
+                    "api": f"https://{HOTE_GRIST}{prefixe}/api/docs/{identifiant}",
+                    "reference": reference, "titre": document["source"]["titre"],
+                    "contenu": contenu_grist(document),
+                })
             if action == "catalogue":
                 if len(tetes) != 1 or request.POST.get("edition") != tetes[0]:
                     raise ValidationError("Réunissez les contributions avant d’ajouter cette édition au catalogue.")
@@ -155,6 +178,8 @@ def espace(request, pk):
             return redirect("referentiel_equipe_grist", pk=pk)
     except (ValidationError, KeyError, TypeError) as cause:
         erreur = " ".join(cause.messages) if isinstance(cause, ValidationError) else "Édition illisible."
+        if request.method == "POST" and request.POST.get("action") == "preparer-publication-grist":
+            return JsonResponse({"erreur": erreur}, status=400)
     return render_espace(request, classe, editions, tetes, erreur=erreur, conflits=conflits)
 
 

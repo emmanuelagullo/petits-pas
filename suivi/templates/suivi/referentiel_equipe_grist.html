@@ -74,6 +74,14 @@
 <input type="hidden" name="edition" value="{{ edition_unique }}">
 <button class="bouton discret" name="action" value="catalogue">Ajouter l’édition au catalogue de l’école</button>
 </form>
+{% if partage_grist_disponible %}
+<form method="post" data-publier-equipe-grist hidden>{% csrf_token %}
+<input type="hidden" name="edition" value="{{ edition_unique }}">
+<input type="hidden" name="action" value="preparer-publication-grist">
+<button class="bouton discret">Proposer au suivi dans le catalogue de l’espace</button>
+<p role="status"></p>
+</form>
+{% endif %}
 {% endif %}
 <form method="post" enctype="multipart/form-data" class="encadre">
 {% csrf_token %}

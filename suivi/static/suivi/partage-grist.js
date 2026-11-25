@@ -16,9 +16,8 @@
     });
   }
   const zone = document.querySelector('[data-synchroniser-grist]');
-  if (!zone) return;
-  const adresse = zone.dataset.synchroniserGrist;
-  const csrf = zone.querySelector('[name=csrfmiddlewaretoken]').value;
+  const adresse = zone?.dataset.synchroniserGrist;
+  const csrf = zone?.querySelector('[name=csrfmiddlewaretoken]').value;
   const etat = document.querySelector('[data-etat-espace]');
   const nomEspace = document.querySelector('[data-nom-espace]');
   const relancer = document.querySelector('[data-relancer-synchro]');
@@ -66,13 +65,78 @@
     if (tables.some(t => t.id === table)) return;
     try {
       await grist(api + '/tables', json('POST', {tables: [{id: table,
-        columns: colonnes.map(id => ({id, fields: {type: 'Text'}})),
+        columns: colonnes.map(id => ({id, fields: {type: id === 'Numero' ? 'Int' : 'Text'}})),
       }]}));
     } catch (erreur) {
       const état = await grist(api + '/tables');
       if (!état.tables.some(t => t.id === table)) throw erreur;
     }
   }
+
+  const publication = document.querySelector('[data-publier-equipe-grist]');
+  if (publication) {
+    publication.hidden = false;
+    const bouton = publication.querySelector('button');
+    const état = publication.querySelector('[role=status]');
+    publication.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (bouton.disabled) return;
+      bouton.disabled = true;
+      état.textContent = 'Publication en cours…';
+      try {
+        const réponse = await fetch(window.location.href, {
+          method: 'POST', body: new FormData(publication), signal: AbortSignal.timeout(15000),
+        });
+        const {api, reference, titre, contenu, erreur} = await réponse.json();
+        if (!réponse.ok) {
+          état.textContent = erreur || 'Impossible de préparer cette édition.';
+          return;
+        }
+        const chemin = api + '/tables/Editions/records';
+        await préparer(api, 'Editions', ['Numero', 'Referentiel', 'Titre', 'Contenu']);
+        const {columns} = await grist(api + '/tables/Editions/columns');
+        const types = Object.fromEntries(columns.map(({id, fields}) => [id, fields.type]));
+        if (!['Int', 'Numeric'].includes(types.Numero) ||
+            ['Referentiel', 'Titre', 'Contenu'].some(nom => types[nom] !== 'Text')) {
+          état.textContent = 'La table des éditions de ce catalogue est incompatible.';
+          return;
+        }
+        const {records} = await grist(chemin);
+        const lignes = records.map(ligne => ligne.fields);
+        const éditions = lignes.filter(ligne => ligne.Referentiel === reference);
+        const dernière = éditions.reduce((maximum, ligne) =>
+          ligne.Numero > (maximum?.Numero || 0) ? ligne : maximum, null);
+        if (dernière?.Contenu === contenu) {
+          état.textContent = `Édition ${dernière.Numero} déjà proposée au suivi.`;
+          return;
+        }
+        const globale = lignes.some(ligne => !ligne.Contenu);
+        const numéro = 1 + Math.max(0, ...(globale ? lignes : éditions).map(ligne => ligne.Numero));
+        const cle = globale ? {Numero: numéro} : {Numero: numéro, Referentiel: reference};
+        const champs = {Numero: numéro, Referentiel: reference, Titre: dernière?.Titre || titre, Contenu: contenu};
+        try {
+          await grist(chemin + '?noparse=true&noupdate=true&onmany=none', json('PUT', {
+            records: [{require: cle, fields: champs}],
+          }));
+        } catch {
+          // Une réponse perdue n’empêche pas de relire l’écriture.
+        }
+        const après = await grist(chemin);
+        const correspondances = après.records.filter(({fields}) =>
+          Object.entries(cle).every(([nom, valeur]) => fields[nom] === valeur));
+        if (correspondances.length !== 1 || !Object.entries(champs).every(
+          ([nom, valeur]) => correspondances[0].fields[nom] === valeur)) {
+          throw new Error('Édition non confirmée');
+        }
+        état.textContent = `Édition ${numéro} proposée au suivi dans le catalogue de l’espace.`;
+      } catch {
+        état.textContent = 'Publication non confirmée. Vérifiez l’accès en écriture au document puis réessayez.';
+      } finally {
+        bouton.disabled = false;
+      }
+    });
+  }
+  if (!zone) return;
 
   async function synchroniser(partage, propres) {
     const {api, table, id, nom, contenu, empreinte} = partage;

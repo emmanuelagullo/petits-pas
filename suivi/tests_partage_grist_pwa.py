@@ -117,7 +117,13 @@ class PartageGristPWA(Base):
         base = self.client.get(transfert).json()["a_envoyer"][0]
         self.assertEqual(ContributionReferentielEquipe.objects.count(), 1)
         self.assertFalse(ContributionReferentielEquipe.objects.get().envoyee)
+        publier = {"action": "preparer-publication-grist", "edition": base["empreinte"]}
+        self.assertEqual(self.client.post(equipe, publier).status_code, 400)
         self.assertEqual(self.client.post(transfert, base, content_type="application/json").status_code, 200)
+        publication = self.client.post(equipe, publier).json()
+        self.assertEqual(publication["api"], "https://grist.numerique.gouv.fr/o/docs/api/docs/document-fictif")
+        self.assertEqual(publication["reference"], "equipe-grist-document-fictif")
+        self.assertEqual(json.loads(publication["contenu"])["version"], base["empreinte"])
 
         têtes = []
         for n in (3, 2):
