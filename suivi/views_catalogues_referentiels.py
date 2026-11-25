@@ -70,12 +70,13 @@ def catalogue_suivi(etat):
     return etat.get("suivre_catalogue", bool(etat.get("suivis")))
 
 
-def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=None, suivre=False, suivre_catalogue=None):
+def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=None, suivre=False, suivre_catalogue=None, suivi_initial=None):
     with transaction.atomic():
         ecole = Ecole.objects.select_for_update().get(pk=ecole.pk)
         if not autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole):
             raise PermissionDenied
-        etat = ecole.catalogues_referentiels.setdefault(cle, {})
+        initial = {"suivre_catalogue": suivi_initial} if suivi_initial is not None else {}
+        etat = ecole.catalogues_referentiels.setdefault(cle, initial)
         if catalogue is not None:
             etat["catalogue"] = catalogue
         if suivre_catalogue is not None:
@@ -119,7 +120,7 @@ def decouvrir_referentiels(request):
     retour = lien("decouvrir_referentiels", annee=annee, q=q, filtre=filtre, **navigation)
     contexte = {"annee": annee, "q": q, "filtre": filtre, "retour": retour,
                 "depuis_echange": navigation.get("depuis") == "echange",
-                "classe_origine": classe, "peut_gerer": peut_gerer,
+                "classe_origine": classe, "peut_gerer": peut_gerer, "suivi_initial": True,
                 "depuis_classe": bool(classe),
                 "examen_grist": lien("paquets_referentiels_ecole", annee=annee, origine="decouverte",
                                      q=q, filtre=filtre, **navigation),
@@ -140,9 +141,11 @@ def decouvrir_referentiels(request):
             action = request.POST.get("action")
             if action == "ajouter":
                 contexte["url_saisie"] = request.POST.get("url", "")[:2000]
+                contexte["suivi_initial"] = request.POST.get("suivre_catalogue") == "oui"
                 catalogue = lire_catalogue_grist(contexte["url_saisie"])
-                ecole = enregistrer_catalogue(ecole, request.user, catalogue["url"], catalogue=catalogue)
-                contexte.update(catalogue_ajoute=catalogue, message="Catalogue disponible. Choisissez les référentiels à suivre.")
+                ecole = enregistrer_catalogue(ecole, request.user, catalogue["url"], catalogue=catalogue,
+                                               suivi_initial=contexte["suivi_initial"])
+                contexte.update(catalogue_ajoute=catalogue, message="Catalogue disponible pour l’école.")
             elif action == "renommer-catalogue":
                 cle = request.POST.get("catalogue")
                 catalogue = catalogues.get(cle)

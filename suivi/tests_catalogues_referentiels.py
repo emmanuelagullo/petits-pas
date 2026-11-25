@@ -49,6 +49,23 @@ class CataloguesReferentiels(Base):
         self.assertNotContains(page, f'?annee={annee}&amp;version={version.pk}')
         self.assertNotContains(page, "Catalogue de démonstration Petits Pas")
 
+    def test_ajout_catalogue_propose_le_suivi_et_conserve_un_refus(self):
+        self.entrer("dir-mdp")
+        url = reverse("decouvrir_referentiels")
+        grist = "https://grist.numerique.gouv.fr/o/docs/catalogue-fictif"
+        donnees = {"action": "ajouter", "url": grist, "suivre_catalogue": "oui"}
+        self.assertContains(self.client.get(url), 'name="suivre_catalogue" value="oui" checked')
+        with patch("suivi.views_catalogues_referentiels.lire_catalogue_grist", return_value={
+            "nom": "Catalogue fictif", "url": grist, "referentiels": [],
+        }):
+            self.assertContains(self.client.post(url, donnees), "Catalogue disponible pour l’école.")
+            self.ecole.refresh_from_db()
+            self.assertTrue(self.ecole.catalogues_referentiels[grist]["suivre_catalogue"])
+            self.client.post(url, {"action": "ne-plus-suivre-catalogue", "catalogue": grist})
+            self.client.post(url, donnees)
+            self.ecole.refresh_from_db()
+            self.assertFalse(self.ecole.catalogues_referentiels[grist]["suivre_catalogue"])
+
     def test_suivre_un_catalogue_sans_suivre_encore_de_referentiel(self):
         self.entrer("dir-mdp")
         url = reverse("decouvrir_referentiels")

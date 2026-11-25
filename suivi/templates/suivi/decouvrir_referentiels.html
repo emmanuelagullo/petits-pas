@@ -46,7 +46,8 @@
 <form method="post" action="{{ retour }}">{% csrf_token %}
 <label for="url-catalogue">Lien du catalogue Grist</label>
 <input type="url" id="url-catalogue" name="url" required maxlength="2000" value="{{ url_saisie }}">
-<button class="bouton" name="action" value="ajouter">Examiner le catalogue</button>
+<p><label><input type="checkbox" name="suivre_catalogue" value="oui"{% if suivi_initial %} checked{% endif %}> Suivre les nouveautés de ce catalogue pour l’école</label></p>
+<button class="bouton" name="action" value="ajouter">Ajouter le catalogue</button>
 </form>
 </details>
 </div>{% endif %}
