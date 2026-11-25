@@ -1,0 +1,6 @@
+{% if compact %}
+<p><strong{% if espace_actif %} data-nom-espace data-partage="{{ espace_actif.identifiant }}"{% endif %}>{% if espace_actif %}{{ espace_actif.nom_espace|default:"Espace de partage" }}{% else %}Équipe de {{ classe.ecole.nom }}{% endif %}</strong></p>
+{% else %}
+<h2{% if espace_actif %} data-nom-espace data-partage="{{ espace_actif.identifiant }}"{% endif %}>{% if espace_actif %}{{ espace_actif.nom_espace|default:"Espace de partage" }}{% else %}Équipe de {{ classe.ecole.nom }}{% endif %}</h2>
+{% endif %}
+<p>{% if espace_actif %}Classe connectée{% else %}Classe{% endif %} · {{ classe.libelle_avec_annee }}</p>

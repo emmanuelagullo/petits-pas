@@ -5,6 +5,9 @@
 {% if partage_grist_disponible %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="equipe" %}
 {% else %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="partage" %}{% endif %}
 <h1>Référentiel d’équipe</h1>
+{% if not partage_grist_disponible %}
+{% include "suivi/partiels/contexte_espace_partage.html" with classe=classe compact=True only %}
+{% endif %}
 {% if erreur %}<ul class="messages"><li role="alert" class="error">{{ erreur }}</li></ul>{% endif %}
 {% if conflits %}
 <div class="avertissement-referentiel avertissement-orange">

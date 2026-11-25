@@ -9,8 +9,9 @@
 {% if classe_active %}<details id="espace-partage"{% if ouvrir_espace %} open{% endif %}>
 {% if not partage_grist_disponible %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" niveau_titre=2 only %}
+{% include "suivi/partiels/contexte_espace_partage.html" with classe=classe compact=True only %}
 <p>Modifiez un référentiel commun avec les collègues de l’école.</p>
-<p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>
+<p><a class="bouton" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>
 {% else %}
 {% if partage_grist %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" resume=partage_grist.nom_espace niveau_titre=2 only %}
@@ -19,7 +20,7 @@
 {% endif %}
 <p>Partagez automatiquement les compétences communes de votre classe avec les collègues qui utilisent le même espace.</p>
 {% if partage_grist %}
-<p data-nom-espace data-partage="{{ partage_grist.identifiant }}">{{ partage_grist.nom_espace|default:"Espace de partage Grist" }}</p>
+{% include "suivi/partiels/contexte_espace_partage.html" with classe=classe espace_actif=partage_grist compact=True only %}
 <p role="status" data-etat-espace>Synchronisation en attente.</p>
 {% if recus_espace %}
 <p><a class="bouton discret" href="{{ lien_referentiels_espace }}">Voir les référentiels de cet espace</a></p>
@@ -27,7 +28,7 @@
 <p>Aucun référentiel reçu pour le moment.</p>
 {% endif %}
 {% endif %}
-<p><a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace{% else %}Rejoindre un espace{% endif %}</a></p>
+<p><a class="bouton" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace{% else %}Rejoindre un espace{% endif %}</a></p>
 {% endif %}
 </details>{% endif %}
 <details id="referentiels-suivis" open>
@@ -94,9 +95,9 @@
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Échanger des référentiels" resume="Partager · Proposer à la direction" niveau_titre=2 only %}
 {% endif %}
 <div class="actions">
-{% if classe_active and adoption and not adoption.clos %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
-{% if peut_importer_ecole %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer une édition</a>
-{% elif classe_active %}<a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">Proposer un référentiel à la direction</a>{% endif %}
+{% if classe_active and adoption and not adoption.clos %}<a class="bouton" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
+{% if peut_importer_ecole %}<a class="bouton{% if classe_active and adoption and not adoption.clos %} discret{% endif %}" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer une édition</a>
+{% elif classe_active %}<a class="bouton{% if adoption and not adoption.clos %} discret{% endif %}" href="{% url 'proposer_referentiel_classe' classe.pk %}">Proposer un référentiel à la direction</a>{% endif %}
 {% if peut_gerer_catalogues %}<a class="bouton discret" href="{% url 'referentiels_ecole' %}?annee={{ classe.annee_scolaire }}">Choix annuels de l’école</a>{% endif %}
 </div>
 </details>

@@ -7,8 +7,7 @@
 <h1>Espace de partage</h1>
 {% if partage.actif %}
 <section class="encadre">
-<h2 data-nom-espace data-partage="{{ partage.identifiant }}">{{ partage.nom_espace|default:"Espace de partage" }}</h2>
-<p>Classe connectée · {{ classe.libelle_avec_annee }}</p>
+{% include "suivi/partiels/contexte_espace_partage.html" with classe=classe espace_actif=partage only %}
 <p data-projection-partagee>{% if partage_confirme %}Votre référentiel a été partagé dans cet espace.{% else %}Premier envoi en attente.{% endif %}</p>
 {% if mode_pwa %}
 <div data-invitation-grist="{{ partage.url }}" hidden>
