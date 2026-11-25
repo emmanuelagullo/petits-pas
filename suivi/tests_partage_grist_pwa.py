@@ -48,7 +48,7 @@ class PartageGristPWA(Base):
                         "nom": "Mon École partagée", "confirme": travail["empreinte"]}
         for _ in range(2):
             self.assertEqual(self.client.post(url, confirmation, content_type="application/json").json(),
-                             {"erreurs": 0, "nom": "Mon École partagée"})
+                             {"erreurs": 0, "nom": "Mon École partagée", "partage_confirme": True})
         self.assertEqual(VersionReferentiel.objects.filter(source__titre="Référentiel du collègue").count(), 1)
         page = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
         self.assertContains(page, "Voir les référentiels de cet espace")

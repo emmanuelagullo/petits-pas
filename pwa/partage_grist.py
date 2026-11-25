@@ -130,6 +130,8 @@ def espace_classe(request, pk):
             champ_erreur = "grist"
             prefixe, document = adresse_grist(request.POST.get("grist", ""))
             champ_erreur = ""
+            if partage and partage.actif and adresse_grist(partage.url)[1] == document and partage.licence == licence:
+                return redirect("espace_grist_classe", pk=pk)
             if erreur_licence:
                 raise ValidationError(erreur_licence)
             if request.POST.get("confirmer") != "oui":
@@ -145,7 +147,7 @@ def espace_classe(request, pk):
                 partage, cree = PartageGristClasse.objects.get_or_create(classe=classe,
                     defaults={"url": url, "licence": licence, "nom_espace": nom_initial})
                 if not cree and (partage.url != url or partage.licence != licence or not partage.actif):
-                    if partage.url != url:
+                    if adresse_grist(partage.url)[1] != document:
                         partage.nom_espace = nom_initial
                     partage.url, partage.derniere_empreinte = url, ""
                     partage.licence, partage.actif = licence, True
@@ -158,7 +160,9 @@ def espace_classe(request, pk):
         "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
         "erreur": erreur, "champ_erreur": champ_erreur, "licence": licence, "erreur_licence": erreur_licence,
         "confirmer": request.POST.get("confirmer") == "oui", "nom_saisi": nom_saisi,
-        "nom_propose": nom_espace_propose(classe), "mode_pwa": True}, status=400 if erreur else 200)
+        "nom_propose": nom_espace_propose(classe), "changer_espace": bool(invitation or erreur),
+        "partage_confirme": bool(partage and partage.derniere_empreinte),
+        "mode_pwa": getattr(settings, "MODE_PWA", False)}, status=400 if erreur else 200)
 
 
 def partages_autorises(request):
@@ -275,4 +279,5 @@ def synchroniser(request):
     if not PartageGristClasse.objects.filter(pk=partage.pk, actif=True, url=partage.url).update(
             nom_espace=partage.nom_espace, derniere_empreinte=partage.derniere_empreinte):
         return JsonResponse({"erreur": "L’espace de partage a changé."}, status=409)
-    return JsonResponse({"erreurs": erreurs, "nom": partage.nom_espace})
+    return JsonResponse({"erreurs": erreurs, "nom": partage.nom_espace,
+                         "partage_confirme": bool(partage.derniere_empreinte)})

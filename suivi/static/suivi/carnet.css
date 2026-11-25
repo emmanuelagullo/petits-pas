@@ -1290,3 +1290,5 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
 .rubriques-competences > .domaine > summary { font-weight: 650; }
 .rubriques-competences .sous-domaine { margin: .4rem .6rem; }
 .rubriques-competences .liste { margin: .4rem .6rem .6rem; }
+
+.journal-partage { max-height: 12rem; overflow: auto; }
