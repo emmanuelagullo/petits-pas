@@ -173,7 +173,7 @@ def informations_partage(classe, adoption):
     }, False
 
 
-def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False):
+def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False, inclure_icones_fournies=False):
     source = {k: v for k, v in donnees.items() if k != "version"}
     document = preparer_referentiel_classe(classe, source, donnees["version"])
     if not inclure_icones:
@@ -181,7 +181,7 @@ def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False
             competence.pop("icone_png", None)
     # Une licence manquante n'empêche pas de consulter la projection.
     a_lire = {**document, "source": {**document["source"], "licence": source["licence"] or "À vérifier"}}
-    paquet = empaqueter(a_lire)
+    paquet = empaqueter(a_lire, inclure_icones_fournies=inclure_icones_fournies)
     normalise, _ = lire_source(lire_paquet(paquet))
     icones = catalogue_icones()
     contexte["apercu_partage"] = {
@@ -240,7 +240,13 @@ def partage_classe(request, classe, contexte, action):
     inclure_icones = (request.POST.get("inclure_icones") == "oui" if direct else
                       preparation.get("inclure_icones", False))
     contexte["inclure_icones"] = inclure_icones
-    document, paquet, normalise = presenter_contenu_partage(classe, contexte, donnees, inclure_icones=inclure_icones)
+    inclure_icones_fournies = (request.POST.get("inclure_icones_fournies") == "oui" if direct else
+                               preparation.get("inclure_icones_fournies", False))
+    contexte["inclure_icones_fournies"] = inclure_icones_fournies
+    document, paquet, normalise = presenter_contenu_partage(
+        classe, contexte, donnees, inclure_icones=inclure_icones,
+        inclure_icones_fournies=inclure_icones_fournies,
+    )
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
     if not direct and empreinte != preparation["empreinte"]:
         raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
@@ -274,7 +280,8 @@ def partage_classe(request, classe, contexte, action):
         return
     if direct:
         contexte["jeton_partage"] = signing.dumps(
-            {"engagement": engagement, "donnees": donnees, "empreinte": empreinte, "inclure_icones": inclure_icones},
+            {"engagement": engagement, "donnees": donnees, "empreinte": empreinte, "inclure_icones": inclure_icones,
+             "inclure_icones_fournies": inclure_icones_fournies},
             salt="partage-referentiel-classe",
         )
     else:

@@ -15,6 +15,7 @@
 {% endfor %}
 </details>
 {% endif %}
+{% if partage %}<p class="aide">Les phrases proposées affichées sous les compétences sont incluses. Les observations et les textes rédigés pour un élève restent privés.</p>{% endif %}
 {% include "suivi/partiels/rubriques_competences.html" with lignes=competences_importees entree="suivi/partiels/ligne_apercu_referentiel.html" niveau_domaine=4 niveau_sous_domaine=5 %}
 {% if icones_importees %}
 <h4>Illustrations et crédits</h4>

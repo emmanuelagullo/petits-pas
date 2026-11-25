@@ -102,6 +102,25 @@ class ImportSources(TestCase):
         self.assertEqual(version.contenu["domaines"][0]["sous_domaines"][0]["competences"][0]["icone"], "parler")
         self.assertEqual(version.definitions.count(), 1)
 
+    def test_zip_transporte_les_phrases_avec_ou_sans_fichiers_des_icones_fournies(self):
+        from io import BytesIO
+        from zipfile import ZipFile
+
+        from .services.paquets_referentiels import empaqueter, lire_paquet
+
+        doc = document()
+        phrase = {"code": "p1", "texte": "<prénom> prend la parole."}
+        doc["domaines"][0]["competences"][0].update(icone="parler", formulations=[phrase])
+        for inclure in (False, True):
+            with self.subTest(inclure=inclure):
+                paquet = empaqueter(doc, inclure_icones_fournies=inclure)
+                with ZipFile(BytesIO(paquet)) as archive:
+                    self.assertEqual("icones/parler.svg" in archive.namelist(), inclure)
+                    self.assertEqual("credits.yaml" in archive.namelist(), inclure)
+                competence = yaml.safe_load(lire_paquet(paquet))["domaines"][0]["competences"][0]
+                self.assertEqual(competence["icone"], "parler")
+                self.assertEqual(competence["formulations"], [phrase])
+
     def test_erreurs_de_format_aucune_ecriture(self):
         for modification in ("identite_absente", "identite_double", "code_double", "icone", "niveau", "champ", "boolean", "longueur", "licence", "reserve"):
             with self.subTest(modification=modification):

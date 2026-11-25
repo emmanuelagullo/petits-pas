@@ -53,7 +53,16 @@ placeholder="{{ nom_catalogue_propose }}"></p>
 </details>
 <p class="aide" id="aide-destination-grist" data-aide-destination-grist hidden>Choisissez un catalogue ou collez son lien pour publier dans Grist.</p>
 <p><label><input type="checkbox" name="inclure_icones" value="oui" aria-describedby="aide-icones-partage"{% if inclure_icones %} checked{% endif %}> Inclure les icônes ajoutées au référentiel</label><br>
-<span id="aide-icones-partage" class="aide">Les icônes fournies avec Petits Pas sont incluses. Les photos du suivi restent privées.</span></p>
+<span id="aide-icones-partage" class="aide">Les photos du suivi restent privées.</span></p>
+<details{% if inclure_icones_fournies %} open{% endif %}>
+{% if inclure_icones_fournies %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Icônes fournies avec Petits Pas · incluses dans le ZIP" only %}
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Icônes fournies avec Petits Pas · disponibles à l’import" only %}
+{% endif %}
+<p><label><input type="checkbox" name="inclure_icones_fournies" value="oui"{% if inclure_icones_fournies %} checked{% endif %}> Joindre les fichiers des icônes fournies avec Petits Pas au ZIP</label></p>
+<p class="aide">Petits Pas retrouve déjà ces icônes à l’import. Joignez leurs fichiers si vous comptez ouvrir le ZIP en dehors de Petits Pas.</p>
+</details>
 <p class="actions">
 <button class="bouton" name="action" value="publier-grist" aria-describedby="aide-destination-grist">Publier dans Grist</button>
 <button class="bouton discret" name="action" value="telecharger-classe" formnovalidate>Télécharger le ZIP</button>

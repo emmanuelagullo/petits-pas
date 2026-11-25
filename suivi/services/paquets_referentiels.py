@@ -88,13 +88,13 @@ def exporter_ajout(locale, definition, *, provenance, licence, icone="", formula
     })
 
 
-def empaqueter(document):
+def empaqueter(document, *, inclure_icones_fournies=True):
     portable = deepcopy(document)
     for c in competences_document(portable):
         if c.get("icone_png"):
             c["icone_png"] = png_en_ligne(c["icone_png"])
     normalise, _ = lire_source(yaml.safe_dump(portable, allow_unicode=True))
-    fichiers = ressources(normalise)
+    fichiers = ressources(normalise) if inclure_icones_fournies else {}
     fichiers.update({f"icones/{empreinte}.png": donnees
                      for empreinte, donnees in externaliser_png(portable).items()})
     fichiers[DOCUMENT] = yaml.safe_dump(portable, allow_unicode=True).encode()
@@ -143,7 +143,8 @@ def lire_paquet(donnees):
                 restaurer(document)
             texte = yaml.safe_dump(document, allow_unicode=True)
             normalise, _ = lire_source(texte)
-            attendus = {**ressources(normalise), **png}
+            icones_fournies = any(nom.endswith(".svg") and nom.startswith("icones/") for nom in noms)
+            attendus = {**(ressources(normalise) if icones_fournies else {}), **png}
             if noms != {DOCUMENT, *attendus} or any(archive.read(nom) != valeur for nom, valeur in attendus.items()):
                 raise ValidationError("Les icônes ou les crédits du paquet diffèrent du catalogue fourni.")
             return texte
