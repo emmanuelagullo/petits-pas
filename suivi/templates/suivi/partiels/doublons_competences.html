@@ -3,7 +3,11 @@
   <legend>Une compétence porte déjà ce libellé</legend>
   <ul>
     {% for ligne in doublons %}
-    <li>{{ ligne.domaine }}{% if ligne.sous_domaine %} · {{ ligne.sous_domaine }}{% endif %} · {% include "suivi/partiels/ligne_catalogue.html" %}</li>
+    <li>{{ ligne.domaine }}{% if ligne.sous_domaine %} · {{ ligne.sous_domaine }}{% endif %} · {% include "suivi/partiels/ligne_catalogue.html" %}
+    {% if proposer_variante_doublon and not ligne.disponible and ligne.portee != "cible" %}
+    <a class="bouton discret" href="{% url 'ajouts_classe' classe.pk %}?variante={{ ligne.competence.pk }}{% if retour_catalogue %}&amp;origine=catalogue&amp;retour={{ retour_catalogue|urlencode }}{% endif %}">Créer une variante de cette compétence…</a>
+    {% endif %}
+    </li>
     {% endfor %}
   </ul>
   <p>Ouvrez une compétence existante pour retrouver son suivi ou la reprendre dans la classe.</p>

@@ -279,6 +279,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
         "direction": direction, "ouvert": ouvert, "variante": variante,
+        "proposer_variante_doublon": bool(classe and ouvert),
         "icone_variante": bool(icone_variante or png_variante), "phrases_variante": phrases_variante, "relais_possible": not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
         "origine": origine, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
