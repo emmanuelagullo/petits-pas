@@ -113,3 +113,18 @@ def selection_icones(selection):
                 for valeur in valeurs:
                     empreintes.update(references_png(valeur))
     return empreintes
+
+
+def externaliser_png(document):
+    """Remplace les PNG par leurs empreintes et retourne les octets uniques."""
+    from .identites_referentiels import competences_document
+
+    ressources = {}
+    for competence in competences_document(document):
+        valeur = competence.get("icone_png")
+        if valeur:
+            donnees = decoder_icone(png_en_ligne(valeur))
+            empreinte = empreinte_png(donnees)
+            ressources.setdefault(empreinte, donnees)
+            competence["icone_png"] = PREFIXE + empreinte
+    return ressources

@@ -161,9 +161,12 @@ def informations_partage(classe, adoption):
     }, False
 
 
-def presenter_contenu_partage(classe, contexte, donnees):
+def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False):
     source = {k: v for k, v in donnees.items() if k != "version"}
     document = preparer_referentiel_classe(classe, source, donnees["version"])
+    if not inclure_icones:
+        for competence in competences_document(document):
+            competence.pop("icone_png", None)
     # Une licence manquante n'empêche pas de consulter la projection.
     a_lire = {**document, "source": {**document["source"], "licence": source["licence"] or "À vérifier"}}
     paquet = empaqueter(a_lire)
@@ -222,7 +225,10 @@ def partage_classe(request, classe, contexte, action):
             raise ValidationError("La base de la classe a changé. Reprenez le partage du référentiel.")
         donnees = preparation["donnees"]
     contexte["informations_partage"] = donnees
-    document, paquet, normalise = presenter_contenu_partage(classe, contexte, donnees)
+    inclure_icones = (request.POST.get("inclure_icones") == "oui" if direct else
+                      preparation.get("inclure_icones", False))
+    contexte["inclure_icones"] = inclure_icones
+    document, paquet, normalise = presenter_contenu_partage(classe, contexte, donnees, inclure_icones=inclure_icones)
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
     if not direct and empreinte != preparation["empreinte"]:
         raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
@@ -255,7 +261,7 @@ def partage_classe(request, classe, contexte, action):
         return
     if direct:
         contexte["jeton_partage"] = signing.dumps(
-            {"engagement": engagement, "donnees": donnees, "empreinte": empreinte},
+            {"engagement": engagement, "donnees": donnees, "empreinte": empreinte, "inclure_icones": inclure_icones},
             salt="partage-referentiel-classe",
         )
     else:

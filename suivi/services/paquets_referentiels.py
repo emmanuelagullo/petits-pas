@@ -10,7 +10,7 @@ from django.contrib.staticfiles import finders
 from django.core.exceptions import ValidationError
 
 from suivi.identites_referentiels import competences_document, reference_competence
-from suivi.icones_partagees import MAX_PNG, PREFIXE, decoder_icone, empreinte_png, encoder_icone, png_en_ligne
+from suivi.icones_partagees import MAX_PNG, PREFIXE, decoder_icone, empreinte_png, encoder_icone, externaliser_png, png_en_ligne
 from suivi.presentation import catalogue_icones
 from .import_sources_referentiels import ChargeurSansDoublons, lire_source
 
@@ -93,12 +93,8 @@ def empaqueter(document):
             c["icone_png"] = png_en_ligne(c["icone_png"])
     normalise, _ = lire_source(yaml.safe_dump(portable, allow_unicode=True))
     fichiers = ressources(normalise)
-    for c in competences_document(portable):
-        if c.get("icone_png"):
-            donnees = decoder_icone(c["icone_png"])
-            empreinte = empreinte_png(donnees)
-            fichiers[f"icones/{empreinte}.png"] = donnees
-            c["icone_png"] = PREFIXE + empreinte
+    fichiers.update({f"icones/{empreinte}.png": donnees
+                     for empreinte, donnees in externaliser_png(portable).items()})
     fichiers[DOCUMENT] = yaml.safe_dump(portable, allow_unicode=True).encode()
     if sum(map(len, fichiers.values())) > MAX_ARCHIVE:
         raise ValidationError("Le référentiel dépasse la taille maximale du paquet.")

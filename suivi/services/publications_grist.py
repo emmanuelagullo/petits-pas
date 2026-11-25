@@ -1,12 +1,16 @@
 """Publication d’une édition entière dans une ligne Grist."""
 import json
+from base64 import b64encode
+from copy import deepcopy
 
 from django.core.exceptions import ValidationError
 
 from .catalogues_externes import (
-    TAILLE_MAX, adresse_grist, document_grist, lignes_grist, lire_api,
-    nom_catalogue_grist, numerotation_grist_globale, referentiels_grist, requete_api,
+    CHEMIN_ICONES_GRIST, TABLE_ICONES_GRIST, TAILLE_MAX, adresse_grist, document_grist, lignes_grist, lire_api,
+    lire_icone_grist, nom_catalogue_grist, numerotation_grist_globale, referentiels_grist, requete_api, tables_grist,
 )
+
+from suivi.icones_partagees import externaliser_png
 
 CHEMIN_EDITIONS = "/tables/Editions/records"
 COLONNES = {"Numero": {"Int", "Numeric"}, **{
@@ -69,6 +73,17 @@ def meme_contenu_grist(edition, document):
     if not isinstance(ancien, dict):
         return False
     actuel = json.loads(contenu_grist(document))
+    from suivi.identites_referentiels import competences_document
+    from suivi.icones_partagees import PREFIXE, decoder_icone, empreinte_png
+
+    try:
+        for edition in (ancien, actuel):
+            for competence in competences_document(edition):
+                png = competence.get("icone_png")
+                if png and not png.startswith(PREFIXE):
+                    competence["icone_png"] = PREFIXE + empreinte_png(decoder_icone(png))
+    except (AttributeError, TypeError, ValidationError):
+        return False
     ancien.pop("version", None)
     actuel.pop("version", None)
     return ancien == actuel
@@ -79,9 +94,31 @@ def contenu_grist(document):
                       ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 
+def publier_icones_grist(prefixe, document, ressources):
+    if not ressources:
+        return
+    if TABLE_ICONES_GRIST not in tables_grist(prefixe, document):
+        colonnes = [{"id": nom, "fields": {"type": "Text"}} for nom in ("Empreinte", "PNG")]
+        corps = json.dumps({"tables": [{"id": TABLE_ICONES_GRIST, "columns": colonnes}]}).encode()
+        try:
+            requete_api(prefixe, document, "/tables", corps=corps, methode="POST")
+        except ValidationError:
+            if TABLE_ICONES_GRIST not in tables_grist(prefixe, document):
+                raise
+    for empreinte, donnees in ressources.items():
+        if lire_icone_grist(prefixe, document, empreinte, facultative=True) is None:
+            corps = json.dumps({"records": [{
+                "require": {"Empreinte": empreinte}, "fields": {"PNG": b64encode(donnees).decode("ascii")},
+            }]}).encode()
+            requete_api(prefixe, document, CHEMIN_ICONES_GRIST + "?noparse=true&noupdate=true&onmany=none", corps=corps)
+            lire_icone_grist(prefixe, document, empreinte)
+
+
 def publier_edition_grist(destination, reference, titre, numero, document):
     prefixe, identifiant = adresse_grist(destination["url"])
-    contenu = contenu_grist(document)
+    portable = deepcopy(document)
+    ressources = externaliser_png(portable)
+    contenu = contenu_grist(portable)
     champs = {"Referentiel": reference, "Titre": titre, "Contenu": contenu}
     globale = numerotation_grist_globale(destination.get("editions", ()))
     cle = {"Numero": numero}
@@ -91,6 +128,8 @@ def publier_edition_grist(destination, reference, titre, numero, document):
                        ensure_ascii=False).encode()
     if len(corps) > TAILLE_MAX:
         raise ValidationError("Cette édition est trop volumineuse pour la publication Grist. Téléchargez le ZIP.")
+
+    publier_icones_grist(prefixe, identifiant, ressources)
 
     def correspond(ligne):
         return all(ligne.get(nom) == valeur for nom, valeur in cle.items())

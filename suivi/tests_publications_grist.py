@@ -108,3 +108,27 @@ class PublicationsGrist(SimpleTestCase):
         self.assertIn("noupdate=true", ecrire.call_args.args[2])
         self.assertEqual(json.loads(ecrire.call_args.kwargs["corps"])["records"][0]["require"],
                          {"Identifiant": "catalogue"})
+
+    def test_icone_deja_presente_reutilisee_et_empreinte_verifiee(self):
+        from base64 import b64encode
+        from io import BytesIO
+
+        from PIL import Image
+
+        from .icones_partagees import empreinte_png
+        from .services.publications_grist import publier_icones_grist
+
+        fichier = BytesIO()
+        Image.new("RGBA", (2, 2), "red").save(fichier, format="PNG")
+        png = fichier.getvalue()
+        empreinte = empreinte_png(png)
+        cible = "suivi.services.catalogues_externes.lire_api"
+        lignes = {"records": [{"fields": {"Empreinte": empreinte, "PNG": b64encode(png).decode("ascii")}}]}
+        with patch("suivi.services.publications_grist.tables_grist", return_value={"PetitsPasIcones"}), patch(
+                cible, return_value=lignes), patch("suivi.services.publications_grist.requete_api") as ecrire:
+            publier_icones_grist("/o/docs", "document-fictif", {empreinte: png})
+            ecrire.assert_not_called()
+            lignes["records"][0]["fields"]["PNG"] = "invalide"
+            with self.assertRaises(ValidationError):
+                publier_icones_grist("/o/docs", "document-fictif", {empreinte: png})
+            ecrire.assert_not_called()

@@ -185,6 +185,49 @@ def identite_grist(url, reference):
     return f"grist-{empreinte}"
 
 
+TABLE_ICONES_GRIST = "PetitsPasIcones"
+CHEMIN_ICONES_GRIST = f"/tables/{TABLE_ICONES_GRIST}/records"
+
+
+def lire_icone_grist(prefixe, document, empreinte, *, facultative=False):
+    from urllib.parse import urlencode
+
+    from suivi.icones_partagees import decoder_icone, empreinte_png
+
+    filtre = urlencode({"filter": json.dumps({"Empreinte": [empreinte]})})
+    lignes = lignes_grist(lire_api(prefixe, document, f"{CHEMIN_ICONES_GRIST}?{filtre}"))
+    if not lignes and facultative:
+        return None
+    if len(lignes) != 1 or lignes[0].get("Empreinte") != empreinte:
+        raise ValidationError(f"Icône {empreinte[:12]} absente du catalogue Grist.")
+    donnees = decoder_icone(lignes[0].get("PNG"))
+    if empreinte_png(donnees) != empreinte:
+        raise ValidationError(f"Icône {empreinte[:12]} altérée dans le catalogue Grist.")
+    return donnees
+
+
+def restituer_icones_grist(edition, prefixe, document):
+    from suivi.icones_partagees import PREFIXE, png_en_ligne
+    from suivi.identites_referentiels import competences_document
+    from base64 import b64encode
+
+    ressources = {}
+    for competence in competences_document(edition):
+        valeur = competence.get("icone_png")
+        if not isinstance(valeur, str) or not valeur.startswith(PREFIXE):
+            continue
+        empreinte = valeur[len(PREFIXE):]
+        if not re.fullmatch(r"[0-9a-f]{64}", empreinte):
+            raise ValidationError("Empreinte d’icône invalide.")
+        if empreinte not in ressources:
+            try:
+                ressources[empreinte] = png_en_ligne(valeur)
+            except ValidationError:
+                donnees = lire_icone_grist(prefixe, document, empreinte)
+                ressources[empreinte] = b64encode(donnees).decode("ascii")
+        competence["icone_png"] = ressources[empreinte]
+
+
 def edition_grist(url, reference, numero):
     catalogue, lignes = lire_catalogue_grist(url, avec_lignes=True)
     source = next((ligne for ligne in catalogue["referentiels"] if ligne["reference"] == reference), None)
@@ -203,6 +246,7 @@ def edition_grist(url, reference, numero):
                 edition["version"] = str(numero)
             except ValueError as erreur:
                 raise ValidationError("Le contenu de l’édition Grist est illisible.") from erreur
+            restituer_icones_grist(edition, prefixe, document)
             return yaml.safe_dump(edition, allow_unicode=True)
     domaines = {}
     for ligne in lignes_grist(lire_api(prefixe, document, "/tables/Competences/records")):
