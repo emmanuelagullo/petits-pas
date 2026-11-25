@@ -32,8 +32,12 @@
     };
     const initial = documentGrist(raccordement.dataset.documentActif);
     const actualiser = () => {
-      raccordement.querySelector('button[type=submit], button:not([type])').disabled =
-        documentGrist(raccordement.elements.grist.value) === initial;
+      const bouton = raccordement.querySelector('[value="raccorder"]');
+      const destination = documentGrist(raccordement.elements.grist.value);
+      bouton.disabled = destination === initial;
+      bouton.classList.toggle('avertissement-orange', Boolean(destination && destination !== initial));
+      bouton.textContent = destination && destination !== initial
+        ? 'Confirmer le changement d’espace' : 'Confirmer le raccordement';
     };
     raccordement.elements.grist.addEventListener('input', actualiser);
     actualiser();

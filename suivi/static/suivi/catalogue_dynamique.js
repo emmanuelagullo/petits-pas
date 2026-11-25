@@ -46,6 +46,7 @@
       url.searchParams.set('domaine', domaine.value);
       url.searchParams.set('sous_domaine', groupe.value);
       resultats.replaceChildren(contenu.content);
+      resultats.dispatchEvent(new Event("petits-pas:rubriques-actualisees", {bubbles: true}));
       const nouveauDepliant = actions.querySelector('details');
       if (creationOuverte && nouveauDepliant) nouveauDepliant.open = true;
       if (focusCreation) (nouveauDepliant?.querySelector('summary') || form.elements.q).focus({preventScroll: true});

@@ -28,7 +28,8 @@ def definir_version_ecole(ecole, version):
     if version.contenu.get("structure_seule"):
         contenu["structure_seule"] = True
     identites = {
-        (i.identifiant if i.source_id == version.source_id else f"{identifiant_diffusion(i.source)}/{i.identifiant}"): i
+        reference_competence({"identite": i.identifiant, "source_origine":
+                              "" if i.source_id == version.source_id else identifiant_diffusion(i.source)}): i
         for i in (d.identite for d in version.definitions.select_related("identite__source"))
     }
 

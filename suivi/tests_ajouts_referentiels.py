@@ -35,6 +35,23 @@ class AjoutsLocaux(Base):
             adoption_attendue=adoption.pk if classe else None,
             domaine_id=adoption.contenu["domaines"][0]["id"], libelle="Je trie des objets fictifs", niveau="PS", **options)
 
+    def test_uuid_portable_reutilise_la_competence_a_travers_deux_sources(self):
+        from .tests_import_sources_referentiels import document, importer
+        from .services.versions_sources_ecoles import definir_version_ecole
+
+        ajout = self.creer()
+        uuid = ajout.definition["identite_portable"]
+        for source in ("catalogue-un", "catalogue-deux"):
+            doc = document(source)
+            doc["format"] = 2
+            doc["domaines"][0]["competences"][0].update(identite=uuid, libelle=source)
+            version, _, _ = importer(doc, ecole=self.ecole)
+            definition = definir_version_ecole(self.ecole, version)["competences"][0]
+            self.assertEqual(definition["id"], ajout.competence_id)
+            self.assertEqual(definition["libelle"], source)
+        ajout.competence.refresh_from_db()
+        self.assertEqual(ajout.competence.libelle, "Je trie des objets fictifs")
+
     def test_partage_portable_sans_donnees_de_suivi(self):
         from .models import Ecole
         from .services.import_sources_referentiels import importer_source

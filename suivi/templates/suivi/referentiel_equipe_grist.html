@@ -5,6 +5,7 @@
 {% if dans_espace_grist %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="equipe" %}
 {% else %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="partage" %}{% endif %}
 <h1>Référentiel d’équipe</h1>
+<p>Référentiel commun que l’équipe peut modifier et proposer au suivi.</p>
 {% if not dans_espace_grist %}
 {% include "suivi/partiels/contexte_espace_partage.html" with classe=classe compact=True only %}
 {% endif %}
@@ -61,7 +62,7 @@
 {% endif %}
 {% if edition_unique %}
 <details{% if erreur and request.POST.action == "ajouter-competence" %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter une compétence au référentiel d’équipe" principal=True only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter une compétence au référentiel d’équipe" only %}
 <form method="post" class="encadre">{% csrf_token %}
 <input type="hidden" name="parent" value="{{ edition_unique }}">
 <p><label>Libellé <input name="libelle" maxlength="300" value="{% if request.POST.action == 'ajouter-competence' %}{{ saisie_libelle }}{% endif %}" required></label></p>
@@ -70,19 +71,26 @@
 <button class="bouton" name="action" value="ajouter-competence">Ajouter la compétence</button>
 </form>
 </details>
+{% if dans_espace_grist %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Autres actions" only %}
+{% endif %}
 <form method="post">{% csrf_token %}
 <input type="hidden" name="edition" value="{{ edition_unique }}">
 <button class="bouton discret" name="action" value="catalogue">Ajouter l’édition au catalogue de l’école</button>
 </form>
+{% if dans_espace_grist %}</details>{% endif %}
 {% if dans_espace_grist %}
 <form method="post" data-publier-equipe-grist hidden>{% csrf_token %}
 <input type="hidden" name="edition" value="{{ edition_unique }}">
 <input type="hidden" name="action" value="preparer-publication-grist">
-<button class="bouton discret">Proposer au suivi dans le catalogue de l’espace</button>
+<button class="bouton">Proposer au suivi dans le catalogue de l’espace</button>
 <p role="status"></p>
 </form>
 {% endif %}
 {% endif %}
+<details{% if erreur and request.POST.action == "ajouter" %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Importer une contribution ZIP" only %}
 <form method="post" enctype="multipart/form-data" class="encadre">
 {% csrf_token %}
 {% if editions %}
@@ -95,11 +103,12 @@
 {% for identifiant in a_reunir %}<input type="hidden" name="tete" value="{{ identifiant }}">{% endfor %}
 <p><label><input type="checkbox" name="resoudre" value="oui"> Cette édition résout les différences entre les deux contributions affichées</label></p>
 {% endif %}
-<p><label for="paquet">ZIP du référentiel d’équipe</label> <input id="paquet" type="file" name="paquet" accept=".zip" required></p>
+<p><label for="paquet-equipe">ZIP du référentiel d’équipe</label> <input id="paquet-equipe" type="file" name="paquet" accept=".zip" required></p>
 <div class="actions">
 <button class="bouton" name="action" value="ajouter">Enregistrer la contribution</button>
 {% if dans_espace_grist %}<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
 {% else %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Retour à Catalogues et partage</a>{% endif %}
 </div>
 </form>
+</details>
 {% endblock %}

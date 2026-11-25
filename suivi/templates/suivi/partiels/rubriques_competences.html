@@ -1,5 +1,9 @@
 {% regroup lignes by domaine_affiche_id|default:domaines_competences.domaine as domaines_competences %}
 <div class="rubriques-competences">
+<div class="actions" role="group" aria-label="Rubriques des compétences" data-commandes-rubriques hidden>
+  <button class="bouton discret" type="button" data-replier-rubriques="ouvrir">Tout déplier</button>
+  <button class="bouton discret" type="button" data-replier-rubriques="fermer">Tout replier</button>
+</div>
 {% for domaine_competences in domaines_competences %}
   <details class="domaine"{% if domaines_competences|length == 1 or domaine or q or afficher_rubriques_ouvertes %} open{% endif %}>
     {% include "suivi/partiels/bouton_depliant.html" with libelle=domaine_competences.list.0.domaine niveau_titre=niveau_domaine|default:2 only %}

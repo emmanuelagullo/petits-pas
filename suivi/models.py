@@ -939,10 +939,14 @@ class DefinitionSourceCompetence(models.Model):
     def clean(self):
         from django.core.exceptions import ValidationError
         if self.identite_id and self.version_id and self.identite.source_id != self.version.source_id:
-            from .identites_referentiels import competences_document
+            from .identites_referentiels import competences_document, est_uuid_portable
 
             contenu = self.version.contenu
             source = self.identite.source
+            if (source.ecole_id and source.ecole_id == self.version.source.ecole_id
+                    and est_uuid_portable(self.identite.identifiant)
+                    and any(c["identite"] == self.identite.identifiant for c in competences_document(contenu))):
+                return
             if (contenu.get("format") != 2 or source.ecole_id not in (None, self.version.source.ecole_id) or not any(
                 c.get("source_origine") == (source.identifiant_diffusion or source.identifiant) and c.get("identite") == self.identite.identifiant
                 for c in competences_document(contenu)

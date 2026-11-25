@@ -10,7 +10,7 @@ from django.db.models import Q
 
 from suivi.models import (DefinitionSourceCompetence, IdentiteSourceCompetence,
                           SourceReferentiel, VersionReferentiel)
-from suivi.identites_referentiels import competences_document, identifiant_source_ecole, reference_competence
+from suivi.identites_referentiels import competences_document, est_uuid_portable, identifiant_source_ecole, reference_competence
 from suivi.icones_partagees import conserver_png, decoder_icone, encoder_icone, png_en_ligne
 from suivi.presentation import catalogue_icones
 
@@ -167,6 +167,8 @@ def lire_source(contenu_yaml):
 @transaction.atomic
 def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
     contenu, identifiants = lire_source(contenu_yaml)
+    if ecole is not None:
+        type(ecole).objects.select_for_update().get(pk=ecole.pk)
     metadata = contenu["source"]
     # Le verrou sérialise les imports successifs d'une source déjà créée.
     identifiant = metadata["identifiant"]
@@ -191,6 +193,16 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
     empruntees = {}
     origines_manquantes = {}
     for competence in competences_document(contenu):
+        cle_portable = competence["identite"]
+        if ecole is not None and est_uuid_portable(cle_portable):
+            identites_portables = list(IdentiteSourceCompetence.objects.filter(
+                source__ecole=ecole, identifiant=cle_portable,
+            ).order_by("pk")[:2])
+            if len(identites_portables) > 1 and not version:
+                raise ValidationError(f"Plusieurs origines locales portent le même UUID : {cle_portable}.")
+            if identites_portables:
+                empruntees[cle_portable] = identites_portables[0]
+            continue
         if "source_origine" not in competence:
             continue
         identifiant_origine = competence["source_origine"]

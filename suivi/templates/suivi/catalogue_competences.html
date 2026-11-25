@@ -11,7 +11,8 @@
 <h1>Compétences de {{ classe.nom }}</h1>
 {% if adoption %}
 <div class="actions entete-catalogue">
-  <p>Référentiel de la classe · <strong>{% if adoption.version.contenu.origine == "etat_initial_repris" %}Référentiel historique de la classe{% else %}{{ adoption.version.source.titre }}{% endif %}</strong>{% if adoption.version.contenu.origine != "etat_initial_repris" %} · édition {{ adoption.version.numero }}{% endif %}</p>
+  <p><strong>Référentiel de la classe</strong><br>{% if adoption.version.contenu.origine != "etat_initial_repris" %}Issu de {% endif %}<strong>{% if adoption.version.contenu.origine == "etat_initial_repris" %}Référentiel historique de la classe{% else %}{{ adoption.version.source.titre }}{% endif %}</strong>{% if adoption.version.contenu.origine != "etat_initial_repris" %} · édition {{ adoption.version.numero }}{% endif %}</p>
+  {% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}?edition={{ nouvelle_edition.pk }}#choisir-referentiel">Nouvelle édition disponible</a>{% endif %}
   {% if peut_regler_referentiel %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>{% endif %}
 </div>
 {% elif peut_regler_referentiel %}
@@ -38,10 +39,14 @@
   <fieldset class="groupe-filtres"><legend>Référentiel et section</legend>
   {% if sources %}
   <div>
-  <label for="source">Référentiel</label>
+  <label for="source">Parcourir</label>
   <select id="source" name="source" aria-describedby="aide-referentiel-catalogue">
     <option value="">Compétences de la classe</option>
-    {% for cle, choix in sources.items %}<option value="{{ cle }}"{% if source == cle %} selected{% endif %}>{{ choix.0 }}</option>{% endfor %}
+    {% for groupe_source, choix in groupes_sources %}
+    <optgroup label="{{ groupe_source }}">
+      {% for cle, titre, suivi in choix %}<option value="{{ cle }}"{% if source == cle %} selected{% endif %}>{{ titre }}{% if suivi %} · Nouveautés suivies{% endif %}</option>{% endfor %}
+    </optgroup>
+    {% endfor %}
   </select>
   <p class="aide" id="aide-referentiel-catalogue">Le choix initial affiche les compétences de la base, les ajouts de la classe et les ajouts locaux disponibles pour elle. Pour parcourir un autre référentiel, sélectionnez-le ici.</p>
   </div>

@@ -125,3 +125,29 @@
   page.classList.add('avec-sommaire');
   depuisAncre();
 })();
+function activerCommandesRubriques(racine) {
+  racine.querySelectorAll('[data-commandes-rubriques]').forEach(commandes => {
+    const liste = commandes.parentElement;
+    commandes.hidden = liste.querySelectorAll(':scope > details.domaine, :scope > details.domaine > details.sous-domaine').length < 2;
+  });
+}
+document.addEventListener('click', event => {
+  const bouton = event.target.closest('[data-replier-rubriques]');
+  if (!bouton) return;
+  const liste = bouton.closest('.rubriques-competences');
+  liste.querySelectorAll(':scope > details.domaine, :scope > details.domaine > details.sous-domaine')
+    .forEach(rubrique => { rubrique.open = bouton.dataset.replierRubriques === 'ouvrir'; });
+});
+activerCommandesRubriques(document);
+document.addEventListener('htmx:afterSwap', () => activerCommandesRubriques(document));
+
+document.addEventListener('petits-pas:rubriques-actualisees', event => activerCommandesRubriques(event.target));
+
+const paquetÉquipe = document.querySelector('#paquet-equipe');
+if (paquetÉquipe) {
+  const déposer = paquetÉquipe.form.querySelector('[value="ajouter"]');
+  const actualiser = () => { déposer.disabled = !paquetÉquipe.files.length; };
+  paquetÉquipe.addEventListener('change', actualiser);
+  window.addEventListener('pageshow', actualiser);
+  actualiser();
+}

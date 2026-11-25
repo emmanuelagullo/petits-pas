@@ -90,7 +90,11 @@ def invitation_grist(request):
                 "invitation_suivi": True,
                 "erreur": "Une personne qui gère les catalogues de l’école doit ouvrir ce lien pour examiner le catalogue.",
             }, status=403)
-        return redirect(reverse("decouvrir_referentiels") + "?" + urlencode({"catalogue_invite": url}) + "#ajouter-catalogue")
+        contexte = {"catalogue_invite": url}
+        classe = request.GET.get("classe", "")
+        if classe.isdecimal() and len(classe) < 18:
+            contexte["classe"] = classe
+        return redirect(reverse("decouvrir_referentiels") + "?" + urlencode(contexte) + "#ajouter-catalogue")
     classes = []
     for classe in Classe.objects.filter(ecole=ecole, etat=Classe.ACTIVE).order_by("nom", "pk"):
         if not autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
@@ -152,6 +156,11 @@ def espace_classe(request, pk):
             PartageGristClasse.objects.filter(classe=classe).update(actif=False)
             return redirect("espace_grist_classe", pk=pk)
         try:
+            if request.POST.get("action") == "ouvrir-catalogue":
+                prefixe, document = adresse_grist(request.POST.get("grist", ""))
+                return redirect(reverse("invitation_grist") + "?" + urlencode({
+                    "grist": f"https://{HOTE_GRIST}{prefixe}/{document}", "usage": "suivre", "classe": pk,
+                }))
             if classe.etat != Classe.ACTIVE or not adoption or adoption.clos:
                 raise ValidationError("Choisissez le référentiel d’une classe active avant de la connecter.")
             champ_erreur = "grist"
@@ -160,11 +169,13 @@ def espace_classe(request, pk):
             changer_destination = bool(partage and partage.actif and adresse_grist(partage.url)[1] != document)
             if partage and partage.actif and adresse_grist(partage.url)[1] == document and partage.licence == licence:
                 return redirect("espace_grist_classe", pk=pk)
+            if changer_destination and request.POST.get("changement") != document:
+                raise ValidationError("Vérifiez la nouvelle destination puis confirmez le changement d’espace.")
             if erreur_licence:
                 raise ValidationError(erreur_licence)
             if request.POST.get("confirmer") != "oui":
                 champ_erreur = "confirmer"
-                raise ValidationError("Cochez cette case pour confirmer le partage du référentiel de la classe.")
+                raise ValidationError("Cochez cette case pour confirmer le partage, ou ouvrez le catalogue sans partager.")
             if len(nom_saisi) > 200:
                 champ_erreur = "nom_espace"
                 raise ValidationError("Le nom de l’espace est limité à 200 caractères.")
@@ -172,6 +183,11 @@ def espace_classe(request, pk):
             nom_initial = nom_saisi or nom_espace_propose(classe)
             with transaction.atomic():
                 Classe.objects.select_for_update().get(pk=classe.pk)
+                actuel = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
+                if actuel and adresse_grist(actuel.url)[1] != document and (
+                    request.POST.get("espace_attendu") != actuel.url or request.POST.get("changement") != document
+                ):
+                    raise ValidationError("L’espace actif a changé. Vérifiez les destinations avant de confirmer.")
                 partage, cree = PartageGristClasse.objects.get_or_create(classe=classe,
                     defaults={"url": url, "licence": licence, "nom_espace": nom_initial})
                 if not cree and (partage.url != url or partage.licence != licence or not partage.actif):
@@ -187,6 +203,8 @@ def espace_classe(request, pk):
     document_actif = adresse_grist(partage.url)[1] if partage and partage.actif else ""
     return render(request, "suivi/espace_grist_classe.html", {"classe": classe, "partage": partage,
         "document_actif": document_actif,
+        "document_a_confirmer": document if changer_destination else "",
+        "espace_attendu": partage.url if partage else "",
         "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
         "erreur": erreur, "champ_erreur": champ_erreur, "licence": licence, "erreur_licence": erreur_licence,
         "confirmer": request.POST.get("confirmer") == "oui", "nom_saisi": nom_saisi,
