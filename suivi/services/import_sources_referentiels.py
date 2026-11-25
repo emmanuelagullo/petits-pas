@@ -57,6 +57,16 @@ def liste(valeur, chemin):
     return valeur
 
 
+def normaliser_filiation(valeur):
+    filiation = objet(valeur, ("source", "identite", "edition", "libelle"), "Variante")
+    return {
+        "source": identifiant(filiation.get("source"), "Source de la variante"),
+        "identite": identifiant(filiation.get("identite"), "Identité d’origine"),
+        "edition": identifiant(filiation.get("edition"), "Édition d’origine", 80),
+        "libelle": texte(filiation.get("libelle"), "Libellé d’origine", 300),
+    }
+
+
 def normaliser(document):
     document = objet(document, ("format", "source", "version", "domaines", "structure_seule"), "Document")
     if type(document.get("format")) is not int or document["format"] not in (1, 2):
@@ -104,13 +114,7 @@ def normaliser(document):
                 raise ValidationError(f"Icône inconnue : {icone}.")
             personnalisee = {}
             if "variante_de" in c:
-                filiation = objet(c["variante_de"], ("source", "identite", "edition", "libelle"), "Variante")
-                personnalisee["variante_de"] = {
-                    "source": identifiant(filiation.get("source"), "Source de la variante"),
-                    "identite": identifiant(filiation.get("identite"), "Identité d’origine"),
-                    "edition": identifiant(filiation.get("edition"), "Édition d’origine", 80),
-                    "libelle": texte(filiation.get("libelle"), "Libellé d’origine", 300),
-                }
+                personnalisee["variante_de"] = normaliser_filiation(c["variante_de"])
             if "icone_png" in c:
                 if icone:
                     raise ValidationError("Choisissez une seule illustration pour cette compétence.")

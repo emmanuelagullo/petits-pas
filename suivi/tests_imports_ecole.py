@@ -204,7 +204,9 @@ class ImportEcoleTests(TransactionTestCase):
         adoption = m.AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
         locale = creer_ajout(utilisateur=self.prof, ecole=self.ecole, annee=self.classe.annee_scolaire,
             classe=self.classe, adoption_attendue=adoption.pk, domaine_id=self.competence.domaine_id,
-            libelle='Ajout pédagogique fictif', niveau='MS')
+            libelle='Ajout pédagogique fictif', niveau='MS',
+            variante_de={'source': 'source-fictive', 'identite': 'competence-fictive',
+                         'edition': '1', 'libelle': 'Compétence fictive'})
         lien = relier_competences(utilisateur=self.prof, ecole=self.ecole, annee=self.classe.annee_scolaire,
             classe=self.classe, adoption_attendue=adoption.pk,
             reference_depart=f'base:{adoption.version_id}:{self.competence.pk}',
@@ -225,6 +227,8 @@ class ImportEcoleTests(TransactionTestCase):
         classe = m.Classe.objects.get(ecole=ecole, nom=self.classe.nom)
         finale = m.AdoptionReferentiel.objects.get(classe=classe, courante=True)
         ajout = m.CompetenceLocale.objects.get(ecole=ecole)
+        self.assertEqual(ajout.definition["identite_portable"], locale.definition["identite_portable"])
+        self.assertEqual(ajout.definition["variante_de"], locale.definition["variante_de"])
         nouvelle_competence = m.Competence.objects.get(domaine__ecole=ecole, code=self.competence.code)
         nouveau_lien = m.CorrespondanceCompetence.objects.get(ecole=ecole)
         self.assertEqual(nouveau_lien.reference_arrivee, f'ajout:{ajout.pk}')

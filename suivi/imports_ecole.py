@@ -6,6 +6,7 @@ Chaque table et chaque structure JSON doivent être examinées explicitement.
 import copy
 import hashlib
 import json
+import re
 import shutil
 import sqlite3
 import tempfile
@@ -253,7 +254,7 @@ class Projection:
                 resultat[cle] = self.ligne_json(val)
         return resultat
 
-    def contenu(self, valeur):
+    def contenu(self, valeur, *, ajout_local=False):
         if not isinstance(valeur, dict):
             raise ValidationError("Contenu de référentiel invalide.")
         resultat = copy.deepcopy(valeur)
@@ -274,7 +275,17 @@ class Projection:
                     competence["icone_png"] = b64encode(donnees).decode("ascii")
             normaliser(document)
             return resultat
-        if set(valeur) - set(RUBRIQUES) - {'format', 'origine', 'source', 'structure_seule'}:
+        metadonnees = {'format', 'origine', 'source', 'structure_seule'}
+        if ajout_local:
+            metadonnees.update(('identite_portable', 'variante_de'))
+            if 'identite_portable' in valeur:
+                identite = valeur['identite_portable']
+                if not isinstance(identite, str) or not re.fullmatch(r"pp-[A-Za-z0-9_-]{22}", identite):
+                    raise ValidationError("Identité portable d’ajout invalide.")
+            if 'variante_de' in valeur:
+                from .services.import_sources_referentiels import normaliser_filiation
+                resultat['variante_de'] = normaliser_filiation(valeur['variante_de'])
+        if set(valeur) - set(RUBRIQUES) - metadonnees:
             raise ValidationError("Structure de référentiel non prise en charge.")
         for rubrique, model in RUBRIQUES.items():
             if rubrique in valeur:
@@ -355,7 +366,9 @@ class Projection:
                     elif model is m.CorrespondanceCompetence:
                         champs[champ.attname] = self.ligne_json(valeur)
                     else:
-                        champs[champ.attname] = self.contenu(valeur)
+                        champs[champ.attname] = self.contenu(
+                            valeur, ajout_local=model is m.CompetenceLocale and champ.name == "definition",
+                        )
                 if model is m.UsageCompetence:
                     champs['cle_definition'] = self.cle(r['cle_definition'])
                 if model is m.CorrespondanceCompetence:
