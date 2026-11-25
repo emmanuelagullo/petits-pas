@@ -27,6 +27,8 @@
 {% else %}
 <p>Aucun référentiel reçu pour le moment.</p>
 {% endif %}
+{% elif not mode_local %}
+<p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe de l’école</a></p>
 {% endif %}
 <p><a class="bouton" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace{% else %}Rejoindre un espace{% endif %}</a></p>
 {% endif %}

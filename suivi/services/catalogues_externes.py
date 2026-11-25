@@ -25,6 +25,12 @@ CATALOGUES_FOURNIS = {
 }
 
 
+def partage_grist_disponible():
+    from django.conf import settings
+
+    return settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False) or settings.GRIST_PARTAGE_SERVEUR
+
+
 def catalogues_grist_connus(reglages):
     return {**CATALOGUES_FOURNIS,
             **{cle: etat["catalogue"] for cle, etat in reglages.items() if "catalogue" in etat}}

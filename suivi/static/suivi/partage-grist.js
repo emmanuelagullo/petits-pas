@@ -73,6 +73,26 @@
     }
   }
 
+  const cheminIcônes = '/tables/PetitsPasIcones/records';
+  const filtreIcône = empreinte => '?filter=' + encodeURIComponent(JSON.stringify({Empreinte: [empreinte]}));
+
+  async function publierIcônes(api, icônes) {
+    if (!Object.keys(icônes).length) return;
+    await préparer(api, 'PetitsPasIcones', ['Empreinte', 'PNG']);
+    for (const [empreinte, png] of Object.entries(icônes)) {
+      const chemin = api + cheminIcônes;
+      const {records} = await grist(chemin + filtreIcône(empreinte));
+      if (records.length === 1 && records[0].fields.PNG === png) continue;
+      if (records.length) throw new Error('Icône incohérente');
+      await grist(chemin + '?noparse=true&noupdate=true&onmany=none', json('PUT', {
+        records: [{require: {Empreinte: empreinte}, fields: {PNG: png}}],
+      }));
+      const après = await grist(chemin + filtreIcône(empreinte));
+      if (après.records.length !== 1 || après.records[0].fields.PNG !== png)
+        throw new Error('Icône non confirmée');
+    }
+  }
+
   const publication = document.querySelector('[data-publier-equipe-grist]');
   if (publication) {
     publication.hidden = false;
@@ -87,11 +107,12 @@
         const réponse = await fetch(window.location.href, {
           method: 'POST', body: new FormData(publication), signal: AbortSignal.timeout(15000),
         });
-        const {api, reference, titre, contenu, erreur} = await réponse.json();
+        const {api, reference, titre, contenu, icones, erreur} = await réponse.json();
         if (!réponse.ok) {
           état.textContent = erreur || 'Impossible de préparer cette édition.';
           return;
         }
+        await publierIcônes(api, icones);
         const chemin = api + '/tables/Editions/records';
         await préparer(api, 'Editions', ['Numero', 'Referentiel', 'Titre', 'Contenu']);
         const {columns} = await grist(api + '/tables/Editions/columns');
@@ -156,6 +177,7 @@
     const nomPartage = metadata.records.find(r => r.fields.Identifiant === 'espace')?.fields.Nom;
     let confirme = null;
     if (contenu !== null) {
+      await publierIcônes(api, partage.icones);
       const écrire = (url, fields) => grist(url + '?noparse=true&onmany=none',
         json('PUT', {records: [{require: {Identifiant: id}, fields}]}));
       await écrire(documents, {Contenu: contenu});
@@ -168,11 +190,26 @@
       .filter(f => /^[\da-f-]{36}$/i.test(f.Identifiant) && !propres.has(f.Identifiant)
         && reçus[f.Identifiant] !== f.Empreinte).map(f => f.Identifiant))];
     const lignes = [];
+    const icônesLues = new Map();
     for (const identifiant of autres) {
       // L’index ne contient que des métadonnées. Le contenu local n’est jamais demandé.
       const filtre = encodeURIComponent(JSON.stringify({Identifiant: [identifiant]}));
       const réponse = await grist(`${documents}?filter=${filtre}`);
-      if (réponse.records.length === 1) lignes.push(réponse.records[0].fields);
+      if (réponse.records.length !== 1) continue;
+      const champs = réponse.records[0].fields;
+      const icones = {};
+      for (const [, empreinte] of String(champs.Contenu ?? "").matchAll(/"icone_png"\s*:\s*"sha256:([0-9a-f]{64})"/g)) {
+        if (!icônesLues.has(empreinte)) {
+          try {
+            const {records: ressources} = await grist(api + cheminIcônes + filtreIcône(empreinte));
+            if (ressources.length === 1) icônesLues.set(empreinte, ressources[0].fields.PNG);
+          } catch {
+            // Le serveur local signalera cette projection comme incomplète.
+          }
+        }
+        if (icônesLues.has(empreinte)) icones[empreinte] = icônesLues.get(empreinte);
+      }
+      lignes.push({...champs, icones});
     }
     const opérations = json('POST', {id, api, lignes, nom: nomPartage || partage.nom_espace, confirme});
     opérations.headers['X-CSRFToken'] = csrf;

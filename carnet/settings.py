@@ -414,4 +414,5 @@ RATELIMIT_CHANGEMENT_MOT_DE_PASSE = os.environ.get(
 # Fichier facultatif écrit par l’exploitant ; aucune donnée personnelle.
 MAINTENANCE_ANNONCE = os.environ.get("CARNET_MAINTENANCE_ANNONCE", "")
 
+GRIST_PARTAGE_SERVEUR = os.environ.get("CARNET_GRIST_PARTAGE_SERVEUR", "") == "oui"
 GRIST_MODELE_URL = os.environ.get("CARNET_GRIST_MODELE_URL", "")

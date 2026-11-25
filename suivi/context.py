@@ -4,6 +4,7 @@ from django.utils.functional import SimpleLazyObject
 from comptes.models import AffectationClasse
 from comptes.phrases_de_passe import proposer_phrase
 
+from .services.catalogues_externes import partage_grist_disponible
 from .autorisations import ADMINISTRER_ECOLE, VOIR_CLASSE, autorise, classes_accessibles
 from .contexte_ecole import ecole_courante
 from .models import PropositionReferentiel
@@ -61,7 +62,7 @@ def session_ecole(request):
         "version_application": settings.VERSION_APPLICATION,
         "email_disponible": settings.EMAIL_DISPONIBLE,
         "mode_local": settings.MODE_LOCAL,
-        "partage_grist_disponible": settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False),
+        "partage_grist_disponible": partage_grist_disponible(),
         "acces_local_disponible": settings.ACCES_LOCAL_AUTONOME,
         "longueur_min_mot_de_passe": settings.LONGUEUR_MIN_MOT_DE_PASSE,
         "phrase_de_passe_proposee": SimpleLazyObject(proposer_phrase) if settings.MODE_LOCAL else "",

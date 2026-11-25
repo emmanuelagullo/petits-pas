@@ -2,10 +2,10 @@
 {% load navigation_suivi %}
 {% block titre %}Référentiel d’équipe{% endblock %}
 {% block contenu %}
-{% if partage_grist_disponible %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="equipe" %}
+{% if dans_espace_grist %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="equipe" %}
 {% else %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="partage" %}{% endif %}
 <h1>Référentiel d’équipe</h1>
-{% if not partage_grist_disponible %}
+{% if not dans_espace_grist %}
 {% include "suivi/partiels/contexte_espace_partage.html" with classe=classe compact=True only %}
 {% endif %}
 {% if erreur %}<ul class="messages"><li role="alert" class="error">{{ erreur }}</li></ul>{% endif %}
@@ -74,7 +74,7 @@
 <input type="hidden" name="edition" value="{{ edition_unique }}">
 <button class="bouton discret" name="action" value="catalogue">Ajouter l’édition au catalogue de l’école</button>
 </form>
-{% if partage_grist_disponible %}
+{% if dans_espace_grist %}
 <form method="post" data-publier-equipe-grist hidden>{% csrf_token %}
 <input type="hidden" name="edition" value="{{ edition_unique }}">
 <input type="hidden" name="action" value="preparer-publication-grist">
@@ -98,7 +98,7 @@
 <p><label for="paquet">ZIP du référentiel d’équipe</label> <input id="paquet" type="file" name="paquet" accept=".zip" required></p>
 <div class="actions">
 <button class="bouton" name="action" value="ajouter">Enregistrer la contribution</button>
-{% if partage_grist_disponible %}<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
+{% if dans_espace_grist %}<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
 {% else %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Retour à Catalogues et partage</a>{% endif %}
 </div>
 </form>

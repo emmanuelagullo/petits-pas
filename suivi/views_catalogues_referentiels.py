@@ -23,7 +23,7 @@ from .identites_referentiels import identifiant_source_ecole
 from .models import ChoixApplicationAnnuel, DestinationPublicationGrist, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .services.catalogue_fourni import REFERENTIELS_DEPART
-from .services.catalogues_externes import adresse_grist, catalogues_grist_connus, enregistrer_nom_catalogue_grist, identite_grist, lire_catalogue_grist
+from .services.catalogues_externes import adresse_grist, catalogues_grist_connus, enregistrer_nom_catalogue_grist, identite_grist, lire_catalogue_grist, partage_grist_disponible
 from .services.choix_bases_referentiels import choix_bases, verifier_annee
 from .views import acces_requis
 
@@ -309,7 +309,7 @@ def suivis_classe(request, classe_pk):
 
     partage_grist = None
     document_espace = ""
-    if settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False):
+    if partage_grist_disponible():
         partage_grist = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
         if partage_grist:
             document_espace = adresse_grist(partage_grist.url)[1]

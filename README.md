@@ -465,6 +465,12 @@ restent distinctes. Voir la fiche du Guide pratique « Partager les droits de
 gestion de l’école » et `POLITIQUE-AUTORISATION.org` pour les limites des
 interventions techniques.
 
+Sur un déploiement client–serveur, le réglage `CARNET_GRIST_PARTAGE_SERVEUR=oui`
+ouvre aussi **Catalogues et partage → Rejoindre un espace**. Chaque équipe
+renseigne le lien du même document Grist et confirme le partage de sa classe.
+La synchronisation s’effectue depuis le navigateur connecté. Le référentiel
+d’équipe de l’école reste accessible aux classes qui ne rejoignent pas d’espace.
+
 ## Audit de performance
 
 [AUDIT-PERFORMANCE.md](AUDIT-PERFORMANCE.md) présente les mesures locales,

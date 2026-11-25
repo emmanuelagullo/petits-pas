@@ -1,6 +1,7 @@
 """Synchronisation de projections pédagogiques depuis le navigateur."""
 import hashlib
 import json
+from base64 import b64encode
 from functools import wraps
 from urllib.parse import urlencode
 from uuid import UUID
@@ -18,10 +19,11 @@ from django.views.decorators.http import require_http_methods
 
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise, charger_classe_autorisee
 from suivi.contexte_ecole import ecole_courante
-from suivi.identites_referentiels import identifiant_source_ecole
+from suivi.icones_partagees import PREFIXE, decoder_icone, empreinte_png, externaliser_png
+from suivi.identites_referentiels import competences_document, identifiant_source_ecole
 from suivi.models import Classe, PartageGristClasse, ReceptionReferentielGrist, SourceReferentiel, VersionReferentiel
 from suivi.referentiels import adoption_courante
-from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist
+from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist, partage_grist_disponible
 from suivi.services.import_sources_referentiels import importer_source
 from suivi.services.partage_referentiel_classe import preparer_referentiel_classe, verifier_licence_synchronisation
 from suivi.views import acces_requis
@@ -29,10 +31,10 @@ from suivi.views import acces_requis
 TABLE = "PetitsPasClasses"
 
 
-def partage_local(vue):
+def partage_disponible(vue):
     @wraps(vue)
     def appel(request, *args, **kwargs):
-        if not (settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False)):
+        if not partage_grist_disponible():
             raise Http404
         return vue(request, *args, **kwargs)
     return appel
@@ -61,15 +63,18 @@ def document_projection(classe, identifiant):
     return document
 
 
-def projection(partage):
+def projection(partage, icones=None):
     document = document_projection(partage.classe, partage.identifiant)
     if document["source"]["licence"] != partage.licence:
         raise ValidationError("La licence a changé. Confirmez à nouveau le partage de cette classe.")
     # Les références d’origine restent celles émises par la projection d’export.
+    ressources = externaliser_png(document)
+    if icones is not None:
+        icones.update({cle: b64encode(png).decode("ascii") for cle, png in ressources.items()})
     return texte_json(document)
 
 
-@partage_local
+@partage_disponible
 @acces_requis
 @require_http_methods(["GET"])
 def invitation_grist(request):
@@ -99,7 +104,7 @@ def invitation_grist(request):
     return render(request, "suivi/invitation_grist.html", {"classes": classes})
 
 
-@partage_local
+@partage_disponible
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def espace_classe(request, pk):
@@ -198,6 +203,15 @@ def recevoir_projection(partage, ligne, propres):
     document = json.loads(contenu)
     if not isinstance(document, dict) or not isinstance(document.get("source"), dict):
         raise ValidationError("Référentiel partagé illisible.")
+    icones = ligne.get("icones", {})
+    for competence in competences_document(document):
+        valeur = competence.get("icone_png")
+        if isinstance(valeur, str) and valeur.startswith(PREFIXE):
+            cle_icone = valeur[len(PREFIXE):]
+            png = icones[cle_icone]
+            if empreinte_png(decoder_icone(png)) != cle_icone:
+                raise ValidationError("Une icône reçue ne correspond pas à son empreinte.")
+            competence["icone_png"] = png
     source_externe = document["source"]
     reference = f"classe-grist-{identifiant}"
     ecole = partage.classe.ecole
@@ -217,7 +231,7 @@ def recevoir_projection(partage, ligne, propres):
                                                   document_grist=adresse_grist(partage.url)[1])
 
 
-@partage_local
+@partage_disponible
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def synchroniser(request):
@@ -235,9 +249,10 @@ def synchroniser(request):
             ).order_by("-pk").values_list("source__identifiant_diffusion", "numero"):
                 recues.setdefault(identifiant.removeprefix("classe-grist-"), numero[:64])
             erreur = ""
+            icones = {}
             try:
-                contenu = projection(partage)
-                if len(contenu.encode()) > TAILLE_MAX:
+                contenu = projection(partage, icones)
+                if len(contenu.encode()) + sum(map(len, icones.values())) > TAILLE_MAX:
                     raise ValidationError("Le référentiel est trop volumineux pour cet espace.")
             except ValidationError as cause:
                 contenu, erreur = None, " ".join(cause.messages)
@@ -249,6 +264,7 @@ def synchroniser(request):
                                      + "?" + urlencode({"espace": document})),
                 "nom_espace": partage.nom_espace or nom_espace_propose(partage.classe),
                 "contenu": contenu if cle != partage.derniere_empreinte else None,
+                "icones": icones if contenu and cle != partage.derniere_empreinte else {},
                 "empreinte": cle, "recues": recues, "erreur": erreur})
         return JsonResponse({"partages": travaux, "propres": propres})
     if len(request.body) > 4 * TAILLE_MAX:

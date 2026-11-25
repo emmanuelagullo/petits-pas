@@ -24,7 +24,14 @@ class PartageGristPWA(Base):
         self.entrer()
 
     def test_propre_identifiant_ignore_et_confirmation_idempotente(self):
+        from io import BytesIO
         from uuid import uuid4
+
+        from PIL import Image
+
+        from .icones_partagees import decoder_icone, encoder_icone, empreinte_png
+        from .identites_referentiels import competences_document
+        from .models import IconePartagee
 
         self.adopter()
         espace = reverse("espace_grist_classe", args=[self.classe.pk])
@@ -42,14 +49,23 @@ class PartageGristPWA(Base):
         distant = str(uuid4())
         reçu = json.loads(travail["contenu"])
         reçu["source"]["titre"] = "Référentiel du collègue"
+        image = BytesIO()
+        Image.new("RGBA", (1, 1)).save(image, format="PNG")
+        png = encoder_icone(image.getvalue())
+        cle = empreinte_png(decoder_icone(png))
+        next(competences_document(reçu))["icone_png"] = "sha256:" + cle
         lignes = [{"Identifiant": travail["id"], "Contenu": "ne doit jamais être importé"},
                   {"Identifiant": distant, "Contenu": json.dumps(reçu)}]
         confirmation = {"id": travail["id"], "api": travail["api"], "lignes": lignes,
                         "nom": "Mon École partagée", "confirme": travail["empreinte"]}
+        self.assertEqual(self.client.post(url, confirmation, content_type="application/json").json()["erreurs"], 1)
+        self.assertFalse(IconePartagee.objects.filter(empreinte=cle).exists())
+        lignes[1]["icones"] = {cle: png}
         for _ in range(2):
             self.assertEqual(self.client.post(url, confirmation, content_type="application/json").json(),
                              {"erreurs": 0, "nom": "Mon École partagée", "partage_confirme": True})
         self.assertEqual(VersionReferentiel.objects.filter(source__titre="Référentiel du collègue").count(), 1)
+        self.assertEqual(IconePartagee.objects.filter(empreinte=cle).count(), 1)
         page = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
         self.assertContains(page, "Voir les référentiels de cet espace")
         self.assertContains(page, 'id="referentiels-espace-document-fictif" open')
@@ -159,6 +175,21 @@ class PartageGristPWA(Base):
         with self.settings(MODE_LOCAL=False, MODE_PWA=False):
             self.assertEqual(self.client.get(espace).status_code, 404)
 
+
+    @override_settings(ROOT_URLCONF="carnet.urls", MODE_LOCAL=False, MODE_PWA=False, GRIST_PARTAGE_SERVEUR=True)
+    def test_serveur_peut_rejoindre_un_journal_grist(self):
+        self.adopter()
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        equipe = reverse("referentiel_equipe_grist", args=[self.classe.pk])
+        self.assertContains(self.client.get(equipe), "Créer le référentiel d’équipe")
+        adresse = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        self.assertEqual(self.client.post(espace, {"grist": adresse, "confirmer": "oui"}).status_code, 302)
+        suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        self.assertContains(self.client.get(suivis), "Gérer l’espace")
+        self.assertRedirects(self.client.post(equipe, {"action": "initialiser"}), equipe)
+        travaux = self.client.get(reverse("synchroniser_grist")).json()["partages"]
+        transfert = travaux[0]["transfert_equipe"]
+        self.assertEqual(len(self.client.get(transfert).json()["a_envoyer"]), 1)
 
     def test_ariane_et_confirmation_du_partage(self):
         self.adopter()
