@@ -88,7 +88,7 @@ class CreationBaseClasse(Base):
         self.assertContains(page, ">Partager le référentiel de la classe</h1>")
         self.assertContains(page, '<section id="export-referentiel"')
         self.assertNotContains(page, '<details id="export-referentiel"')
-        self.assertContains(page, "Transmettez-le à une personne qui gère l’école")
+        self.assertNotContains(page, "Transmettez-le à une personne qui gère l’école")
         self.assertNotContains(page, "data-sommaire-page")
         self.assertNotContains(page, 'id="import-referentiel"')
 
