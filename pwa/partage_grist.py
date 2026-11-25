@@ -171,7 +171,9 @@ def espace_classe(request, pk):
             return redirect(reverse("suivis_referentiels_classe", args=[pk]) + "?espace=1#espace-partage")
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
+    document_actif = adresse_grist(partage.url)[1] if partage and partage.actif else ""
     return render(request, "suivi/espace_grist_classe.html", {"classe": classe, "partage": partage,
+        "document_actif": document_actif,
         "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
         "erreur": erreur, "champ_erreur": champ_erreur, "licence": licence, "erreur_licence": erreur_licence,
         "confirmer": request.POST.get("confirmer") == "oui", "nom_saisi": nom_saisi,

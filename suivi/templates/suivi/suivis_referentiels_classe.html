@@ -21,12 +21,12 @@
 <p>Partagez automatiquement les compétences communes de votre classe avec les collègues qui utilisent le même espace.</p>
 {% if partage_grist %}
 {% include "suivi/partiels/contexte_espace_partage.html" with classe=classe espace_actif=partage_grist compact=True only %}
-<p role="status" data-etat-espace>Synchronisation en attente.</p>
-{% if recus_espace %}
-<p><a class="bouton discret" href="{{ lien_referentiels_espace }}">Voir les référentiels de cet espace</a></p>
-{% else %}
-<p>Aucun référentiel reçu pour le moment.</p>
-{% endif %}
+<p role="status" data-etat-espace>Vérification du partage en attente.</p>
+<div class="actions">
+<a class="bouton discret" href="{{ lien_referentiels_espace }}">Voir les référentiels de cet espace</a>
+<button type="button" class="bouton discret" data-relancer-synchro hidden>Synchroniser maintenant</button>
+</div>
+{% if not recus_espace %}<p data-reception-espace>Aucun référentiel d’une autre classe reçu à l’ouverture de cette page.</p>{% endif %}
 {% elif not mode_local %}
 <p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe de l’école</a></p>
 {% endif %}
@@ -35,7 +35,7 @@
 </details>{% endif %}
 <details id="referentiels-suivis" open>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Référentiels suivis" niveau_titre=2 only %}
-{% if not a_des_suivis %}<p>Aucun référentiel n’est encore suivi par cette classe.</p>{% endif %}
+{% if not a_des_suivis %}<p>Aucun suivi de nouveautés activé pour cette classe.</p>{% endif %}
 {% for ligne in lignes %}
 <section class="encadre">
 <h3>{{ ligne.titre }}</h3>
@@ -78,13 +78,13 @@
 <li class="entree">{{ ligne.titre }}
 <div class="actions">
 <a class="bouton discret" href="{{ ligne.lire }}">Parcourir les compétences</a>
-<form method="post">{% csrf_token %}
+{% if ligne.suivi %}<span>Suivi par la classe</span>{% else %}<form method="post">{% csrf_token %}
 <input type="hidden" name="source" value="{{ ligne.reference }}">
 <button class="bouton discret" name="action" value="suivre">Suivre ce référentiel</button>
-</form>
+</form>{% endif %}
 </div>
 </li>
-{% endfor %}
+{% empty %}<li>Aucun référentiel d’une autre classe reçu dans cet espace.</li>{% endfor %}
 </ul>
 </details>
 {% endfor %}

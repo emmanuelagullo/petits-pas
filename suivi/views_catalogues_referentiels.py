@@ -326,7 +326,7 @@ def suivis_classe(request, classe_pk):
     recus_espace = [ligne for ligne in lignes if document_espace and ligne["version"]
                     and document_espace in documents.get(ligne["version"].source_id, ())]
     ancre_espace = "referentiels-espace-" + document_espace
-    a_decouvrir_espace = any(not ligne["suivi"] for ligne in recus_espace)
+    espace_demande = bool(document_espace and request.GET.get("groupe") == document_espace)
     groupes = {}
     for ligne in lignes:
         if ligne["suivi"]:
@@ -353,6 +353,9 @@ def suivis_classe(request, classe_pk):
         else:
             cle, nom = "instance", "Catalogue Petits Pas"
         groupes.setdefault(cle, {"nom": nom, "lignes": []})["lignes"].append(ligne)
+    if espace_demande:
+        groupes[ancre_espace] = {"nom": noms_espaces.get(document_espace, "Espace de partage"),
+                                 "ancre": ancre_espace, "ouvrir": True, "lignes": recus_espace}
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
@@ -360,8 +363,8 @@ def suivis_classe(request, classe_pk):
                    "recus_espace": bool(recus_espace),
                    "lien_referentiels_espace": (
                        lien("suivis_referentiels_classe", classe.pk, decouvrir=1, groupe=document_espace,
-                            ancre=ancre_espace) if a_decouvrir_espace else "#referentiels-suivis"),
-                   "ouvrir_decouverte": not suivis or request.GET.get("decouvrir") == "1",
+                            ancre=ancre_espace) if document_espace else ""),
+                   "ouvrir_decouverte": espace_demande or not suivis or request.GET.get("decouvrir") == "1",
                    "classe_active": classe.etat == classe.ACTIVE, "groupes": list(groupes.values()),
                    "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
                    "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),

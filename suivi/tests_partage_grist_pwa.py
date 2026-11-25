@@ -41,6 +41,11 @@ class PartageGristPWA(Base):
         suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
         self.assertRedirects(self.client.post(espace, {"grist": grist, "confirmer": "oui"}),
                              suivis + "?espace=1#espace-partage")
+        espace_ouvert = self.client.get(espace)
+        self.assertContains(espace_ouvert, "groupe=document-fictif#referentiels-espace-document-fictif")
+        vide = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
+        self.assertContains(vide, 'id="referentiels-espace-document-fictif" open')
+        self.assertContains(vide, "Aucun référentiel d’une autre classe reçu dans cet espace.")
         url = reverse("synchroniser_grist")
         données = self.client.get(url).json()
         travail = données["partages"][0]

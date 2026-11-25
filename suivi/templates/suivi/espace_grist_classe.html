@@ -1,7 +1,6 @@
 {% extends "suivi/base.html" %}
 {% load navigation_suivi %}
-{% block titre %}Espace de partage{% if partage.actif %}</details>{% endif %}
-{% endblock %}
+{% block titre %}Espace de partage{% endblock %}
 {% block contenu %}
 {% ariane_referentiel "Espace de partage" classe classe.annee_scolaire parcours="partage" %}
 <h1>Espace de partage</h1>
@@ -17,7 +16,7 @@
 </div>
 {% endif %}
 <div class="actions">
-<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}?decouvrir=1#decouvrir-referentiels">Voir les référentiels de cet espace</a>
+<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}?decouvrir=1&amp;groupe={{ document_actif|urlencode }}#referentiels-espace-{{ document_actif }}">Voir les référentiels de cet espace</a>
 <a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a>
 </div>
 </section>

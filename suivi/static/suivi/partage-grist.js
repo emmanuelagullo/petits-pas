@@ -21,6 +21,7 @@
   const etat = document.querySelector('[data-etat-espace]');
   const nomEspace = document.querySelector('[data-nom-espace]');
   const relancer = document.querySelector('[data-relancer-synchro]');
+  const réception = document.querySelector('[data-reception-espace]');
   const journal = document.querySelector('[data-journal-synchro]');
   const projection = document.querySelector('[data-projection-partagee]');
   const raccordement = document.querySelector('[data-raccordement-grist][data-document-actif]');
@@ -213,7 +214,11 @@
     }
     const opérations = json('POST', {id, api, lignes, nom: nomPartage || partage.nom_espace, confirme});
     opérations.headers['X-CSRFToken'] = csrf;
-    return demander(adresse, opérations);
+    const résultat = await demander(adresse, opérations);
+    const nbAutres = new Set(records.map(({fields}) => fields.Identifiant)
+      .filter(cle => /^[\da-f-]{36}$/i.test(cle) && !propres.has(cle))).size;
+    return {...résultat, nbAutres, nbNouveaux: lignes.length - résultat.erreurs,
+      erreurs: résultat.erreurs + autres.length - lignes.length};
   }
 
   async function synchroniserÉquipe(partage) {
@@ -262,8 +267,20 @@
             projection.textContent = 'Votre référentiel a été partagé dans cet espace.';
           await synchroniserÉquipe(partage);
           if (affiché && résultat.nom) nomEspace.textContent = résultat.nom;
-          if (affiché) afficher(partage.erreur || (résultat.erreurs
-            ? 'Des référentiels reçus sont illisibles.' : 'Synchronisation terminée.'));
+          if (affiché) {
+            const envoyée = résultat.partage_confirme && !partage.erreur;
+            const envoi = partage.erreur || (envoyée
+              ? 'Référentiel de la classe partagé.' : 'Envoi du référentiel en attente.');
+            const lectures = résultat.erreurs
+              ? 'Certains référentiels restent à recevoir.'
+              : résultat.nbNouveaux
+                ? `${résultat.nbNouveaux} référentiel${résultat.nbNouveaux > 1 ? "s reçus ou mis à jour" : " reçu ou mis à jour"}.`
+                : résultat.nbAutres
+                  ? 'Les référentiels des autres classes sont à jour.'
+                  : 'Aucun référentiel d’une autre installation à recevoir.';
+            if (réception && résultat.nbNouveaux) réception.hidden = true;
+            afficher(envoi + ' ' + lectures);
+          }
         } catch {
           if (affiché) afficher('Synchronisation incomplète. Réessayez quand le document est accessible.');
         }
