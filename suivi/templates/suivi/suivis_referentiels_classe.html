@@ -34,8 +34,17 @@
 {% endif %}
 </details>{% endif %}
 <details id="referentiels-suivis" open>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Référentiels suivis" niveau_titre=2 only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Nouveautés suivies par la classe" niveau_titre=2 only %}
 {% if not a_des_suivis %}<p>Aucun suivi de nouveautés activé pour cette classe.</p>{% endif %}
+{% if divergences %}
+<details class="avertissement-referentiel avertissement-orange">
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Propositions différentes pour une même compétence" only %}
+<p>Les choix de la classe restent en place. Consultez les propositions de chaque source.</p>
+{% for candidats in divergences %}
+<ul>{% for candidat in candidats %}<li><a href="{{ candidat.url }}">{{ candidat.libelle }} · {{ candidat.titre }}</a></li>{% endfor %}</ul>
+{% endfor %}
+</details>
+{% endif %}
 {% for ligne in lignes %}
 <section class="encadre">
 <h3>{{ ligne.titre }}</h3>
@@ -66,6 +75,7 @@
 <p>Un référentiel suivi n’est plus disponible. <button class="bouton discret" name="action" value="ne-plus-suivre">Retirer ce suivi</button></p>
 </form>
 {% endfor %}
+</details>
 <details id="decouvrir-referentiels"{% if ouvrir_decouverte %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Suivre d’autres référentiels" only %}
 <p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}{% if peut_gerer_catalogues %}#ajouter-catalogue{% endif %}">{% if peut_gerer_catalogues %}Parcourir ou ajouter un catalogue{% else %}Parcourir les catalogues de l’école{% endif %}</a></p>
@@ -88,7 +98,6 @@
 </ul>
 </details>
 {% endfor %}
-</details>
 </details>
 <details id="echanger-referentiels">
 {% if peut_importer_ecole %}

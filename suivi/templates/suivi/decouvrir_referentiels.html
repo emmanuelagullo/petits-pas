@@ -87,7 +87,7 @@
 <p>Édition {{ ligne.derniere }}{% if ligne.url and ligne.locales %} · À l’école : {{ ligne.locales|join:", " }}{% elif ligne.versions_instance and not ligne.consultation %} · Hors des choix autorisés à l’école{% elif ligne.fourni and not ligne.versions_instance %} · Fourni avec Petits Pas{% endif %}{% if ligne.suivi %} · Suivi{% endif %}</p>
 <div class="actions">
 {% if ligne.consultation %}<a class="bouton discret" href="{{ ligne.consultation }}">Consulter l’édition {{ ligne.edition_consultable }}</a>{% endif %}
-{% if peut_gerer and not ligne.suivi and not ligne.mise_a_jour %}
+{% if peut_gerer and not ligne.suivi %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre" %}
 {% endif %}
 {% if ligne.url and peut_importer and not ligne.locale %}
@@ -105,8 +105,6 @@
 {% endif %}
 {% if peut_gerer and ligne.suivi %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="ne-plus-suivre" libelle="Ne plus suivre" %}
-{% elif peut_gerer and ligne.mise_a_jour %}
-{% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre" %}
 {% endif %}
 </details>
 </div>

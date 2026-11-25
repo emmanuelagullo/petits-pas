@@ -121,10 +121,20 @@ def licences_referentiel_partage(adoption, document):
 
 
 def verifier_licence_synchronisation(adoption, document):
+    from suivi.models import InformationsPartageReferentielClasse
+
     sources = sources_referentiel_partage(adoption, document)
     inconnues = [titre for titre, licence in sources if licence.casefold() in
                  {"", "non renseignée", "non renseigné", "inconnue"}]
     if inconnues:
+        if len(sources) == 1:
+            choix = InformationsPartageReferentielClasse.objects.filter(
+                classe=adoption.classe, adoption=adoption, licences_sources=[sources[0][1]],
+            ).first()
+            if choix:
+                licence = choix.donnees.get("licence", "").strip()
+                if licence.casefold() not in {"", "non renseignée", "non renseigné", "inconnue"}:
+                    return licence
         raise ValidationError("Licence à vérifier pour %(sources)s.",
                               params={"sources": ", ".join(inconnues)})
     if len({licence for _, licence in sources}) != 1:

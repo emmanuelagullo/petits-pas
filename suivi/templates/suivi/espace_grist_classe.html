@@ -55,10 +55,12 @@
 {% endif %}
 {% endif %}
 {% if erreur and champ_erreur != "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement"><strong>Raccordement impossible.</strong> {{ erreur }}</li></ul>{% endif %}
-{% if licence %}<p>Licence du référentiel partagé · <strong>{{ licence }}</strong></p>{% endif %}
+{% if licence %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Licence proposée pour le partage" resume=licence only %}
+{% endif %}
 {% if erreur_licence %}
 <p><span class="pastille alerte">Licence à vérifier</span> {% if erreur != erreur_licence %}{{ erreur_licence }}{% endif %}</p>
-<p>Vérifiez la licence auprès de la source avant de reprendre le raccordement.</p>
+<p><a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter&amp;depuis=espace#export-referentiel">Vérifier les informations et renseigner la licence</a></p>
 {% endif %}
 <form method="post" class="encadre" data-raccordement-grist{% if partage.actif and not erreur_licence and partage.licence == licence %} data-document-actif="{{ partage.url }}"{% endif %}>
 {% csrf_token %}

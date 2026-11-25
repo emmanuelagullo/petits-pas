@@ -96,6 +96,24 @@ class PartageGristPWA(Base):
             self.assertEqual(resultat["api"], "https://grist.numerique.gouv.fr/o/docs/api/docs/document-fictif")
         self.assertEqual(self.client.get(reverse("synchroniser_grist")).json()["partages"], [])
 
+    def test_raccordement_reutilise_la_licence_confirmee_dans_le_partage(self):
+        from .models import InformationsPartageReferentielClasse
+
+        adoption = self.adopter()
+        self.a.source.licence = ""
+        self.a.source.save(update_fields=["licence"])
+        InformationsPartageReferentielClasse.objects.create(
+            classe=self.classe, adoption=adoption, licences_sources=[""],
+            donnees={"licence": "CC-BY-SA-4.0"},
+        )
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        self.assertContains(self.client.get(espace), "Licence proposée pour le partage")
+        reponse = self.client.post(espace, {
+            "grist": "https://grist.numerique.gouv.fr/o/docs/document-fictif", "confirmer": "oui",
+        })
+        self.assertEqual(reponse.status_code, 302)
+        self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).licence, "CC-BY-SA-4.0")
+
     def test_licence_manquante_indique_la_source_sans_connecter_la_classe(self):
         self.adopter()
         self.a.source.licence = "Non renseignée"

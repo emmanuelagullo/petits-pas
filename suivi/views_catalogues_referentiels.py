@@ -257,6 +257,9 @@ def suivis_classe(request, classe_pk):
     suivis = {s.reference: s for s in SuiviSourceClasse.objects.filter(classe=classe)}
     action = request.POST.get("action")
     cible = request.POST.get("source")
+    from .identites_referentiels import est_uuid_portable
+
+    divergences = {}
     lignes = []
     for reference, ligne in disponibles.items():
         version, autre = ligne["version"], ligne["autre"]
@@ -265,11 +268,22 @@ def suivis_classe(request, classe_pk):
         etat = {}
         empreinte = ""
         if suivi or (action == "suivre" and reference == cible):
+            definitions = list(lignes_source(version, autre, utilisateur=request.user, classe=classe))
+            if suivi:
+                for ref, competence, _, _ in definitions:
+                    if est_uuid_portable(ref):
+                        divergences.setdefault(ref, []).append({
+                            "titre": ligne["titre"], "libelle": competence["libelle"],
+                            "signature": empreinte_suivi([competence.get(c) for c in
+                                ("libelle", "niveau", "icone", "icone_png", "formulations")]),
+                            "url": lien("catalogue_competences", classe.pk, source=ligne["cle"],
+                                        q=competence["libelle"]),
+                        })
             etat = {
                 ref: {"libelle": c["libelle"], "empreinte": empreinte_suivi([
                     d, s, {cle: c.get(cle) for cle in ("libelle", "niveau", "icone", "icone_png", "formulations")},
                 ])}
-                for ref, c, d, s in lignes_source(version, autre, utilisateur=request.user, classe=classe)
+                for ref, c, d, s in definitions
             }
             empreinte = empreinte_suivi(etat)
         avant = suivi.etat_examine if suivi else etat
@@ -359,6 +373,7 @@ def suivis_classe(request, classe_pk):
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
+                   "divergences": [l for l in divergences.values() if len({c["signature"] for c in l}) > 1],
                    "ouvrir_espace": request.GET.get("espace") == "1",
                    "recus_espace": bool(recus_espace),
                    "lien_referentiels_espace": (
