@@ -80,6 +80,22 @@ class PartageGristPWA(Base):
         self.client.post(espace, {"grist": grist, "confirmer": "oui"})
         self.assertEqual(self.client.get(url).json()["partages"][0]["id"], travail["id"])
 
+    def test_preparer_retrait_suspend_uniquement_le_raccordement_confirme(self):
+        self.adopter()
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        lien = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        self.client.post(espace, {"grist": lien, "confirmer": "oui"})
+        partage = PartageGristClasse.objects.get(classe=self.classe)
+        donnees = {"action": "preparer-retrait", "identifiant_attendu": str(partage.identifiant),
+                   "url_attendue": lien}
+        self.assertEqual(self.client.post(espace, {**donnees, "url_attendue": "autre"}).status_code, 409)
+        self.assertTrue(PartageGristClasse.objects.get(pk=partage.pk).actif)
+        for _ in range(2):
+            resultat = self.client.post(espace, donnees).json()
+            self.assertEqual(resultat["identifiant"], str(partage.identifiant))
+            self.assertEqual(resultat["api"], "https://grist.numerique.gouv.fr/o/docs/api/docs/document-fictif")
+        self.assertEqual(self.client.get(reverse("synchroniser_grist")).json()["partages"], [])
+
     def test_licence_manquante_indique_la_source_sans_connecter_la_classe(self):
         self.adopter()
         self.a.source.licence = "Non renseignée"

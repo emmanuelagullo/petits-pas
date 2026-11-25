@@ -94,6 +94,54 @@
     }
   }
 
+  const retrait = document.querySelector('[data-retrait-grist]');
+  if (retrait && adresse && navigator.locks) {
+    retrait.hidden = false;
+    const formulaire = retrait.querySelector('form');
+    const bouton = formulaire.querySelector('button');
+    const état = formulaire.querySelector('[role=status]');
+    formulaire.addEventListener('submit', async event => {
+      event.preventDefault();
+      bouton.disabled = true;
+      état.textContent = 'Retrait en cours…';
+      try {
+        await navigator.locks.request('petits-pas-grist:' + adresse, async () => {
+          const réponse = await fetch(location.href, {
+            method: 'POST', body: new FormData(formulaire), signal: AbortSignal.timeout(15000),
+          });
+          if (!réponse.ok) throw new Error('Préparation refusée');
+          const {api, identifiant} = await réponse.json();
+          const {tables} = await grist(api + '/tables');
+          const filtre = encodeURIComponent(JSON.stringify({Identifiant: [identifiant]}));
+          const actions = [];
+          const chemins = [];
+          for (const table of ['PetitsPasClasses', 'PetitsPasContenus']) {
+            if (!tables.some(t => t.id === table)) continue;
+            const chemin = api + `/tables/${table}/records?filter=${filtre}`;
+            chemins.push(chemin);
+            const {records} = await grist(chemin);
+            for (const ligne of records) {
+              if (ligne.fields.Identifiant === identifiant) actions.push(['RemoveRecord', table, ligne.id]);
+            }
+          }
+          if (actions.length) await grist(api + '/apply', json('POST', actions));
+          for (const chemin of chemins) {
+            const {records} = await grist(chemin);
+            if (records.length) throw new Error('Retrait non confirmé');
+          }
+        });
+        état.textContent = 'Référentiel retiré. Synchronisation suspendue.';
+        if (relancer) relancer.hidden = true;
+        if (projection) projection.textContent = 'Référentiel retiré de cet espace.';
+        if (etat) etat.textContent = 'Synchronisation suspendue.';
+      } catch {
+        état.textContent = 'Retrait non confirmé. Vérifiez l’accès au document et réessayez.';
+      } finally {
+        bouton.disabled = false;
+      }
+    });
+  }
+
   const publication = document.querySelector('[data-publier-equipe-grist]');
   if (publication) {
     publication.hidden = false;

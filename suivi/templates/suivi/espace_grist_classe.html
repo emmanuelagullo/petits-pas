@@ -4,6 +4,20 @@
 {% block contenu %}
 {% ariane_referentiel "Espace de partage" classe classe.annee_scolaire parcours="partage" %}
 <h1>Espace de partage</h1>
+{% if partage %}
+<details hidden data-retrait-grist>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Retirer mon référentiel de cet espace" only %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="action" value="preparer-retrait">
+<input type="hidden" name="identifiant_attendu" value="{{ partage.identifiant }}">
+<input type="hidden" name="url_attendue" value="{{ partage.url }}">
+<p>La synchronisation sera suspendue et la publication de cette classe sera retirée de cet espace. Les collègues gardent les copies déjà reçues.</p>
+<button type="submit" class="bouton danger-discret">Confirmer le retrait</button>
+<p role="status"></p>
+</form>
+</details>
+{% endif %}
+
 {% if partage.actif %}
 <section class="encadre">
 {% include "suivi/partiels/contexte_espace_partage.html" with classe=classe espace_actif=partage only %}

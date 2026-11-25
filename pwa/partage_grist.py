@@ -135,6 +135,19 @@ def espace_classe(request, pk):
             erreur = cause.messages[0]
             invitation = ""
     if request.method == "POST":
+        if request.POST.get("action") == "preparer-retrait":
+            if not partage:
+                raise Http404
+            prefixe, document = adresse_grist(partage.url)
+            if (request.POST.get("identifiant_attendu") != str(partage.identifiant)
+                    or request.POST.get("url_attendue") != partage.url) or not PartageGristClasse.objects.filter(
+                pk=partage.pk,
+                identifiant=partage.identifiant,
+                url=partage.url,
+            ).update(actif=False, derniere_empreinte=""):
+                return JsonResponse({"erreur": "Le raccordement a changé. Rechargez la page."}, status=409)
+            return JsonResponse({"api": f"https://{HOTE_GRIST}{prefixe}/api/docs/{document}",
+                                 "identifiant": str(partage.identifiant)})
         if request.POST.get("action") == "suspendre":
             PartageGristClasse.objects.filter(classe=classe).update(actif=False)
             return redirect("espace_grist_classe", pk=pk)
