@@ -80,9 +80,17 @@ def apercu_mise_a_jour(classe, actuelle, version):
         Q(classe__isnull=True) | Q(classe=classe), ecole=classe.ecole,
         competence_id__in=liaisons.values(), origine__isnull=False
     ).select_related("origine").order_by("pk"))
+    illustrations = list(ReglagePresentation.objects.filter(
+        Q(classe__isnull=True) | Q(classe=classe), ecole=classe.ecole,
+        competence_id__in=liaisons.values(),
+    ).order_by("pk"))
+    illustrations_classe = {r.competence_id: r for r in illustrations if r.classe_id == classe.pk
+                            and r.mode != ReglagePresentation.HERITER}
+    illustrations_reprenables = {}
     empreinte = hashlib.sha256(json.dumps([
         [(r.pk, r.revision) for r in regles],
         [(r.pk, r.mode, r.texte, r.classe_id, r.origine_id) for r in phrases_locales],
+        [(r.pk, r.mode, r.icone, r.photo.name, r.modifie_le.isoformat()) for r in illustrations],
     ]).encode()).hexdigest()
     phrases_par_competence = {}
     for r in phrases_locales:
@@ -157,11 +165,16 @@ def apercu_mise_a_jour(classe, actuelle, version):
                     choix["masquee"] = True
                 choix_phrases.append(choix)
                 phrases_reprenables[str(locale.origine_id)] = choix
+            illustration = illustrations_classe.get(liaisons.get(identite))
+            choix_illustration = illustration if any(d["cle"] == "icone" for d in details) else None
+            if choix_illustration:
+                illustrations_reprenables[str(choix_illustration.pk)] = choix_illustration
             if details:
                 modifiees.append({"avant": ancien["libelle"], "apres": nouveau["libelle"],
                     "changements": [d["champ"] for d in details], "adaptation": adaptation,
                     "competence_id": liaisons.get(identite),
                     "choix_libelle": choix_libelle, "choix_phrases": choix_phrases,
+                    "choix_illustration": choix_illustration,
                     "filtres": " ".join(d["cle"] for d in details), "details": details})
     # Un retrait ou un changement de section peut changer les possibilités de
     # saisie. Garder le garde-fou renforcé dans ces cas.
@@ -170,7 +183,7 @@ def apercu_mise_a_jour(classe, actuelle, version):
         for identite, ancien in avant.items()
     )
     return {"modifiees": modifiees, "adaptations": conservees,
-        "phrases_reprenables": phrases_reprenables,
+        "phrases_reprenables": phrases_reprenables, "illustrations_reprenables": illustrations_reprenables,
         "continue_suivi": continue_suivi, "libelles_reprenables": libelles_reprenables,
         "ajoutees": [c["libelle"] for i, c in apres.items() if i not in avant],
         "retirees": [c["libelle"] for i, c in avant.items() if i not in apres],

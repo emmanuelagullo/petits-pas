@@ -285,6 +285,31 @@ class MisesAJour(Base):
         self.classe.__dict__.pop("_adoption_referentiel_lecture", None)
         self.assertIn("<prénom> partage une découverte.", formulations_effectives(competence, self.classe))
 
+    def test_reprendre_illustration_sans_effacer_le_libelle_adapte(self):
+        from .models import ReglagePresentation
+        from .presentation import illustration_effective
+
+        ancienne, nouvelle = self.preparer()
+        competence = ancienne.usages.get().competence
+        self.adapter(ancienne)
+        illustration = ReglagePresentation.objects.create(
+            ecole=self.ecole, classe=self.classe, competence=competence,
+            mode=ReglagePresentation.REMPLACER, icone="parler",
+        )
+        url = reverse("referentiel_classe", args=[self.classe.pk])
+        apercu = self.client.post(url, {"action": "apercu", "version": nouvelle.pk})
+        self.assertContains(apercu, 'name="reprendre_illustration"')
+        reponse = self.client.post(url, {"action": "confirmer", "jeton": apercu.context["jeton"],
+                                         "reprendre_illustration": str(illustration.pk)})
+        self.assertEqual(reponse.status_code, 302)
+        self.classe.refresh_from_db()
+        self.classe.__dict__.pop("_adoption_referentiel_lecture", None)
+        self.assertEqual(illustration_effective(self.ecole, competence, self.classe).icone, "livre")
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        definition = next(c for c in contenu_adoption(adoption)["competences"] if c["id"] == competence.pk)
+        self.assertEqual(definition["libelle"], "Mon texte fictif")
+        self.assertFalse(definition["active"])
+
     def test_une_rubrique_masquee_est_absente_de_la_vue_commune_et_du_partage(self):
         from .models import RubriqueClasse
         from .services.partage_referentiel_classe import contenu_commun_classe, preparer_referentiel_classe

@@ -42,6 +42,14 @@
 {% include "suivi/partiels/apercu_paquet_referentiel.html" %}
 {% if not jeton %}
 {% include "suivi/partiels/import_catalogue_grist.html" %}
+<details{% if request.POST.action == "importer-icones-zip" %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Recevoir un ZIP d’icônes" only %}
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+<p><label for="icones-zip">ZIP d’icônes Petits Pas</label>
+<input id="icones-zip" name="icones_zip" type="file" accept=".zip" required></p>
+<button class="bouton discret" name="action" value="importer-icones-zip">Importer les icônes</button>
+</form>
+</details>
 {% endif %}
 <form method="post" enctype="multipart/form-data"
       hx-post="{{ request.get_full_path }}" hx-encoding="multipart/form-data"

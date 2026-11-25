@@ -91,6 +91,26 @@ class PublicationsGrist(SimpleTestCase):
                 destination_grist(CATALOGUE_DEMONSTRATION, preparer_vierge=True)
             ecrire.assert_not_called()
 
+    def test_zip_icones_seules_verifie_les_empreintes(self):
+        from io import BytesIO
+        from zipfile import ZipFile
+
+        from PIL import Image
+
+        from .icones_partagees import empreinte_png
+        from .services.paquets_referentiels import empaqueter_icones, lire_paquet_icones
+
+        image = BytesIO()
+        Image.new("RGBA", (1, 1)).save(image, format="PNG")
+        png = image.getvalue()
+        ressources = {empreinte_png(png): png}
+        self.assertEqual(lire_paquet_icones(empaqueter_icones(ressources)), ressources)
+        archive = BytesIO()
+        with ZipFile(archive, "w") as zip_:
+            zip_.writestr("icones/" + "0" * 64 + ".png", png)
+        with self.assertRaises(ValidationError):
+            lire_paquet_icones(archive.getvalue())
+
     def test_mode_icones_masque_les_editions_sans_les_effacer(self):
         from .services.catalogues_externes import lire_catalogue_grist
 

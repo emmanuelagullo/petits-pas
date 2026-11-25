@@ -132,7 +132,7 @@ def lignes_selection(versions, *, avec_source=False):
     return lignes
 
 
-def apercu_document(document, ecole):
+def apercu_document(document, ecole, *, masquer_png=False):
     contenu, _ = lire_source(document)
     identifiant = contenu["source"]["identifiant"]
     if ecole is not None:
@@ -141,9 +141,20 @@ def apercu_document(document, ecole):
         ).exclude(numero=contenu["version"]).order_by("-pk").first()
     competences = list(definitions_document(contenu).values())
     icones = catalogue_icones()
+    comparaison = comparer_documents(precedente.contenu, contenu) if precedente else None
+    if masquer_png:
+        for competence in competences:
+            competence.pop("icone_png", None)
+        if comparaison:
+            lignes = []
+            for titre, details in comparaison["modifications"]:
+                visibles = [detail for detail in details if "png_avant" not in detail]
+                if visibles:
+                    lignes.append((titre, visibles))
+            comparaison["modifications"] = lignes
     return {
         "apercu": contenu,
-        "comparaison_import": comparer_documents(precedente.contenu, contenu) if precedente else None,
+        "comparaison_import": comparaison,
         "edition_comparee": precedente.numero if precedente else None,
         "destination_import": "de l’école" if ecole else "de l’application",
         "competences_importees": competences,
@@ -151,7 +162,7 @@ def apercu_document(document, ecole):
     }
 
 
-ACTIONS_DIRECTES_PARTAGE = {"apercu-classe", "telecharger-classe", "enregistrer-partage"} | ACTIONS_GRIST
+ACTIONS_DIRECTES_PARTAGE = {"apercu-classe", "telecharger-classe", "telecharger-icones-classe", "enregistrer-partage"} | ACTIONS_GRIST
 ACTIONS_PARTAGE = ACTIONS_DIRECTES_PARTAGE | {"exporter-classe"}
 
 
@@ -259,6 +270,14 @@ def partage_classe(request, classe, contexte, action):
             return
     contexte["modifier_partage"] = False
     enregistrement = {"donnees": donnees, "adoption": adoption, "licences_sources": licences}
+    if action == "telecharger-icones-classe":
+        from .icones_partagees import externaliser_png
+        from .services.paquets_referentiels import empaqueter_icones
+
+        if not inclure_icones:
+            raise ValidationError("Cochez l’inclusion des icônes ajoutées pour les télécharger.")
+        return telecharger_paquet(empaqueter_icones(externaliser_png(normalise)), donnees["titre"],
+                                  type_archive="icones", nombre_competences=0)
     if action in ("telecharger-classe", "exporter-classe"):
         InformationsPartageReferentielClasse.objects.update_or_create(
             classe=classe, defaults=enregistrement,
@@ -401,7 +420,27 @@ def paquets_referentiels(request, classe_pk=None):
                     type_archive="referentiel" if action == "edition" else "referentiel-selection")
             if not contexte["peut_importer"]:
                 raise PermissionDenied
-            if action == "ouvrir-catalogue-grist":
+            if action in ("telecharger-icones-grist", "importer-icones-zip"):
+                from .models import IconePartagee
+                from .services.catalogues_externes import icones_catalogue_grist
+                from .services.paquets_referentiels import empaqueter_icones, lire_paquet_icones
+
+                if not peut_importer_ecole:
+                    raise PermissionDenied
+                if action == "telecharger-icones-grist":
+                    url = request.POST.get("catalogue", "")
+                    ressources = icones_catalogue_grist(url)
+                    return telecharger_paquet(empaqueter_icones(ressources), type_archive="icones",
+                                              nombre_competences=0)
+                fichier = request.FILES.get("icones_zip")
+                if not fichier:
+                    raise ValidationError("Choisissez un ZIP d’icônes.")
+                ressources = lire_paquet_icones(fichier.read(MAX_ARCHIVE + 1))
+                with transaction.atomic():
+                    for cle, png in ressources.items():
+                        IconePartagee.objects.get_or_create(empreinte=cle, defaults={"png": png})
+                contexte["message"] = f"Icônes vérifiées et enregistrées : {len(ressources)}."
+            elif action == "ouvrir-catalogue-grist":
                 if not peut_importer_ecole:
                     raise PermissionDenied
                 contexte["lien_catalogue_import"] = request.POST.get("lien_catalogue_import", "")[:2000]
@@ -466,19 +505,23 @@ def paquets_referentiels(request, classe_pk=None):
                 global_ = action == "apercu" and request.POST.get("destination") == "application"
                 if (global_ and not request.user.is_superuser) or (not global_ and not peut_importer_ecole):
                     raise PermissionDenied
+                masquer_png = False
                 if action == "apercu-grist":
                     try:
                         numero = int(request.POST.get("numero", ""))
                     except ValueError as erreur:
                         raise ValidationError("Choisissez une édition Grist à examiner.") from erreur
-                    document = edition_grist(request.POST.get("catalogue", ""), request.POST.get("reference"), numero)
+                    document, catalogue = edition_grist(
+                        request.POST.get("catalogue", ""), request.POST.get("reference"), numero, avec_catalogue=True,
+                    )
+                    masquer_png = catalogue["mode_contenu"] == "competences"
                 else:
                     fichier = request.FILES.get("paquet")
                     if not fichier:
                         raise ValidationError("Choisissez le fichier à examiner.")
                     document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
                 importer_source(document, verifier_seulement=True, ecole=None if global_ else ecole)
-                contexte.update(apercu_document(document, None if global_ else ecole))
+                contexte.update(apercu_document(document, None if global_ else ecole, masquer_png=masquer_png))
                 attendu = {**engagement, "preparation": get_random_string(32), "global": global_}
                 request.session[SEL] = {"jeton": attendu, "document": document}
                 contexte["jeton"] = signing.dumps(attendu, salt=SEL)
@@ -489,7 +532,7 @@ def paquets_referentiels(request, classe_pk=None):
     except IntegrityError:
         contexte["erreur"] = "Le catalogue a changé pendant l’import. Consultez de nouveau l’aperçu."
     contexte["versions"] = versions.values()
-    contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist") and "erreur" in contexte
-    contexte["message_import"] = action == "importer" and "message" in contexte
+    contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist", "telecharger-icones-grist", "importer-icones-zip") and "erreur" in contexte
+    contexte["message_import"] = action in ("importer", "importer-icones-zip") and "message" in contexte
     maj_import = action in ("apercu", "apercu-grist", "importer") and request.headers.get("HX-Request") == "true"
     return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte and not maj_import else 200)

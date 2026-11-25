@@ -95,10 +95,41 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             "edition": adoption.version.numero,
             "libelle": variante.libelle,
         }
-    illustration_variante = illustration_effective(ecole, variante, classe) if variante else None
-    phrases_variante = propositions(variante, classe) if variante else []
+    source_variante = request.GET.get("source_variante")
+    externe = None
+    if source_variante:
+        from types import SimpleNamespace
+
+        from .identites_referentiels import identifiant_diffusion
+        from .services.sources_catalogue import lignes_source, sources_catalogue
+
+        if variante or not classe or not ouvert or locale:
+            raise PermissionDenied
+        choix = sources_catalogue(request.user, classe, adoption).get(source_variante)
+        version = choix[1] if choix else None
+        if not version or version.contenu.get("origine") != "source_declaree":
+            raise PermissionDenied
+        reference = request.GET.get("reference_variante")
+        externe = next((c for ref, c, _, _ in lignes_source(
+            version, None, utilisateur=request.user, classe=classe,
+        ) if ref == reference), None)
+        if not externe:
+            raise PermissionDenied
+        filiation = {
+            "source": externe.get("source_origine") or identifiant_diffusion(version.source),
+            "identite": externe["identite"], "edition": version.numero, "libelle": externe["libelle"],
+        }
+        variante = SimpleNamespace(pk=None, libelle=externe["libelle"], niveau=externe["niveau"] or "PS",
+                                   domaine_id=None, sous_domaine_id=None)
+    illustration_variante = illustration_effective(ecole, variante, classe) if variante and not externe else None
+    phrases_variante = externe.get("formulations", []) if externe else propositions(variante, classe) if variante else []
     icone_variante = illustration_variante.icone if illustration_variante else ""
     png_variante = illustration_variante.icone_png if illustration_variante else ""
+    if externe:
+        from .icones_partagees import png_en_ligne
+
+        icone_variante = externe.get("icone", "")
+        png_variante = png_en_ligne(externe.get("icone_png", ""))
     regle = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
         classe=classe, competence=locale.competence).first() if locale else None
     definition = definition_effective_ajout(locale) if locale else None
@@ -153,7 +184,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         "classe": classe.pk if classe else None, "adoption": adoption.pk if adoption else None,
         "locale": locale.pk if locale else None, "revision": regle.revision if regle else 0}
     regle_origine = (AdaptationCompetence.objects.filter(classe=classe, competence=variante,
-                     annee_scolaire=annee).first() if variante else None)
+                     annee_scolaire=annee).first() if variante and not externe else None)
     if variante:
         contexte["revision_origine"] = regle_origine.revision if regle_origine else 0
         contexte["variante"] = variante.pk
@@ -196,7 +227,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                         doublons = doublons_classe(classe, form.cleaned_data["libelle"], request.user)
                         if doublons:
                             raise ValidationError("Vérifiez la compétence existante avant de créer un doublon.")
-                    relais = bool(variante and request.POST.get("relais") == "oui")
+                    relais = bool(variante and not externe and request.POST.get("relais") == "oui")
                     if relais and regle_origine and regle_origine.selection_eleves:
                         raise ValidationError("Ajoutez la variante séparément lorsque le suivi de l’original cible des élèves.")
                     with transaction.atomic():
@@ -280,7 +311,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
         "direction": direction, "ouvert": ouvert, "variante": variante,
         "proposer_variante_doublon": bool(classe and ouvert),
-        "icone_variante": bool(icone_variante or png_variante), "phrases_variante": phrases_variante, "relais_possible": not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
+        "icone_variante": bool(icone_variante or png_variante), "phrases_variante": phrases_variante, "relais_possible": not externe and not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
         "origine": origine, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
         "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,

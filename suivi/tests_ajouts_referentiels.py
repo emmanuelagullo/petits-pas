@@ -240,6 +240,26 @@ class AjoutsLocaux(Base):
             creer_ajout(utilisateur=self.enseignant, classe=self.classe, adoption_attendue=-1, **options)
         self.assertFalse(CompetenceLocale.objects.exists())
 
+    def test_creer_une_variante_depuis_une_edition_externe(self):
+        adoption = self.adopter()
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        source = f"version-{self.b.pk}"
+        self.assertContains(self.client.get(catalogue, {"source": source}),
+                            "Créer une variante de cette édition")
+        url = reverse("ajouts_classe", args=[self.classe.pk])
+        url += f"?source_variante={source}&reference_variante=oser-parler"
+        page = self.client.get(url)
+        self.assertContains(page, "Ajouter la variante à la classe")
+        self.assertNotContains(page, "Masquer l’original pour les prochaines saisies")
+        reponse = self.client.post(url, {
+            "action": "creer", "jeton": page.context["jeton"], "libelle": "Je raconte un souvenir",
+            "domaine": adoption.contenu["domaines"][0]["id"], "niveau": "PS",
+        })
+        self.assertEqual(reponse.status_code, 302)
+        variante = CompetenceLocale.objects.get()
+        self.assertEqual(variante.definition["variante_de"]["identite"], "oser-parler")
+        self.assertEqual(variante.definition["variante_de"]["source"], "autre-fictive")
+
     def test_variante_d_un_ajout_garde_une_identite_et_un_suivi_distincts(self):
         from .models import FormulationLocale, ReglagePresentation
         from .presentation import illustration_effective, propositions

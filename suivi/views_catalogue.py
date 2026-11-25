@@ -310,6 +310,9 @@ def catalogue(request, pk, saisie_collective=False):
         for ligne in disponibles:
             deja = presentes.get(ids.get(ligne["reference"]))
             ligne["gestion"] = deja
+            if version and version.contenu.get("origine") == "source_declaree":
+                ligne["variante_externe"] = lien("ajouts_classe", classe.pk, source_variante=source,
+                    reference_variante=ligne["reference"], origine="catalogue", retour=url_resultats)
             ligne["deja_suivie"] = bool(deja and deja["competence"].active)
             ligne["ancre"] = f"c{ids[ligne['reference']]}" if deja else ""
             if ligne["deja_suivie"]:

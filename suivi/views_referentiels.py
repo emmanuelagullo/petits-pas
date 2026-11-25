@@ -58,7 +58,8 @@ def choisir_base_classe(request, classe_pk):
                     adaptations_attendues=donnees.get("adaptations"), garde_attendue=donnees.get("garde"),
                     selection_manuelle=donnees.get("selection_manuelle", False),
                     libelles_a_reprendre=request.POST.getlist("reprendre_libelle"),
-                    phrases_a_reprendre=request.POST.getlist("reprendre_phrase"))
+                    phrases_a_reprendre=request.POST.getlist("reprendre_phrase"),
+                    illustrations_a_reprendre=request.POST.getlist("reprendre_illustration"))
                 messages.success(request, "La base de la classe est choisie. Aucune réussite n'a été créée ou transférée.")
                 return redirect("classe_detail", pk=classe.pk)
             if request.POST.get("action") != "apercu":

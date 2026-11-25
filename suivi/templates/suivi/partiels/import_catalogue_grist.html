@@ -1,3 +1,9 @@
+{% if catalogue_import.url and catalogue_import.mode_contenu != "competences" %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ catalogue_import.url }}">
+<button class="bouton discret" name="action" value="telecharger-icones-grist">Télécharger les icônes du catalogue</button>
+</form>
+{% endif %}
 {% if catalogue_import.libelle_contenu %}<p><strong>{{ catalogue_import.nom }}</strong> · {{ catalogue_import.libelle_contenu }}</p>{% endif %}
 {% if erreur_catalogue_import %}<p class="message erreur" role="alert">{{ erreur_catalogue_import }}</p>{% endif %}
 {% if editions_import %}

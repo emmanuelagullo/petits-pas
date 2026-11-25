@@ -19,6 +19,9 @@
       <button class="bouton discret" type="submit" name="action" value="ajouter_depuis_source">Ajouter cette compétence à la classe</button>
     </form>
     {% endif %}
+    {% if ligne.variante_externe %}
+    <a class="bouton discret" href="{{ ligne.variante_externe }}">Créer une variante de cette édition…</a>
+    {% endif %}
     {% include "suivi/partiels/menu_competence_catalogue.html" with ligne=ligne.gestion %}
   </div>
 </li>

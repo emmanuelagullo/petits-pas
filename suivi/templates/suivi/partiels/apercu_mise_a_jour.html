@@ -33,6 +33,10 @@
 Reprendre « {{ c.choix_libelle.apres }} » pour cette classe</label>
 {% endif %}
 {% if peut_regler_phrases and apercu.garde.permis %}
+{% if c.choix_illustration %}
+<p><label><input type="checkbox" name="reprendre_illustration" value="{{ c.choix_illustration.pk }}" form="confirmer-edition-classe">
+Reprendre l’illustration proposée, selon les réglages de l’école</label></p>
+{% endif %}
 {% for choix in c.choix_phrases %}
 <p><label><input type="checkbox" name="reprendre_phrase" value="{{ choix.id }}" form="confirmer-edition-classe">
 Quitter « {{ choix.avant }} » et {% if choix.masquee %}reprendre le masquage choisi par l’école{% else %}reprendre « {{ choix.apres }} »{% endif %}</label></p>

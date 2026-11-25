@@ -150,3 +150,41 @@ def lire_paquet(donnees):
             return texte
     except (BadZipFile, RuntimeError, NotImplementedError, UnicodeError, yaml.YAMLError) as erreur:
         raise ValidationError("Paquet de référentiel illisible.") from erreur
+
+
+def empaqueter_icones(ressources):
+    """Archive d’icônes pédagogiques, indépendante d’une édition."""
+    if not ressources or sum(map(len, ressources.values())) > MAX_ARCHIVE:
+        raise ValidationError("Le lot d’icônes est vide ou trop volumineux.")
+    sortie = BytesIO()
+    with ZipFile(sortie, "w", compression=ZIP_DEFLATED) as archive:
+        for cle, donnees in sorted(ressources.items()):
+            if empreinte_png(donnees) != cle:
+                raise ValidationError("Une icône ne correspond pas à son empreinte.")
+            archive.writestr(f"icones/{cle}.png", donnees)
+    return sortie.getvalue()
+
+
+def lire_paquet_icones(donnees):
+    from suivi.icones_partagees import verifier_png
+
+    if len(donnees) > MAX_ARCHIVE:
+        raise ValidationError("Le lot d’icônes est trop volumineux.")
+    try:
+        with ZipFile(BytesIO(donnees)) as archive:
+            membres = archive.infolist()
+            if not membres or sum(m.file_size for m in membres) > MAX_ARCHIVE:
+                raise ValidationError("Le lot d’icônes est vide ou trop volumineux.")
+            resultat = {}
+            for membre in membres:
+                nom = re.fullmatch(r"icones/([0-9a-f]{64})\.png", membre.filename)
+                if not nom or membre.file_size > MAX_PNG or nom[1] in resultat:
+                    raise ValidationError("Le ZIP doit contenir uniquement des icônes Petits Pas distinctes.")
+                png = archive.read(membre)
+                verifier_png(png)
+                if empreinte_png(png) != nom[1]:
+                    raise ValidationError("Une icône du ZIP ne correspond pas à son empreinte.")
+                resultat[nom[1]] = png
+            return resultat
+    except (BadZipFile, RuntimeError, NotImplementedError) as erreur:
+        raise ValidationError("Le ZIP d’icônes est illisible.") from erreur

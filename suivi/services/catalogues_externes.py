@@ -251,6 +251,25 @@ def lire_icone_grist(prefixe, document, empreinte, *, facultative=False):
     return donnees
 
 
+def icones_catalogue_grist(url):
+    from suivi.icones_partagees import decoder_icone, empreinte_png
+
+    prefixe, document = adresse_grist(url)
+    tables = tables_grist(prefixe, document)
+    if mode_catalogue_grist(prefixe, document, tables) == "competences":
+        raise ValidationError("Ce catalogue ne propose actuellement que les compétences.")
+    if TABLE_ICONES_GRIST not in tables:
+        raise ValidationError("Ce catalogue ne contient aucune icône ajoutée.")
+    ressources = {}
+    for ligne in lignes_grist(lire_api(prefixe, document, CHEMIN_ICONES_GRIST)):
+        png = decoder_icone(ligne.get("PNG"))
+        cle = empreinte_png(png)
+        if ligne.get("Empreinte") != cle or cle in ressources:
+            raise ValidationError("Une icône du catalogue est altérée ou en double.")
+        ressources[cle] = png
+    return ressources
+
+
 def restituer_icones_grist(edition, prefixe, document):
     from suivi.icones_partagees import PREFIXE, png_en_ligne
     from suivi.identites_referentiels import competences_document
@@ -273,7 +292,7 @@ def restituer_icones_grist(edition, prefixe, document):
         competence["icone_png"] = ressources[empreinte]
 
 
-def edition_grist(url, reference, numero):
+def edition_grist(url, reference, numero, *, avec_catalogue=False):
     catalogue, lignes = lire_catalogue_grist(url, avec_lignes=True)
     source = next((ligne for ligne in catalogue["referentiels"] if ligne["reference"] == reference), None)
     if not source or numero not in source["editions"]:
@@ -292,7 +311,8 @@ def edition_grist(url, reference, numero):
             except ValueError as erreur:
                 raise ValidationError("Le contenu de l’édition Grist est illisible.") from erreur
             restituer_icones_grist(edition, prefixe, document)
-            return yaml.safe_dump(edition, allow_unicode=True)
+            resultat = yaml.safe_dump(edition, allow_unicode=True)
+            return (resultat, catalogue) if avec_catalogue else resultat
     domaines = {}
     for ligne in lignes_grist(lire_api(prefixe, document, "/tables/Competences/records")):
         if ligne.get("Edition") != numero:
@@ -304,10 +324,11 @@ def edition_grist(url, reference, numero):
             "nom": rubrique, "competences": [],
         })
         domaine["competences"].append({"identite": code, "code": code, "libelle": ligne.get("Libelle")})
-    return yaml.safe_dump({
+    resultat = yaml.safe_dump({
         "format": 1, "version": str(numero),
         "source": {"identifiant": identite_grist(catalogue["url"], reference), "titre": source["titre"],
                    "provenance": f"Document Grist {HOTE_GRIST}/{document}",
                    "licence": "Non renseignée", "provisoire": True},
         "domaines": list(domaines.values()),
     }, allow_unicode=True)
+    return (resultat, catalogue) if avec_catalogue else resultat
