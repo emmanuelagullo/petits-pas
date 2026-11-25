@@ -38,10 +38,13 @@ def definir_version_ecole(ecole, version):
             liaison = CompetenceSourceEcole.objects.filter(ecole=ecole, identite=identite).first()
             if liaison is None:
                 locale = None
-                if (identite.source.ecole_id == ecole.pk and identite.identifiant.startswith("local-")
-                        and identifiant_diffusion(identite.source) == f"ajout-{identite.identifiant}"):
-                    locale = CompetenceLocale.objects.filter(ecole=ecole, suivi_libre=False,
-                        competence__code=identite.identifiant).select_related("competence").first()
+                if identite.source.ecole_id == ecole.pk:
+                    ajouts = CompetenceLocale.objects.filter(ecole=ecole, suivi_libre=False).select_related("competence")
+                    if identite.identifiant.startswith("pp-"):
+                        locale = ajouts.filter(definition__identite_portable=identite.identifiant).first()
+                    elif (identite.identifiant.startswith("local-")
+                          and identifiant_diffusion(identite.source) == f"ajout-{identite.identifiant}"):
+                        locale = ajouts.filter(competence__code=identite.identifiant).first()
                 competence = locale.competence if locale else Competence.objects.create(
                     domaine=domaine, sous_domaine=sous_domaine, code=c["code"],
                     libelle=c["libelle"], niveau=c["niveau"], icone=c["icone"])

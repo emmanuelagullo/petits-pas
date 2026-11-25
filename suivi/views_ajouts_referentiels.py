@@ -1,6 +1,7 @@
 """Ajouter, proposer et reprendre des compétences, avec une portée explicite."""
 from django.contrib import messages
 from django.core import signing
+from django.db import transaction
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -12,12 +13,12 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE,
 from .catalogue_competences import doublons_classe
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import AjoutCompetenceForm, AdaptationCompetenceForm, ClassementCompetenceForm
-from .models import AdaptationCompetence, CompetenceLocale, annee_scolaire_pour
+from .models import AdaptationCompetence, Competence, CompetenceLocale, CompetenceSourceEcole, annee_scolaire_pour
 from .navigation import ancrer_competence, chemin_retour_competences, filtre_competences, lien, retour_catalogue_ajout
 from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
 from .rubriques import contenu_classement
-from .referentiels import adoption_courante
+from .referentiels import adoption_courante, competence_classe
 from .presentation import catalogue_icones, propositions
 from .services.ajouts_referentiels import (
     catalogue_reprises, corriger_classement, creer_ajout, etat_classement,
@@ -66,6 +67,34 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         from .autorisations import VOIR_SUIVI
         if autorise(request.user, VOIR_SUIVI, classe):
             retour_suivi = lien("saisie_competence", classe.pk, locale.competence_id, filtre=filtre_competences(request))
+    variante = None
+    filiation = None
+    origine_variante = request.GET.get("variante")
+    if origine_variante is not None:
+        from .identites_referentiels import identifiant_diffusion
+        from .suivi_libre import est_libre
+        from .referentiels import contenu_adoption
+
+        if not classe or not ouvert or locale or not origine_variante.isdecimal() or len(origine_variante) > 18:
+            raise PermissionDenied
+        originale = Competence.objects.filter(pk=int(origine_variante), domaine__ecole=ecole).first()
+        if (not originale or est_libre(originale)
+                or not any(c["id"] == originale.pk for c in contenu_adoption(adoption)["competences"])):
+            raise PermissionDenied
+        variante = competence_classe(classe, originale)
+        if variante is None:
+            raise PermissionDenied
+        liaison = CompetenceSourceEcole.objects.filter(ecole=ecole, competence=originale).select_related(
+            "identite__source").first()
+        locale_origine = CompetenceLocale.objects.filter(competence=originale).first()
+        filiation = {
+            "identite": (liaison.identite.identifiant if liaison else
+                         (locale_origine.definition.get("identite_portable") if locale_origine else None)
+                         or originale.code),
+            "source": identifiant_diffusion(liaison.identite.source if liaison else adoption.version.source),
+            "edition": adoption.version.numero,
+            "libelle": variante.libelle,
+        }
     regle = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
         classe=classe, competence=locale.competence).first() if locale else None
     definition = definition_effective_ajout(locale) if locale else None
@@ -119,6 +148,12 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     contexte = {"auteur": request.user.pk, "ecole": ecole.pk, "annee": annee,
         "classe": classe.pk if classe else None, "adoption": adoption.pk if adoption else None,
         "locale": locale.pk if locale else None, "revision": regle.revision if regle else 0}
+    regle_origine = (AdaptationCompetence.objects.filter(classe=classe, competence=variante,
+                     annee_scolaire=annee).first() if variante else None)
+    if variante:
+        contexte["revision_origine"] = regle_origine.revision if regle_origine else 0
+        contexte["variante"] = variante.pk
+        contexte["filiation"] = filiation
     if peut_corriger:
         contexte["classement"] = etat_classement(locale.competence, utilisations)
     erreur = None
@@ -127,6 +162,9 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         visibilite_directe=visibilite_directe, choix_visibilite_garder=choix_visibilite_garder) if locale else AjoutCompetenceForm(**choix_classement, initial={"libelle": request.GET.get("libelle", "")[:300],
             "domaine": request.GET.get("domaine"), "sous_domaine": request.GET.get("sous_domaine"),
             "niveau": filtre_competences(request) if filtre_competences(request) != "tous" else "PS"})
+    if variante:
+        form.initial.update(libelle=variante.libelle, domaine=variante.domaine_id,
+                            sous_domaine=variante.sous_domaine_id, niveau=variante.niveau)
     perime = False
     if request.method == "POST":
         try:
@@ -144,14 +182,23 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             if action == "creer" and locale is None:
                 form = AjoutCompetenceForm(request.POST, **choix_classement)
                 if form.is_valid():
-                    if classe and request.POST.get("confirmer_doublon") != "1":
+                    if classe and not variante and request.POST.get("confirmer_doublon") != "1":
                         doublons = doublons_classe(classe, form.cleaned_data["libelle"], request.user)
                         if doublons:
                             raise ValidationError("Vérifiez la compétence existante avant de créer un doublon.")
-                    creee = creer_ajout(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
-                        adoption_attendue=contexte["adoption"], domaine_id=form.cleaned_data["domaine"],
-                        libelle=form.cleaned_data["libelle"], niveau=form.cleaned_data["niveau"],
-                        sous_domaine_id=form.cleaned_data["sous_domaine"])
+                    relais = bool(variante and request.POST.get("relais") == "oui")
+                    if relais and regle_origine and regle_origine.selection_eleves:
+                        raise ValidationError("Ajoutez la variante séparément lorsque le suivi de l’original cible des élèves.")
+                    with transaction.atomic():
+                        creee = creer_ajout(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
+                            adoption_attendue=contexte["adoption"], domaine_id=form.cleaned_data["domaine"],
+                            libelle=form.cleaned_data["libelle"], niveau=form.cleaned_data["niveau"],
+                            sous_domaine_id=form.cleaned_data["sous_domaine"], variante_de=filiation)
+                        if relais:
+                            enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee,
+                                competence=variante, libelle=regle_origine.libelle if regle_origine else None,
+                                visible=False, revision_attendue=contexte["revision_origine"], classe=classe,
+                                adoption_attendue=contexte["adoption"], depuis_catalogue=True)
                     if retour_catalogue:
                         retour_catalogue = ancrer_competence(retour_catalogue, creee.competence_id)
                         if retour_catalogue.partition("?")[0].partition("#")[0] == lien("choisir_competence", classe.pk):
@@ -217,7 +264,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     from .autorisations import MODIFIER_ETAT
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
-        "direction": direction, "ouvert": ouvert, "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
+        "direction": direction, "ouvert": ouvert, "variante": variante, "relais_possible": not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
         "origine": origine, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
         "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,

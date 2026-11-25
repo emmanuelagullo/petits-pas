@@ -10,8 +10,10 @@
 {% endif %}
 {% if retour_suivi %}<p><a href="{{ retour_suivi }}">Revenir à la compétence</a></p>{% endif %}
 {% if retour_catalogue %}<p><a href="{{ retour_catalogue }}">Revenir au catalogue</a></p>{% endif %}
-<h1>{% if locale.suivi_libre %}Compétence suivie pour des élèves{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>
-{% if locale.suivi_libre %}<p>Modifiez cette compétence ciblée en conservant son suivi et ses observations.</p>
+<h1>{% if variante %}Créer une variante{% elif locale.suivi_libre %}Compétence suivie pour des élèves{% elif classe %}Compétences ajoutées au référentiel de la classe{% else %}Compétences ajoutées{% endif %}</h1>
+{% if variante %}<p>Compétence d’origine · <strong>{{ variante.libelle }}</strong></p>
+<p>La variante sera ajoutée à la classe avec son propre suivi. Les observations déjà enregistrées restent sur la compétence d’origine.</p>
+{% elif locale.suivi_libre %}<p>Modifiez cette compétence ciblée en conservant son suivi et ses observations.</p>
 {% else %}<p>{% if classe %}Ajoutez une compétence au référentiel pour la rendre disponible à toute la classe, ou reprenez un ajout disponible.{% else %}Proposez une compétence supplémentaire à l’école. Chaque classe choisit les ajouts qu’elle reprend.{% endif %} Chaque compétence garde son propre suivi ; aucune réussite n’est attribuée automatiquement.</p>
 {% if peut_suivi_libre and not locale %}<p>Pour suivre seulement un élève ou un groupe, utilisez <a href="{% url 'catalogue_competences' classe.pk %}?ajouter=1">Ajouter une compétence</a>.</p>{% endif %}{% endif %}
 <p>{% if classe %}Choix de {{ classe.libelle_avec_annee }}.{% else %}Propositions de l'école pour {{ annee }}. Chaque classe choisit les ajouts qu'elle reprend.{% endif %}</p>
@@ -76,10 +78,15 @@
 {% else %}
 <h2 id="creer">Créer un ajout</h2>
 <p>{% if classe %}Cet ajout sera retenu uniquement dans cette classe pour cette année.{% else %}Cet ajout sera proposé à l'école pour cette année. Aucune classe ne le recevra automatiquement.{% endif %} Aucune image ni phrase n'est obligatoire.</p>
-{% if ouvert %}<form method="post" data-formulaire-modifie{% if form.errors or doublons %} data-brouillon{% endif %}>{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}{% include "suivi/partiels/doublons_competences.html" %}<button class="bouton" type="submit" data-enregistrer{% if not jeton %} disabled{% endif %}>Créer la compétence</button>{% include "suivi/partiels/annuler_modifications.html" %}</form>{% endif %}
+{% if ouvert %}<form method="post" data-formulaire-modifie{% if form.errors or doublons %} data-brouillon{% endif %}>{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}
+{% if variante and relais_possible %}
+<p><label><input type="checkbox" name="relais" value="oui" aria-describedby="effet-variante"{% if request.POST.relais == "oui" or not request.POST and request.GET.relais == "1" %} checked{% endif %}> Utiliser la variante pour les prochaines saisies</label></p>
+<p class="aide" id="effet-variante">Ce choix masque l’original pour les prochaines saisies de toute la classe. Son historique reste accessible.</p>
+{% endif %}
+{% include "suivi/partiels/doublons_competences.html" %}<button class="bouton" type="submit" data-enregistrer{% if not jeton %} disabled{% endif %}>{% if variante %}Ajouter la variante à la classe{% else %}Créer la compétence{% endif %}</button>{% include "suivi/partiels/annuler_modifications.html" %}</form>{% endif %}
 <h2>{% if classe %}Ajouts retenus ou disponibles{% else %}Ajouts de l'école et des classes{% endif %}</h2>
 <ul class="liste">{% for ligne in lignes %}<li class="entree" id="ajout-{{ ligne.locale.pk }}"><div class="principal"><strong>{{ ligne.definition.libelle }}</strong> · {{ ligne.definition.niveau }}{% if not ligne.definition.active %} · masquée{% endif %}
-<p>Origine : {% if ligne.locale.classe_origine %}{{ ligne.locale.classe_origine.libelle_avec_annee }}{% else %}école{% endif %}.</p>
+<p>{% if ligne.locale.definition.variante_de %}Variante de {{ ligne.locale.definition.variante_de.libelle }}.{% endif %} Origine : {% if ligne.locale.classe_origine %}{{ ligne.locale.classe_origine.libelle_avec_annee }}{% else %}école{% endif %}.</p>
 {% if ligne.retenu %}<p>Retenue dans cette classe.</p>{% endif %}{% if ligne.propose %}<p>Proposée à l'école pour {{ annee }}.</p>{% endif %}
 {% if ligne.adaptable %}<a href="{{ ligne.url }}">Libellé et visibilité</a>{% endif %}
 {% if ouvert %}{% if classe and not ligne.retenu %}<form method="post">{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="reprendre"><input type="hidden" name="locale" value="{{ ligne.locale.pk }}"><button class="bouton discret" type="submit"{% if not jeton %} disabled{% endif %}>Reprendre dans cette classe</button></form>{% endif %}

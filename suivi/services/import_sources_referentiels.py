@@ -86,7 +86,7 @@ def normaliser(document):
         for c in liste(valeurs, chemin):
             champs = ("identite", "code", "libelle", "niveau", "icone", "formulations")
             if document["format"] == 2:
-                champs += ("source_origine", "icone_png")
+                champs += ("source_origine", "icone_png", "variante_de")
             c = objet(c, champs, "Compétence")
             identite = identifiant(c.get("identite"), "Identité")
             origine = {}
@@ -103,6 +103,14 @@ def normaliser(document):
             if icone and icone not in catalogue_icones():
                 raise ValidationError(f"Icône inconnue : {icone}.")
             personnalisee = {}
+            if "variante_de" in c:
+                filiation = objet(c["variante_de"], ("source", "identite", "edition", "libelle"), "Variante")
+                personnalisee["variante_de"] = {
+                    "source": identifiant(filiation.get("source"), "Source de la variante"),
+                    "identite": identifiant(filiation.get("identite"), "Identité d’origine"),
+                    "edition": identifiant(filiation.get("edition"), "Édition d’origine", 80),
+                    "libelle": texte(filiation.get("libelle"), "Libellé d’origine", 300),
+                }
             if "icone_png" in c:
                 if icone:
                     raise ValidationError("Choisissez une seule illustration pour cette compétence.")

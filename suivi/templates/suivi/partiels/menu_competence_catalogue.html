@@ -9,12 +9,13 @@
       <button class="bouton discret" name="visibilite" value="{{ ligne.visibilite }}">{% if ligne.visibilite == "masquer" %}Masquer{% else %}Réafficher{% endif %}</button>
     </form>
     {% endif %}
-{% if ligne.deplacement or ligne.modifier_suivi %}
+{% if ligne.deplacement or ligne.modifier_suivi or ligne.variante %}
 <details class="menu-competence-catalogue">
   <summary class="bouton bouton-depliant discret" aria-label="Autres actions pour {{ ligne.competence.libelle }}">⋯</summary>
   <div class="actions">
     {% if ligne.deplacement %}<a class="bouton discret" href="{{ ligne.deplacement }}">Déplacer…</a>{% endif %}
     {% if ligne.modifier_suivi %}<a class="bouton discret" href="{{ ligne.modifier_suivi }}">Modifier les élèves suivis</a>{% endif %}
+    {% if ligne.variante %}<a class="bouton discret" href="{{ ligne.variante }}">Créer une variante…</a>{% endif %}
   </div>
 </details>
 {% endif %}

@@ -22,6 +22,7 @@
 <p>{{ version.source.titre }} — version {{ version.numero }}{% if version.source.provisoire %} · trame provisoire{% endif %}.</p>
 <p>Libellé fourni : <strong>{{ origine.libelle }}</strong>. Code dans cette base : {{ origine.code }}.</p>
 <p>Adapter le libellé conserve la même compétence et ses observations. Pour décrire une autre compétence, il faut une compétence distincte.</p></details>
+{% if classe and not clos and not hors_base %}<p><a class="bouton discret" href="{% url 'ajouts_classe' classe.pk %}?variante={{ competence.pk }}&amp;relais=1{% if retour_catalogue %}&amp;origine=catalogue&amp;retour={{ retour_catalogue|urlencode }}{% endif %}">Créer une variante à partir de la version de la classe…</a></p>{% endif %}
 {% if not clos %}<p>Libellé proposé {% if classe %}par l'école{% else %}par la base{% endif %} : <strong>{{ proposee.libelle }}</strong>.</p>
 <p>Visibilité proposée : {% if proposee.active %}montrée{% else %}masquée{% endif %}.</p>{% endif %}
 {% if not clos %}

@@ -160,6 +160,7 @@ def apercu_mise_a_jour(classe, actuelle, version):
             if details:
                 modifiees.append({"avant": ancien["libelle"], "apres": nouveau["libelle"],
                     "changements": [d["champ"] for d in details], "adaptation": adaptation,
+                    "competence_id": liaisons.get(identite),
                     "choix_libelle": choix_libelle, "choix_phrases": choix_phrases,
                     "filtres": " ".join(d["cle"] for d in details), "details": details})
     # Un retrait ou un changement de section peut changer les possibilités de

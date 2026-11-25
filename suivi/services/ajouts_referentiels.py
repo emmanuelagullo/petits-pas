@@ -1,5 +1,6 @@
 """Ajouts locaux et reprises explicites, sans copie des acquisitions."""
 from uuid import uuid4
+from base64 import urlsafe_b64encode
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
@@ -120,7 +121,7 @@ def etat_classement(competence, utilisations):
 
 
 @transaction.atomic
-def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None):
+def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None, variante_de=None):
     adoption = _verrouiller(utilisateur, ecole, annee, classe, adoption_attendue)
     contenus = [contenu_classement(adoption)] if classe else [c for _, c in contenus_ecole(ecole, annee)]
     if not isinstance(libelle, str) or not libelle.strip() or len(libelle.strip()) > 300:
@@ -139,6 +140,12 @@ def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, class
             "code": competence.code, "libelle": competence.libelle, "niveau": niveau, "icone": "", "ordre": 0,
             "active": True, "cle_definition": f"locale-{competence.pk}"}]}
     definition["sous_domaines"] = [definition_sous_domaine(sous)] if sous else []
+    portable = urlsafe_b64encode(uuid4().bytes).decode("ascii").rstrip("=")
+    definition["identite_portable"] = "pp-" + portable
+    if variante_de is not None:
+        if classe is None or suivi_libre:
+            raise PermissionDenied
+        definition["variante_de"] = variante_de
     locale = CompetenceLocale(suivi_libre=suivi_libre, ecole=ecole, competence=competence, classe_origine=classe,
                              auteur=utilisateur, definition=definition)
     locale.full_clean()

@@ -359,6 +359,9 @@ def catalogue(request, pk, saisie_collective=False):
                 ligne["visibilite"] = "reafficher"
             elif competence.active:
                 ligne["visibilite"] = "masquer"
+            if not (locale and locale.suivi_libre):
+                ligne["variante"] = lien("ajouts_classe", classe.pk, variante=competence.pk,
+                                        origine="catalogue", retour=retour_modification)
             if locale:
                 ligne["modifier"] = lien("ajout_classe", classe.pk, locale.pk, origine="catalogue", retour=retour_modification)
             else:

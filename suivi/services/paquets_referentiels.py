@@ -71,9 +71,11 @@ def exporter_ajout(locale, definition, *, provenance, licence, icone="", formula
     if locale.suivi_libre:
         raise ValidationError("Une compétence de suivi ciblé ne peut pas être partagée.")
     origine = locale.definition["competences"][0]
-    identifiant = origine["code"]
+    identifiant = locale.definition.get("identite_portable") or origine["code"]
     competence = {"identite": identifiant, "code": "C1", "libelle": definition["libelle"],
                   "niveau": definition["niveau"], "icone": icone, "formulations": list(formulations)}
+    if locale.definition.get("variante_de"):
+        competence["variante_de"] = locale.definition["variante_de"]
     if image is not None:
         competence["icone_png"] = encoder_icone(image)
     # La même fiche pédagogique produit la même édition sur un autre poste.

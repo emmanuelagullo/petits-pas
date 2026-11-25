@@ -52,6 +52,13 @@ def preparer_referentiel_classe(classe, source, version):
         ).select_related("identite__source")
     }
 
+    identites_locales = {
+        pk: definition
+        for pk, definition in CompetenceLocale.objects.filter(
+            ecole=classe.ecole, competence_id__in=[c["id"] for c in contenu["competences"]]
+        ).values_list("competence_id", "definition")
+    }
+
     domaines = []
     for domaine in arbre_commun_classe(adoption, contenu):
         groupes = {None: []}
@@ -62,8 +69,9 @@ def preparer_referentiel_classe(classe, source, version):
         for competence in domaine.visibles:
             origine = origines.get(competence.pk)
             cle = sha256(f"{classe.ecole_id}/{competence.pk}".encode()).hexdigest()
+            ajout = identites_locales.get(competence.pk, {})
             definition = {
-                "identite": origine.identifiant if origine else f"classe-{cle}",
+                "identite": origine.identifiant if origine else (ajout.get("identite_portable") or f"classe-{cle}"),
                 "code": f"C{cle[:19]}",
                 "libelle": competence.libelle, "niveau": competence.niveau,
                 "formulations": [{"code": entree["cle"], "texte": entree["texte"]}
@@ -73,6 +81,8 @@ def preparer_referentiel_classe(classe, source, version):
                 definition["source_origine"] = identifiant_diffusion(origine.source)
                 if definition["source_origine"] == source.get("identifiant"):
                     raise ValidationError("Donnez à ce référentiel un identifiant différent de la base d’origine.")
+            if ajout.get("variante_de"):
+                definition["variante_de"] = ajout["variante_de"]
             image = illustration_effective(classe.ecole, competence, classe)
             if image.icone_png:
                 definition["icone_png"] = image.icone_png

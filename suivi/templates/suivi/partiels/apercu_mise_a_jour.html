@@ -25,6 +25,9 @@
 <summary><strong>{{ c.apres }}</strong> · {{ c.changements|join:", " }}</summary>
 {% include "suivi/partiels/details_ecarts_referentiel.html" with ecarts=c.details titre_avant="Édition utilisée" titre_apres="Édition proposée" only %}
 {% if c.adaptation %}<p>Si vous gardez vos choix : <strong>{{ c.adaptation.libelle }}</strong> · {% if c.adaptation.visible %}montrée{% else %}masquée{% endif %} selon les choix de l’école ou de la classe.</p>{% endif %}
+{% if classe and c.adaptation and c.competence_id and apercu.garde.permis %}
+<p><a class="bouton discret" href="{% url 'ajouts_classe' classe.pk %}?variante={{ c.competence_id }}&amp;relais=1">Créer une variante à partir de la version de la classe…</a></p>
+{% endif %}
 {% if c.choix_libelle and apercu.garde.permis %}
 <label><input type="checkbox" name="reprendre_libelle" value="{{ c.choix_libelle.id }}" form="confirmer-edition-classe">
 Reprendre « {{ c.choix_libelle.apres }} » pour cette classe</label>

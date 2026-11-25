@@ -239,3 +239,23 @@ class AjoutsLocaux(Base):
         with self.assertRaises(ValidationError):
             creer_ajout(utilisateur=self.enseignant, classe=self.classe, adoption_attendue=-1, **options)
         self.assertFalse(CompetenceLocale.objects.exists())
+
+    def test_variante_d_un_ajout_garde_une_identite_et_un_suivi_distincts(self):
+        original = self.creer()
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        url = reverse("ajouts_classe", args=[self.classe.pk]) + f"?variante={original.competence_id}"
+        page = self.client.get(url)
+        self.assertContains(page, "Ajouter la variante à la classe")
+        self.assertEqual(page.context["form"].initial["libelle"], original.competence.libelle)
+        reponse = self.client.post(url, {
+            "action": "creer", "jeton": page.context["jeton"], "libelle": "Je classe les objets",
+            "domaine": page.context["form"].initial["domaine"], "niveau": "PS", "relais": "oui",
+        })
+        self.assertEqual(reponse.status_code, 302)
+        variante = CompetenceLocale.objects.exclude(pk=original.pk).get()
+        self.assertNotEqual(variante.definition["identite_portable"], original.definition["identite_portable"])
+        self.assertEqual(variante.definition["variante_de"]["identite"], original.definition["identite_portable"])
+        definitions = {c["id"]: c for c in contenu_adoption(adoption)["competences"]}
+        self.assertFalse(definitions[original.competence_id]["active"])
+        self.assertTrue(definitions[variante.competence_id]["active"])
+        self.assertFalse(Observation.objects.filter(competence=variante.competence).exists())
