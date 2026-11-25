@@ -308,6 +308,45 @@ def suivis_classe(request, classe_pk):
                 if not SuiviSourceClasse.objects.filter(pk=suivi.pk, etat_examine=avant).update(etat_examine=etat):
                     messages.error(request, "Le suivi a changé. Consultez les nouveautés à nouveau.")
             return redirect(retour)
+    from .referentiels import contenu_adoption, contenu_origine
+    from .services.heritage_sources import CHAMPS, propositions_suivies
+
+    arbitrages = []
+    if adoption and not adoption.clos and suivis:
+        principale = {c["id"] for c in contenu_origine(adoption).get("competences", [])}
+        ids = [c["id"] for c in contenu_adoption(adoption)["competences"] if c["id"] not in principale]
+        for champs in propositions_suivies(classe, ids).values():
+            for champ, candidats in champs.items():
+                if len({empreinte_suivi(c["valeur"]) for c in candidats}) > 1 or any(c["choisie"] for c in candidats):
+                    arbitrages.append({"champ": champ, "libelle": CHAMPS[champ], "candidats": candidats,
+                                       "competence": candidats[0]["libelle_competence"]})
+    if action == "choisir-heritage":
+        choix = request.POST.get("choix", "")
+        for arbitrage in arbitrages:
+            champ = arbitrage["champ"]
+            candidats = arbitrage["candidats"]
+            for c in candidats:
+                jeton = empreinte_suivi([adoption.pk, champ, c["uuid"], c["source"], c["edition"], c["valeur"]])
+                if choix != jeton:
+                    continue
+                with transaction.atomic():
+                    for suivi in SuiviSourceClasse.objects.select_for_update().filter(classe=classe).order_by("pk"):
+                        champs = set(suivi.champs_herites.get(c["uuid"], ()))
+                        champs.discard(champ)
+                        if suivi.reference == f"source-{c['source']}":
+                            champs.add(champ)
+                        if champs:
+                            suivi.champs_herites[c["uuid"]] = sorted(champs)
+                        else:
+                            suivi.champs_herites.pop(c["uuid"], None)
+                        suivi.save(update_fields=["champs_herites"])
+                messages.success(request, "Source retenue pour ce champ. Les adaptations locales restent prioritaires.")
+                return redirect(retour)
+        messages.error(request, "Les propositions ont changé. Consultez-les de nouveau.")
+        return redirect(retour)
+    for arbitrage in arbitrages:
+        for c in arbitrage["candidats"]:
+            c["jeton"] = empreinte_suivi([adoption.pk, arbitrage["champ"], c["uuid"], c["source"], c["edition"], c["valeur"]])
     if request.method == "POST":
         if action == "ne-plus-suivre":
             SuiviSourceClasse.objects.filter(classe=classe, reference=cible).delete()
@@ -373,6 +412,7 @@ def suivis_classe(request, classe_pk):
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
+                   "arbitrages": arbitrages,
                    "divergences": [l for l in divergences.values() if len({c["signature"] for c in l}) > 1],
                    "ouvrir_espace": request.GET.get("espace") == "1",
                    "recus_espace": bool(recus_espace),

@@ -36,6 +36,22 @@
 <details id="referentiels-suivis" open>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Nouveautés suivies par la classe" niveau_titre=2 only %}
 {% if not a_des_suivis %}<p>Aucun suivi de nouveautés activé pour cette classe.</p>{% endif %}
+{% if arbitrages %}
+<details class="avertissement-referentiel avertissement-orange">
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir une source pour un champ" only %}
+{% for choix in arbitrages %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="action" value="choisir-heritage">
+<fieldset><legend>{{ choix.competence }} · {{ choix.libelle }}</legend>
+{% for candidat in choix.candidats %}
+<p><label><input type="radio" name="choix" value="{{ candidat.jeton }}" required{% if candidat.choisie %} checked{% endif %}>
+{{ candidat.titre }} · édition {{ candidat.edition }}{% if choix.champ == "libelle" %} · {{ candidat.valeur }}{% elif candidat.valeur.0 %} · {{ candidat.valeur.0 }}{% elif candidat.valeur.1 %} · Icône PNG{% else %} · Sans illustration{% endif %}</label></p>
+{% endfor %}
+<button class="bouton discret">Retenir cette source</button>
+</fieldset></form>
+{% endfor %}
+</details>
+{% endif %}
 {% if divergences %}
 <details class="avertissement-referentiel avertissement-orange">
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Propositions différentes pour une même compétence" only %}

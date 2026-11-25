@@ -28,6 +28,8 @@ def contenu_adoption(adoption):
     contenu = contenu_avec_emprunts(contenu, adoption.classe)
     from .rubriques import personnaliser_rubriques
     contenu = personnaliser_rubriques(contenu, adoption.classe)
+    from .services.heritage_sources import appliquer_heritage
+    appliquer_heritage(adoption.classe, contenu, {c["id"] for c in contenu_origine(adoption).get("competences", [])})
     return contenu_adapte(adoption.classe.ecole, adoption.classe.annee_scolaire,
                           contenu, adoption.classe, selection_manuelle=selection)
 

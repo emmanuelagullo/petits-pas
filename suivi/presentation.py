@@ -148,7 +148,11 @@ def illustration_effective(ecole, competence=None, classe=None, reglages=None, h
             competence.icone = definition["icone"]
             icone_png = definition.get("icone_png", "")
         elif contenu:
+            from copy import copy
+
             definition = next((c for c in contenu.get("competences", ()) if c["id"] == competence.pk), {})
+            competence = copy(competence)
+            competence.icone = definition.get("icone", competence.icone)
             icone_png = definition.get("icone_png", "")
     reglages = reglages if reglages is not None else reglages_du_perimetre(ecole, classe)
     resultat = Illustration(icone=competence.icone if competence else "", icone_png=icone_png)

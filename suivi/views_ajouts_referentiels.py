@@ -13,7 +13,7 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE,
 from .catalogue_competences import doublons_classe
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import AjoutCompetenceForm, AdaptationCompetenceForm, ClassementCompetenceForm
-from .models import AdaptationCompetence, Competence, CompetenceLocale, CompetenceSourceEcole, annee_scolaire_pour
+from .models import AdaptationCompetence, Competence, CompetenceLocale, CompetenceSourceEcole, SourceReferentiel, annee_scolaire_pour
 from .navigation import ancrer_competence, chemin_retour_competences, filtre_competences, lien, retour_catalogue_ajout
 from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
@@ -134,6 +134,22 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         classe=classe, competence=locale.competence).first() if locale else None
     definition = definition_effective_ajout(locale) if locale else None
     proposee = contenu_adapte(ecole, annee, definition)["competences"][0] if locale else None
+    licence_proposee = ""
+    if locale:
+        licence_proposee = locale.licence_partage
+        origine_declaree = locale.definition.get("variante_de")
+        if origine_declaree and not licence_proposee:
+            reference = origine_declaree["source"]
+            from django.db.models import Q
+
+            source = SourceReferentiel.objects.filter(
+                Q(ecole=ecole, identifiant_diffusion=reference) | Q(ecole__isnull=True, identifiant=reference),
+            ).order_by("pk").first()
+            licence_proposee = source.licence if source else ""
+            if licence_proposee.casefold() in {"non renseignée", "non renseigné", "inconnue"}:
+                licence_proposee = ""
+        elif not licence_proposee:
+            licence_proposee = "CC-BY-SA-4.0"
     phrases_partage = propositions(locale.competence, classe) if locale and not locale.suivi_libre else []
     if request.method == "POST" and request.POST.get("action") == "partager":
         from .services.paquets_referentiels import exporter_ajout
@@ -151,11 +167,14 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             image = request.FILES.get("icone_png")
             if image and request.POST.get("icone_generique") != "oui":
                 raise ValidationError("Confirmez que l’icône est générique et partageable.")
-            return telecharger_paquet(exporter_ajout(locale, proposee,
-                provenance=request.POST.get("provenance", ""), licence=request.POST.get("licence", ""),
+            licence = request.POST.get("licence", "").strip()
+            paquet = exporter_ajout(locale, proposee,
+                provenance=request.POST.get("provenance", ""), licence=licence,
                 icone=request.POST.get("icone", ""), formulations=formulations,
-                image=image.read(MAX_PNG + 1) if image else None),
-                locale.competence.libelle, type_archive="referentiel-ajout")
+                image=image.read(MAX_PNG + 1) if image else None)
+            if locale.auteur_id == request.user.pk or direction:
+                CompetenceLocale.objects.filter(pk=locale.pk).update(licence_partage=licence)
+            return telecharger_paquet(paquet, locale.competence.libelle, type_archive="referentiel-ajout")
         except ValidationError as cause:
             messages.error(request, " ".join(cause.messages))
             return redirect(request.get_full_path())
@@ -312,7 +331,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         "direction": direction, "ouvert": ouvert, "variante": variante,
         "proposer_variante_doublon": bool(classe and ouvert),
         "icone_variante": bool(icone_variante or png_variante), "phrases_variante": phrases_variante, "relais_possible": not externe and not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
+        "origine": origine, "licence_proposee": licence_proposee, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
         "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
         "classement": classement, "usages_classement": usages_visibles,

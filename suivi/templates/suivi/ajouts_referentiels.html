@@ -31,7 +31,11 @@
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %}
   <p><label>Provenance <input name="provenance" required maxlength="4000"></label></p>
-  <p><label>Licence <input name="licence" required maxlength="120"></label></p>
+  {% if licence_proposee %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Licence proposée pour le partage" resume=licence_proposee only %}
+{% endif %}
+<p><label>Licence <input name="licence" required maxlength="120" value="{{ licence_proposee }}"></label></p>
+{% if not licence_proposee %}<p class="aide">Vérifiez la licence du contenu d’origine avant le partage.</p>{% endif %}
   <p><label>Icône du catalogue <select name="icone"><option value="">Sans icône</option>
   {% for cle, icone in icones_partage.items %}<option value="{{ cle }}">{{ icone.nom }}</option>{% endfor %}
   </select></label></p>

@@ -1178,6 +1178,7 @@ class CompetenceLocale(models.Model):
     classe_origine = models.ForeignKey(Classe, on_delete=models.PROTECT, null=True, blank=True)
     auteur = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     cree_le = models.DateTimeField(default=timezone.now)
+    licence_partage = models.CharField(max_length=120, blank=True)
     definition = models.JSONField()
 
     def clean(self):
@@ -1403,6 +1404,7 @@ class SuiviSourceClasse(models.Model):
     """Dernier état examiné par l’équipe, propre à cette installation."""
     classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
     reference = models.CharField(max_length=64)
+    champs_herites = models.JSONField(default=dict, blank=True)
     etat_examine = models.JSONField(default=dict, blank=True)
 
     class Meta:

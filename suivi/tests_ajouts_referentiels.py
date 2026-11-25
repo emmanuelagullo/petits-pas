@@ -41,6 +41,8 @@ class AjoutsLocaux(Base):
 
         ajout = self.creer()
         uuid = ajout.definition["identite_portable"]
+        from .models import SuiviSourceClasse
+
         for source in ("catalogue-un", "catalogue-deux"):
             doc = document(source)
             doc["format"] = 2
@@ -49,6 +51,17 @@ class AjoutsLocaux(Base):
             definition = definir_version_ecole(self.ecole, version)["competences"][0]
             self.assertEqual(definition["id"], ajout.competence_id)
             self.assertEqual(definition["libelle"], source)
+            SuiviSourceClasse.objects.create(classe=self.classe, reference=f"source-{version.source_id}")
+        url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        page = self.client.get(url)
+        choix = next(c for c in page.context["arbitrages"] if c["champ"] == "libelle")
+        retenu = next(c for c in choix["candidats"] if c["valeur"] == "catalogue-deux")
+        self.assertRedirects(self.client.post(url, {"action": "choisir-heritage", "choix": retenu["jeton"]}),
+                             url + "#referentiels-suivis")
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        effective = next(c for c in contenu_adoption(adoption)["competences"] if c["id"] == ajout.competence_id)
+        self.assertEqual(effective["libelle"], "catalogue-deux")
+
         ajout.competence.refresh_from_db()
         self.assertEqual(ajout.competence.libelle, "Je trie des objets fictifs")
 
