@@ -118,12 +118,14 @@ def espace_classe(request, pk):
             erreur_licence = " ".join(cause.messages)
     nom_saisi = request.POST.get("nom_espace", "").strip()
     invitation = request.GET.get("grist", "")
+    changer_destination = False
     if request.method == "GET" and invitation:
         try:
             prefixe, document = adresse_grist(invitation)
             invitation = f"https://{HOTE_GRIST}{prefixe}/{document}"
             if partage and adresse_grist(partage.url)[1] == document:
                 return redirect("espace_grist_classe", pk=pk)
+            changer_destination = bool(partage and partage.actif)
         except ValidationError as cause:
             erreur = cause.messages[0]
             invitation = ""
@@ -137,6 +139,7 @@ def espace_classe(request, pk):
             champ_erreur = "grist"
             prefixe, document = adresse_grist(request.POST.get("grist", ""))
             champ_erreur = ""
+            changer_destination = bool(partage and partage.actif and adresse_grist(partage.url)[1] != document)
             if partage and partage.actif and adresse_grist(partage.url)[1] == document and partage.licence == licence:
                 return redirect("espace_grist_classe", pk=pk)
             if erreur_licence:
@@ -167,7 +170,7 @@ def espace_classe(request, pk):
         "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
         "erreur": erreur, "champ_erreur": champ_erreur, "licence": licence, "erreur_licence": erreur_licence,
         "confirmer": request.POST.get("confirmer") == "oui", "nom_saisi": nom_saisi,
-        "nom_propose": nom_espace_propose(classe), "changer_espace": bool(invitation or erreur),
+        "nom_propose": nom_espace_propose(classe), "changer_espace": bool(invitation or erreur), "changer_destination": changer_destination,
         "partage_confirme": bool(partage and partage.derniere_empreinte),
         "mode_pwa": getattr(settings, "MODE_PWA", False)}, status=400 if erreur else 200)
 

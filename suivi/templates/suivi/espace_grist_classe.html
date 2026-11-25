@@ -34,7 +34,12 @@
 <p>Lien du document Grist · <a href="{{ partage.url }}">{{ partage.url }}</a></p>
 <details{% if changer_espace %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Changer d’espace" only %}
+{% if changer_destination %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Cette classe collabore déjà dans un espace" resume="Confirmez le changement pour envoyer les prochaines mises à jour à l’adresse ci-dessous. Les référentiels déjà reçus restent accessibles." only %}
+<p>Espace actuel · <strong>{{ partage.nom_espace|default:"Espace de partage" }}</strong></p>
+{% else %}
 <p>Les prochains envois iront au nouvel espace. Les référentiels déjà reçus restent accessibles.</p>
+{% endif %}
 {% endif %}
 {% if erreur and champ_erreur != "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement"><strong>Raccordement impossible.</strong> {{ erreur }}</li></ul>{% endif %}
 {% if licence %}<p>Licence du référentiel partagé · <strong>{{ licence }}</strong></p>{% endif %}
@@ -56,7 +61,7 @@
 <label for="nom-espace">Nom à utiliser si l’espace n’est pas encore nommé</label>
 <input id="nom-espace" name="nom_espace" maxlength="200" value="{{ nom_saisi }}" placeholder="{{ nom_propose }}"{% if champ_erreur == "nom_espace" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
 </details>
-<div class="actions"><button class="bouton">{% if partage.actif %}Confirmer le raccordement{% elif partage %}Reprendre la synchronisation{% else %}Rejoindre l’espace de partage{% endif %}</button>
+<div class="actions"><button class="bouton">{% if changer_destination %}Confirmer le changement d’espace{% elif partage.actif %}Confirmer le raccordement{% elif partage %}Reprendre la synchronisation{% else %}Rejoindre l’espace de partage{% endif %}</button>
 <a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">{% if partage.actif %}Retour aux suivis{% else %}Annuler{% endif %}</a></div>
 </form>
 {% if partage.actif %}</details>{% endif %}
