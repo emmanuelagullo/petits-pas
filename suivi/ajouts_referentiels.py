@@ -22,7 +22,7 @@ def contenu_avec_ajouts(contenu, classe):
     for choix in DisponibiliteCompetenceLocale.objects.filter(classe=classe,
             annee_scolaire=classe.annee_scolaire, locale__ecole_id=classe.ecole_id).select_related("locale__competence__domaine", "locale__competence__sous_domaine").order_by("pk"):
         definition = definition_effective_ajout(choix.locale)
-        for rubrique in ("domaines", "sous_domaines", "competences"):
+        for rubrique in ("domaines", "sous_domaines", "competences", "formulations"):
             ids = {c["id"] for c in resultat.setdefault(rubrique, [])}
             resultat[rubrique].extend(c for c in definition.get(rubrique, []) if c["id"] not in ids)
     return resultat

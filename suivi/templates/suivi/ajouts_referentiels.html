@@ -79,6 +79,15 @@
 <h2 id="creer">Créer un ajout</h2>
 <p>{% if classe %}Cet ajout sera retenu uniquement dans cette classe pour cette année.{% else %}Cet ajout sera proposé à l'école pour cette année. Aucune classe ne le recevra automatiquement.{% endif %} Aucune image ni phrase n'est obligatoire.</p>
 {% if ouvert %}<form method="post" data-formulaire-modifie{% if form.errors or doublons %} data-brouillon{% endif %}>{% csrf_token %}<input type="hidden" name="jeton" value="{{ jeton }}"><input type="hidden" name="action" value="creer">{{ form.as_p }}
+{% if variante and icone_variante %}
+<p><label><input type="checkbox" name="reprendre_icone" value="oui"{% if not request.POST or request.POST.reprendre_icone == "oui" %} checked{% endif %}> Reprendre l’icône pédagogique</label></p>
+{% endif %}
+{% if variante and phrases_variante %}
+<p><label><input type="checkbox" name="reprendre_phrases" value="oui"{% if not request.POST or request.POST.reprendre_phrases == "oui" %} checked{% endif %}> Reprendre les phrases proposées</label></p>
+<details>{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir les phrases proposées" only %}
+<ul>{% for phrase in phrases_variante %}<li>{{ phrase.texte }}</li>{% endfor %}</ul>
+</details>
+{% endif %}
 {% if variante and relais_possible %}
 <p><label><input type="checkbox" name="relais" value="oui" aria-describedby="effet-variante"{% if request.POST.relais == "oui" %} checked{% endif %}> Masquer l’original pour les prochaines saisies</label></p>
 <p class="aide" id="effet-variante">La variante sera disponible pour toute la classe. L’original restera consultable avec ses observations.</p>

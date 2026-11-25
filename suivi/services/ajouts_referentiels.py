@@ -9,7 +9,7 @@ from django.db.models import Q
 from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise
 from suivi.models import (AdoptionReferentiel, Classe, Competence, CompetenceLocale,
-                         DisponibiliteCompetenceLocale, Domaine, Ecole, RubriqueClasse, SousDomaine)
+                         DisponibiliteCompetenceLocale, Domaine, Ecole, FormulationProposee, RubriqueClasse, SousDomaine)
 from suivi.rubriques import contenu_classement
 from suivi.adaptations_referentiels import contenus_ecole
 from .choix_bases_referentiels import verifier_annee
@@ -121,7 +121,7 @@ def etat_classement(competence, utilisations):
 
 
 @transaction.atomic
-def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None, variante_de=None):
+def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None, variante_de=None, icone="", icone_png="", formulations=()):
     adoption = _verrouiller(utilisateur, ecole, annee, classe, adoption_attendue)
     contenus = [contenu_classement(adoption)] if classe else [c for _, c in contenus_ecole(ecole, annee)]
     if not isinstance(libelle, str) or not libelle.strip() or len(libelle.strip()) > 300:
@@ -132,12 +132,12 @@ def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, class
         raise PermissionDenied
     groupe, sous = classement_local(ecole, contenus, domaine_id, sous_domaine_id, suivi_libre, classe)
     competence = Competence(domaine=groupe, sous_domaine=sous, code="local-" + uuid4().hex[:24],
-                            libelle=libelle.strip(), niveau=niveau)
+                            libelle=libelle.strip(), niveau=niveau, icone=icone)
     competence.full_clean()
     competence.save()
     definition = {"domaines": [{"id": groupe.pk, "code": groupe.code, "nom": groupe.nom, "ordre": groupe.ordre}],
         "competences": [{"id": competence.pk, "domaine_id": groupe.pk, "sous_domaine_id": competence.sous_domaine_id,
-            "code": competence.code, "libelle": competence.libelle, "niveau": niveau, "icone": "", "ordre": 0,
+            "code": competence.code, "libelle": competence.libelle, "niveau": niveau, "icone": icone, "ordre": 0,
             "active": True, "cle_definition": f"locale-{competence.pk}"}]}
     definition["sous_domaines"] = [definition_sous_domaine(sous)] if sous else []
     portable = urlsafe_b64encode(uuid4().bytes).decode("ascii").rstrip("=")
@@ -146,6 +146,25 @@ def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, class
         if classe is None or suivi_libre:
             raise PermissionDenied
         definition["variante_de"] = variante_de
+    if icone_png or formulations:
+        if variante_de is None:
+            raise PermissionDenied
+        if icone_png:
+            from suivi.icones_partagees import conserver_png, decoder_icone, png_en_ligne
+            from suivi.models import IconePartagee
+            decoder_icone(png_en_ligne(icone_png))
+            definition["competences"][0]["icone_png"] = icone_png
+            conserver_png(definition, IconePartagee)
+        if formulations:
+            definition["formulations"] = []
+            for ordre, texte in enumerate(formulations):
+                formulation = FormulationProposee.objects.create(
+                    competence=competence, code=f"F{ordre + 1}", texte=texte, ordre=ordre,
+                )
+                definition["formulations"].append({
+                    "id": formulation.pk, "competence_id": competence.pk, "code": formulation.code,
+                    "texte": texte, "ordre": ordre, "active": True,
+                })
     locale = CompetenceLocale(suivi_libre=suivi_libre, ecole=ecole, competence=competence, classe_origine=classe,
                              auteur=utilisateur, definition=definition)
     locale.full_clean()

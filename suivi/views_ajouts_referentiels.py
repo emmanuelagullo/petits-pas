@@ -19,7 +19,7 @@ from .ajouts_referentiels import definition_effective_ajout
 from .adaptations_referentiels import contenu_adapte, contenus_ecole
 from .rubriques import contenu_classement
 from .referentiels import adoption_courante, competence_classe
-from .presentation import catalogue_icones, propositions
+from .presentation import catalogue_icones, illustration_effective, propositions
 from .services.ajouts_referentiels import (
     catalogue_reprises, corriger_classement, creer_ajout, etat_classement,
     peut_corriger_classement, proposer_ajout, reprendre_ajout, utilisations_classement,
@@ -95,6 +95,10 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             "edition": adoption.version.numero,
             "libelle": variante.libelle,
         }
+    illustration_variante = illustration_effective(ecole, variante, classe) if variante else None
+    phrases_variante = propositions(variante, classe) if variante else []
+    icone_variante = illustration_variante.icone if illustration_variante else ""
+    png_variante = illustration_variante.icone_png if illustration_variante else ""
     regle = AdaptationCompetence.objects.filter(ecole=ecole, annee_scolaire=annee,
         classe=classe, competence=locale.competence).first() if locale else None
     definition = definition_effective_ajout(locale) if locale else None
@@ -154,6 +158,12 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         contexte["revision_origine"] = regle_origine.revision if regle_origine else 0
         contexte["variante"] = variante.pk
         contexte["filiation"] = filiation
+        from hashlib import sha256
+        import json
+        contexte["presentation_variante"] = sha256(json.dumps(
+            [icone_variante, png_variante, [phrase["texte"] for phrase in phrases_variante]],
+            ensure_ascii=False,
+        ).encode()).hexdigest()
     if peut_corriger:
         contexte["classement"] = etat_classement(locale.competence, utilisations)
     erreur = None
@@ -193,7 +203,11 @@ def ajouts(request, classe_pk=None, locale_pk=None):
                         creee = creer_ajout(utilisateur=request.user, ecole=ecole, annee=annee, classe=classe,
                             adoption_attendue=contexte["adoption"], domaine_id=form.cleaned_data["domaine"],
                             libelle=form.cleaned_data["libelle"], niveau=form.cleaned_data["niveau"],
-                            sous_domaine_id=form.cleaned_data["sous_domaine"], variante_de=filiation)
+                            sous_domaine_id=form.cleaned_data["sous_domaine"], variante_de=filiation,
+                            icone=icone_variante if request.POST.get("reprendre_icone") == "oui" else "",
+                            icone_png=png_variante if request.POST.get("reprendre_icone") == "oui" else "",
+                            formulations=([phrase["texte"] for phrase in phrases_variante]
+                                          if request.POST.get("reprendre_phrases") == "oui" else ()))
                         if relais:
                             enregistrer_adaptation(utilisateur=request.user, ecole=ecole, annee=annee,
                                 competence=variante, libelle=regle_origine.libelle if regle_origine else None,
@@ -264,7 +278,8 @@ def ajouts(request, classe_pk=None, locale_pk=None):
     from .autorisations import MODIFIER_ETAT
     return render(request, "suivi/ajouts_referentiels.html", {"classe": classe, "annee": annee,
         "peut_suivi_libre": bool(classe and ouvert and autorise(request.user, MODIFIER_ETAT, classe)),
-        "direction": direction, "ouvert": ouvert, "variante": variante, "relais_possible": not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
+        "direction": direction, "ouvert": ouvert, "variante": variante,
+        "icone_variante": bool(icone_variante or png_variante), "phrases_variante": phrases_variante, "relais_possible": not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
         "origine": origine, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
         "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,

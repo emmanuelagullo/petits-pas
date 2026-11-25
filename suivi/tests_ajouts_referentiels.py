@@ -241,7 +241,14 @@ class AjoutsLocaux(Base):
         self.assertFalse(CompetenceLocale.objects.exists())
 
     def test_variante_d_un_ajout_garde_une_identite_et_un_suivi_distincts(self):
+        from .models import FormulationLocale, ReglagePresentation
+        from .presentation import illustration_effective, propositions
+
         original = self.creer()
+        ReglagePresentation.objects.create(ecole=self.ecole, classe=self.classe,
+            competence=original.competence, mode="remplacer", icone="parler")
+        FormulationLocale.objects.create(ecole=self.ecole, classe=self.classe,
+            competence=original.competence, texte="Je trie par couleur.")
         adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
         url = reverse("ajouts_classe", args=[self.classe.pk]) + f"?variante={original.competence_id}"
         page = self.client.get(url)
@@ -250,6 +257,7 @@ class AjoutsLocaux(Base):
         reponse = self.client.post(url, {
             "action": "creer", "jeton": page.context["jeton"], "libelle": "Je classe les objets",
             "domaine": page.context["form"].initial["domaine"], "niveau": "PS", "relais": "oui",
+            "reprendre_icone": "oui", "reprendre_phrases": "oui",
         })
         self.assertEqual(reponse.status_code, 302)
         variante = CompetenceLocale.objects.exclude(pk=original.pk).get()
@@ -259,3 +267,6 @@ class AjoutsLocaux(Base):
         self.assertFalse(definitions[original.competence_id]["active"])
         self.assertTrue(definitions[variante.competence_id]["active"])
         self.assertFalse(Observation.objects.filter(competence=variante.competence).exists())
+        self.assertEqual(illustration_effective(self.ecole, variante.competence, self.classe).icone, "parler")
+        self.assertEqual([phrase["texte"] for phrase in propositions(variante.competence, self.classe)],
+                         ["Je trie par couleur."])
