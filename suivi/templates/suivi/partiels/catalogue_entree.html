@@ -2,13 +2,13 @@
   {% include "suivi/partiels/ligne_catalogue.html" %}
   {% if ligne.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
   {% if afficher_classement %}<small> · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>{% endif %}
-  {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.competence.active or ligne.deplacement %}
+  {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.competence.active or ligne.deplacement or ligne.visibilite %}
   <div class="actions">
     {% if ligne.competence.active and not ligne.disponible and not ligne.rubrique_masquee %}
     <a class="bouton" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
     {% endif %}
     {% if ligne.choix_portee and not ligne.competence_masquee %}
-    <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter cette compétence à la classe</a>
+    <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
     {% elif ligne.ajout_au_suivi %}
     <form method="post" action="{{ url_resultats }}">
       {% csrf_token %}

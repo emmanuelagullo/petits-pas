@@ -269,7 +269,7 @@ def catalogue(request, pk, saisie_collective=False):
     presentes = {l["competence"].pk: l for l in lignes if not l["disponible"]}
     catalogue_avant_masquage = lignes
     if not inclure_competences_masquees:
-        lignes = [l for l in lignes if not l["competence_masquee"]]
+        lignes = [l for l in lignes if not l["competence_masquee"] or l["locale"] and not l["locale"].suivi_libre]
     if not inclure_masquees:
         lignes = [ligne for ligne in lignes if not ligne["rubrique_masquee"]]
     cle = cle_recherche_libelle(q)

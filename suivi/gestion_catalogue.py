@@ -89,8 +89,8 @@ def changer_visibilite(request, classe, retour):
     except ValidationError as cause:
         messages.error(request, " ".join(cause.messages))
     else:
-        messages.success(request, "Compétence masquée pour les prochaines saisies. Les observations sont conservées."
-                         if valeur == "masquer" else "Compétence réaffichée.")
+        messages.success(request, "Compétence retirée du suivi pour les prochaines saisies. Les observations sont conservées."
+                         if valeur == "masquer" else "Compétence remise dans le suivi.")
         if valeur == "masquer" and "inclure_competences_masquees=1" not in retour:
             parametres = dict(parse_qsl(urlsplit(retour).query, keep_blank_values=True))
             route = "choisir_competence" if urlsplit(retour).path == lien("choisir_competence", classe.pk) else "catalogue_competences"

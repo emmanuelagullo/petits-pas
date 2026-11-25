@@ -64,7 +64,7 @@
   <fieldset class="groupe-filtres"><legend>Classement</legend>
   {% include "suivi/partiels/filtres_classement_competences.html" %}
   {% if a_des_competences_masquees %}
-  <label><input type="checkbox" name="inclure_competences_masquees" value="1"{% if inclure_competences_masquees %} checked{% endif %}> Inclure les compétences masquées</label>
+  <label><input type="checkbox" name="inclure_competences_masquees" value="1"{% if inclure_competences_masquees %} checked{% endif %}> Inclure les compétences retirées du suivi</label>
   {% endif %}
   {% if rubriques_masquees %}
   <label><input type="checkbox" name="inclure_masquees" value="1"{% if inclure_masquees %} checked{% endif %}> Inclure les rubriques masquées</label>

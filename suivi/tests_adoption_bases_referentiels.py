@@ -92,11 +92,11 @@ class AdoptionBases(Base):
         url = reverse("catalogue_competences", args=[self.classe.pk])
         action = {"action": "visibilite_catalogue", "competence": competence.pk, "adoption": adoption.pk}
         self.assertRedirects(self.client.post(url, {**action, "visibilite": "masquer", "revision": 0}), f"{url}?masquee={competence.pk}")
-        self.assertContains(self.client.get(url, {"masquee": competence.pk}), "Voir la compétence masquée")
+        self.assertContains(self.client.get(url, {"masquee": competence.pk}), "Voir la compétence retirée du suivi")
         self.assertNotContains(self.client.get(url), competence.libelle)
         filtre = f"{url}?inclure_competences_masquees=1"
         self.assertContains(self.client.get(filtre), competence.libelle)
-        self.assertContains(self.client.get(filtre), "Réafficher")
+        self.assertContains(self.client.get(filtre), "Remettre dans le suivi")
         self.assertFalse(competence_saisissable(self.classe, competence, eleve=self.eleve))
         self.assertRedirects(self.client.post(filtre, {**action, "visibilite": "reafficher", "revision": 1}), f"{filtre}#c{competence.pk}")
         self.assertTrue(competence_saisissable(self.classe, competence, eleve=self.eleve))

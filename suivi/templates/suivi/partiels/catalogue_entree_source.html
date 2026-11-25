@@ -1,7 +1,7 @@
 <li{% if ligne.ancre %} id="{{ ligne.ancre }}" tabindex="-1"{% endif %}>
   <strong>{{ ligne.competence.libelle }}</strong>
   <small> · {{ ligne.competence.niveau }}{% if afficher_classement %} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}{% endif %} · {% if ligne.deja_suivie %}Déjà suivie{% else %}Hors suivi{% endif %}</small>
-  {% if ligne.gestion.competence_masquee %}<small> · Compétence masquée</small>{% endif %}
+  {% if ligne.gestion.competence_masquee %}<small> · Retirée du suivi</small>{% endif %}
   {% if ligne.gestion.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
   {% if deplacement and ligne.gestion.competence.pk == deplacement.competence.id %}
     {% include "suivi/partiels/deplacement_competence_catalogue.html" %}
@@ -10,7 +10,7 @@
     {% if ligne.deja_suivie %}
     <a class="bouton" href="{{ ligne.url }}" aria-label="Voir le suivi · {{ ligne.competence.libelle }}">Voir le suivi</a>
     {% elif ligne.choix_portee %}
-    <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter cette compétence à la classe</a>
+    <a class="bouton discret" href="{{ ligne.choix_portee }}">Ajouter au suivi</a>
     {% elif not ligne.gestion.competence_masquee %}
     <form method="post" action="{{ url_resultats }}">
       {% csrf_token %}

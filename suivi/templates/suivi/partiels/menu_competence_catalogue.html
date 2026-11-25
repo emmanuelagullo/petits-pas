@@ -6,7 +6,7 @@
       <input type="hidden" name="competence" value="{{ ligne.competence.pk }}">
       <input type="hidden" name="adoption" value="{{ adoption.pk }}">
       <input type="hidden" name="revision" value="{{ ligne.revision_gestion }}">
-      <button class="bouton discret" name="visibilite" value="{{ ligne.visibilite }}">{% if ligne.visibilite == "masquer" %}Masquer{% else %}Réafficher{% endif %}</button>
+      <button class="bouton discret" name="visibilite" value="{{ ligne.visibilite }}">{% if ligne.visibilite == "masquer" %}Retirer du suivi{% else %}Remettre dans le suivi{% endif %}</button>
     </form>
     {% endif %}
 {% if ligne.deplacement or ligne.modifier_suivi or ligne.variante %}

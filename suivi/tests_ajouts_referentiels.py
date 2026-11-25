@@ -264,6 +264,20 @@ class AjoutsLocaux(Base):
         self.assertFalse(Observation.objects.exists())
         self.assertEqual(CompetenceLocale.objects.count(), 1)
 
+    def test_ajout_retire_reste_accessible_dans_le_catalogue(self):
+        ajout = self.creer()
+        adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)
+        url = reverse("catalogue_competences", args=[self.classe.pk])
+        self.assertContains(self.client.get(url), "Retirer du suivi")
+        self.assertEqual(self.client.post(url, {
+            "action": "visibilite_catalogue", "visibilite": "masquer",
+            "competence": ajout.competence_id, "adoption": adoption.pk, "revision": 0,
+        }).status_code, 302)
+        page = self.client.get(url, {"q": ajout.competence.libelle})
+        self.assertContains(page, "Retirée du suivi")
+        self.assertContains(page, "Remettre dans le suivi")
+        self.assertNotContains(page, "Voir le suivi")
+
     def test_masquage_et_cloture_figent_ajout_et_libelle(self):
         locale = self.creer()
         adoption = AdoptionReferentiel.objects.get(classe=self.classe, courante=True)

@@ -4,7 +4,7 @@
 <template data-options-domaines>{% include "suivi/partiels/catalogue_options.html" with valeurs=domaines valeur=domaine libelle="Tous les domaines" only %}</template>
 <template data-options-groupes>{% include "suivi/partiels/catalogue_options.html" with valeurs=groupes valeur=sous_domaine libelle="Tous les sous-domaines" only %}</template>
 <div data-nombre-resultats="{{ nombre }}">
-{% if url_voir_masquee %}<p><a href="{{ url_voir_masquee }}">Voir la compétence masquée</a></p>{% endif %}
+{% if url_voir_masquee %}<p><a href="{{ url_voir_masquee }}">Voir la compétence retirée du suivi</a></p>{% endif %}
 {% if url_deplacement %}<p><a href="{{ url_deplacement }}">Voir dans la rubrique</a></p>{% endif %}
 {% if not deplacement_en_ligne %}{% include "suivi/partiels/deplacement_competence_catalogue.html" %}{% endif %}
 {% if recherches_elargies %}
