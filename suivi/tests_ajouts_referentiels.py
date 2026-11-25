@@ -65,6 +65,40 @@ class AjoutsLocaux(Base):
         ajout.competence.refresh_from_db()
         self.assertEqual(ajout.competence.libelle, "Je trie des objets fictifs")
 
+    def test_heritage_conserve_la_derniere_valeur_commune_en_cas_de_divergence(self):
+        from base64 import urlsafe_b64encode
+        from uuid import uuid4
+
+        from .models import SuiviSourceClasse
+        from .services.sources_catalogue import ajouter_depuis_source
+        from .tests_import_sources_referentiels import document, importer
+
+        adoption = self.adopter()
+        identite = "pp-" + urlsafe_b64encode(uuid4().bytes).decode().rstrip("=")
+
+        def publier(source, numero, libelle):
+            doc = document(source, str(numero))
+            doc["format"] = 2
+            doc["domaines"][0]["competences"][0].update(identite=identite, libelle=libelle)
+            return importer(doc, ecole=self.ecole)[0]
+
+        initiale = publier("catalogue-un", 1, "Libellé de départ")
+        competence = ajouter_depuis_source(
+            utilisateur=self.enseignant, classe=self.classe, source=f"version-{initiale.pk}",
+            reference=identite, adoption_attendue=adoption.pk,
+        )
+        autre = publier("catalogue-deux", 1, "Libellé commun")
+        publier("catalogue-un", 2, "Libellé commun")
+        for version in (initiale, autre):
+            SuiviSourceClasse.objects.create(classe=self.classe, reference=f"source-{version.source_id}")
+
+        def libelle_effectif():
+            return next(c["libelle"] for c in contenu_adoption(adoption)["competences"] if c["id"] == competence.pk)
+
+        self.assertEqual(libelle_effectif(), "Libellé commun")
+        publier("catalogue-un", 3, "Libellé divergent")
+        self.assertEqual(libelle_effectif(), "Libellé commun")
+
     def test_partage_portable_sans_donnees_de_suivi(self):
         from .models import Ecole
         from .services.import_sources_referentiels import importer_source

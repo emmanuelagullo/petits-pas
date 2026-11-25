@@ -223,6 +223,10 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
         return version, False, len(identifiants)
     if version:
         return version, False, len(identifiants)
+    if source is not None:
+        from .heritage_sources import memoriser_avant_nouvelle_edition
+
+        memoriser_avant_nouvelle_edition(source)
     if source is None:
         source = SourceReferentiel(**{**metadata, "identifiant": identifiant}, ecole=ecole,
                                    identifiant_diffusion=metadata["identifiant"] if ecole else "")

@@ -45,7 +45,7 @@
 <fieldset><legend>{{ choix.competence }} · {{ choix.libelle }}</legend>
 {% for candidat in choix.candidats %}
 <p><label><input type="radio" name="choix" value="{{ candidat.jeton }}" required{% if candidat.choisie %} checked{% endif %}>
-{{ candidat.titre }} · édition {{ candidat.edition }}{% if choix.champ == "libelle" %} · {{ candidat.valeur }}{% elif candidat.valeur.0 %} · {{ candidat.valeur.0 }}{% elif candidat.valeur.1 %} · Icône PNG{% else %} · Sans illustration{% endif %}</label></p>
+{{ candidat.titre }} · édition {{ candidat.edition }}{% if choix.champ != "illustration" %} · {{ candidat.valeur }}{% elif candidat.valeur.0 %} · {{ candidat.valeur.0 }}{% elif candidat.valeur.1 %} · Icône PNG{% else %} · Sans illustration{% endif %}</label></p>
 {% endfor %}
 <button class="bouton discret">Retenir cette source</button>
 </fieldset></form>
@@ -80,7 +80,7 @@
 <input type="hidden" name="source" value="{{ ligne.reference }}">
 <input type="hidden" name="empreinte" value="{{ ligne.empreinte }}">
 {% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}<button class="bouton discret" name="action" value="marquer-vu">Marquer comme vu</button>{% endif %}
-<button class="bouton discret" name="action" value="ne-plus-suivre">Ne plus suivre</button>
+<button class="bouton discret" name="action" value="ne-plus-suivre">Ne plus suivre les nouveautés</button>
 </form>
 </div>
 </section>
@@ -101,12 +101,12 @@
 {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom only %}
 <ul class="liste">
 {% for ligne in groupe.lignes %}
-<li class="entree">{{ ligne.titre }}
+<li class="entree">{{ ligne.titre }} <small>· Disponible pour la classe</small>
 <div class="actions">
 <a class="bouton discret" href="{{ ligne.lire }}">Parcourir les compétences</a>
-{% if ligne.suivi %}<span>Suivi par la classe</span>{% else %}<form method="post">{% csrf_token %}
+{% if ligne.suivi %}<span>Nouveautés suivies par la classe</span>{% else %}<form method="post">{% csrf_token %}
 <input type="hidden" name="source" value="{{ ligne.reference }}">
-<button class="bouton discret" name="action" value="suivre">Suivre ce référentiel</button>
+<button class="bouton discret" name="action" value="suivre">Suivre les nouveautés</button>
 </form>{% endif %}
 </div>
 </li>

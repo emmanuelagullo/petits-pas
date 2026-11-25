@@ -84,11 +84,11 @@
 <li class="entree">
 <div>
 <strong>{{ ligne.titre }}</strong>{% if ligne.nouveau %} · Nouveau{% endif %}
-<p>Édition {{ ligne.derniere }}{% if ligne.url and ligne.locales %} · À l’école : {{ ligne.locales|join:", " }}{% elif ligne.versions_instance and not ligne.consultation %} · Hors des choix autorisés à l’école{% elif ligne.fourni and not ligne.versions_instance %} · Fourni avec Petits Pas{% endif %}{% if ligne.suivi %} · Suivi{% endif %}</p>
+<p>Édition {{ ligne.derniere }}{% if ligne.url and ligne.locales %} · À l’école : {{ ligne.locales|join:", " }}{% elif ligne.versions_instance and not ligne.consultation %} · Hors des choix autorisés à l’école{% elif ligne.fourni and not ligne.versions_instance %} · Fourni avec Petits Pas{% endif %}{% if ligne.suivi %} · Nouveautés suivies{% endif %}</p>
 <div class="actions">
 {% if ligne.consultation %}<a class="bouton discret" href="{{ ligne.consultation }}">Consulter l’édition {{ ligne.edition_consultable }}</a>{% endif %}
 {% if peut_gerer and not ligne.suivi %}
-{% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre" %}
+{% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre les nouveautés" %}
 {% endif %}
 {% if ligne.url and peut_importer and not ligne.locale %}
 {% include "suivi/partiels/examiner_edition_grist.html" %}
@@ -104,7 +104,7 @@
 {% endif %}
 {% endif %}
 {% if peut_gerer and ligne.suivi %}
-{% include "suivi/partiels/suivre_referentiel.html" with action="ne-plus-suivre" libelle="Ne plus suivre" %}
+{% include "suivi/partiels/suivre_referentiel.html" with action="ne-plus-suivre" libelle="Ne plus suivre les nouveautés" %}
 {% endif %}
 </details>
 </div>

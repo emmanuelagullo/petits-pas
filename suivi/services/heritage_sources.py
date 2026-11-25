@@ -3,7 +3,7 @@ from suivi.identites_referentiels import est_uuid_portable
 from suivi.models import CompetenceSourceEcole, SuiviSourceClasse, VersionReferentiel
 from .apercu_mises_a_jour import definitions_document
 
-CHAMPS = {"libelle": "Libellé", "illustration": "Illustration"}
+CHAMPS = {"libelle": "Libellé", "illustration": "Illustration", "niveau": "Section"}
 
 
 def propositions_suivies(classe, ids=None):
@@ -29,7 +29,7 @@ def propositions_suivies(classe, ids=None):
             pk = competences.get(uuid)
             if pk is None:
                 continue
-            champs = {"libelle": definition["libelle"],
+            champs = {"libelle": definition["libelle"], "niveau": definition["niveau"],
                       "illustration": [definition.get("icone", ""), definition.get("icone_png", "")]}
             for champ, valeur in champs.items():
                 resultat.setdefault(pk, {}).setdefault(champ, []).append({
@@ -53,6 +53,13 @@ def appliquer_heritage(classe, contenu, principale):
         return
     from suivi.models import CompetenceLocale
 
+    memoire = {}
+    for suivi in SuiviSourceClasse.objects.filter(classe=classe).only("memoire_heritage"):
+        for uuid, champs in suivi.memoire_heritage.items():
+            for champ, valeur in champs.items():
+                cle = (uuid, champ)
+                if cle not in memoire or memoire[cle]["date"] < valeur["date"]:
+                    memoire[cle] = valeur
     locales = set(CompetenceLocale.objects.filter(competence_id__in=propositions)
                   .values_list("competence_id", flat=True))
     for definition in definitions:
@@ -61,12 +68,52 @@ def appliquer_heritage(classe, contenu, principale):
                 continue
             valeur = valeur_heritee(choix)
             if valeur is None:
+                valeur = memoire.get((choix[0]["uuid"], champ), {}).get("valeur")
+            if valeur is None:
                 continue
-            if champ == "libelle":
-                definition["libelle"] = valeur
+            if champ in ("libelle", "niveau"):
+                definition[champ] = valeur
             else:
                 definition["icone"], png = valeur
                 if png:
                     definition["icone_png"] = png
                 else:
                     definition.pop("icone_png", None)
+
+
+def memoriser_avant_nouvelle_edition(source):
+    """Préserver la dernière valeur commune avant qu’une édition puisse la contredire."""
+    from django.utils import timezone
+
+    from suivi.models import CompetenceLocale
+    from suivi.referentiels import adoption_courante, contenu_origine
+
+    suivis = SuiviSourceClasse.objects.select_for_update().filter(
+        reference=f"source-{source.pk}",
+    ).select_related("classe__ecole").order_by("pk")
+    date = timezone.now().isoformat()
+    for suivi in suivis:
+        adoption = adoption_courante(suivi.classe)
+        if not adoption or adoption.clos:
+            continue
+        principale = {c["id"] for c in contenu_origine(adoption).get("competences", [])}
+        propositions = propositions_suivies(suivi.classe)
+        locales = set(CompetenceLocale.objects.filter(competence_id__in=propositions)
+                      .values_list("competence_id", flat=True))
+        modifie = False
+        for pk, champs in propositions.items():
+            if pk in principale:
+                continue
+            for champ, candidats in champs.items():
+                if pk in locales and not any(c["choisie"] for c in candidats):
+                    continue
+                if not any(c["source"] == source.pk for c in candidats):
+                    continue
+                valeur = valeur_heritee(candidats)
+                if valeur is not None:
+                    suivi.memoire_heritage.setdefault(candidats[0]["uuid"], {})[champ] = {
+                        "date": date, "valeur": valeur,
+                    }
+                    modifie = True
+        if modifie:
+            suivi.save(update_fields=["memoire_heritage"])

@@ -1405,6 +1405,7 @@ class SuiviSourceClasse(models.Model):
     classe = models.ForeignKey(Classe, on_delete=models.CASCADE)
     reference = models.CharField(max_length=64)
     champs_herites = models.JSONField(default=dict, blank=True)
+    memoire_heritage = models.JSONField(default=dict, blank=True)
     etat_examine = models.JSONField(default=dict, blank=True)
 
     class Meta:
