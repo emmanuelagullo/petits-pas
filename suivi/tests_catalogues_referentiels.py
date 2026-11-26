@@ -103,6 +103,11 @@ class CataloguesReferentiels(Base):
         paquet = SimpleUploadedFile("exemple.zip", empaqueter(document("prive-classe")))
         page = self.client.post(url, {"action": "apercu", "paquet": paquet})
         self.assertContains(page, "Confirmer l’import")
+        self.assertContains(page, "Autres actions d’import")
+        proposition = reverse("proposer_referentiel_classe", args=[self.classe.pk])
+        apercu = self.client.post(proposition, {"action": "reprendre-apercu", "jeton_import": page.context["jeton"]})
+        self.assertContains(apercu, "Note à la direction")
+
         confirmation = {"action": "importer", "jeton": page.context["jeton"]}
         self.assertEqual(self.client.post(echange, confirmation).status_code, 403)
         self.assertContains(self.client.post(url, confirmation), "Édition ajoutée au catalogue de la classe.")

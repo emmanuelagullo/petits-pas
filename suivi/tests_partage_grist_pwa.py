@@ -93,7 +93,12 @@ class PartageGristPWA(Base):
         self.assertFalse(page.context["confirmer"])
         self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).url, ancien)
         self.assertEqual(self.client.post(espace, {**donnees, "changement": "autre-document"}).status_code, 302)
-        self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).url, nouveau)
+        self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).url, donnees["grist"])
+        lien_precis = nouveau + "/autres-tests"
+        self.assertRedirects(self.client.post(espace, {"grist": lien_precis}), espace)
+        self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).url, lien_precis)
+        synchronisation = self.client.get(reverse("synchroniser_grist")).json()["partages"][0]
+        self.assertEqual(synchronisation["api"], "https://grist.numerique.gouv.fr/o/docs/api/docs/autre-document")
 
     def test_preparer_retrait_suspend_uniquement_le_raccordement_confirme(self):
         self.adopter()

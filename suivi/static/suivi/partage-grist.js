@@ -42,11 +42,12 @@
     const actualiser = () => {
       const destination = documentGrist(champ.value);
       const changement = Boolean(destination && destination !== initial);
-      bouton.disabled = !changement;
+      const lienModifié = destination === initial && champ.value.trim() !== raccordement.dataset.documentActif;
+      bouton.disabled = !changement && !lienModifié;
       bouton.classList.toggle('avertissement-orange', changement);
       bouton.textContent = changement
         ? destination === confirmer ? 'Confirmer le changement d’espace' : 'Vérifier le changement d’espace'
-        : 'Confirmer le raccordement';
+        : lienModifié ? 'Enregistrer le lien du document' : 'Confirmer le raccordement';
     };
     champ.addEventListener('input', actualiser);
     champ.addEventListener('change', actualiser);

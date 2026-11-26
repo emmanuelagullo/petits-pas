@@ -79,10 +79,10 @@ def projection(partage, icones=None):
 @require_http_methods(["GET"])
 def invitation_grist(request):
     try:
-        prefixe, document = adresse_grist(request.GET.get("grist", ""))
+        adresse_grist(request.GET.get("grist", ""))
     except ValidationError as cause:
         return render(request, "suivi/invitation_grist.html", {"erreur": cause.messages[0]}, status=400)
-    url = f"https://{HOTE_GRIST}{prefixe}/{document}"
+    url = request.GET.get("grist", "").strip()
     ecole = ecole_courante(request)
     if request.GET.get("usage") == "suivre":
         if not autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
@@ -131,8 +131,8 @@ def espace_classe(request, pk):
     request_confirmee = request.POST.get("confirmer") == "oui"
     if request.method == "GET" and invitation:
         try:
-            prefixe, document = adresse_grist(invitation)
-            invitation = f"https://{HOTE_GRIST}{prefixe}/{document}"
+            _, document = adresse_grist(invitation)
+            invitation = invitation.strip()
             if partage and adresse_grist(partage.url)[1] == document:
                 return redirect("espace_grist_classe", pk=pk)
             changer_destination = bool(partage and partage.actif)
@@ -158,17 +158,23 @@ def espace_classe(request, pk):
             return redirect("espace_grist_classe", pk=pk)
         try:
             if request.POST.get("action") == "ouvrir-catalogue":
-                prefixe, document = adresse_grist(request.POST.get("grist", ""))
-                return redirect(reverse("invitation_grist") + "?" + urlencode({
-                    "grist": f"https://{HOTE_GRIST}{prefixe}/{document}", "usage": "suivre", "classe": pk,
-                }))
+                adresse_grist(request.POST.get("grist", ""))
+                return redirect(reverse("decouvrir_referentiels") + "?" + urlencode({
+                    "catalogue_invite": request.POST["grist"].strip(), "gestion": "classe",
+                    "classe": pk, "annee": classe.annee_scolaire,
+                }) + "#ajouter-catalogue")
             if classe.etat != Classe.ACTIVE or not adoption or adoption.clos:
                 raise ValidationError("Choisissez le référentiel d’une classe active avant de la connecter.")
             champ_erreur = "grist"
-            prefixe, document = adresse_grist(request.POST.get("grist", ""))
+            _, document = adresse_grist(request.POST.get("grist", ""))
             champ_erreur = ""
             changer_destination = bool(partage and partage.actif and adresse_grist(partage.url)[1] != document)
+            url = request.POST.get("grist", "").strip()
+            if len(url) > 300:
+                champ_erreur = "grist"
+                raise ValidationError("Le lien de l’espace est limité à 300 caractères.")
             if partage and partage.actif and adresse_grist(partage.url)[1] == document and partage.licence == licence:
+                PartageGristClasse.objects.filter(pk=partage.pk, url=partage.url, actif=True).update(url=url)
                 return redirect("espace_grist_classe", pk=pk)
             if changer_destination and request.POST.get("changement") != document:
                 # Présenter la destination avant de demander la confirmation.
@@ -178,11 +184,10 @@ def espace_classe(request, pk):
                 raise ValidationError(erreur_licence)
             if request.POST.get("confirmer") != "oui":
                 champ_erreur = "confirmer"
-                raise ValidationError("Cochez cette case pour confirmer le partage, ou ouvrez le catalogue sans partager.")
+                raise ValidationError("Cochez cette case pour confirmer le partage, ou parcourez le catalogue dans Petits Pas.")
             if len(nom_saisi) > 200:
                 champ_erreur = "nom_espace"
                 raise ValidationError("Le nom de l’espace est limité à 200 caractères.")
-            url = f"https://{HOTE_GRIST}{prefixe}/{document}"
             nom_initial = nom_saisi or nom_espace_propose(classe)
             with transaction.atomic():
                 Classe.objects.select_for_update().get(pk=classe.pk)

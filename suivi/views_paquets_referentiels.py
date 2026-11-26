@@ -364,7 +364,7 @@ def paquets_referentiels(request, classe_pk=None):
     peut_importer_ecole = autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe or ecole)
     peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": import_classe or peut_importer_ecole or request.user.is_superuser, "import_classe": import_classe,
-                "peut_importer_global": request.user.is_superuser and not import_classe}
+                "peut_importer_ecole": peut_importer_ecole, "peut_importer_global": request.user.is_superuser and not import_classe}
     if classe and request.GET.get("depuis") == "espace":
         contexte["retour_espace"] = reverse("espace_grist_classe", args=[classe.pk])
     if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":

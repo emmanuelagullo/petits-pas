@@ -71,7 +71,7 @@
 <input id="nom-espace" name="nom_espace" maxlength="200" value="{{ nom_saisi }}" placeholder="{{ nom_propose }}"{% if champ_erreur == "nom_espace" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
 </details>
 <div class="actions"><button name="action" value="raccorder" class="bouton{% if changer_destination %} avertissement-orange{% endif %}">{% if changer_destination %}Confirmer le changement d’espace{% elif partage.actif %}Confirmer le raccordement{% elif partage %}Reprendre la synchronisation{% else %}Rejoindre l’espace de partage{% endif %}</button>
-<button name="action" value="ouvrir-catalogue" class="bouton discret">Ouvrir le catalogue sans partager</button>
+<button name="action" value="ouvrir-catalogue" class="bouton discret">Parcourir le catalogue dans Petits Pas</button>
 <a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">{% if partage.actif %}Retour aux suivis{% else %}Annuler{% endif %}</a></div>
 </form>
 {% if partage.actif %}</details>{% endif %}

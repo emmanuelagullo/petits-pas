@@ -72,6 +72,25 @@
 <button class="bouton">Examiner le fichier</button>
 {% endif %}
 </form>
+{% if import_classe %}
+<details class="menu-competence-catalogue">
+<summary class="bouton bouton-depliant discret" aria-label="Autres actions d’import">⋯</summary>
+<div class="actions">
+{% if peut_importer_ecole %}
+<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer au catalogue de l’école</a>
+{% else %}
+{% if jeton %}
+<form method="post" action="{% url 'proposer_referentiel_classe' classe.pk %}">{% csrf_token %}
+<input type="hidden" name="jeton_import" value="{{ jeton }}">
+<button class="bouton discret" name="action" value="reprendre-apercu">Proposer à la direction</button>
+</form>
+{% else %}
+<a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">Proposer à la direction</a>
+{% endif %}
+{% endif %}
+</div>
+</details>
+{% endif %}
 </div>
 </div>
 </details>

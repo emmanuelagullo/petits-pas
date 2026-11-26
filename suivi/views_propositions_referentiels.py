@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib import messages
+from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,7 +14,7 @@ from .services.choix_bases_referentiels import choix_bases
 from .services.import_sources_referentiels import importer_source
 from .services.paquets_referentiels import MAX_ARCHIVE, lire_paquet
 from .views import acces_requis
-from .views_paquets_referentiels import apercu_document
+from .views_paquets_referentiels import SEL as SEL_IMPORT, apercu_document
 
 SEL = "proposition-referentiel"
 
@@ -40,6 +41,26 @@ def proposer_classe(request, classe_pk):
                 if not fichier:
                     raise ValidationError("Choisissez le fichier à examiner.")
                 document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
+                importer_source(document, verifier_seulement=True, ecole=ecole)
+                jeton = get_random_string(32)
+                request.session[SEL] = {
+                    "jeton": jeton, "classe": classe.pk, "auteur": request.user.pk, "document": document,
+                }
+                contexte.update(apercu_document(document, ecole), jeton=jeton, note=NoteProposition())
+            elif action == "reprendre-apercu":
+                preparation = request.session.get(SEL_IMPORT, {})
+                try:
+                    attendu = signing.loads(request.POST.get("jeton_import", ""), salt=SEL_IMPORT, max_age=1800)
+                except signing.BadSignature as cause:
+                    raise ValidationError("Examinez de nouveau l’édition avant de la proposer.") from cause
+                if attendu != preparation.get("jeton") or any(
+                    attendu.get(cle) != valeur for cle, valeur in {
+                        "auteur": request.user.pk, "classe": classe.pk, "ecole": ecole.pk,
+                        "annee": classe.annee_scolaire, "import_classe": True,
+                    }.items()
+                ):
+                    raise ValidationError("Le contexte de l’import a changé.")
+                document = preparation["document"]
                 importer_source(document, verifier_seulement=True, ecole=ecole)
                 jeton = get_random_string(32)
                 request.session[SEL] = {

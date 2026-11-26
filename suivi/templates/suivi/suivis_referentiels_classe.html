@@ -57,7 +57,12 @@
 {% empty %}<p>Aucun référentiel d’une autre classe reçu dans cet espace.</p>{% endfor %}
 </details>
 {% endfor %}
-{% if classe_active %}<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}&amp;gestion=classe">Ajouter ou actualiser un catalogue</a></p>{% endif %}
+{% if classe_active %}
+<div class="actions">
+<a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}&amp;gestion=classe">Ajouter ou actualiser un catalogue</a>
+<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer&amp;destination=classe#import-referentiel">Importer un ZIP pour la classe</a>
+</div>
+{% endif %}
 {% if peut_gerer_catalogues %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages communs à l’école" only %}
@@ -150,19 +155,11 @@
 <p><a class="bouton" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace{% else %}Rejoindre un espace{% endif %}</a></p>
 {% endif %}
 </details>{% endif %}
+{% if classe_active and adoption and not adoption.clos %}
 <details id="echanger-referentiels">
-{% if peut_importer_ecole %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Échanger des référentiels" resume="Partager · Importer" niveau_titre=2 only %}
-{% else %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Échanger des référentiels" resume="Partager · Proposer à la direction" niveau_titre=2 only %}
-{% endif %}
-<div class="actions">
-{% if classe_active and adoption and not adoption.clos %}<a class="bouton" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
-{% if classe_active %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer&amp;destination=classe#import-referentiel">Importer pour la classe</a>{% endif %}
-{% if peut_importer_ecole %}<a class="bouton{% if classe_active and adoption and not adoption.clos %} discret{% endif %}" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer une édition</a>
-{% elif classe_active %}<a class="bouton{% if adoption and not adoption.clos %} discret{% endif %}" href="{% url 'proposer_referentiel_classe' classe.pk %}">Proposer un référentiel à la direction</a>{% endif %}
-
-</div>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Partager le référentiel de la classe" resume="Grist ou ZIP" niveau_titre=2 only %}
+<p><a class="bouton" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Ouvrir les options de partage</a></p>
 </details>
+{% endif %}
 </div>
 {% endblock %}

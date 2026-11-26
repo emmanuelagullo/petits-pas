@@ -55,7 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install -r requirements.lock pypdf==6.1.0
-          npm install --prefix pwa --ignore-scripts
+          npm install --prefix pwa --ignore-scripts --fetch-retries=4
           pwa/node_modules/.bin/playwright install '${{ matrix.browser }}'
           if [ '${{ matrix.browser }}' != chromium ]; then
             echo 'PWA_BROWSER_CHANNEL=${{ matrix.browser }}' >> "$GITHUB_ENV"

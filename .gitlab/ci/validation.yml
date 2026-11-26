@@ -433,7 +433,7 @@ pwa-prototype:
     - apt-get install --yes --no-install-recommends nodejs npm poppler-utils openssl libpango-1.0-0 libpangoft2-1.0-0
     - python3 --version
     - python3 -m pip install --requirement requirements.lock
-    - npm install --prefix pwa --ignore-scripts
+    - npm install --prefix pwa --ignore-scripts --fetch-retries=4
     - node pwa/node_modules/playwright/cli.js install --with-deps chromium
   script:
     - python3 -m unittest discover -s scripts -p test_construire_pwa.py
