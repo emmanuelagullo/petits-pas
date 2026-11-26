@@ -12,7 +12,7 @@ document.addEventListener('submit', event => {
 window.addEventListener('pageshow', () => {
   document.querySelectorAll('[data-publication-grist][aria-busy]').forEach(form => {
     form.removeAttribute('aria-busy');
-    form.querySelector('[value="publier-grist"]').textContent = 'Publier dans Grist';
+    actualiserActionsGrist(form);
   });
 });
 function adresseCatalogueGrist(lien) {
@@ -31,9 +31,13 @@ function actualiserActionsGrist(form) {
   const destination = form.elements.destination_grist?.value;
   const disponible = lien ? Boolean(adresseCatalogueGrist(lien)) : Boolean(destination);
   const consultation = form.querySelector('[data-catalogue-consulte]');
+  const mêmeCatalogue = !consultation || adresseCatalogueGrist(lien || destination) ===
+    adresseCatalogueGrist(consultation.dataset.catalogueConsulte);
   if (consultation) {
-    const mêmeCatalogue = adresseCatalogueGrist(lien || destination) ===
-      adresseCatalogueGrist(consultation.dataset.catalogueConsulte);
+    if (form.elements.mode_contenu_grist) {
+      form.elements.mode_contenu_grist.disabled = !mêmeCatalogue;
+      form.querySelector('[value="enregistrer-mode-grist"]').disabled = !mêmeCatalogue;
+    }
     consultation.hidden = mêmeCatalogue;
     if (form.elements.reference_grist) form.elements.reference_grist.disabled = !mêmeCatalogue;
   }
@@ -42,7 +46,9 @@ function actualiserActionsGrist(form) {
   const aide = form.querySelector('[data-aide-destination-grist]');
   publier.disabled = consulter.disabled = !disponible;
   publier.classList.toggle('discret', !disponible);
-  form.querySelector('[value="telecharger-classe"]').classList.toggle('discret', disponible);
+  publier.textContent = mêmeCatalogue && publier.dataset.modeGrist === 'icones'
+    ? 'Publier les icônes dans Grist' : 'Publier dans Grist';
+  form.parentElement.querySelector('[data-export-zip] button').classList.toggle('discret', disponible);
   aide.hidden = disponible;
   aide.textContent = lien && !disponible
     ? 'Collez le lien d’un document de grist.numerique.gouv.fr.'
@@ -68,4 +74,11 @@ document.addEventListener('input', event => {
   const resume = form.querySelector('[data-choix-grist]');
   resume.textContent = [lien || destination || 'Choisir un catalogue de destination', choix].filter(Boolean).join(' · ');
   resume.hidden = !resume.textContent;
+});
+
+document.addEventListener('change', event => {
+  const contenu = event.target;
+  if (!contenu.matches('#contenu-zip')) return;
+  contenu.closest('details').querySelector('summary .aide').textContent = contenu.value
+    ? contenu.selectedOptions[0].textContent : 'Compétences seules';
 });

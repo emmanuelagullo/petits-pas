@@ -164,7 +164,12 @@ class MisesAJour(Base):
         self.assertContains(page, 'id="url-grist"')
         self.assertContains(page, "Voir le contenu à partager")
         self.assertContains(page, "Télécharger le ZIP", count=1)
-        self.assertContains(page, 'value="telecharger-classe" formnovalidate')
+        self.assertContains(page, "data-export-zip")
+        self.assertContains(page, "Options du ZIP")
+        self.assertNotContains(page, "Télécharger un ZIP d’icônes seules")
+        ariane = page.content.decode().split('aria-label="Fil d’Ariane"', 1)[1].split("</nav>", 1)[0]
+        self.assertIn("Compétences", ariane)
+        self.assertNotIn("Catalogues et partage", ariane)
         self.assertNotContains(page, "Vous avez reçu un fichier ZIP")
         self.assertNotContains(self.client.get(echange), "Vous avez reçu un fichier ZIP")
         self.assertNotContains(page, "Examiner le contenu")
@@ -206,6 +211,43 @@ class MisesAJour(Base):
             self.assertContains(revision, "Édition 2 publiée")
             self.assertContains(revision, destination["nom"])
             self.assertEqual(publier.call_args.args[3], 2)
+
+    def test_icones_zip_et_grist_utilisent_les_options_de_leur_action(self):
+        from copy import deepcopy
+        from io import BytesIO
+
+        from PIL import Image
+
+        from .icones_partagees import encoder_icone
+        from .services.paquets_referentiels import lire_paquet_icones
+
+        self.adopter()
+        echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        image = BytesIO()
+        Image.new("RGBA", (1, 1)).save(image, format="PNG")
+        projection = document("projection-fictive")
+        projection["format"] = 2
+        projection["domaines"][0]["competences"][0]["icone_png"] = encoder_icone(image.getvalue())
+        url = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        destination = {"url": url, "nom": "Ressources", "espace": "docs", "editions": [],
+                       "mode_contenu": "complet"}
+        with patch("suivi.views_paquets_referentiels.preparer_referentiel_classe", side_effect=lambda *args: deepcopy(projection)):
+            page = self.client.get(echange)
+            self.assertContains(page, "Télécharger un ZIP d’icônes seules")
+            icones = self.client.post(echange, {"action": "telecharger-icones-classe"})
+            self.assertEqual(len(lire_paquet_icones(icones.content)), 1)
+            archive = self.client.post(echange, {"action": "telecharger-classe"})
+            self.assertNotIn("icone_png", lire_paquet(archive.content))
+            archive = self.client.post(echange, {"action": "telecharger-classe", "inclure_icones": "oui"})
+            self.assertIn("icone_png", lire_paquet(archive.content))
+            with patch("suivi.publication_grist.destination_grist", return_value=destination), patch(
+                "suivi.publication_grist.publier_edition_grist",
+            ) as publier, patch("suivi.publication_grist.enregistrer_mode_catalogue_grist") as enregistrer:
+                reponse = self.client.post(echange, {"action": "publier-grist", "url_grist": url,
+                                                      "mode_contenu_grist": "competences"})
+                self.assertContains(reponse, "Édition 1 publiée")
+                self.assertIn("icone_png", contenu_grist(publier.call_args.args[-1]))
+                enregistrer.assert_not_called()
 
     def test_apercu_sans_projection_et_adaptation_prioritaire(self):
         ancienne, nouvelle = self.preparer()

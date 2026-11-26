@@ -37,7 +37,7 @@ def presenter_publication_grist(request, classe, contexte, identifiant):
     contexte.update(
         nom_catalogue_propose=f"Catalogue de {classe.ecole.nom}"[:200],
         destinations_grist=list(destinations.values()), derniere_destination=precedente,
-        publication_connue=precedente, choix_catalogue_grist=precedente.url if precedente else "",
+        publication_connue=precedente if precedente and precedente.reference else None, choix_catalogue_grist=precedente.url if precedente else "",
         modes_catalogue_grist=MODES_CATALOGUE_GRIST,
         modele_grist=getattr(settings, "GRIST_MODELE_URL", ""),
     )
@@ -60,7 +60,8 @@ def publication_grist(request, classe, contexte, action, document):
     if len(nom_saisi) > 200:
         raise ValidationError("Le nom du catalogue est limité à 200 caractères.")
     destination = dict(destination_grist(url, preparer_vierge=action == "publier-grist"))
-    if destination.get("nom_a_initialiser"):
+    nouveau_catalogue = destination.get("nom_a_initialiser", False)
+    if nouveau_catalogue:
         destination["nom"] = nom_saisi or contexte["nom_catalogue_propose"]
         if action == "publier-grist":
             destination["nom"] = enregistrer_nom_catalogue_grist(destination["url"], destination["nom"])
@@ -82,21 +83,30 @@ def publication_grist(request, classe, contexte, action, document):
             destination.update(mode_contenu=mode, libelle_contenu=MODES_CATALOGUE_GRIST[mode])
             contexte["mode_grist_enregistre"] = True
         return
-    mode_effectif = mode or destination.get("mode_contenu", "complet")
+    mode_effectif = (mode or "competences") if nouveau_catalogue else destination.get("mode_contenu", "complet")
+    mode = mode_effectif if nouveau_catalogue else ""
     if mode_effectif == "icones":
         ressources = externaliser_png(deepcopy(document))
         if not ressources:
-            raise ValidationError("Cochez l’inclusion des icônes ajoutées et vérifiez que le référentiel en contient.")
+            raise ValidationError("Ce référentiel ne contient aucune icône ajoutée à publier.")
         prefixe, identifiant = adresse_grist(destination["url"])
         publier_icones_grist(prefixe, identifiant, ressources)
         if mode:
             enregistrer_mode_catalogue_grist(destination["url"], mode)
+        destination.update(mode_contenu=mode_effectif, libelle_contenu=MODES_CATALOGUE_GRIST[mode_effectif])
+        DestinationPublicationGrist.objects.update_or_create(
+            ecole=classe.ecole, auteur=request.user, classe=classe, url=destination["url"],
+            identifiant_local=source["identifiant"],
+            defaults={"nom": destination["nom"], "espace": destination["espace"],
+                      "reference": precedente.reference if precedente else ""},
+        )
         contexte["publication_icones_grist"] = {**destination, "nombre": len(ressources)}
         return
     if mode_effectif == "competences":
         document = deepcopy(document)
         for competence in competences_document(document):
             competence.pop("icone_png", None)
+    precedente = precedente if precedente and precedente.reference else None
     reference = precedente.reference if precedente else source["identifiant"]
     if choix == "nouveau":
         reference = source["identifiant"]
@@ -129,4 +139,6 @@ def publication_grist(request, classe, contexte, action, document):
     contexte.pop("url_grist", None)
     contexte.pop("destination_grist", None)
     contexte.pop("lien_grist_saisi", None)
+    destination.update(mode_contenu=mode_effectif, libelle_contenu=MODES_CATALOGUE_GRIST[mode_effectif])
+    contexte["mode_destination_publiee"] = mode_effectif
     contexte["publication_grist_reussie"] = {**destination, "numero": numero, "identique": identique}

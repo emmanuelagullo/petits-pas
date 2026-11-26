@@ -8,7 +8,8 @@
 <p class="message" role="status">Vérifiez les informations de partage, notamment la licence, avant de continuer.</p>
 {% endif %}
 {% if apercu_partage %}
-<p>{{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }} à partager, avec leurs adaptations et ajouts. Les photos et les suivis individuels sont exclus.</p>
+<p>{{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }} à partager, avec leurs adaptations et ajouts. Les photos du suivi et les suivis individuels restent privés.</p>
+{% if nombre_icones_ajoutees %}<p>{{ nombre_icones_ajoutees }} icône{{ nombre_icones_ajoutees|pluralize }} ajoutée{{ nombre_icones_ajoutees|pluralize }} disponible{{ nombre_icones_ajoutees|pluralize }}.</p>{% endif %}
 <details>{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
 </details>

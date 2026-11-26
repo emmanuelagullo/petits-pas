@@ -187,16 +187,29 @@ def informations_partage(classe, adoption):
     }, False
 
 
-def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False, inclure_icones_fournies=False):
+def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False, inclure_icones_fournies=False, avec_zip=True):
+    from .icones_partagees import empreinte_png, decoder_icone, png_en_ligne
+
     source = {k: v for k, v in donnees.items() if k != "version"}
     document = preparer_referentiel_classe(classe, source, donnees["version"])
-    if not inclure_icones:
-        for competence in competences_document(document):
-            competence.pop("icone_png", None)
+    empreintes = set()
+    for competence in competences_document(document):
+        png = competence.get("icone_png")
+        if png:
+            octets = png_en_ligne(png)
+            empreintes.add(empreinte_png(decoder_icone(octets)))
+            if inclure_icones:
+                competence["icone_png"] = octets
+            else:
+                competence.pop("icone_png", None)
+    nombre = len(empreintes)
+    pluriel = "s" if nombre != 1 else ""
+    contexte["nombre_icones_ajoutees"] = nombre
+    contexte["libelle_zip_icones"] = f"Compétences et {nombre} icône{pluriel} ajoutée{pluriel}"
     # Une licence manquante n'empêche pas de consulter la projection.
     a_lire = {**document, "source": {**document["source"], "licence": source["licence"] or "À vérifier"}}
-    paquet = empaqueter(a_lire, inclure_icones_fournies=inclure_icones_fournies)
-    normalise, _ = lire_source(lire_paquet(paquet))
+    paquet = empaqueter(a_lire, inclure_icones_fournies=inclure_icones_fournies) if avec_zip else None
+    normalise, _ = lire_source(yaml.safe_dump(a_lire, allow_unicode=True))
     icones = catalogue_icones()
     contexte["apercu_partage"] = {
         "apercu": normalise, "competences_importees": list(definitions_document(normalise).values()),
@@ -226,7 +239,7 @@ def partage_classe(request, classe, contexte, action):
     presenter_publication_grist(request, classe, contexte, initial["identifiant"])
     if action not in ACTIONS_PARTAGE:
         if contexte.get("volet") in ("exporter", "", None):
-            presenter_contenu_partage(classe, contexte, initial)
+            presenter_contenu_partage(classe, contexte, initial, avec_zip=False)
         return
     contexte["volet"] = "exporter"
     engagement = {"auteur": request.user.pk, "adoption": adoption.pk}
@@ -251,8 +264,10 @@ def partage_classe(request, classe, contexte, action):
             raise ValidationError("La base de la classe a changé. Reprenez le partage du référentiel.")
         donnees = preparation["donnees"]
     contexte["informations_partage"] = donnees
-    inclure_icones = (request.POST.get("inclure_icones") == "oui" if direct else
-                      preparation.get("inclure_icones", False))
+    inclure_icones = (
+        action in {"publier-grist", "telecharger-icones-classe"}
+        or (request.POST.get("inclure_icones") == "oui" if direct else preparation.get("inclure_icones", False))
+    )
     contexte["inclure_icones"] = inclure_icones
     inclure_icones_fournies = (request.POST.get("inclure_icones_fournies") == "oui" if direct else
                                preparation.get("inclure_icones_fournies", False))
@@ -260,6 +275,7 @@ def partage_classe(request, classe, contexte, action):
     document, paquet, normalise = presenter_contenu_partage(
         classe, contexte, donnees, inclure_icones=inclure_icones,
         inclure_icones_fournies=inclure_icones_fournies,
+        avec_zip=action in {"telecharger-classe", "exporter-classe"},
     )
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
     if not direct and empreinte != preparation["empreinte"]:
@@ -277,8 +293,6 @@ def partage_classe(request, classe, contexte, action):
         from .icones_partagees import externaliser_png
         from .services.paquets_referentiels import empaqueter_icones
 
-        if not inclure_icones:
-            raise ValidationError("Cochez l’inclusion des icônes ajoutées pour les télécharger.")
         return telecharger_paquet(empaqueter_icones(externaliser_png(normalise)), donnees["titre"],
                                   type_archive="icones", nombre_competences=0)
     if action in ("telecharger-classe", "exporter-classe"):
@@ -372,10 +386,7 @@ def paquets_referentiels(request, classe_pk=None):
     if classe and request.GET.get("depuis") == "competences":
         contexte["retour_competences"] = lien("catalogue_competences", classe.pk, ancre="actions-referentiel-classe")
     if classe and request.GET.get("depuis") == "espace":
-        contexte["retour_espace"] = (
-            lien("suivis_referentiels_classe", classe.pk, espace=1, ancre="espace-partage")
-            if request.GET.get("retour") == "catalogues" else reverse("espace_grist_classe", args=[classe.pk])
-        )
+        contexte["retour_espace"] = lien("suivis_referentiels_classe", classe.pk, espace=1, ancre="espace-partage")
     if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":
         contexte["retour_export_ecole"] = lien(
             "paquets_referentiels_ecole", annee=annee, volet="exporter", ancre="export-referentiel",

@@ -20,9 +20,13 @@
 <p data-destination-grist-initiale><strong>Catalogue de destination</strong> · <a href="{{ derniere_destination.url }}">{{ derniere_destination.nom }}</a>{% if derniere_destination.espace %} · {{ derniere_destination.espace }}{% endif %} · {% if publication_connue %}Nouvelle édition · {% if publication_connue.reference == informations_partage.identifiant %}{{ informations_partage.titre }}{% else %}{{ publication_connue.reference }}{% endif %}{% else %}Nouveau référentiel{% endif %}</p>
 {% endif %}
 {% if destination_grist %}<p>Catalogue de destination · <a href="{{ destination_grist.url }}">{{ destination_grist.nom }}</a></p>{% endif %}
+{% firstof destination_grist.mode_contenu mode_destination_publiee as mode_actuel %}
+<p class="aide" id="aide-destination-grist" data-aide-destination-grist{% if choix_catalogue_grist or lien_grist_saisi %} hidden{% endif %}>Choisissez un catalogue ou collez son lien pour publier dans Grist.</p>
+<button class="bouton{% if not choix_catalogue_grist and not lien_grist_saisi %} discret{% endif %}" name="action" value="publier-grist" data-mode-grist="{{ mode_actuel }}" aria-describedby="aide-destination-grist">{% if mode_actuel == "icones" %}Publier les icônes dans Grist{% else %}Publier dans Grist{% endif %}</button>
+{% if destination_grist.libelle_contenu %}<p class="aide">Contenu proposé · {{ destination_grist.libelle_contenu }}</p>{% endif %}
 <details{% if erreur_grist or destination_grist or not derniere_destination %} open{% endif %}>
 {% if derniere_destination or destination_grist %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Changer de catalogue" only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages Grist" only %}
 {% else %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir un catalogue" only %}
 {% endif %}
@@ -54,32 +58,49 @@ placeholder="{{ nom_catalogue_propose }}"></p>
 </details>
 {% endif %}
 {% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
-</details>
-<p class="aide" id="aide-destination-grist" data-aide-destination-grist hidden>Choisissez un catalogue ou collez son lien pour publier dans Grist.</p>
-<p><label><input type="checkbox" name="inclure_icones" value="oui" aria-describedby="aide-icones-partage"{% if inclure_icones %} checked{% endif %}> Inclure les icônes ajoutées au référentiel</label><br>
-<span id="aide-icones-partage" class="aide">Les photos du suivi restent privées.</span></p>
-<details{% if inclure_icones_fournies %} open{% endif %}>
-{% if inclure_icones_fournies %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Icônes fournies avec Petits Pas · incluses dans le ZIP" only %}
-{% else %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Icônes fournies avec Petits Pas · disponibles à l’import" only %}
-{% endif %}
-<p><label><input type="checkbox" name="inclure_icones_fournies" value="oui"{% if inclure_icones_fournies %} checked{% endif %}> Joindre les fichiers des icônes fournies avec Petits Pas au ZIP</label></p>
-<p class="aide">Petits Pas retrouve déjà ces icônes à l’import. Joignez leurs fichiers si vous comptez ouvrir le ZIP en dehors de Petits Pas.</p>
-</details>
-<details{% if request.POST.mode_contenu_grist %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Contenu du catalogue Grist" only %}
-<p><label for="mode-contenu-grist">Contenu affiché par le catalogue</label>
+<details{% if request.POST.mode_contenu_grist and not mode_grist_enregistre %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Contenu proposé par le catalogue" resume=destination_grist.libelle_contenu only %}
+{% if destination_grist %}
+<label for="mode-contenu-grist">Contenu proposé à toutes les personnes qui consultent ce catalogue</label>
 <select name="mode_contenu_grist" id="mode-contenu-grist">
-<option value="">Conserver le choix du catalogue{% if destination_grist.mode_contenu %} ({{ destination_grist.libelle_contenu }}){% endif %}</option>
-{% for valeur, libelle in modes_catalogue_grist.items %}<option value="{{ valeur }}"{% if request.POST.mode_contenu_grist == valeur %} selected{% endif %}>{{ libelle }}</option>{% endfor %}
-</select></p>
-<p class="aide">Ce réglage concerne tout le catalogue. Les éditions déjà publiées restent enregistrées dans Grist.</p>
-{% if destination_grist %}<button class="bouton discret" name="action" value="enregistrer-mode-grist">Enregistrer le contenu du catalogue</button>{% endif %}
+{% for valeur, libelle in modes_catalogue_grist.items %}<option value="{{ valeur }}"{% if destination_grist.mode_contenu == valeur %} selected{% endif %}>{{ libelle }}</option>{% endfor %}
+</select>
+<p class="aide">Ce réglage s’applique à tout le catalogue. Les éditions et les icônes déjà publiées restent enregistrées dans Grist.</p>
+<button class="bouton discret" name="action" value="enregistrer-mode-grist">Enregistrer le contenu du catalogue</button>
+{% else %}
+<p class="aide">Un nouveau catalogue propose les compétences par défaut. Pour modifier le contenu d’un catalogue existant, examinez d’abord ses référentiels.</p>
+{% endif %}
 </details>
-<p class="actions">
-<button class="bouton" name="action" value="publier-grist" aria-describedby="aide-destination-grist">Publier dans Grist</button>
-<button class="bouton discret" name="action" value="telecharger-classe" formnovalidate>Télécharger le ZIP</button>
-<button class="bouton discret" name="action" value="telecharger-icones-classe" formnovalidate>Télécharger les icônes seules</button>
-</p>
+</details>
 </form>
+
+<form method="post" action="#export-referentiel" data-export-zip>
+{% csrf_token %}
+<button class="bouton{% if choix_catalogue_grist or lien_grist_saisi %} discret{% endif %}" name="action" value="telecharger-classe">Télécharger le ZIP du référentiel</button>
+<details{% if request.POST.action == "telecharger-classe" and erreur %} open{% endif %}>
+{% if request.POST.action == "telecharger-classe" and inclure_icones %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Options du ZIP" resume=libelle_zip_icones only %}
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Options du ZIP" resume="Compétences seules" only %}
+{% endif %}
+{% if nombre_icones_ajoutees %}
+<label for="contenu-zip">Contenu du ZIP du référentiel</label>
+<select name="inclure_icones" id="contenu-zip">
+<option value="">Compétences</option>
+<option value="oui"{% if request.POST.action == "telecharger-classe" and inclure_icones %} selected{% endif %}>{{ libelle_zip_icones }}</option>
+</select>
+{% endif %}
+<details{% if inclure_icones_fournies %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Icônes fournies avec Petits Pas" only %}
+<p><label><input type="checkbox" name="inclure_icones_fournies" value="oui"{% if inclure_icones_fournies %} checked{% endif %}> Joindre aussi les fichiers des icônes fournies avec Petits Pas</label></p>
+<p class="aide">Petits Pas retrouve déjà ces icônes à l’import. Joignez leurs fichiers pour les ouvrir en dehors de Petits Pas.</p>
+</details>
+</details>
+</form>
+{% if nombre_icones_ajoutees %}
+<form method="post" action="#export-referentiel">
+{% csrf_token %}
+<button class="bouton discret" name="action" value="telecharger-icones-classe">Télécharger un ZIP d’icônes seules</button>
+<span class="aide">{{ nombre_icones_ajoutees }} icône{{ nombre_icones_ajoutees|pluralize }} ajoutée{{ nombre_icones_ajoutees|pluralize }}</span>
+</form>
+{% endif %}
