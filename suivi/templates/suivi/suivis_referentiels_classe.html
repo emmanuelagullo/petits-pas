@@ -73,10 +73,10 @@
 {% if peut_gerer_catalogues %}<p><a class="bouton discret" href="{% url 'referentiels_ecole' %}?annee={{ classe.annee_scolaire }}">Choix annuels de l’école</a></p>{% endif %}
 {% endif %}
 </section>
-{% if arbitrages or divergences or indisponibles %}
+{% if arbitrages or divergences or indisponibles or decisions %}
 <details id="referentiels-suivis">
 {% else %}<div id="referentiels-suivis" hidden>{% endif %}
-{% if arbitrages or divergences or indisponibles %}
+{% if arbitrages or divergences or indisponibles or decisions %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Changements et décisions" resume="Propositions à examiner" niveau_titre=2 only %}
 {% if arbitrages %}
 <details class="avertissement-referentiel avertissement-orange">
@@ -101,6 +101,14 @@
 {% for candidats in divergences %}
 <ul>{% for candidat in candidats %}<li><a href="{{ candidat.url }}">{{ candidat.libelle }} · {{ candidat.titre }}</a></li>{% endfor %}</ul>
 {% endfor %}
+</details>
+{% endif %}
+{% if decisions %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Dernières décisions de la classe" only %}
+<ul>{% for decision in decisions %}
+<li>{{ decision.nouvelles_valeurs.competence }} · {{ decision.nouvelles_valeurs.champ }} · {{ decision.nouvelles_valeurs.source }} · {{ decision.cree_le|date:"d/m/Y H:i" }}</li>
+{% endfor %}</ul>
 </details>
 {% endif %}
 {% for reference in indisponibles %}

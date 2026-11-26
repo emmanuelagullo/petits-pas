@@ -372,6 +372,10 @@ class Projection:
                         champs[champ.attname] = self.contenu(
                             valeur, ajout_local=model is m.CompetenceLocale and champ.name == "definition",
                         )
+                if model is m.AdaptationCompetence and r["source_heritage"].startswith("classe:"):
+                    _, _, source = r["source_heritage"].partition(":")
+                    cible = self.ids.get(m.Classe, {}).get(int(source)) if source.isdecimal() else None
+                    champs["source_heritage"] = f"classe:{cible}" if cible is not None else ""
                 if model is m.UsageCompetence:
                     champs['cle_definition'] = self.cle(r['cle_definition'])
                 if model is m.CorrespondanceCompetence:

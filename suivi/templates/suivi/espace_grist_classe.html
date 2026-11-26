@@ -4,20 +4,9 @@
 {% block contenu %}
 {% ariane_referentiel "Espace de partage" classe classe.annee_scolaire parcours="partage" %}
 <h1>Espace de partage</h1>
-{% if partage %}
-<details hidden data-retrait-grist>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Retirer mon référentiel de cet espace" only %}
-<form method="post">{% csrf_token %}
-<input type="hidden" name="action" value="preparer-retrait">
-<input type="hidden" name="identifiant_attendu" value="{{ partage.identifiant }}">
-<input type="hidden" name="url_attendue" value="{{ partage.url }}">
-<p>La synchronisation sera suspendue et la publication de cette classe sera retirée de cet espace. Les collègues gardent les copies déjà reçues.</p>
-<button type="submit" class="bouton danger-discret">Confirmer le retrait</button>
-<p role="status"></p>
-</form>
-</details>
+{% if partage and not partage.actif %}
+<p><span class="pastille">Synchronisation suspendue</span> {{ partage.nom_espace }}</p>
 {% endif %}
-
 {% if partage.actif %}
 <section class="encadre">
 {% include "suivi/partiels/contexte_espace_partage.html" with classe=classe espace_actif=partage only %}
@@ -30,21 +19,24 @@
 </div>
 {% endif %}
 <div class="actions">
-<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}?decouvrir=1&amp;groupe={{ document_actif|urlencode }}#referentiels-espace-{{ document_actif }}">Voir les référentiels de cet espace</a>
+<a class="bouton" href="{% url 'suivis_referentiels_classe' classe.pk %}?decouvrir=1&amp;groupe={{ document_actif|urlencode }}#referentiels-espace-{{ document_actif }}">Voir les référentiels de cet espace</a>
 <a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a>
 </div>
 </section>
-<section>
+<section class="encadre">
 <h2>Synchronisation</h2>
 <p role="status" data-etat-espace>Vérification en attente.</p>
-<button type="button" class="bouton discret" data-relancer-synchro hidden>Synchroniser maintenant</button>
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Détails de la synchronisation" only %}
+<button type="button" class="bouton discret" data-relancer-synchro hidden>Synchroniser maintenant</button>
 <ol data-journal-synchro tabindex="0" aria-label="Résultats dans cet onglet" class="journal-partage"></ol>
 </details>
-<form method="post">{% csrf_token %}<button name="action" value="suspendre" class="bouton discret">Suspendre la synchronisation</button></form>
+
 </section>
-<p>Lien du document Grist · <a href="{{ partage.url }}">{{ partage.url }}</a></p>
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Lien de l’espace" resume="Document Grist" only %}
+<p><a href="{{ partage.url }}">Ouvrir le document dans Grist</a></p>
+</details>
 <details{% if changer_espace %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Changer d’espace" only %}
 {% if changer_destination %}
@@ -83,4 +75,24 @@
 <a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">{% if partage.actif %}Retour aux suivis{% else %}Annuler{% endif %}</a></div>
 </form>
 {% if partage.actif %}</details>{% endif %}
+{% if partage %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Suspendre ou retirer le partage" only %}
+{% if partage.actif %}<form method="post">{% csrf_token %}<button name="action" value="suspendre" class="bouton discret">Suspendre la synchronisation</button></form>{% endif %}
+{% if partage %}
+<details hidden data-retrait-grist>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Retirer mon référentiel de cet espace" only %}
+<form method="post">{% csrf_token %}
+<input type="hidden" name="action" value="preparer-retrait">
+<input type="hidden" name="identifiant_attendu" value="{{ partage.identifiant }}">
+<input type="hidden" name="url_attendue" value="{{ partage.url }}">
+<p>La synchronisation sera suspendue et la publication de cette classe sera retirée de cet espace. Les collègues gardent les copies déjà reçues.</p>
+<button type="submit" class="bouton danger-discret">Confirmer le retrait</button>
+<p role="status"></p>
+</form>
+</details>
+{% endif %}
+
+</details>
+{% endif %}
 {% endblock %}

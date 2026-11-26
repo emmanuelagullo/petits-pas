@@ -117,6 +117,14 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
             annee=classe.annee_scolaire, classe=classe).filter(pk=locale.pk).exists():
         reprendre_ajout(utilisateur=utilisateur, ecole=classe.ecole, annee=classe.annee_scolaire,
                        classe=classe, locale=locale, adoption_attendue=adoption.pk)
+        if autre:
+            regle, _ = AdaptationCompetence.objects.get_or_create(
+                classe=classe, competence=locale.competence,
+                defaults={"ecole": classe.ecole, "annee_scolaire": classe.annee_scolaire},
+            )
+            if not regle.source_heritage:
+                regle.source_heritage = f"classe:{autre.classe_id}"
+                regle.save(update_fields=["source_heritage"])
         return locale.competence
     regle, _ = AdaptationCompetence.objects.get_or_create(classe=classe, competence_id=ligne["id"],
         defaults={"ecole": classe.ecole, "annee_scolaire": classe.annee_scolaire})
@@ -125,6 +133,8 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
         regle.ajout = extrait(contenu, ligne)
         if version and est_uuid_portable(reference):
             regle.source_heritage = identifiant_diffusion(version.source)
+        elif autre:
+            regle.source_heritage = f"classe:{autre.classe_id}"
     regle.visible = True
     regle.revision += 1
     regle.full_clean()

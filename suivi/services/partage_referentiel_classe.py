@@ -24,8 +24,8 @@ def arbre_commun_classe(adoption, contenu):
         yield domaine
 
 
-def contenu_commun_classe(adoption):
-    brut = contenu_adoption(adoption)
+def contenu_commun_classe(adoption, *, avec_heritage=True):
+    brut = contenu_adoption(adoption, avec_heritage=avec_heritage)
     contenu = {**brut, "domaines": [], "sous_domaines": [], "competences": []}
     definitions = {c["id"]: c for c in brut["competences"]}
     domaines = {d["id"]: d for d in brut["domaines"]}

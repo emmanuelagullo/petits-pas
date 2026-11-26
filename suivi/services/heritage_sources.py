@@ -1,6 +1,6 @@
 """Propositions des éditions suivies pour les compétences déjà présentes."""
 from suivi.identites_referentiels import est_uuid_portable, identifiant_diffusion
-from suivi.models import AdaptationCompetence, CompetenceSourceEcole, FormulationProposee, SuiviSourceClasse, VersionReferentiel
+from suivi.models import AdaptationCompetence, AdoptionReferentiel, CompetenceSourceEcole, FormulationProposee, SuiviSourceClasse, VersionReferentiel
 from .apercu_mises_a_jour import definitions_document
 
 CHAMPS = {"libelle": "Libellé", "illustration": "Illustration", "niveau": "Section",
@@ -53,6 +53,31 @@ def propositions_suivies(classe, ids=None):
                     "libelle_competence": definition["libelle"], "valeur": valeur, "choisie": bool(suivi and champ in suivi.champs_herites.get(uuid, ())),
                     "origine_reprise": origine_reprise, "uuid": uuid,
                 })
+    autres = {int(cle[7:]) for cle in origines.values()
+              if cle.startswith("classe:") and cle[7:].isdecimal()}
+    if autres:
+        from .partage_referentiel_classe import contenu_commun_classe
+
+        for adoption in AdoptionReferentiel.objects.filter(
+            classe_id__in=autres, classe__ecole=classe.ecole, classe__etat=classe.ACTIVE,
+            classe__annee_scolaire__lte=classe.annee_scolaire, courante=True, clos=False,
+        ).select_related("classe", "version"):
+            contenu = contenu_commun_classe(adoption, avec_heritage=False)
+            for definition in contenu["competences"]:
+                pk = definition["id"]
+                if origines.get(pk) != f"classe:{adoption.classe_id}":
+                    continue
+                champs = {"libelle": definition["libelle"], "niveau": definition["niveau"],
+                          "illustration": [definition.get("icone", ""), definition.get("icone_png", "")],
+                          "formulations": [{"code": f["code"], "texte": f["texte"]}
+                                           for f in contenu.get("formulations", [])
+                                           if f["competence_id"] == pk and f["active"]]}
+                for champ, valeur in champs.items():
+                    resultat.setdefault(pk, {}).setdefault(champ, []).append({
+                        "source": None, "titre": adoption.classe.nom, "edition": "contenu courant",
+                        "libelle_competence": definition["libelle"], "valeur": valeur,
+                        "choisie": False, "origine_reprise": True, "uuid": f"classe:{pk}",
+                    })
     return resultat
 
 
@@ -81,7 +106,7 @@ def appliquer_heritage(classe, contenu, principale):
                   .values_list("competence_id", flat=True))
     for definition in definitions:
         for champ, choix in propositions.get(definition["id"], {}).items():
-            if definition["id"] in locales and not any(c["choisie"] for c in choix):
+            if definition["id"] in locales and not any(c["choisie"] or c["origine_reprise"] for c in choix):
                 continue
             valeur = valeur_heritee(choix)
             if valeur is None:

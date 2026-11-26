@@ -148,6 +148,15 @@ def decouvrir_referentiels(request):
     instance = catalogue_instance(annee)
     regles = reglages_catalogues_classe(classe) if gestion_classe else ecole.catalogues_referentiels
     catalogues = catalogues_visibles(regles, instance)
+    if request.method == "POST" and gestion_classe and request.POST.get("action") == "actualiser-automatiquement":
+        from django.core.cache import cache
+        from django.http import JsonResponse
+        from .services.actualisation_catalogues import actualiser_catalogues_classe
+
+        if not cache.add(f"catalogues-classe-{classe.pk}", True, timeout=300):
+            return JsonResponse({"editions": 0, "erreurs": []})
+        nombre, erreurs = actualiser_catalogues_classe(request.user, classe)
+        return JsonResponse({"editions": nombre, "erreurs": erreurs})
     if request.method == "POST" and gestion_classe:
         try:
             action = request.POST.get("action")
@@ -286,6 +295,9 @@ def decouvrir_referentiels(request):
                             "cle": cle, "suivi": catalogue_suivi(regles.get(cle, {})),
                             "herite": gestion_classe and (cle in ecole.catalogues_referentiels or cle in catalogues_grist_connus({})),
                             "personnalise": gestion_classe and cle in classe.catalogues_propres})
+    contexte["actualisation_active"] = gestion_classe and any(
+        etat.get("suivre_catalogue") and etat.get("catalogue", {}).get("url") for etat in regles.values()
+    )
     contexte.update(groupes=groupes, nombre_resultats=sum(len(groupe["lignes"]) for groupe in groupes))
     return render(request, "suivi/decouvrir_referentiels.html", contexte)
 
@@ -400,6 +412,7 @@ def suivis_classe(request, classe_pk):
         ids = [c["id"] for c in contenu_adoption(adoption)["competences"] if c["id"] not in principale]
         for champs in propositions_suivies(classe, ids).values():
             for champ, candidats in champs.items():
+                candidats = [c for c in candidats if f"source-{c['source']}" in suivis]
                 if len({empreinte_suivi(c["valeur"]) for c in candidats}) > 1 or any(c["choisie"] for c in candidats):
                     arbitrages.append({"champ": champ, "libelle": CHAMPS[champ], "candidats": candidats,
                                        "competence": candidats[0]["libelle_competence"]})
@@ -423,6 +436,12 @@ def suivis_classe(request, classe_pk):
                         else:
                             suivi.champs_herites.pop(c["uuid"], None)
                         suivi.save(update_fields=["champs_herites"])
+                    from .audit import journaliser
+
+                    journaliser(request.user, "referentiel.choix_heritage", classe, nouvelles={
+                        "competence": c["libelle_competence"], "champ": arbitrage["libelle"],
+                        "source": c["titre"], "edition": c["edition"],
+                    })
                 messages.success(request, "Source retenue pour ce champ. Les adaptations locales restent prioritaires.")
                 return redirect(retour)
         messages.error(request, "Les propositions ont changé. Consultez-les de nouveau.")
@@ -507,11 +526,15 @@ def suivis_classe(request, classe_pk):
         groupe["ouvrir"] = (groupe.get("ouvrir", False) or ancre == groupe_retour
             or any(l["ajoutees"] or l["modifiees"] or l["retirees"] for l in groupe["lignes"])
             or not groupe_retour and not espace_demande and index == 0)
+    from .models import EvenementAudit
+
+    decisions = EvenementAudit.objects.filter(ecole=ecole, modele=classe._meta.label_lower,
+        objet_id=str(classe.pk), action="referentiel.choix_heritage")[:20]
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
                    "nouvelle_edition": any(l["adopter"] for l in lignes),
-                   "arbitrages": arbitrages,
+                   "arbitrages": arbitrages, "decisions": decisions,
                    "divergences": [l for l in divergences.values() if len({c["signature"] for c in l}) > 1],
                    "ouvrir_espace": request.GET.get("espace") == "1",
                    "recus_espace": bool(recus_espace),

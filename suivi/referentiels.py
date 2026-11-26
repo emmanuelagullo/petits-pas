@@ -17,7 +17,7 @@ def contenu_origine(adoption):
     return adoption.contenu or adoption.version.contenu
 
 
-def contenu_adoption(adoption):
+def contenu_adoption(adoption, *, avec_heritage=True):
     contenu = contenu_origine(adoption)
     if adoption.clos:
         return adoption.etat_final.get("contenu", contenu)
@@ -29,7 +29,8 @@ def contenu_adoption(adoption):
     from .rubriques import personnaliser_rubriques
     contenu = personnaliser_rubriques(contenu, adoption.classe)
     from .services.heritage_sources import appliquer_heritage
-    appliquer_heritage(adoption.classe, contenu, {c["id"] for c in contenu_origine(adoption).get("competences", [])})
+    if avec_heritage:
+        appliquer_heritage(adoption.classe, contenu, {c["id"] for c in contenu_origine(adoption).get("competences", [])})
     return contenu_adapte(adoption.classe.ecole, adoption.classe.annee_scolaire,
                           contenu, adoption.classe, selection_manuelle=selection)
 

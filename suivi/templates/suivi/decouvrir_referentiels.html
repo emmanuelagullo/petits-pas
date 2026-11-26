@@ -129,5 +129,11 @@
 {% endfor %}
 </div>
 </div>
+{% if actualisation_active %}
+<form method="post" action="{{ retour }}" data-actualisation-catalogues hidden>
+{% csrf_token %}<input type="hidden" name="action" value="actualiser-automatiquement">
+<p role="status"></p>
+</form>
+{% endif %}
 <script src="{% static 'suivi/liens-catalogues.js' %}" defer></script>
 {% endblock %}

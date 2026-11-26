@@ -313,9 +313,18 @@ class AdoptionBases(Base):
         self.assertRedirects(self.client.post(url, {"action": "ajouter_depuis_source",
             "adoption": adoption.pk, "reference": str(competence.pk)}), url + f"#c{competence.pk}")
         self.assertEqual(AdaptationCompetence.objects.get(classe=destination).competence_id, competence.pk)
+        from .referentiels import contenu_adoption
+        from .services.adaptations_referentiels import enregistrer_adaptation
+
+        enregistrer_adaptation(utilisateur=self.enseignant, ecole=self.ecole, annee=autre.annee_scolaire,
+            classe=autre, competence=competence, libelle="Reformulation commune", visible=None,
+            adoption_attendue=origine.pk, revision_attendue=0)
+        definitions = {c["id"]: c for c in contenu_adoption(adoption)["competences"]}
+        self.assertEqual(definitions[competence.pk]["libelle"], "Reformulation commune")
+
         self.assertFalse(Observation.objects.exists())
         affectation.delete()
-        self.assertContains(self.client.get(url), competence.libelle)
+        self.assertContains(self.client.get(url), "Reformulation commune")
         self.assertEqual(self.client.get(reverse("grille_classe", args=[autre.pk])).status_code, 404)
         self.assertRedirects(self.client.post(url, {"action": "ajouter_depuis_source",
             "adoption": adoption.pk, "reference": str(competence.pk)}), url + f"#c{competence.pk}")

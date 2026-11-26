@@ -110,6 +110,32 @@ class CataloguesReferentiels(Base):
         self.assertEqual(source.classe_privee_id, self.classe.pk)
         self.assertNotIn(source.versions.get(), choix_bases(self.ecole, self.classe.annee_scolaire).versions)
 
+    def test_actualisation_recoit_les_editions_connues_dans_le_perimetre_classe(self):
+        import yaml
+
+        from .services.actualisation_catalogues import actualiser_catalogues_classe
+        from .services.catalogues_externes import identite_grist
+        from .tests_import_sources_referentiels import document, importer
+
+        url = "https://grist.numerique.gouv.fr/o/docs/catalogue-classe"
+        reference = "progression"
+        identifiant = identite_grist(url, reference)
+        version, _, _ = importer(document(identifiant), ecole=self.ecole, classe=self.classe)
+        catalogue = {"url": url, "nom": "Catalogue fictif", "referentiels": [
+            {"reference": reference, "editions": [2, 1]},
+            {"reference": "inconnu", "editions": [1]},
+        ]}
+        self.classe.catalogues_propres = {url: {"suivre_catalogue": True, "catalogue": catalogue}}
+        self.classe.save(update_fields=["catalogues_propres"])
+        with patch("suivi.services.actualisation_catalogues.lire_catalogue_grist", return_value=catalogue), patch(
+            "suivi.services.actualisation_catalogues.edition_grist",
+            return_value=yaml.safe_dump(document(identifiant, "2"), allow_unicode=True),
+        ) as lire:
+            self.assertEqual(actualiser_catalogues_classe(self.enseignant, self.classe), (1, []))
+            self.assertEqual(actualiser_catalogues_classe(self.enseignant, self.classe), (0, []))
+        lire.assert_called_once_with(url, reference, 2)
+        self.assertEqual(set(version.source.versions.values_list("numero", flat=True)), {"1", "2"})
+
     def test_suivre_un_catalogue_sans_suivre_encore_de_referentiel(self):
         self.entrer("dir-mdp")
         url = reverse("decouvrir_referentiels")
