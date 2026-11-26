@@ -390,6 +390,7 @@ button.bouton:disabled,
 
 /* ---------- Année scolaire : classes courantes / futures / passées ---------- */
 
+.pastille-principale { color: #5c4710; border-color: #b49438; background: #fff5cf; }
 .pastille-positive, .pastille-annee.annee-future { color: var(--reussi); border-color: var(--reussi); background: var(--reussi-fond); }
 .pastille-annee.annee-passee { color: var(--en-cours); border-color: var(--en-cours); background: var(--en-cours-fond); }
 .pastille-annee.annee-ancienne { color: var(--annee-ancienne); border-color: var(--annee-ancienne); background: var(--annee-ancienne-fond); }

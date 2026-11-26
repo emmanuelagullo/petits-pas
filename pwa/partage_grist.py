@@ -128,6 +128,7 @@ def espace_classe(request, pk):
     nom_saisi = request.POST.get("nom_espace", "").strip()
     invitation = request.GET.get("grist", "")
     changer_destination = False
+    request_confirmee = request.POST.get("confirmer") == "oui"
     if request.method == "GET" and invitation:
         try:
             prefixe, document = adresse_grist(invitation)
@@ -170,6 +171,8 @@ def espace_classe(request, pk):
             if partage and partage.actif and adresse_grist(partage.url)[1] == document and partage.licence == licence:
                 return redirect("espace_grist_classe", pk=pk)
             if changer_destination and request.POST.get("changement") != document:
+                # Présenter la destination avant de demander la confirmation.
+                request_confirmee = False
                 raise ValidationError("Vérifiez la nouvelle destination puis confirmez le changement d’espace.")
             if erreur_licence:
                 raise ValidationError(erreur_licence)
@@ -207,7 +210,7 @@ def espace_classe(request, pk):
         "espace_attendu": partage.url if partage else "",
         "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
         "erreur": erreur, "champ_erreur": champ_erreur, "licence": licence, "erreur_licence": erreur_licence,
-        "confirmer": request.POST.get("confirmer") == "oui", "nom_saisi": nom_saisi,
+        "confirmer": request_confirmee, "nom_saisi": nom_saisi,
         "nom_propose": nom_espace_propose(classe), "changer_espace": bool(invitation or erreur), "changer_destination": changer_destination,
         "partage_confirme": bool(partage and partage.derniere_empreinte),
         "mode_pwa": getattr(settings, "MODE_PWA", False)}, status=400 if erreur else 200)

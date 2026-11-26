@@ -26,20 +26,31 @@
   const projection = document.querySelector('[data-projection-partagee]');
   const raccordement = document.querySelector('[data-raccordement-grist][data-document-actif]');
   if (raccordement) {
-    const documentGrist = url => {
-      try { return new URL(url).pathname.match(/^(?:\/o\/[^/]+)?\/([^/]+)/)?.[1]; }
-      catch { return undefined; }
+    const documentGrist = lien => {
+      try {
+        const url = new URL(lien.trim());
+        if (url.origin !== 'https://grist.numerique.gouv.fr' || url.username || url.password) return;
+        return url.pathname.match(/^(?:\/o\/[A-Za-z0-9_-]+)?\/([A-Za-z0-9_-]{8,64})(?:\/[^/]+)?(?:\/p\/[A-Za-z0-9_-]+)?\/?$/)?.[1];
+      } catch {
+        return undefined;
+      }
     };
+    const champ = raccordement.elements.namedItem('grist');
+    const bouton = raccordement.querySelector('[value="raccorder"]');
     const initial = documentGrist(raccordement.dataset.documentActif);
+    const confirmer = raccordement.elements.namedItem('changement').value;
     const actualiser = () => {
-      const bouton = raccordement.querySelector('[value="raccorder"]');
-      const destination = documentGrist(raccordement.elements.grist.value);
-      bouton.disabled = destination === initial;
-      bouton.classList.toggle('avertissement-orange', Boolean(destination && destination !== initial));
-      bouton.textContent = destination && destination !== initial
-        ? 'Confirmer le changement d’espace' : 'Confirmer le raccordement';
+      const destination = documentGrist(champ.value);
+      const changement = Boolean(destination && destination !== initial);
+      bouton.disabled = !changement;
+      bouton.classList.toggle('avertissement-orange', changement);
+      bouton.textContent = changement
+        ? destination === confirmer ? 'Confirmer le changement d’espace' : 'Vérifier le changement d’espace'
+        : 'Confirmer le raccordement';
     };
-    raccordement.elements.grist.addEventListener('input', actualiser);
+    champ.addEventListener('input', actualiser);
+    champ.addEventListener('change', actualiser);
+    window.addEventListener('pageshow', actualiser);
     actualiser();
   }
   function afficher(message, enregistrer = true) {

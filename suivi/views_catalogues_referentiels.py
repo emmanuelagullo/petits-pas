@@ -519,7 +519,9 @@ def suivis_classe(request, classe_pk):
                        lien("suivis_referentiels_classe", classe.pk, decouvrir=1, groupe=document_espace,
                             ancre=ancre_espace) if document_espace else ""),
                    "ouvrir_decouverte": espace_demande or not suivis or request.GET.get("decouvrir") == "1",
-                   "classe_active": classe.etat == classe.ACTIVE, "groupes": list(groupes.values()),
+                   "classe_active": classe.etat == classe.ACTIVE,
+                   "classe_unique": not ecole.classes.exclude(pk=classe.pk).exclude(etat=classe.ARCHIVEE).exists(),
+                   "groupes": list(groupes.values()),
                    "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
                    "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),
                    "indisponibles": set(suivis) - disponibles.keys(), "partage_grist": partage_grist})

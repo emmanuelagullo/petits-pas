@@ -48,7 +48,7 @@ def adresse_grist(valeur):
         adresse = urlsplit(valeur.strip())
     except ValueError as erreur:
         raise ValidationError("Le lien Grist est invalide.") from erreur
-    chemin = re.fullmatch(r"(/o/([A-Za-z0-9_-]+))?/([A-Za-z0-9_-]{8,64})(?:/[^/]*)?/?", adresse.path)
+    chemin = re.fullmatch(r"(/o/([A-Za-z0-9_-]+))?/([A-Za-z0-9_-]{8,64})(?:/[^/]+)?(?:/p/[A-Za-z0-9_-]+)?/?", adresse.path)
     if adresse.scheme != "https" or adresse.netloc != HOTE_GRIST or not chemin:
         raise ValidationError("Collez le lien d’un document de grist.numerique.gouv.fr.")
     prefixe, _, document = chemin.groups()

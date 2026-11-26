@@ -80,6 +80,21 @@ class PartageGristPWA(Base):
         self.client.post(espace, {"grist": grist, "confirmer": "oui"})
         self.assertEqual(self.client.get(url).json()["partages"][0]["id"], travail["id"])
 
+    def test_changer_espace_depuis_un_lien_vers_une_page_grist(self):
+        self.adopter()
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        ancien = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        nouveau = "https://grist.numerique.gouv.fr/o/docs/autre-document"
+        self.client.post(espace, {"grist": ancien, "confirmer": "oui"})
+        donnees = {"grist": nouveau + "/Untitled-document/p/2", "confirmer": "oui",
+                   "espace_attendu": ancien}
+        page = self.client.post(espace, donnees)
+        self.assertContains(page, "Confirmer le changement d’espace", status_code=400)
+        self.assertFalse(page.context["confirmer"])
+        self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).url, ancien)
+        self.assertEqual(self.client.post(espace, {**donnees, "changement": "autre-document"}).status_code, 302)
+        self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).url, nouveau)
+
     def test_preparer_retrait_suspend_uniquement_le_raccordement_confirme(self):
         self.adopter()
         espace = reverse("espace_grist_classe", args=[self.classe.pk])
