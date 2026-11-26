@@ -1,4 +1,5 @@
 """Scénario des référentiels, réservé à la génération de l'équipe fictive."""
+import yaml
 from django.conf import settings
 
 from suivi.models import AdoptionReferentiel, Competence
@@ -27,16 +28,18 @@ def preparer_referentiels(ecole, classes, utilisateurs):
     classe = classes["coccinelles"]
     adoption = AdoptionReferentiel.objects.get(classe=classe, courante=True)
     domaine_id = contenu_origine(adoption)["domaines"][0]["id"]
+    exemples = yaml.safe_load((settings.BASE_DIR / "referentiel/exemples/classe-demonstration.yaml").read_text(encoding="utf-8"))
+    competences = {c["code"]: c for c in exemples["domaines"][0]["competences"]}
     commun = dict(ecole=ecole, annee=annee, domaine_id=domaine_id, niveau="PS")
     ajout = creer_ajout(utilisateur=utilisateurs["remi"], classe=classe,
-        adoption_attendue=adoption.pk, libelle="Je raconte une découverte au groupe", **commun)
+        adoption_attendue=adoption.pk, libelle=competences["recit"]["libelle"], identite_portable=competences["recit"]["identite"], **commun)
     masquer = creer_ajout(utilisateur=utilisateurs["remi"], classe=classe,
-        adoption_attendue=adoption.pk, libelle="Je présente un objet de notre boîte à histoires", **commun)
+        adoption_attendue=adoption.pk, libelle=competences["boite"]["libelle"], identite_portable=competences["boite"]["identite"], **commun)
     enregistrer_adaptation(utilisateur=utilisateurs["remi"], ecole=ecole, annee=annee,
         classe=classe, adoption_attendue=adoption.pk, competence=masquer.competence,
         libelle=None, visible=False, revision_attendue=0)
     ecole_ajout = creer_ajout(utilisateur=utilisateurs["diane"],
-        libelle="Je prends soin du jardin de l’école", **commun)
+        libelle=competences["jardin"]["libelle"], identite_portable=competences["jardin"]["identite"], **commun)
     reprendre_ajout(utilisateur=utilisateurs["remi"], ecole=ecole, annee=annee,
         classe=classe, locale=ecole_ajout, adoption_attendue=adoption.pk)
     cible = contenu_origine(adoption)["competences"][0]

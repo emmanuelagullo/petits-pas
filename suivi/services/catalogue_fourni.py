@@ -15,6 +15,7 @@ REFERENTIELS_DEPART = (
     ("trame", "Trame de démarrage Petits Pas — sélection provisoire", "referentiel/trame-cycle1.yaml"),
     ("objectifs", "Cycle 1 — objectifs des programmes", "referentiel/cycle1/objectifs-programmes.yaml"),
     ("etaye", "Cycle 1 — édition étayée", "referentiel/cycle1/cycle1-etaye.yaml"),
+    ("classe-exemple", "Référentiel d’exemple de classe", "referentiel/exemples/classe-demonstration.yaml"),
     ("chatdecole", "Cycle 1 — tableaux Chat d’école", "referentiel/chatdecole/tableaux-cycle1.yaml"),
 )
 

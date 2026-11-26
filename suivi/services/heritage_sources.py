@@ -1,6 +1,6 @@
 """Propositions des éditions suivies pour les compétences déjà présentes."""
-from suivi.identites_referentiels import est_uuid_portable
-from suivi.models import CompetenceSourceEcole, FormulationProposee, SuiviSourceClasse, VersionReferentiel
+from suivi.identites_referentiels import est_uuid_portable, identifiant_diffusion
+from suivi.models import AdaptationCompetence, CompetenceSourceEcole, FormulationProposee, SuiviSourceClasse, VersionReferentiel
 from .apercu_mises_a_jour import definitions_document
 
 CHAMPS = {"libelle": "Libellé", "illustration": "Illustration", "niveau": "Section",
@@ -10,25 +10,37 @@ CHAMPS = {"libelle": "Libellé", "illustration": "Illustration", "niveau": "Sect
 def propositions_suivies(classe, ids=None):
     suivis = {int(s.reference[7:]): s for s in SuiviSourceClasse.objects.filter(classe=classe)
               if s.reference.startswith("source-") and s.reference[7:].isdigit()}
-    if not suivis or ids == []:
+    if ids == []:
+        return {}
+    emprunts = AdaptationCompetence.objects.filter(classe=classe, annee_scolaire=classe.annee_scolaire
+                                                 ).exclude(source_heritage="")
+    if ids is not None:
+        emprunts = emprunts.filter(competence_id__in=ids)
+    origines = dict(emprunts.values_list("competence_id", "source_heritage"))
+    if not suivis and not origines:
         return {}
     liaisons = CompetenceSourceEcole.objects.filter(ecole=classe.ecole, identite__identifiant__startswith="pp-")
     if ids is not None:
         liaisons = liaisons.filter(competence_id__in=ids)
     competences = {uuid: pk for uuid, pk in liaisons.values_list("identite__identifiant", "competence_id")
                    if est_uuid_portable(uuid)}
+    from django.db.models import Q
+
+    sources = Q(source_id__in=suivis) | Q(source__ecole=classe.ecole, source__identifiant_diffusion__in=origines.values())
+    sources |= Q(source__ecole__isnull=True, source__identifiant__in=origines.values())
     versions = {}
-    for version in VersionReferentiel.objects.filter(source_id__in=suivis,
+    for version in VersionReferentiel.objects.filter(sources,
             contenu__origine="source_declaree").select_related("source").order_by("-pk"):
         versions.setdefault(version.source_id, version)
     resultat = {}
     for source_id, version in versions.items():
         if version.source.ecole_id not in (None, classe.ecole_id):
             continue
-        suivi = suivis[source_id]
+        suivi = suivis.get(source_id)
         for uuid, definition in definitions_document(version.contenu).items():
             pk = competences.get(uuid)
-            if pk is None:
+            origine_reprise = origines.get(pk) == identifiant_diffusion(version.source)
+            if pk is None or (not suivi and not origine_reprise):
                 continue
             champs = {"libelle": definition["libelle"], "niveau": definition["niveau"],
                       "formulations": definition["formulations"],
@@ -38,14 +50,15 @@ def propositions_suivies(classe, ids=None):
             for champ, valeur in champs.items():
                 resultat.setdefault(pk, {}).setdefault(champ, []).append({
                     "source": source_id, "titre": version.source.titre, "edition": version.numero,
-                    "libelle_competence": definition["libelle"], "valeur": valeur, "choisie": champ in suivi.champs_herites.get(uuid, ()), "uuid": uuid,
+                    "libelle_competence": definition["libelle"], "valeur": valeur, "choisie": bool(suivi and champ in suivi.champs_herites.get(uuid, ())),
+                    "origine_reprise": origine_reprise, "uuid": uuid,
                 })
     return resultat
 
 
 def valeur_heritee(propositions):
     choisies = [c for c in propositions if c["choisie"]]
-    candidates = choisies or propositions
+    candidates = choisies or [c for c in propositions if c["origine_reprise"]] or propositions
     valeur = candidates[0]["valeur"]
     return valeur if all(c["valeur"] == valeur for c in candidates) else None
 

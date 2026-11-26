@@ -102,6 +102,9 @@ class AjoutsLocaux(Base):
         from .presentation import formulations_effectives
 
         self.assertIn("Libellé commun", formulations_effectives(competence, self.classe))
+        # Un ancien emprunt ne connaît pas sa source d’origine.
+        from .models import AdaptationCompetence
+        AdaptationCompetence.objects.filter(classe=self.classe, competence=competence).update(source_heritage="")
         publier("catalogue-un", 3, "Libellé divergent")
         self.assertIn("Libellé commun", formulations_effectives(competence, self.classe))
         self.assertEqual(libelle_effectif(), "Libellé commun")

@@ -2,7 +2,7 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 
-from suivi.identites_referentiels import references_suivi
+from suivi.identites_referentiels import est_uuid_portable, identifiant_diffusion, references_suivi
 from suivi.audit import journaliser
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, autorise
 from suivi.models import AdaptationCompetence, Classe, CompetenceLocale, VersionReferentiel
@@ -12,6 +12,12 @@ from .choix_bases_referentiels import _application_verrouillee, choix_bases
 from .versions_sources_ecoles import definir_version_ecole
 from .partage_referentiel_classe import contenu_commun_classe
 from .apercu_mises_a_jour import definitions_document
+
+
+def cle_source_ajout(version, autre):
+    if autre:
+        return f"classe-{autre.classe_id}"
+    return f"source-{version.source_id}"
 
 
 def sources_catalogue(utilisateur, classe, adoption):
@@ -116,6 +122,8 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
     dans_base = any(c["id"] == ligne["id"] for c in contenu_origine(adoption).get("competences", []))
     if not dans_base and not regle.ajout:
         regle.ajout = extrait(contenu, ligne)
+        if version and est_uuid_portable(reference):
+            regle.source_heritage = identifiant_diffusion(version.source)
     regle.visible = True
     regle.revision += 1
     regle.full_clean()

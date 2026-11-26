@@ -1,0 +1,24 @@
+format: 2
+source:
+  identifiant: petits-pas-classe-demonstration
+  titre: Référentiel d’exemple de classe
+  provenance: Compétences fictives du scénario de démonstration Petits Pas
+  licence: CC-BY-SA-4.0
+  provisoire: true
+version: '1'
+domaines:
+- code: EXEMPLE
+  nom: Projets de classe
+  competences:
+  - identite: pp-izszuoxBRBK4q1dE04BITg
+    code: recit
+    niveau: PS
+    libelle: Je raconte une découverte au groupe
+  - identite: pp-udWQ4Wz8QRyDK-veNTacSg
+    code: boite
+    niveau: PS
+    libelle: Je présente un objet de notre boîte à histoires
+  - identite: pp-3CQgzNFbRY64d64fY_4Eag
+    code: jardin
+    niveau: PS
+    libelle: Je prends soin du jardin de l’école

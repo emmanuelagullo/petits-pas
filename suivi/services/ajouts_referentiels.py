@@ -121,7 +121,7 @@ def etat_classement(competence, utilisations):
 
 
 @transaction.atomic
-def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None, variante_de=None, icone="", icone_png="", formulations=()):
+def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, classe=None, adoption_attendue=None, suivi_libre=False, sous_domaine_id=None, variante_de=None, icone="", icone_png="", formulations=(), identite_portable=None):
     adoption = _verrouiller(utilisateur, ecole, annee, classe, adoption_attendue)
     contenus = [contenu_classement(adoption)] if classe else [c for _, c in contenus_ecole(ecole, annee)]
     if not isinstance(libelle, str) or not libelle.strip() or len(libelle.strip()) > 300:
@@ -141,7 +141,13 @@ def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, class
             "active": True, "cle_definition": f"locale-{competence.pk}"}]}
     definition["sous_domaines"] = [definition_sous_domaine(sous)] if sous else []
     portable = urlsafe_b64encode(uuid4().bytes).decode("ascii").rstrip("=")
-    definition["identite_portable"] = "pp-" + portable
+    if identite_portable is not None:
+        from suivi.identites_referentiels import est_uuid_portable
+
+        if not est_uuid_portable(identite_portable) or CompetenceLocale.objects.filter(
+                ecole=ecole, definition__identite_portable=identite_portable).exists():
+            raise ValidationError("L’identité portable de cet ajout est invalide ou déjà utilisée.")
+    definition["identite_portable"] = identite_portable or "pp-" + portable
     if variante_de is not None:
         if classe is None or suivi_libre:
             raise PermissionDenied

@@ -21,7 +21,7 @@ from .referentiels import adoption_courante, contenu_adoption, contenu_origine
 from .rubriques import contenu_classement, regrouper_rubriques_saisie, rubriques_masquees, rubriques_saisissables
 from .services.adaptations_referentiels import ajouter_au_suivi
 from .services.ajouts_referentiels import catalogue_reprises, reprendre_ajout
-from .services.sources_catalogue import ajouter_depuis_source, competence_id_source, lignes_source, sources_catalogue
+from .services.sources_catalogue import ajouter_depuis_source, cle_source_ajout, competence_id_source, lignes_source, sources_catalogue
 from .services.selection_catalogue import regler_selection
 from .suivi_libre import est_libre
 from .views import acces_requis
@@ -279,9 +279,11 @@ def catalogue(request, pk, saisie_collective=False):
         for l in locales_trouvees
     ]
     exacte_locale = any(cle_recherche_libelle(c[2]) == cle for c in correspondances)
+    sources_ajout = {cle_source: choix for cle_source, choix in sources.items()
+                     if cle_source == source or cle_source_ajout(choix[1], choix[2]) not in classe.sources_ajout_ecartees}
     externes_par_source = {
         identifiant: list(lignes_source(version, autre, utilisateur=request.user, classe=classe))
-        for identifiant, (_, version, autre) in sources.items()
+        for identifiant, (_, version, autre) in sources_ajout.items()
         if identifiant == source or (cle and not exacte_locale)
     }
     for identifiant, externes in externes_par_source.items():
@@ -467,7 +469,7 @@ def catalogue(request, pk, saisie_collective=False):
             for catalogue in catalogues_grist_connus(classe.ecole.catalogues_referentiels).values()
             for reference in catalogue["referentiels"]
         }
-        for cle_source, (titre, version, autre) in sources.items():
+        for cle_source, (titre, version, autre) in sources_ajout.items():
             groupe_source = ("Autres classes" if autre else "Espace de partage" if version.source_id in recus
                              else externes.get(version.source.identifiant,
                                                "École" if version.source.ecole_id else "Catalogue Petits Pas"))

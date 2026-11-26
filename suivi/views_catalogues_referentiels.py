@@ -1,6 +1,7 @@
 """Découverte et suivi des référentiels à l’échelle d’une école."""
 import hashlib
 import json
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -238,20 +239,24 @@ def empreinte_suivi(valeur):
 def suivis_classe(request, classe_pk):
     from .models import SuiviSourceClasse
     from .referentiels import adoption_courante
-    from .services.sources_catalogue import lignes_source, sources_catalogue
+    from .services.sources_catalogue import cle_source_ajout, lignes_source, sources_catalogue
 
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
     adoption = adoption_courante(classe)
     autorisees = {v.pk for v in choix_bases(ecole, classe.annee_scolaire).versions}
     retour = lien("suivis_referentiels_classe", classe.pk, ancre="referentiels-suivis")
+    groupe_retour = request.GET.get("catalogue", "")
+    if groupe_retour and re.fullmatch(r"catalogue-[a-f0-9]{12}|referentiels-espace-[A-Za-z0-9_-]{8,64}", groupe_retour):
+        retour = lien("suivis_referentiels_classe", classe.pk, catalogue=groupe_retour,
+                      ancre="referentiel-" + request.POST.get("source", "")[:64])
     disponibles = {}
     if adoption and not adoption.clos:
         sources = sources_catalogue(request.user, classe, adoption)
         sources[f"version-{adoption.version_id}"] = (
             adoption.version.source.titre, adoption.version, None)
         for cle, (titre, version, autre) in sources.items():
-            reference = f"source-{version.source_id}" if version else cle
+            reference = cle_source_ajout(version, autre)
             ligne = disponibles.get(reference)
             if ligne and version.pk <= ligne["version"].pk:
                 continue
@@ -260,6 +265,19 @@ def suivis_classe(request, classe_pk):
     suivis = {s.reference: s for s in SuiviSourceClasse.objects.filter(classe=classe)}
     action = request.POST.get("action")
     cible = request.POST.get("source")
+    if action in {"ecarter-ajout", "proposer-ajout"}:
+        if cible not in disponibles or (adoption and cible == f"source-{adoption.version.source_id}"):
+            raise Http404
+        with transaction.atomic():
+            cible_classe = type(classe).objects.select_for_update().get(pk=classe.pk)
+            ecartees = set(cible_classe.sources_ajout_ecartees)
+            if action == "ecarter-ajout":
+                ecartees.add(cible)
+            else:
+                ecartees.discard(cible)
+            cible_classe.sources_ajout_ecartees = sorted(ecartees)
+            cible_classe.save(update_fields=["sources_ajout_ecartees"])
+        return redirect(retour)
     from .identites_referentiels import est_uuid_portable
 
     divergences = {}
@@ -294,12 +312,14 @@ def suivis_classe(request, classe_pk):
         retirees = [c["libelle"] for ref, c in avant.items() if ref not in etat]
         modifiees = [c["libelle"] for ref, c in etat.items() if ref in avant and c != avant[ref]]
         lire = lien("catalogue_competences", classe.pk, source=ligne["cle"]) if not (
-            version and version.pk == adoption.version_id) else lien("catalogue_competences", classe.pk)
+            courant) else lien("catalogue_competences", classe.pk)
         adopter = (lien("referentiel_classe", classe.pk, edition=version.pk, ancre="choisir-referentiel")
                     if courant and version.pk != adoption.version_id and version.pk in autorisees else "")
-        lignes.append({**ligne, "reference": reference, "suivi": suivi, "empreinte": empreinte,
+        lignes.append({**ligne, "titre": adoption.version.source.titre if courant else ligne["titre"],
+                       "reference": reference, "suivi": suivi, "empreinte": empreinte,
                        "ajoutees": ajoutees, "retirees": retirees, "modifiees": modifiees,
-                       "lire": lire, "adopter": adopter})
+                       "lire": lire, "adopter": adopter, "courant": courant,
+                       "ecartee": reference in classe.sources_ajout_ecartees})
         if reference == cible and action in {"suivre", "marquer-vu"}:
             if action == "marquer-vu" and (not suivi or empreinte != request.POST.get("empreinte")):
                 messages.error(request, "Le référentiel a changé. Consultez les nouveautés à nouveau.")
@@ -385,12 +405,10 @@ def suivis_classe(request, classe_pk):
     espace_demande = bool(document_espace and request.GET.get("groupe") == document_espace)
     groupes = {}
     for ligne in lignes:
-        if ligne["suivi"]:
-            continue
         version = ligne["version"]
         if version and version.contenu.get("origine") == "etat_initial_repris":
             continue
-        for document in documents.get(version.source_id, ()) if version else ():
+        for document in (sorted(documents.get(version.source_id, ()), key=lambda d: d != document_espace)[:1] if version else ()):
             cle = "referentiels-espace-" + document
             groupes.setdefault(cle, {
                 "nom": noms_espaces.get(document, "Référentiels reçus d’un espace de partage"),
@@ -399,7 +417,7 @@ def suivis_classe(request, classe_pk):
         if version and version.source_id in documents:
             continue
         if ligne["autre"]:
-            cle, nom = "classes", "Référentiels des classes de l’école"
+            cle, nom = "classes", ("Autres classes dans ce Petits Pas" if settings.MODE_LOCAL or getattr(settings, "MODE_PWA", False) else "Autres classes de l’école")
         elif version.source.identifiant_diffusion.startswith("classe-grist-"):
             cle, nom = "espace-grist", "Référentiels reçus de l’espace Grist"
         elif version.source.identifiant in catalogues:
@@ -412,9 +430,23 @@ def suivis_classe(request, classe_pk):
     if espace_demande:
         groupes[ancre_espace] = {"nom": noms_espaces.get(document_espace, "Espace de partage"),
                                  "ancre": ancre_espace, "ouvrir": True, "lignes": recus_espace}
+    for index, (cle, groupe) in enumerate(groupes.items()):
+        ancre = groupe.setdefault("ancre", "catalogue-" + hashlib.sha256(cle.encode()).hexdigest()[:12])
+        nombre = len(groupe["lignes"])
+        mode = ("Contenu courant" if cle == "classes" else
+                "Synchronisation automatique" if cle.startswith("referentiels-espace-") else
+                "Catalogue Grist" if cle.startswith("https://") else "Éditions disponibles")
+        groupe["resume"] = f"{nombre} référentiel{'s' if nombre != 1 else ''} · {mode}"
+        ecartees = sum(l["ecartee"] for l in groupe["lignes"])
+        if ecartees:
+            groupe["resume"] += f" · {ecartees} écarté{'s' if ecartees != 1 else ''} des ajouts"
+        groupe["ouvrir"] = (groupe.get("ouvrir", False) or ancre == groupe_retour
+            or any(l["ajoutees"] or l["modifiees"] or l["retirees"] for l in groupe["lignes"])
+            or not groupe_retour and not espace_demande and index == 0)
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
+                   "nouvelle_edition": any(l["adopter"] for l in lignes),
                    "arbitrages": arbitrages,
                    "divergences": [l for l in divergences.values() if len({c["signature"] for c in l}) > 1],
                    "ouvrir_espace": request.GET.get("espace") == "1",

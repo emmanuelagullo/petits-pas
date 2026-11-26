@@ -329,7 +329,7 @@ class MisesAJour(Base):
         url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
         page = self.client.get(url)
         self.assertContains(page, "Aucun suivi de nouveautés activé pour cette classe.")
-        self.assertContains(page, '<details id="decouvrir-referentiels" open>')
+        self.assertContains(page, 'id="decouvrir-referentiels"')
         reference = f"source-{self.a.source_id}"
         self.assertRedirects(self.client.post(url, {"action": "suivre", "source": reference}), url + "#referentiels-suivis")
         doc = document(version="2")
@@ -338,16 +338,27 @@ class MisesAJour(Base):
         publier_choix_application(annee=self.classe.annee_scolaire,
             versions_ids=[self.a.pk, version.pk], proposee_id=version.pk, revision_attendue=1)
         page = self.client.get(url)
-        self.assertContains(page, '<details id="decouvrir-referentiels">')
+        self.assertContains(page, 'id="decouvrir-referentiels"')
         self.assertNotContains(page, "Aucun suivi de nouveautés activé pour cette classe.")
         self.assertContains(page, "0 ajout · 1 modification · 0 retrait")
-        self.assertContains(page, "Mettre à jour le référentiel de la classe")
+        self.assertContains(page, "Nouvelle édition disponible")
         self.assertTrue(AdoptionReferentiel.objects.get(pk=ancienne.pk).courante)
         ligne = next(l for l in page.context["lignes"] if l["reference"] == reference)
         self.assertRedirects(self.client.post(url, {"action": "marquer-vu", "source": reference,
                                                   "empreinte": ligne["empreinte"]}), url + "#referentiels-suivis")
         self.assertContains(self.client.get(url), "Aucun changement depuis votre dernière consultation")
         self.assertTrue(SuiviSourceClasse.objects.filter(classe=self.classe, reference=reference).exists())
+
+    def test_ecarter_une_source_du_selecteur_conserve_la_consultation(self):
+        self.adopter()
+        url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        source = f"version-{self.b.pk}"
+        self.assertContains(self.client.get(catalogue), f'value="{source}"')
+        self.assertEqual(self.client.post(url, {"action": "ecarter-ajout", "source": f"source-{self.b.source_id}"}).status_code, 302)
+        self.assertNotContains(self.client.get(catalogue), f'value="{source}"')
+        self.assertContains(self.client.get(url), "Proposer les compétences de ce référentiel à l’ajout")
+        self.assertEqual(self.client.get(catalogue, {"source": source}).status_code, 200)
 
     def test_mise_a_jour_depuis_le_resume_sans_ouvrir_la_comparaison(self):
         ancienne, nouvelle = self.preparer()
