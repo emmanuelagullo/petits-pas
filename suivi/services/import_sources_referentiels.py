@@ -231,9 +231,11 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None, class
         return version, False, len(identifiants)
     if version:
         return version, False, len(identifiants)
+    historique_avant = {}
     if source is not None:
-        from .heritage_sources import memoriser_avant_nouvelle_edition
+        from .heritage_sources import memoriser_avant_nouvelle_edition, relever_heritage
 
+        historique_avant = relever_heritage(source=source)
         memoriser_avant_nouvelle_edition(source)
     if source is None:
         source = SourceReferentiel(**{**metadata, "identifiant": identifiant}, ecole=ecole,
@@ -267,4 +269,8 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None, class
     from .heritage_sources import preparer_phrases_heritees
 
     preparer_phrases_heritees(version)
+    if historique_avant:
+        from .heritage_sources import consigner_heritage
+
+        consigner_heritage(historique_avant, relever_heritage(source=source), nom_source=source.titre)
     return version, True, len(identifiants)

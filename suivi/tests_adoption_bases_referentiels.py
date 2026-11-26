@@ -321,6 +321,10 @@ class AdoptionBases(Base):
             adoption_attendue=origine.pk, revision_attendue=0)
         definitions = {c["id"]: c for c in contenu_adoption(adoption)["competences"]}
         self.assertEqual(definitions[competence.pk]["libelle"], "Reformulation commune")
+        destination.refresh_from_db()
+        self.assertTrue(any(e["champ"] == "Libellé" and e["resultat"] == "Actualisé"
+                            for e in destination.historique_heritage))
+
 
         self.assertFalse(Observation.objects.exists())
         affectation.delete()

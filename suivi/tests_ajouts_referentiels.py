@@ -106,6 +106,14 @@ class AjoutsLocaux(Base):
         from .models import AdaptationCompetence
         AdaptationCompetence.objects.filter(classe=self.classe, competence=competence).update(source_heritage="")
         publier("catalogue-un", 3, "Libellé divergent")
+        self.classe.refresh_from_db()
+        journal = self.classe.historique_heritage
+        self.assertTrue(any(e["champ"] == "Libellé" and e["resultat"] == "Choix de la classe conservé"
+                            for e in journal))
+        publier("catalogue-un", 3, "Libellé divergent")
+        self.classe.refresh_from_db()
+        self.assertEqual(self.classe.historique_heritage, journal)
+
         self.assertIn("Libellé commun", formulations_effectives(competence, self.classe))
         self.assertEqual(libelle_effectif(), "Libellé commun")
 

@@ -74,12 +74,19 @@ def enregistrer_adaptation(*, utilisateur, ecole, annee, competence, libelle, vi
                                                       for s in classement["sous_domaines"])):
             raise ValidationError("La rubrique de destination n’est plus disponible.")
         regle.domaine_destination_id, regle.sous_domaine_destination_id = destination
+    if classe:
+        from .heritage_sources import consigner_heritage, relever_heritage
+
+        contexte_heritage = {"classe_origine": classe, "competence_id": competence.pk}
+        historique_avant = relever_heritage(**contexte_heritage)
     regle.libelle, regle.visible = libelle, visible
     regle.revision += 1
     regle.full_clean()
     regle.save()
     journaliser(utilisateur, "referentiel.competence_adaptee", regle, anciennes=anciennes,
                 nouvelles=instantane(regle, champs))
+    if classe and historique_avant:
+        consigner_heritage(historique_avant, relever_heritage(**contexte_heritage), nom_source=classe.nom)
     return regle
 
 

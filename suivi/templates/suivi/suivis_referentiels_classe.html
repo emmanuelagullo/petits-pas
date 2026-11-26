@@ -21,7 +21,7 @@
 <p>{% if ligne.courant %}<span class="pastille pastille-principale">Utilisé par la classe</span>
 {% elif ligne.ecartee %}<span class="pastille">Écarté des ajouts</span>
 {% else %}<span class="pastille pastille-positive">Proposé à l’ajout</span>{% endif %}
-{% if ligne.suivi %}<span class="pastille">Nouveautés suivies</span>{% endif %}</p>
+</p>
 {% if ligne.suivi %}{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
 {% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=ligne.ajoutees modifications=ligne.modifiees retraits=ligne.retirees only %}
 <details>
@@ -33,13 +33,13 @@
 {% else %}<p>Aucun changement depuis votre dernière consultation enregistrée.</p>{% endif %}{% endif %}
 <div class="actions">
 <a class="bouton discret" href="{{ ligne.lire }}">Parcourir les compétences</a>
+{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
 <form method="post" action="?catalogue={{ groupe.ancre|urlencode }}">{% csrf_token %}
 <input type="hidden" name="source" value="{{ ligne.reference }}">
 <input type="hidden" name="empreinte" value="{{ ligne.empreinte }}">
-{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}<button class="bouton discret" name="action" value="marquer-vu">Marquer comme vu</button>{% endif %}
-{% if ligne.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre">Ne plus suivre les nouveautés</button>
-{% else %}<button class="bouton discret" name="action" value="suivre">Suivre les nouveautés</button>{% endif %}
+<button class="bouton discret" name="action" value="marquer-vu">Marquer comme vu</button>
 </form>
+{% endif %}
 </div>
 {% if not ligne.courant %}
 <details>
@@ -73,11 +73,11 @@
 {% if peut_gerer_catalogues %}<p><a class="bouton discret" href="{% url 'referentiels_ecole' %}?annee={{ classe.annee_scolaire }}">Choix annuels de l’école</a></p>{% endif %}
 {% endif %}
 </section>
-{% if arbitrages or divergences or indisponibles or decisions %}
+{% if arbitrages or divergences or indisponibles or decisions or historique_auto %}
 <details id="referentiels-suivis">
 {% else %}<div id="referentiels-suivis" hidden>{% endif %}
-{% if arbitrages or divergences or indisponibles or decisions %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Changements et décisions" resume="Propositions à examiner" niveau_titre=2 only %}
+{% if arbitrages or divergences or indisponibles or decisions or historique_auto %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Changements et décisions" resume=resume_decisions niveau_titre=2 only %}
 {% if arbitrages %}
 <details class="avertissement-referentiel avertissement-orange">
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir une source pour un champ" only %}
@@ -101,6 +101,14 @@
 {% for candidats in divergences %}
 <ul>{% for candidat in candidats %}<li><a href="{{ candidat.url }}">{{ candidat.libelle }} · {{ candidat.titre }}</a></li>{% endfor %}</ul>
 {% endfor %}
+</details>
+{% endif %}
+{% if historique_auto %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Résolutions automatiques" only %}
+<ul>{% for decision in historique_auto %}
+<li>{{ decision.competence }} · {{ decision.champ }} · <strong>{{ decision.resultat }}</strong> · {{ decision.source }} · {{ decision.date }}</li>
+{% endfor %}</ul>
 </details>
 {% endif %}
 {% if decisions %}

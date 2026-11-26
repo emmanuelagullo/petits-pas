@@ -530,11 +530,16 @@ def suivis_classe(request, classe_pk):
 
     decisions = EvenementAudit.objects.filter(ecole=ecole, modele=classe._meta.label_lower,
         objet_id=str(classe.pk), action="referentiel.choix_heritage")[:20]
+    historique_auto = sorted(classe.historique_heritage, key=lambda entree: not entree["impact"])
+    resume_decisions = ("Propositions à examiner" if arbitrages or any(
+        len({c["signature"] for c in l}) > 1 for l in divergences.values()
+    ) or set(suivis) - disponibles.keys() else "Historique")
     return render(request, "suivi/suivis_referentiels_classe.html",
                   {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
                    "nouvelle_edition": any(l["adopter"] for l in lignes),
-                   "arbitrages": arbitrages, "decisions": decisions,
+                   "arbitrages": arbitrages, "decisions": decisions, "historique_auto": historique_auto,
+                   "resume_decisions": resume_decisions,
                    "divergences": [l for l in divergences.values() if len({c["signature"] for c in l}) > 1],
                    "ouvrir_espace": request.GET.get("espace") == "1",
                    "recus_espace": bool(recus_espace),

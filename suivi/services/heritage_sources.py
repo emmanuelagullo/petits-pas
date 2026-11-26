@@ -179,3 +179,80 @@ def preparer_phrases_heritees(version):
                 FormulationProposee.objects.get_or_create(
                     competence_id=pk, code=phrase["code"], defaults={"texte": phrase["texte"], "ordre": ordre},
                 )
+
+
+def relever_heritage(*, source=None, classe_origine=None, competence_id=None):
+    """Capturer les propositions et l’état effectif avant une écriture."""
+    from django.db.models import Q
+    from suivi.models import Classe
+    from suivi.referentiels import contenu_adoption, contenu_origine
+
+    if source:
+        classes = Classe.objects.filter(
+            Q(suivisourceclasse__reference=f"source-{source.pk}") |
+            Q(adaptations_referentiel__source_heritage=identifiant_diffusion(source)),
+            etat=Classe.ACTIVE,
+        )
+        if source.ecole_id:
+            classes = classes.filter(ecole_id=source.ecole_id)
+        if source.classe_privee_id:
+            classes = classes.filter(pk=source.classe_privee_id)
+    else:
+        classes = Classe.objects.filter(ecole_id=classe_origine.ecole_id, etat=Classe.ACTIVE,
+            adaptations_referentiel__source_heritage=f"classe:{classe_origine.pk}",
+            adaptations_referentiel__competence_id=competence_id)
+    resultat = {}
+    for adoption in AdoptionReferentiel.objects.filter(
+        classe__in=classes.distinct(), courante=True, clos=False,
+    ).select_related("classe", "classe__ecole", "version"):
+        principale = {c["id"] for c in contenu_origine(adoption).get("competences", [])}
+        contenu = contenu_adoption(adoption)
+        valeurs = {}
+        phrases = {}
+        for phrase in contenu.get("formulations", []):
+            if phrase["active"]:
+                phrases.setdefault(phrase["competence_id"], []).append([phrase["code"], phrase["texte"]])
+        for c in contenu["competences"]:
+            if c["id"] in principale or (competence_id is not None and c["id"] != competence_id):
+                continue
+            valeurs[c["id"]] = {
+                "libelle": c["libelle"], "niveau": c["niveau"], "active": c["active"],
+                "illustration": [c.get("icone", ""), c.get("icone_png", "")],
+                "formulations": phrases.get(c["id"], []),
+            }
+        propositions = propositions_suivies(adoption.classe, list(valeurs))
+        for pk, champs in propositions.items():
+            for champ, candidats in champs.items():
+                retenus = [c["valeur"] for c in candidats if (
+                    c["source"] == source.pk if source else c["source"] is None
+                )]
+                if retenus:
+                    resultat[(adoption.classe_id, pk, champ)] = (
+                        retenus, valeurs[pk][champ], valeurs[pk]["libelle"],
+                    )
+    return resultat
+
+
+def consigner_heritage(avant, apres, *, nom_source):
+    """Écriture groupée à l’arrivée d’une proposition, sans journaliser les lectures."""
+    from django.utils import timezone
+    from suivi.models import Classe
+
+    evenements = {}
+    date = timezone.now().isoformat()
+    for cle, (propositions, valeur, titre) in avant.items():
+        nouvelles = apres.get(cle)
+        if nouvelles and propositions == nouvelles[0]:
+            continue
+        classe_id, _, champ = cle
+        if nouvelles and valeur != nouvelles[1]:
+            resultat = "Actualisé"
+        else:
+            resultat = "Choix de la classe conservé"
+        evenements.setdefault(classe_id, []).append({
+            "date": date, "competence": titre, "champ": CHAMPS[champ],
+            "source": nom_source, "resultat": resultat, "impact": champ in {"active", "niveau"},
+        })
+    for classe in Classe.objects.select_for_update().filter(pk__in=evenements).order_by("pk"):
+        classe.historique_heritage = (evenements[classe.pk] + classe.historique_heritage)[:100]
+        classe.save(update_fields=["historique_heritage"])

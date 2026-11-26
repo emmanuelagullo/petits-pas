@@ -339,7 +339,7 @@ class MisesAJour(Base):
             versions_ids=[self.a.pk, version.pk], proposee_id=version.pk, revision_attendue=1)
         page = self.client.get(url)
         self.assertContains(page, 'id="decouvrir-referentiels"')
-        self.assertContains(page, "Nouveautés suivies")
+        self.assertNotContains(page, "Ne plus suivre les nouveautés")
         self.assertContains(page, "0 ajout · 1 modification · 0 retrait")
         self.assertContains(page, "Nouvelle édition disponible")
         self.assertTrue(AdoptionReferentiel.objects.get(pk=ancienne.pk).courante)
