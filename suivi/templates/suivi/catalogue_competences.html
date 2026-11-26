@@ -18,12 +18,32 @@
 {% elif peut_regler_referentiel %}
 <p><a class="bouton" href="{% url 'referentiel_classe' classe.pk %}">Choisir le référentiel</a></p>
 {% endif %}
-{% if peut_regler_referentiel %}<p><a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Catalogues et partage</a></p>{% endif %}
+{% if peut_regler_referentiel %}
+<div class="actions" id="actions-referentiel-classe">
+{% url 'suivis_referentiels_classe' classe.pk as lien_catalogues %}
+<a class="bouton discret" href="{{ retour_catalogues|default:lien_catalogues }}">{% if retour_catalogues %}Retour à Catalogues et partage{% else %}Catalogues et partage{% endif %}</a>
+{% if classe.etat == classe.ACTIVE %}
+{% if adoption and not adoption.clos %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter&amp;depuis=competences#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
+<details class="menu-competence-catalogue">
+<summary class="bouton bouton-depliant discret" aria-label="Autres actions sur les référentiels">⋯</summary>
+<div class="actions">
+<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer&amp;destination=classe&amp;depuis=competences#import-referentiel">Importer un ZIP pour la classe</a>
+{% if adoption and not adoption.clos %}
+<form method="post" action="{% url 'proposer_referentiel_classe' classe.pk %}">{% csrf_token %}
+<button class="bouton discret" name="action" value="examiner-classe">Proposer au catalogue de l’école</button>
+</form>
+{% endif %}
+</div>
+</details>
+{% endif %}
+</div>
+{% endif %}
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
 <form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
   <label for="q">Rechercher une compétence</label>
   <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if depuis_ajout and not saisie_collective %} autofocus{% endif %}>
+  {% if retour_catalogues %}<input type="hidden" name="catalogue_retour" value="{{ request.GET.catalogue_retour }}"><input type="hidden" name="source_retour" value="{{ request.GET.source_retour }}">{% endif %}
   {% if depuis_ajout %}<input type="hidden" name="ajouter" value="1">{% endif %}
   {% for nom, valeur in contexte_ajout.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
   {% if recherche_initiale %}<input type="hidden" name="recherche_initiale" value="{{ recherche_initiale }}">{% endif %}

@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import messages
 from django.core import signing
 from django.db import transaction
@@ -29,10 +31,11 @@ from .views import acces_requis
 
 FILTRES = ("source", "q", "niveau", "domaine", "sous_domaine", "ajouter", "depuis_saisie", "inclure_masquees", "inclure_competences_masquees")
 CONTEXTE = ("classement", "groupe", "eleve", "collectif")
+RETOUR_CATALOGUE = ("catalogue_retour", "source_retour")
 
 
 def criteres_catalogue(request):
-    return {cle: request.GET[cle][:300] for cle in (*FILTRES, *CONTEXTE) if cle in request.GET}
+    return {cle: request.GET[cle][:300] for cle in (*FILTRES, *CONTEXTE, *RETOUR_CATALOGUE) if cle in request.GET}
 
 
 def recherche_catalogue(lignes, q, *, externe=False):
@@ -515,4 +518,9 @@ def catalogue(request, pk, saisie_collective=False):
         response = render(request, "suivi/partiels/catalogue_resultats.html", contexte)
         response.headers["X-Petits-Pas-Catalogue"] = "1"
         return response
+    groupe_retour = request.GET.get("catalogue_retour", "")
+    source_retour = request.GET.get("source_retour", "")
+    if re.fullmatch(r"catalogue-[a-f0-9]{12}|referentiels-espace-[A-Za-z0-9_-]{8,64}", groupe_retour):
+        focus = f"parcourir-{source_retour}" if re.fullmatch(r"(?:source|classe)-[0-9]+", source_retour) else groupe_retour
+        contexte["retour_catalogues"] = lien("suivis_referentiels_classe", classe.pk, catalogue=groupe_retour, ancre=focus)
     return render(request, "suivi/choisir_competence.html" if saisie_collective else "suivi/catalogue_competences.html", contexte)

@@ -95,6 +95,42 @@ def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=
     return ecole
 
 
+def modifier_catalogue_classe(request, classe, catalogues, url_saisie, suivi_initial):
+    action = request.POST.get("action")
+    cle = request.POST.get("catalogue", "")
+    contenu = None
+    if action == "ajouter":
+        contenu = lire_catalogue_grist(url_saisie)
+        cle = contenu["url"]
+    elif action == "actualiser-catalogue" and catalogues.get(cle, {}).get("url"):
+        contenu = lire_catalogue_grist(cle)
+        if contenu["url"] != cle:
+            raise ValidationError("L’adresse du catalogue a changé.")
+    elif action not in {"suivre-catalogue", "ne-plus-suivre-catalogue", "heriter-catalogue"} or not catalogues.get(cle, {}).get("url"):
+        raise ValidationError("Choisissez un catalogue connu de la classe.")
+    with transaction.atomic():
+        classe = type(classe).objects.select_for_update().get(pk=classe.pk)
+        if classe.etat != classe.ACTIVE or not autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
+            raise PermissionDenied
+        etat = classe.catalogues_propres.setdefault(cle, {})
+        herite = cle in classe.ecole.catalogues_referentiels or cle in catalogues_grist_connus({})
+        if contenu is not None:
+            if action == "actualiser-catalogue" or not herite:
+                etat["catalogue"] = contenu
+            if action == "ajouter" and not herite:
+                etat.setdefault("suivre_catalogue", suivi_initial)
+        elif action == "heriter-catalogue":
+            if not herite:
+                raise ValidationError("Ce catalogue n’est pas proposé par l’école.")
+            classe.catalogues_propres.pop(cle, None)
+        else:
+            etat["suivre_catalogue"] = action == "suivre-catalogue"
+        if not etat:
+            classe.catalogues_propres.pop(cle, None)
+        classe.save(update_fields=["catalogues_propres"])
+    return cle, contenu
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def decouvrir_referentiels(request):
@@ -159,40 +195,12 @@ def decouvrir_referentiels(request):
         return JsonResponse({"editions": nombre, "erreurs": erreurs})
     if request.method == "POST" and gestion_classe:
         try:
-            action = request.POST.get("action")
-            cle = request.POST.get("catalogue", "")
-            contenu = None
-            if action == "ajouter":
-                contexte["url_saisie"] = request.POST.get("url", "")[:2000]
-                contexte["suivi_initial"] = request.POST.get("suivre_catalogue") == "oui"
-                contenu = lire_catalogue_grist(contexte["url_saisie"])
-                cle = contenu["url"]
-            elif action == "actualiser-catalogue" and catalogues.get(cle, {}).get("url"):
-                contenu = lire_catalogue_grist(cle)
-                if contenu["url"] != cle:
-                    raise ValidationError("L’adresse du catalogue a changé.")
-            elif action not in {"suivre-catalogue", "ne-plus-suivre-catalogue", "heriter-catalogue"} or not catalogues.get(cle, {}).get("url"):
-                raise ValidationError("Choisissez un catalogue connu de la classe.")
-            with transaction.atomic():
-                classe = type(classe).objects.select_for_update().get(pk=classe.pk)
-                if classe.etat != classe.ACTIVE or not autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
-                    raise PermissionDenied
-                etat = classe.catalogues_propres.setdefault(cle, {})
-                herite = cle in classe.ecole.catalogues_referentiels or cle in catalogues_grist_connus({})
-                if contenu is not None:
-                    if action == "actualiser-catalogue" or not herite:
-                        etat["catalogue"] = contenu
-                    if action == "ajouter" and not herite:
-                        etat.setdefault("suivre_catalogue", contexte["suivi_initial"])
-                elif action == "heriter-catalogue":
-                    if not herite:
-                        raise ValidationError("Ce catalogue n’est pas proposé par l’école.")
-                    classe.catalogues_propres.pop(cle, None)
-                else:
-                    etat["suivre_catalogue"] = action == "suivre-catalogue"
-                if not etat:
-                    classe.catalogues_propres.pop(cle, None)
-                classe.save(update_fields=["catalogues_propres"])
+            contexte["url_saisie"] = request.POST.get("url", "")[:2000]
+            contexte["suivi_initial"] = request.POST.get("suivre_catalogue") == "oui"
+            _, contenu = modifier_catalogue_classe(
+                request, classe, catalogues, contexte["url_saisie"], contexte["suivi_initial"],
+            )
+            classe.refresh_from_db(fields=["catalogues_propres"])
             regles = reglages_catalogues_classe(classe)
             contexte.update(catalogue_ajoute=contenu, message="Catalogues de la classe mis à jour.")
         except ValidationError as erreur:
@@ -308,13 +316,46 @@ def empreinte_suivi(valeur):
 
 @acces_requis
 @require_http_methods(["GET", "POST"])
-def suivis_classe(request, classe_pk):
+def suivis_classe(request, classe_pk, contexte_espace=None):
     from .models import SuiviSourceClasse
     from .referentiels import adoption_courante
     from .services.sources_catalogue import cle_source_ajout, lignes_source, sources_catalogue
 
     ecole = ecole_courante(request)
     classe = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
+    from .services.catalogues_externes import reglages_catalogues_classe
+
+    reglages = reglages_catalogues_classe(classe)
+    distants = catalogues_grist_connus(reglages)
+    contexte_catalogue = {"suivi_initial": True}
+    invitation_catalogue = request.GET.get("catalogue_invite", "")[:2000]
+    if classe.etat == classe.ACTIVE and invitation_catalogue:
+        contexte_catalogue.update(url_saisie=invitation_catalogue, ouvrir_ajout=True)
+    action_catalogue = request.POST.get("action") if contexte_espace is None else None
+    catalogue_poste = action_catalogue in {
+        "ajouter", "actualiser-catalogue", "suivre-catalogue", "ne-plus-suivre-catalogue", "heriter-catalogue",
+    }
+    groupe_poste = ""
+    if catalogue_poste:
+        if classe.etat != classe.ACTIVE:
+            raise PermissionDenied
+        url_saisie = request.POST.get("url", "")[:2000]
+        suivi_initial = request.POST.get("suivre_catalogue") == "oui"
+        cle = request.POST.get("catalogue", "")
+        try:
+            cle, contenu = modifier_catalogue_classe(request, classe, distants, url_saisie, suivi_initial)
+        except ValidationError as erreur:
+            contexte_catalogue["erreur"] = " ".join(erreur.messages)
+            contexte_catalogue.update(url_saisie=url_saisie, suivi_initial=suivi_initial,
+                                      ouvrir_ajout=action_catalogue == "ajouter",
+                                      erreur_ajout=action_catalogue == "ajouter")
+        else:
+            statut = "Catalogue actualisé." if action_catalogue == "actualiser-catalogue" else "Catalogue enregistré."
+            request.session[f"catalogue-resultat-{classe.pk}"] = (cle, statut)
+            ancre = "catalogue-" + hashlib.sha256(cle.encode()).hexdigest()[:12]
+            return redirect(lien("suivis_referentiels_classe", classe.pk, catalogue=ancre, ancre=ancre))
+        groupe_poste = cle
+    resultat_catalogue = request.session.pop(f"catalogue-resultat-{classe.pk}", None)
     adoption = adoption_courante(classe)
     autorisees = {v.pk for v in choix_bases(ecole, classe.annee_scolaire).versions}
     retour = lien("suivis_referentiels_classe", classe.pk, ancre="referentiels-suivis")
@@ -335,7 +376,7 @@ def suivis_classe(request, classe_pk):
             disponibles[reference] = {"cle": cle, "titre": titre, "version": version, "autre": autre}
 
     suivis = {s.reference: s for s in SuiviSourceClasse.objects.filter(classe=classe)}
-    action = request.POST.get("action")
+    action = request.POST.get("action") if contexte_espace is None else None
     cible = request.POST.get("source")
     if action in {"ecarter-ajout", "proposer-ajout"}:
         if cible not in disponibles or (adoption and cible == f"source-{adoption.version.source_id}"):
@@ -449,27 +490,23 @@ def suivis_classe(request, classe_pk):
     for arbitrage in arbitrages:
         for c in arbitrage["candidats"]:
             c["jeton"] = empreinte_suivi([adoption.pk, arbitrage["champ"], c["uuid"], c["source"], c["edition"], c["valeur"]])
-    if request.method == "POST":
+    if request.method == "POST" and not catalogue_poste and contexte_espace is None:
         if action == "ne-plus-suivre":
             SuiviSourceClasse.objects.filter(classe=classe, reference=cible).delete()
             return redirect(retour)
         raise Http404
-    from .services.catalogues_externes import reglages_catalogues_classe
-
     catalogues = {
-        identifiant_source_ecole(ecole, identite_grist(catalogue["url"], referentiel["reference"])):
-            (catalogue["url"], catalogue["nom"])
-        for catalogue in catalogues_grist_connus(reglages_catalogues_classe(classe)).values()
+        identifiant(portee, identite_grist(url, referentiel["reference"])): (url, catalogue["nom"], referentiel)
+        for url, catalogue in distants.items()
         for referentiel in catalogue["referentiels"]
+        for identifiant, portee in ((identifiant_source_ecole, ecole), (identifiant_source_classe, classe))
     }
+    from pwa.partage_grist import contexte_raccordement
     from .models import PartageGristClasse, ReceptionReferentielGrist
 
-    partage_grist = None
-    document_espace = ""
-    if partage_grist_disponible():
-        partage_grist = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
-        if partage_grist:
-            document_espace = adresse_grist(partage_grist.url)[1]
+    espace_disponible = classe.etat == classe.ACTIVE and partage_grist_disponible()
+    partage_grist = PartageGristClasse.objects.filter(classe=classe).first() if espace_disponible else None
+    document_espace = adresse_grist(partage_grist.url)[1] if partage_grist else ""
     documents = {}
     for source_id, document in ReceptionReferentielGrist.objects.filter(
             source_id__in={ligne["version"].source_id for ligne in lignes if ligne["version"]}
@@ -502,7 +539,7 @@ def suivis_classe(request, classe_pk):
         elif version.source.identifiant_diffusion.startswith("classe-grist-"):
             cle, nom = "espace-grist", "Référentiels reçus de l’espace Grist"
         elif version.source.identifiant in catalogues:
-            cle, nom = catalogues[version.source.identifiant]
+            cle, nom, _ = catalogues[version.source.identifiant]
         elif version.source.classe_privee_id:
             cle, nom = "classe", "Catalogue de la classe"
         elif version.source.ecole_id:
@@ -510,21 +547,60 @@ def suivis_classe(request, classe_pk):
         else:
             cle, nom = "instance", "Catalogue Petits Pas"
         groupes.setdefault(cle, {"nom": nom, "lignes": []})["lignes"].append(ligne)
-    if espace_demande:
-        groupes[ancre_espace] = {"nom": noms_espaces.get(document_espace, "Espace de partage"),
-                                 "ancre": ancre_espace, "ouvrir": True, "lignes": recus_espace}
+    for url, catalogue in distants.items():
+        groupe = groupes.setdefault(url, {"nom": catalogue["nom"], "lignes": []})
+        references = {catalogues[ligne["version"].source.identifiant][2]["reference"]: ligne
+                      for ligne in groupe["lignes"]}
+        groupe.update(url=url, suivi=catalogue_suivi(reglages.get(url, {})),
+                      herite=url in ecole.catalogues_referentiels or url in catalogues_grist_connus({}),
+                      personnalise=url in classe.catalogues_propres)
+        for source in catalogue["referentiels"]:
+            ligne = references.get(source["reference"])
+            edition = source["editions"][0]
+            distant = {**source, "url": url, "derniere": edition}
+            if ligne is None:
+                groupe["lignes"].append({**distant, "edition_distante": distant})
+            elif str(edition) != str(ligne["version"].numero):
+                ligne["edition_distante"] = {**distant, "mise_a_jour": True}
+    if espace_disponible:
+        groupes.pop(ancre_espace, None)
+        contexte_espace = contexte_espace or contexte_raccordement(classe, partage_grist)
+        groupes[ancre_espace if document_espace else "espace-partage"] = {
+            "nom": (partage_grist.nom_espace if partage_grist else "") or "Espace de partage",
+            "ancre": ancre_espace if document_espace else "espace-partage",
+            "ouvrir": espace_demande or bool(contexte_espace.get("erreur")) or request.GET.get("espace") == "1",
+            "espace": contexte_espace, "espace_actif": partage_grist,
+            "partiel_resume": "suivi/partiels/resume_espace_grist.html"
+                if partage_grist and partage_grist.actif else "",
+            "lignes": recus_espace,
+        }
     for index, (cle, groupe) in enumerate(groupes.items()):
         ancre = groupe.setdefault("ancre", "catalogue-" + hashlib.sha256(cle.encode()).hexdigest()[:12])
         nombre = len(groupe["lignes"])
+        if groupe.get("url"):
+            groupe["resultat"] = resultat_catalogue[1] if resultat_catalogue and resultat_catalogue[0] == cle else ""
+            groupe["erreur"] = contexte_catalogue.get("erreur") if groupe_poste == cle else ""
+        for ligne in groupe["lignes"]:
+            if ligne.get("lire"):
+                separateur = "&" if "?" in ligne["lire"] else "?"
+                ligne["lire"] += f"{separateur}catalogue_retour={ancre}&source_retour={ligne['reference']}"
         mode = ("Contenu courant" if cle == "classes" else
                 "Synchronisation automatique" if cle.startswith("referentiels-espace-") else
-                "Catalogue Grist · Actualisation à la demande" if cle.startswith("https://") else "Éditions disponibles")
-        groupe["resume"] = f"{nombre} référentiel{'s' if nombre != 1 else ''} · {mode}"
-        ecartees = sum(l["ecartee"] for l in groupe["lignes"])
-        if ecartees:
+                ("Catalogue Grist · Suivi des nouveautés actif" if groupe.get("suivi") else "Catalogue Grist · Actualisation à la demande")
+                if groupe.get("url") else "Éditions disponibles")
+        if groupe.get("espace"):
+            partage = groupe["espace"]["partage"]
+            if not partage:
+                groupe["resume"] = "Aucun espace rejoint"
+            elif not partage.actif:
+                deja_partage = " · Référentiel toujours partagé" if groupe["espace"]["partage_confirme"] else ""
+                groupe["resume"] = f"Synchronisation suspendue{deja_partage} · {nombre} référentiel{'s' if nombre != 1 else ''}"
+        groupe.setdefault("resume", f"{nombre} référentiel{'s' if nombre != 1 else ''} · {mode}")
+        ecartees = sum(bool(l.get("ecartee")) for l in groupe["lignes"])
+        if ecartees and not groupe.get("espace"):
             groupe["resume"] += f" · {ecartees} écarté{'s' if ecartees != 1 else ''} des ajouts"
-        groupe["ouvrir"] = (groupe.get("ouvrir", False) or ancre == groupe_retour
-            or any(l["ajoutees"] or l["modifiees"] or l["retirees"] for l in groupe["lignes"])
+        groupe["ouvrir"] = (groupe.get("ouvrir", False) or ancre == groupe_retour or cle == groupe_poste
+            or any(l.get("ajoutees") or l.get("modifiees") or l.get("retirees") for l in groupe["lignes"])
             or not groupe_retour and not espace_demande and index == 0)
     from .models import EvenementAudit
 
@@ -534,21 +610,22 @@ def suivis_classe(request, classe_pk):
     resume_decisions = ("Propositions à examiner" if arbitrages or any(
         len({c["signature"] for c in l}) > 1 for l in divergences.values()
     ) or set(suivis) - disponibles.keys() else "Historique")
+    actualisation = lien("decouvrir_referentiels", annee=classe.annee_scolaire, classe=classe.pk, gestion="classe")
     return render(request, "suivi/suivis_referentiels_classe.html",
-                  {"classe": classe, "lignes": [ligne for ligne in lignes if ligne["suivi"]],
+                  {"classe": classe, "url_catalogues": lien("suivis_referentiels_classe", classe.pk),
+                   "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
                    "nouvelle_edition": any(l["adopter"] for l in lignes),
                    "arbitrages": arbitrages, "decisions": decisions, "historique_auto": historique_auto,
                    "resume_decisions": resume_decisions,
                    "divergences": [l for l in divergences.values() if len({c["signature"] for c in l}) > 1],
-                   "ouvrir_espace": request.GET.get("espace") == "1",
-                   "recus_espace": bool(recus_espace),
-                   "lien_referentiels_espace": (
-                       lien("suivis_referentiels_classe", classe.pk, decouvrir=1, groupe=document_espace,
-                            ancre=ancre_espace) if document_espace else ""),
-                   "ouvrir_decouverte": espace_demande or not suivis or request.GET.get("decouvrir") == "1",
+                   "catalogue_formulaire": contexte_catalogue,
+                   "actualisation": actualisation if classe.etat == classe.ACTIVE and any(
+                       etat.get("suivre_catalogue") and etat.get("catalogue", {}).get("url")
+                       for etat in reglages.values()) else "",
                    "classe_active": classe.etat == classe.ACTIVE,
                    "groupes": list(groupes.values()),
                    "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
                    "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),
-                   "indisponibles": set(suivis) - disponibles.keys(), "partage_grist": partage_grist})
+                   "indisponibles": set(suivis) - disponibles.keys()},
+                  status=400 if contexte_catalogue.get("erreur") or (contexte_espace or {}).get("erreur") else 200)

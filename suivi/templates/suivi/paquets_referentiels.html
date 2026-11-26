@@ -16,6 +16,7 @@
 {% ariane_referentiel "Exporter un référentiel" classe annee parcours="partage" %}
 <h1 id="haut-page-suivi" tabindex="-1">Exporter un référentiel</h1>
 {% endif %}
+{% if retour_catalogues %}<p><a class="bouton discret" href="{{ retour_catalogues }}">Retour à Catalogues et partage</a></p>{% elif retour_competences %}<p><a class="bouton discret" href="{{ retour_competences }}">Retour aux compétences</a></p>{% endif %}
 {% if retour_decouverte %}<p><a href="{{ retour_decouverte }}">Retour à Découvrir des référentiels</a></p>{% endif %}
 {% if erreur and not erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if message and not message_import %}<p class="message" role="status">{{ message }}</p>{% endif %}
@@ -60,7 +61,7 @@
 <input type="hidden" name="jeton" value="{{ jeton }}">
 <input type="hidden" name="action" value="importer">
 <button class="bouton">Confirmer l’import</button>
-<a class="bouton discret" href="{{ retour_decouverte|default:request.get_full_path }}">Annuler</a>
+<a class="bouton discret" href="{{ retour_catalogues|default:retour_competences|default:retour_decouverte|default:request.get_full_path }}">Annuler</a>
 {% else %}
 {% if peut_importer_global %}
 <p><label for="destination">Catalogue destinataire</label>
@@ -72,24 +73,15 @@
 <button class="bouton">Examiner le fichier</button>
 {% endif %}
 </form>
-{% if import_classe %}
-<details class="menu-competence-catalogue">
-<summary class="bouton bouton-depliant discret" aria-label="Autres actions d’import">⋯</summary>
-<div class="actions">
+{% if import_classe and jeton %}
 {% if peut_importer_ecole %}
 <a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer au catalogue de l’école</a>
 {% else %}
-{% if jeton %}
 <form method="post" action="{% url 'proposer_referentiel_classe' classe.pk %}">{% csrf_token %}
 <input type="hidden" name="jeton_import" value="{{ jeton }}">
-<button class="bouton discret" name="action" value="reprendre-apercu">Proposer à la direction</button>
+<button class="bouton discret" name="action" value="reprendre-apercu">Proposer au catalogue de l’école</button>
 </form>
-{% else %}
-<a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">Proposer à la direction</a>
 {% endif %}
-{% endif %}
-</div>
-</details>
 {% endif %}
 </div>
 </div>

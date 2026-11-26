@@ -1,0 +1,71 @@
+{% if partage %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Lien de l’espace" resume="Document Grist" only %}
+{% if mode_pwa %}
+<div data-invitation-grist="{{ partage.url }}" hidden>
+<p>Ce lien permet à un collègue de rejoindre le même espace.</p>
+<button type="button" class="bouton discret">Copier le lien d’invitation</button>
+<p role="status"></p>
+</div>
+{% endif %}
+<p><a href="{{ partage.url }}">Ouvrir le document dans Grist</a></p>
+</details>
+{% endif %}
+{% if partage.actif %}<details{% if changer_espace %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Changer d’espace" only %}
+{% if changer_destination %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Cette classe collabore déjà dans un espace" resume="Confirmez le changement pour envoyer les prochaines mises à jour à l’adresse ci-dessous. Les référentiels déjà reçus restent accessibles." only %}
+<p>Espace actuel · <strong>{{ partage.nom_espace|default:"Espace de partage" }}</strong></p>
+{% else %}
+<p>Les prochains envois iront au nouvel espace. Les référentiels déjà reçus restent accessibles.</p>
+{% endif %}
+{% endif %}
+{% if erreur and champ_erreur != "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement"><strong>Raccordement impossible.</strong> {{ erreur }}</li></ul>{% endif %}
+{% if licence %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Licence proposée pour le partage" resume=licence only %}
+{% endif %}
+{% if erreur_licence %}
+<p><span class="pastille alerte">Licence à vérifier</span> {% if erreur != erreur_licence %}{{ erreur_licence }}{% endif %}</p>
+<p><a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter&amp;depuis=espace{% if espace_integre %}&amp;retour=catalogues{% endif %}#export-referentiel">Vérifier les informations et renseigner la licence</a></p>
+{% endif %}
+<form method="post" action="{{ action_espace }}" class="encadre" data-raccordement-grist{% if partage.actif and not erreur_licence and partage.licence == licence %} data-document-actif="{{ partage.url }}"{% endif %}>
+{% csrf_token %}
+<input type="hidden" name="espace_attendu" value="{{ espace_attendu }}">
+<input type="hidden" name="changement" value="{{ document_a_confirmer }}">
+<label for="grist">Lien du document Grist</label>
+<input id="grist" name="grist" type="url" value="{{ grist }}" maxlength="300" required{% if champ_erreur == "grist" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
+<p>La synchronisation publie les rubriques et compétences communes visibles, avec leurs textes et illustrations pédagogiques. Un document public est accessible aux personnes qui obtiennent son lien.</p>
+<label><input name="confirmer" type="checkbox" value="oui" aria-required="true"{% if confirmer %} checked{% endif %}{% if champ_erreur == "confirmer" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}> Partager le référentiel de cette classe dans cet espace</label>
+{% if champ_erreur == "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement">{{ erreur }}</li></ul>{% endif %}
+<p>Nom proposé pour un nouvel espace · <strong>{{ nom_propose }}</strong></p>
+<details{% if nom_saisi %} open{% endif %}>
+{% if nom_saisi %}{% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du nouvel espace" only %}
+{% else %}{% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du nouvel espace" resume="automatique" only %}{% endif %}
+<label for="nom-espace">Nom à utiliser si l’espace n’est pas encore nommé</label>
+<input id="nom-espace" name="nom_espace" maxlength="200" value="{{ nom_saisi }}" placeholder="{{ nom_propose }}"{% if champ_erreur == "nom_espace" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
+</details>
+<div class="actions"><button name="action" value="raccorder" class="bouton{% if changer_destination %} avertissement-orange{% endif %}">{% if changer_destination %}Confirmer le changement d’espace{% elif partage.actif %}Confirmer le raccordement{% elif partage %}Reprendre la synchronisation{% else %}Rejoindre l’espace de partage{% endif %}</button>
+<button name="action" value="ouvrir-catalogue" class="bouton discret">Parcourir le catalogue dans Petits Pas</button>
+{% if not espace_integre %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Annuler</a>{% endif %}</div>
+</form>
+{% if partage.actif %}</details>{% endif %}
+{% if partage %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Suspendre ou retirer le partage" only %}
+{% if partage.actif %}<form method="post" action="{{ action_espace }}">{% csrf_token %}<button name="action" value="suspendre" class="bouton discret">Suspendre la synchronisation</button></form>{% endif %}
+{% if partage %}
+<details hidden data-retrait-grist>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Retirer mon référentiel de cet espace" only %}
+<form method="post" action="{{ action_espace }}">{% csrf_token %}
+<input type="hidden" name="action" value="preparer-retrait">
+<input type="hidden" name="identifiant_attendu" value="{{ partage.identifiant }}">
+<input type="hidden" name="url_attendue" value="{{ partage.url }}">
+<p>La synchronisation sera suspendue et la publication de cette classe sera retirée de cet espace. Les collègues gardent les copies déjà reçues.</p>
+<button type="submit" class="bouton danger-discret">Confirmer le retrait</button>
+<p role="status"></p>
+</form>
+</details>
+{% endif %}
+
+</details>
+{% endif %}

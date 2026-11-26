@@ -89,6 +89,48 @@ class CataloguesReferentiels(Base):
         self.classe.refresh_from_db()
         self.assertNotIn(grist, self.classe.catalogues_propres)
 
+    def test_ajouter_et_actualiser_un_catalogue_depuis_la_classe(self):
+        self.entrer()
+        url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        grist = "https://grist.numerique.gouv.fr/o/docs/catalogue-classe"
+        catalogue = {"nom": "Catalogue de recette", "url": grist, "referentiels": [
+            {"reference": "recette", "titre": "Référentiel de recette", "editions": [1]},
+        ]}
+        page = self.client.post(url, {"action": "ajouter", "url": "lien-invalide"})
+        self.assertContains(page, 'id="ajouter-catalogue" open', status_code=400)
+        self.assertContains(page, 'value="lien-invalide"', status_code=400)
+        with patch("suivi.views_catalogues_referentiels.lire_catalogue_grist", return_value=catalogue):
+            page = self.client.post(url, {"action": "ajouter", "url": grist}, follow=True)
+            self.assertContains(page, "Catalogue enregistré.")
+            self.assertContains(page, "Référentiel de recette")
+            self.assertContains(page, "Examiner l’édition")
+            self.assertNotContains(page, "Importer un ZIP pour la classe")
+            catalogue["referentiels"][0]["editions"] = [2, 1]
+            page = self.client.post(url, {"action": "actualiser-catalogue", "catalogue": grist}, follow=True)
+            self.assertContains(page, "Catalogue actualisé.")
+            self.assertContains(page, 'name="numero" value="2"')
+
+    def test_proposition_depuis_le_referentiel_courant(self):
+        from .models import PropositionReferentiel
+
+        from .services.choix_bases_referentiels import publier_choix_application
+        from .tests_import_sources_referentiels import document, importer
+
+        self.entrer()
+        version = importer(document())[0]
+        publier_choix_application(annee=self.classe.annee_scolaire, versions_ids=[version.pk],
+                                  proposee_id=version.pk, revision_attendue=0)
+        self.adopter(version)
+        competence = reverse("catalogue_competences", args=[self.classe.pk])
+        self.assertContains(self.client.get(competence), "Proposer au catalogue de l’école")
+        proposition = reverse("proposer_referentiel_classe", args=[self.classe.pk])
+        apercu = self.client.post(proposition, {"action": "examiner-classe"})
+        self.assertContains(apercu, "Envoyer la proposition")
+        self.assertFalse(PropositionReferentiel.objects.exists())
+        self.assertRedirects(self.client.post(proposition, {"action": "proposer", "jeton": apercu.context["jeton"]}),
+                             competence + "#actions-referentiel-classe")
+        self.assertEqual(PropositionReferentiel.objects.get().classe, self.classe)
+
     def test_import_prive_reserve_a_la_classe_et_au_contexte_confirme(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -103,7 +145,7 @@ class CataloguesReferentiels(Base):
         paquet = SimpleUploadedFile("exemple.zip", empaqueter(document("prive-classe")))
         page = self.client.post(url, {"action": "apercu", "paquet": paquet})
         self.assertContains(page, "Confirmer l’import")
-        self.assertContains(page, "Autres actions d’import")
+        self.assertContains(page, "Proposer au catalogue de l’école")
         proposition = reverse("proposer_referentiel_classe", args=[self.classe.pk])
         apercu = self.client.post(proposition, {"action": "reprendre-apercu", "jeton_import": page.context["jeton"]})
         self.assertContains(apercu, "Note à la direction")

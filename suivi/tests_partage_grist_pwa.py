@@ -42,10 +42,10 @@ class PartageGristPWA(Base):
         self.assertRedirects(self.client.post(espace, {"grist": grist, "confirmer": "oui"}),
                              suivis + "?espace=1#espace-partage")
         espace_ouvert = self.client.get(espace)
-        self.assertContains(espace_ouvert, "groupe=document-fictif#referentiels-espace-document-fictif")
+        self.assertContains(espace_ouvert, "?espace=1#espace-partage")
         vide = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
         self.assertContains(vide, 'id="referentiels-espace-document-fictif" open')
-        self.assertContains(vide, "Aucun référentiel d’une autre classe reçu dans cet espace.")
+        self.assertContains(vide, "Aucun référentiel d’une autre classe reçu.")
         url = reverse("synchroniser_grist")
         données = self.client.get(url).json()
         travail = données["partages"][0]
@@ -72,7 +72,9 @@ class PartageGristPWA(Base):
         self.assertEqual(VersionReferentiel.objects.filter(source__titre="Référentiel du collègue").count(), 1)
         self.assertEqual(IconePartagee.objects.filter(empreinte=cle).count(), 1)
         page = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
-        self.assertContains(page, "Voir les référentiels de cet espace")
+        self.assertContains(page, "Référentiel du collègue", count=1)
+        self.assertContains(page, "Référentiel de la classe partagé")
+        self.assertNotContains(page, "Voir les référentiels de cet espace")
         self.assertContains(page, 'id="referentiels-espace-document-fictif" open')
         self.assertIsNone(self.client.get(url).json()["partages"][0]["contenu"])
         self.client.post(espace, {"action": "suspendre"})
@@ -244,11 +246,28 @@ class PartageGristPWA(Base):
         adresse = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
         self.assertEqual(self.client.post(espace, {"grist": adresse, "confirmer": "oui"}).status_code, 302)
         suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
-        self.assertContains(self.client.get(suivis), "Gérer l’espace")
+        self.assertContains(self.client.get(suivis), "Réglages de l’espace")
         self.assertRedirects(self.client.post(equipe, {"action": "initialiser"}), equipe)
         travaux = self.client.get(reverse("synchroniser_grist")).json()["partages"]
         transfert = travaux[0]["transfert_equipe"]
         self.assertEqual(len(self.client.get(transfert).json()["a_envoyer"]), 1)
+
+    def test_raccordement_integre_preserve_le_formulaire_et_rouvre_la_rubrique(self):
+        self.adopter()
+        suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        action = reverse("espace_grist_classe", args=[self.classe.pk]) + "?depuis=catalogues"
+        grist = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        page = self.client.post(action, {"grist": grist})
+        self.assertContains(page, '<h1>Catalogues et partage</h1>', status_code=400)
+        self.assertContains(page, 'id="espace-partage" open', status_code=400)
+        self.assertContains(page, "Cochez cette case pour confirmer", status_code=400)
+        self.assertContains(page, grist, status_code=400)
+        self.assertRedirects(self.client.post(action, {"grist": grist, "confirmer": "oui"}),
+                             suivis + "?espace=1#espace-partage")
+        page = self.client.get(suivis, {"espace": 1})
+        self.assertContains(page, 'id="referentiels-espace-document-fictif" open')
+        self.assertContains(page, "Premier envoi en attente")
+        self.assertContains(page, "Réglages de l’espace")
 
     def test_ariane_et_confirmation_du_partage(self):
         self.adopter()

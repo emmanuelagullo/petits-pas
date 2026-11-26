@@ -1,10 +1,19 @@
 {% extends "suivi/base.html" %}
-{% load navigation_suivi %}
+{% load static navigation_suivi %}
 {% block titre %}Catalogues et partage{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
 {% ariane_referentiel "Catalogues et partage" classe classe.annee_scolaire parcours="competences" %}
+<div class="actions entete-catalogue entete-catalogues-partage">
 <h1>Catalogues et partage</h1>
+{% if classe_active %}
+<details id="ajouter-catalogue"{% if catalogue_formulaire.ouvrir_ajout %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter un catalogue" principal=True only %}
+{% if catalogue_formulaire.erreur_ajout %}<ul class="messages"><li class="error" role="alert" id="erreur-lien-catalogue">{{ catalogue_formulaire.erreur }}</li></ul>{% endif %}
+{% include "suivi/partiels/ajouter_catalogue_grist.html" with gestion_classe=True suivi_initial=catalogue_formulaire.suivi_initial url_saisie=catalogue_formulaire.url_saisie erreur_lien=catalogue_formulaire.erreur_ajout retour=url_catalogues %}
+</details>
+{% endif %}
+</div>
 <p>{{ classe.libelle_avec_annee }}</p>
 {% if adoption %}
 <p><strong>Référentiel utilisé par la classe</strong> · {% if adoption.version.contenu.origine == "etat_initial_repris" %}Référentiel historique{% else %}{{ adoption.version.source.titre }} · édition {{ adoption.version.numero }}{% endif %}
@@ -12,57 +21,8 @@
 {% endif %}
 <section id="decouvrir-referentiels" aria-label="Catalogues et provenances">
 {% for groupe in groupes %}
-<details id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 only %}
-{% for ligne in groupe.lignes %}
-<section class="encadre" id="referentiel-{{ ligne.reference }}">
-<h3>{{ ligne.titre }}</h3>
-<p>{% if ligne.courant %}<span class="pastille pastille-principale">Utilisé par la classe</span>
-{% elif ligne.ecartee %}<span class="pastille">Écarté des ajouts</span>
-{% else %}<span class="pastille pastille-positive">Proposé à l’ajout</span>{% endif %}
-</p>
-{% if ligne.suivi %}{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
-{% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=ligne.ajoutees modifications=ligne.modifiees retraits=ligne.retirees only %}
-<details>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir les changements" only %}
-{% if ligne.ajoutees %}<h3>Ajouts</h3><ul>{% for libelle in ligne.ajoutees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
-{% if ligne.modifiees %}<h3>Modifications</h3><ul>{% for libelle in ligne.modifiees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
-{% if ligne.retirees %}<h3>Retraits</h3><ul>{% for libelle in ligne.retirees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
-</details>
-{% else %}<p>Aucun changement depuis votre dernière consultation enregistrée.</p>{% endif %}{% endif %}
-<div class="actions">
-<a class="bouton discret" href="{{ ligne.lire }}">Parcourir les compétences</a>
-{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
-<form method="post" action="?catalogue={{ groupe.ancre|urlencode }}">{% csrf_token %}
-<input type="hidden" name="source" value="{{ ligne.reference }}">
-<input type="hidden" name="empreinte" value="{{ ligne.empreinte }}">
-<button class="bouton discret" name="action" value="marquer-vu">Marquer comme vu</button>
-</form>
-{% endif %}
-</div>
-{% if not ligne.courant %}
-<details>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Options" only %}
-<form method="post" action="?catalogue={{ groupe.ancre|urlencode }}">{% csrf_token %}
-<input type="hidden" name="source" value="{{ ligne.reference }}">
-{% if ligne.ecartee %}
-<button class="bouton discret" name="action" value="proposer-ajout">Proposer les compétences de ce référentiel à l’ajout</button>
-{% else %}
-<button class="bouton discret" name="action" value="ecarter-ajout">Écarter ce référentiel des sources d’ajout</button>
-{% endif %}
-</form>
-</details>
-{% endif %}
-</section>
-{% empty %}<p>Aucun référentiel d’une autre classe reçu dans cet espace.</p>{% endfor %}
-</details>
+{% include "suivi/partiels/rubrique_catalogue_classe.html" %}
 {% endfor %}
-{% if classe_active %}
-<div class="actions">
-<a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}&amp;gestion=classe">Ajouter ou actualiser un catalogue</a>
-<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer&amp;destination=classe#import-referentiel">Importer un ZIP pour la classe</a>
-</div>
-{% endif %}
 {% if peut_gerer_catalogues %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages communs à l’école" only %}
@@ -84,7 +44,7 @@
 <details class="avertissement-referentiel avertissement-orange">
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir une source pour un champ" only %}
 {% for choix in arbitrages %}
-<form method="post">{% csrf_token %}
+<form method="post" action="{{ url_catalogues }}">{% csrf_token %}
 <input type="hidden" name="action" value="choisir-heritage">
 <fieldset><legend>{{ choix.competence }} · {{ choix.libelle }}</legend>
 {% for candidat in choix.candidats %}
@@ -122,44 +82,21 @@
 </details>
 {% endif %}
 {% for reference in indisponibles %}
-<form method="post">{% csrf_token %}
+<form method="post" action="{{ url_catalogues }}">{% csrf_token %}
 <input type="hidden" name="source" value="{{ reference }}">
 <p>Un référentiel suivi n’est plus disponible. <button class="bouton discret" name="action" value="ne-plus-suivre">Retirer ce suivi</button></p>
 </form>
 {% endfor %}
 </details>{% else %}</div>{% endif %}
-{% if classe_active %}<details id="espace-partage"{% if ouvrir_espace %} open{% endif %}>
-{% if not partage_grist_disponible %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" niveau_titre=2 only %}
-{% include "suivi/partiels/contexte_espace_partage.html" with classe=classe compact=True only %}
-<p>Modifiez un référentiel commun avec les collègues de l’école.</p>
-<p><a class="bouton" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>
-{% else %}
-{% if partage_grist %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" resume=partage_grist.nom_espace niveau_titre=2 only %}
-{% else %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" resume="Aucun espace rejoint" niveau_titre=2 only %}
-{% endif %}
-<p>Partagez automatiquement les compétences communes de votre classe avec les collègues qui utilisent le même espace.</p>
-{% if partage_grist %}
-{% include "suivi/partiels/contexte_espace_partage.html" with classe=classe espace_actif=partage_grist compact=True only %}
-<p role="status" data-etat-espace>Vérification du partage en attente.</p>
-<div class="actions">
-<a class="bouton discret" href="{{ lien_referentiels_espace }}">Voir les référentiels de cet espace</a>
-<button type="button" class="bouton discret" data-relancer-synchro hidden>Synchroniser maintenant</button>
-</div>
-{% if not recus_espace %}<p data-reception-espace>Aucun référentiel d’une autre classe reçu à l’ouverture de cette page.</p>{% endif %}
-{% elif not mode_local %}
-<p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe de l’école</a></p>
-{% endif %}
-<p><a class="bouton" href="{% url 'espace_grist_classe' classe.pk %}">{% if partage_grist %}Gérer l’espace{% else %}Rejoindre un espace{% endif %}</a></p>
-{% endif %}
-</details>{% endif %}
-{% if classe_active and adoption and not adoption.clos %}
-<details id="echanger-referentiels">
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Partager le référentiel de la classe" resume="Grist ou ZIP" niveau_titre=2 only %}
-<p><a class="bouton" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Ouvrir les options de partage</a></p>
-</details>
+{% if classe_active and not partage_grist_disponible %}
+<p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>
 {% endif %}
 </div>
+{% if actualisation %}
+<form method="post" action="{{ actualisation }}" data-actualisation-catalogues hidden>
+{% csrf_token %}<input type="hidden" name="action" value="actualiser-automatiquement">
+<p role="status"></p>
+</form>
+<script src="{% static 'suivi/liens-catalogues.js' %}" defer></script>
+{% endif %}
 {% endblock %}

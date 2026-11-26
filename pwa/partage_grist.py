@@ -108,6 +108,29 @@ def invitation_grist(request):
     return render(request, "suivi/invitation_grist.html", {"classes": classes})
 
 
+def licence_raccordement(classe, partage, adoption):
+    if adoption and not adoption.clos and classe.etat == Classe.ACTIVE:
+        try:
+            return document_projection(classe, partage.identifiant if partage else "preparation")["source"]["licence"], ""
+        except ValidationError as cause:
+            return "", " ".join(cause.messages)
+    return "", ""
+
+
+def contexte_raccordement(classe, partage, **options):
+    if "licence" not in options:
+        options["licence"], options["erreur_licence"] = licence_raccordement(classe, partage, adoption_courante(classe))
+    return {
+        "partage": partage,
+        "grist": partage.url if partage else "",
+        "espace_attendu": partage.url if partage else "",
+        "nom_propose": nom_espace_propose(classe),
+        "partage_confirme": bool(partage and partage.derniere_empreinte),
+        "mode_pwa": getattr(settings, "MODE_PWA", False),
+        **options,
+    }
+
+
 @partage_disponible
 @acces_requis
 @require_http_methods(["GET", "POST"])
@@ -117,14 +140,11 @@ def espace_classe(request, pk):
     partage = PartageGristClasse.objects.filter(classe=classe).first()
     erreur = ""
     champ_erreur = ""
-    erreur_licence = ""
-    licence = ""
     adoption = adoption_courante(classe)
-    if adoption and not adoption.clos and classe.etat == Classe.ACTIVE:
-        try:
-            licence = document_projection(classe, partage.identifiant if partage else "preparation")["source"]["licence"]
-        except ValidationError as cause:
-            erreur_licence = " ".join(cause.messages)
+    licence, erreur_licence = licence_raccordement(classe, partage, adoption)
+    integre = request.GET.get("depuis") == "catalogues"
+    retour_catalogues = reverse("suivis_referentiels_classe", args=[pk]) + "?espace=1#espace-partage"
+    retour = retour_catalogues if integre else reverse("espace_grist_classe", args=[pk])
     nom_saisi = request.POST.get("nom_espace", "").strip()
     invitation = request.GET.get("grist", "")
     changer_destination = False
@@ -134,7 +154,7 @@ def espace_classe(request, pk):
             _, document = adresse_grist(invitation)
             invitation = invitation.strip()
             if partage and adresse_grist(partage.url)[1] == document:
-                return redirect("espace_grist_classe", pk=pk)
+                return redirect(retour)
             changer_destination = bool(partage and partage.actif)
         except ValidationError as cause:
             erreur = cause.messages[0]
@@ -155,10 +175,14 @@ def espace_classe(request, pk):
                                  "identifiant": str(partage.identifiant)})
         if request.POST.get("action") == "suspendre":
             PartageGristClasse.objects.filter(classe=classe).update(actif=False)
-            return redirect("espace_grist_classe", pk=pk)
+            return redirect(retour)
         try:
             if request.POST.get("action") == "ouvrir-catalogue":
                 adresse_grist(request.POST.get("grist", ""))
+                if integre:
+                    return redirect(reverse("suivis_referentiels_classe", args=[pk]) + "?" + urlencode({
+                        "catalogue_invite": request.POST["grist"].strip(),
+                    }) + "#ajouter-catalogue")
                 return redirect(reverse("decouvrir_referentiels") + "?" + urlencode({
                     "catalogue_invite": request.POST["grist"].strip(), "gestion": "classe",
                     "classe": pk, "annee": classe.annee_scolaire,
@@ -175,7 +199,7 @@ def espace_classe(request, pk):
                 raise ValidationError("Le lien de l’espace est limité à 300 caractères.")
             if partage and partage.actif and adresse_grist(partage.url)[1] == document and partage.licence == licence:
                 PartageGristClasse.objects.filter(pk=partage.pk, url=partage.url, actif=True).update(url=url)
-                return redirect("espace_grist_classe", pk=pk)
+                return redirect(retour)
             if changer_destination and request.POST.get("changement") != document:
                 # Présenter la destination avant de demander la confirmation.
                 request_confirmee = False
@@ -204,21 +228,25 @@ def espace_classe(request, pk):
                     partage.url, partage.derniere_empreinte = url, ""
                     partage.licence, partage.actif = licence, True
                     partage.save(update_fields=["url", "nom_espace", "derniere_empreinte", "licence", "actif"])
-            messages.info(request, "Espace rejoint. La synchronisation démarre depuis les suivis de la classe.")
-            return redirect(reverse("suivis_referentiels_classe", args=[pk]) + "?espace=1#espace-partage")
+            messages.info(request, "Espace rejoint. La synchronisation démarre dans Catalogues et partage.")
+            return redirect(retour_catalogues)
         except ValidationError as cause:
             erreur = " ".join(cause.messages)
     document_actif = adresse_grist(partage.url)[1] if partage and partage.actif else ""
-    return render(request, "suivi/espace_grist_classe.html", {"classe": classe, "partage": partage,
-        "document_actif": document_actif,
-        "document_a_confirmer": document if changer_destination else "",
-        "espace_attendu": partage.url if partage else "",
-        "grist": request.POST.get("grist") or invitation or (partage.url if partage else ""),
-        "erreur": erreur, "champ_erreur": champ_erreur, "licence": licence, "erreur_licence": erreur_licence,
-        "confirmer": request_confirmee, "nom_saisi": nom_saisi,
-        "nom_propose": nom_espace_propose(classe), "changer_espace": bool(invitation or erreur), "changer_destination": changer_destination,
-        "partage_confirme": bool(partage and partage.derniere_empreinte),
-        "mode_pwa": getattr(settings, "MODE_PWA", False)}, status=400 if erreur else 200)
+    contexte = contexte_raccordement(
+        classe, partage, document_actif=document_actif,
+        document_a_confirmer=document if changer_destination else "",
+        grist=request.POST.get("grist") or invitation or (partage.url if partage else ""),
+        erreur=erreur, champ_erreur=champ_erreur, licence=licence, erreur_licence=erreur_licence,
+        confirmer=request_confirmee, nom_saisi=nom_saisi, changer_espace=bool(invitation or erreur),
+        changer_destination=changer_destination,
+    )
+    if integre:
+        from suivi.views_catalogues_referentiels import suivis_classe
+
+        return suivis_classe(request, pk, contexte_espace=contexte)
+    return render(request, "suivi/espace_grist_classe.html", {"classe": classe, **contexte},
+                  status=400 if erreur else 200)
 
 
 def partages_autorises(request):

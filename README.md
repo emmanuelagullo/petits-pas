@@ -533,6 +533,23 @@ le génère aussi pour Hugo et transmet `site/static/essais/`. Les règles de
 promotion/publication ne changent pas ; il faut publier les nouvelles versions.
 La consultation d’un ZIP avant restauration est décrite ci-dessous (#SP5).
 
+### Catalogues Grist pour la recette d’interface
+
+Préparez trois documents Grist distincts réservés aux données fictives. La
+commande vérifie les liens et les éditions en simulation. Ajoutez `--ecrire`
+une fois les documents prêts à recevoir les publications.
+
+```sh
+python3 manage.py preparer_catalogues_grist_recette \
+  --demo "$GRIST_DEMO" --temporaire "$GRIST_TEMPORAIRE" --attention "$GRIST_ATTENTION"
+```
+
+Les liens affichés s’ouvrent dans **Catalogues et partage**. Rejoignez Démo
+comme espace partagé pour recevoir trois référentiels de classe. Ajoutez
+Temporaire pour examiner deux éditions d’un même référentiel, et Attention
+pour comparer deux formulations portant le même UUID. Une nouvelle exécution
+utilise les mêmes identifiants de recette.
+
 ## Vérifier un ZIP dans une copie indépendante (#SP5)
 
 `suivi/apercu_local.py` prépare le ZIP avec le validateur commun, refuse les

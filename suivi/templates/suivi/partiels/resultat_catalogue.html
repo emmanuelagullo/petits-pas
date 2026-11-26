@@ -1,0 +1,14 @@
+{% if synchronisation %}
+<div class="encadre">
+<p role="status"><span class="pastille" data-etiquette-synchro>En attente</span> <span data-etat-espace>Vérification du partage en attente.</span></p>
+<button type="button" class="bouton discret" data-relancer-synchro hidden><span aria-hidden="true">↻</span> <span data-libelle-synchro>Synchroniser maintenant</span></button>
+<details data-details-synchro hidden>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Dernières synchronisations" resume="Dans cet onglet" only %}
+<ol data-journal-synchro class="liste"></ol>
+</details>
+</div>
+{% elif groupe.erreur %}
+<ul class="messages"><li class="error" role="alert">{{ groupe.erreur }}</li></ul>
+{% elif groupe.resultat %}
+<p role="status"><span class="pastille pastille-positive">{{ groupe.resultat }}</span></p>
+{% endif %}

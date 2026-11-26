@@ -44,33 +44,27 @@
 {% endif %}
 <details id="ajouter-catalogue"{% if depuis_classe or invitation_catalogue or url_saisie and erreur %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter un catalogue par lien" only %}
-<form method="post" action="{{ retour }}">{% csrf_token %}
-<label for="url-catalogue">Lien du catalogue Grist</label>
-<input type="url" id="url-catalogue" name="url" required maxlength="2000" value="{{ url_saisie }}">
-<p><label><input type="checkbox" name="suivre_catalogue" value="oui"{% if suivi_initial %} checked{% endif %}> Suivre les nouveautés de ce catalogue {% if gestion_classe %}pour la classe{% else %}pour l’école{% endif %}</label></p>
-<button class="bouton" name="action" value="ajouter">Ajouter le catalogue</button>
-</form>
+{% include "suivi/partiels/ajouter_catalogue_grist.html" %}
 </details>
 </div>{% endif %}
 <p class="aide" role="status">{{ nombre_resultats }} référentiel{{ nombre_resultats|pluralize }}</p>
 {% for groupe in groupes %}
 <section>
 <h2>{{ groupe.nom }}</h2>
-{% if gestion_classe and groupe.url %}
-{% if groupe.herite %}<p>Proposé par l’école{% if groupe.personnalise %} · Réglage de la classe{% endif %}</p>
-{% else %}<p>Géré par la classe</p>{% endif %}
-{% endif %}
 {% if groupe.url %}
-{% if peut_gerer or gestion_classe %}<form method="post" action="{{ retour }}">
-{% csrf_token %}
-<input type="hidden" name="catalogue" value="{{ groupe.cle }}">
-{% if groupe.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre-catalogue">Ne plus suivre ce catalogue</button>
-{% else %}<button class="bouton discret" name="action" value="suivre-catalogue">Suivre ce catalogue</button>{% endif %}
 {% if gestion_classe %}
+<form method="post" action="{{ retour }}">{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ groupe.url }}">
 <button class="bouton discret" name="action" value="actualiser-catalogue">Actualiser le catalogue</button>
-{% if groupe.herite and groupe.personnalise %}<button class="bouton discret" name="action" value="heriter-catalogue">Reprendre le choix de l’école</button>{% endif %}
+</form>
+{% include "suivi/partiels/reglages_catalogue_grist.html" with action_catalogue=retour %}
+{% elif peut_gerer %}
+<form method="post" action="{{ retour }}">{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ groupe.cle }}">
+{% if groupe.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre-catalogue">Arrêter de suivre les nouveautés</button>
+{% else %}<button class="bouton discret" name="action" value="suivre-catalogue">Suivre les nouveautés</button>{% endif %}
+</form>
 {% endif %}
-</form>{% endif %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Lien du catalogue" only %}
 <p><a href="{{ groupe.url }}">Ouvrir le catalogue dans Grist</a></p>

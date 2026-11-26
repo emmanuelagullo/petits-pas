@@ -107,7 +107,7 @@
 <div class="actions">
 <button class="bouton" name="action" value="ajouter">Enregistrer la contribution</button>
 {% if dans_espace_grist %}<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
-{% else %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}">Retour à Catalogues et partage</a>{% endif %}
+{% else %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}?espace=1#espace-partage">Retour à Catalogues et partage</a>{% endif %}
 </div>
 </form>
 </details>

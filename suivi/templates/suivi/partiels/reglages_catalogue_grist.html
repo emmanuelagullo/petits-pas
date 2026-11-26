@@ -1,0 +1,8 @@
+<p>{% if groupe.herite %}Proposé par l’école{% if groupe.personnalise %} · Réglage de la classe{% endif %}{% else %}Géré par la classe{% endif %}</p>
+{% if montrer_lien %}<p><a href="{{ groupe.url }}">Ouvrir le document dans Grist</a></p>{% endif %}
+<form method="post" action="{{ action_catalogue }}">{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ groupe.url }}">
+{% if groupe.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre-catalogue">Arrêter de suivre les nouveautés</button>
+{% else %}<button class="bouton discret" name="action" value="suivre-catalogue">Suivre les nouveautés</button>{% endif %}
+{% if groupe.herite and groupe.personnalise %}<button class="bouton discret" name="action" value="heriter-catalogue">Reprendre le choix de l’école</button>{% endif %}
+</form>

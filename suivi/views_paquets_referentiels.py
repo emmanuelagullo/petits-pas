@@ -363,10 +363,19 @@ def paquets_referentiels(request, classe_pk=None):
         raise PermissionDenied
     peut_importer_ecole = autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe or ecole)
     peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
-    contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": import_classe or peut_importer_ecole or request.user.is_superuser, "import_classe": import_classe,
+    contexte = {"retour_catalogues": "", "retour_competences": "", "retour_decouverte": "", "classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": import_classe or peut_importer_ecole or request.user.is_superuser, "import_classe": import_classe,
                 "peut_importer_ecole": peut_importer_ecole, "peut_importer_global": request.user.is_superuser and not import_classe}
+    if classe and request.GET.get("depuis") == "catalogues":
+        groupe = request.GET.get("catalogue", "")
+        contexte["retour_catalogues"] = lien("suivis_referentiels_classe", classe.pk,
+                                             catalogue=groupe, ancre=groupe)
+    if classe and request.GET.get("depuis") == "competences":
+        contexte["retour_competences"] = lien("catalogue_competences", classe.pk, ancre="actions-referentiel-classe")
     if classe and request.GET.get("depuis") == "espace":
-        contexte["retour_espace"] = reverse("espace_grist_classe", args=[classe.pk])
+        contexte["retour_espace"] = (
+            lien("suivis_referentiels_classe", classe.pk, espace=1, ancre="espace-partage")
+            if request.GET.get("retour") == "catalogues" else reverse("espace_grist_classe", args=[classe.pk])
+        )
     if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":
         contexte["retour_export_ecole"] = lien(
             "paquets_referentiels_ecole", annee=annee, volet="exporter", ancre="export-referentiel",

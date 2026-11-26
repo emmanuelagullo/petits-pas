@@ -19,9 +19,12 @@
   const adresse = zone?.dataset.synchroniserGrist;
   const csrf = zone?.querySelector('[name=csrfmiddlewaretoken]').value;
   const etat = document.querySelector('[data-etat-espace]');
-  const nomEspace = document.querySelector('[data-nom-espace]');
+  const résuméEspace = document.querySelector('[data-resume-espace]');
+  const repèreEspace = résuméEspace || document.querySelector('[data-nom-espace]');
+  const nomEspace = résuméEspace ? résuméEspace.closest('summary').querySelector('h2') : repèreEspace;
   const relancer = document.querySelector('[data-relancer-synchro]');
-  const réception = document.querySelector('[data-reception-espace]');
+  const étiquette = document.querySelector('[data-etiquette-synchro]');
+  const détails = document.querySelector('[data-details-synchro]');
   const journal = document.querySelector('[data-journal-synchro]');
   const projection = document.querySelector('[data-projection-partagee]');
   const raccordement = document.querySelector('[data-raccordement-grist][data-document-actif]');
@@ -54,13 +57,27 @@
     window.addEventListener('pageshow', actualiser);
     actualiser();
   }
-  function afficher(message, enregistrer = true) {
+  function afficher(message, état, enregistrer = true) {
     if (etat) etat.textContent = message;
+    if (étiquette) {
+      étiquette.textContent = état;
+      étiquette.classList.toggle('pastille-positive', état === 'À jour');
+      étiquette.classList.toggle('alerte', état === 'À reprendre');
+    }
     if (!journal || !enregistrer) return;
+    détails.hidden = false;
     const ligne = document.createElement('li');
-    ligne.textContent = new Date().toLocaleString('fr-FR') + ' · ' + message;
+    const heure = document.createElement('time');
+    const date = new Date();
+    heure.dateTime = date.toISOString();
+    heure.textContent = date.toLocaleString('fr-FR');
+    const résultat = document.createElement('strong');
+    résultat.textContent = état;
+    ligne.append(heure, ' · ', résultat, ' · ', message);
     journal.prepend(ligne);
     if (journal.children.length > 10) journal.lastElementChild.remove();
+    détails.querySelector('summary .aide').textContent =
+      date.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) + ' · ' + état;
   }
 
   let enCours = false;
@@ -122,7 +139,7 @@
       état.textContent = 'Retrait en cours…';
       try {
         await navigator.locks.request('petits-pas-grist:' + adresse, async () => {
-          const réponse = await fetch(location.href, {
+          const réponse = await fetch(formulaire.action, {
             method: 'POST', body: new FormData(formulaire), signal: AbortSignal.timeout(15000),
           });
           if (!réponse.ok) throw new Error('Préparation refusée');
@@ -249,7 +266,11 @@
       await écrire(index, {Nom: nom, Empreinte: empreinte});
       confirme = empreinte;
     }
-    const {records} = await grist(index);
+    let erreurRéception = false;
+    const {records} = await grist(index).catch(() => {
+      erreurRéception = true;
+      return {records: []};
+    });
     const reçus = partage.recues;
     const autres = [...new Set(records.map(({fields}) => fields)
       .filter(f => /^[\da-f-]{36}$/i.test(f.Identifiant) && !propres.has(f.Identifiant)
@@ -259,8 +280,8 @@
     for (const identifiant of autres) {
       // L’index ne contient que des métadonnées. Le contenu local n’est jamais demandé.
       const filtre = encodeURIComponent(JSON.stringify({Identifiant: [identifiant]}));
-      const réponse = await grist(`${documents}?filter=${filtre}`);
-      if (réponse.records.length !== 1) continue;
+      const réponse = await grist(`${documents}?filter=${filtre}`).catch(() => null);
+      if (réponse?.records.length !== 1) continue;
       const champs = réponse.records[0].fields;
       const icones = {};
       for (const [, empreinte] of String(champs.Contenu ?? "").matchAll(/"icone_png"\s*:\s*"sha256:([0-9a-f]{64})"/g)) {
@@ -282,7 +303,7 @@
     const nbAutres = new Set(records.map(({fields}) => fields.Identifiant)
       .filter(cle => /^[\da-f-]{36}$/i.test(cle) && !propres.has(cle))).size;
     return {...résultat, nbAutres, nbNouveaux: lignes.length - résultat.erreurs,
-      erreurs: résultat.erreurs + autres.length - lignes.length};
+      erreurs: résultat.erreurs + autres.length - lignes.length + Number(erreurRéception), erreurRéception};
   }
 
   async function synchroniserÉquipe(partage) {
@@ -312,48 +333,88 @@
     }
   }
 
+  const listeReçue = document.querySelector('[data-referentiels-espace]');
+  const compteur = document.querySelector('[data-compte-referentiels]');
+  let réceptionÀAfficher = false;
+
+  async function afficherRéception() {
+    if (!listeReçue || !réceptionÀAfficher || listeReçue.contains(document.activeElement)) return;
+    const réponse = await fetch(listeReçue.dataset.referentielsEspace, {cache: 'no-store'});
+    if (!réponse.ok) throw new Error('Liste de référentiels indisponible');
+    const page = new DOMParser().parseFromString(await réponse.text(), 'text/html');
+    const liste = page.querySelector('[data-referentiels-espace]');
+    const total = page.querySelector('[data-compte-referentiels]');
+    const résumé = page.querySelector('[data-resume-espace]');
+    if (!liste || !total || résumé?.dataset.partage !== repèreEspace.dataset.partage) return;
+    if (listeReçue.contains(document.activeElement)) return;
+    listeReçue.replaceChildren(...liste.childNodes);
+    compteur.textContent = total.textContent;
+    réceptionÀAfficher = false;
+  }
+
   async function vérifier() {
     if (enCours) return;
     if (!navigator.onLine) {
-      afficher('Hors ligne. La synchronisation reprendra à la reconnexion.', false);
+      afficher('La synchronisation reprendra à la reconnexion.', 'Hors ligne', false);
       return;
     }
     enCours = true;
-    if (relancer) relancer.disabled = true;
-    afficher('Synchronisation en cours…', false);
+    if (relancer) {
+      relancer.disabled = true;
+      relancer.querySelector('[data-libelle-synchro]').textContent = 'Synchronisation en cours…';
+    }
+    afficher('Envoi et réception des référentiels.', 'En cours', false);
     try {
       const {partages, propres} = await demander(adresse);
       for (const partage of partages) {
-        const affiché = nomEspace?.dataset.partage === partage.id;
+        const affiché = repèreEspace?.dataset.partage === partage.id;
         try {
           const résultat = await synchroniser(partage, new Set(propres));
           if (affiché && projection && résultat.partage_confirme && !partage.erreur)
-            projection.textContent = 'Votre référentiel a été partagé dans cet espace.';
-          await synchroniserÉquipe(partage);
+            projection.textContent = 'Référentiel de la classe partagé';
+          let problèmeÉquipe = false;
+          try {
+            await synchroniserÉquipe(partage);
+          } catch {
+            problèmeÉquipe = true;
+          }
           if (affiché && résultat.nom) nomEspace.textContent = résultat.nom;
           if (affiché) {
             const envoyée = résultat.partage_confirme && !partage.erreur;
             const envoi = partage.erreur || (envoyée
-              ? 'Référentiel de la classe partagé.' : 'Envoi du référentiel en attente.');
-            const lectures = résultat.erreurs
+              ? partage.contenu === null ? 'Référentiel de la classe déjà partagé.' : 'Référentiel de la classe envoyé.'
+              : 'Envoi du référentiel en attente.');
+            const lectures = résultat.erreurRéception
+              ? 'Impossible de vérifier les référentiels à recevoir.' : résultat.erreurs
               ? 'Certains référentiels restent à recevoir.'
               : résultat.nbNouveaux
                 ? `${résultat.nbNouveaux} référentiel${résultat.nbNouveaux > 1 ? "s reçus ou mis à jour" : " reçu ou mis à jour"}.`
                 : résultat.nbAutres
                   ? 'Les référentiels des autres classes sont à jour.'
                   : 'Aucun référentiel d’une autre installation à recevoir.';
-            if (réception && résultat.nbNouveaux) réception.hidden = true;
-            afficher(envoi + ' ' + lectures);
+            réceptionÀAfficher ||= résultat.nbNouveaux > 0;
+            let actualiserListe = '';
+            try {
+              await afficherRéception();
+            } catch {
+              actualiserListe = ' Rechargez la page pour afficher les référentiels reçus.';
+            }
+            const équipe = problèmeÉquipe ? ' Le référentiel d’équipe reste à synchroniser.' : '';
+            afficher(envoi + ' ' + lectures + équipe + actualiserListe,
+              résultat.erreurs || partage.erreur || problèmeÉquipe ? 'À reprendre' : 'À jour');
           }
         } catch {
-          if (affiché) afficher('Synchronisation incomplète. Réessayez quand le document est accessible.');
+          if (affiché) afficher('Réessayez quand le document est accessible.', 'À reprendre');
         }
       }
     } catch {
-      afficher('Synchronisation en attente. Réessayez à la reconnexion.');
+      afficher('Impossible de joindre Petits Pas. Réessayez à la reconnexion.', 'À reprendre');
     } finally {
       enCours = false;
-      if (relancer) relancer.disabled = false;
+      if (relancer) {
+        relancer.disabled = false;
+        relancer.querySelector('[data-libelle-synchro]').textContent = 'Synchroniser maintenant';
+      }
     }
   }
 

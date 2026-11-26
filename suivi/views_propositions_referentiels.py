@@ -14,7 +14,12 @@ from .services.choix_bases_referentiels import choix_bases
 from .services.import_sources_referentiels import importer_source
 from .services.paquets_referentiels import MAX_ARCHIVE, lire_paquet
 from .views import acces_requis
-from .views_paquets_referentiels import SEL as SEL_IMPORT, apercu_document
+from .views_paquets_referentiels import (
+    SEL as SEL_IMPORT, apercu_document, informations_partage, presenter_contenu_partage,
+)
+from .navigation import lien
+from .referentiels import adoption_courante
+from .services.partage_referentiel_classe import verifier_licence_synchronisation
 
 SEL = "proposition-referentiel"
 
@@ -36,17 +41,23 @@ def proposer_classe(request, classe_pk):
     try:
         if request.method == "POST":
             action = request.POST.get("action")
-            if action == "examiner":
+            origine = ""
+            if action == "examiner-classe":
+                origine = "classe"
+                adoption = adoption_courante(classe)
+                if not adoption or adoption.clos:
+                    raise ValidationError("Choisissez d’abord le référentiel de la classe.")
+                donnees, _ = informations_partage(classe, adoption)
+                donnees = dict(donnees)
+                brut, _, _ = presenter_contenu_partage(classe, {}, donnees)
+                donnees["licence"] = verifier_licence_synchronisation(adoption, brut)
+                _, paquet, _ = presenter_contenu_partage(classe, {}, donnees)
+                document = lire_paquet(paquet)
+            elif action == "examiner":
                 fichier = request.FILES.get("paquet")
                 if not fichier:
                     raise ValidationError("Choisissez le fichier à examiner.")
                 document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
-                importer_source(document, verifier_seulement=True, ecole=ecole)
-                jeton = get_random_string(32)
-                request.session[SEL] = {
-                    "jeton": jeton, "classe": classe.pk, "auteur": request.user.pk, "document": document,
-                }
-                contexte.update(apercu_document(document, ecole), jeton=jeton, note=NoteProposition())
             elif action == "reprendre-apercu":
                 preparation = request.session.get(SEL_IMPORT, {})
                 try:
@@ -60,11 +71,14 @@ def proposer_classe(request, classe_pk):
                     }.items()
                 ):
                     raise ValidationError("Le contexte de l’import a changé.")
+                origine = "zip"
                 document = preparation["document"]
+            if action in {"examiner-classe", "examiner", "reprendre-apercu"}:
                 importer_source(document, verifier_seulement=True, ecole=ecole)
                 jeton = get_random_string(32)
                 request.session[SEL] = {
-                    "jeton": jeton, "classe": classe.pk, "auteur": request.user.pk, "document": document,
+                    "jeton": jeton, "classe": classe.pk, "auteur": request.user.pk,
+                    "document": document, "origine": origine,
                 }
                 contexte.update(apercu_document(document, ecole), jeton=jeton, note=NoteProposition())
             elif action == "proposer":
@@ -86,6 +100,11 @@ def proposer_classe(request, classe_pk):
                         )
                     request.session.pop(SEL, None)
                     messages.success(request, "La proposition est disponible pour la direction.")
+                    if preparation.get("origine") == "classe":
+                        return redirect(lien("catalogue_competences", classe.pk, ancre="actions-referentiel-classe"))
+                    if preparation.get("origine") == "zip":
+                        return redirect(lien("paquets_referentiels_classe", classe.pk, volet="importer",
+                                             destination="classe", ancre="import-referentiel"))
                     return redirect("proposer_referentiel_classe", classe_pk=classe.pk)
                 contexte.update(apercu, jeton=preparation["jeton"], note=note)
             else:

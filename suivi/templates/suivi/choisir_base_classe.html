@@ -25,7 +25,7 @@
 <a class="bouton discret" href="{{ echange }}{% if peut_importer_ecole %}?volet=exporter#export-referentiel{% endif %}">Exporter un référentiel</a></p>
 {% if not peut_importer_ecole and not peut_proposer_referentiel %}{% include "suivi/partiels/aide_import_referentiel.html" %}{% endif %}
 {% if peut_proposer_referentiel %}
-<p><a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">{% if peut_importer_ecole %}Mes propositions de référentiel{% else %}Proposer un référentiel à la direction{% endif %}</a></p>
+<p><a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">{% if peut_importer_ecole %}Mes propositions de référentiel{% else %}Proposer au catalogue de l’école{% endif %}</a></p>
 {% endif %}
 </section>
 <details class="operations-avancees"><summary>Avancé — correspondances entre compétences</summary>

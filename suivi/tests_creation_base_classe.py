@@ -82,7 +82,7 @@ class CreationBaseClasse(Base):
         self.client.force_login(self.enseignant)
         page = self.client.get(reglages)
         self.assertContains(page, "Exporter un référentiel")
-        self.assertContains(page, "Proposer un référentiel à la direction")
+        self.assertContains(page, "Proposer au catalogue de l’école")
         self.assertNotContains(page, "#import-referentiel")
         page = self.client.get(reverse("paquets_referentiels_classe", args=[self.classe.pk]))
         self.assertContains(page, ">Partager le référentiel de la classe</h1>")
