@@ -194,6 +194,7 @@ class Classe(models.Model):
 
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name="classes")
     nom = models.CharField(max_length=100, help_text="Par exemple : PS-MS de Nadia")
+    catalogues_propres = models.JSONField(default=dict, blank=True)
     sources_ajout_ecartees = models.JSONField(default=list, blank=True)
     annee_scolaire = models.CharField(max_length=9, default="2026-2027")
     # None suit la préférence de l'école ; les photos ne sont jamais filtrées.

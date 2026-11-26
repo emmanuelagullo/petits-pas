@@ -11,6 +11,7 @@
 {% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Nouvelle édition disponible</a>{% endif %}</p>
 {% endif %}
 <section id="decouvrir-referentiels" aria-label="Catalogues et provenances">
+{% if classe_active %}<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}&amp;gestion=classe">Gérer les catalogues de la classe</a></p>{% endif %}
 {% for groupe in groupes %}
 <details id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 only %}

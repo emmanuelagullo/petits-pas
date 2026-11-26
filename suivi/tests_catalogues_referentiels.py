@@ -66,6 +66,29 @@ class CataloguesReferentiels(Base):
             self.ecole.refresh_from_db()
             self.assertFalse(self.ecole.catalogues_referentiels[grist]["suivre_catalogue"])
 
+    def test_responsable_gere_ses_catalogues_et_retrouve_le_choix_ecole(self):
+        self.entrer()
+        url = reverse("decouvrir_referentiels") + f"?classe={self.classe.pk}&gestion=classe"
+        grist = "https://grist.numerique.gouv.fr/o/docs/catalogue-classe"
+        with patch("suivi.views_catalogues_referentiels.lire_catalogue_grist", return_value={
+            "nom": "Catalogue de test", "url": grist, "referentiels": [],
+        }):
+            page = self.client.post(url, {"action": "ajouter", "url": grist, "suivre_catalogue": "oui"})
+        self.assertContains(page, "Géré par la classe")
+        self.classe.refresh_from_db()
+        self.ecole.refresh_from_db()
+        self.assertTrue(self.classe.catalogues_propres[grist]["suivre_catalogue"])
+        self.assertNotIn(grist, self.ecole.catalogues_referentiels)
+        self.ecole.catalogues_referentiels[grist] = {"catalogue": {
+            "nom": "Catalogue commun", "url": grist, "referentiels": [],
+        }, "suivre_catalogue": False}
+        self.ecole.save(update_fields=["catalogues_referentiels"])
+        self.assertContains(self.client.get(url), "Reprendre le choix de l’école")
+        self.assertContains(self.client.post(url, {"action": "heriter-catalogue", "catalogue": grist}),
+                            "Catalogue commun")
+        self.classe.refresh_from_db()
+        self.assertNotIn(grist, self.classe.catalogues_propres)
+
     def test_suivre_un_catalogue_sans_suivre_encore_de_referentiel(self):
         self.entrer("dir-mdp")
         url = reverse("decouvrir_referentiels")

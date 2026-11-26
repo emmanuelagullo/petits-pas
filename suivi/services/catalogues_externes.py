@@ -36,6 +36,13 @@ def catalogues_grist_connus(reglages):
             **{cle: etat["catalogue"] for cle, etat in reglages.items() if "catalogue" in etat}}
 
 
+def reglages_catalogues_classe(classe):
+    regles = {cle: dict(etat) for cle, etat in classe.ecole.catalogues_referentiels.items()}
+    for cle, etat in classe.catalogues_propres.items():
+        regles.setdefault(cle, {}).update(etat)
+    return regles
+
+
 def adresse_grist(valeur):
     try:
         adresse = urlsplit(valeur.strip())

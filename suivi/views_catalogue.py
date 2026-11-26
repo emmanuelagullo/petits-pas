@@ -454,7 +454,7 @@ def catalogue(request, pk, saisie_collective=False):
         **{**parametres, "inclure_competences_masquees": 1}) if masque else ""
     from .identites_referentiels import identifiant_source_ecole
     from .models import ReceptionReferentielGrist, SuiviSourceClasse
-    from .services.catalogues_externes import catalogues_grist_connus, identite_grist
+    from .services.catalogues_externes import catalogues_grist_connus, identite_grist, reglages_catalogues_classe
     from .services.choix_bases_referentiels import choix_bases
 
     nouveaux = None
@@ -466,7 +466,7 @@ def catalogue(request, pk, saisie_collective=False):
         externes = {
             identifiant_source_ecole(classe.ecole, identite_grist(catalogue["url"], reference["reference"])):
             catalogue["nom"]
-            for catalogue in catalogues_grist_connus(classe.ecole.catalogues_referentiels).values()
+            for catalogue in catalogues_grist_connus(reglages_catalogues_classe(classe)).values()
             for reference in catalogue["referentiels"]
         }
         for cle_source, (titre, version, autre) in sources_ajout.items():

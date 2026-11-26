@@ -359,9 +359,9 @@ class Projection:
                     if not isinstance(champ, models.JSONField):
                         continue
                     valeur = r[champ.attname]
-                    if model is m.Classe and champ.name == "sources_ajout_ecartees":
+                    if model is m.Classe and champ.name in {"sources_ajout_ecartees", "catalogues_propres"}:
                         # Une copie indépendante choisit à nouveau ses sources.
-                        champs[champ.attname] = []
+                        champs[champ.attname] = champ.get_default()
                     elif model is m.ReferentielAnnuel:
                         champs[champ.attname] = self.initial(valeur)
                     elif model is m.AdoptionReferentiel and champ.name == 'etat_final':

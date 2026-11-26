@@ -5,8 +5,8 @@
 <div class="page-referentiel">
 {% if depuis_classe %}{% ariane_referentiel "Catalogues de l’école" classe_origine annee parcours="partage" %}
 {% else %}{% ariane_referentiel "Catalogues et suivis" None annee %}{% endif %}
-<h1>{% if depuis_classe %}Catalogues de l’école{% else %}Catalogues et suivis{% endif %}</h1>
-<p>{% if peut_gerer %}Suivis de l’école{% else %}Catalogues disponibles dans l’école{% endif %}</p>
+<h1>{% if gestion_classe %}Catalogues de la classe{% elif depuis_classe %}Catalogues de l’école{% else %}Catalogues et suivis{% endif %}</h1>
+<p>{% if gestion_classe %}{{ classe_origine.libelle_avec_annee }}{% elif peut_gerer %}Suivis de l’école{% else %}Catalogues disponibles dans l’école{% endif %}</p>
 {% if depuis_classe %}
 <p><a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe_origine.pk %}?decouvrir=1#decouvrir-referentiels">Retour aux catalogues de la classe</a></p>
 {% endif %}
@@ -23,6 +23,7 @@
       hx-sync="this:replace">
 <input type="hidden" name="annee" value="{{ annee }}">
 {% if depuis_classe %}<input type="hidden" name="classe" value="{{ classe_origine.pk }}">{% endif %}
+{% if gestion_classe %}<input type="hidden" name="gestion" value="classe">{% endif %}
 {% if depuis_echange %}<input type="hidden" name="depuis" value="echange">{% endif %}
 <label for="recherche-referentiels">Rechercher par nom de référentiel ou de catalogue</label>
 <input type="search" id="recherche-referentiels" name="q" value="{{ q }}" maxlength="200">
@@ -35,8 +36,8 @@
 <button class="bouton discret">Rechercher</button>
 </form>
 <div id="resultats-referentiels">
-{% if peut_gerer %}<div class="actions">
-{% if a_des_suivis %}
+{% if peut_gerer or gestion_classe %}<div class="actions">
+{% if a_des_suivis and not gestion_classe %}
 <form method="post" action="{{ retour }}">{% csrf_token %}
 <button class="bouton" name="action" value="verifier">Vérifier les nouveautés</button>
 </form>
@@ -46,7 +47,7 @@
 <form method="post" action="{{ retour }}">{% csrf_token %}
 <label for="url-catalogue">Lien du catalogue Grist</label>
 <input type="url" id="url-catalogue" name="url" required maxlength="2000" value="{{ url_saisie }}">
-<p><label><input type="checkbox" name="suivre_catalogue" value="oui"{% if suivi_initial %} checked{% endif %}> Suivre les nouveautés de ce catalogue pour l’école</label></p>
+<p><label><input type="checkbox" name="suivre_catalogue" value="oui"{% if suivi_initial %} checked{% endif %}> Suivre les nouveautés de ce catalogue {% if gestion_classe %}pour la classe{% else %}pour l’école{% endif %}</label></p>
 <button class="bouton" name="action" value="ajouter">Ajouter le catalogue</button>
 </form>
 </details>
@@ -55,17 +56,25 @@
 {% for groupe in groupes %}
 <section>
 <h2>{{ groupe.nom }}</h2>
+{% if gestion_classe and groupe.url %}
+{% if groupe.herite %}<p>Proposé par l’école{% if groupe.personnalise %} · Réglage de la classe{% endif %}</p>
+{% else %}<p>Géré par la classe</p>{% endif %}
+{% endif %}
 {% if groupe.url %}
-{% if peut_gerer %}<form method="post" action="{{ retour }}">
+{% if peut_gerer or gestion_classe %}<form method="post" action="{{ retour }}">
 {% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ groupe.cle }}">
 {% if groupe.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre-catalogue">Ne plus suivre ce catalogue</button>
 {% else %}<button class="bouton discret" name="action" value="suivre-catalogue">Suivre ce catalogue</button>{% endif %}
+{% if gestion_classe %}
+<button class="bouton discret" name="action" value="actualiser-catalogue">Actualiser le catalogue</button>
+{% if groupe.herite and groupe.personnalise %}<button class="bouton discret" name="action" value="heriter-catalogue">Reprendre le choix de l’école</button>{% endif %}
+{% endif %}
 </form>{% endif %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Lien du catalogue" only %}
 <p><a href="{{ groupe.url }}">Ouvrir le catalogue dans Grist</a></p>
-{% if peut_gerer %}<details>
+{% if peut_gerer and not gestion_classe %}<details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier le nom du catalogue" only %}
 <form method="post" action="{{ retour }}">{% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ groupe.cle }}">
@@ -88,7 +97,7 @@
 <p>Édition {{ ligne.derniere }}{% if ligne.url and ligne.locales %} · À l’école : {{ ligne.locales|join:", " }}{% elif ligne.versions_instance and not ligne.consultation %} · Hors des choix autorisés à l’école{% elif ligne.fourni and not ligne.versions_instance %} · Fourni avec Petits Pas{% endif %}{% if ligne.suivi %} · Nouveautés suivies{% endif %}</p>
 <div class="actions">
 {% if ligne.consultation %}<a class="bouton discret" href="{{ ligne.consultation }}">Consulter l’édition {{ ligne.edition_consultable }}</a>{% endif %}
-{% if peut_gerer and not ligne.suivi %}
+{% if peut_gerer and not gestion_classe and not ligne.suivi %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre les nouveautés" %}
 {% endif %}
 {% if ligne.url and peut_importer and not ligne.locale %}
@@ -104,7 +113,7 @@
 {% include "suivi/partiels/examiner_edition_grist.html" with choix_edition=True %}
 {% endif %}
 {% endif %}
-{% if peut_gerer and ligne.suivi %}
+{% if peut_gerer and not gestion_classe and ligne.suivi %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="ne-plus-suivre" libelle="Ne plus suivre les nouveautés" %}
 {% endif %}
 </details>

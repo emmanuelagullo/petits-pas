@@ -98,6 +98,7 @@ def enregistrer_catalogue(ecole, utilisateur, cle, *, catalogue=None, reference=
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def decouvrir_referentiels(request):
+    from .services.catalogues_externes import reglages_catalogues_classe
     ecole = ecole_courante(request)
     peut_gerer = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     annee = request.GET.get("annee") or annee_scolaire_pour(timezone.localdate())
@@ -116,18 +117,23 @@ def decouvrir_referentiels(request):
         navigation["classe"] = classe.pk
     else:
         classe = None
-    if not peut_gerer and (classe is None or request.method == "POST"):
+    gestion_classe = bool(classe and request.GET.get("gestion") == "classe")
+    if gestion_classe:
+        navigation["gestion"] = "classe"
+        if classe.etat != classe.ACTIVE:
+            raise PermissionDenied
+    if not gestion_classe and not peut_gerer and (classe is None or request.method == "POST"):
         raise PermissionDenied
     retour = lien("decouvrir_referentiels", annee=annee, q=q, filtre=filtre, **navigation)
     contexte = {"annee": annee, "q": q, "filtre": filtre, "retour": retour,
                 "depuis_echange": navigation.get("depuis") == "echange",
                 "classe_origine": classe, "peut_gerer": peut_gerer, "suivi_initial": True,
-                "depuis_classe": bool(classe),
+                "depuis_classe": bool(classe), "gestion_classe": gestion_classe,
                 "examen_grist": lien("paquets_referentiels_ecole", annee=annee, origine="decouverte",
                                      q=q, filtre=filtre, **navigation),
                 "peut_importer": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, ecole)}
     invitation = request.GET.get("catalogue_invite", "")
-    if invitation and peut_gerer:
+    if invitation and (peut_gerer or gestion_classe):
         try:
             adresse_grist(invitation)
         except ValidationError as cause:
@@ -136,8 +142,49 @@ def decouvrir_referentiels(request):
             contexte["url_saisie"] = invitation
             contexte["invitation_catalogue"] = True
     instance = catalogue_instance(annee)
-    catalogues = catalogues_visibles(ecole.catalogues_referentiels, instance)
-    if request.method == "POST":
+    regles = reglages_catalogues_classe(classe) if gestion_classe else ecole.catalogues_referentiels
+    catalogues = catalogues_visibles(regles, instance)
+    if request.method == "POST" and gestion_classe:
+        try:
+            action = request.POST.get("action")
+            cle = request.POST.get("catalogue", "")
+            contenu = None
+            if action == "ajouter":
+                contexte["url_saisie"] = request.POST.get("url", "")[:2000]
+                contexte["suivi_initial"] = request.POST.get("suivre_catalogue") == "oui"
+                contenu = lire_catalogue_grist(contexte["url_saisie"])
+                cle = contenu["url"]
+            elif action == "actualiser-catalogue" and catalogues.get(cle, {}).get("url"):
+                contenu = lire_catalogue_grist(cle)
+                if contenu["url"] != cle:
+                    raise ValidationError("L’adresse du catalogue a changé.")
+            elif action not in {"suivre-catalogue", "ne-plus-suivre-catalogue", "heriter-catalogue"} or not catalogues.get(cle, {}).get("url"):
+                raise ValidationError("Choisissez un catalogue connu de la classe.")
+            with transaction.atomic():
+                classe = type(classe).objects.select_for_update().get(pk=classe.pk)
+                if classe.etat != classe.ACTIVE or not autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
+                    raise PermissionDenied
+                etat = classe.catalogues_propres.setdefault(cle, {})
+                herite = cle in classe.ecole.catalogues_referentiels or cle in catalogues_grist_connus({})
+                if contenu is not None:
+                    if action == "actualiser-catalogue" or not herite:
+                        etat["catalogue"] = contenu
+                    if action == "ajouter" and not herite:
+                        etat.setdefault("suivre_catalogue", contexte["suivi_initial"])
+                elif action == "heriter-catalogue":
+                    if not herite:
+                        raise ValidationError("Ce catalogue n’est pas proposé par l’école.")
+                    classe.catalogues_propres.pop(cle, None)
+                else:
+                    etat["suivre_catalogue"] = action == "suivre-catalogue"
+                if not etat:
+                    classe.catalogues_propres.pop(cle, None)
+                classe.save(update_fields=["catalogues_propres"])
+            regles = reglages_catalogues_classe(classe)
+            contexte.update(catalogue_ajoute=contenu, message="Catalogues de la classe mis à jour.")
+        except ValidationError as erreur:
+            contexte["erreur"] = " ".join(erreur.messages)
+    elif request.method == "POST":
         try:
             action = request.POST.get("action")
             if action == "ajouter":
@@ -187,7 +234,8 @@ def decouvrir_referentiels(request):
         except ValidationError as erreur:
             contexte["erreur"] = " ".join(erreur.messages)
 
-    regles = ecole.catalogues_referentiels
+    if not gestion_classe:
+        regles = ecole.catalogues_referentiels
     versions = {}
     for identifiant, numero in VersionReferentiel.objects.filter(
             Q(source__ecole=ecole) | Q(source__ecole__isnull=True)).values_list(
@@ -201,7 +249,7 @@ def decouvrir_referentiels(request):
     termes = texte_recherche.split("-") if texte_recherche else []
     for cle, catalogue in catalogues_visibles(regles, instance).items():
         lignes = []
-        ajoute = contexte.get("catalogue_ajoute", {}).get("url") == cle
+        ajoute = (contexte.get("catalogue_ajoute") or {}).get("url") == cle
         for source in catalogue["referentiels"]:
             reference = source["reference"]
             url = catalogue.get("url")
@@ -225,7 +273,9 @@ def decouvrir_referentiels(request):
                 lignes.append(ligne)
         if ajoute or lignes or (not q and not filtre):
             groupes.append({"nom": catalogue["nom"], "url": catalogue.get("url"), "lignes": lignes,
-                            "cle": cle, "suivi": catalogue_suivi(regles.get(cle, {}))})
+                            "cle": cle, "suivi": catalogue_suivi(regles.get(cle, {})),
+                            "herite": gestion_classe and (cle in ecole.catalogues_referentiels or cle in catalogues_grist_connus({})),
+                            "personnalise": gestion_classe and cle in classe.catalogues_propres})
     contexte.update(groupes=groupes, nombre_resultats=sum(len(groupe["lignes"]) for groupe in groupes))
     return render(request, "suivi/decouvrir_referentiels.html", contexte)
 
@@ -375,10 +425,12 @@ def suivis_classe(request, classe_pk):
             SuiviSourceClasse.objects.filter(classe=classe, reference=cible).delete()
             return redirect(retour)
         raise Http404
+    from .services.catalogues_externes import reglages_catalogues_classe
+
     catalogues = {
         identifiant_source_ecole(ecole, identite_grist(catalogue["url"], referentiel["reference"])):
             (catalogue["url"], catalogue["nom"])
-        for catalogue in catalogues_grist_connus(ecole.catalogues_referentiels).values()
+        for catalogue in catalogues_grist_connus(reglages_catalogues_classe(classe)).values()
         for referentiel in catalogue["referentiels"]
     }
     from .models import PartageGristClasse, ReceptionReferentielGrist
