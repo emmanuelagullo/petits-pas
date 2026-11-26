@@ -328,7 +328,7 @@ class MisesAJour(Base):
         ancienne = self.adopter()
         url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
         page = self.client.get(url)
-        self.assertContains(page, "Aucun suivi de nouveautés activé pour cette classe.")
+        self.assertNotContains(page, "Changements et décisions")
         self.assertContains(page, 'id="decouvrir-referentiels"')
         reference = f"source-{self.a.source_id}"
         self.assertRedirects(self.client.post(url, {"action": "suivre", "source": reference}), url + "#referentiels-suivis")
@@ -339,7 +339,7 @@ class MisesAJour(Base):
             versions_ids=[self.a.pk, version.pk], proposee_id=version.pk, revision_attendue=1)
         page = self.client.get(url)
         self.assertContains(page, 'id="decouvrir-referentiels"')
-        self.assertNotContains(page, "Aucun suivi de nouveautés activé pour cette classe.")
+        self.assertContains(page, "Nouveautés suivies")
         self.assertContains(page, "0 ajout · 1 modification · 0 retrait")
         self.assertContains(page, "Nouvelle édition disponible")
         self.assertTrue(AdoptionReferentiel.objects.get(pk=ancienne.pk).courante)

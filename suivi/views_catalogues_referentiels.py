@@ -435,7 +435,7 @@ def suivis_classe(request, classe_pk):
         nombre = len(groupe["lignes"])
         mode = ("Contenu courant" if cle == "classes" else
                 "Synchronisation automatique" if cle.startswith("referentiels-espace-") else
-                "Catalogue Grist" if cle.startswith("https://") else "Éditions disponibles")
+                "Catalogue Grist · Actualisation à la demande" if cle.startswith("https://") else "Éditions disponibles")
         groupe["resume"] = f"{nombre} référentiel{'s' if nombre != 1 else ''} · {mode}"
         ecartees = sum(l["ecartee"] for l in groupe["lignes"])
         if ecartees:

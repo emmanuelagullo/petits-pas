@@ -16,7 +16,11 @@
 {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 only %}
 {% for ligne in groupe.lignes %}
 <section class="encadre" id="referentiel-{{ ligne.reference }}">
-<h3>{{ ligne.titre }}{% if ligne.courant %} · Utilisé par la classe{% endif %}</h3>
+<h3>{{ ligne.titre }}</h3>
+<p>{% if ligne.courant %}<span class="pastille pastille-positive">Utilisé par la classe</span>
+{% elif ligne.ecartee %}<span class="pastille">Écarté des ajouts</span>
+{% else %}<span class="pastille pastille-positive">Proposé à l’ajout</span>{% endif %}
+{% if ligne.suivi %}<span class="pastille">Nouveautés suivies</span>{% endif %}</p>
 {% if ligne.suivi %}{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
 {% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=ligne.ajoutees modifications=ligne.modifiees retraits=ligne.retirees only %}
 <details>
@@ -56,9 +60,11 @@
 <p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}">{% if peut_gerer_catalogues %}Gérer les catalogues de l’école{% else %}Parcourir les catalogues de l’école{% endif %}</a></p>
 {% if peut_gerer_catalogues %}<p><a class="bouton discret" href="{% url 'referentiels_ecole' %}?annee={{ classe.annee_scolaire }}">Choix annuels de l’école</a></p>{% endif %}
 </section>
-<details id="referentiels-suivis" open>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Changements et décisions" niveau_titre=2 only %}
-{% if not a_des_suivis %}<p>Aucun suivi de nouveautés activé pour cette classe.</p>{% endif %}
+{% if arbitrages or divergences or indisponibles %}
+<details id="referentiels-suivis">
+{% else %}<div id="referentiels-suivis" hidden>{% endif %}
+{% if arbitrages or divergences or indisponibles %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Changements et décisions" resume="Propositions à examiner" niveau_titre=2 only %}
 {% if arbitrages %}
 <details class="avertissement-referentiel avertissement-orange">
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir une source pour un champ" only %}
@@ -90,7 +96,7 @@
 <p>Un référentiel suivi n’est plus disponible. <button class="bouton discret" name="action" value="ne-plus-suivre">Retirer ce suivi</button></p>
 </form>
 {% endfor %}
-</details>
+</details>{% else %}</div>{% endif %}
 {% if classe_active %}<details id="espace-partage"{% if ouvrir_espace %} open{% endif %}>
 {% if not partage_grist_disponible %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Espace de partage" niveau_titre=2 only %}
