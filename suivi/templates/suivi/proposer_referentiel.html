@@ -3,10 +3,10 @@
 {% block titre %}Propositions de référentiel{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-{% ariane_referentiel "Propositions de référentiel" classe classe.annee_scolaire parcours="partage" %}
-<h1>Propositions de référentiel</h1>
+{% ariane_referentiel "Proposer au catalogue de l’école" classe classe.annee_scolaire parcours="competences" %}
+<h1 id="proposer">Proposer au catalogue de l’école</h1>
 <section aria-labelledby="proposer">
-<h2 id="proposer">Proposer au catalogue de l’école</h2>
+
 <p>La direction recevra cette proposition pour le catalogue de l’école.</p>
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" %}
@@ -16,7 +16,7 @@
 <input type="hidden" name="jeton" value="{{ jeton }}">
 {{ note.as_p }}
 <button class="bouton" name="action" value="proposer">Envoyer la proposition</button>
-<a class="bouton discret" href="{{ request.path }}">Annuler</a>
+<a class="bouton discret" href="{{ retour_import|default:retour_competences }}">Annuler</a>
 </form>
 {% else %}
 <form method="post" enctype="multipart/form-data">

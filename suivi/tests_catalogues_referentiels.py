@@ -149,6 +149,10 @@ class CataloguesReferentiels(Base):
         proposition = reverse("proposer_referentiel_classe", args=[self.classe.pk])
         apercu = self.client.post(proposition, {"action": "reprendre-apercu", "jeton_import": page.context["jeton"]})
         self.assertContains(apercu, "Note à la direction")
+        self.assertContains(apercu, "Importer une édition")
+        retour = self.client.get(apercu.context["retour_import"])
+        self.assertEqual(retour.context["jeton"], page.context["jeton"])
+        self.assertContains(retour, "Confirmer l’import")
 
         confirmation = {"action": "importer", "jeton": page.context["jeton"]}
         self.assertEqual(self.client.post(echange, confirmation).status_code, 403)

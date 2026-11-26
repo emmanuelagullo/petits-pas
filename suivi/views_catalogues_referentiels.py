@@ -293,7 +293,8 @@ def decouvrir_referentiels(request):
                                         if version.pk in autorisees), None)
             if version_consultable and peut_gerer:
                 ligne["consultation"] = lien("consulter_referentiels_ecole", annee=annee,
-                                             version=version_consultable.pk)
+                                             version=version_consultable.pk, origine="decouverte",
+                                             q_catalogue=q, filtre_catalogue=filtre, **navigation)
                 ligne["edition_consultable"] = version_consultable.numero
             if ligne["nouveau"] or ajoute or (all(terme in slugify(f'{source["titre"]} {catalogue["nom"]}') for terme in termes)
                           and (filtre != "suivis" or suivi) and (filtre != "mises-a-jour" or mise_a_jour)):

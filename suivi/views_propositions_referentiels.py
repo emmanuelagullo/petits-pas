@@ -37,7 +37,11 @@ def proposer_classe(request, classe_pk):
     if classe.etat != Classe.ACTIVE:
         raise PermissionDenied
     propositions = PropositionReferentiel.objects.filter(classe=classe, auteur=request.user).defer("document")
-    contexte = {"classe": classe, "propositions": propositions}
+    retour_competences = lien("catalogue_competences", classe.pk, ancre="actions-referentiel-classe")
+    retour_import = lien("paquets_referentiels_classe", classe.pk, volet="importer",
+                         destination="classe", reprendre=1, ancre="import-referentiel")
+    contexte = {"classe": classe, "propositions": propositions,
+                "retour_competences": retour_competences, "retour_import": ""}
     try:
         if request.method == "POST":
             action = request.POST.get("action")
@@ -72,6 +76,7 @@ def proposer_classe(request, classe_pk):
                 ):
                     raise ValidationError("Le contexte de l’import a changé.")
                 origine = "zip"
+                contexte["retour_import"] = retour_import
                 document = preparation["document"]
             if action in {"examiner-classe", "examiner", "reprendre-apercu"}:
                 importer_source(document, verifier_seulement=True, ecole=ecole)
@@ -86,6 +91,8 @@ def proposer_classe(request, classe_pk):
                 if (preparation.get("jeton"), preparation.get("classe"), preparation.get("auteur")) != (
                         request.POST.get("jeton"), classe.pk, request.user.pk):
                     raise ValidationError("Examinez de nouveau le fichier avant de le proposer.")
+                if preparation.get("origine") == "zip":
+                    contexte["retour_import"] = retour_import
                 document = preparation["document"]
                 apercu = apercu_document(document, ecole)
                 note = NoteProposition(request.POST)
@@ -103,8 +110,7 @@ def proposer_classe(request, classe_pk):
                     if preparation.get("origine") == "classe":
                         return redirect(lien("catalogue_competences", classe.pk, ancre="actions-referentiel-classe"))
                     if preparation.get("origine") == "zip":
-                        return redirect(lien("paquets_referentiels_classe", classe.pk, volet="importer",
-                                             destination="classe", ancre="import-referentiel"))
+                        return redirect(retour_import)
                     return redirect("proposer_referentiel_classe", classe_pk=classe.pk)
                 contexte.update(apercu, jeton=preparation["jeton"], note=note)
             else:
@@ -124,9 +130,11 @@ def propositions_ecole(request, pk=None):
     if pk is None:
         if request.method == "POST":
             raise PermissionDenied
-        return render(request, "suivi/propositions_referentiels.html", {"propositions": propositions.defer("document")})
+        return render(request, "suivi/propositions_referentiels.html", {"propositions": propositions.defer("document"), "annee": request.GET.get("annee", "")})
     proposition = get_object_or_404(propositions, pk=pk)
-    contexte = {"proposition": proposition}
+    contexte = {"proposition": proposition, "retour_propositions": lien(
+        "propositions_referentiels_ecole", annee=proposition.classe.annee_scolaire,
+    )}
     if request.method == "POST":
         try:
             with transaction.atomic():

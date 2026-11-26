@@ -106,8 +106,7 @@
 <p><label for="paquet-equipe">ZIP du référentiel d’équipe</label> <input id="paquet-equipe" type="file" name="paquet" accept=".zip" required></p>
 <div class="actions">
 <button class="bouton" name="action" value="ajouter">Enregistrer la contribution</button>
-{% if dans_espace_grist %}<a class="bouton discret" href="{% url 'espace_grist_classe' classe.pk %}">Retour à l’espace de partage</a>
-{% else %}<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}?espace=1#espace-partage">Retour à Catalogues et partage</a>{% endif %}
+<a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe.pk %}?espace=1#espace-partage">{% if dans_espace_grist %}Retour à l’espace de partage{% else %}Retour à Catalogues et partage{% endif %}</a>
 </div>
 </form>
 </details>

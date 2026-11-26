@@ -9,7 +9,7 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, I
                             MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .referentiels import adoption_courante
-from .navigation import chemin_reglages_referentiel
+from .navigation import chemin_reglages_referentiel, lien
 from .services.adoption_bases_referentiels import adopter_base, apercu_adoption
 from .services.choix_bases_referentiels import choix_bases
 from .views import acces_requis
@@ -397,10 +397,24 @@ def consulter_referentiels(request, classe_pk=None):
     page = Paginator(lignes, 60).get_page(request.GET.get("page"))
     params = request.GET.copy()
     params.pop("page", None)
+    retour_decouverte = ""
+    contexte_decouverte = {}
+    if not classe and request.GET.get("origine") == "decouverte" and autorise(
+        request.user, GERER_REFERENTIEL_ECOLE, ecole,
+    ):
+        contexte_decouverte = {cle: request.GET[cle][:200] for cle in (
+            "origine", "q_catalogue", "filtre_catalogue", "depuis", "classe", "gestion",
+        ) if cle in request.GET}
+        retour_decouverte = lien("decouvrir_referentiels", annee=annee,
+                                 q=contexte_decouverte.get("q_catalogue", ""),
+                                 filtre=contexte_decouverte.get("filtre_catalogue", ""),
+                                 **{cle: contexte_decouverte[cle] for cle in ("depuis", "classe", "gestion")
+                                    if cle in contexte_decouverte})
     return render(request, "suivi/consulter_referentiels.html", {"classe": classe, "annee": annee,
         "versions": versions.values(), "version": version, "historique": historiques.get(version_id),
         "disponible": version_id in {v.pk for v in disponibles}, "lecture": mode,
         "liens_source": liens_documentaires(version.source) if version else {},
+        "retour_decouverte": retour_decouverte, "contexte_decouverte": contexte_decouverte,
         "total": total, "page": page, "params": params.urlencode(), "recherche": recherche,
         "groupes": groupes, "sous_domaine": sous_domaine,
         "domaines": domaines, "domaine": domaine, "niveau": niveau})

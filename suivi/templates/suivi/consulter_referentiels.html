@@ -1,13 +1,15 @@
 {% extends "suivi/base.html" %}
+{% load navigation_suivi %}
 {% block titre %}Consulter les référentiels — {{ annee }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-<p class="fil">{% if classe %}<a href="{% url 'classe_detail' classe.pk %}">{{ classe.libelle_avec_annee }}</a>{% else %}<a href="{% url 'accueil' %}">Accueil</a>{% endif %}</p>
+{% ariane_referentiel "Consulter les référentiels" classe annee %}
 <h1>Consulter les référentiels</h1>
 <p>Parcourez les compétences, recherchez un texte et filtrez par domaine ou section. Vous pouvez aussi consulter la provenance et les droits de réutilisation de chaque base.</p>
 {% include "suivi/partiels/avertissement_referentiel.html" with niveau="info" titre="Lecture seule" resume="Cette consultation ne change ni les compétences proposées ni les parcours." %}
 <p class="aide">Année {{ annee }}.</p>
 <form method="get" class="filtres-referentiel">
+{% for nom, valeur in contexte_decouverte.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
 {% if not classe %}<label for="annee">Année scolaire</label><input name="annee" id="annee" value="{{ annee }}" pattern="[0-9]{4}-[0-9]{4}" required>{% endif %}
 <label for="version">Référentiel à consulter</label><select name="version" id="version">{% for base in versions %}<option value="{{ base.pk }}"{% if base.pk == version.pk %} selected{% endif %}>{{ base.source.titre }} — {{ base.numero }}</option>{% endfor %}</select>
 <button class="bouton discret">Consulter cette base</button>
@@ -23,6 +25,7 @@
       hx-get="{{ request.path }}" hx-trigger="input changed delay:250ms from:#q, change from:#niveau, change from:body target:#sous_domaine, change from:#domaine"
       hx-target="#resultats-consultation" hx-select="#resultats-consultation" hx-swap="outerHTML"
       hx-select-oob="#sous_domaine:outerHTML" hx-replace-url="true" hx-sync="this:replace">
+{% for nom, valeur in contexte_decouverte.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
 <input type="hidden" name="version" value="{{ version.pk }}"><input type="hidden" name="annee" value="{{ annee }}">
 <label for="q">Rechercher une compétence</label><input type="search" id="q" name="q" value="{{ recherche }}" maxlength="300">
 <div class="actions">

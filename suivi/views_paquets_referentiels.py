@@ -425,6 +425,18 @@ def paquets_referentiels(request, classe_pk=None):
                 contexte["message"] = "Brouillon enregistré pour cette année."
                 action = None
         engagement = {"auteur": request.user.pk, "ecole": ecole.pk, "classe": classe_pk, "annee": annee, "import_classe": import_classe}
+        if request.method == "GET" and import_classe and request.GET.get("reprendre") == "1":
+            preparation = request.session.get(SEL, {})
+            attendu = preparation.get("jeton", {})
+            try:
+                jeton = preparation.get("reprise", "")
+                if jeton and signing.loads(jeton, salt=SEL, max_age=1800) == attendu and all(
+                    attendu.get(cle) == valeur for cle, valeur in engagement.items()
+                ):
+                    contexte.update(apercu_document(preparation["document"], ecole, classe=classe),
+                                    jeton=jeton, destination_import="de la classe")
+            except signing.BadSignature:
+                pass
         if action == "publier" and (not request.user.is_superuser or classe is not None):
             raise PermissionDenied
         if request.user.is_superuser and classe is None:
@@ -561,8 +573,8 @@ def paquets_referentiels(request, classe_pk=None):
                 if import_classe:
                     contexte["destination_import"] = "de la classe"
                 attendu = {**engagement, "preparation": get_random_string(32), "global": global_}
-                request.session[SEL] = {"jeton": attendu, "document": document}
                 contexte["jeton"] = signing.dumps(attendu, salt=SEL)
+                request.session[SEL] = {"jeton": attendu, "document": document, "reprise": contexte["jeton"]}
             else:
                 raise ValidationError("Action inconnue.")
     except ValidationError as erreur:

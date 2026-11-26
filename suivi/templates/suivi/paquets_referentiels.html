@@ -1,19 +1,24 @@
 {% extends "suivi/base.html" %}
 {% load static navigation_suivi %}
-{% block titre %}{% if classe and not peut_importer or classe and volet == "exporter" %}Partager le référentiel de la classe{% elif classe and volet == "importer" %}Importer une édition{% elif peut_importer %}Échanger un référentiel{% else %}Exporter un référentiel{% endif %}{% endblock %}
+{% block titre %}{% if classe and not peut_importer or classe and volet == "exporter" %}Partager le référentiel de la classe{% elif classe and volet == "importer" %}{% if retour_catalogues %}Examiner une édition{% else %}Importer une édition{% endif %}{% elif peut_importer %}Échanger un référentiel{% else %}Exporter un référentiel{% endif %}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel echange-referentiel">
 {% if classe and not peut_importer or classe and volet == "exporter" %}
-{% ariane_referentiel "Partager le référentiel de la classe" classe annee parcours="partage" %}
+{% ariane_referentiel "Partager le référentiel de la classe" classe annee parcours="competences" %}
 <h1 id="haut-page-suivi" tabindex="-1">Partager le référentiel de la classe</h1>
 {% elif classe and volet == "importer" %}
-{% ariane_referentiel "Importer une édition" classe annee parcours="partage" %}
+{% if retour_catalogues %}
+{% ariane_referentiel "Examiner une édition" classe annee parcours="competences" %}
+<h1 id="haut-page-suivi" tabindex="-1">Examiner une édition</h1>
+{% else %}
+{% ariane_referentiel "Importer une édition" classe annee parcours="competences" %}
 <h1 id="haut-page-suivi" tabindex="-1">Importer une édition</h1>
+{% endif %}
 {% elif peut_importer %}
-{% ariane_referentiel "Échanger un référentiel" classe annee parcours="partage" %}
+{% ariane_referentiel "Échanger un référentiel" classe annee parcours="competences" %}
 <h1 id="haut-page-suivi" tabindex="-1">Échanger un référentiel</h1>
 {% else %}
-{% ariane_referentiel "Exporter un référentiel" classe annee parcours="partage" %}
+{% ariane_referentiel "Exporter un référentiel" classe annee parcours="competences" %}
 <h1 id="haut-page-suivi" tabindex="-1">Exporter un référentiel</h1>
 {% endif %}
 {% if retour_catalogues %}<p><a class="bouton discret" href="{{ retour_catalogues }}">Retour à Catalogues et partage</a></p>{% elif retour_competences %}<p><a class="bouton discret" href="{{ retour_competences }}">Retour aux compétences</a></p>{% endif %}

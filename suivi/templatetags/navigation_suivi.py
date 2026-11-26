@@ -1,6 +1,7 @@
 from django import template
 
-from suivi.autorisations import VOIR_CLASSE, VOIR_SUIVI, autorise
+from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, VOIR_CLASSE, VOIR_SUIVI, autorise
+from suivi.contexte_ecole import ecole_courante
 from suivi.navigation import chemin_classe, chemin_collectif, chemin_reglages_referentiel, filtre_competences, lien
 
 register = template.Library()
@@ -27,23 +28,35 @@ def ariane_eleve(context, page, eleve, parent=False):
 
 @register.inclusion_tag("suivi/partiels/ariane.html", takes_context=True)
 def ariane_referentiel(context, page, classe, annee, parcours="reglages"):
+    request = context["request"]
     if context.get("retour_export_ecole"):
         chemin = [("Gérer l’école", lien("gestion")),
                   ("Référentiels de l’école", lien("referentiels_ecole", annee=annee)),
                   ("Exporter depuis l’école", context["retour_export_ecole"])]
     elif classe:
         chemin = chemin_reglages_referentiel(
-            classe, catalogue=autorise(context["request"].user, VOIR_SUIVI, classe),
-            inclure_reglages=parcours == "reglages",
+            classe, catalogue=autorise(request.user, VOIR_SUIVI, classe),
+            inclure_reglages=parcours == "reglages" and autorise(request.user, GERER_REFERENTIEL_CLASSE, classe),
         )
-        if parcours in ("partage", "equipe"):
-            parametres = {"decouvrir": 1, "ancre": "decouvrir-referentiels"} if context.get("depuis_classe") else {}
-            chemin.append(("Catalogues et partage", lien("suivis_referentiels_classe", classe.pk, **parametres)))
-        if parcours == "equipe":
-            chemin.append(("Espace de partage", lien("espace_grist_classe", classe.pk)))
+        if parcours in ("partage", "equipe") or context.get("retour_catalogues") or context.get("retour_espace"):
+            retour = context.get("retour_catalogues") or context.get("retour_espace")
+            if parcours == "equipe":
+                retour = lien("suivis_referentiels_classe", classe.pk, espace=1, ancre="espace-partage")
+            chemin.append(("Catalogues et partage", retour or lien("suivis_referentiels_classe", classe.pk)))
+        elif context.get("retour_competences") and chemin[-1][0] == "Compétences":
+            chemin[-1] = ("Compétences", context["retour_competences"])
+        if context.get("retour_import"):
+            chemin.append(("Importer une édition", context["retour_import"]))
     else:
-        chemin = [("Gérer l’école", lien("gestion")),
-                  ("Référentiels de l’école", lien("referentiels_ecole", annee=annee))]
+        chemin = []
+        if autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole_courante(request)):
+            parametres = {"annee": annee} if annee else {}
+            chemin.extend([("Gérer l’école", lien("gestion")),
+                           ("Référentiels de l’école", lien("referentiels_ecole", **parametres))])
+        if context.get("retour_decouverte"):
+            chemin.append(("Catalogues et suivis", context["retour_decouverte"]))
+        if context.get("retour_propositions"):
+            chemin.append(("Propositions reçues", context["retour_propositions"]))
     return {"ariane": chemin, "page": page}
 
 

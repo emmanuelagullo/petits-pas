@@ -3,11 +3,16 @@
 {% block titre %}Propositions reçues{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
-{% ariane_gestion "Propositions reçues" %}
+{% if proposition %}
+{% ariane_referentiel proposition.titre None proposition.classe.annee_scolaire %}
+<h1>{{ proposition.titre }}</h1>
+{% else %}
+{% ariane_referentiel "Propositions reçues" None annee %}
 <h1>Propositions reçues</h1>
+{% endif %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if proposition %}
-<p><a href="{% url 'propositions_referentiels_ecole' %}">Retour aux propositions reçues</a></p>
+<p><a href="{{ retour_propositions }}">Retour aux propositions reçues</a></p>
 <p>{{ proposition.auteur.get_full_name|default:proposition.auteur.username }} · {{ proposition.classe.libelle_avec_annee }}</p>
 {% if proposition.note %}<p>{{ proposition.note }}</p>{% endif %}
 {% if edition_a_autoriser %}
