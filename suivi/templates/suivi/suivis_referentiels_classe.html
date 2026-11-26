@@ -11,10 +11,9 @@
 {% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Nouvelle édition disponible</a>{% endif %}</p>
 {% endif %}
 <section id="decouvrir-referentiels" aria-label="Catalogues et provenances">
-{% if classe_active %}<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}&amp;gestion=classe">Gérer les catalogues de la classe</a></p>{% endif %}
 {% for groupe in groupes %}
 <details id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 resume_sans_separateur=True only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 only %}
 {% for ligne in groupe.lignes %}
 <section class="encadre" id="referentiel-{{ ligne.reference }}">
 <h3>{{ ligne.titre }}</h3>
@@ -58,7 +57,7 @@
 {% empty %}<p>Aucun référentiel d’une autre classe reçu dans cet espace.</p>{% endfor %}
 </details>
 {% endfor %}
-{% if classe_unique and classe_active %}
+{% if classe_active %}<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}&amp;gestion=classe">Ajouter ou actualiser un catalogue</a></p>{% endif %}
 {% if peut_gerer_catalogues %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages communs à l’école" only %}
@@ -67,10 +66,8 @@
 <a class="bouton discret" href="{% url 'referentiels_ecole' %}?annee={{ classe.annee_scolaire }}">Choix annuels de l’école</a>
 </div>
 </details>
-{% endif %}
-{% else %}
-<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}">{% if peut_gerer_catalogues %}{% if classe_unique %}Catalogues communs à l’école{% else %}Gérer les catalogues de l’école{% endif %}{% else %}Parcourir les catalogues de l’école{% endif %}</a></p>
-{% if peut_gerer_catalogues %}<p><a class="bouton discret" href="{% url 'referentiels_ecole' %}?annee={{ classe.annee_scolaire }}">Choix annuels de l’école</a></p>{% endif %}
+{% elif not classe_active %}
+<p><a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ classe.annee_scolaire }}&amp;classe={{ classe.pk }}">Parcourir les catalogues de l’école</a></p>
 {% endif %}
 </section>
 {% if arbitrages or divergences or indisponibles or decisions or historique_auto %}
