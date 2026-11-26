@@ -20,7 +20,7 @@ from django.views.decorators.http import require_http_methods
 from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE,
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
-from .identites_referentiels import identifiant_source_ecole
+from .identites_referentiels import identifiant_source_classe, identifiant_source_ecole
 from .models import ChoixApplicationAnnuel, DestinationPublicationGrist, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .services.catalogue_fourni import REFERENTIELS_DEPART
@@ -132,6 +132,10 @@ def decouvrir_referentiels(request):
                 "examen_grist": lien("paquets_referentiels_ecole", annee=annee, origine="decouverte",
                                      q=q, filtre=filtre, **navigation),
                 "peut_importer": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, ecole)}
+    if gestion_classe:
+        contexte.update(peut_importer=True, examen_grist=lien(
+            "paquets_referentiels_classe", classe.pk, volet="importer", destination="classe", ancre="import-referentiel",
+        ))
     invitation = request.GET.get("catalogue_invite", "")
     if invitation and (peut_gerer or gestion_classe):
         try:
@@ -238,7 +242,9 @@ def decouvrir_referentiels(request):
         regles = ecole.catalogues_referentiels
     versions = {}
     for identifiant, numero in VersionReferentiel.objects.filter(
-            Q(source__ecole=ecole) | Q(source__ecole__isnull=True)).values_list(
+            Q(source__ecole=ecole) | Q(source__ecole__isnull=True),
+            Q(source__classe_privee__isnull=True) | Q(source__classe_privee=classe if gestion_classe else None),
+    ).values_list(
             "source__identifiant", "numero").order_by("pk"):
         versions.setdefault(identifiant, []).append(numero)
     autorisees = {version.pk for version in choix_bases(ecole, annee).versions}
@@ -255,6 +261,10 @@ def decouvrir_referentiels(request):
             url = catalogue.get("url")
             identifiant = identifiant_source_ecole(ecole, identite_grist(url, reference)) if url else source["identifiant_local"]
             locales = versions.get(identifiant, [])
+            if url and gestion_classe:
+                locales = sorted(set(locales) | set(versions.get(
+                    identifiant_source_classe(classe, identite_grist(url, reference)), [],
+                )))
             derniere = source["editions"][0]
             suivi = reference in regles.get(cle, {}).get("suivis", ())
             mise_a_jour = bool(url and locales) and str(derniere) not in locales
@@ -474,6 +484,8 @@ def suivis_classe(request, classe_pk):
             cle, nom = "espace-grist", "Référentiels reçus de l’espace Grist"
         elif version.source.identifiant in catalogues:
             cle, nom = catalogues[version.source.identifiant]
+        elif version.source.classe_privee_id:
+            cle, nom = "classe", "Catalogue de la classe"
         elif version.source.ecole_id:
             cle, nom = "ecole", "Catalogue de l’école"
         else:

@@ -29,7 +29,7 @@ def propositions_suivies(classe, ids=None):
     sources = Q(source_id__in=suivis) | Q(source__ecole=classe.ecole, source__identifiant_diffusion__in=origines.values())
     sources |= Q(source__ecole__isnull=True, source__identifiant__in=origines.values())
     versions = {}
-    for version in VersionReferentiel.objects.filter(sources,
+    for version in VersionReferentiel.objects.filter(sources, Q(source__classe_privee__isnull=True) | Q(source__classe_privee=classe),
             contenu__origine="source_declaree").select_related("source").order_by("-pk"):
         versions.setdefault(version.source_id, version)
     resultat = {}

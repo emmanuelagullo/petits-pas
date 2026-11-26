@@ -26,7 +26,8 @@
 <details id="import-referentiel" data-zone-sommaire="titre-import-referentiel"{% if volet != "exporter" or erreur_import or message_import or apercu or catalogue_import %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Importer" titre_id="titre-import-referentiel" only %}
 <div class="contenu-echange">
-<p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>
+{% if import_classe %}<p>Cette édition sera ajoutée aux sources que votre classe peut parcourir.</p>
+{% else %}<p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>{% endif %}
 <div id="etat-import-referentiel">
 {% if erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if message_import %}<p class="message" role="status">{{ message }}</p>{% endif %}
@@ -35,9 +36,9 @@
 {% if autoriser_edition_url %}<p><a class="bouton" href="{{ autoriser_edition_url }}">Ouvrir les choix annuels de l’école</a></p>{% endif %}
 {% endif %}
 {% if edition_autorisee %}<p>Cette édition fait partie des choix autorisés pour {{ annee }}.</p>{% endif %}
-{% if lien_adoption %}
+{% if lien_adoption or lien_reprise %}
 <p>{% if lien_reprise %}<a class="bouton" href="{{ lien_reprise }}">Choisir des compétences à reprendre</a>{% endif %}
-<a class="bouton{% if lien_reprise %} discret{% endif %}" href="{{ lien_adoption }}">Examiner l’adoption pour la classe</a></p>
+{% if lien_adoption %}<a class="bouton{% if lien_reprise %} discret{% endif %}" href="{{ lien_adoption }}">Examiner l’adoption pour la classe</a>{% endif %}</p>
 {% endif %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" %}
 {% if not jeton %}

@@ -132,10 +132,13 @@ def lignes_selection(versions, *, avec_source=False):
     return lignes
 
 
-def apercu_document(document, ecole, *, masquer_png=False):
+def apercu_document(document, ecole, *, masquer_png=False, classe=None):
     contenu, _ = lire_source(document)
     identifiant = contenu["source"]["identifiant"]
-    if ecole is not None:
+    if classe:
+        from .identites_referentiels import identifiant_source_classe
+        identifiant = identifiant_source_classe(classe, identifiant)
+    elif ecole is not None:
         identifiant = identifiant_source_ecole(ecole, identifiant)
     precedente = VersionReferentiel.objects.filter(source__identifiant=identifiant, source__ecole=ecole
         ).exclude(numero=contenu["version"]).order_by("-pk").first()
@@ -309,7 +312,10 @@ def partage_classe(request, classe, contexte, action):
 
 
 def presenter_import_grist(request, ecole, contexte):
-    reglages = ecole.catalogues_referentiels
+    from .services.catalogues_externes import reglages_catalogues_classe
+
+    classe = contexte.get("classe")
+    reglages = reglages_catalogues_classe(classe) if contexte.get("import_classe") else ecole.catalogues_referentiels
     catalogues = catalogues_grist_connus(reglages)
     suggestions = dict(catalogues)
     for publication in historique_grist(request, ecole):
@@ -352,10 +358,13 @@ def paquets_referentiels(request, classe_pk=None):
     annee = classe.annee_scolaire if classe else request.GET.get("annee") or annee_scolaire_pour(timezone.localdate())
     versions = {}
     action = request.POST.get("action") if request.method == "POST" else None
+    import_classe = bool(classe and request.GET.get("destination") == "classe")
+    if import_classe and classe.etat != Classe.ACTIVE:
+        raise PermissionDenied
     peut_importer_ecole = autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe or ecole)
     peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
-    contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": peut_importer_ecole or request.user.is_superuser,
-                "peut_importer_global": request.user.is_superuser}
+    contexte = {"classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": import_classe or peut_importer_ecole or request.user.is_superuser, "import_classe": import_classe,
+                "peut_importer_global": request.user.is_superuser and not import_classe}
     if classe and request.GET.get("depuis") == "espace":
         contexte["retour_espace"] = reverse("espace_grist_classe", args=[classe.pk])
     if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":
@@ -375,7 +384,7 @@ def paquets_referentiels(request, classe_pk=None):
                 return resultat
             if action in ACTIONS_PARTAGE:
                 action = None
-        if peut_importer_ecole:
+        if peut_importer_ecole or import_classe:
             presenter_import_grist(request, ecole, contexte)
         versions = {str(v.pk): v for v in choix_bases(ecole, annee).versions if v.contenu.get("origine") == "source_declaree"}
         edition = request.GET.get("edition")
@@ -406,7 +415,7 @@ def paquets_referentiels(request, classe_pk=None):
             if action in ("enregistrer_composition", "ajouter_ligne_composition"):
                 contexte["message"] = "Brouillon enregistré pour cette année."
                 action = None
-        engagement = {"auteur": request.user.pk, "ecole": ecole.pk, "classe": classe_pk, "annee": annee}
+        engagement = {"auteur": request.user.pk, "ecole": ecole.pk, "classe": classe_pk, "annee": annee, "import_classe": import_classe}
         if action == "publier" and (not request.user.is_superuser or classe is not None):
             raise PermissionDenied
         if request.user.is_superuser and classe is None:
@@ -423,6 +432,8 @@ def paquets_referentiels(request, classe_pk=None):
             if not contexte["peut_importer"]:
                 raise PermissionDenied
             if action in ("telecharger-icones-grist", "importer-icones-zip", "importer-icones-grist"):
+                if import_classe:
+                    raise PermissionDenied
                 from .models import IconePartagee, IconeRecueEcole
                 from .services.catalogues_externes import icones_catalogue_grist
                 from .services.paquets_referentiels import empaqueter_icones, lire_paquet_icones
@@ -448,7 +459,7 @@ def paquets_referentiels(request, classe_pk=None):
                         IconeRecueEcole.objects.get_or_create(ecole=ecole, icone=icone)
                 contexte["message"] = f"Icônes vérifiées et enregistrées : {len(ressources)}."
             elif action == "ouvrir-catalogue-grist":
-                if not peut_importer_ecole:
+                if not (peut_importer_ecole or import_classe):
                     raise PermissionDenied
                 contexte["lien_catalogue_import"] = request.POST.get("lien_catalogue_import", "")[:2000]
                 catalogue = lire_catalogue_grist(contexte["lien_catalogue_import"])
@@ -474,11 +485,19 @@ def paquets_referentiels(request, classe_pk=None):
                         ecole = Ecole.objects.select_for_update().get(pk=ecole.pk)
                         if classe is not None:
                             classe = Classe.objects.select_related("ecole").get(pk=classe.pk, ecole=ecole)
-                        if not autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe or ecole):
+                        droit = GERER_REFERENTIEL_CLASSE if import_classe else IMPORTER_REFERENTIEL_ECOLE
+                        if (import_classe and classe.etat != Classe.ACTIVE) or not autorise(request.user, droit, classe or ecole):
                             raise PermissionDenied
                     edition_importee, cree, _ = importer_source(
-                        preparation["document"], ecole=None if attendu["global"] else ecole)
-                if not attendu["global"]:
+                        preparation["document"], ecole=None if attendu["global"] else ecole,
+                        classe=classe if import_classe else None)
+                if import_classe:
+                    adoption = adoption_courante(classe)
+                    if adoption and not adoption.clos:
+                        contexte["lien_reprise"] = lien(
+                            "catalogue_competences", classe.pk, source=f"version-{edition_importee.pk}",
+                        )
+                elif not attendu["global"]:
                     candidates = [classe] if classe else [
                         c for c in ecole.classes.filter(annee_scolaire=annee).exclude(etat=Classe.ARCHIVEE)
                         if autorise(request.user, GERER_REFERENTIEL_CLASSE, c)
@@ -505,12 +524,12 @@ def paquets_referentiels(request, classe_pk=None):
                                 f"?edition={edition_importee.pk}#choisir-referentiel"
                             )
                 request.session.pop(SEL, None)
-                cible = "de l’application" if attendu["global"] else "de l’école"
+                cible = "de la classe" if import_classe else "de l’application" if attendu["global"] else "de l’école"
                 contexte["message"] = (f"Édition ajoutée au catalogue {cible}." if cree else
                                        f"Cette édition figure déjà dans le catalogue {cible}.")
             elif action in ("apercu", "apercu-grist"):
-                global_ = action == "apercu" and request.POST.get("destination") == "application"
-                if (global_ and not request.user.is_superuser) or (not global_ and not peut_importer_ecole):
+                global_ = not import_classe and action == "apercu" and request.POST.get("destination") == "application"
+                if (global_ and not request.user.is_superuser) or (not global_ and not (peut_importer_ecole or import_classe)):
                     raise PermissionDenied
                 masquer_png = False
                 if action == "apercu-grist":
@@ -527,8 +546,11 @@ def paquets_referentiels(request, classe_pk=None):
                     if not fichier:
                         raise ValidationError("Choisissez le fichier à examiner.")
                     document = lire_paquet(fichier.read(MAX_ARCHIVE + 1))
-                importer_source(document, verifier_seulement=True, ecole=None if global_ else ecole)
-                contexte.update(apercu_document(document, None if global_ else ecole, masquer_png=masquer_png))
+                importer_source(document, verifier_seulement=True, ecole=None if global_ else ecole,
+                                classe=classe if import_classe else None)
+                contexte.update(apercu_document(document, None if global_ else ecole, masquer_png=masquer_png, classe=classe if import_classe else None))
+                if import_classe:
+                    contexte["destination_import"] = "de la classe"
                 attendu = {**engagement, "preparation": get_random_string(32), "global": global_}
                 request.session[SEL] = {"jeton": attendu, "document": document}
                 contexte["jeton"] = signing.dumps(attendu, salt=SEL)

@@ -1,6 +1,7 @@
 """Sources consultables et ajout d'une définition au suivi de classe."""
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 
 from suivi.identites_referentiels import est_uuid_portable, identifiant_diffusion, references_suivi
 from suivi.audit import journaliser
@@ -26,7 +27,7 @@ def sources_catalogue(utilisateur, classe, adoption):
     sources = {}
     versions = {v.pk: v for v in choix_bases(classe.ecole, classe.annee_scolaire).versions}
     versions.update({v.pk: v for v in VersionReferentiel.objects.filter(
-        source__ecole=classe.ecole, contenu__origine="source_declaree"
+        Q(source__classe_privee__isnull=True) | Q(source__classe_privee=classe), source__ecole=classe.ecole, contenu__origine="source_declaree"
     ).select_related("source").order_by("source__titre", "pk")})
     dernieres_distantes = {
         v.source_id: v.pk for v in sorted(versions.values(), key=lambda v: v.pk)

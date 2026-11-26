@@ -899,6 +899,7 @@ class SourceReferentiel(models.Model):
     provisoire = models.BooleanField(default=True)
     # Une source reprise appartient à son école ; les sources fournies sont publiques.
     ecole = models.ForeignKey(Ecole, on_delete=models.PROTECT, null=True, blank=True)
+    classe_privee = models.ForeignKey(Classe, on_delete=models.PROTECT, null=True, blank=True)
 
 
 class VersionReferentiel(models.Model):

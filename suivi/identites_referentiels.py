@@ -44,3 +44,9 @@ def identifiant_source_ecole(ecole, identifiant):
 
 def identifiant_diffusion(source):
     return source.identifiant_diffusion or source.identifiant
+
+
+def identifiant_source_classe(classe, identifiant):
+    from hashlib import sha256
+
+    return "catalogue-classe-" + sha256(f"{classe.pk}:{identifiant}".encode()).hexdigest()

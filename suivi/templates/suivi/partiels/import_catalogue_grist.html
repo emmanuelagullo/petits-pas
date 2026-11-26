@@ -1,4 +1,4 @@
-{% if catalogue_import.url and catalogue_import.mode_contenu != "competences" %}
+{% if not import_classe and catalogue_import.url and catalogue_import.mode_contenu != "competences" %}
 <form method="post">{% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ catalogue_import.url }}">
 <button class="bouton discret" name="action" value="importer-icones-grist">Importer les icônes dans l’école</button>
@@ -26,6 +26,7 @@
 {% if catalogues_import %}
 <form method="get">
 <input type="hidden" name="annee" value="{{ annee }}">
+{% if import_classe %}<input type="hidden" name="destination" value="classe"><input type="hidden" name="volet" value="importer">{% endif %}
 <p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="catalogue-import" champ_catalogue="catalogue_import" libelle="Catalogue source" catalogues=catalogues_import selection=catalogue_import.url only %}
 <button class="bouton discret">Afficher les référentiels</button></p>
 </form>

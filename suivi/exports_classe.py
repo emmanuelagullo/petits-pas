@@ -201,6 +201,8 @@ def _transformer(objet, fields, classe, utilisateur, etats, ids, photos_autorise
         fields.update(date_derniere_reussite=derniere.isoformat() if derniere else None,
                       date_reussite_precedente=precedente.isoformat() if precedente else None)
         fields.update(statut=statut, date_observation=date.isoformat() if date else None, connu=connu)
+    elif model is m.SourceReferentiel and objet.classe_privee_id != classe.pk:
+        fields["classe_privee"] = None
     elif model is m.CompetenceLocale and objet.classe_origine_id != classe.pk:
         fields["classe_origine"] = None
     elif model is m.ReferentielAnnuel:

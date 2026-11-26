@@ -10,7 +10,7 @@ from django.db.models import Q
 
 from suivi.models import (DefinitionSourceCompetence, IdentiteSourceCompetence,
                           SourceReferentiel, VersionReferentiel)
-from suivi.identites_referentiels import competences_document, est_uuid_portable, identifiant_source_ecole, reference_competence
+from suivi.identites_referentiels import competences_document, est_uuid_portable, identifiant_source_classe, identifiant_source_ecole, reference_competence
 from suivi.icones_partagees import conserver_png, decoder_icone, encoder_icone, png_en_ligne
 from suivi.presentation import catalogue_icones
 
@@ -169,14 +169,18 @@ def lire_source(contenu_yaml):
 
 
 @transaction.atomic
-def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
+def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None, classe=None):
+    if classe is not None and (ecole is None or classe.ecole_id != ecole.pk):
+        raise ValidationError("La classe n’appartient pas à cette école.")
     contenu, identifiants = lire_source(contenu_yaml)
     if ecole is not None:
         type(ecole).objects.select_for_update().get(pk=ecole.pk)
     metadata = contenu["source"]
     # Le verrou sérialise les imports successifs d'une source déjà créée.
     identifiant = metadata["identifiant"]
-    if ecole is not None:
+    if classe:
+        identifiant = identifiant_source_classe(classe, identifiant)
+    elif ecole is not None:
         identifiant = identifiant_source_ecole(ecole, identifiant)
     source = SourceReferentiel.objects.select_for_update().filter(identifiant=identifiant).first()
     provenance_a_completer = bool(source and ecole and not source.versions.exists()
@@ -233,7 +237,7 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None):
         memoriser_avant_nouvelle_edition(source)
     if source is None:
         source = SourceReferentiel(**{**metadata, "identifiant": identifiant}, ecole=ecole,
-                                   identifiant_diffusion=metadata["identifiant"] if ecole else "")
+                                   identifiant_diffusion=metadata["identifiant"] if ecole else "", classe_privee=classe)
         source.full_clean()
         source.save()
     if provenance_a_completer:

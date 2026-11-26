@@ -34,7 +34,7 @@ def verifier_annee(annee):
 
 
 def _superieur(ecole, annee, application):
-    catalogue_ecole = list(VersionReferentiel.objects.filter(source__ecole=ecole,
+    catalogue_ecole = list(VersionReferentiel.objects.filter(source__ecole=ecole, source__classe_privee__isnull=True,
         contenu__origine="source_declaree").select_related("source").order_by("source__titre", "pk"))
     if application and application.configure:
         ids = application.versions_autorisees.values_list("pk", flat=True)

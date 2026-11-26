@@ -89,6 +89,27 @@ class CataloguesReferentiels(Base):
         self.classe.refresh_from_db()
         self.assertNotIn(grist, self.classe.catalogues_propres)
 
+    def test_import_prive_reserve_a_la_classe_et_au_contexte_confirme(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        from .models import SourceReferentiel
+        from .services.choix_bases_referentiels import choix_bases
+        from .services.paquets_referentiels import empaqueter
+        from .tests_import_sources_referentiels import document
+
+        self.entrer()
+        echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        url = echange + "?volet=importer&destination=classe"
+        paquet = SimpleUploadedFile("exemple.zip", empaqueter(document("prive-classe")))
+        page = self.client.post(url, {"action": "apercu", "paquet": paquet})
+        self.assertContains(page, "Confirmer l’import")
+        confirmation = {"action": "importer", "jeton": page.context["jeton"]}
+        self.assertEqual(self.client.post(echange, confirmation).status_code, 403)
+        self.assertContains(self.client.post(url, confirmation), "Édition ajoutée au catalogue de la classe.")
+        source = SourceReferentiel.objects.get(identifiant_diffusion="prive-classe")
+        self.assertEqual(source.classe_privee_id, self.classe.pk)
+        self.assertNotIn(source.versions.get(), choix_bases(self.ecole, self.classe.annee_scolaire).versions)
+
     def test_suivre_un_catalogue_sans_suivre_encore_de_referentiel(self):
         self.entrer("dir-mdp")
         url = reverse("decouvrir_referentiels")

@@ -133,6 +133,7 @@
 {% endif %}
 <div class="actions">
 {% if classe_active and adoption and not adoption.clos %}<a class="bouton" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
+{% if classe_active %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer&amp;destination=classe#import-referentiel">Importer pour la classe</a>{% endif %}
 {% if peut_importer_ecole %}<a class="bouton{% if classe_active and adoption and not adoption.clos %} discret{% endif %}" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer une édition</a>
 {% elif classe_active %}<a class="bouton{% if adoption and not adoption.clos %} discret{% endif %}" href="{% url 'proposer_referentiel_classe' classe.pk %}">Proposer un référentiel à la direction</a>{% endif %}
 

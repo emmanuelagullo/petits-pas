@@ -465,10 +465,15 @@ class Projection:
                                     if r["ecole_id"] is None:
                                         values["identifiant_diffusion"] = r["identifiant"]
                                     if values.get("identifiant_diffusion"):
-                                        from .identites_referentiels import identifiant_source_ecole
+                                        from .identites_referentiels import identifiant_source_classe, identifiant_source_ecole
                                         ecole_importee = m.Ecole.objects.get(pk=values["ecole_id"])
                                         values["identifiant"] = identifiant_source_ecole(
                                             ecole_importee, values["identifiant_diffusion"])
+                                        if values["classe_privee_id"]:
+                                            classe_proprietaire = m.Classe.objects.get(pk=values["classe_privee_id"])
+                                            values["identifiant"] = identifiant_source_classe(
+                                                classe_proprietaire, values["identifiant_diffusion"],
+                                            )
                             objet = model(**values)
                             model.objects.bulk_create([objet])
                             self.ids[model][r['id']] = objet.pk
