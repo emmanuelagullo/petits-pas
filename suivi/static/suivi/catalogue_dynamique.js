@@ -57,6 +57,9 @@
         const destination = new URL(importer.href);
         destination.searchParams.set('retour', url.pathname + url.search);
         importer.href = destination;
+        destination.hash = '';
+        importer.setAttribute('hx-get', destination.pathname + destination.search);
+        window.htmx?.process(importer);
       }
       etat.textContent = `${nombre} résultat${nombre > 1 ? 's' : ''}`;
     } catch (erreur) {

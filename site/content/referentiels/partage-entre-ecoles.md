@@ -51,3 +51,10 @@ Examinez le fichier, confirmez l’import puis utilisez **Choisir des compétenc
 à reprendre**. Le référentiel principal se choisit dans **Réglages du
 référentiel**. À l’échelle de l’école, ouvrez **Référentiels de l’école →
 Importer un référentiel** pour rendre l’édition accessible aux classes.
+
+
+Dans **Compétences**, le ZIP de classe s’examine et se confirme dans la
+rubrique ouverte sous l’en-tête. À l’échelle de l’école, **Importer un
+référentiel** et **Exporter une édition** s’ouvrent dans **Référentiels de
+l’école**. Depuis un catalogue Grist, l’action **Examiner l’édition** prépare
+l’import dans les résultats du catalogue.

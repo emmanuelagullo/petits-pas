@@ -149,7 +149,7 @@
     try {
       const reponse = await fetch(url, {
         method: donnees ? 'POST' : 'GET', body: donnees, signal: instance.signal,
-        credentials: 'same-origin',
+        credentials: 'same-origin', headers: {'X-Petits-Pas-Export': '1'},
       });
       const page = new DOMParser().parseFromString(await reponse.text(), 'text/html');
       if (instance.signal.aborted) return;

@@ -80,3 +80,13 @@ def lien_ajout_competence(classe, filtre="tous", domaine=None, sous_domaine=None
     if collectif:
         parametres["collectif"] = 1
     return lien("choisir_competence" if collectif else "catalogue_competences", classe.pk, **parametres)
+
+
+@register.inclusion_tag("suivi/partiels/echange_contenu_hote.html", takes_context=True)
+def contenu_echange_hote(context, echange):
+    return {**context.flatten(), **echange, "request": echange["requete_echange"]}
+
+
+@register.inclusion_tag("suivi/partiels/reponse_examen_catalogue.html", takes_context=True)
+def examen_catalogue_hote(context, echange):
+    return {**context.flatten(), **echange, "request": echange["requete_echange"]}

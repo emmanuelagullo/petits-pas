@@ -173,7 +173,7 @@ def choix_portee(request, classe, source, reference):
 
 @acces_requis
 @require_http_methods(["GET", "HEAD", "POST"])
-def catalogue(request, pk, saisie_collective=False):
+def catalogue(request, pk, saisie_collective=False, *, echange_import=None, echange_export=None):
     classe = charger_classe_autorisee(request.user, pk, VOIR_SUIVI, ecole=ecole_courante(request))
     route = "choisir_competence" if saisie_collective else "catalogue_competences"
     source = request.GET.get("source", "")[:40]
@@ -538,4 +538,6 @@ def catalogue(request, pk, saisie_collective=False):
     if re.fullmatch(r"catalogue-[a-f0-9]{12}|referentiels-espace-[A-Za-z0-9_-]{8,64}|destinations-publication", groupe_retour):
         focus = f"parcourir-{source_retour}" if re.fullmatch(r"(?:source|classe)-[0-9]+", source_retour) else groupe_retour
         contexte["retour_catalogues"] = lien("suivis_referentiels_classe", classe.pk, catalogue=groupe_retour, ancre=focus)
+    contexte["echange_import"] = echange_import
+    contexte["echange_export"] = echange_export
     return render(request, "suivi/choisir_competence.html" if saisie_collective else "suivi/catalogue_competences.html", contexte)

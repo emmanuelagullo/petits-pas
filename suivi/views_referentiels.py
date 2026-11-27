@@ -111,7 +111,7 @@ def choix_ecole_renforces(local, donnees, demarrage):
 
 @acces_requis
 @require_http_methods(["GET", "POST"])
-def choisir_bases_ecole(request):
+def choisir_bases_ecole(request, *, echange=None):
     from django.core.exceptions import PermissionDenied
     from django.urls import reverse
     from django.utils import timezone
@@ -211,6 +211,7 @@ def choisir_bases_ecole(request):
         confirmation_form=ConfirmationReferentielForm(renforcee=bool(apercu and choix_ecole_renforces(local, apercu, demarrage))), permission=permissions(ecole, annee),
         form=form, choix=choix, proposee_superieure=proposee_superieure,
         apercu=apercu, jeton=jeton, erreur=erreur)
+    contexte["echange"] = echange
     return render(request, "suivi/choisir_bases_ecole.html", contexte, status=400 if erreur else 200)
 
 

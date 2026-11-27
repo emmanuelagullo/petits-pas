@@ -1,3 +1,4 @@
+{% if url_export_classe_hote and retour_catalogues and not export_competences_hote %}<p><a class="bouton discret" href="{{ retour_catalogues }}">Retour à Catalogues et partage</a></p>{% endif %}
 {% if retour_espace %}<p><a class="bouton discret" href="{{ retour_espace }}">Retour à l’espace de partage</a></p>{% endif %}
 {% if retour_export_ecole %}<p><a class="bouton discret" href="{{ retour_export_ecole }}">Choisir une autre classe</a></p>{% endif %}
 {% if peut_importer %}<h3>Partager le référentiel courant de cette classe</h3>{% endif %}
@@ -17,7 +18,7 @@
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
 </details>
 {% endif %}
-<form method="post" id="informations-partage-classe" action="#export-referentiel">{% csrf_token %}</form>
+<form method="post" id="informations-partage-classe" action="{{ url_export_classe_hote|default:'#export-referentiel' }}">{% csrf_token %}</form>
 {% if revisions_licence %}<p><span class="pastille alerte">Licence d’origine non renseignée · {{ revisions_licence|length }}</span></p>{% endif %}
 {% if modifier_partage %}
 {% include "suivi/partiels/informations_partage_export.html" %}

@@ -39,7 +39,7 @@ def proposer_classe(request, classe_pk):
     propositions = PropositionReferentiel.objects.filter(classe=classe, auteur=request.user).defer("document")
     retour_competences = lien("catalogue_competences", classe.pk, ancre="actions-referentiel-classe")
     retour_import = lien("paquets_referentiels_classe", classe.pk, volet="importer",
-                         destination="classe", reprendre=1, ancre="import-referentiel")
+                         destination="classe", interface="competences", reprendre=1, ancre="import-referentiel")
     contexte = {"classe": classe, "propositions": propositions,
                 "retour_competences": retour_competences, "retour_import": ""}
     try:

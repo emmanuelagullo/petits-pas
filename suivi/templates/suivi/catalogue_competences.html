@@ -1,5 +1,5 @@
 {% extends "suivi/base.html" %}
-{% load static %}
+{% load static navigation_suivi %}
 {% block titre %}{% if saisie_collective %}Saisir pour toute la classe{% else %}Compétences{% endif %}{% endblock %}
 {% block contenu %}
 {% if saisie_collective %}
@@ -25,7 +25,7 @@
 <a class="bouton discret" href="{{ retour_catalogues|default:lien_catalogues }}">{% if retour_catalogues %}Retour à Catalogues et partage{% else %}Catalogues et partage{% endif %}</a>
 {% if classe.etat == classe.ACTIVE %}
 {% url 'paquets_referentiels_classe' classe.pk as importer_zip %}
-<a class="bouton discret" data-importer-zip href="{{ importer_zip }}?volet=importer&amp;destination=classe&amp;depuis=competences&amp;retour={{ url_resultats|urlencode:'' }}#import-referentiel">Importer un ZIP pour la classe</a>
+<a class="bouton discret" data-importer-zip href="{{ importer_zip }}?interface=competences&amp;volet=importer&amp;destination=classe&amp;depuis=competences&amp;retour={{ url_resultats|urlencode:'' }}#import-referentiel" hx-get="{{ importer_zip }}?interface=competences&amp;volet=importer&amp;destination=classe&amp;depuis=competences&amp;retour={{ url_resultats|urlencode:'' }}" hx-target="#contenu-import-classe" hx-swap="innerHTML" data-ouvrir-rubrique="import-referentiel">Importer un ZIP pour la classe</a>
 {% endif %}
 {% endif %}
 </div>
@@ -38,6 +38,12 @@
 </details>
 {% endif %}
 </div>
+{% if peut_regler_referentiel and classe.etat == classe.ACTIVE %}
+<details class="encadre" id="import-referentiel"{% if echange_import %} open{% else %} hidden{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Importer un ZIP pour la classe" niveau_titre=2 only %}
+<div id="contenu-import-classe" aria-live="polite">{% if echange_import %}{% contenu_echange_hote echange_import %}{% endif %}</div>
+</details>
+{% endif %}
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
 <form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
@@ -100,15 +106,15 @@
 <p data-raccourci-partage hidden><a href="#partager-competences">Aller au partage</a></p>
 {% endif %}
 <p role="status" id="catalogue-etat">{{ nombre }} résultat{{ nombre|pluralize }}</p>
-<div id="catalogue-resultats">
+<div id="catalogue-resultats" tabindex="-1">
   {% include "suivi/partiels/catalogue_resultats.html" %}
 </div>
 {% if partage_depuis_catalogue %}
 {% url 'paquets_referentiels_classe' classe.pk as export %}
-<details class="encadre preparation-export" id="partager-competences" data-partage-catalogue data-classe="{{ classe.pk }}" data-ouvrir-export="{{ ouvrir_export|yesno:'1,0' }}" data-preparer-destination="{{ publication_export|yesno:'1,0' }}"{% if ouvrir_export %} open{% endif %} tabindex="-1">
+<details class="encadre preparation-export" id="partager-competences" data-partage-catalogue data-classe="{{ classe.pk }}" data-ouvrir-export="{{ ouvrir_export|yesno:'1,0' }}" data-preparer-destination="{{ publication_export|yesno:'1,0' }}"{% if ouvrir_export or echange_export %} open{% endif %} tabindex="-1">
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Préparer un export" niveau_titre=2 partiel_resume="suivi/partiels/resume_preparation_export.html" only %}
 <div class="actions">
-<a class="bouton" data-partager-classe href="{{ export }}?volet=exporter&amp;depuis={% if publication_export %}catalogues&amp;publication={{ publication_export }}&amp;catalogue={{ request.GET.catalogue_retour|urlencode:'' }}{% else %}competences{% endif %}&amp;retour={{ url_resultats|add:'#partager-competences'|urlencode:'' }}#export-referentiel"{% if source %} hidden{% endif %}>Exporter le référentiel de la classe</a>
+<a class="bouton" data-partager-classe href="{{ export }}?interface=export-classe&amp;volet=exporter&amp;depuis={% if publication_export %}catalogues&amp;publication={{ publication_export }}&amp;catalogue={{ request.GET.catalogue_retour|urlencode:'' }}{% elif request.GET.depuis == "export-ecole" %}export-ecole{% else %}competences{% endif %}&amp;retour={{ url_resultats|add:'#partager-competences'|urlencode:'' }}#export-referentiel"{% if source %} hidden{% endif %}>Exporter le référentiel de la classe</a>
 <span data-commandes-partage hidden>
 <button type="button" class="bouton discret" data-commencer-partage aria-pressed="false">Sélectionner des compétences à exporter</button>
 </span>
@@ -124,12 +130,13 @@
 </details>
 <p class="actions"><button class="bouton" name="action" value="preparer-selection-classe" hidden disabled>Partager les compétences sélectionnées</button></p>
 </form>
-<div data-export-sur-place></div>
+<div data-export-sur-place>{% if echange_export %}{% contenu_echange_hote echange_export %}{% endif %}</div>
 <p role="status" data-etat-export></p>
 </details>
 <script src="{% static 'suivi/publication-grist.js' %}" defer></script>
 <script src="{% static 'suivi/selection-competences-partage.js' %}" defer></script>
 <script src="{% static 'suivi/selection-catalogue-classe.js' %}" defer></script>
 {% endif %}
+<script src="{% static 'suivi/echange-hote.js' %}" defer></script>
 <script src="{% static 'suivi/catalogue_dynamique.js' %}" defer></script>
 {% endblock %}

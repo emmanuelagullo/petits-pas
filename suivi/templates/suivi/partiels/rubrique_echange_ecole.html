@@ -1,0 +1,13 @@
+{% load navigation_suivi %}
+<details class="encadre" id="{{ section }}"{% if echange.volet == volet %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle=libelle niveau_titre=2 only %}
+<div id="{{ section }}-contenu" aria-live="polite">
+{% if echange.volet == volet %}
+{% contenu_echange_hote echange %}
+{% else %}
+<a class="bouton discret" href="{{ url_echange }}?annee={{ annee }}&amp;interface=ecole&amp;volet={{ volet }}#{{ section }}"
+   hx-get="{{ url_echange }}?annee={{ annee }}&amp;interface=ecole&amp;volet={{ volet }}"
+   hx-target="#{{ section }}-contenu" hx-swap="innerHTML" hx-trigger="click, intersect once">Ouvrir le formulaire</a>
+{% endif %}
+</div>
+</details>

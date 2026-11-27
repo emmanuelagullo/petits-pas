@@ -1,4 +1,6 @@
-for (const zone of document.querySelectorAll('[data-selection-partage]')) {
+function initialiserSelectionsPartage(racine) {
+for (const zone of racine.querySelectorAll('[data-selection-partage]:not([data-selection-active])')) {
+  zone.dataset.selectionActive = '';
   const filtres = zone.querySelector('[data-filtres-partage]');
   const recherche = zone.querySelector('[data-recherche]');
   const domaine = filtres.querySelector('[data-domaine]');
@@ -87,8 +89,9 @@ for (const zone of document.querySelectorAll('[data-selection-partage]')) {
 }
 
 
-const choixEdition = document.querySelector('[data-choix-edition-partage]');
+const choixEdition = racine.querySelector('[data-choix-edition-partage]:not([data-edition-active])');
 if (choixEdition) {
+  choixEdition.dataset.editionActive = "";
   const edition = choixEdition.elements.edition;
   const initiale = edition.value;
   choixEdition.querySelector('[data-afficher-edition]').hidden = true;
@@ -101,3 +104,7 @@ if (choixEdition) {
     choixEdition.requestSubmit();
   });
 }
+
+}
+initialiserSelectionsPartage(document);
+document.addEventListener("htmx:afterSwap", () => initialiserSelectionsPartage(document));

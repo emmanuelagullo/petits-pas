@@ -56,12 +56,14 @@ def composer_paquet(catalogue, donnees, references, creations=()):
             ajouter(creation["rubrique"] or donnees.get("rubrique"), {
                 cle: creation[cle] for cle in ("identite", "libelle", "niveau")
             })
-    domaines = []
-    rang_competence = 0
-    for rang, (rubrique, competences) in enumerate(groupes.items(), start=1):
-        for competence in competences:
-            rang_competence += 1
-            competence["code"] = f"C{rang_competence}"
+    domaines, notices = [], {}
+    for rang, (rubrique, entrees) in enumerate(groupes.items(), 1):
+        competences = []
+        for competence, notice in entrees:
+            code = f"C{len(notices) + 1}"
+            competence["code"] = code
+            notices[code] = notice
+            competences.append(competence)
         domaines.append({"code": f"R{rang}", "nom": rubrique, "competences": competences})
     document = {
         "format": 2, "source": {**source, "provisoire": True},

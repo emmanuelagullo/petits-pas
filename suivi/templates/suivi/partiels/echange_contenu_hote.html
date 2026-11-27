@@ -1,0 +1,8 @@
+{% if afficher_import and not afficher_export %}
+{% include "suivi/partiels/import_referentiel.html" %}
+{% elif url_export_classe_hote %}
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% include "suivi/partiels/partager_referentiel_classe.html" %}
+{% else %}
+{% include "suivi/partiels/export_ecole.html" %}
+{% endif %}

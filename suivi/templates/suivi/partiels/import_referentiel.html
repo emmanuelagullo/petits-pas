@@ -1,0 +1,63 @@
+<div class="contenu-echange">
+{% if import_classe %}<p>Cette édition sera ajoutée aux sources que votre classe peut parcourir.</p>
+{% else %}<p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>{% endif %}
+<div id="etat-import-referentiel">
+{% if erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if message_import %}<p class="message" role="status">{{ message }}</p>{% endif %}
+{% if edition_a_autoriser %}
+<p>Les choix de l’école sont restreints pour {{ annee }}. {% if autoriser_edition_url %}Autorisez cette édition pour que les classes puissent la choisir.{% else %}Une personne qui gère l’école doit autoriser cette édition pour que les classes puissent la choisir.{% endif %}</p>
+{% if autoriser_edition_url %}<p><a class="bouton" href="{{ autoriser_edition_url }}">Ouvrir les choix annuels de l’école</a></p>{% endif %}
+{% endif %}
+{% if edition_autorisee %}<p>Cette édition fait partie des choix autorisés pour {{ annee }}.</p>{% endif %}
+{% if lien_adoption or lien_reprise %}
+<p>{% if lien_reprise %}<a class="bouton" href="{{ lien_reprise }}">Choisir des compétences à reprendre</a>{% endif %}
+{% if lien_adoption %}<a class="bouton{% if lien_reprise %} discret{% endif %}" href="{{ lien_adoption }}">Examiner l’adoption pour la classe</a>{% endif %}</p>
+{% endif %}
+{% include "suivi/partiels/apercu_paquet_referentiel.html" %}
+{% if not jeton and not import_classe and not request.GET.depuis == "reglages" and not retour_catalogues %}
+{% include "suivi/partiels/import_catalogue_grist.html" %}
+<details{% if request.POST.action == "importer-icones-zip" %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Recevoir un ZIP d’icônes" only %}
+<form method="post" action="{{ url_import_hote|default:request.get_full_path }}" enctype="multipart/form-data">{% csrf_token %}
+<p><label for="icones-zip">ZIP d’icônes Petits Pas</label>
+<input id="icones-zip" name="icones_zip" type="file" accept=".zip" required></p>
+<button class="bouton discret" name="action" value="importer-icones-zip">Importer les icônes</button>
+</form>
+</details>
+{% endif %}
+{% if message_import and request.POST.action == "importer" %}
+<a class="bouton discret" href="{{ url_recommencer_import|default:request.get_full_path }}#import-referentiel"{% if url_import_hote %} hx-get="{{ url_recommencer_import }}" hx-target="#etat-import-referentiel" hx-swap="outerHTML" hx-select="#etat-import-referentiel"{% endif %}>Importer un autre fichier</a>
+{% else %}
+<form method="post" action="{{ url_import_hote|default:request.get_full_path }}" enctype="multipart/form-data"
+      hx-post="{{ url_import_hote|default:request.get_full_path }}" hx-encoding="multipart/form-data"
+      hx-target="#etat-import-referentiel" hx-select="#etat-import-referentiel" hx-swap="outerHTML">
+{% csrf_token %}
+{% if jeton %}
+<input type="hidden" name="jeton" value="{{ jeton }}">
+<input type="hidden" name="action" value="importer">
+<button class="bouton">Confirmer l’import</button>
+<a class="bouton discret" href="{{ retour_catalogues|default:retour_competences|default:retour_decouverte|default:request.get_full_path }}"{% if url_import_hote %} hx-get="{{ url_recommencer_import }}" hx-target="#etat-import-referentiel" hx-swap="outerHTML" hx-select="#etat-import-referentiel"{% endif %}>Annuler</a>
+{% else %}
+{% if peut_importer_global %}
+<p><label for="destination">Catalogue destinataire</label>
+<select id="destination" name="destination"><option value="ecole">École</option><option value="application">Application</option></select></p>
+{% endif %}
+<label for="paquet">Importer un fichier ZIP</label>
+<input id="paquet" name="paquet" type="file" accept=".zip" required>
+<input type="hidden" name="action" value="apercu">
+<button class="bouton">Examiner le fichier</button>
+{% endif %}
+</form>
+{% endif %}
+{% if import_classe and jeton %}
+{% if peut_importer_ecole %}
+<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?interface=competences&amp;volet=importer&amp;depuis=competences#import-referentiel">Importer au catalogue de l’école</a>
+{% else %}
+<form method="post" action="{% url 'proposer_referentiel_classe' classe.pk %}">{% csrf_token %}
+<input type="hidden" name="jeton_import" value="{{ jeton }}">
+<button class="bouton discret" name="action" value="reprendre-apercu">Proposer au catalogue de l’école</button>
+</form>
+{% endif %}
+{% endif %}
+</div>
+</div>

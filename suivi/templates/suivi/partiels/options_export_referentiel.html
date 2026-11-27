@@ -1,4 +1,4 @@
-<form method="post" action="#export-referentiel" data-publication-grist data-export-classe>
+<form method="post" action="{{ url_export_classe_hote|default:'#export-referentiel' }}" data-publication-grist data-export-classe>
 {% csrf_token %}
 <fieldset class="choix-export-classe choix-segmentes">
 <legend>Destination</legend>

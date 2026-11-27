@@ -1,11 +1,13 @@
 {% if erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if message_import %}<p class="message" role="status" data-import-confirme>{{ message }}</p>{% endif %}
+{% if autoriser_edition_url %}<p><a class="bouton discret" href="{{ autoriser_edition_url }}">Ouvrir les choix annuels de l’école</a></p>{% endif %}
 {% if lien_reprise %}<p><a class="bouton discret" href="{{ lien_reprise }}">Choisir des compétences à reprendre</a></p>{% endif %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" %}
+{% if retour_decouverte and examen_sans_javascript %}<p><a class="bouton discret" href="{{ retour_decouverte }}">Retour à Découvrir des référentiels</a></p>{% endif %}
 {% if jeton %}
-<form method="post" action="{{ request.get_full_path }}" hx-post="{{ request.get_full_path }}" hx-vals='{"fragment_catalogue": "1"}' hx-target="closest [data-examen-catalogue]" hx-swap="innerHTML">
+<form method="post" action="{{ request.get_full_path }}#examen-edition" hx-post="{{ request.get_full_path }}" hx-vals='{"fragment_catalogue": "1"}' hx-target="closest [data-examen-catalogue]" hx-swap="innerHTML">
 {% csrf_token %}
 <input type="hidden" name="jeton" value="{{ jeton }}">
-<button class="bouton" name="action" value="importer">Importer pour la classe</button>
+<button class="bouton" name="action" value="importer">{% if import_classe %}Importer pour la classe{% else %}Importer au catalogue de l’école{% endif %}</button>
 </form>
 {% endif %}

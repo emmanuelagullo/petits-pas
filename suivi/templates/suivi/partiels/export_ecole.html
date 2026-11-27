@@ -1,0 +1,51 @@
+<div id="etat-export-ecole">
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+<h3>Partager le référentiel courant d’une classe</h3>
+<p>Choisissez une classe pour examiner son référentiel courant, le télécharger en ZIP ou le publier dans Grist.</p>
+{% if classes_partage %}
+<ul class="liste">
+{% for nom, url in classes_partage %}<li><a href="{{ url }}">{{ nom }}</a></li>{% endfor %}
+</ul>
+{% else %}
+<p>Aucune classe active avec une base adoptée et ouverte au suivi pour {{ annee }}.</p>
+{% endif %}
+<h3>Exporter une édition du catalogue de l’école</h3>
+<p class="aide">Téléchargez une édition telle qu’elle figure au catalogue de l’école.</p>
+
+{% include "suivi/partiels/export_edition_referentiel.html" %}
+<details data-zone-sommaire="composer-referentiel"{% if composition_ouverte %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Composer une édition" titre_id="composer-referentiel" only %}
+<div class="contenu-echange">
+<form method="post" action="{{ url_export_hote|default:request.get_full_path }}">
+{% csrf_token %}
+<input type="hidden" name="revision_brouillon" value="{{ revision_brouillon }}">
+<p><label>Titre <input name="titre" required maxlength="200" value="{{ brouillon_composition.titre }}"></label></p>
+<p><label>Identifiant du référentiel <input name="identifiant" value="{{ brouillon_composition.identifiant }}" required maxlength="120" pattern="[A-Za-z0-9][A-Za-z0-9._-]*"></label> Gardez cet identifiant pour les éditions suivantes.</p>
+<p><label>Numéro d’édition <input name="version" value="{{ brouillon_composition.version|default:"1" }}" required maxlength="80"></label></p>
+<p><label>Provenance et attributions <textarea name="provenance" required maxlength="4000">{{ brouillon_composition.provenance }}</textarea></label></p>
+<p><label>Licence <input name="licence" value="{{ brouillon_composition.licence }}" placeholder="CC-BY-SA-4.0 pour les créations" maxlength="120"></label></p>
+<p><label>Nom de la rubrique <input name="rubrique" value="{{ brouillon_composition.rubrique }}" required maxlength="200"></label></p>
+{% if catalogue_composition %}
+{% include "suivi/partiels/selection_competences_partage.html" with lignes=catalogue_composition champ="reprise" cle_panneau="partage-composition" selection=brouillon_composition.reprises %}
+{% endif %}
+<fieldset><legend>Ajouter une compétence</legend>
+<p><label>Libellé <input name="nouvelle" value="{{ brouillon_composition.nouvelle }}" maxlength="300"></label></p>
+<p><label>Identifiant stable <input name="identite_nouvelle" value="{{ brouillon_composition.identite_nouvelle }}" maxlength="120"></label></p>
+<p><label>Niveau <select name="niveau_nouvelle"><option>PS</option><option{% if brouillon_composition.niveau_nouvelle == "MS" %} selected{% endif %}>MS</option><option{% if brouillon_composition.niveau_nouvelle == "GS" %} selected{% endif %}>GS</option></select></label></p>
+</fieldset>
+{% for creation in brouillon_composition.creations %}
+<fieldset><legend>Compétence supplémentaire {{ forloop.counter }}</legend>
+<p><label>Rubrique <input name="creation_rubrique" value="{{ creation.rubrique }}" maxlength="200"></label></p>
+<p><label>Libellé <input name="creation_libelle" value="{{ creation.libelle }}" maxlength="300"></label></p>
+<p><label>Identifiant stable <input name="creation_identite" value="{{ creation.identite }}" maxlength="120"></label></p>
+<p><label>Niveau <select name="creation_niveau"><option>PS</option><option{% if creation.niveau == "MS" %} selected{% endif %}>MS</option><option{% if creation.niveau == "GS" %} selected{% endif %}>GS</option></select></label></p>
+</fieldset>
+{% endfor %}
+<button class="bouton" name="action" value="composer">Télécharger l’édition composée</button>
+<button class="bouton discret" name="action" value="enregistrer_composition" formnovalidate{% if url_export_hote %} hx-post="{{ url_export_hote }}" hx-include="closest form" hx-target="#etat-export-ecole" hx-swap="outerHTML"{% endif %}>Conserver le brouillon</button>
+<button class="bouton discret" name="action" value="ajouter_ligne_composition" formnovalidate{% if url_export_hote %} hx-post="{{ url_export_hote }}" hx-include="closest form" hx-target="#etat-export-ecole" hx-swap="outerHTML"{% endif %}>Ajouter une compétence</button>
+</form>
+</div>
+</details>
+{% include "suivi/partiels/autoriser_edition.html" %}
+</div>

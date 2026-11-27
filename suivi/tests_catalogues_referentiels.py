@@ -20,12 +20,37 @@ class CataloguesReferentiels(Base):
         self.assertContains(self.client.get(echange, {"annee": annee}),
                             f'href="{decouvrir}?annee={annee}&amp;depuis=echange"')
         page = self.client.get(decouvrir, {"annee": annee, "depuis": "echange", "q": "langage"})
-        self.assertContains(page, f'href="{echange}?annee={annee}#import-referentiel"')
+        self.assertContains(page, f'href="{echange}?annee={annee}&amp;interface=ecole&amp;volet=importer#import-referentiel"')
         self.assertContains(page, 'name="depuis" value="echange"')
         self.assertIn("depuis=echange", page.context["examen_grist"])
         retour = self.client.get(page.context["examen_grist"]).context["retour_decouverte"]
         self.assertIn("depuis=echange", retour)
         self.assertIn("q=langage", retour)
+
+    def test_import_zip_hote_conserve_le_contexte_avec_et_sans_javascript(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from .services.paquets_referentiels import empaqueter
+        from .tests_import_sources_referentiels import document
+
+        self.entrer()
+        competences = reverse("catalogue_competences", args=[self.classe.pk])
+        endpoint = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        from urllib.parse import urlencode
+
+        url = endpoint + "?" + urlencode({
+            "interface": "competences", "volet": "importer", "destination": "classe",
+            "depuis": "competences", "retour": competences + "?q=filtre",
+        })
+        self.assertContains(self.client.get(url), 'value="filtre"')
+        fragment = self.client.get(url, HTTP_HX_REQUEST="true")
+        self.assertContains(fragment, 'id="etat-import-referentiel"')
+        self.assertNotContains(fragment, "<html")
+        paquet = SimpleUploadedFile("competences.zip", empaqueter(document("recette-hote")))
+        apercu = self.client.post(url, {"action": "apercu", "paquet": paquet}, HTTP_HX_REQUEST="true")
+        self.assertContains(apercu, "Confirmer l’import")
+        confirmation = self.client.post(url, {"action": "importer", "jeton": apercu.context["jeton"]})
+        self.assertContains(confirmation, "Édition ajoutée au catalogue de la classe")
+        self.assertContains(confirmation, 'value="filtre"')
 
     def test_catalogue_instance_consulte_selon_les_choix_de_lecole(self):
         self.entrer("dir-mdp")
@@ -314,7 +339,8 @@ class CataloguesReferentiels(Base):
                 "action": "apercu-grist", "catalogue": CATALOGUE_DEMONSTRATION,
                 "reference": "demo-cycle1", "numero": numero,
             })
-            self.assertContains(page, "Confirmer l’import")
+            self.assertContains(page, "Importer au catalogue de l’école")
+            self.assertContains(page, 'id="examen-edition"')
             self.assertContains(page, "Retour à Découvrir des référentiels")
             self.assertIn("q=langage", page.context["retour_decouverte"])
             if numero == 2:

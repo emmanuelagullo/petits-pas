@@ -6,6 +6,11 @@
 {% ariane_referentiel "Catalogues et partage" classe classe.annee_scolaire parcours="competences" %}
 <h1>Catalogues et partage</h1>
 <p>{{ classe.libelle_avec_annee }}</p>
+{% if examen_echange %}
+<section id="examen-edition" class="encadre" aria-label="Examen de l’édition" data-examen-catalogue>
+{% examen_catalogue_hote examen_echange %}
+</section>
+{% endif %}
 {% if adoption %}
 <p><strong>Référentiel utilisé par la classe</strong> · {% if adoption.version.contenu.origine == "etat_initial_repris" %}Référentiel historique{% else %}{{ adoption.version.source.titre }} · édition {{ adoption.version.numero }}{% endif %}
 {% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Nouvelle édition disponible</a>{% endif %}</p>

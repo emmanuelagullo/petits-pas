@@ -1,4 +1,4 @@
-<form method="post" action="{{ examen_grist }}"{% if sur_place %} hx-post="{{ examen_grist }}" hx-vals='{"fragment_catalogue": "1"}' hx-target="next [data-examen-catalogue]" hx-swap="innerHTML"{% endif %}>
+<form method="post" action="{{ examen_grist|cut:"#import-referentiel" }}{% if sur_place %}#examen-edition{% endif %}"{% if sur_place %} hx-post="{{ examen_grist }}" hx-vals='{"fragment_catalogue": "1"}' hx-target="next [data-examen-catalogue]" hx-swap="innerHTML"{% endif %}>
 {% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ ligne.url }}">
 <input type="hidden" name="reference" value="{{ ligne.reference }}">

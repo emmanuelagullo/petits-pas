@@ -1,0 +1,23 @@
+{% if versions and not classe %}
+<form method="get" action="{{ url_export_hote|default:'#export-referentiel' }}" data-choix-edition-partage{% if url_export_hote %} hx-get="{{ request.path }}" hx-target="#etat-export-ecole" hx-swap="outerHTML"{% endif %}>
+<input type="hidden" name="annee" value="{{ annee }}">
+<input type="hidden" name="volet" value="exporter">
+{% if url_export_hote %}<input type="hidden" name="interface" value="ecole">{% endif %}
+<label for="edition">Édition disponible</label>
+<select id="edition" name="edition" required>
+<option value=""{% if not edition %} selected{% endif %} disabled>Choisir une édition</option>
+{% for v in versions %}<option value="{{ v.pk }}"{% if v.pk == edition.pk %} selected{% endif %}>{{ v.source.titre }} — {{ v.numero }}</option>{% endfor %}
+</select>
+<button class="bouton discret" data-afficher-edition>Afficher l’édition</button>
+</form>
+{% endif %}
+{% if edition %}
+<form method="post" action="{{ url_edition_hote|default:request.get_full_path }}">
+{% csrf_token %}
+<button class="bouton discret" name="action" value="edition">Télécharger l’édition complète</button>
+{% if competences %}
+{% include "suivi/partiels/selection_competences_partage.html" with lignes=competences champ="competence" cle_panneau="partage-export" telechargement=True %}
+{% endif %}
+</form>
+{% endif %}
+{% if not versions %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}

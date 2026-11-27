@@ -1,5 +1,5 @@
 {% if not import_classe and catalogue_import.url and catalogue_import.mode_contenu != "competences" %}
-<form method="post">{% csrf_token %}
+<form method="post" action="{{ url_import_hote|default:request.get_full_path }}">{% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ catalogue_import.url }}">
 <button class="bouton discret" name="action" value="importer-icones-grist">Importer les icônes dans l’école</button>
 <button class="bouton discret" name="action" value="telecharger-icones-grist">Télécharger les icônes du catalogue</button>
@@ -15,7 +15,7 @@
 <div>
 <strong>{{ ligne.titre }}</strong>
 <p>{% if not catalogue_import %}{{ ligne.catalogue }} · {% endif %}Édition {{ ligne.derniere }}{% if ligne.courant %} · Source du référentiel de la classe{% endif %}</p>
-{% include "suivi/partiels/examiner_edition_grist.html" with examen_grist=request.get_full_path choix_edition=True %}
+{% include "suivi/partiels/examiner_edition_grist.html" with examen_grist=url_import_hote|default:request.get_full_path choix_edition=True sur_place=url_import_hote %}
 </div>
 </li>
 {% endfor %}
@@ -24,14 +24,15 @@
 <details{% if catalogue_import or lien_catalogue_import %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Choisir un catalogue source" only %}
 {% if catalogues_import %}
-<form method="get">
+<form method="get" action="{{ url_import_hote|default:request.get_full_path }}"{% if url_import_hote %} hx-get="{{ request.path }}" hx-target="#etat-import-referentiel" hx-select="#etat-import-referentiel" hx-swap="outerHTML"{% endif %}>
 <input type="hidden" name="annee" value="{{ annee }}">
+{% if url_import_hote %}<input type="hidden" name="interface" value="ecole"><input type="hidden" name="volet" value="importer">{% endif %}
 {% if import_classe %}<input type="hidden" name="destination" value="classe"><input type="hidden" name="volet" value="importer">{% endif %}
 <p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="catalogue-import" champ_catalogue="catalogue_import" libelle="Catalogue source" catalogues=catalogues_import selection=catalogue_import.url only %}
 <button class="bouton discret">Afficher les référentiels</button></p>
 </form>
 {% endif %}
-<form method="post">
+<form method="post" action="{{ url_import_hote|default:request.get_full_path }}"{% if url_import_hote %} hx-post="{{ url_import_hote }}" hx-target="#etat-import-referentiel" hx-select="#etat-import-referentiel" hx-swap="outerHTML"{% endif %}>
 {% csrf_token %}
 <p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="lien-catalogue-import" champ_catalogue="lien_catalogue_import" libelle="Lien du catalogue Grist" edition_lien=True requis=True selection=lien_catalogue_import catalogues=catalogues_import %}</p>
 <button class="bouton discret" name="action" value="ouvrir-catalogue-grist">Afficher les référentiels du lien</button>

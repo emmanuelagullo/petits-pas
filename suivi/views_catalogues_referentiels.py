@@ -18,7 +18,7 @@ from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
 
 from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, IMPORTER_REFERENTIEL_ECOLE,
-                            autorise, charger_classe_autorisee)
+                            VOIR_SUIVI, autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .identites_referentiels import identifiant_source_classe, identifiant_source_ecole
 from .models import ChoixApplicationAnnuel, DestinationPublicationGrist, Ecole, VersionReferentiel, annee_scolaire_pour
@@ -148,7 +148,7 @@ def modifier_catalogue_classe(request, classe, catalogues, url_saisie, suivi_ini
 
 @acces_requis
 @require_http_methods(["GET", "POST"])
-def decouvrir_referentiels(request):
+def decouvrir_referentiels(request, *, examen_echange=None):
     from .services.catalogues_externes import reglages_catalogues_classe
     ecole = ecole_courante(request)
     peut_gerer = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
@@ -185,7 +185,7 @@ def decouvrir_referentiels(request):
                 "peut_importer": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, ecole)}
     if gestion_classe:
         contexte.update(peut_importer=True, examen_grist=lien(
-            "paquets_referentiels_classe", classe.pk, volet="importer", destination="classe", ancre="import-referentiel",
+            "paquets_referentiels_classe", classe.pk, volet="importer", destination="classe", depuis="decouverte", ancre="import-referentiel",
         ))
     invitation = request.GET.get("catalogue_invite", "")
     if invitation and (peut_gerer or gestion_classe):
@@ -326,6 +326,7 @@ def decouvrir_referentiels(request):
         etat.get("suivre_catalogue") and etat.get("catalogue", {}).get("url") for etat in regles.values()
     )
     contexte.update(groupes=groupes, nombre_resultats=sum(len(groupe["lignes"]) for groupe in groupes))
+    contexte["examen_echange"] = examen_echange
     return render(request, "suivi/decouvrir_referentiels.html", contexte)
 
 
@@ -335,7 +336,7 @@ def empreinte_suivi(valeur):
 
 @acces_requis
 @require_http_methods(["GET", "POST"])
-def suivis_classe(request, classe_pk, contexte_espace=None):
+def suivis_classe(request, classe_pk, contexte_espace=None, *, examen_echange=None):
     from .models import SuiviSourceClasse
     from .referentiels import adoption_courante
     from .services.sources_catalogue import cle_source_ajout, lignes_source, sources_catalogue
@@ -707,11 +708,18 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             "nom": publication.nom, "ancre": "publication-" + document, "publication_seule": True,
         }
         groupe["publication"] = publication
-        groupe["republier"] = lien(
-            "catalogue_competences", classe.pk, export=1,
-            catalogue_retour="destinations-publication" if groupe.get("publication_seule") else groupe["ancre"],
-            publication=publication.pk, ancre="partager-competences",
-        )
+        groupe_retour_publication = "destinations-publication" if groupe.get("publication_seule") else groupe["ancre"]
+        if autorise(request.user, VOIR_SUIVI, classe):
+            groupe["republier"] = lien(
+                "catalogue_competences", classe.pk, export=1, catalogue_retour=groupe_retour_publication,
+                publication=publication.pk, ancre="partager-competences",
+            )
+        else:
+            groupe["republier"] = lien(
+                "paquets_referentiels_classe", classe.pk, interface="export-classe", volet="exporter",
+                depuis="catalogues", catalogue=groupe_retour_publication, publication=publication.pk,
+                ancre="export-referentiel",
+            )
         if groupe_existant is None:
             destinations_publication.append(groupe)
 
@@ -725,7 +733,8 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
     ) or set(suivis) - disponibles.keys() else "Historique")
     actualisation = lien("decouvrir_referentiels", annee=classe.annee_scolaire, classe=classe.pk, gestion="classe")
     return render(request, "suivi/suivis_referentiels_classe.html",
-                  {"classe": classe, "url_catalogues": lien("suivis_referentiels_classe", classe.pk),
+                  {"classe": classe, "examen_echange": examen_echange,
+                   "url_catalogues": lien("suivis_referentiels_classe", classe.pk),
                    "lignes": [ligne for ligne in lignes if ligne["suivi"]],
                    "adoption": adoption, "a_des_suivis": bool(suivis),
                    "nouvelle_edition": any(l["adopter"] for l in lignes),

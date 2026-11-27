@@ -1,4 +1,6 @@
 import re
+from copy import copy
+from urllib.parse import urlsplit
 """Diffusion des éditions publiques accessibles dans le contexte courant."""
 from hashlib import sha256
 
@@ -7,7 +9,7 @@ from django.core import signing
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Q
-from django.http import HttpResponse
+from django.http import HttpResponse, QueryDict
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -510,7 +512,7 @@ def paquets_referentiels(request, classe_pk=None):
         contexte["retour_espace"] = lien("suivis_referentiels_classe", classe.pk, espace=1, ancre="espace-partage")
     if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":
         contexte["retour_export_ecole"] = lien(
-            "paquets_referentiels_ecole", annee=annee, volet="exporter", ancre="export-referentiel",
+            "paquets_referentiels_ecole", annee=annee, interface="ecole", volet="exporter", ancre="export-referentiel",
         )
     if classe is None and request.GET.get("origine") == "decouverte":
         contexte["retour_decouverte"] = lien(
@@ -538,8 +540,12 @@ def paquets_referentiels(request, classe_pk=None):
             contexte["competences"] = lignes_selection([version])
         if classe is None:
             contexte["classes_partage"] = [
-                (adoption.classe.nom, lien("paquets_referentiels_classe", adoption.classe_id,
-                                         volet="exporter", depuis="export-ecole", ancre="export-referentiel"))
+                (adoption.classe.nom,
+                 lien("catalogue_competences", adoption.classe_id,
+                      export=1, depuis="export-ecole", ancre="partager-competences")
+                 if autorise(request.user, VOIR_SUIVI, adoption.classe) else
+                 lien("paquets_referentiels_classe", adoption.classe_id, interface="export-classe",
+                      volet="exporter", depuis="export-ecole", ancre="export-referentiel"))
                 for adoption in AdoptionReferentiel.objects.filter(
                     classe__ecole=ecole, classe__annee_scolaire=annee, classe__etat=Classe.ACTIVE,
                     courante=True, clos=False,
@@ -650,7 +656,7 @@ def paquets_referentiels(request, classe_pk=None):
                     adoption = adoption_courante(classe)
                     if adoption and not adoption.clos:
                         contexte["lien_reprise"] = lien(
-                            "catalogue_competences", classe.pk, source=f"version-{edition_importee.pk}",
+                            "catalogue_competences", classe.pk, source=f"version-{edition_importee.pk}", ancre="catalogue-resultats",
                         )
                 elif not attendu["global"]:
                     candidates = [classe] if classe else [
@@ -748,7 +754,106 @@ def paquets_referentiels(request, classe_pk=None):
     contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist", "telecharger-icones-grist", "importer-icones-zip", "importer-icones-grist") and "erreur" in contexte
     contexte["message_import"] = action in ("importer", "importer-icones-zip", "importer-icones-grist") and "message" in contexte
     maj_import = action in ("apercu", "apercu-grist", "importer") and request.headers.get("HX-Request") == "true"
-    if (maj_import and import_classe and contexte["retour_catalogues"]
-            and request.POST.get("fragment_catalogue") == "1"):
+    if (maj_import and request.POST.get("fragment_catalogue") == "1"
+            and (contexte["retour_catalogues"] or contexte.get("retour_decouverte") or request.GET.get("depuis") == "decouverte" or request.GET.get("interface") == "ecole")):
         return render(request, "suivi/partiels/reponse_examen_catalogue.html", contexte)
+    if request.method == "POST" and action in {"apercu-grist", "importer"} and (
+        contexte["retour_catalogues"] or contexte.get("retour_decouverte") or request.GET.get("depuis") == "decouverte"
+    ) and not maj_import:
+        return statut_echange_hote(rendre_examen_dans_catalogue(request, contexte), contexte)
+    hote = request.GET.get("interface")
+    if not hote and classe is None and volet in ("importer", "exporter") and not contexte.get("retour_decouverte"):
+        hote = "ecole"
+    if hote == "export-classe" and classe and contexte["afficher_export"] and not request.headers.get("X-Petits-Pas-Export"):
+        return statut_echange_hote(rendre_export_classe_dans_hote(request, contexte), contexte)
+    if (hote == "competences" and classe and contexte["afficher_import"] and not contexte["afficher_export"]) or (hote == "ecole" and classe is None):
+        return rendre_echange_dans_hote(request, contexte, hote)
     return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte and not maj_import else 200)
+
+
+
+def rendre_echange_dans_hote(request, contexte, hote):
+    classe = contexte["classe"]
+    importer = contexte["afficher_import"] and not contexte["afficher_export"]
+    if hote == "competences":
+        url = request.get_full_path()
+        contexte["url_import_hote"] = url
+        destination = {"destination": "classe"} if contexte["import_classe"] else {}
+        contexte["url_recommencer_import"] = lien(
+            "paquets_referentiels_classe", classe.pk, volet="importer",
+            depuis="competences", interface=hote, retour=contexte["retour_competences"], **destination,
+        )
+    else:
+        commun = {"annee": contexte["annee"], "interface": hote}
+        contexte["url_import_hote"] = lien("paquets_referentiels_ecole", volet="importer", **commun)
+        if request.GET.get("catalogue_import"):
+            contexte["url_import_hote"] = request.get_full_path()
+        contexte["url_recommencer_import"] = lien("paquets_referentiels_ecole", volet="importer", **commun)
+        contexte["url_export_hote"] = lien("paquets_referentiels_ecole", volet="exporter", **commun)
+        contexte["url_edition_hote"] = request.get_full_path()
+    if request.headers.get("HX-Request") == "true":
+        partiel = "import_referentiel" if importer else "export_ecole"
+        return render(request, f"suivi/partiels/{partiel}.html", contexte)
+
+    contexte["requete_echange"] = request
+    navigation = copy(request)
+    navigation.method = "GET"
+    navigation.GET = QueryDict(urlsplit(contexte["retour_competences"]).query) if classe else QueryDict("", mutable=True)
+    if not classe:
+        navigation.GET["annee"] = contexte["annee"]
+    if hote == "competences":
+        from .views_catalogue import catalogue
+
+        return statut_echange_hote(catalogue(navigation, classe.pk, echange_import=contexte), contexte)
+    from .views_referentiels import choisir_bases_ecole
+
+    return statut_echange_hote(choisir_bases_ecole(navigation, echange=contexte), contexte)
+
+
+
+def rendre_examen_dans_catalogue(request, contexte):
+    from .views_catalogues_referentiels import decouvrir_referentiels, suivis_classe
+
+    contexte["requete_echange"] = request
+    contexte["examen_sans_javascript"] = True
+    navigation = copy(request)
+    navigation.method = "GET"
+    if contexte["retour_catalogues"]:
+        navigation.GET = QueryDict(urlsplit(contexte["retour_catalogues"]).query)
+        return suivis_classe(navigation, contexte["classe"].pk, examen_echange=contexte)
+
+    navigation.GET = QueryDict("", mutable=True)
+    for cle in ("annee", "q", "filtre", "depuis", "classe", "gestion"):
+        if cle in request.GET:
+            navigation.GET[cle] = request.GET[cle]
+    if contexte["classe"]:
+        navigation.GET.update({"classe": contexte["classe"].pk, "gestion": "classe"})
+    return decouvrir_referentiels(navigation, examen_echange=contexte)
+
+
+
+def rendre_export_classe_dans_hote(request, contexte):
+    from .views_catalogue import catalogue
+    from .views_referentiels import choisir_bases_ecole
+
+    classe = contexte["classe"]
+    contexte["requete_echange"] = request
+    navigation = copy(request)
+    navigation.method = "GET"
+    if autorise(request.user, VOIR_SUIVI, classe):
+        contexte["url_export_classe_hote"] = request.get_full_path() + "#partager-competences"
+        contexte["export_competences_hote"] = True
+        navigation.GET = QueryDict(urlsplit(retour_competences(request, classe)).query)
+        return catalogue(navigation, classe.pk, echange_export=contexte)
+    if autorise(request.user, GERER_REFERENTIEL_ECOLE, classe.ecole):
+        contexte["url_export_classe_hote"] = request.get_full_path() + "#export-referentiel"
+        navigation.GET = QueryDict("", mutable=True)
+        navigation.GET["annee"] = contexte["annee"]
+        return choisir_bases_ecole(navigation, echange=contexte)
+    return render(request, "suivi/paquets_referentiels.html", contexte)
+
+
+def statut_echange_hote(reponse, contexte):
+    if reponse.status_code == 200 and contexte.get("erreur"):
+        reponse.status_code = 400
+    return reponse

@@ -1,0 +1,16 @@
+{% if a_publier %}
+<section aria-labelledby="publier-referentiel" data-zone-sommaire="publier-referentiel">
+<h2 id="publier-referentiel" tabindex="-1" data-titre-sommaire>Autoriser une édition pour {{ annee }}</h2>
+<p>Cette action rend l’édition disponible dans l’application pour l’année, selon les restrictions de chaque école. Elle ne change aucune adoption. Si aucune base n’est proposée par l’application, l’édition publiée devient la proposition par défaut.</p>
+<form method="post" action="{{ url_export_hote|default:request.get_full_path }}">
+{% csrf_token %}
+<input type="hidden" name="jeton_publication" value="{{ jeton_publication }}">
+<label for="publier-edition">Édition à autoriser</label>
+<select id="publier-edition" name="publier_edition" required>
+<option value="">Choisir une édition</option>
+{% for version in a_publier %}<option value="{{ version.pk }}">{{ version.source.titre }} — {{ version.numero }}</option>{% endfor %}
+</select>
+<button class="bouton" name="action" value="publier">Autoriser cette édition</button>
+</form>
+</section>
+{% endif %}

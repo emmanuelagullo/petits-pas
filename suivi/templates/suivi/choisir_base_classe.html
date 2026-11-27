@@ -21,8 +21,8 @@
 <section class="encadre" aria-labelledby="importer-partager">
 <h2 id="importer-partager">{% if peut_importer_ecole %}Importer ou partager{% else %}Partager un référentiel{% endif %}</h2>
 {% url 'paquets_referentiels_classe' classe.pk as echange %}
-<p>{% if peut_importer_ecole %}<a class="bouton" href="{{ echange }}?volet=importer&amp;depuis=reglages#import-referentiel">Importer dans le catalogue de l’école</a> {% endif %}
-{% if actuelle and not actuelle.clos and classe.etat == classe.ACTIVE %}<a class="bouton discret" href="{% url 'catalogue_competences' classe.pk %}?export=1#partager-competences">Exporter le référentiel de la classe</a>{% endif %}</p>
+<p>{% if peut_importer_ecole %}<a class="bouton" href="{% if peut_voir_catalogue %}{{ echange }}?interface=competences&amp;volet=importer&amp;depuis=competences{% else %}{% url 'paquets_referentiels_ecole' %}?interface=ecole&amp;volet=importer&amp;annee={{ classe.annee_scolaire }}{% endif %}#import-referentiel">Importer dans le catalogue de l’école</a> {% endif %}
+{% if actuelle and not actuelle.clos and classe.etat == classe.ACTIVE %}<a class="bouton discret" href="{% if peut_voir_catalogue %}{% url 'catalogue_competences' classe.pk %}?export=1#partager-competences{% else %}{{ echange }}?interface=export-classe&amp;volet=exporter&amp;depuis=export-ecole#export-referentiel{% endif %}">Exporter le référentiel de la classe</a>{% endif %}</p>
 {% if not peut_importer_ecole and not peut_proposer_referentiel %}{% include "suivi/partiels/aide_import_referentiel.html" %}{% endif %}
 {% if peut_proposer_referentiel %}
 <p><a class="bouton discret" href="{% url 'proposer_referentiel_classe' classe.pk %}">{% if peut_importer_ecole %}Mes propositions de référentiel{% else %}Proposer au catalogue de l’école{% endif %}</a></p>

@@ -11,7 +11,12 @@
 <p><a class="bouton discret" href="{% url 'suivis_referentiels_classe' classe_origine.pk %}?decouvrir=1#decouvrir-referentiels">Retour aux catalogues de la classe</a></p>
 {% endif %}
 {% if depuis_echange %}
-<p><a href="{% url 'paquets_referentiels_ecole' %}?annee={{ annee }}#import-referentiel">Retour à l’import</a></p>
+<p><a href="{% url 'paquets_referentiels_ecole' %}?annee={{ annee }}&amp;interface=ecole&amp;volet=importer#import-referentiel">Retour à l’import</a></p>
+{% endif %}
+{% if examen_echange %}
+<section id="examen-edition" class="encadre" aria-label="Examen de l’édition" data-examen-catalogue>
+{% examen_catalogue_hote examen_echange %}
+</section>
 {% endif %}
 {% if message %}<p class="message" role="status">{{ message }}</p>{% endif %}
 {% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
@@ -96,7 +101,7 @@
 {% endif %}
 {% if ligne.deja_local %}<span class="pastille">Déjà disponible dans ce Petits Pas</span>{% endif %}
 {% if ligne.url and peut_importer and not ligne.locale and not ligne.deja_local %}
-{% include "suivi/partiels/examiner_edition_grist.html" %}
+{% include "suivi/partiels/examiner_edition_grist.html" with sur_place=True %}
 {% endif %}
 </div>
 <details>
@@ -105,7 +110,7 @@
 {% if not ligne.contenu_courant %}<p>Éditions connues : {{ ligne.editions|join:", " }}</p>{% endif %}
 {% if ligne.url %}
 {% if peut_importer and not ligne.contenu_courant %}
-{% include "suivi/partiels/examiner_edition_grist.html" with choix_edition=True %}
+{% include "suivi/partiels/examiner_edition_grist.html" with choix_edition=True sur_place=True %}
 {% endif %}
 {% endif %}
 {% if peut_gerer and not gestion_classe and ligne.suivi %}
