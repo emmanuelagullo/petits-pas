@@ -45,7 +45,7 @@ class PartageGristPWA(Base):
         self.assertContains(espace_ouvert, "?espace=1#espace-partage")
         vide = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
         self.assertContains(vide, 'id="referentiels-espace-document-fictif" open')
-        self.assertContains(vide, "Aucun référentiel d’une autre classe reçu.")
+        self.assertContains(vide, "Aucun référentiel reçu d’une autre installation.")
         url = reverse("synchroniser_grist")
         données = self.client.get(url).json()
         travail = données["partages"][0]
@@ -75,7 +75,7 @@ class PartageGristPWA(Base):
         self.assertContains(page, "Référentiel du collègue", count=1)
         self.assertContains(page, "Référentiel de la classe partagé")
         self.assertNotContains(page, "Voir les référentiels de cet espace")
-        self.assertContains(page, 'id="referentiels-espace-document-fictif" open')
+        self.assertNotContains(page, 'id="referentiels-espace-document-fictif" open')
         self.assertIsNone(self.client.get(url).json()["partages"][0]["contenu"])
         self.client.post(espace, {"action": "suspendre"})
         self.assertEqual(self.client.get(url).json()["partages"], [])

@@ -587,7 +587,7 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
         groupes[ancre_espace if document_espace else "espace-partage"] = {
             "nom": (partage_grist.nom_espace if partage_grist else "") or "Espace de partage",
             "ancre": ancre_espace if document_espace else "espace-partage",
-            "ouvrir": espace_demande or bool(recus_espace) or bool(contexte_espace.get("erreur")) or request.GET.get("espace") == "1",
+            "ouvrir": espace_demande or bool(contexte_espace.get("erreur")) or request.GET.get("espace") == "1",
             "espace": contexte_espace, "espace_actif": partage_grist,
             "partiel_resume": "suivi/partiels/resume_espace_grist.html"
                 if partage_grist and partage_grist.actif else "",
@@ -607,7 +607,7 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             "instance" if cle == "instance" else "grist" if groupe.get("url") else "ecole"
         )
     groupes = dict(sorted(groupes.items(), key=lambda item: ordre_provenance(item[1]["provenance"])))
-    for index, (cle, groupe) in enumerate(groupes.items()):
+    for cle, groupe in groupes.items():
         ancre = groupe.setdefault("ancre", "catalogue-" + hashlib.sha256(cle.encode()).hexdigest()[:12])
         nombre = len(groupe["lignes"])
         if groupe.get("url"):
@@ -632,9 +632,7 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
         ecartees = sum(bool(l.get("ecartee")) for l in groupe["lignes"])
         if ecartees and not groupe.get("espace"):
             groupe["resume"] += f" · {ecartees} écarté{'s' if ecartees != 1 else ''} des ajouts"
-        groupe["ouvrir"] = (groupe.get("ouvrir", False) or ancre == groupe_retour or cle == groupe_poste
-            or any(l.get("ajoutees") or l.get("modifiees") or l.get("retirees") for l in groupe["lignes"])
-            or not groupe_retour and not espace_demande and index == 0)
+        groupe["ouvrir"] = groupe.get("ouvrir", False) or ancre == groupe_retour or cle == groupe_poste
     from .models import EvenementAudit
 
     decisions = EvenementAudit.objects.filter(ecole=ecole, modele=classe._meta.label_lower,

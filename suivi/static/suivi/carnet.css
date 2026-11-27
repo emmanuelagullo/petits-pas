@@ -1356,3 +1356,13 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
 [data-barre-catalogue] .commandes-filtres button { white-space: nowrap; }
 
 .barre-filtres-active[data-barre-catalogue] > details > summary[hidden] { display: none; }
+
+/* Même ligne pour les pastilles informatives et les commandes dépliables. */
+.entete-ligne-catalogue { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .45rem; align-items: start; }
+.entete-ligne-catalogue > h4 { grid-area: 1 / 1; }
+.entete-ligne-catalogue > span.etat-ligne-catalogue { grid-area: 1 / 2; justify-self: end; }
+.carte-catalogue.barre-filtres-active > .contenu-carte-catalogue { order: 2; }
+.barre-filtres-active[data-barre-catalogue] > .actions-referentiel-visibles {
+  grid-area: 1 / 1;
+  margin: 0;
+}

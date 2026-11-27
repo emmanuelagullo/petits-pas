@@ -19,12 +19,14 @@
 <p><a class="bouton" href="{% url 'referentiel_classe' classe.pk %}">Choisir le référentiel</a></p>
 {% endif %}
 {% if peut_regler_referentiel %}
-<div class="actions" id="actions-referentiel-classe">
+<div data-barre-filtres data-barre-catalogue id="actions-referentiel-classe">
+<div class="actions actions-referentiel-visibles">
 {% url 'suivis_referentiels_classe' classe.pk as lien_catalogues %}
 <a class="bouton discret" href="{{ retour_catalogues|default:lien_catalogues }}">{% if retour_catalogues %}Retour à Catalogues et partage{% else %}Catalogues et partage{% endif %}</a>
+{% if classe.etat == classe.ACTIVE and adoption and not adoption.clos %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter&amp;depuis=competences#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
+</div>
 {% if classe.etat == classe.ACTIVE %}
-{% if adoption and not adoption.clos %}<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter&amp;depuis=competences#export-referentiel">Partager le référentiel de la classe</a>{% endif %}
-<details class="menu-competence-catalogue">
+<details class="menu-competence-catalogue" data-panneau-filtre>
 <summary class="bouton bouton-depliant discret" aria-label="Autres actions sur les référentiels">⋯</summary>
 <div class="actions">
 <a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer&amp;destination=classe&amp;depuis=competences#import-referentiel">Importer un ZIP pour la classe</a>

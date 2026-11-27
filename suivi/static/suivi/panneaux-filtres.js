@@ -36,11 +36,21 @@ function initialiserPanneaux(racine) {
       actualiserTitre();
       new MutationObserver(actualiserTitre).observe(titre, {subtree: true, childList: true, characterData: true, attributes: true});
       bouton.setAttribute('aria-controls', panneau.id);
+      if (titre.hasAttribute('aria-label')) bouton.setAttribute('aria-label', titre.getAttribute('aria-label'));
       function actualiser() {
         bouton.hidden = panneau.hidden;
         bouton.setAttribute('aria-expanded', String(panneau.open));
       }
-      bouton.addEventListener('click', () => { panneau.open = !panneau.open; actualiser(); });
+      bouton.addEventListener('click', () => {
+        const ouvrir = !panneau.open;
+        if (ouvrir && barre.classList.contains('carte-catalogue') && !principal) {
+          for (const voisin of panneaux) {
+            if (!voisin.hasAttribute('data-panneau-principal')) voisin.open = false;
+          }
+        }
+        panneau.open = ouvrir;
+        actualiser();
+      });
       panneau.addEventListener('toggle', () => {
         actualiser();
         if (cleMemoire) {
