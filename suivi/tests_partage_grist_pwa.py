@@ -247,7 +247,7 @@ class PartageGristPWA(Base):
         adresse = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
         self.assertEqual(self.client.post(espace, {"grist": adresse, "confirmer": "oui"}).status_code, 302)
         suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
-        self.assertContains(self.client.get(suivis), "Réglages de l’espace")
+        self.assertContains(self.client.get(suivis), ">Réglages</summary>")
         self.assertRedirects(self.client.post(equipe, {"action": "initialiser"}), equipe)
         travaux = self.client.get(reverse("synchroniser_grist")).json()["partages"]
         transfert = travaux[0]["transfert_equipe"]
@@ -268,7 +268,7 @@ class PartageGristPWA(Base):
         page = self.client.get(suivis, {"espace": 1})
         self.assertContains(page, 'id="referentiels-espace-document-fictif" open')
         self.assertContains(page, "Premier envoi en attente")
-        self.assertContains(page, "Réglages de l’espace")
+        self.assertContains(page, ">Réglages</summary>")
 
     def test_ariane_et_confirmation_du_partage(self):
         self.adopter()

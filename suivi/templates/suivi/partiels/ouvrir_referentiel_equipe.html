@@ -1,6 +1,15 @@
-<div class="espace-travail-equipe">
-<p>Consultez ou modifiez un référentiel commun avec l’équipe. Le référentiel utilisé par votre classe garde ses propres réglages.</p>
+<section class="ligne-referentiel-catalogue espace-travail-equipe">
+<div class="entete-ligne-catalogue">
+<h4>Référentiel d’équipe</h4>
 {% url 'referentiel_equipe_grist' classe.pk as url_equipe %}
-<a class="bouton discret" href="{{ url_equipe }}" hx-get="{{ url_equipe }}" hx-select="#travail-referentiel-equipe" hx-target="next [data-travail-equipe]" hx-swap="innerHTML">Consulter ou modifier le référentiel d’équipe</a>
-<div data-travail-equipe></div>
+<details class="etat-ligne-catalogue" hx-get="{{ url_equipe }}" hx-trigger="toggle once" hx-select="#travail-referentiel-equipe" hx-target="find [data-travail-equipe]" hx-swap="innerHTML">
+{% if equipe_existante %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Consulter ou modifier" pastille="etat-catalogue pastille-positive" only %}
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="À créer" libelle_apres_creation="Consulter ou modifier" pastille="etat-catalogue" only %}
+{% endif %}
+<p>Ce référentiel commun peut être modifié par l’équipe. Chaque classe conserve son propre référentiel.</p>
+<div data-travail-equipe><a class="bouton discret" href="{{ url_equipe }}">Ouvrir le référentiel d’équipe</a></div>
+</details>
 </div>
+</section>

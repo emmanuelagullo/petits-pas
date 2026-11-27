@@ -455,27 +455,38 @@ def catalogue(request, pk, saisie_collective=False):
                    and str(l["competence"].pk) == request.GET.get("masquee")), None)
     url_voir_masquee = lien(route, classe.pk, ancre=f"c{masque['competence'].pk}",
         **{**parametres, "inclure_competences_masquees": 1}) if masque else ""
-    from .identites_referentiels import identifiant_source_ecole
+    from .identites_referentiels import identifiant_source_classe, identifiant_source_ecole
     from .models import ReceptionReferentielGrist, SuiviSourceClasse
     from .services.catalogues_externes import catalogues_grist_connus, identite_grist, reglages_catalogues_classe
     from .services.choix_bases_referentiels import choix_bases
 
     nouveaux = None
+    from .services.sources_catalogue import ordre_provenance
+
     groupes_sources = {}
+    provenances = {}
     if sources:
         suivis = set(SuiviSourceClasse.objects.filter(classe=classe).values_list("reference", flat=True))
         recus = set(ReceptionReferentielGrist.objects.filter(source__ecole=classe.ecole)
                     .values_list("source_id", flat=True))
         externes = {
-            identifiant_source_ecole(classe.ecole, identite_grist(catalogue["url"], reference["reference"])):
-            catalogue["nom"]
+            identifiant(portee, identite_grist(catalogue["url"], reference["reference"])): catalogue["nom"]
             for catalogue in catalogues_grist_connus(reglages_catalogues_classe(classe)).values()
             for reference in catalogue["referentiels"]
+            for identifiant, portee in ((identifiant_source_ecole, classe.ecole), (identifiant_source_classe, classe))
         }
         for cle_source, (titre, version, autre) in sources_ajout.items():
-            groupe_source = ("Autres classes" if autre else "Espace de partage" if version.source_id in recus
-                             else externes.get(version.source.identifiant,
-                                               "École" if version.source.ecole_id else "Catalogue Petits Pas"))
+            if autre:
+                provenance, groupe_source = "classes", "Autres classes"
+            elif version.source_id in recus:
+                provenance, groupe_source = "espace", "Espace de partage"
+            elif version.source.identifiant in externes:
+                provenance, groupe_source = "grist", externes[version.source.identifiant]
+            elif version.source.ecole_id:
+                provenance, groupe_source = "ecole", "École"
+            else:
+                provenance, groupe_source = "instance", "Catalogue Petits Pas"
+            provenances[groupe_source] = provenance
             reference = f"source-{version.source_id}" if version else cle_source
             groupes_sources.setdefault(groupe_source, []).append((cle_source, titre, reference in suivis))
         autorisees = choix_bases(classe.ecole, classe.annee_scolaire).versions
@@ -494,10 +505,9 @@ def catalogue(request, pk, saisie_collective=False):
         "q": q, "niveau": niveau, "domaine": domaine,
         "domaines": domaines, "groupes": groupes, "sous_domaine": sous_domaine,
         "source": source, "sources": sources,
-        "groupes_sources": [(nom, groupes_sources[nom]) for nom in
-                            dict.fromkeys(("École", "Autres classes", "Espace de partage",
-                                           "Catalogue Petits Pas", *groupes_sources))
-                            if nom in groupes_sources],
+        "groupes_sources": [(nom, groupes_sources[nom]) for nom in sorted(
+            groupes_sources, key=lambda nom: ordre_provenance(provenances[nom]),
+        )],
         "nouvelle_edition": nouveaux, "nom_source": sources[source][0] if source else "",
         "disponibles": disponibles, "lignes": lignes, "nombre": sum(len(cs) for _, cs in domaines_suivi) if vue_suivi else len(lignes) + len(disponibles),
         "depuis_ajout": depuis_ajout, "peut_ajouter": gerer or cibler,

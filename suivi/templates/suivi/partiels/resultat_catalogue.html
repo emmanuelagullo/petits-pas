@@ -1,13 +1,15 @@
 {% if synchronisation %}
+<details class="commande-catalogue">
+{% include "suivi/partiels/bouton_depliant.html" with libelle="En attente" pastille="etat-catalogue" etat_synchronisation=True only %}
 <div class="etat-synchronisation-catalogue">
-<h3>Synchronisation</h3>
-<p role="status"><span class="pastille" data-etiquette-synchro>En attente</span> <span data-etat-espace>Vérification du partage en attente.</span></p>
+<p role="status" data-etat-espace>Vérification du partage en attente.</p>
 <button type="button" class="bouton discret" data-relancer-synchro hidden><span aria-hidden="true">↻</span> <span data-libelle-synchro>Synchroniser maintenant</span></button>
 <details data-details-synchro hidden>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Dernières synchronisations" resume="Dans cet onglet" only %}
 <ol data-journal-synchro class="liste"></ol>
 </details>
 </div>
+</details>
 {% elif groupe.erreur %}
 <ul class="messages"><li class="error" role="alert">{{ groupe.erreur }}</li></ul>
 {% elif groupe.resultat %}

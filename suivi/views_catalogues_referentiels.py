@@ -593,6 +593,20 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
                 if partage_grist and partage_grist.actif else "",
             "lignes": recus_espace,
         }
+    from .models import ContributionReferentielEquipe
+    from .services.sources_catalogue import ordre_provenance
+
+    document_equipe = document_espace if partage_grist and partage_grist.actif else ""
+    equipe_existante = ContributionReferentielEquipe.objects.filter(
+        ecole=ecole, document_grist=document_equipe,
+    ).exists()
+    for cle, groupe in groupes.items():
+        groupe["provenance"] = (
+            "classes" if cle == "classes" else
+            "espace" if groupe.get("espace") or cle.startswith(("referentiels-espace-", "espace-grist")) else
+            "instance" if cle == "instance" else "grist" if groupe.get("url") else "ecole"
+        )
+    groupes = dict(sorted(groupes.items(), key=lambda item: ordre_provenance(item[1]["provenance"])))
     for index, (cle, groupe) in enumerate(groupes.items()):
         ancre = groupe.setdefault("ancre", "catalogue-" + hashlib.sha256(cle.encode()).hexdigest()[:12])
         nombre = len(groupe["lignes"])
@@ -643,7 +657,7 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
                        etat.get("suivre_catalogue") and etat.get("catalogue", {}).get("url")
                        for etat in reglages.values()) else "",
                    "classe_active": classe.etat == classe.ACTIVE,
-                   "groupes": list(groupes.values()),
+                   "groupes": list(groupes.values()), "equipe_existante": equipe_existante,
                    "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
                    "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),
                    "indisponibles": set(suivis) - disponibles.keys()},

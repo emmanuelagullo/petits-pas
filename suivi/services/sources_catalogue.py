@@ -142,3 +142,10 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
     journaliser(utilisateur, "referentiel.competence_reprise", regle,
                 nouvelles={"version": (version or autre.version).pk, "classe_source": autre.classe_id if autre else None})
     return regle.competence
+
+
+ORDRE_PROVENANCES = ("ecole", "classes", "espace", "instance", "grist")
+
+
+def ordre_provenance(provenance):
+    return ORDRE_PROVENANCES.index(provenance)

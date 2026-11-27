@@ -6,7 +6,7 @@
 {% else %}{% ariane_referentiel "Référentiel d’équipe" classe classe.annee_scolaire parcours="partage" %}{% endif %}
 <h1>Référentiel d’équipe</h1>
 {% url 'referentiel_equipe_grist' classe.pk as url_equipe %}
-<div id="travail-referentiel-equipe" hx-boost="true" hx-target="#travail-referentiel-equipe" hx-select="#travail-referentiel-equipe" hx-swap="outerHTML" hx-push-url="false">
+<div id="travail-referentiel-equipe"{% if editions %} data-equipe-creee{% endif %} hx-boost="true" hx-target="#travail-referentiel-equipe" hx-select="#travail-referentiel-equipe" hx-swap="outerHTML" hx-push-url="false">
 <p>Les membres de l’équipe peuvent ajouter, modifier ou retirer des compétences dans cette édition commune. Choisissez ensuite de la proposer dans le catalogue de l’espace.</p>
 {% if not dans_espace_grist %}
 {% include "suivi/partiels/contexte_espace_partage.html" with classe=classe compact=True only %}

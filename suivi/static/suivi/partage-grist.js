@@ -61,8 +61,8 @@
     if (etat) etat.textContent = message;
     if (étiquette) {
       étiquette.textContent = état;
-      étiquette.classList.toggle('pastille-positive', état === 'À jour');
-      étiquette.classList.toggle('alerte', état === 'À reprendre');
+      étiquette.closest('summary').classList.toggle('pastille-positive', état === 'À jour');
+      étiquette.closest('summary').classList.toggle('alerte', état === 'À reprendre');
     }
     if (!journal || !enregistrer) return;
     détails.hidden = false;

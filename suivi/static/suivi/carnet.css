@@ -1107,7 +1107,41 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 .entete-catalogues-partage > details > summary { width: fit-content; margin-inline-start: auto; }
 .formulaire-ajout-catalogue { padding: 1rem; border: 1px solid var(--trait); border-radius: .5rem; }
 .entete-catalogues-partage form { display: block; }
-.page-referentiel details.carte-catalogue { background: var(--surface); border-radius: .75rem; }
+.carte-catalogue {
+  margin: 1.5rem 0;
+  padding: .85rem;
+  border: 1px solid var(--trait);
+  border-radius: .75rem;
+  background: var(--surface);
+}
+.carte-catalogue-commandes { display: grid; grid-template-columns: minmax(0, 1fr) 21rem; gap: .65rem; align-items: start; }
+.commandes-carte-catalogue { position: relative; min-height: 2.65rem; padding-top: 2.65rem; min-width: 0; }
+.commandes-carte-catalogue > details > summary { position: absolute; inset-block-start: 0; inset-inline-start: 0; }
+.commandes-carte-catalogue > .commande-catalogue-reglages > summary { inset-inline-start: auto; inset-inline-end: 0; }
+.commandes-carte-catalogue > details + details[open] { margin-top: .6rem; }
+.page-referentiel .contenu-carte-catalogue,
+.page-referentiel .commande-catalogue,
+.page-referentiel .etat-ligne-catalogue { min-width: 0; border: 0; margin: 0; padding: 0; }
+
+.commande-catalogue[open] { overflow-wrap: anywhere; }
+.commandes-carte-catalogue :is(input, select) { max-width: 100%; }
+.entete-ligne-catalogue { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: .6rem; }
+.entete-ligne-catalogue > .etat-ligne-catalogue { justify-self: end; }
+.entete-ligne-catalogue > details.etat-ligne-catalogue[open] { max-width: 31rem; }
+summary.pastille.bouton-depliant { font: inherit; font-size: .88rem; }
+.libelle-equipe-creee,
+.etat-ligne-catalogue:has([data-equipe-creee]) .libelle-equipe-a-creer { display: none; }
+.etat-ligne-catalogue:has([data-equipe-creee]) .libelle-equipe-creee { display: inline; }
+@media (max-width: 58rem) {
+  .carte-catalogue-commandes { grid-template-columns: minmax(0, 1fr); }
+
+}
+@media (max-width: 36rem) {
+  .commandes-carte-catalogue { display: grid; position: static; min-height: 0; padding: 0; gap: .5rem; }
+  .commandes-carte-catalogue > details > summary { position: static; }
+  .entete-ligne-catalogue { grid-template-columns: minmax(0, 1fr); }
+  .entete-ligne-catalogue > .etat-ligne-catalogue { justify-self: start; }
+}
 .ligne-referentiel-catalogue { border-top: 1px solid var(--trait); padding: .7rem 0; }
 .ligne-referentiel-catalogue h4 { margin: 0; }
 .ligne-referentiel-catalogue:has([data-import-confirme]) [data-a-importer],
