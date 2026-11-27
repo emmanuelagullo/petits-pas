@@ -226,9 +226,14 @@ def enregistrer_nom_catalogue_grist(url, nom, *, remplacer=False):
 
 def lire_catalogue_grist(url, *, avec_lignes=False):
     prefixe, document, url, nom = document_grist(url)
+    tables = tables_grist(prefixe, document)
+    if "Editions" not in tables and "PetitsPasClasses" in tables:
+        raise ValidationError(
+            "Ce document est un espace de partage. Il ne contient pas encore d’édition publiée au catalogue. "
+            "Pour recevoir les référentiels des autres installations, rejoignez cet espace de partage."
+        )
     lignes = lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
     referentiels = referentiels_grist(lignes)
-    tables = tables_grist(prefixe, document)
     mode = mode_catalogue_grist(prefixe, document, tables)
     if not referentiels and mode != "icones":
         raise ValidationError("Ce catalogue Grist ne contient aucune édition.")
