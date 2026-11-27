@@ -25,6 +25,7 @@ from suivi.identites_referentiels import competences_document, identifiant_sourc
 from suivi.models import Classe, PartageGristClasse, ReceptionReferentielGrist, SourceReferentiel, VersionReferentiel
 from suivi.referentiels import adoption_courante
 from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist, partage_grist_disponible, referentiels_grist
+from suivi.services.identites_grist import classes_grist_locales
 from suivi.services.import_sources_referentiels import importer_source
 from suivi.services.partage_referentiel_classe import preparer_referentiel_classe, verifier_licence_synchronisation
 from suivi.views import acces_requis
@@ -313,8 +314,7 @@ def recevoir_projection(partage, ligne, propres):
 def synchroniser(request):
     if request.method == "GET":
         ecole = ecole_courante(request)
-        propres = [str(pk) for pk in PartageGristClasse.objects.filter(classe__ecole=ecole)
-                   .values_list("identifiant", flat=True)]
+        propres = [reference.removeprefix("classe-grist-") for reference in classes_grist_locales(ecole)]
         travaux = []
         for partage in partages_autorises(request):
             prefixe, document = adresse_grist(partage.url)
@@ -368,8 +368,8 @@ def synchroniser(request):
             return JsonResponse({"erreur": "Index des éditions Grist illisible."}, status=400)
         catalogue_modifie = (partage.editions_catalogue or []) != editions
     mise_a_jour_catalogue = {"editions_catalogue": editions} if "editions" in reponse else {}
-    propres = {str(pk) for pk in PartageGristClasse.objects.filter(classe__ecole=partage.classe.ecole)
-               .values_list("identifiant", flat=True)}
+    propres = {reference.removeprefix("classe-grist-")
+               for reference in classes_grist_locales(partage.classe.ecole)}
     erreurs = 0
     for ligne in reponse["lignes"]:
         try:

@@ -110,6 +110,27 @@ class CataloguesReferentiels(Base):
             self.assertContains(page, "Catalogue actualisé.")
             self.assertContains(page, 'name="numero" value="2"')
 
+    def test_catalogue_presente_le_contenu_de_la_classe_sans_import(self):
+        from .models import PartageGristClasse
+
+        self.entrer()
+        grist = "https://grist.numerique.gouv.fr/o/docs/catalogue-fictif"
+        partage = PartageGristClasse.objects.create(classe=self.classe, url=grist, licence="CC0-1.0")
+        reference = f"classe-grist-{partage.identifiant}"
+        catalogue = {"nom": "Catalogue extérieur", "url": grist, "referentiels": [
+            {"reference": reference, "titre": "Contenu de la classe", "editions": ["a" * 64],
+             "contenu_courant": True},
+        ]}
+        suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        with patch("suivi.views_catalogues_referentiels.lire_catalogue_grist", return_value=catalogue):
+            page = self.client.post(suivis, {"action": "ajouter", "url": grist}, follow=True)
+        self.assertContains(page, "Partagé par votre classe")
+        self.assertNotContains(page, "Examiner le contenu courant")
+        echange = reverse("paquets_referentiels_classe", args=[self.classe.pk]) + "?volet=importer&destination=classe"
+        refus = self.client.post(echange, {"action": "apercu-grist", "catalogue": grist,
+                                         "reference": reference, "numero": "a" * 64})
+        self.assertContains(refus, "Ce référentiel est déjà disponible", status_code=400)
+
     def test_proposition_depuis_le_referentiel_courant(self):
         from .models import PropositionReferentiel
 

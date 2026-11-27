@@ -24,6 +24,7 @@ from .identites_referentiels import identifiant_source_classe, identifiant_sourc
 from .models import ChoixApplicationAnnuel, DestinationPublicationGrist, Ecole, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien
 from .services.catalogue_fourni import REFERENTIELS_DEPART
+from .services.identites_grist import classes_grist_locales
 from .services.catalogues_externes import adresse_grist, catalogues_grist_connus, enregistrer_nom_catalogue_grist, identite_grist, lire_catalogue_grist, partage_grist_disponible
 from .services.choix_bases_referentiels import choix_bases, verifier_annee
 from .views import acces_requis
@@ -284,6 +285,7 @@ def decouvrir_referentiels(request):
                                    for cle, catalogue in catalogues_visibles(regles, instance).items())
     texte_recherche = slugify(q)
     termes = texte_recherche.split("-") if texte_recherche else []
+    classes_locales = classes_grist_locales(ecole)
     for cle, catalogue in catalogues_visibles(regles, instance).items():
         lignes = []
         ajoute = (contexte.get("catalogue_ajoute") or {}).get("url") == cle
@@ -300,6 +302,7 @@ def decouvrir_referentiels(request):
             suivi = reference in regles.get(cle, {}).get("suivis", ())
             mise_a_jour = bool(url and locales) and str(derniere) not in locales
             ligne = {**source, "cle": cle, "url": url,
+                     "deja_local": source.get("contenu_courant") and reference in classes_locales,
                      "nouveau": (cle, reference) in contexte.get("nouveautes", ()),
                      "suivi": suivi, "locales": locales, "derniere": derniere, "mise_a_jour": mise_a_jour,
                      "locale": str(derniere) in locales}
@@ -519,8 +522,10 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
     document_espace = adresse_grist(partage_grist.url)[1] if partage_grist else ""
     if partage_grist and partage_grist.actif and partage_grist.editions_catalogue is not None:
         url_espace = next((url for url in distants if adresse_grist(url)[1] == document_espace), partage_grist.url)
-        distants[url_espace] = {"url": url_espace, "nom": partage_grist.nom_espace,
-                                "referentiels": partage_grist.editions_catalogue}
+        catalogue_espace = distants.get(url_espace, {})
+        courants = [source for source in catalogue_espace.get("referentiels", []) if source.get("contenu_courant")]
+        distants[url_espace] = {**catalogue_espace, "url": url_espace, "nom": partage_grist.nom_espace,
+                                "referentiels": [*courants, *partage_grist.editions_catalogue]}
     catalogues = {
         identifiant(portee, identite_grist(url, referentiel["reference"])): (url, catalogue["nom"], referentiel)
         for url, catalogue in distants.items()
@@ -537,6 +542,8 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
         noms_espaces[adresse_grist(partage.url)[1]] = partage.nom_espace
     if partage_grist and partage_grist.nom_espace:
         noms_espaces[document_espace] = partage_grist.nom_espace
+    classes_locales = classes_grist_locales(ecole)
+    liens_classes = {ligne["autre"].classe_id: ligne["lire"] for ligne in lignes if ligne["autre"]}
     recus_espace = [ligne for ligne in lignes if document_espace and ligne["version"]
                     and document_espace in documents.get(ligne["version"].source_id, ())]
     nombre_recus_espace = len(recus_espace)
@@ -545,6 +552,8 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
     groupes = {}
     for ligne in lignes:
         version = ligne["version"]
+        if version and not ligne["courant"] and version.source.identifiant_diffusion in classes_locales:
+            continue
         if version and version.contenu.get("origine") == "etat_initial_repris":
             continue
         for document in (sorted(documents.get(version.source_id, ()), key=lambda d: d != document_espace)[:1] if version else ()):
@@ -586,6 +595,11 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
                       personnalise=url in classe.catalogues_propres)
         for source in catalogue["referentiels"]:
             ligne = references.get(source["reference"])
+            classe_locale = classes_locales.get(source["reference"]) if source.get("contenu_courant") else None
+            if classe_locale:
+                groupe["lignes"].append({**source, "deja_local": True, "classe_propre": classe_locale == classe.pk,
+                                         "courant": False, "lire_locale": liens_classes.get(classe_locale, "")})
+                continue
             if rattache and source.get("contenu_courant"):
                 continue
             edition = source["editions"][0]

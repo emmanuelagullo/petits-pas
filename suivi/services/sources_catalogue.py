@@ -22,6 +22,8 @@ def cle_source_ajout(version, autre):
 
 
 def sources_catalogue(utilisateur, classe, adoption):
+    from .identites_grist import classes_grist_locales
+
     if not autorise(utilisateur, GERER_REFERENTIEL_CLASSE, classe):
         raise PermissionDenied
     sources = {}
@@ -33,7 +35,10 @@ def sources_catalogue(utilisateur, classe, adoption):
         v.source_id: v.pk for v in sorted(versions.values(), key=lambda v: v.pk)
         if v.source.identifiant_diffusion.startswith("classe-grist-")
     }
+    classes_locales = classes_grist_locales(classe.ecole)
     for version in versions.values():
+        if version.source.identifiant_diffusion in classes_locales:
+            continue
         if version.pk != dernieres_distantes.get(version.source_id, version.pk):
             continue
         if version.pk != adoption.version_id:

@@ -28,6 +28,7 @@ from .services.apercu_mises_a_jour import comparer_documents, definitions_docume
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
 from .services.catalogues_externes import catalogues_grist_connus, edition_grist, identite_grist, lire_catalogue_grist
+from .services.identites_grist import classe_grist_locale
 from .services.import_sources_referentiels import importer_source, lire_source
 from .services.paquets_referentiels import MAX_ARCHIVE, empaqueter, exporter_paquet, exporter_selection, lire_paquet
 from .services.partage_referentiel_classe import licences_referentiel_partage, preparer_referentiel_classe
@@ -521,6 +522,8 @@ def paquets_referentiels(request, classe_pk=None):
                         droit = GERER_REFERENTIEL_CLASSE if import_classe else IMPORTER_REFERENTIEL_ECOLE
                         if (import_classe and classe.etat != Classe.ACTIVE) or not autorise(request.user, droit, classe or ecole):
                             raise PermissionDenied
+                    if classe_grist_locale(ecole, attendu.get("reference_courante")):
+                        raise ValidationError("Ce référentiel est déjà disponible dans ce Petits Pas.")
                     edition_importee, cree, _ = importer_source(
                         preparation["document"], ecole=None if attendu["global"] else ecole,
                         classe=classe if import_classe else None)
@@ -565,6 +568,7 @@ def paquets_referentiels(request, classe_pk=None):
                 if (global_ and not request.user.is_superuser) or (not global_ and not (peut_importer_ecole or import_classe)):
                     raise PermissionDenied
                 masquer_png = False
+                reference_courante = None
                 if action == "apercu-grist":
                     numero = request.POST.get("numero", "")
                     if not re.fullmatch(r"[0-9a-f]{64}", numero):
@@ -572,6 +576,11 @@ def paquets_referentiels(request, classe_pk=None):
                             numero = int(numero)
                         except ValueError as erreur:
                             raise ValidationError("Choisissez une édition Grist à examiner.") from erreur
+                    reference = request.POST.get("reference", "")
+                    if classe_grist_locale(ecole, reference):
+                        raise ValidationError("Ce référentiel est déjà disponible dans ce Petits Pas.")
+                    if re.fullmatch(r"[0-9a-f]{64}", str(numero)):
+                        reference_courante = reference
                     document, catalogue = edition_grist(
                         request.POST.get("catalogue", ""), request.POST.get("reference"), numero, avec_catalogue=True,
                     )
@@ -586,7 +595,8 @@ def paquets_referentiels(request, classe_pk=None):
                 contexte.update(apercu_document(document, None if global_ else ecole, masquer_png=masquer_png, classe=classe if import_classe else None))
                 if import_classe:
                     contexte["destination_import"] = "de la classe"
-                attendu = {**engagement, "preparation": get_random_string(32), "global": global_}
+                attendu = {**engagement, "preparation": get_random_string(32), "global": global_,
+                           "reference_courante": reference_courante}
                 contexte["jeton"] = signing.dumps(attendu, salt=SEL)
                 request.session[SEL] = {"jeton": attendu, "document": document, "reprise": contexte["jeton"]}
             else:

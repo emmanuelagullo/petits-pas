@@ -94,7 +94,8 @@
 {% if peut_gerer and not gestion_classe and not ligne.suivi %}
 {% include "suivi/partiels/suivre_referentiel.html" with action="suivre" libelle="Suivre les nouveautés" %}
 {% endif %}
-{% if ligne.url and peut_importer and not ligne.locale %}
+{% if ligne.deja_local %}<span class="pastille">Déjà disponible dans ce Petits Pas</span>{% endif %}
+{% if ligne.url and peut_importer and not ligne.locale and not ligne.deja_local %}
 {% include "suivi/partiels/examiner_edition_grist.html" %}
 {% endif %}
 </div>

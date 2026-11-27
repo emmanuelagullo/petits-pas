@@ -1,7 +1,9 @@
 <section class="ligne-referentiel-catalogue"{% if ligne.version or ligne.autre %} id="referentiel-{{ ligne.reference }}"{% endif %}>
 <div class="entete-ligne-catalogue" data-barre-filtres data-barre-catalogue id="commandes-{{ groupe.ancre }}-{{ indice_ligne }}-{{ ligne.reference|slugify }}">
 <h4>{{ ligne.titre }}{% if ligne.edition_distante.contenu_courant or ligne.contenu_courant %} <span class="aide">· Contenu courant</span>{% endif %}</h4>
-{% if not ligne.version and not ligne.autre %}<span class="pastille etat-ligne-catalogue" data-a-importer>À importer</span>
+{% if ligne.deja_local %}
+<span class="pastille etat-ligne-catalogue">{% if ligne.classe_propre %}Partagé par votre classe{% else %}Déjà disponible · Autres classes{% endif %}</span>
+{% elif not ligne.version and not ligne.autre %}<span class="pastille etat-ligne-catalogue" data-a-importer>À importer</span>
 {% elif ligne.courant %}<span class="pastille pastille-principale etat-ligne-catalogue">Utilisé par la classe</span>
 {% else %}
 <details class="etat-ligne-catalogue" data-panneau-filtre>
@@ -36,6 +38,7 @@
 </details>
 {% else %}<p>Aucun changement depuis votre dernière consultation enregistrée.</p>{% endif %}{% endif %}
 <div class="actions">
+{% if ligne.lire_locale %}<a class="bouton discret" href="{{ ligne.lire_locale }}">Parcourir les compétences</a>{% endif %}
 {% if ligne.lire %}<a class="bouton discret" id="parcourir-{{ ligne.reference }}" href="{{ ligne.lire }}">Parcourir les compétences</a>{% endif %}
 
 

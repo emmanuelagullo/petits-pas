@@ -7,6 +7,7 @@ from suivi.identites_referentiels import identifiant_source_classe, identifiant_
 from suivi.models import Classe, Ecole, SourceReferentiel
 
 from .catalogues_externes import adresse_grist, edition_grist, identite_grist, lire_catalogue_grist, reglages_catalogues_classe
+from .identites_grist import classes_grist_locales
 from .import_sources_referentiels import importer_source
 
 
@@ -34,8 +35,11 @@ def actualiser_editions_connues(utilisateur, classe, catalogue, *, manuelle=Fals
     nombre = 0
     ecole = classe.ecole
     pour_ecole = autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole)
+    locales = classes_grist_locales(ecole)
     for referentiel in catalogue["referentiels"]:
         reference = referentiel["reference"]
+        if referentiel.get("contenu_courant") and reference in locales:
+            continue
         numero = max(referentiel["editions"])
         identifiant = identite_grist(catalogue["url"], reference)
         source_classe = identifiant_source_classe(classe, identifiant)
