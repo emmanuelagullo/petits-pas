@@ -59,6 +59,20 @@ class AjoutsLocaux(Base):
         self.assertRedirects(self.client.post(url, {"retour": catalogue}), catalogue)
         self.assertContains(self.client.get(catalogue), 'data-licences-visibles="0"')
 
+    def test_reglage_licence_classe_reste_dans_les_competences(self):
+        self.adopter()
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        reglages = reverse("referentiel_classe", args=[self.classe.pk])
+        action = reverse("politique_licence_classe", args=[self.classe.pk])
+        self.assertContains(self.client.get(catalogue), 'id="licence-nouvelles-competences"')
+        self.assertNotContains(self.client.get(reglages), 'id="licence-nouvelles-competences"')
+        self.assertRedirects(
+            self.client.post(action, {"mode": "licence", "licence": "CC0-1.0", "contexte": "q=jardin"}),
+            catalogue + "?q=jardin#licence-nouvelles-competences",
+        )
+        self.classe.refresh_from_db()
+        self.assertEqual(self.classe.politique_licence, "CC0-1.0")
+
     def test_uuid_portable_reutilise_la_competence_a_travers_deux_sources(self):
         from .tests_import_sources_referentiels import document, importer
         from .services.versions_sources_ecoles import definir_version_ecole

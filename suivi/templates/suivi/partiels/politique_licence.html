@@ -1,12 +1,17 @@
-<form class="actions" method="post" data-reglage-licence action="{% if classe %}{% url 'politique_licence_classe' classe.pk %}{% else %}{% url 'politique_licence_ecole' %}{% endif %}">
+<section class="encadre" id="licence-nouvelles-competences" aria-labelledby="titre-licence-nouvelles-competences" data-reglage-licence>
+<h2 id="titre-licence-nouvelles-competences">Licence des nouvelles compétences</h2>
+<p>{% if locale %}Réglage {{ portee }}{% else %}Réglage hérité · {{ niveau }}{% endif %} · <strong>{{ effective }}</strong></p>
+<p class="aide">{% if classe %}Ce défaut s’applique aux nouvelles compétences créées dans la classe.{% else %}Ce défaut s’applique aux nouvelles compétences des classes qui héritent du réglage de l’école.{% endif %}</p>
+<form method="post" action="{% if classe %}{% url 'politique_licence_classe' classe.pk %}{% else %}{% url 'politique_licence_ecole' %}{% endif %}">
 {% csrf_token %}
-<label>Licence des nouvelles compétences
+<input type="hidden" name="contexte" value="{{ contexte }}">
+<p><label>Choix de la licence par défaut
 <select name="mode">
 <option value=""{% if not locale %} selected{% endif %}>Hériter {% if classe %}de l’école{% else %}de l’instance{% endif %}</option>
-<option value="referentiel"{% if locale == "referentiel" %} selected{% endif %}>Utiliser la licence principale du référentiel</option>
-<option value="licence"{% if locale and locale != "referentiel" %} selected{% endif %}>Utiliser une licence donnée</option>
-</select></label>
-<label class="politique-licence-valeur">Licence donnée <input name="licence" maxlength="120" value="{% if locale and locale != 'referentiel' %}{{ locale }}{% endif %}" placeholder="CC-BY-SA-4.0"></label>
-<button class="bouton discret">Enregistrer</button>
-<small class="aide">{{ niveau }} · {{ effective }}</small>
+<option value="referentiel"{% if locale == "referentiel" %} selected{% endif %}>Reprendre la licence du référentiel principal</option>
+<option value="licence"{% if locale and locale != "referentiel" %} selected{% endif %}>Choisir une licence</option>
+</select></label></p>
+<p class="politique-licence-valeur"><label>Licence donnée <input name="licence" maxlength="120" value="{% if locale and locale != 'referentiel' %}{{ locale }}{% endif %}" placeholder="CC-BY-SA-4.0"></label></p>
+<div class="actions"><button class="bouton discret">Enregistrer</button></div>
 </form>
+</section>

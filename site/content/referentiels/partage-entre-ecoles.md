@@ -61,13 +61,13 @@ l’import dans les résultats du catalogue.
 
 ## Afficher les licences
 
-Cochez **©** près des filtres de **Compétences** ou dans l’en-tête des
-réglages du référentiel. Les licences et leurs réglages s’affichent pour la
+Cochez **©** près des filtres de **Compétences** ou dans l’en-tête de
+**Référentiels de l’école**. Les licences et leurs réglages s’affichent pour la
 session. Les avertissements utiles au partage restent visibles dans les deux
 modes.
 
-Dans les réglages de la classe ou de l’école, vous pouvez conserver le choix
-hérité ou définir la licence des nouvelles compétences. Le défaut de Petits
+L’encadré **Licence des nouvelles compétences** permet de conserver le choix
+hérité ou de définir le défaut de la classe ou de l’école. Le défaut de Petits
 Pas est CC BY-SA 4.0. Une compétence reprise conserve les conditions de son
 origine. Un changement de politique s’applique aux nouvelles créations.
 L’administration de l’instance peut fixer son choix avec

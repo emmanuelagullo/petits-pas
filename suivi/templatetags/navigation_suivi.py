@@ -92,13 +92,15 @@ def examen_catalogue_hote(context, echange):
     return {**context.flatten(), **echange, "request": echange["requete_echange"]}
 
 
-@register.inclusion_tag("suivi/partiels/politique_licence.html")
-def reglage_politique_licence(ecole, classe=None):
+@register.inclusion_tag("suivi/partiels/politique_licence.html", takes_context=True)
+def reglage_politique_licence(context, ecole, classe=None):
     from suivi.services.licences_diffusion import politique_licence_effective
 
     niveau, valeur = politique_licence_effective(ecole, classe)
     return {
         "classe": classe, "niveau": niveau,
+        "portee": "de la classe" if classe else "de l’école",
+        "contexte": context["request"].GET.urlencode(),
         "effective": "Licence principale du référentiel" if valeur == "referentiel" else valeur,
         "locale": (classe or ecole).politique_licence,
     }

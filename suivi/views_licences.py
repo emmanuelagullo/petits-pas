@@ -1,4 +1,4 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -35,11 +35,12 @@ def politique_licence(request, classe_pk=None):
         retour = reverse("referentiels_ecole")
     else:
         objet = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
-        retour = reverse("referentiel_classe", args=[classe_pk])
+        retour = reverse("catalogue_competences", args=[classe_pk])
     mode = request.POST.get("mode", "")
     if mode not in {"", "referentiel", "licence"}:
         raise PermissionDenied
     licence = request.POST.get("licence", "").strip()[:120]
     objet.politique_licence = (licence or "CC-BY-SA-4.0") if mode == "licence" else mode
     objet.save(update_fields=["politique_licence"])
-    return redirect(retour)
+    contexte = QueryDict(request.POST.get("contexte", "")[:4096]).urlencode()
+    return redirect(retour + ("?" + contexte if contexte else "") + "#licence-nouvelles-competences")

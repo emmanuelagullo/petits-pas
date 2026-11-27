@@ -52,7 +52,9 @@
   {% if retour_catalogues %}<input type="hidden" name="catalogue_retour" value="{{ request.GET.catalogue_retour }}"><input type="hidden" name="source_retour" value="{{ request.GET.source_retour }}">{% endif %}
   {% if depuis_ajout %}<input type="hidden" name="ajouter" value="1">{% endif %}
   {% for nom, valeur in contexte_ajout.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
-  {% if recherche_initiale %}<input type="hidden" name="recherche_initiale" value="{{ recherche_initiale }}">{% endif %}
+  {% if not saisie_collective and peut_regler_referentiel %}{% reglage_politique_licence classe.ecole classe %}{% endif %}
+
+{% if recherche_initiale %}<input type="hidden" name="recherche_initiale" value="{{ recherche_initiale }}">{% endif %}
   <div class="actions soumission-catalogue">
     <button type="submit" class="bouton discret">Rechercher</button>
     <span data-effacer-recherche>{% if q %}<a href="{{ url_effacer }}">Effacer la recherche</a>{% endif %}</span>
