@@ -11,7 +11,7 @@ from django.shortcuts import redirect, render
 from django.template.defaultfilters import truncatechars
 from django.views.decorators.http import require_http_methods
 
-from .autorisations import GERER_REFERENTIEL_CLASSE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee
+from .autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, MODIFIER_ETAT, VOIR_SUIVI, autorise, charger_classe_autorisee
 from .catalogue_competences import catalogue_classe
 from .consultation_referentiels import cle_recherche_libelle, recherche_par_rubriques, rechercher_apprentissages
 from .contexte_ecole import ecole_courante
@@ -492,6 +492,39 @@ def catalogue(request, pk, saisie_collective=False, *, echange_import=None, echa
         autorisees = choix_bases(classe.ecole, classe.annee_scolaire).versions
         nouveaux = max((v for v in autorisees if v.source_id == adoption.version.source_id
                         and v.pk > adoption.version_id), key=lambda v: v.pk, default=None)
+    if not saisie_collective and autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
+        from .identites_referentiels import competences_document, reference_competence, references_suivi
+        from .services.licences_diffusion import droits_competence, licence_creation_effective, resoudre_licence
+
+        base = adoption.version if adoption else None
+        notices = {}
+        defaut_creation = licence_creation_effective(classe.ecole, classe, adoption, annee=classe.annee_scolaire)
+        if base and base.contenu.get("origine") == "source_declaree":
+            ids = references_suivi(classe.ecole, base)
+            notices = {ids[ref]: droits_competence(base.contenu, c)[0]
+                       for c in competences_document(base.contenu)
+                       if (ref := reference_competence(c)) in ids}
+        for ligne in lignes:
+            locale = ligne["locale"]
+            if locale and locale.suivi_libre:
+                continue
+            competence = ligne["competence"]
+            if locale and not locale.definition.get("variante_de"):
+                ligne["licence_affichee"] = resoudre_licence(
+                    locale.licence_partage, creation=True,
+                    defaut_creation=defaut_creation,
+                )[0]
+            else:
+                origine = notices.get(competence.pk, "")
+                ligne["licence_affichee"] = resoudre_licence(locale.licence_partage if locale else "", origine=origine)[0]
+            if locale and (locale.auteur_id == request.user.pk or autorise(request.user, GERER_REFERENTIEL_ECOLE, classe.ecole)):
+                ligne["lien_licence"] = lien("ajout_classe", classe.pk, locale.pk, retour=url_resultats, ancre="modifier-licence")
+        version_affichee = sources[source][1] if source else None
+        if version_affichee and version_affichee.contenu.get("origine") == "source_declaree":
+            for ligne in disponibles:
+                licence, _ = droits_competence(version_affichee.contenu, ligne["competence"])
+                ligne["licence_affichee"] = resoudre_licence(licence)[0]
+
     contexte = {
         "deplacement": deplacement, "deplacement_en_ligne": deplacement_en_ligne, "url_deplacement": url_deplacement, "url_voir_masquee": url_voir_masquee,
         "a_des_competences_masquees": a_des_competences_masquees,

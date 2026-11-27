@@ -1,0 +1,12 @@
+<form class="actions" method="post" data-reglage-licence action="{% if classe %}{% url 'politique_licence_classe' classe.pk %}{% else %}{% url 'politique_licence_ecole' %}{% endif %}">
+{% csrf_token %}
+<label>Licence des nouvelles compétences
+<select name="mode">
+<option value=""{% if not locale %} selected{% endif %}>Hériter {% if classe %}de l’école{% else %}de l’instance{% endif %}</option>
+<option value="referentiel"{% if locale == "referentiel" %} selected{% endif %}>Utiliser la licence principale du référentiel</option>
+<option value="licence"{% if locale and locale != "referentiel" %} selected{% endif %}>Utiliser une licence donnée</option>
+</select></label>
+<label class="politique-licence-valeur">Licence donnée <input name="licence" maxlength="120" value="{% if locale and locale != 'referentiel' %}{{ locale }}{% endif %}" placeholder="CC-BY-SA-4.0"></label>
+<button class="bouton discret">Enregistrer</button>
+<small class="aide">{{ niveau }} · {{ effective }}</small>
+</form>

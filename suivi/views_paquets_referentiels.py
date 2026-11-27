@@ -195,7 +195,6 @@ def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False
     from .icones_partagees import empreinte_png, decoder_icone, png_en_ligne
 
     source = {k: donnees[k] for k in ("identifiant", "titre", "provenance", "licence")}
-    source["licence_creations"] = donnees.get("licence_creations", "")
     document = preparer_referentiel_classe(classe, source, donnees["version"])
     from .services.licences_diffusion import LICENCE_PROPOSEE, droits_competence, resoudre_licence
     from .services.partage_referentiel_classe import (
@@ -205,7 +204,7 @@ def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False
     document["source"]["licence"] = resoudre_licences_classe(adoption_courante(classe), document)
     reglage_creations = licence_creations_classe(adoption_courante(classe))
     contexte["proposition_creations_partage"] = compter_creations_sans_licence(classe, document) if not reglage_creations else 0
-    contexte["licence_proposee_creations_partage"] = source["licence_creations"] or reglage_creations or LICENCE_PROPOSEE
+    contexte["licence_proposee_creations_partage"] = reglage_creations or LICENCE_PROPOSEE
     droits = [(c["libelle"], droits_competence(document, c)[0]) for c in competences_document(document)]
     contexte["revisions_licence"] = [libelle for libelle, licence in droits if resoudre_licence(licence)[1]]
     contexte["references_licence"] = [reference_competence(c) for c in competences_document(document)
@@ -312,11 +311,7 @@ def partage_classe(request, classe, contexte, action):
     contexte["modifier_partage"] = False
     sauvegardees = informations_partage(classe, adoption)[0].get("competences_licence_confirmee", [])
     portee = contexte["references_licence"] if action == "enregistrer-partage" and contexte["references_licence"] else sauvegardees
-    licence_creations = donnees.get("licence_creations") or initial.get("licence_creations", "")
-    if contexte["proposition_creations_partage"] and action in {"telecharger-classe", "exporter-classe", "publier-grist"}:
-        licence_creations = contexte["licence_proposee_creations_partage"]
-    enregistrement = {"donnees": {**donnees, "competences_licence_confirmee": portee,
-                                 "licence_creations": licence_creations},
+    enregistrement = {"donnees": {**donnees, "competences_licence_confirmee": portee},
                       "adoption": adoption, "licences_sources": licences}
     if action == "telecharger-icones-classe":
         from .icones_partagees import externaliser_png
@@ -444,7 +439,7 @@ def partage_selection_classe(request, classe, contexte):
             resume_licences_manquantes=f"Licence d’origine non renseignée · {len(manquantes)}",
             resume_licence_creation=f"{licence_creation} proposée · {len(creations)} création"
                 + ("s" if len(creations) != 1 else ""),
-            choix_licences=sorted(LICENCES_RECONNUES),
+            choix_licences=sorted(LICENCES_RECONNUES | {licence_creation}),
             licence_confirmee=licence, licence_creation=licence_creation, nombre_creations=len(creations),
             titre_selection=titre, sources_selection=sources,
             conflits_selection=conflits,

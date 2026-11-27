@@ -46,7 +46,7 @@
 {% endif %}
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
-<form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
+<div class="recherche-avec-licences"><form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
   <label for="q">Rechercher une compétence</label>
   <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if depuis_ajout and not saisie_collective %} autofocus{% endif %}>
   {% if retour_catalogues %}<input type="hidden" name="catalogue_retour" value="{{ request.GET.catalogue_retour }}"><input type="hidden" name="source_retour" value="{{ request.GET.source_retour }}">{% endif %}
@@ -101,6 +101,9 @@
   </div>
   <div data-filtres-actifs>{% include "suivi/partiels/filtres_actifs_catalogue.html" %}</div>
 </form>
+{% if not saisie_collective and peut_regler_referentiel %}{% include "suivi/partiels/commutateur_licences.html" %}{% endif %}
+</div>
+
 {% if recherche_initiale %}<p><a href="{{ recherche_initiale }}">Revenir à la recherche initiale</a></p>{% endif %}
 {% if partage_depuis_catalogue %}
 <p data-raccourci-partage hidden><a href="#partager-competences">Aller au partage</a></p>

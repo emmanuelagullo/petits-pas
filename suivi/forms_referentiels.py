@@ -144,9 +144,6 @@ class CorrespondanceCompetenceForm(forms.Form):
 class PartageReferentielClasseForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        from .services.licences_diffusion import LICENCES_RECONNUES
-
-        self.fields["licence_creations"].choices += [(licence, licence) for licence in sorted(LICENCES_RECONNUES)]
         for champ in self.fields.values():
             champ.widget.attrs["form"] = "informations-partage-classe"
 
@@ -159,5 +156,3 @@ class PartageReferentielClasseForm(forms.Form):
                                max_length=80, initial="1")
     provenance = forms.CharField(label="Provenance et crédits", max_length=4000, widget=forms.Textarea(attrs={"rows": 3}))
     licence = forms.CharField(label="Licence", max_length=120, required=False)
-    licence_creations = forms.ChoiceField(label="Licence proposée pour les créations sans licence", required=False,
-                                         choices=(("", "Réglage de la classe (CC BY-SA 4.0 par défaut)"),))

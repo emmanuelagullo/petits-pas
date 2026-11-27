@@ -51,6 +51,8 @@ class Ecole(models.Model):
     l'école pour que l'ouverture à plusieurs établissements ne demande pas
     de migration douloureuse."""
 
+    politique_licence = models.CharField(max_length=120, blank=True, default="")
+
     PREPARATION = "preparation"
     ACTIVE = "active"
     DESACTIVEE = "desactivee"
@@ -183,6 +185,7 @@ class PolitiqueDoubleFacteurEcole(models.Model):
 
 
 class Classe(models.Model):
+    politique_licence = models.CharField(max_length=120, blank=True, default="")
     PREPARATION = "preparation"
     ACTIVE = "active"
     ARCHIVEE = "archivee"

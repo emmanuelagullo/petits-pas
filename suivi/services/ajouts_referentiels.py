@@ -173,6 +173,10 @@ def creer_ajout(*, utilisateur, ecole, annee, domaine_id, libelle, niveau, class
                 })
     locale = CompetenceLocale(suivi_libre=suivi_libre, ecole=ecole, competence=competence, classe_origine=classe,
                              auteur=utilisateur, definition=definition)
+    if not suivi_libre and variante_de is None:
+        from .licences_diffusion import licence_creation_effective
+
+        locale.licence_partage = licence_creation_effective(ecole, classe, adoption, annee=annee)
     locale.full_clean()
     locale.save()
     choix = DisponibiliteCompetenceLocale(locale=locale, annee_scolaire=annee, classe=classe, auteur=utilisateur)

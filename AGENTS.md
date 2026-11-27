@@ -402,9 +402,12 @@ exports d'école.
   ni synchronisation, et n'écarte aucune compétence. Utiliser
   `resoudre_licence()` dans `suivi/services/licences_diffusion.py` pour reprendre
   les conditions renseignées, puis celles de la provenance, puis le défaut.
-  Préserver les crédits et les conditions personnalisées. Proposer CC BY-SA
-  4.0 pour les créations locales sans licence et « Licence d’origine non
-  renseignée » pour les contenus repris. Signaler le défaut en orange de
+  Préserver les crédits et les conditions personnalisées. Pour les créations,
+  utiliser `licence_creation_effective()` dans le même module. La classe hérite
+  de l’école, l’école de l’instance, l’instance de l’application (CC BY-SA 4.0).
+  Garder « Licence d’origine non renseignée » en dernier recours pour les
+  contenus repris. Masquer les réglages ordinaires derrière la case © de la
+  session, sans masquer les avertissements utiles à l’action. Signaler le défaut en orange de
   manière groupée. Le réglage reste facultatif et l'action principale valide
   directement le choix affiché. Garder des notices compactes communes au ZIP
   et à Grist, avec des exceptions individuelles seulement si nécessaire.

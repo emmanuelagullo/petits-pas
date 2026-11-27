@@ -3,7 +3,7 @@
 {% if retour_export_ecole %}<p><a class="bouton discret" href="{{ retour_export_ecole }}">Choisir une autre classe</a></p>{% endif %}
 {% if peut_importer %}<h3>Partager le référentiel courant de cette classe</h3>{% endif %}
 {% if partage_classe %}
-<p><strong>{{ informations_partage.titre }}</strong> · {% if nombre_licences_partage > 1 %}{{ nombre_licences_partage }} licences conservées{% elif informations_partage.licence %}{{ informations_partage.licence }}{% else %}<span class="pastille alerte">Licence à vérifier</span>{% endif %} · Édition {{ informations_partage.version }}</p>
+<p><strong>{{ informations_partage.titre }}</strong><span data-reglage-licence> · {% if nombre_licences_partage > 1 %}{{ nombre_licences_partage }} licences conservées{% elif informations_partage.licence %}{{ informations_partage.licence }}{% else %}<span class="pastille alerte">Licence à vérifier</span>{% endif %}</span> · Édition {{ informations_partage.version }}</p>
 <p>Dérivé de {{ base_du_partage.source.titre }}, édition {{ base_du_partage.numero }}.</p>
 {% if proposition_creations_partage %}
 <p><span class="pastille alerte">{{ licence_proposee_creations_partage }} proposée · {{ proposition_creations_partage }} création{{ proposition_creations_partage|pluralize }}</span></p>

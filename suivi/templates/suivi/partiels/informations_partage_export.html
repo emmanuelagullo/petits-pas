@@ -1,6 +1,12 @@
 <details{% if modifier_partage %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Informations de partage" only %}
-{{ partage_classe.as_p }}
+{{ partage_classe.non_field_errors }}
+{% for champ in partage_classe %}
+<p{% if champ.name == "licence" %}{% if not edition_licence_sur_place and not revisions_licence and not champ.errors %} data-reglage-licence{% endif %}{% endif %}>
+{{ champ.errors }}{{ champ.label_tag }} {{ champ }}
+{% if champ.help_text %}<small>{{ champ.help_text }}</small>{% endif %}
+</p>
+{% endfor %}
 <p class="actions">
 <button class="bouton{% if not edition_licence_sur_place %} discret{% endif %}" form="informations-partage-classe" name="action" value="enregistrer-partage">Enregistrer les informations</button>
 </p>

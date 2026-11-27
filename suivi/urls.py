@@ -4,10 +4,14 @@ from django.urls import path, reverse_lazy
 from pwa import partage_grist, referentiel_equipe
 
 from . import views_catalogue, views_rubriques, views_suivi_libre
+from . import views_licences
 from . import views_paquets_referentiels, views_propositions_referentiels, views_catalogues_referentiels
 from . import views, views_double_facteur_ecole, views_presentation, views_referentiels, views_ajouts_referentiels, views_correspondances_referentiels, views_exports, views_exports_classe
 
 urlpatterns = [
+    path("affichage/licences/", views_licences.affichage_licences, name="affichage_licences"),
+    path("gestion/referentiels/politique-licence/", views_licences.politique_licence, name="politique_licence_ecole"),
+    path("classe/<int:classe_pk>/referentiel/politique-licence/", views_licences.politique_licence, name="politique_licence_classe"),
     path("classe/<int:pk>/referentiel/equipe-grist/", referentiel_equipe.espace, name="referentiel_equipe_grist"),
     path("classe/<int:pk>/referentiel/equipe-grist/transfert/", referentiel_equipe.transfert,
          name="transfert_equipe_grist"),

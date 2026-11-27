@@ -3,6 +3,9 @@
   {% include "suivi/partiels/case_partage_catalogue.html" with cle=ligne.competence.pk libelle=ligne.competence.libelle source_partage="classe" only %}
   {% endif %}
   {% include "suivi/partiels/ligne_catalogue.html" %}
+  {% if ligne.licence_affichee %}
+  <span data-reglage-licence class="aide"> · {{ ligne.licence_affichee }}{% if ligne.lien_licence %} · <a href="{{ ligne.lien_licence }}">Modifier les conditions de partage</a>{% endif %}</span>
+  {% endif %}
   {% if ligne.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
   {% if afficher_classement %}<small> · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>{% endif %}
   {% if ligne.choix_portee or ligne.ajout_au_suivi or ligne.competence.active or ligne.deplacement or ligne.visibilite %}

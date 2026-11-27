@@ -1,0 +1,9 @@
+<form class="commutateur-licences" method="post" action="{% url 'affichage_licences' %}" data-commutateur-licences>
+{% csrf_token %}
+<input type="hidden" name="retour" value="{{ request.get_full_path }}">
+<label title="Afficher les licences et leurs réglages pour cette session. Cocher cette case ne change aucune licence.">
+<input type="checkbox" name="visible" value="1" aria-label="Afficher les licences et leurs réglages"{% if request.session.afficher_licences %} checked{% endif %}>
+<span aria-hidden="true">©</span>
+</label>
+<button class="bouton discret">Appliquer</button>
+</form>

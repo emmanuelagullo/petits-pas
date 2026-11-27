@@ -75,3 +75,31 @@ def encoder_droits(document, par_code, *, conserver_defaut=False):
         document["droits"] = notices
     else:
         document.pop("droits", None)
+
+
+REGLE_REFERENTIEL = "referentiel"
+
+
+def politique_licence_effective(ecole, classe=None):
+    from django.conf import settings
+
+    for niveau, valeur in (
+        ("Classe", classe.politique_licence if classe else ""),
+        ("École", ecole.politique_licence),
+        ("Instance", settings.POLITIQUE_LICENCE_INSTANCE),
+        ("Application", LICENCE_PROPOSEE),
+    ):
+        if valeur.strip():
+            return niveau, valeur.strip()
+
+
+def licence_creation_effective(ecole, classe=None, adoption=None, *, annee=None):
+    _, politique = politique_licence_effective(ecole, classe)
+    if politique == REGLE_REFERENTIEL:
+        version = adoption.version if adoption else None
+        if version is None and annee:
+            from .choix_bases_referentiels import choix_bases
+            version = choix_bases(ecole, annee).proposee
+        licence = version.contenu.get("source", {}).get("licence") if version else ""
+        return resoudre_licence(licence, creation=True)[0]
+    return resoudre_licence(creation=True, defaut_creation=politique)[0]

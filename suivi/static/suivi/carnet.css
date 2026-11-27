@@ -1385,3 +1385,13 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
   .ligne-selection-rubrique > .choix-partage-rubrique { position: static; text-align: end; }
   .ligne-selection-rubrique.avec-selection > details > summary { max-inline-size: 100%; }
 }
+
+body:not([data-licences-visibles="1"]) [data-reglage-licence] { display: none; }
+.entete-avec-licences { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; }
+.commutateur-licences { margin: 0; white-space: nowrap; }
+.commutateur-licences label { display: inline-flex; align-items: center; gap: .25rem; min-height: 24px; cursor: pointer; }
+.commutateur-licences input[type="checkbox"] { width: auto; }
+.affichage-licences-dynamique .commutateur-licences:not(.affichage-licences-reessayer) button { display: none; }
+.recherche-avec-licences { display: flex; align-items: flex-end; gap: .5rem; }
+.recherche-avec-licences > .recherche-catalogue { flex: 1; min-width: 0; }
+[data-reglage-licence]:has(select[name="mode"] option[value="licence"]:not(:checked)) .politique-licence-valeur { display: none; }

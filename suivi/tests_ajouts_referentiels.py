@@ -35,6 +35,30 @@ class AjoutsLocaux(Base):
             adoption_attendue=adoption.pk if classe else None,
             domaine_id=adoption.contenu["domaines"][0]["id"], libelle="Je trie des objets fictifs", niveau="PS", **options)
 
+    @override_settings(POLITIQUE_LICENCE_INSTANCE="CC0-1.0")
+    def test_politique_licence_heritee_sans_modifier_les_creations_existantes(self):
+        from .services.licences_diffusion import licence_creation_effective
+
+        ajout = self.creer()
+        self.assertEqual(ajout.licence_partage, "CC0-1.0")
+        self.ecole.politique_licence = "CC-BY-4.0"
+        self.ecole.save(update_fields=["politique_licence"])
+        self.assertEqual(licence_creation_effective(self.ecole, self.classe), "CC-BY-4.0")
+        self.classe.politique_licence = "CC-BY-SA-4.0"
+        self.assertEqual(licence_creation_effective(self.ecole, self.classe), "CC-BY-SA-4.0")
+        ajout.refresh_from_db()
+        self.assertEqual(ajout.licence_partage, "CC0-1.0")
+
+    def test_affichage_licences_persiste_dans_la_session(self):
+        url = reverse("affichage_licences")
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        self.assertContains(self.client.get(catalogue), 'data-licences-visibles="0"')
+        reponse = self.client.post(url, {"visible": "1"}, HTTP_ACCEPT="application/json")
+        self.assertEqual(reponse.json(), {"visible": True})
+        self.assertContains(self.client.get(catalogue), 'data-licences-visibles="1"')
+        self.assertRedirects(self.client.post(url, {"retour": catalogue}), catalogue)
+        self.assertContains(self.client.get(catalogue), 'data-licences-visibles="0"')
+
     def test_uuid_portable_reutilise_la_competence_a_travers_deux_sources(self):
         from .tests_import_sources_referentiels import document, importer
         from .services.versions_sources_ecoles import definir_version_ecole

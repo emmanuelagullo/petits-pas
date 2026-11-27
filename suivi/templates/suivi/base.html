@@ -17,8 +17,9 @@
 <script src="{% static 'suivi/panneaux-filtres.js' %}" defer></script>
 <script src="{% static 'suivi/sommaire-page.js' %}" defer></script>
 {% endif %}
+<script src="{% static 'suivi/affichage-licences.js' %}" defer></script>
 </head>
-<body>
+<body data-licences-visibles="{{ request.session.afficher_licences|yesno:'1,0,0' }}">
 {% if partage_grist_disponible and request.user.is_authenticated and not generation_pdf %}
 <div hidden data-synchroniser-grist="{% url 'synchroniser_grist' %}">{% csrf_token %}</div>
 {% endif %}

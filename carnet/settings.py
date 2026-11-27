@@ -416,3 +416,6 @@ MAINTENANCE_ANNONCE = os.environ.get("CARNET_MAINTENANCE_ANNONCE", "")
 
 GRIST_PARTAGE_SERVEUR = os.environ.get("CARNET_GRIST_PARTAGE_SERVEUR", "") == "oui"
 GRIST_MODELE_URL = os.environ.get("CARNET_GRIST_MODELE_URL", "")
+
+# Vide : hériter du défaut Petits Pas. « referentiel » : utiliser sa licence principale.
+POLITIQUE_LICENCE_INSTANCE = os.environ.get("PETITS_PAS_POLITIQUE_LICENCE", "")

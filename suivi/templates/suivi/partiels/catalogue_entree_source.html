@@ -4,6 +4,9 @@
   {% endif %}
   <strong>{{ ligne.competence.libelle }}</strong>
   <small> · {{ ligne.competence.niveau }}{% if afficher_classement %} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}{% endif %} · {% if ligne.deja_suivie %}Déjà suivie{% else %}Hors suivi{% endif %}</small>
+  {% if ligne.licence_affichee %}
+  <span data-reglage-licence class="aide"> · {{ ligne.licence_affichee }}{% if ligne.lien_licence %} · <a href="{{ ligne.lien_licence }}">Modifier les conditions de partage</a>{% endif %}</span>
+  {% endif %}
   {% if ligne.gestion.competence_masquee %}<small> · Retirée du suivi</small>{% endif %}
   {% if ligne.gestion.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
   {% if deplacement and ligne.gestion.competence.pk == deplacement.competence.id %}

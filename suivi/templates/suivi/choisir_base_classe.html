@@ -1,10 +1,14 @@
 {% extends "suivi/base.html" %}
-{% load static %}
+{% load static navigation_suivi %}
 {% block titre %}{% if actuelle %}Réglages du référentiel{% else %}Choisir le référentiel{% endif %}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel">
 {% if actuelle %}{% include "suivi/partiels/ariane.html" with page="Réglages du référentiel" %}{% else %}{% include "suivi/partiels/ariane.html" with page="Choisir le référentiel" %}{% endif %}
-<h1>{% if actuelle %}Réglages du référentiel{% else %}Choisir le référentiel{% endif %}</h1>
+<div class="entete-avec-licences"><h1>{% if actuelle %}Réglages du référentiel{% else %}Choisir le référentiel{% endif %}</h1>{% include "suivi/partiels/commutateur_licences.html" %}</div>
+{% reglage_politique_licence classe.ecole classe %}
+{% if actuelle and not actuelle.clos and classe.etat == classe.ACTIVE %}
+<p data-reglage-licence><a href="{% url 'paquets_referentiels_classe' classe.pk %}?interface=export-classe&amp;volet=exporter#partager-competences">Modifier les informations de partage du référentiel</a></p>
+{% endif %}
 {% if actuelle %}<p>Base actuelle : <strong>{{ actuelle.version.source.titre }}</strong> — version {{ actuelle.version.numero }}.</p>{% if actuelle.selection_manuelle %}<p>Suivi construit compétence par compétence.{% if peut_voir_catalogue %} <a href="{% url 'catalogue_competences' classe.pk %}">Ouvrir le catalogue</a>.{% endif %}</p>{% endif %}{% if actuelle.initialisee_depuis_ecole %}<p>Cette base a été préparée depuis la proposition de l’école lors de la création de la classe. Elle reste conservée si l’école change ensuite sa proposition.</p>{% endif %}{% endif %}
 <p>Adaptez les compétences à votre classe tout en conservant leur suivi. Les réglages courants ci-dessous complètent la base actuelle ; changer toute la base et relier des compétences sont deux démarches distinctes, accessibles dans les blocs Avancé.</p>
 <p><a href="{% url 'consulter_referentiels_classe' classe.pk %}">Consulter les référentiels sans modifier les choix →</a></p>

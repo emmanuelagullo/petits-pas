@@ -4,7 +4,8 @@
 {% block contenu %}
 <div class="page-referentiel">
 {% ariane_gestion "Référentiels de l’école" %}
-<h1>Référentiels de l'école</h1>
+<div class="entete-avec-licences"><h1>Référentiels de l'école</h1>{% include "suivi/partiels/commutateur_licences.html" %}</div>
+{% reglage_politique_licence ecole %}
 {% url 'paquets_referentiels_ecole' as url_echange %}
 <p><a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a>
 <a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ annee }}">Découvrir des référentiels</a>

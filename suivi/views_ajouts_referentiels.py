@@ -134,7 +134,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         classe=classe, competence=locale.competence).first() if locale else None
     definition = definition_effective_ajout(locale) if locale else None
     proposee = contenu_adapte(ecole, annee, definition)["competences"][0] if locale else None
-    from .services.licences_diffusion import resoudre_licence
+    from .services.licences_diffusion import licence_creation_effective, resoudre_licence
 
     licence_proposee, licence_est_proposee = "", False
     licence_origine = ""
@@ -151,7 +151,16 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             licence_origine = source.licence if source else ""
         licence_proposee, licence_est_proposee = resoudre_licence(
             locale.licence_partage, origine=licence_origine, creation=not origine_declaree,
+            defaut_creation=licence_creation_effective(ecole, classe, adoption, annee=annee),
         )
+    peut_corriger_licence = bool(locale and not locale.suivi_libre
+                                 and (locale.auteur_id == request.user.pk or direction))
+    if request.method == "POST" and request.POST.get("action") == "corriger-licence":
+        if not peut_corriger_licence:
+            raise PermissionDenied
+        licence, _ = resoudre_licence(request.POST.get("licence", "")[:120], origine=licence_proposee)
+        CompetenceLocale.objects.filter(pk=locale.pk).update(licence_partage=licence)
+        return redirect(request.get_full_path() + "#modifier-licence")
     phrases_partage = propositions(locale.competence, classe) if locale and not locale.suivi_libre else []
     if request.method == "POST" and request.POST.get("action") == "partager":
         from .services.paquets_referentiels import exporter_ajout
@@ -333,7 +342,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         "direction": direction, "ouvert": ouvert, "variante": variante,
         "proposer_variante_doublon": bool(classe and ouvert),
         "icone_variante": bool(icone_variante or png_variante), "phrases_variante": phrases_variante, "relais_possible": not externe and not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "licence_proposee": licence_proposee, "licence_est_proposee": licence_est_proposee, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
+        "origine": origine, "licence_proposee": licence_proposee, "licence_est_proposee": licence_est_proposee, "peut_corriger_licence": peut_corriger_licence, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
         "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
         "classement": classement, "usages_classement": usages_visibles,

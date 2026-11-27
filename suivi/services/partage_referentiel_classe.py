@@ -135,8 +135,9 @@ def preparer_referentiel_classe(classe, source, version):
 
 
 def licence_creations_classe(adoption):
-    choix = InformationsPartageReferentielClasse.objects.filter(classe=adoption.classe, adoption=adoption).first()
-    return choix.donnees.get("licence_creations", "") if choix else ""
+    from .licences_diffusion import licence_creation_effective
+
+    return licence_creation_effective(adoption.classe.ecole, adoption.classe, adoption)
 
 
 def compter_creations_sans_licence(classe, document):

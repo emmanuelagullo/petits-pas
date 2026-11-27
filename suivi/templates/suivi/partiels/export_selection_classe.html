@@ -7,8 +7,8 @@
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_selection.apercu competences_importees=apercu_selection.competences_importees icones_importees=apercu_selection.icones_importees partage=True sans_entete=True only %}
 {% if licences_selection %}
-<p class="aide">Licences et conditions de partage</p>
-<ul>{% for licence in licences_selection %}<li>{{ licence|urlize }}</li>{% endfor %}</ul>
+<div data-reglage-licence><p class="aide">Licences et conditions de partage</p>
+<ul>{% for licence in licences_selection %}<li>{{ licence|urlize }}</li>{% endfor %}</ul></div>
 {% endif %}
 </details>{% endif %}
 <form method="post" action="#export-referentiel">
@@ -36,7 +36,7 @@
 </details>
 {% endif %}
 {% if nombre_creations or licences_manquantes or licence_confirmee %}
-<details class="licences-export">
+<details class="licences-export"{% if not licences_manquantes and not nombre_creations %} data-reglage-licence{% endif %}>
 {% if licences_manquantes %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle=resume_licences_manquantes pastille="alerte" only %}
 
@@ -60,7 +60,7 @@
 </details>
 {% endif %}
 {% if not conflits_selection and nombre_exportable %}
-{% if nombre_licences > 1 %}<span class="aide">{{ nombre_licences }} licences conservées</span>{% endif %}
+{% if nombre_licences > 1 %}<span data-reglage-licence class="aide">{{ nombre_licences }} licences conservées</span>{% endif %}
 <button class="bouton" name="action" value="telecharger-selection-classe">Télécharger le ZIP de la sélection</button>
 {% endif %}
 </form>
