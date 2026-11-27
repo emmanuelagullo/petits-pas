@@ -29,12 +29,15 @@
 {% endif %}
 {% endif %}
 </div>
-{% if peut_regler_referentiel and classe.etat == classe.ACTIVE and adoption and not adoption.clos %}
+{% if peut_regler_referentiel %}
 <details class="menu-competence-catalogue" data-panneau-filtre>
 <summary class="bouton bouton-depliant discret" aria-label="Autres actions sur les référentiels">⋯</summary>
+{% if classe.etat == classe.ACTIVE and adoption and not adoption.clos %}
 <form method="post" action="{% url 'proposer_referentiel_classe' classe.pk %}">{% csrf_token %}
 <button class="bouton discret" name="action" value="examiner-classe">Proposer au catalogue de l’école</button>
 </form>
+{% endif %}
+{% include "suivi/partiels/options_licences.html" with ecole=classe.ecole %}
 </details>
 {% endif %}
 </div>
@@ -46,14 +49,12 @@
 {% endif %}
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
-<div class="recherche-avec-licences"><form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
+<form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
   <label for="q">Rechercher une compétence</label>
   <input type="search" id="q" name="q" value="{{ q }}" maxlength="300"{% if depuis_ajout and not saisie_collective %} autofocus{% endif %}>
   {% if retour_catalogues %}<input type="hidden" name="catalogue_retour" value="{{ request.GET.catalogue_retour }}"><input type="hidden" name="source_retour" value="{{ request.GET.source_retour }}">{% endif %}
   {% if depuis_ajout %}<input type="hidden" name="ajouter" value="1">{% endif %}
   {% for nom, valeur in contexte_ajout.items %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
-  {% if not saisie_collective and peut_regler_referentiel %}{% reglage_politique_licence classe.ecole classe %}{% endif %}
-
 {% if recherche_initiale %}<input type="hidden" name="recherche_initiale" value="{{ recherche_initiale }}">{% endif %}
   <div class="actions soumission-catalogue">
     <button type="submit" class="bouton discret">Rechercher</button>
@@ -103,8 +104,6 @@
   </div>
   <div data-filtres-actifs>{% include "suivi/partiels/filtres_actifs_catalogue.html" %}</div>
 </form>
-{% if not saisie_collective and peut_regler_referentiel %}{% include "suivi/partiels/commutateur_licences.html" %}{% endif %}
-</div>
 
 {% if recherche_initiale %}<p><a href="{{ recherche_initiale }}">Revenir à la recherche initiale</a></p>{% endif %}
 {% if partage_depuis_catalogue %}

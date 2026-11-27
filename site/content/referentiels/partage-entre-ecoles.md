@@ -61,8 +61,8 @@ l’import dans les résultats du catalogue.
 
 ## Afficher les licences
 
-Cochez **©** près des filtres de **Compétences** ou dans l’en-tête de
-**Référentiels de l’école**. Les licences et leurs réglages s’affichent pour la
+Ouvrez **[…]** en haut de **Compétences** ou de **Référentiels de l’école**,
+puis cochez **©**. Les licences et leurs réglages s’affichent pour la
 session. Les avertissements utiles au partage restent visibles dans les deux
 modes.
 

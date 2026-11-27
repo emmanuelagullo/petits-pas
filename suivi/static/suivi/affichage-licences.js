@@ -29,5 +29,10 @@
       caseLicence.disabled = false;
     }
   });
+  const cible = document.getElementById(location.hash.slice(1));
+  if (cible?.matches('#menu-licences, #licence-nouvelles-competences')) {
+    const menu = cible.closest('details');
+    if (menu) menu.open = true;
+  }
   document.documentElement.classList.add('affichage-licences-dynamique');
 })();
