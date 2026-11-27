@@ -49,17 +49,17 @@
     for (const etiquette of cases) {
       const casePartage = etiquette.querySelector('input');
       etiquette.hidden = !actif;
-      casePartage.checked = coches.has(casePartage.value);
+      casePartage.checked = actif && coches.has(casePartage.value);
       if (casePartage.checked) actifs.add(casePartage.value);
     }
     const selection = JSON.stringify([...coches.keys()].sort());
     if (selection !== signature && preparation === 'selection') fermerPreparation();
     signature = selection;
-    const total = coches.size;
+    const total = actif ? coches.size : 0;
     const horsFiltre = total - actifs.size;
     partage.querySelector('[data-resume-partage]').textContent = total
       ? `${total} compétence${total > 1 ? 's' : ''} cochée${total > 1 ? 's' : ''}` : '';
-    exportClasse.hidden = Boolean(source) || (actif && total > 0);
+    exportClasse.hidden = Boolean(source) || total > 0;
     commencer.classList.toggle('discret', !exportClasse.hidden || actif);
     for (const bouton of resultats.querySelectorAll('[data-cocher-resultats]')) {
       const casesZone = casesDans(bouton);
@@ -83,6 +83,7 @@
     listeDepliable.hidden = !total;
     valeurs.replaceChildren();
     liste.replaceChildren();
+    if (!actif) return;
     for (const [cle, libelle] of coches) {
       const champ = document.createElement('input');
       champ.type = 'hidden';
