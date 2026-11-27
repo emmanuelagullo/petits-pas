@@ -36,8 +36,11 @@
 {% csrf_token %}
 <input type="hidden" name="espace_attendu" value="{{ espace_attendu }}">
 <input type="hidden" name="changement" value="{{ document_a_confirmer }}">
-<label for="grist">Lien du document Grist</label>
-<input id="grist" name="grist" type="url" value="{{ grist }}" maxlength="300" required{% if champ_erreur == "grist" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}>
+{% if champ_erreur == "grist" %}
+{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="grist" champ_catalogue="grist" libelle="Lien du document Grist" edition_lien=True requis=True longueur_lien=300 selection=grist erreur_lien="erreur-raccordement" %}
+{% else %}
+{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="grist" champ_catalogue="grist" libelle="Lien du document Grist" edition_lien=True requis=True longueur_lien=300 selection=grist %}
+{% endif %}
 <p>La synchronisation publie les rubriques et compétences communes visibles, avec leurs textes et illustrations pédagogiques. Un document public est accessible aux personnes qui obtiennent son lien.</p>
 <label><input name="confirmer" type="checkbox" value="oui" aria-required="true"{% if confirmer %} checked{% endif %}{% if champ_erreur == "confirmer" %} aria-invalid="true" aria-describedby="erreur-raccordement"{% endif %}> Partager le référentiel de cette classe dans cet espace</label>
 {% if champ_erreur == "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement">{{ erreur }}</li></ul>{% endif %}

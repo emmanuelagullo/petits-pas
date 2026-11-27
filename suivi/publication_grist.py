@@ -8,8 +8,8 @@ from .icones_partagees import externaliser_png
 from .identites_referentiels import competences_document
 from .models import DestinationPublicationGrist, PartageGristClasse
 from .services.catalogues_externes import (
-    MODES_CATALOGUE_GRIST, adresse_grist, catalogues_grist_connus, enregistrer_mode_catalogue_grist,
-    enregistrer_nom_catalogue_grist, numerotation_grist_globale,
+    MODES_CATALOGUE_GRIST, adresse_grist, enregistrer_mode_catalogue_grist,
+    enregistrer_nom_catalogue_grist, numerotation_grist_globale, suggestions_catalogues_grist,
 )
 from .services.publications_grist import destination_grist, meme_contenu_grist, publier_edition_grist, publier_icones_grist
 
@@ -25,18 +25,11 @@ def historique_grist(request, ecole):
 def presenter_publication_grist(request, classe, contexte, identifiant):
     historique = historique_grist(request, classe.ecole)
     precedente = historique.filter(identifiant_local=identifiant).first()
-    destinations = {}
-    if precedente:
-        destinations[precedente.url] = {"url": precedente.url, "nom": precedente.nom, "espace": precedente.espace}
-    for ligne in historique:
-        destinations.setdefault(ligne.url, {"url": ligne.url, "nom": ligne.nom, "espace": ligne.espace})
-    reglages = classe.ecole.catalogues_referentiels
-    for url, catalogue in catalogues_grist_connus(reglages).items():
-        if url not in destinations and (reglages.get(url, {}).get("suivis") or reglages.get(url, {}).get("catalogue")):
-            destinations[url] = {"url": url, "nom": catalogue["nom"]}
+    prioritaires = [{"url": precedente.url, "nom": precedente.nom, "espace": precedente.espace}] if precedente else []
+    destinations = suggestions_catalogues_grist(request.user, classe.ecole, classe, prioritaires=prioritaires)
     contexte.update(
         nom_catalogue_propose=f"Catalogue de {classe.ecole.nom}"[:200],
-        destinations_grist=list(destinations.values()), derniere_destination=precedente,
+        destinations_grist=destinations, derniere_destination=precedente,
         publication_connue=precedente if precedente and precedente.reference else None, choix_catalogue_grist=precedente.url if precedente else "",
         modes_catalogue_grist=MODES_CATALOGUE_GRIST,
         modele_grist=getattr(settings, "GRIST_MODELE_URL", ""),

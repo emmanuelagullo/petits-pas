@@ -16,7 +16,9 @@
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier le lien" only %}
 <form method="post" action="{{ action_catalogue }}">{% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ groupe.url }}">
-<label>Lien du document Grist <input type="url" name="url" required maxlength="2000" value="{{ groupe.lien_saisi|default:groupe.lien }}"{% if groupe.erreur_lien %} aria-invalid="true"{% endif %}></label>
+{% with id_lien=groupe.ancre|add:"-lien" %}
+{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue=id_lien champ_catalogue="url" libelle="Lien du document Grist" edition_lien=True requis=True selection=groupe.lien_saisi|default:groupe.lien %}
+{% endwith %}
 <button class="bouton discret" name="action" value="modifier-lien-catalogue">Enregistrer le lien</button>
 </form>
 {% if groupe.erreur_lien %}<a class="bouton discret" href="{{ url_catalogues }}?catalogue_invite={{ groupe.lien_saisi|urlencode }}#ajouter-catalogue">Ajouter ce lien comme catalogue</a>{% endif %}

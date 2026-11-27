@@ -27,7 +27,7 @@ from .publication_grist import ACTIONS_GRIST, historique_grist, presenter_public
 from .services.apercu_mises_a_jour import comparer_documents, definitions_document
 from .services.choix_bases_referentiels import choix_bases, publier_choix_application
 from .services.composition_referentiels import catalogue_composition, composer_paquet
-from .services.catalogues_externes import catalogues_grist_connus, edition_grist, identite_grist, lire_catalogue_grist
+from .services.catalogues_externes import catalogues_grist_connus, edition_grist, identite_grist, lire_catalogue_grist, suggestions_catalogues_grist
 from .services.identites_grist import classe_grist_locale
 from .services.import_sources_referentiels import importer_source, lire_source
 from .services.paquets_referentiels import MAX_ARCHIVE, empaqueter, exporter_paquet, exporter_selection, lire_paquet
@@ -333,10 +333,9 @@ def presenter_import_grist(request, ecole, contexte):
     classe = contexte.get("classe")
     reglages = reglages_catalogues_classe(classe) if contexte.get("import_classe") else ecole.catalogues_referentiels
     catalogues = catalogues_grist_connus(reglages)
-    suggestions = dict(catalogues)
-    for publication in historique_grist(request, ecole):
-        suggestions.setdefault(publication.url, {"url": publication.url, "nom": publication.nom,
-                                                 "espace": publication.espace})
+    suggestions = {suggestion["url"]: suggestion for suggestion in suggestions_catalogues_grist(
+        request.user, ecole, classe, prioritaires=catalogues.values(),
+    )}
     choix = request.GET.get("catalogue_import")
     choisi = suggestions.get(choix)
     if choisi and choix not in catalogues and request.method == "GET":

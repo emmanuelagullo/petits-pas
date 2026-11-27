@@ -33,8 +33,7 @@
 {% endif %}
 <form method="post">
 {% csrf_token %}
-<p><label for="lien-catalogue-import">Lien du catalogue Grist</label>
-<input type="url" id="lien-catalogue-import" name="lien_catalogue_import" required maxlength="2000" value="{{ lien_catalogue_import }}"></p>
+<p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="lien-catalogue-import" champ_catalogue="lien_catalogue_import" libelle="Lien du catalogue Grist" edition_lien=True requis=True selection=lien_catalogue_import catalogues=catalogues_import %}</p>
 <button class="bouton discret" name="action" value="ouvrir-catalogue-grist">Afficher les référentiels du lien</button>
 </form>
 {% if not classe and not retour_decouverte %}

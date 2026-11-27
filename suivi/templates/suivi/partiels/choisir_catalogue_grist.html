@@ -1,7 +1,20 @@
+{% load catalogues_grist %}
+{% if edition_lien and not catalogues %}{% catalogues_grist_suggeres as catalogues %}{% endif %}
 <label for="{{ id_catalogue }}">{{ libelle }}</label>
+{% if edition_lien %}
+<input type="url" id="{{ id_catalogue }}" name="{{ champ_catalogue }}" value="{{ selection }}" maxlength="{{ longueur_lien|default:2000 }}"{% if requis %} required{% endif %}{% if catalogues %} list="{{ id_catalogue }}-suggestions"{% endif %}{% if erreur_lien %} aria-invalid="true" aria-describedby="{{ erreur_lien }}"{% endif %}>
+{% if catalogues %}
+<datalist id="{{ id_catalogue }}-suggestions">
+{% for catalogue in catalogues %}
+<option value="{{ catalogue.lien|default:catalogue.url }}">{{ catalogue.nom }}{% if catalogue.espace %} · {{ catalogue.espace }}{% endif %}</option>
+{% endfor %}
+</datalist>
+{% endif %}
+{% else %}
 <select name="{{ champ_catalogue }}" id="{{ id_catalogue }}">
 <option value="">Choisir un catalogue</option>
 {% for catalogue in catalogues %}
-<option value="{{ catalogue.url }}"{% if catalogue.url == selection %} selected{% endif %}>{{ catalogue.nom }}{% if catalogue.espace %} · {{ catalogue.espace }}{% endif %}</option>
+<option value="{{ catalogue.url }}"{% if catalogue.url == selection %} selected{% endif %}>{{ catalogue.nom }}{% if catalogue.espace %} · {{ catalogue.espace }}{% endif %} · {{ catalogue.lien|default:catalogue.url }}</option>
 {% endfor %}
 </select>
+{% endif %}

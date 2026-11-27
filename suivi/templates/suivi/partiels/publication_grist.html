@@ -34,8 +34,11 @@
 {% if destinations_grist %}
 <p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="documents-recents-grist" champ_catalogue="destination_grist" libelle="Catalogue de destination" catalogues=destinations_grist selection=choix_catalogue_grist only %}</p>
 {% endif %}
-<p><label for="url-grist">Lien du catalogue Grist</label>
-<input type="url" id="url-grist" name="url_grist" maxlength="2000" value="{{ lien_grist_saisi }}"{% if erreur_grist %} aria-describedby="erreur-grist"{% endif %}></p>
+<p>{% if erreur_grist %}
+{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="url-grist" champ_catalogue="url_grist" libelle="Lien du catalogue Grist" edition_lien=True selection=lien_grist_saisi catalogues=destinations_grist erreur_lien="erreur-grist" %}
+{% else %}
+{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="url-grist" champ_catalogue="url_grist" libelle="Lien du catalogue Grist" edition_lien=True selection=lien_grist_saisi catalogues=destinations_grist %}
+{% endif %}</p>
 {% if references_grist or publication_connue %}
 <p><label for="reference-grist">Dans ce catalogue, publier…</label>
 <select id="reference-grist" name="reference_grist">

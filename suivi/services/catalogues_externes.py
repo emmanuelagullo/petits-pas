@@ -404,3 +404,28 @@ def edition_grist(url, reference, numero, *, avec_catalogue=False):
         "domaines": list(domaines.values()),
     }, allow_unicode=True)
     return (resultat, catalogue) if avec_catalogue else resultat
+
+
+def suggestions_catalogues_grist(utilisateur, ecole, classe=None, *, prioritaires=()):
+    """Lister par document les adresses connues du périmètre ou de l’utilisateur."""
+    from suivi.models import DestinationPublicationGrist, PartageGristClasse
+
+    reglages = reglages_catalogues_classe(classe) if classe else ecole.catalogues_referentiels
+    propositions = list(prioritaires)
+    if classe:
+        partage = PartageGristClasse.objects.filter(classe=classe).first()
+        if partage:
+            propositions.append({"url": partage.url, "nom": partage.nom_espace or "Espace de partage"})
+    propositions.extend(catalogues_grist_connus(reglages).values())
+    propositions.extend(DestinationPublicationGrist.objects.filter(ecole=ecole, auteur=utilisateur)
+                        .order_by("-publie_le", "-pk").values("url", "nom", "espace"))
+    documents = {}
+    for proposition in propositions:
+        if not proposition.get("url"):
+            continue
+        try:
+            _, document = adresse_grist(proposition["url"])
+        except ValidationError:
+            continue
+        documents.setdefault(document, proposition)
+    return list(documents.values())
