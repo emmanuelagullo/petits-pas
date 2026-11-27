@@ -1,8 +1,24 @@
-<p>{% if groupe.herite %}Proposé par l’école{% if groupe.personnalise %} · Réglage de la classe{% endif %}{% else %}Géré par la classe{% endif %}</p>
-{% if montrer_lien %}<p><a href="{{ groupe.url }}">Ouvrir le document dans Grist</a></p>{% endif %}
+<p>{% if groupe.essai %}Catalogue d’essai fourni par Petits Pas{% elif groupe.herite %}Proposé par l’école{% if groupe.personnalise %} · Réglage de la classe{% endif %}{% else %}Géré par la classe{% endif %}</p>
+{% if montrer_lien %}<p><a href="{{ groupe.lien|default:groupe.url }}">Ouvrir le document dans Grist</a></p>{% endif %}
 <form method="post" action="{{ action_catalogue }}">{% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ groupe.url }}">
-{% if groupe.suivi %}<button class="bouton discret" name="action" value="ne-plus-suivre-catalogue">Arrêter de suivre les nouveautés</button>
-{% else %}<button class="bouton discret" name="action" value="suivre-catalogue">Suivre les nouveautés</button>{% endif %}
-{% if groupe.herite and groupe.personnalise %}<button class="bouton discret" name="action" value="heriter-catalogue">Reprendre le choix de l’école</button>{% endif %}
+<fieldset>
+<legend>Actualisation du catalogue</legend>
+<label><input type="radio" name="action" value="ne-plus-suivre-catalogue"{% if not groupe.suivi %} checked{% endif %}> Manuelle · utiliser « Actualiser le catalogue »</label>
+<label><input type="radio" name="action" value="suivre-catalogue"{% if groupe.suivi %} checked{% endif %}> Automatique · recevoir les nouvelles éditions des référentiels déjà importés</label>
+<button class="bouton discret">Enregistrer le mode</button>
+</fieldset>
 </form>
+{% if groupe.herite and groupe.personnalise %}<form method="post" action="{{ action_catalogue }}">{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ groupe.url }}"><button class="bouton discret" name="action" value="heriter-catalogue">Reprendre le choix de l’école</button></form>{% endif %}
+{% if montrer_lien %}
+<details{% if groupe.erreur_lien %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier le lien" only %}
+<form method="post" action="{{ action_catalogue }}">{% csrf_token %}
+<input type="hidden" name="catalogue" value="{{ groupe.url }}">
+<label>Lien du document Grist <input type="url" name="url" required maxlength="2000" value="{{ groupe.lien_saisi|default:groupe.lien }}"{% if groupe.erreur_lien %} aria-invalid="true"{% endif %}></label>
+<button class="bouton discret" name="action" value="modifier-lien-catalogue">Enregistrer le lien</button>
+</form>
+{% if groupe.erreur_lien %}<a class="bouton discret" href="{{ url_catalogues }}?catalogue_invite={{ groupe.lien_saisi|urlencode }}#ajouter-catalogue">Ajouter ce lien comme catalogue</a>{% endif %}
+</details>
+{% endif %}

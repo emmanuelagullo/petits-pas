@@ -6,7 +6,7 @@ from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOL
 from suivi.identites_referentiels import identifiant_source_classe, identifiant_source_ecole
 from suivi.models import Classe, Ecole, SourceReferentiel
 
-from .catalogues_externes import edition_grist, identite_grist, lire_catalogue_grist, reglages_catalogues_classe
+from .catalogues_externes import adresse_grist, edition_grist, identite_grist, lire_catalogue_grist, reglages_catalogues_classe
 from .import_sources_referentiels import importer_source
 
 
@@ -19,16 +19,18 @@ def actualiser_catalogues_classe(utilisateur, classe):
         if not reglage.get("suivre_catalogue") or not reglage.get("catalogue", {}).get("url"):
             continue
         try:
-            catalogue = lire_catalogue_grist(url)
-            if catalogue["url"] != url:
+            catalogue = lire_catalogue_grist(reglage["catalogue"].get("lien", url))
+            if adresse_grist(catalogue["url"])[1] != adresse_grist(url)[1]:
                 raise ValidationError("L’adresse du catalogue a changé.")
-            nombre += actualiser_editions_connues(utilisateur, classe, catalogue)
+            nombre += actualiser_editions_connues(utilisateur, classe, {
+                **catalogue, "url": url, "lien": reglage["catalogue"].get("lien", url),
+            })
         except ValidationError as erreur:
             erreurs.append(f'{reglage["catalogue"]["nom"]} — {" ".join(erreur.messages)}')
     return nombre, erreurs
 
 
-def actualiser_editions_connues(utilisateur, classe, catalogue):
+def actualiser_editions_connues(utilisateur, classe, catalogue, *, manuelle=False):
     nombre = 0
     ecole = classe.ecole
     pour_ecole = autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole)
@@ -44,12 +46,12 @@ def actualiser_editions_connues(utilisateur, classe, catalogue):
         source = sources.get(source_classe) or (sources.get(source_ecole) if pour_ecole else None)
         if not source or source.versions.filter(numero=str(numero)).exists():
             continue
-        document = edition_grist(catalogue["url"], reference, numero)
+        document = edition_grist(catalogue.get("lien", catalogue["url"]), reference, numero)
         with transaction.atomic():
             ecole = Ecole.objects.select_for_update().get(pk=ecole.pk)
             classe = Classe.objects.select_for_update().select_related("ecole").get(pk=classe.pk)
             reglage = reglages_catalogues_classe(classe).get(catalogue["url"], {})
-            if (classe.etat != Classe.ACTIVE or not reglage.get("suivre_catalogue")
+            if (classe.etat != Classe.ACTIVE or (not manuelle and not reglage.get("suivre_catalogue"))
                     or not autorise(utilisateur, GERER_REFERENTIEL_CLASSE, classe)
                     or (not source.classe_privee_id and not autorise(utilisateur, GERER_REFERENTIEL_ECOLE, ecole))):
                 continue

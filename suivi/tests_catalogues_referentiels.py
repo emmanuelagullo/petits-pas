@@ -39,7 +39,7 @@ class CataloguesReferentiels(Base):
         url = reverse("decouvrir_referentiels")
         page = self.client.get(url, {"annee": annee})
         self.assertContains(page, "Catalogue de cette instance Petits Pas")
-        self.assertContains(page, "Catalogue de démonstration Petits Pas")
+        self.assertNotContains(page, "Catalogue d’essai")
         self.assertContains(page, "Titre instance fictif", count=1)
         self.assertContains(page, f'?annee={annee}&amp;version={version.pk}')
         ChoixEcoleAnnuel.objects.update_or_create(ecole=self.ecole, annee_scolaire=annee,
@@ -47,7 +47,7 @@ class CataloguesReferentiels(Base):
         page = self.client.get(url, {"annee": annee, "q": "titre instance fictif"})
         self.assertContains(page, "Hors des choix autorisés à l’école")
         self.assertNotContains(page, f'?annee={annee}&amp;version={version.pk}')
-        self.assertNotContains(page, "Catalogue de démonstration Petits Pas")
+        self.assertNotContains(page, "Catalogue d’essai")
 
     def test_ajout_catalogue_propose_le_suivi_et_conserve_un_refus(self):
         self.entrer("dir-mdp")
@@ -131,6 +131,38 @@ class CataloguesReferentiels(Base):
                              competence + "#actions-referentiel-classe")
         self.assertEqual(PropositionReferentiel.objects.get().classe, self.classe)
 
+    def test_catalogue_fourni_est_reserve_au_mode_essai(self):
+        self.entrer()
+        url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        self.assertNotContains(self.client.get(url), "Catalogue d’essai")
+        with self.settings(ESPACE_ESSAI=True):
+            self.assertContains(self.client.get(url), "Catalogue d’essai")
+            self.assertContains(self.client.get(url), "Référentiel des Chardonnerets")
+
+    def test_lien_de_catalogue_modifiable_sans_changer_identite_ni_mode(self):
+        self.entrer()
+        url = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+        grist = "https://grist.numerique.gouv.fr/o/docs/catalogue-classe"
+        self.classe.catalogues_propres = {grist: {"suivre_catalogue": True, "catalogue": {
+            "nom": "Catalogue de la classe", "url": grist, "referentiels": [],
+        }}}
+        self.classe.save(update_fields=["catalogues_propres"])
+        donnees = {"action": "modifier-lien-catalogue", "catalogue": grist, "url": grist + "/ressources"}
+        with patch("suivi.views_catalogues_referentiels.lire_catalogue_grist", return_value={
+            "nom": "Untitled document", "url": grist, "referentiels": [],
+        }) as lire:
+            page = self.client.post(url, donnees, follow=True)
+            self.assertContains(page, "Catalogue de la classe")
+            self.assertContains(page, donnees["url"])
+            self.assertNotContains(page, "Untitled document")
+            self.assertContains(page, 'value="suivre-catalogue" checked')
+            refus = self.client.post(url, {**donnees, "url": grist.replace("catalogue-classe", "autre-catalogue")})
+            self.assertContains(refus, "Ce lien désigne un autre document", status_code=400)
+            lire.assert_called_once_with(donnees["url"])
+        self.classe.refresh_from_db()
+        self.assertEqual(list(self.classe.catalogues_propres), [grist])
+        self.assertTrue(self.classe.catalogues_propres[grist]["suivre_catalogue"])
+
     def test_import_prive_reserve_a_la_classe_et_au_contexte_confirme(self):
         from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -188,6 +220,11 @@ class CataloguesReferentiels(Base):
         self.assertEqual(set(version.source.versions.values_list("numero", flat=True)), {"1", "2"})
 
     def test_suivre_un_catalogue_sans_suivre_encore_de_referentiel(self):
+        self.ecole.catalogues_referentiels = {CATALOGUE_DEMONSTRATION: {"catalogue": {
+            "url": CATALOGUE_DEMONSTRATION, "nom": "Catalogue fictif",
+            "referentiels": [{"reference": "demo-cycle1", "titre": "Langage en maternelle", "editions": [2, 1]}],
+        }}}
+        self.ecole.save(update_fields=["catalogues_referentiels"])
         self.entrer("dir-mdp")
         url = reverse("decouvrir_referentiels")
         reponse = self.client.post(url, {"action": "suivre-catalogue", "catalogue": CATALOGUE_DEMONSTRATION})
@@ -202,6 +239,11 @@ class CataloguesReferentiels(Base):
         self.assertTrue(page.context["groupes"][-1]["lignes"][0]["nouveau"])
 
     def test_decouvrir_suivre_importer_et_adopter_une_revision_grist(self):
+        self.ecole.catalogues_referentiels = {CATALOGUE_DEMONSTRATION: {"catalogue": {
+            "url": CATALOGUE_DEMONSTRATION, "nom": "Catalogue fictif",
+            "referentiels": [{"reference": "demo-cycle1", "titre": "Langage en maternelle", "editions": [2, 1]}],
+        }}}
+        self.ecole.save(update_fields=["catalogues_referentiels"])
         self.entrer("dir-mdp")
         annee = self.classe.annee_scolaire
         decouvrir = reverse("decouvrir_referentiels") + f"?annee={annee}&q=langage"

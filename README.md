@@ -550,6 +550,10 @@ Temporaire pour examiner deux éditions d’un même référentiel, et Attention
 pour comparer deux formulations portant le même UUID. Une nouvelle exécution
 utilise les mêmes identifiants de recette.
 
+Pour préparer uniquement le catalogue visible dans **Essayer avec l’école
+fictive**, utilisez `--essai "$GRIST_ESSAI"`. La commande prépare trois
+référentiels fictifs. Ajoutez `--ecrire` pour les publier.
+
 ## Vérifier un ZIP dans une copie indépendante (#SP5)
 
 `suivi/apercu_local.py` prépare le ZIP avec le validateur commun, refuse les

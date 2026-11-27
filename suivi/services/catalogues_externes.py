@@ -13,14 +13,20 @@ from django.core.exceptions import ValidationError
 from .import_sources_referentiels import identifiant, texte
 
 HOTE_GRIST = "grist.numerique.gouv.fr"
-CATALOGUE_DEMONSTRATION = f"https://{HOTE_GRIST}/o/docs/mrfW7gsAGMZbJdgP5djGva"
+CATALOGUE_DEMONSTRATION = f"https://{HOTE_GRIST}/o/docs/sq1Lck5R9KFj"
 TAILLE_MAX = 1024 * 1024
 
 
 CATALOGUES_FOURNIS = {
     CATALOGUE_DEMONSTRATION: {
-        "url": CATALOGUE_DEMONSTRATION, "nom": "Catalogue de démonstration Petits Pas",
-        "referentiels": [{"reference": "demo-cycle1", "titre": "Langage en maternelle", "editions": [2, 1]}],
+        "url": CATALOGUE_DEMONSTRATION,
+        "lien": CATALOGUE_DEMONSTRATION + "/petits-pas-essayer",
+        "nom": "Petits Pas – Catalogue d’essai",
+        "essai": True,
+        "referentiels": [
+            {"reference": f"grist-recette-demo-{index}", "titre": f"Référentiel des {classe}", "editions": [1]}
+            for index, classe in enumerate(("Mésanges", "Hirondelles", "Chardonnerets"), 1)
+        ],
     },
 }
 
@@ -32,7 +38,9 @@ def partage_grist_disponible():
 
 
 def catalogues_grist_connus(reglages):
-    return {**CATALOGUES_FOURNIS,
+    from django.conf import settings
+
+    return {**(CATALOGUES_FOURNIS if settings.ESPACE_ESSAI else {}),
             **{cle: etat["catalogue"] for cle, etat in reglages.items() if "catalogue" in etat}}
 
 

@@ -76,7 +76,7 @@
 </details>
 {% endwith %}
 {% elif groupe.url and classe_active %}
-<details>
+<details{% if groupe.erreur_lien %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages du catalogue" only %}
 {% include "suivi/partiels/reglages_catalogue_grist.html" with action_catalogue=url_catalogues montrer_lien=True %}
 </details>

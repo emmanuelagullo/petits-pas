@@ -80,16 +80,23 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         for scenario in SCENARIOS:
-            parser.add_argument(f"--{scenario}", required=True, metavar="LIEN_GRIST")
+            parser.add_argument(f"--{scenario}", metavar="LIEN_GRIST")
+        parser.add_argument("--essai", metavar="LIEN_GRIST", help="Publier uniquement le catalogue du parcours d’essai.")
         parser.add_argument("--ecrire", action="store_true", help="Écrire dans les trois documents de recette indiqués.")
 
     def handle(self, *args, **options):
         try:
-            documents = [adresse_grist(options[scenario])[1] for scenario in SCENARIOS]
-            if len(set(documents)) != len(SCENARIOS):
-                raise ValidationError("Indiquez trois documents Grist distincts.")
-            for scenario, (nom, _) in SCENARIOS.items():
-                url = options[scenario]
+            scenarios = [(cle, nom, options[cle]) for cle, (nom, _) in SCENARIOS.items() if options[cle]]
+            if options["essai"]:
+                if scenarios:
+                    raise ValidationError("Utilisez --essai seul ou choisissez les scénarios de recette.")
+                scenarios = [("demo", "Petits Pas – Catalogue d’essai", options["essai"])]
+            if not scenarios:
+                raise ValidationError("Indiquez au moins un document Grist.")
+            documents = [adresse_grist(url)[1] for _, _, url in scenarios]
+            if len(set(documents)) != len(documents):
+                raise ValidationError("Indiquez des documents Grist distincts.")
+            for scenario, nom, url in scenarios:
                 editions = list(editions_recette(scenario))
                 for _, _, source in editions:
                     lire_source(texte_json(source))
@@ -100,7 +107,7 @@ class Command(BaseCommand):
                         raise ValidationError(f"Un autre catalogue existe dans le document « {scenario} ».")
                     for reference, edition, source in editions:
                         publier_edition_grist(destination, reference, source["source"]["titre"], edition, source)
-                    if scenario == "demo":
+                    if scenario == "demo" and not options["essai"]:
                         remplir_espace(url, nom, editions)
                 self.stdout.write(f"{nom} · {len(editions)} éditions · {url}")
         except ValidationError as erreur:

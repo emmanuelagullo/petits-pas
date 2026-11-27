@@ -71,7 +71,7 @@ class PartageGristPWA(Base):
                              {"erreurs": 0, "nom": "Mon École partagée", "partage_confirme": True})
         self.assertEqual(VersionReferentiel.objects.filter(source__titre="Référentiel du collègue").count(), 1)
         self.assertEqual(IconePartagee.objects.filter(empreinte=cle).count(), 1)
-        page = self.client.get(suivis, {"decouvrir": "1", "groupe": "document-fictif"})
+        page = self.client.get(suivis)
         self.assertContains(page, "Référentiel du collègue", count=1)
         self.assertContains(page, "Référentiel de la classe partagé")
         self.assertNotContains(page, "Voir les référentiels de cet espace")

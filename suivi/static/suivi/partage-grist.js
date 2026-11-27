@@ -348,6 +348,7 @@
     if (!liste || !total || résumé?.dataset.partage !== repèreEspace.dataset.partage) return;
     if (listeReçue.contains(document.activeElement)) return;
     listeReçue.replaceChildren(...liste.childNodes);
+    listeReçue.closest("details").open = true;
     compteur.textContent = total.textContent;
     réceptionÀAfficher = false;
   }
