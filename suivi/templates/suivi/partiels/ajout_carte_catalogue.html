@@ -1,0 +1,7 @@
+<details id="ajouter-catalogue"{% if catalogue_formulaire.ouvrir_ajout %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter un catalogue Grist" niveau_titre=2 only %}
+<div>
+{% if catalogue_formulaire.erreur_ajout %}<ul class="messages"><li class="error" role="alert" id="erreur-lien-catalogue">{{ catalogue_formulaire.erreur }}</li></ul>{% endif %}
+{% include "suivi/partiels/ajouter_catalogue_grist.html" with gestion_classe=True suivi_initial=catalogue_formulaire.suivi_initial url_saisie=catalogue_formulaire.url_saisie erreur_lien=catalogue_formulaire.erreur_ajout retour=url_catalogues %}
+</div>
+</details>

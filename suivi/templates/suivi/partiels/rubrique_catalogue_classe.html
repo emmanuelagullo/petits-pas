@@ -1,17 +1,22 @@
 {% if groupe.espace and groupe.ancre != "espace-partage" %}<span id="espace-partage"></span>{% endif %}
-<section class="carte-catalogue{% if groupe.url or groupe.espace %} carte-catalogue-commandes{% endif %}">
-<details class="contenu-carte-catalogue" id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
+<section class="carte-catalogue" data-barre-filtres data-barre-catalogue{% if groupe.ancre %} id="carte-{{ groupe.ancre }}"{% elif carte_ajout %} id="carte-ajout-catalogue"{% endif %}>
+{% if carte_ajout %}
+{% include "suivi/partiels/ajout_carte_catalogue.html" %}
+{% elif groupe.espace and not groupe.espace.partage %}
+{% include "suivi/partiels/reglages_carte_espace.html" with raccordement=True %}
+{% else %}
+<details class="contenu-carte-catalogue" data-panneau-filtre data-panneau-principal id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 partiel_resume=groupe.partiel_resume espace_actif=groupe.espace_actif partage_confirme=groupe.espace.partage_confirme nombre_recus=groupe.lignes|length only %}
 <div{% if groupe.espace.partage.actif %} data-referentiels-espace="{{ url_catalogues }}"{% endif %}>
 {% if groupe.lignes %}<h3>{% if groupe.espace %}Référentiels reçus{% else %}Référentiels du catalogue{% endif %}</h3>{% endif %}
 {% for ligne in groupe.lignes %}
 <section class="ligne-referentiel-catalogue"{% if ligne.version or ligne.autre %} id="referentiel-{{ ligne.reference }}"{% endif %}>
-<div class="entete-ligne-catalogue">
+<div class="entete-ligne-catalogue" data-barre-filtres data-barre-catalogue id="commandes-{{ groupe.ancre }}-{{ forloop.counter }}">
 <h4>{{ ligne.titre }}</h4>
 {% if not ligne.version and not ligne.autre %}<span class="pastille etat-ligne-catalogue" data-a-importer>À importer</span>
 {% elif ligne.courant %}<span class="pastille pastille-principale etat-ligne-catalogue">Utilisé par la classe</span>
 {% else %}
-<details class="etat-ligne-catalogue">
+<details class="etat-ligne-catalogue" data-panneau-filtre>
 {% if ligne.ecartee %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Écarté des ajouts" pastille="etat-catalogue" only %}
 {% else %}
@@ -62,16 +67,17 @@
 {% endif %}
 </details>
 {% if groupe.url or groupe.espace %}
-<div class="commandes-carte-catalogue">
+
 {% if groupe.espace.partage.actif %}
 {% include "suivi/partiels/resultat_catalogue.html" with synchronisation=True %}
 {% elif groupe.url %}
-<details class="commande-catalogue"{% if groupe.resultat or groupe.erreur and not groupe.erreur_lien %} open{% endif %}>
+<details class="commande-catalogue" data-panneau-filtre{% if groupe.resultat or groupe.erreur and not groupe.erreur_lien %} open{% endif %}>
 {% if groupe.suivi %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Actualisation automatique" pastille="etat-catalogue" only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Auto" pastille="etat-catalogue" only %}
 {% else %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Actualisation manuelle" pastille="etat-catalogue" only %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Manuel" pastille="etat-catalogue" only %}
 {% endif %}
+<p>Actualisation {% if groupe.suivi %}automatique{% else %}manuelle{% endif %}</p>
 {% include "suivi/partiels/resultat_catalogue.html" %}
 {% if classe_active %}
 <form method="post" action="{{ url_catalogues }}">{% csrf_token %}
@@ -82,24 +88,14 @@
 </details>
 {% endif %}
 {% if groupe.espace %}
-{% url 'espace_grist_classe' classe.pk as espace_url %}
-{% with action_espace=espace_url|add:"?depuis=catalogues" %}
-<details class="commande-catalogue commande-catalogue-reglages"{% if groupe.espace.changer_espace %} open{% endif %}>
-{% if groupe.espace.partage %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages" only %}
-{% else %}
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Rejoindre un espace" principal=True only %}
-{% endif %}
-{% include "suivi/partiels/reglages_espace_grist.html" with classe=classe partage=groupe.espace.partage action_espace=action_espace espace_integre=True espace_attendu=groupe.espace.espace_attendu document_a_confirmer=groupe.espace.document_a_confirmer grist=groupe.espace.grist erreur=groupe.espace.erreur champ_erreur=groupe.espace.champ_erreur licence=groupe.espace.licence nombre_competences=groupe.espace.nombre_competences erreur_licence=groupe.espace.erreur_licence confirmer=groupe.espace.confirmer nom_saisi=groupe.espace.nom_saisi nom_propose=groupe.espace.nom_propose changer_espace=groupe.espace.changer_espace changer_destination=groupe.espace.changer_destination mode_pwa=groupe.espace.mode_pwa %}
-</details>
-{% endwith %}
+{% include "suivi/partiels/reglages_carte_espace.html" %}
 {% elif groupe.url and classe_active %}
-<details class="commande-catalogue commande-catalogue-reglages"{% if groupe.erreur_lien %} open{% endif %}>
+<details class="commande-catalogue commande-catalogue-reglages" data-panneau-filtre{% if groupe.erreur_lien %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages" only %}
 {% if groupe.erreur_lien %}{% include "suivi/partiels/resultat_catalogue.html" %}{% endif %}
 {% include "suivi/partiels/reglages_catalogue_grist.html" with action_catalogue=url_catalogues montrer_lien=True %}
 </details>
 {% endif %}
-</div>
+{% endif %}
 {% endif %}
 </section>

@@ -4,18 +4,7 @@
 {% block contenu %}
 <div class="page-referentiel">
 {% ariane_referentiel "Catalogues et partage" classe classe.annee_scolaire parcours="competences" %}
-<div class="entete-catalogues-partage">
 <h1>Catalogues et partage</h1>
-{% if classe_active %}
-<details id="ajouter-catalogue"{% if catalogue_formulaire.ouvrir_ajout %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Ajouter un catalogue" principal=True only %}
-<div class="formulaire-ajout-catalogue">
-{% if catalogue_formulaire.erreur_ajout %}<ul class="messages"><li class="error" role="alert" id="erreur-lien-catalogue">{{ catalogue_formulaire.erreur }}</li></ul>{% endif %}
-{% include "suivi/partiels/ajouter_catalogue_grist.html" with gestion_classe=True suivi_initial=catalogue_formulaire.suivi_initial url_saisie=catalogue_formulaire.url_saisie erreur_lien=catalogue_formulaire.erreur_ajout retour=url_catalogues %}
-</div>
-</details>
-{% endif %}
-</div>
 <p>{{ classe.libelle_avec_annee }}</p>
 {% if adoption %}
 <p><strong>Référentiel utilisé par la classe</strong> · {% if adoption.version.contenu.origine == "etat_initial_repris" %}Référentiel historique{% else %}{{ adoption.version.source.titre }} · édition {{ adoption.version.numero }}{% endif %}
@@ -25,6 +14,9 @@
 {% for groupe in groupes %}
 {% include "suivi/partiels/rubrique_catalogue_classe.html" %}
 {% endfor %}
+{% if classe_active %}
+{% include "suivi/partiels/rubrique_catalogue_classe.html" with carte_ajout=True %}
+{% endif %}
 {% if peut_gerer_catalogues %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages communs à l’école" only %}

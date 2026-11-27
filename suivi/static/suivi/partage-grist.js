@@ -351,6 +351,8 @@
     if (!liste || !total || résumé?.dataset.partage !== repèreEspace.dataset.partage) return;
     if (listeReçue.contains(document.activeElement)) return;
     listeReçue.replaceChildren(...liste.childNodes);
+    listeReçue.dispatchEvent(new CustomEvent('petits-pas:panneaux', {bubbles: true}));
+    window.htmx?.process(listeReçue);
     listeReçue.closest("details").open = true;
     compteur.textContent = total.textContent;
     réceptionÀAfficher = false;
