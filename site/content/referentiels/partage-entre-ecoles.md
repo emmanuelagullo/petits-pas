@@ -17,3 +17,14 @@ La PWA déjà installée et le programme autonome peuvent recevoir un ZIP sans c
 Pour une publication commune, une personne référente peut héberger les ZIP relus sur un site statique et y publier une fiche par référentiel. Indiquez le titre, l’identifiant, l’école ou le collectif auteur, la licence, les crédits des icônes et, pour chaque édition, son numéro, sa date, ses changements et son lien de téléchargement. Gardez une adresse distincte pour chaque édition publiée afin que les destinataires puissent retrouver le fichier exact.
 
 Avant publication, ouvrez le ZIP dans une école fictive et essayez son réimport, puis l’import de la révision si elle existe. Les équipes téléchargent ensuite le fichier et l’importent dans leur installation au moment de leur choix.
+
+
+Après une publication Grist réussie, **Catalogues et partage** indique la date
+sur le catalogue déjà connu. Les autres documents se retrouvent dans
+**Destinations de publication**. **Publier de nouveau** ouvre l’export avec la
+destination choisie. Pour parcourir les compétences d’une destination, utilisez
+**Ajouter aux catalogues de la classe**.
+
+Une **sélection de compétences** exportée en ZIP garde l’identité de chaque
+compétence. Elle possède son propre identifiant de référentiel. Petits Pas
+l’indique dans la liste des catalogues.

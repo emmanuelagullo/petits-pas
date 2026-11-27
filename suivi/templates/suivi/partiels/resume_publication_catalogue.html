@@ -1,0 +1,3 @@
+{% if groupe.partiel_resume %}{% include groupe.partiel_resume with espace_actif=groupe.espace_actif partage_confirme=groupe.espace.partage_confirme nombre_recus=groupe.nombre_recus %}
+{% elif not groupe.publication_seule %}<span class="aide">{{ groupe.resume }}</span>{% endif %}
+<span class="aide">{% if not groupe.publication_seule %}· {% endif %}Publication de la classe le {{ groupe.publication.publie_le|date:"j F Y" }}</span>

@@ -14,6 +14,16 @@
 {% for groupe in groupes %}
 {% include "suivi/partiels/rubrique_catalogue_classe.html" %}
 {% endfor %}
+{% if destinations_publication %}
+{% with nombre=destinations_publication|length derniere=destinations_publication.0.publication.publie_le %}
+<details id="destinations-publication"{% if ouvrir_destinations_publication %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Destinations de publication" niveau_titre=2 partiel_resume="suivi/partiels/resume_destinations_publication.html" %}
+{% for groupe in destinations_publication %}
+{% include "suivi/partiels/rubrique_catalogue_classe.html" %}
+{% endfor %}
+</details>
+{% endwith %}
+{% endif %}
 {% if classe_active %}
 {% include "suivi/partiels/rubrique_catalogue_classe.html" with carte_ajout=True %}
 {% endif %}

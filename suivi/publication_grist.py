@@ -22,15 +22,25 @@ def historique_grist(request, ecole):
     )
 
 
+def historique_publications_classe(request, classe):
+    return historique_grist(request, classe.ecole).filter(classe=classe)
+
+
 def presenter_publication_grist(request, classe, contexte, identifiant):
-    historique = historique_grist(request, classe.ecole)
-    precedente = historique.filter(identifiant_local=identifiant).first()
+    publications = historique_publications_classe(request, classe)
+    precedente = publications.filter(identifiant_local=identifiant).first()
+    destination_demandee = request.GET.get("publication", "")
+    if (request.method == "GET" and 0 < len(destination_demandee) <= 18
+            and destination_demandee.isascii() and destination_demandee.isdecimal()):
+        precedente = publications.filter(pk=destination_demandee).first() or precedente
     prioritaires = [{"url": precedente.url, "nom": precedente.nom, "espace": precedente.espace}] if precedente else []
     destinations = suggestions_catalogues_grist(request.user, classe.ecole, classe, prioritaires=prioritaires)
     contexte.update(
         nom_catalogue_propose=f"Catalogue de {classe.ecole.nom}"[:200],
         destinations_grist=destinations, derniere_destination=precedente,
-        publication_connue=precedente if precedente and precedente.reference else None, choix_catalogue_grist=precedente.url if precedente else "",
+        publication_connue=precedente if precedente and precedente.reference
+            and precedente.identifiant_local == identifiant else None,
+        choix_catalogue_grist=precedente.url if precedente else "",
         modes_catalogue_grist=MODES_CATALOGUE_GRIST,
         modele_grist=getattr(settings, "GRIST_MODELE_URL", ""),
     )
@@ -38,7 +48,7 @@ def presenter_publication_grist(request, classe, contexte, identifiant):
 
 def publication_grist(request, classe, contexte, action, document):
     source = document["source"]
-    historique = historique_grist(request, classe.ecole)
+    historique = historique_publications_classe(request, classe)
     saisie = request.POST.get("url_grist", "").strip()
     choix_catalogue = request.POST.get("destination_grist", "")
     url = saisie or choix_catalogue
@@ -58,7 +68,8 @@ def publication_grist(request, classe, contexte, action, document):
         destination["nom"] = nom_saisi or contexte["nom_catalogue_propose"]
         if action == "publier-grist":
             destination["nom"] = enregistrer_nom_catalogue_grist(destination["url"], destination["nom"])
-    references = {edition["Referentiel"]: edition["Titre"] for edition in destination["editions"]}
+    references = {edition["Referentiel"]: edition["Titre"] for edition in destination["editions"]
+                  if not edition["Referentiel"].startswith("selection-")}
     precedente = historique.filter(
         url=destination["url"], identifiant_local=source["identifiant"],
     ).first()
@@ -104,6 +115,8 @@ def publication_grist(request, classe, contexte, action, document):
     if choix == "nouveau":
         reference = source["identifiant"]
     elif choix:
+        if choix.startswith("selection-"):
+            raise ValidationError("Une sélection de compétences ne peut pas recevoir une édition du référentiel de la classe.")
         if choix not in references:
             raise ValidationError("Le référentiel choisi ne figure plus dans ce catalogue.")
         reference = choix

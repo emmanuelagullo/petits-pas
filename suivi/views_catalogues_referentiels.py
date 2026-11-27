@@ -616,6 +616,7 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             elif str(edition) != str(ligne["version"].numero).split("-", 1)[0]:
                 ligne["edition_distante"] = {**distant, "mise_a_jour": True}
             if ligne is not None:
+                ligne["selection_exportee"] = source["reference"].startswith("selection-")
                 if source.get("contenu_courant"):
                     ligne["contenu_courant"] = True
                 if source.get("origine_classe_grist"):
@@ -691,6 +692,29 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
         if ecartees and not groupe.get("espace"):
             groupe["resume"] += f" · {ecartees} écarté{'s' if ecartees != 1 else ''} des ajouts"
         groupe["ouvrir"] = groupe.get("ouvrir", False) or ancre == groupe_retour or cle == groupe_poste
+    from .publication_grist import historique_publications_classe
+
+    publication_par_document = {}
+    for publication in historique_publications_classe(request, classe):
+        document = adresse_grist(publication.url)[1]
+        publication_par_document.setdefault(document, publication)
+    destinations_publication = []
+    for document, publication in publication_par_document.items():
+        groupe_existant = next((groupe for groupe in groupes.values() if (
+            groupe.get("url") and adresse_grist(groupe["url"])[1] == document
+        ) or groupe.get("ancre") == "referentiels-espace-" + document), None)
+        groupe = groupe_existant if groupe_existant is not None else {
+            "nom": publication.nom, "ancre": "publication-" + document, "publication_seule": True,
+        }
+        groupe["publication"] = publication
+        groupe["republier"] = lien(
+            "paquets_referentiels_classe", classe.pk, volet="exporter", depuis="catalogues",
+            catalogue="destinations-publication" if groupe.get("publication_seule") else groupe["ancre"],
+            publication=publication.pk, ancre="export-referentiel",
+        )
+        if groupe_existant is None:
+            destinations_publication.append(groupe)
+
     from .models import EvenementAudit
 
     decisions = EvenementAudit.objects.filter(ecole=ecole, modele=classe._meta.label_lower,
@@ -713,7 +737,8 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
                        etat.get("suivre_catalogue") and etat.get("catalogue", {}).get("url")
                        for etat in reglages.values()) else "",
                    "classe_active": classe.etat == classe.ACTIVE,
-                   "groupes": list(groupes.values()), "equipe_existante": equipe_existante,
+                   "groupes": list(groupes.values()), "destinations_publication": destinations_publication,
+                   "ouvrir_destinations_publication": groupe_retour == "destinations-publication", "equipe_existante": equipe_existante,
                    "peut_gerer_catalogues": autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole),
                    "peut_importer_ecole": autorise(request.user, IMPORTER_REFERENTIEL_ECOLE, classe),
                    "indisponibles": set(suivis) - disponibles.keys()},

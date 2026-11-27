@@ -1,6 +1,6 @@
 <section class="ligne-referentiel-catalogue"{% if ligne.version or ligne.autre %} id="referentiel-{{ ligne.reference }}"{% endif %}>
 <div class="entete-ligne-catalogue" data-barre-filtres data-barre-catalogue id="commandes-{{ groupe.ancre }}-{{ indice_ligne }}-{{ ligne.reference|slugify }}">
-<h4>{{ ligne.titre }}{% if ligne.edition_distante.contenu_courant or ligne.contenu_courant %} <span class="aide">· Contenu courant</span>{% endif %}</h4>
+<h4>{{ ligne.titre }}{% if ligne.selection_exportee or ligne.version.source.identifiant_diffusion|slice:":10" == "selection-" or ligne.edition_distante.reference|slice:":10" == "selection-" %} <span class="aide">· Sélection de compétences</span>{% endif %}{% if ligne.edition_distante.contenu_courant or ligne.contenu_courant %} <span class="aide">· Contenu courant</span>{% endif %}</h4>
 {% if ligne.deja_local %}
 <span class="pastille etat-ligne-catalogue">{% if ligne.classe_propre %}Partagé par votre classe{% else %}Déjà disponible · Autres classes{% endif %}</span>
 {% elif not ligne.version and not ligne.autre %}<span class="pastille etat-ligne-catalogue" data-a-importer>À importer</span>

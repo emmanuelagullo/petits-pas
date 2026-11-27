@@ -202,6 +202,28 @@ class MisesAJour(Base):
             self.assertContains(page, f'value="{url}" selected')
             self.assertContains(page, "Dernier catalogue utilisé")
             self.assertNotContains(page, f'value="{autre}" selected')
+            catalogues = reverse("suivis_referentiels_classe", args=[self.classe.pk])
+            page = self.client.get(catalogues)
+            self.assertContains(page, 'id="destinations-publication"')
+            self.assertContains(page, "Publier de nouveau", count=2)
+            premiere = page.context["destinations_publication"][0]
+            retour_export = self.client.get(premiere["republier"])
+            self.assertEqual(retour_export.context["choix_catalogue_grist"], autre)
+            self.assertContains(retour_export, "Retour aux catalogues")
+            self.classe.refresh_from_db()
+            self.assertFalse(self.classe.catalogues_propres)
+
+            selection = {"reference": "selection-fictive", "titre": "Sélection · Langage", "editions": [1]}
+            catalogue = {"nom": "Ressources Cycle 1", "url": url, "referentiels": [selection]}
+            with patch("suivi.views_catalogues_referentiels.lire_catalogue_grist", return_value=catalogue):
+                page = self.client.post(catalogues, {"action": "ajouter", "url": url}, follow=True)
+            self.assertEqual(len(page.context["destinations_publication"]), 1)
+            self.assertContains(page, "Publication de la classe le", count=2)
+            self.assertContains(page, "Sélection de compétences")
+            destination["editions"].append({"Numero": 1, "Referentiel": selection["reference"],
+                                           "Titre": selection["titre"], "Contenu": "{}"})
+            refus = self.client.post(echange, {**donnees, "reference_grist": selection["reference"]})
+            self.assertContains(refus, "Une sélection de compétences ne peut pas recevoir une édition")
             reprise = self.client.post(echange, {"action": "publier-grist", "destination_grist": url,
                                                 "nom_catalogue_grist": "Ressources de l’équipe"})
             self.assertContains(reprise, "Édition 1 déjà publiée")

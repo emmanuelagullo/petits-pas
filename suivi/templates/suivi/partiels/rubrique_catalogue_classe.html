@@ -6,7 +6,13 @@
 {% include "suivi/partiels/reglages_carte_espace.html" with raccordement=True %}
 {% else %}
 <details class="contenu-carte-catalogue" data-panneau-filtre data-panneau-principal id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
+{% if groupe.publication %}
+{% with niveau=groupe.publication_seule|yesno:"3,2" %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom niveau_titre=niveau partiel_resume="suivi/partiels/resume_publication_catalogue.html" %}
+{% endwith %}
+{% else %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 partiel_resume=groupe.partiel_resume espace_actif=groupe.espace_actif partage_confirme=groupe.espace.partage_confirme nombre_recus=groupe.nombre_recus only %}
+{% endif %}
 <div{% if groupe.espace.partage.actif %} data-referentiels-espace="{{ url_catalogues }}"{% endif %}>
 {% if groupe.lignes %}<h3>{% if groupe.espace %}Référentiels reçus{% else %}Référentiels du catalogue{% endif %}</h3>{% endif %}
 {% for ligne in groupe.lignes %}
@@ -16,6 +22,15 @@
 {% elif groupe.url %}<p>Aucun référentiel dans ce catalogue.</p>{% endif %}
 {% endfor %}
 </div>
+{% if groupe.publication %}
+<div class="actions">
+{% if classe_active %}<a class="bouton{% if not groupe.publication_seule %} discret{% endif %}" href="{{ groupe.republier }}">Publier de nouveau</a>{% endif %}
+{% include "suivi/partiels/lien_invitation_grist.html" with url_grist_invitation=groupe.publication.url libelle_invitation="Copier le lien de suivi" usage_invitation="suivre" %}
+{% if groupe.publication_seule and classe_active %}
+<a class="bouton discret" href="{{ url_catalogues }}?catalogue_invite={{ groupe.publication.url|urlencode:"" }}#carte-ajout-catalogue">Ajouter aux catalogues de la classe</a>
+{% endif %}
+</div>
+{% endif %}
 {% if groupe.espace.partage.actif %}
 {% include "suivi/partiels/ouvrir_referentiel_equipe.html" %}
 {% endif %}
