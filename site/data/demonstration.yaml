@@ -445,7 +445,7 @@ scenarios:
       - { action: lien, nom: "Saisir pour toute la classe" }
       - { action: selecteur, selecteur: '.action-classement a:has-text("+ Ajouter une compétence")' }
       - { action: remplir, selecteur: '#q', texte: "J’assemble une mosaïque de galets" }
-      - { action: selecteur, selecteur: '[data-creation-competence] summary:has-text("J’assemble une mosaïque de galets")' }
+      - { action: selecteur, selecteur: '[data-creation-competence] > summary' }
       - { action: lien, nom: "Suivre pour les élèves sélectionnés" }
       - { action: titre, nom: "Créer une compétence pour des élèves" }
     cible: "#formulaire-reussite"

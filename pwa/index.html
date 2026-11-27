@@ -5,6 +5,7 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;height:100%;font:16px system-ui;color:#234}body{display:flex;flex-direction:column;height:100dvh}
 header{padding:4px 12px;background:#f6f7f8;flex:none;max-height:45dvh;overflow:auto}#status{padding:6px 12px;flex:none}#status:empty{padding:0}.barre-pwa{display:flex;align-items:center;gap:4px 12px;flex-wrap:wrap}#tools summary{width:fit-content;min-height:36px}#outils-pwa{max-width:56em;padding:0 0 8px}#outils-pwa section{border-block-end:1px solid #cdd4da;padding:8px 0}#outils-pwa h2{font-size:1rem;margin:0 0 4px}#outils-pwa details p{overflow-wrap:anywhere}#outils-pwa button{margin-inline-start:0}#update-check-status:empty{margin:0}#update-status:empty{margin:0}#update-progress{max-width:100%}iframe{border:0;width:100%;flex:1;min-height:0}button{margin:4px;min-height:44px;padding:6px 10px;font:inherit}summary{cursor:pointer;padding:8px 0}p{margin:8px 0}#version,#network{font-size:.85rem}#failure{padding:12px}#failure pre{white-space:pre-wrap;overflow-wrap:anywhere}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #345}
+#update:not(:disabled){background:#24523f;color:#fff;border:1px solid #24523f;border-radius:.35rem}
 </style>
 </head><body><header>
 <div class="barre-pwa">
@@ -48,6 +49,7 @@ header{padding:4px 12px;background:#f6f7f8;flex:none;max-height:45dvh;overflow:a
 <progress id="update-progress" aria-label="Ressources de la mise à jour vérifiées" hidden></progress>
 <button id="update-retry" hidden></button>
 <button id="update" hidden>Appliquer la mise à jour</button>
+<button id="backup-before-update" hidden>Sauvegarder avant la mise à jour</button>
 </header>
 <div id="status" role="status" aria-live="polite">Préparation de Petits Pas…</div>
 <section id="failure" hidden><h1>Petits Pas n’a pas pu démarrer</h1><p id="failure-help">Fermez les autres onglets de Petits Pas, puis réessayez. Au premier lancement, une connexion Internet est nécessaire. Ne supprimez pas les données du site.</p><button id="retry">Réessayer</button><button id="rescue">Récupérer un ZIP</button><p id="rescue-status" role="status"></p><details><summary>Détails à transmettre pour obtenir de l’aide</summary><pre id="diagnostic"></pre></details></section>

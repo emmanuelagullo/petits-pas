@@ -3,7 +3,15 @@
 {% block titre %}{{ classe.libelle_avec_annee }}{% endblock %}
 {% block contenu %}
 {% ariane_classe classe.libelle_avec_annee classe %}
-<h1>{{ classe.nom }}</h1>
+<div data-barre-filtres data-barre-catalogue>
+<h1 class="actions-referentiel-visibles">{{ classe.nom }}</h1>
+{% if export_classe_autorise %}
+<details class="menu-competence-catalogue" data-panneau-filtre>
+<summary class="bouton bouton-depliant discret" aria-label="Autres actions sur la classe">⋯</summary>
+<a class="bouton discret" href="{% url 'exporter_classe' classe.pk %}">Créer une copie de cette classe</a>
+</details>
+{% endif %}
+</div>
 <p class="sous-titre contexte-classe"><span>{{ classe.annee_scolaire }}</span><span class="pastille pastille-annee annee-{{ classe.statut_annee }}">{{ classe.libelle_statut_annee }}</span> · {{ eleves|length }} élève{{ eleves|length|pluralize }}{% if suivi_complet %} · {{ total_competences }} compétences au référentiel{% endif %}</p>
 
 {% if suivi_complet %}
@@ -48,10 +56,5 @@
 </ul>
 {% else %}
 <div class="vide"><p>Cette classe n'a pas encore d'élèves.</p></div>
-{% endif %}
-{% if export_classe_autorise %}
-<div class="actions actions-copie-classe">
-  <a class="bouton discret" href="{% url 'exporter_classe' classe.pk %}">Créer une copie de cette classe</a>
-</div>
 {% endif %}
 {% endblock %}

@@ -57,7 +57,12 @@ document.querySelector('#install').onclick = async () => {
 };
 if (standalone()) document.querySelector('#installation').textContent = 'Petits Pas est ouvert depuis son icône.';
 document.querySelector('#retry').onclick = () => location.reload();
-document.querySelector('#backup').onclick = () => {if (ready) frame.src = BASE + 'app/gestion/sauvegardes-locales/';};
+const backupBeforeUpdate = document.querySelector('#backup-before-update');
+function openLocalBackups() {
+  if (ready && !applyingUpdate) frame.src = BASE + 'app/gestion/sauvegardes-locales/';
+}
+document.querySelector('#backup').onclick = openLocalBackups;
+backupBeforeUpdate.onclick = openLocalBackups;
 document.querySelector('#apercu').onclick = () => {if (ready) frame.src = BASE + 'app/verifier-zip/';};
 const storage = document.querySelector('#storage');
 const persist = document.querySelector('#persist');
@@ -119,6 +124,7 @@ let installingUpdate;
 function showUpdate() {
   const available = !!(registration?.active && registration?.waiting);
   document.querySelector('#update').hidden = !available;
+  backupBeforeUpdate.hidden = !available || !ready;
   if (available) {
     updateRetry.hidden = true;
     updateProgress.hidden = true;
@@ -172,6 +178,7 @@ function stopRuntime() {
   worker?.terminate(); worker = null; ready = false;
   frame.hidden = true;
   document.querySelector('#backup').disabled = true;
+  backupBeforeUpdate.hidden = true;
   document.querySelector('#apercu').disabled = true;
   document.querySelector('#failure').hidden = false;
   document.querySelector('#diagnostic').textContent = 'Délai dépassé : le moteur a été arrêté. Rouvrez pour vérifier le dernier état confirmé.';
@@ -266,6 +273,7 @@ document.querySelector('#update').onclick = async event => {
     // Fermer l’admission avant le checkpoint : une requête d’arrière-plan
     // abandonnée au moment d’arrêter le moteur retient l’ancien service worker.
     applyingUpdate = true;
+    backupBeforeUpdate.disabled = true;
     await Promise.allSettled(pendingHttp);
     if (ready) await rpc({kind: 'checkpoint'});
     ready = false; frame.hidden = true; frame.src = 'about:blank';
@@ -275,6 +283,7 @@ document.querySelector('#update').onclick = async event => {
     candidate.postMessage({kind: 'activate-update'});
   } catch (error) {
     applyingUpdate = false;
+    backupBeforeUpdate.disabled = false;
     status.textContent = String(error.message);
     event.target.disabled = false;
   }
@@ -340,6 +349,7 @@ try {
     document.querySelector('#details-version').textContent = config.version + ' — ' + (config.commit || '');
     document.querySelector('#nouveautes').href = './nouveautes.html';
     document.querySelector('#backup').disabled = false;
+    backupBeforeUpdate.hidden = !registration?.waiting;
     if (config.testMode) {
       window.pwaTest = rpc;
       worker.addEventListener('message', event => {

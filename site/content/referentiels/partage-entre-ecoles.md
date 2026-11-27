@@ -66,7 +66,7 @@ puis cochez **©**. Les licences et leurs réglages s’affichent pour la
 session. Les avertissements utiles au partage restent visibles dans les deux
 modes.
 
-L’encadré **Licence des nouvelles compétences** permet de conserver le choix
+Dépliez **Licence des nouvelles compétences** pour conserver le choix
 hérité ou de définir le défaut de la classe ou de l’école. Le défaut de Petits
 Pas est CC BY-SA 4.0. Une compétence reprise conserve les conditions de son
 origine. Un changement de politique s’applique aux nouvelles créations.

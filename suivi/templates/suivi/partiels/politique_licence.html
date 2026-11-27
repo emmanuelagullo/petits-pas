@@ -1,6 +1,5 @@
-<section class="encadre" id="licence-nouvelles-competences" aria-labelledby="titre-licence-nouvelles-competences" data-reglage-licence>
-<h2 id="titre-licence-nouvelles-competences">Licence des nouvelles compétences</h2>
-<p>{% if locale %}Réglage {{ portee }}{% else %}Réglage hérité · {{ niveau }}{% endif %} · <strong>{{ effective }}</strong></p>
+<details class="encadre" id="licence-nouvelles-competences" data-reglage-licence>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Licence des nouvelles compétences" niveau_titre=2 partiel_resume="suivi/partiels/resume_politique_licence.html" %}
 <p class="aide">{% if classe %}Ce défaut s’applique aux nouvelles compétences créées dans la classe.{% else %}Ce défaut s’applique aux nouvelles compétences des classes qui héritent du réglage de l’école.{% endif %}</p>
 {% if classe %}{% url 'politique_licence_classe' classe.pk as action %}{% else %}{% url 'politique_licence_ecole' as action %}{% endif %}
 <form method="post" action="{{ action }}" hx-post="{{ action }}" hx-target="#licence-nouvelles-competences"
@@ -16,4 +15,4 @@
 <p class="politique-licence-valeur"><label>Licence donnée <input name="licence" maxlength="120" value="{% if locale and locale != 'referentiel' %}{{ locale }}{% endif %}" placeholder="CC-BY-SA-4.0"></label></p>
 <div class="actions"><button id="enregistrer-politique-licence" class="bouton discret">Enregistrer</button></div>
 </form>
-</section>
+</details>

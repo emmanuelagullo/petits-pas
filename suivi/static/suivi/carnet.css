@@ -1124,7 +1124,6 @@ summary.pastille.bouton-depliant { font: inherit; font-size: .88rem; }
 .licence-proposee { background: var(--en-cours-fond); color: var(--ardoise); padding: .6rem .8rem; border-radius: .4rem; }
 .filtres-actifs-catalogue { margin-block-start: .5rem; align-items: center; }
 
-.actions-copie-classe { margin-block-start: 1.5rem; }
 
 /* Clé de secours de l'appareil local : lisible, copiable, imprimable. */
 .cle-secours {

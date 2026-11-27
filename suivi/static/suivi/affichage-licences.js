@@ -29,10 +29,17 @@
       caseLicence.disabled = false;
     }
   });
+  document.addEventListener('htmx:afterSwap', evenement => {
+    const rubrique = evenement.target;
+    if (rubrique.id !== 'licence-nouvelles-competences') return;
+    rubrique.open = true;
+    rubrique.querySelector('#enregistrer-politique-licence')?.focus({preventScroll: true});
+  });
   const cible = document.getElementById(location.hash.slice(1));
   if (cible?.matches('#menu-licences, #licence-nouvelles-competences')) {
-    const menu = cible.closest('details');
+    const menu = cible.closest('.menu-competence-catalogue');
     if (menu) menu.open = true;
+    if (cible instanceof HTMLDetailsElement) cible.open = true;
   }
   document.documentElement.classList.add('affichage-licences-dynamique');
 })();

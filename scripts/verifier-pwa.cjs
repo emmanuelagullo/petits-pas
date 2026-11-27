@@ -666,6 +666,9 @@ with zipfile.ZipFile(sys.argv[1]) as original, zipfile.ZipFile(sys.argv[2],'w',z
   assert.equal(await python(reopened, "from suivi.models import Ecole; Ecole.objects.get().nom"), 'École fictive PWA');
   await reopened.getByRole('button', {name: 'Reprendre le téléchargement', exact: true}).click();
   await reopened.locator('#update').waitFor({state: 'visible', timeout: 120000});
+  await reopened.locator('#tools').evaluate(outils => { outils.open = false; });
+  await reopened.locator('#backup-before-update').click();
+  await reopened.frameLocator('#app').getByRole('heading', {name: 'Sauvegardes locales', exact: true}).waitFor();
   const downloads = network.slice(beforeUpdate);
   assert.equal(downloads.filter(url => url === base + 'apercu.html').length, 1, 'Ressource reprise après interruption');
   assert.equal(downloads.filter(url => url === base + 'application.zip').length, 2, 'Ressource interrompue retéléchargée');

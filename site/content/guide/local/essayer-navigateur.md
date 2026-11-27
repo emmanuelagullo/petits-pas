@@ -105,7 +105,9 @@ combien de ressources sont déjà vérifiées. Si le téléchargement est interr
 cliquez sur **Reprendre le téléchargement** une fois la connexion rétablie. Petits Pas
 vérifie et réutilise les fichiers complets déjà téléchargés.
 Quand la version est prête, **Appliquer la mise à jour** l’active et redémarre
-l’application. Téléchargez une sauvegarde si vous le pouvez avant de l’appliquer.
+l’application. **Sauvegarder avant la mise à jour** ouvre les sauvegardes locales,
+même lorsque les outils sont repliés. Vous pouvez y télécharger un ZIP avant
+d’appliquer la mise à jour.
 Une version prête peut aussi s’activer au prochain lancement, après fermeture
 de tous les onglets. Revenez à la même adresse pour retrouver votre école.
 
