@@ -1098,7 +1098,8 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
   margin-block: .25rem;
 }
 
-.entete-catalogue { justify-content: space-between; align-items: baseline; }
+#actions-referentiel-classe { margin-block-end: 1.5rem; }
+#actions-referentiel-classe h1 { margin-block-start: 0; }
 .carte-catalogue {
   margin: 1.5rem 0;
   padding: .85rem;

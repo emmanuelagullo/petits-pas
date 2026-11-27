@@ -8,7 +8,8 @@
 <h1 class="actions-referentiel-visibles">Référentiels de l’école</h1>
 <details class="menu-competence-catalogue" data-panneau-filtre>
 <summary class="bouton bouton-depliant discret" aria-label="Autres actions sur les référentiels">⋯</summary>
-{% include "suivi/partiels/options_licences.html" %}
+{% include "suivi/partiels/commutateur_licences.html" %}
+{% reglage_politique_licence ecole %}
 </details>
 </div>
 {% url 'paquets_referentiels_ecole' as url_echange %}

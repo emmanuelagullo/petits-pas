@@ -9,5 +9,5 @@ document.addEventListener('htmx:beforeRequest', evenement => {
 document.addEventListener('htmx:afterSwap', evenement => {
   if (evenement.detail.target.id !== 'contenu-import-classe') return;
   const champ = evenement.detail.target.querySelector('input[type="file"]');
-  champ?.focus();
+  champ?.focus({preventScroll: true});
 });

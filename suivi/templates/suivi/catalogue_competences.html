@@ -8,13 +8,14 @@
 <div class="actions"><a class="bouton discret" href="{% url 'grille_classe' classe.pk %}{% if niveau %}?filtres=1&amp;niveaux={{ niveau }}{% endif %}">Grille de suivi</a></div>
 {% else %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
-<h1>Compétences de {{ classe.nom }}</h1>
 <div data-barre-filtres data-barre-catalogue id="actions-referentiel-classe">
-<div class="actions entete-catalogue actions-referentiel-visibles">
+<div class="actions-referentiel-visibles">
+<h1>Compétences — {{ classe.nom }}</h1>
 {% if adoption %}
-<p><strong>Référentiel de la classe</strong><br>{% if adoption.version.contenu.origine == "etat_initial_repris" %}<strong>Référentiel historique de la classe</strong>{% else %}Issu de <strong>{{ adoption.version.source.titre }}</strong> · édition {{ adoption.version.numero }}{% endif %}</p>
-{% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}?edition={{ nouvelle_edition.pk }}#choisir-referentiel">Nouvelle édition disponible</a>{% endif %}
+<p>Référentiel de la classe · {% if adoption.version.contenu.origine == "etat_initial_repris" %}<strong>Historique</strong>{% else %}<strong>{{ adoption.version.source.titre }}</strong> · édition {{ adoption.version.numero }}{% endif %}</p>
 {% endif %}
+<div class="actions">
+{% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}?edition={{ nouvelle_edition.pk }}#choisir-referentiel">Nouvelle édition disponible</a>{% endif %}
 {% if peut_regler_referentiel %}
 {% if adoption %}
 <a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>
@@ -23,30 +24,34 @@
 {% endif %}
 {% url 'suivis_referentiels_classe' classe.pk as lien_catalogues %}
 <a class="bouton discret" href="{{ retour_catalogues|default:lien_catalogues }}">{% if retour_catalogues %}Retour à Catalogues et partage{% else %}Catalogues et partage{% endif %}</a>
+{% endif %}
+</div>
+</div>
+{% if peut_regler_referentiel %}
+<details class="menu-competence-catalogue" data-panneau-filtre{% if echange_import %} open{% endif %}>
+<summary class="bouton bouton-depliant discret" aria-label="Autres actions sur les référentiels">⋯</summary>
+<div class="actions">
 {% if classe.etat == classe.ACTIVE %}
 {% url 'paquets_referentiels_classe' classe.pk as importer_zip %}
 <a class="bouton discret" data-importer-zip href="{{ importer_zip }}?interface=competences&amp;volet=importer&amp;destination=classe&amp;depuis=competences&amp;retour={{ url_resultats|urlencode:'' }}#import-referentiel" hx-get="{{ importer_zip }}?interface=competences&amp;volet=importer&amp;destination=classe&amp;depuis=competences&amp;retour={{ url_resultats|urlencode:'' }}" hx-target="#contenu-import-classe" hx-swap="innerHTML" data-ouvrir-rubrique="import-referentiel">Importer un ZIP pour la classe</a>
 {% endif %}
-{% endif %}
-</div>
-{% if peut_regler_referentiel %}
-<details class="menu-competence-catalogue" data-panneau-filtre>
-<summary class="bouton bouton-depliant discret" aria-label="Autres actions sur les référentiels">⋯</summary>
 {% if classe.etat == classe.ACTIVE and adoption and not adoption.clos %}
 <form method="post" action="{% url 'proposer_referentiel_classe' classe.pk %}">{% csrf_token %}
 <button class="bouton discret" name="action" value="examiner-classe">Proposer au catalogue de l’école</button>
 </form>
 {% endif %}
-{% include "suivi/partiels/options_licences.html" with ecole=classe.ecole %}
-</details>
-{% endif %}
+{% include "suivi/partiels/commutateur_licences.html" %}
 </div>
-{% if peut_regler_referentiel and classe.etat == classe.ACTIVE %}
+{% if classe.etat == classe.ACTIVE %}
 <details class="encadre" id="import-referentiel"{% if echange_import %} open{% else %} hidden{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Importer un ZIP pour la classe" niveau_titre=2 only %}
 <div id="contenu-import-classe" aria-live="polite">{% if echange_import %}{% contenu_echange_hote echange_import %}{% endif %}</div>
 </details>
 {% endif %}
+{% reglage_politique_licence classe.ecole classe %}
+</details>
+{% endif %}
+</div>
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
 <form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
