@@ -10,9 +10,12 @@
 <select name="mode">
 <option value=""{% if not locale %} selected{% endif %}>Hériter {% if classe %}de l’école{% else %}de l’instance{% endif %}</option>
 <option value="referentiel"{% if locale == "referentiel" %} selected{% endif %}>Reprendre la licence du référentiel principal</option>
-<option value="licence"{% if locale and locale != "referentiel" %} selected{% endif %}>Choisir une licence</option>
+<optgroup label="Licences proposées">
+{% for licence in licences %}<option value="{{ licence }}"{% if locale == licence %} selected{% endif %}>{{ licence }}</option>{% endfor %}
+</optgroup>
+<option value="licence"{% if personnalisee %} selected{% endif %}>Autre licence…</option>
 </select></label></p>
-<p class="politique-licence-valeur"><label>Licence donnée <input name="licence" maxlength="120" value="{% if locale and locale != 'referentiel' %}{{ locale }}{% endif %}" placeholder="CC-BY-SA-4.0"></label></p>
+<p class="politique-licence-valeur"><label>Mention de licence <input name="licence" maxlength="120" value="{{ personnalisee }}"></label></p>
 <div class="actions"><button id="enregistrer-politique-licence" class="bouton discret">Enregistrer</button></div>
 </form>
 </details>

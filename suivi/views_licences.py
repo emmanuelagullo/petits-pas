@@ -36,11 +36,13 @@ def politique_licence(request, classe_pk=None):
     else:
         objet = charger_classe_autorisee(request.user, classe_pk, GERER_REFERENTIEL_CLASSE, ecole=ecole)
         retour = reverse("catalogue_competences", args=[classe_pk])
+    from .services.licences_diffusion import LICENCE_PROPOSEE, LICENCES_RECONNUES
+
     mode = request.POST.get("mode", "")
-    if mode not in {"", "referentiel", "licence"}:
+    if mode not in {"", "referentiel", "licence"} | LICENCES_RECONNUES:
         raise PermissionDenied
     licence = request.POST.get("licence", "").strip()[:120]
-    objet.politique_licence = (licence or "CC-BY-SA-4.0") if mode == "licence" else mode
+    objet.politique_licence = (licence or LICENCE_PROPOSEE) if mode == "licence" else mode
     objet.save(update_fields=["politique_licence"])
     contexte = QueryDict(request.POST.get("contexte", "")[:4096]).urlencode()
     return redirect(retour + ("?" + contexte if contexte else "") + "#licence-nouvelles-competences")
