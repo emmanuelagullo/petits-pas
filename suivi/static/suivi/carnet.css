@@ -1366,3 +1366,10 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
   grid-area: 1 / 1;
   margin: 0;
 }
+
+[data-export-classe]:has([value="zip"]:checked) :is([data-options-grist], [data-resume-grist], [value="publier-grist"]),
+[data-export-classe]:has([value="grist"]:checked) :is([data-options-zip], [data-resume-zip], [value="telecharger-classe"]) {
+  display: none;
+}
+[data-export-classe] .choix-export-classe { margin-block: .65rem; }
+[data-export-classe] [data-choix-grist] { overflow-wrap: anywhere; }

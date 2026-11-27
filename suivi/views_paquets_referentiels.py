@@ -238,6 +238,10 @@ def partage_classe(request, classe, contexte, action):
     formulaire = PartageReferentielClasseForm(request.POST if direct and "titre" in request.POST else None,
                                               initial=initial)
     contexte["partage_classe"] = formulaire
+    if action in ACTIONS_GRIST:
+        contexte["destination_export"] = "grist"
+    elif action in {"telecharger-classe", "telecharger-icones-classe", "exporter-classe"}:
+        contexte["destination_export"] = "zip"
     presenter_publication_grist(request, classe, contexte, initial["identifiant"])
     if action not in ACTIONS_PARTAGE:
         if contexte.get("volet") in ("exporter", "", None):
@@ -267,12 +271,14 @@ def partage_classe(request, classe, contexte, action):
         donnees = preparation["donnees"]
     contexte["informations_partage"] = donnees
     inclure_icones = (
-        action in {"publier-grist", "telecharger-icones-classe"}
+        action in {"voir-grist", "publier-grist", "telecharger-icones-classe"}
         or (request.POST.get("inclure_icones") == "oui" if direct else preparation.get("inclure_icones", False))
     )
     contexte["inclure_icones"] = inclure_icones
     inclure_icones_fournies = (request.POST.get("inclure_icones_fournies") == "oui" if direct else
                                preparation.get("inclure_icones_fournies", False))
+    if action in ACTIONS_GRIST:
+        inclure_icones_fournies = False
     contexte["inclure_icones_fournies"] = inclure_icones_fournies
     document, paquet, normalise = presenter_contenu_partage(
         classe, contexte, donnees, inclure_icones=inclure_icones,

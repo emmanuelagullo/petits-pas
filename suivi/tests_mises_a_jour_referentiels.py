@@ -165,7 +165,7 @@ class MisesAJour(Base):
         self.assertContains(page, "Voir le contenu à partager")
         self.assertContains(page, "Télécharger le ZIP", count=1)
         self.assertContains(page, "data-export-zip")
-        self.assertContains(page, "Options du ZIP")
+        self.assertContains(page, "Options d’export", count=1)
         self.assertNotContains(page, "Télécharger un ZIP d’icônes seules")
         ariane = page.content.decode().split('aria-label="Fil d’Ariane"', 1)[1].split("</nav>", 1)[0]
         self.assertIn("Compétences", ariane)
@@ -183,6 +183,9 @@ class MisesAJour(Base):
             self.assertFalse(refus.context["destinations_grist"])
             publier.reset_mock()
             publier.side_effect = None
+            apercu = self.client.post(echange, {**donnees, "action": "voir-grist"})
+            self.assertEqual(apercu.context["edition_prevue"], 1)
+            publier.assert_not_called()
             publication = self.client.post(echange, donnees)
             self.assertContains(publication, "Édition 1 publiée")
             self.assertContains(publication, destination["nom"])
@@ -207,6 +210,9 @@ class MisesAJour(Base):
             self.assertEqual(reprise.context["derniere_destination"].nom, destination["nom"])
             publier.assert_called_once()
             self.adapter(adoption, classe=True, texte="Nouvelle formulation")
+            apercu = self.client.post(echange, {"action": "voir-grist", "destination_grist": url})
+            self.assertEqual(apercu.context["edition_prevue"], 2)
+            publier.assert_called_once()
             revision = self.client.post(echange, {"action": "publier-grist", "destination_grist": url})
             self.assertContains(revision, "Édition 2 publiée")
             self.assertContains(revision, destination["nom"])

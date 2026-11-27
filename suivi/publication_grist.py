@@ -65,8 +65,6 @@ def publication_grist(request, classe, contexte, action, document):
     contexte.update(destination_grist=destination, references_grist=references.items())
     choix = request.POST.get("reference_grist", "")
     contexte["reference_grist"] = choix
-    if action == "voir-grist":
-        return
     mode = request.POST.get("mode_contenu_grist", "")
     if mode and mode not in MODES_CATALOGUE_GRIST:
         raise ValidationError("Choisissez les contenus du catalogue.")
@@ -79,6 +77,8 @@ def publication_grist(request, classe, contexte, action, document):
     mode_effectif = (mode or "competences") if nouveau_catalogue else destination.get("mode_contenu", "complet")
     mode = mode_effectif if nouveau_catalogue else ""
     if mode_effectif == "icones":
+        if action == "voir-grist":
+            return
         ressources = externaliser_png(deepcopy(document))
         if not ressources:
             raise ValidationError("Ce référentiel ne contient aucune icône ajoutée à publier.")
@@ -116,6 +116,8 @@ def publication_grist(request, classe, contexte, action, document):
     if partage and adresse_grist(partage.url)[1] == adresse_grist(destination["url"])[1]:
         document = {**document, "origine_classe_grist": f"classe-grist-{partage.identifiant}"}
     identique = derniere and meme_contenu_grist(derniere, document)
+    if action == "voir-grist" and not choix and derniere and not nouvelle_edition and not identique:
+        return
     if derniere and not nouvelle_edition and not identique:
         raise ValidationError("Cet identifiant existe déjà. Choisissez ce référentiel pour ajouter une édition.")
     titre = references.get(reference, source["titre"])
@@ -124,6 +126,10 @@ def publication_grist(request, classe, contexte, action, document):
     else:
         perimetre = destination["editions"] if numerotation_grist_globale(destination["editions"]) else editions
         numero = max((e["Numero"] for e in perimetre), default=0) + 1
+    if action == "voir-grist":
+        contexte.update(edition_prevue=numero, edition_identique=identique)
+        return
+    if not identique:
         publier_edition_grist(destination, reference, titre, numero, document)
     if mode:
         enregistrer_mode_catalogue_grist(destination["url"], mode)
