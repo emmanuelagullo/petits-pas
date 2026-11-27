@@ -5,7 +5,7 @@
 <p>{{ sources_selection|join:" · " }}</p>
 {% if apercu_selection %}<details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
-{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_selection.apercu competences_importees=apercu_selection.competences_importees icones_importees=apercu_selection.icones_importees partage=True only %}
+{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_selection.apercu competences_importees=apercu_selection.competences_importees icones_importees=apercu_selection.icones_importees partage=True sans_entete=True only %}
 </details>{% endif %}
 <form method="post" action="#export-referentiel">
 {% csrf_token %}

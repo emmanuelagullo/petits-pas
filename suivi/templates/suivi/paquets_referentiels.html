@@ -1,37 +1,23 @@
 {% extends "suivi/base.html" %}
 {% load static navigation_suivi %}
-{% block titre %}{% if export_selection %}Partager les compétences sélectionnées{% elif classe and not peut_importer or classe and volet == "exporter" %}Partager le référentiel de la classe{% elif classe and volet == "importer" %}{% if retour_catalogues %}Examiner une édition{% else %}Importer une édition{% endif %}{% elif peut_importer %}Échanger un référentiel{% else %}Exporter un référentiel{% endif %}{% endblock %}
+{% block titre %}{{ titre_echange }}{% endblock %}
 {% block contenu %}
 <div class="page-referentiel echange-referentiel">
-{% if classe and not peut_importer or classe and volet == "exporter" %}
-{% if export_selection %}{% ariane_referentiel "Partager les compétences sélectionnées" classe annee parcours="competences" %}{% else %}{% ariane_referentiel "Partager le référentiel de la classe" classe annee parcours="competences" %}
-{% endif %}
-<h1 id="haut-page-suivi" tabindex="-1">{% if export_selection %}Partager les compétences sélectionnées{% else %}Partager le référentiel de la classe{% endif %}</h1>
-{% elif classe and volet == "importer" %}
-{% if retour_catalogues %}
-{% ariane_referentiel "Examiner une édition" classe annee parcours="competences" %}
-<h1 id="haut-page-suivi" tabindex="-1">Examiner une édition</h1>
-{% else %}
-{% ariane_referentiel "Importer une édition" classe annee parcours="competences" %}
-<h1 id="haut-page-suivi" tabindex="-1">Importer une édition</h1>
-{% endif %}
-{% elif peut_importer %}
-{% ariane_referentiel "Échanger un référentiel" classe annee parcours="competences" %}
-<h1 id="haut-page-suivi" tabindex="-1">Échanger un référentiel</h1>
-{% else %}
-{% ariane_referentiel "Exporter un référentiel" classe annee parcours="competences" %}
-<h1 id="haut-page-suivi" tabindex="-1">Exporter un référentiel</h1>
-{% endif %}
+{% ariane_referentiel titre_echange classe annee parcours="competences" %}
+<h1 id="haut-page-suivi" tabindex="-1">{{ titre_echange }}</h1>
 {% if retour_catalogues %}<p><a class="bouton discret" href="{{ retour_catalogues }}">Retour à Catalogues et partage</a></p>{% elif retour_competences %}<p><a class="bouton discret" href="{{ retour_competences }}">Retour aux compétences</a></p>{% endif %}
+{% if retour_reglages %}<p><a class="bouton discret" href="{{ retour_reglages }}">Retour aux réglages du référentiel</a></p>{% endif %}
 {% if retour_decouverte %}<p><a href="{{ retour_decouverte }}">Retour à Découvrir des référentiels</a></p>{% endif %}
 {% if erreur and not erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if message and not message_import %}<p class="message" role="status">{{ message }}</p>{% endif %}
-{% if peut_importer %}
+{% if afficher_import and afficher_export %}
 <div class="page-a-sommaire" data-sommaire-structure>
 {% include "suivi/partiels/sommaire_page.html" %}
+{% endif %}
 <div class="rubriques-edition">
-<details id="import-referentiel" data-zone-sommaire="titre-import-referentiel"{% if volet != "exporter" or erreur_import or message_import or apercu or catalogue_import %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Importer" titre_id="titre-import-referentiel" only %}
+{% if afficher_import %}
+{% if afficher_export %}<details id="import-referentiel" data-zone-sommaire="titre-import-referentiel"{% if volet != "exporter" or erreur_import or message_import or apercu or catalogue_import %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Importer" titre_id="titre-import-referentiel" only %}{% else %}<section id="import-referentiel" aria-labelledby="haut-page-suivi">{% endif %}
 <div class="contenu-echange">
 {% if import_classe %}<p>Cette édition sera ajoutée aux sources que votre classe peut parcourir.</p>
 {% else %}<p>Après l’import, chaque classe choisit si elle souhaite adopter cette édition.</p>{% endif %}
@@ -48,7 +34,7 @@
 {% if lien_adoption %}<a class="bouton{% if lien_reprise %} discret{% endif %}" href="{{ lien_adoption }}">Examiner l’adoption pour la classe</a>{% endif %}</p>
 {% endif %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" %}
-{% if not jeton %}
+{% if not jeton and not import_classe and not request.GET.depuis == "reglages" and not retour_catalogues %}
 {% include "suivi/partiels/import_catalogue_grist.html" %}
 <details{% if request.POST.action == "importer-icones-zip" %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Recevoir un ZIP d’icônes" only %}
@@ -59,6 +45,9 @@
 </form>
 </details>
 {% endif %}
+{% if message_import and request.POST.action == "importer" %}
+<a class="bouton discret" href="{{ request.get_full_path }}#import-referentiel">Importer un autre fichier</a>
+{% else %}
 <form method="post" enctype="multipart/form-data"
       hx-post="{{ request.get_full_path }}" hx-encoding="multipart/form-data"
       hx-target="#etat-import-referentiel" hx-select="#etat-import-referentiel" hx-swap="outerHTML">
@@ -79,6 +68,7 @@
 <button class="bouton">Examiner le fichier</button>
 {% endif %}
 </form>
+{% endif %}
 {% if import_classe and jeton %}
 {% if peut_importer_ecole %}
 <a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer#import-referentiel">Importer au catalogue de l’école</a>
@@ -91,11 +81,10 @@
 {% endif %}
 </div>
 </div>
-</details>
-{% else %}
-<div class="rubriques-edition">
+{% if afficher_export %}</details>{% else %}</section>{% endif %}
 {% endif %}
-{% if classe and not peut_importer %}
+{% if afficher_export %}
+{% if not afficher_import %}
 <section id="export-referentiel" aria-labelledby="haut-page-suivi">
 {% else %}
 <details id="export-referentiel" data-zone-sommaire="titre-export-referentiel"{% if volet == "exporter" or not peut_importer %} open{% endif %}>
@@ -104,7 +93,7 @@
 {% endif %}
 {% if classe %}
 <div data-preparation-export>
-{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if erreur %}<template data-erreur-export><p class="message erreur" role="alert">{{ erreur }}</p></template>{% endif %}
 {% if export_selection %}
 {% include "suivi/partiels/export_selection_classe.html" %}
 {% else %}
@@ -148,9 +137,10 @@
 {% endif %}
 {% if not versions %}<p>Aucune édition exportable pour {{ annee }}.</p>{% endif %}
 {% endif %}
-{% if classe and not peut_importer %}</section>{% else %}</div>
+{% if not afficher_import %}</section>{% else %}</div>
 </details>{% endif %}
-{% if not classe %}
+{% endif %}
+{% if not classe and afficher_export %}
 <details data-zone-sommaire="composer-referentiel"{% if composition_ouverte %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Composer une édition" titre_id="composer-referentiel" only %}
 <div class="contenu-echange">
@@ -203,7 +193,7 @@
 </section>
 {% endif %}
 </div>
-{% if peut_importer %}</div>{% endif %}
+{% if afficher_import and afficher_export %}</div>{% endif %}
 </div>
 <script src="{% static 'suivi/selection-competences-partage.js' %}" defer></script>
 {% if classe %}<script src="{% static 'suivi/publication-grist.js' %}" defer></script>{% endif %}

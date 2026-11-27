@@ -708,9 +708,9 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
         }
         groupe["publication"] = publication
         groupe["republier"] = lien(
-            "paquets_referentiels_classe", classe.pk, volet="exporter", depuis="catalogues",
-            catalogue="destinations-publication" if groupe.get("publication_seule") else groupe["ancre"],
-            publication=publication.pk, ancre="export-referentiel",
+            "catalogue_competences", classe.pk, export=1,
+            catalogue_retour="destinations-publication" if groupe.get("publication_seule") else groupe["ancre"],
+            publication=publication.pk, ancre="partager-competences",
         )
         if groupe_existant is None:
             destinations_publication.append(groupe)

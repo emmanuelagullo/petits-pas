@@ -52,6 +52,12 @@
       if (focusCreation) (nouveauDepliant?.querySelector('summary') || form.elements.q).focus({preventScroll: true});
       resultats.inert = false;
       history.replaceState(history.state, '', url);
+      const importer = document.querySelector('[data-importer-zip]');
+      if (importer) {
+        const destination = new URL(importer.href);
+        destination.searchParams.set('retour', url.pathname + url.search);
+        importer.href = destination;
+      }
       etat.textContent = `${nombre} résultat${nombre > 1 ? 's' : ''}`;
     } catch (erreur) {
       if (version === sequence && erreur.name !== 'AbortError') {

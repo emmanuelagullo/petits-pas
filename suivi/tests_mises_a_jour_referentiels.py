@@ -323,9 +323,15 @@ class MisesAJour(Base):
             self.assertContains(page, 'id="destinations-publication"')
             self.assertContains(page, "Publier de nouveau", count=2)
             premiere = page.context["destinations_publication"][0]
-            retour_export = self.client.get(premiere["republier"])
+            entree_export = self.client.get(premiere["republier"])
+            self.assertContains(entree_export, 'data-preparer-destination="1"')
+            from html import unescape
+            import re
+
+            lien_export = re.search(r'data-partager-classe href="([^"]+)"', entree_export.content.decode())[1]
+            retour_export = self.client.get(unescape(lien_export))
             self.assertEqual(retour_export.context["choix_catalogue_grist"], autre)
-            self.assertContains(retour_export, "Retour aux catalogues")
+            self.assertContains(retour_export, "Retour à Catalogues et partage", count=1)
             self.classe.refresh_from_db()
             self.assertFalse(self.classe.catalogues_propres)
 

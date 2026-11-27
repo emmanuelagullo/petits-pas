@@ -9,36 +9,35 @@
 {% else %}
 {% include "suivi/partiels/ariane.html" with page="Compétences" %}
 <h1>Compétences de {{ classe.nom }}</h1>
+<div data-barre-filtres data-barre-catalogue id="actions-referentiel-classe">
+<div class="actions entete-catalogue actions-referentiel-visibles">
 {% if adoption %}
-<div class="actions entete-catalogue">
-  <p><strong>Référentiel de la classe</strong><br>{% if adoption.version.contenu.origine != "etat_initial_repris" %}Issu de {% endif %}<strong>{% if adoption.version.contenu.origine == "etat_initial_repris" %}Référentiel historique de la classe{% else %}{{ adoption.version.source.titre }}{% endif %}</strong>{% if adoption.version.contenu.origine != "etat_initial_repris" %} · édition {{ adoption.version.numero }}{% endif %}</p>
-  {% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}?edition={{ nouvelle_edition.pk }}#choisir-referentiel">Nouvelle édition disponible</a>{% endif %}
-  {% if peut_regler_referentiel %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>{% endif %}
-</div>
-{% elif peut_regler_referentiel %}
-<p><a class="bouton" href="{% url 'referentiel_classe' classe.pk %}">Choisir le référentiel</a></p>
+<p><strong>Référentiel de la classe</strong><br>{% if adoption.version.contenu.origine == "etat_initial_repris" %}<strong>Référentiel historique de la classe</strong>{% else %}Issu de <strong>{{ adoption.version.source.titre }}</strong> · édition {{ adoption.version.numero }}{% endif %}</p>
+{% if nouvelle_edition %}<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}?edition={{ nouvelle_edition.pk }}#choisir-referentiel">Nouvelle édition disponible</a>{% endif %}
 {% endif %}
 {% if peut_regler_referentiel %}
-<div data-barre-filtres data-barre-catalogue id="actions-referentiel-classe">
-<div class="actions actions-referentiel-visibles">
+{% if adoption %}
+<a class="bouton discret" href="{% url 'referentiel_classe' classe.pk %}">Réglages du référentiel</a>
+{% else %}
+<a class="bouton" href="{% url 'referentiel_classe' classe.pk %}">Choisir le référentiel</a>
+{% endif %}
 {% url 'suivis_referentiels_classe' classe.pk as lien_catalogues %}
 <a class="bouton discret" href="{{ retour_catalogues|default:lien_catalogues }}">{% if retour_catalogues %}Retour à Catalogues et partage{% else %}Catalogues et partage{% endif %}</a>
-</div>
 {% if classe.etat == classe.ACTIVE %}
+{% url 'paquets_referentiels_classe' classe.pk as importer_zip %}
+<a class="bouton discret" data-importer-zip href="{{ importer_zip }}?volet=importer&amp;destination=classe&amp;depuis=competences&amp;retour={{ url_resultats|urlencode:'' }}#import-referentiel">Importer un ZIP pour la classe</a>
+{% endif %}
+{% endif %}
+</div>
+{% if peut_regler_referentiel and classe.etat == classe.ACTIVE and adoption and not adoption.clos %}
 <details class="menu-competence-catalogue" data-panneau-filtre>
 <summary class="bouton bouton-depliant discret" aria-label="Autres actions sur les référentiels">⋯</summary>
-<div class="actions">
-<a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=importer&amp;destination=classe&amp;depuis=competences#import-referentiel">Importer un ZIP pour la classe</a>
-{% if adoption and not adoption.clos %}
 <form method="post" action="{% url 'proposer_referentiel_classe' classe.pk %}">{% csrf_token %}
 <button class="bouton discret" name="action" value="examiner-classe">Proposer au catalogue de l’école</button>
 </form>
-{% endif %}
-</div>
 </details>
 {% endif %}
 </div>
-{% endif %}
 {% if eleve %}<p>Élève présélectionné · {{ eleve.nom_court }}</p>{% elif collectif %}<p>Saisie collective · {{ classe.nom }}</p>{% endif %}
 {% endif %}
 <form method="get" action="{{ url_catalogue }}" class="encadre recherche-catalogue" id="recherche-catalogue">
@@ -106,10 +105,10 @@
 </div>
 {% if partage_depuis_catalogue %}
 {% url 'paquets_referentiels_classe' classe.pk as export %}
-<details class="encadre preparation-export" id="partager-competences" data-partage-catalogue data-classe="{{ classe.pk }}" tabindex="-1">
+<details class="encadre preparation-export" id="partager-competences" data-partage-catalogue data-classe="{{ classe.pk }}" data-ouvrir-export="{{ ouvrir_export|yesno:'1,0' }}" data-preparer-destination="{{ publication_export|yesno:'1,0' }}"{% if ouvrir_export %} open{% endif %} tabindex="-1">
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Préparer un export" niveau_titre=2 partiel_resume="suivi/partiels/resume_preparation_export.html" only %}
 <div class="actions">
-<a class="bouton" data-partager-classe href="{{ export }}?volet=exporter&amp;depuis=competences&amp;retour={{ url_resultats|add:'#partager-competences'|urlencode:'' }}#export-referentiel"{% if source %} hidden{% endif %}>Exporter le référentiel de la classe</a>
+<a class="bouton" data-partager-classe href="{{ export }}?volet=exporter&amp;depuis={% if publication_export %}catalogues&amp;publication={{ publication_export }}&amp;catalogue={{ request.GET.catalogue_retour|urlencode:'' }}{% else %}competences{% endif %}&amp;retour={{ url_resultats|add:'#partager-competences'|urlencode:'' }}#export-referentiel"{% if source %} hidden{% endif %}>Exporter le référentiel de la classe</a>
 <span data-commandes-partage hidden>
 <button type="button" class="bouton discret" data-commencer-partage aria-pressed="false">Sélectionner des compétences à exporter</button>
 </span>
@@ -123,7 +122,7 @@
 <ul class="liste" data-coches-partage></ul>
 <button class="bouton discret" type="button" data-vider-partage>Vider la sélection</button>
 </details>
-<p class="actions"><button class="bouton" name="action" value="preparer-selection-classe" disabled>Partager les compétences sélectionnées</button></p>
+<p class="actions"><button class="bouton" name="action" value="preparer-selection-classe" hidden disabled>Partager les compétences sélectionnées</button></p>
 </form>
 <div data-export-sur-place></div>
 <p role="status" data-etat-export></p>

@@ -38,6 +38,8 @@ def ariane_referentiel(context, page, classe, annee, parcours="reglages"):
             classe, catalogue=autorise(request.user, VOIR_SUIVI, classe),
             inclure_reglages=parcours == "reglages" and autorise(request.user, GERER_REFERENTIEL_CLASSE, classe),
         )
+        if context.get("retour_reglages"):
+            chemin.append(("Réglages du référentiel", context["retour_reglages"]))
         if parcours in ("partage", "equipe") or context.get("retour_catalogues") or context.get("retour_espace"):
             retour = context.get("retour_catalogues") or context.get("retour_espace")
             if parcours == "equipe":
@@ -53,8 +55,6 @@ def ariane_referentiel(context, page, classe, annee, parcours="reglages"):
             parametres = {"annee": annee} if annee else {}
             chemin.extend([("Gérer l’école", lien("gestion")),
                            ("Référentiels de l’école", lien("referentiels_ecole", **parametres))])
-        if context.get("retour_decouverte"):
-            chemin.append(("Catalogues et suivis", context["retour_decouverte"]))
         if context.get("retour_propositions"):
             chemin.append(("Propositions reçues", context["retour_propositions"]))
     return {"ariane": chemin, "page": page}

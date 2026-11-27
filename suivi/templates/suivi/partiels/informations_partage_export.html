@@ -6,6 +6,6 @@
 <p><label><input type="checkbox" form="informations-partage-classe" name="autorisation_partage" value="oui"> J’ai l’autorisation de partager ces compétences sous cette licence.</label></p>
 {% endif %}
 <p class="actions">
-<button class="bouton discret" form="informations-partage-classe" name="action" value="enregistrer-partage">Enregistrer les informations</button>
+<button class="bouton{% if not edition_licence_sur_place %} discret{% endif %}" form="informations-partage-classe" name="action" value="enregistrer-partage">Enregistrer les informations</button>
 </p>
 </details>

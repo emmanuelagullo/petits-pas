@@ -500,6 +500,8 @@ def partage_selection_classe(request, classe, contexte):
             return reponse
     except ValidationError as erreur:
         contexte["erreur_selection"] = " ".join(erreur.messages)
+    contexte["titre_echange"] = "Exporter la sélection"
+    contexte["afficher_export"] = True
     return render(request, "suivi/paquets_referentiels.html", contexte,
                   status=400 if "erreur_selection" in contexte else 200)
 
@@ -533,8 +535,10 @@ def paquets_referentiels(request, classe_pk=None):
                                              catalogue=groupe, ancre=groupe)
     if classe and request.GET.get("depuis") == "competences":
         contexte["retour_competences"] = retour_competences(request, classe) or lien(
-            "catalogue_competences", classe.pk, ancre="partager-competences",
+            "catalogue_competences", classe.pk, ancre="actions-referentiel-classe" if import_classe else "partager-competences",
         )
+    if classe and request.GET.get("depuis") == "reglages":
+        contexte["retour_reglages"] = lien("referentiel_classe", classe.pk, ancre="importer-partager")
     if classe and request.GET.get("depuis") == "espace":
         contexte["retour_espace"] = lien("suivis_referentiels_classe", classe.pk, espace=1, ancre="espace-partage")
     if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":
@@ -753,6 +757,27 @@ def paquets_referentiels(request, classe_pk=None):
         contexte["erreur"] = " ".join(erreur.messages)
     except IntegrityError:
         contexte["erreur"] = "Le catalogue a changé pendant l’import. Consultez de nouveau l’aperçu."
+    if (classe and contexte.get("retour_espace") and request.GET.get("licence") == "1"
+            and request.headers.get("HX-Request") == "true"):
+        contexte["modifier_partage"] = True
+        contexte["licence_enregistree"] = request.POST.get("action") == "enregistrer-partage" and not (
+            contexte.get("erreur") or getattr(contexte.get("partage_classe"), "errors", None)
+            or contexte.get("revisions_licence")
+        )
+        return render(request, "suivi/partiels/licence_partage_sur_place.html", contexte)
+    volet = contexte.get("volet")
+    import_explicite = volet == "importer" or import_classe or (
+        action in {"apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist", "importer-icones-zip", "importer-icones-grist", "telecharger-icones-grist"}
+    )
+    contexte["afficher_import"] = contexte["peut_importer"] and (import_explicite or not volet)
+    contexte["afficher_export"] = not import_explicite
+    if import_explicite:
+        contexte["titre_echange"] = (
+            "Examiner une édition" if contexte["retour_catalogues"] else
+            "Importer un ZIP pour la classe" if import_classe else "Importer un référentiel"
+        )
+    else:
+        contexte["titre_echange"] = "Partager le référentiel de la classe" if classe else "Exporter une édition"
     contexte["versions"] = versions.values()
     contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist", "telecharger-icones-grist", "importer-icones-zip", "importer-icones-grist") and "erreur" in contexte
     contexte["message_import"] = action in ("importer", "importer-icones-zip", "importer-icones-grist") and "message" in contexte

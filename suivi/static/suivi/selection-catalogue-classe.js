@@ -17,6 +17,17 @@
   const bloc = partage.querySelector('[data-export-sur-place]');
   const statut = partage.querySelector('[data-etat-export]');
   let requete;
+  let signature = '';
+  let preparation = '';
+
+  function fermerPreparation() {
+    requete?.abort();
+    bloc.replaceChildren();
+    bloc.inert = false;
+    bloc.removeAttribute('aria-busy');
+    statut.textContent = '';
+    preparation = '';
+  }
   let actif = false;
   let coches = new Map();
   try {
@@ -41,6 +52,9 @@
       casePartage.checked = coches.has(casePartage.value);
       if (casePartage.checked) actifs.add(casePartage.value);
     }
+    const selection = JSON.stringify([...coches.keys()].sort());
+    if (selection !== signature && preparation === 'selection') fermerPreparation();
+    signature = selection;
     const total = coches.size;
     const horsFiltre = total - actifs.size;
     partage.querySelector('[data-resume-partage]').textContent = total
@@ -62,7 +76,10 @@
     raccourci.querySelector('a').textContent = total ? `Aller au partage (${total})` : 'Aller au partage';
     etat.textContent = total ? `${total} compétence${total > 1 ? 's' : ''} cochée${total > 1 ? 's' : ''}${horsFiltre ? ` · ${horsFiltre} hors filtre` : ''}` : 'Cochez les compétences à partager dans la liste.';
     envoyer.disabled = !total;
-    envoyer.textContent = total ? `Préparer l’export des ${total} compétence${total > 1 ? 's' : ''}` : 'Préparer l’export de la sélection';
+    envoyer.hidden = !total || Boolean(preparation);
+    exportClasse.hidden ||= Boolean(preparation);
+    commencer.hidden = Boolean(preparation);
+    envoyer.textContent = total ? `Préparer l’export de ${total} compétence${total > 1 ? 's' : ''}` : 'Préparer l’export de la sélection';
     listeDepliable.hidden = !total;
     valeurs.replaceChildren();
     liste.replaceChildren();
@@ -112,6 +129,7 @@
   }
 
   commencer.addEventListener('click', () => {
+    fermerPreparation();
     actif = !actif;
     actualiser();
     if (actif) (resultats.querySelector('[data-case-partage] input') || recherche.elements.q).focus();
@@ -120,6 +138,8 @@
   liste.addEventListener('change', cocher);
   resultats.addEventListener('petits-pas:rubriques-actualisees', actualiser);
   async function preparer(url, donnees, declencheur) {
+    preparation = declencheur?.value?.includes('selection') || preparation === 'selection' ? 'selection' : 'classe';
+    actualiser();
     requete?.abort();
     const instance = new AbortController();
     requete = instance;
@@ -132,11 +152,14 @@
         credentials: 'same-origin',
       });
       const page = new DOMParser().parseFromString(await reponse.text(), 'text/html');
+      if (instance.signal.aborted) return;
       const contenu = page.querySelector('[data-preparation-export]');
       if (!contenu || reponse.status >= 500) throw new Error();
       for (const form of contenu.querySelectorAll('form')) {
         form.setAttribute('action', new URL(form.getAttribute('action') || '', reponse.url));
       }
+      const erreurExport = contenu.querySelector('[data-erreur-export]');
+      if (erreurExport) erreurExport.replaceWith(erreurExport.content);
       const titre = document.createElement('h3');
       titre.tabIndex = -1;
       titre.textContent = page.querySelector('h1').textContent;
@@ -144,8 +167,9 @@
       revenir.type = 'button';
       revenir.className = 'bouton discret';
       revenir.dataset.fermerPreparation = '';
-      revenir.textContent = actif ? 'Revenir à la sélection' : 'Fermer la préparation';
+      revenir.textContent = preparation === 'selection' ? 'Revenir à la sélection' : 'Fermer la préparation';
       bloc.replaceChildren(titre, ...contenu.childNodes, revenir);
+      window.htmx?.process(bloc);
       bloc.inert = false;
       actualiserExports();
       bloc.dispatchEvent(new Event('petits-pas:rubriques-actualisees', {bubbles: true}));
@@ -153,6 +177,8 @@
       statut.textContent = '';
     } catch (erreur) {
       if (erreur.name === 'AbortError') return;
+      preparation = '';
+      actualiser();
       statut.textContent = 'La préparation sur place a échoué. ';
       const secours = document.createElement('a');
       secours.href = url;
@@ -194,8 +220,9 @@
   raccourci.addEventListener('click', () => { partage.open = true; });
   bloc.addEventListener('click', evenement => {
     if (!evenement.target.closest('[data-fermer-preparation]')) return;
-    bloc.replaceChildren();
-    (actif ? envoyer : exportClasse).focus();
+    fermerPreparation();
+    actualiser();
+    (!envoyer.hidden ? envoyer : !exportClasse.hidden ? exportClasse : commencer).focus();
   });
   exportClasse.addEventListener('click', evenement => {
     exportClasse.href = retourCourant(exportClasse.href);
@@ -215,4 +242,6 @@
   window.addEventListener('pageshow', actualiser);
   partage.querySelector('[data-commandes-partage]').hidden = false;
   actualiser();
+  if (partage.dataset.ouvrirExport === '1') partage.open = true;
+  if (partage.dataset.preparerDestination === '1') preparer(exportClasse.href);
 })();

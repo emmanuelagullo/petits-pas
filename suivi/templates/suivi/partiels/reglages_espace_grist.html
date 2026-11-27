@@ -30,7 +30,12 @@
 {% endif %}
 {% if erreur_licence %}
 <p><span class="pastille alerte">Licence à vérifier</span> {% if erreur != erreur_licence %}{{ erreur_licence }}{% endif %}</p>
-<p><a class="bouton discret" href="{% url 'paquets_referentiels_classe' classe.pk %}?volet=exporter&amp;depuis=espace{% if espace_integre %}&amp;retour=catalogues{% endif %}#export-referentiel">Vérifier les informations et renseigner la licence</a></p>
+{% url 'paquets_referentiels_classe' classe.pk as export_classe %}
+<div id="licence-espace-partage">
+<a class="bouton discret" href="{{ export_classe }}?volet=exporter&amp;depuis=espace#export-referentiel"
+   hx-get="{{ export_classe }}?volet=exporter&amp;depuis=espace&amp;licence=1"
+   hx-target="#licence-espace-partage" hx-swap="outerHTML">Renseigner la licence de partage</a>
+</div>
 {% endif %}
 <form method="post" action="{{ action_espace }}" class="encadre" data-raccordement-grist{% if partage.actif and not erreur_licence and partage.licence == licence %} data-document-actif="{{ partage.url }}"{% endif %}>
 {% csrf_token %}

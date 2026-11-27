@@ -44,3 +44,10 @@ agissent dans le filtre courant, y compris dans les rubriques repliées.
 Un export peut combiner plusieurs licences. Petits Pas conserve les indications
 de provenance et les conditions de chaque compétence. Si une licence manque,
 vérifiez-la dans l’aperçu ou téléchargez uniquement les compétences prêtes.
+
+
+Pour un fichier reçu, ouvrez **Compétences → Importer un ZIP pour la classe**.
+Examinez le fichier, confirmez l’import puis utilisez **Choisir des compétences
+à reprendre**. Le référentiel principal se choisit dans **Réglages du
+référentiel**. À l’échelle de l’école, ouvrez **Référentiels de l’école →
+Importer un référentiel** pour rendre l’édition accessible aux classes.

@@ -497,6 +497,9 @@ def catalogue(request, pk, saisie_collective=False):
         "a_des_competences_masquees": a_des_competences_masquees,
         "inclure_competences_masquees": inclure_competences_masquees,
         "inclure_masquees": inclure_masquees, "rubriques_masquees": bool(domaines_masques or groupes_masques),
+        "ouvrir_export": request.GET.get("export") == "1",
+        "publication_export": request.GET.get("publication", "") if re.fullmatch(
+            r"[0-9]{1,18}", request.GET.get("publication", "")) else "",
         "partage_depuis_catalogue": gerer and classe.etat == classe.ACTIVE and not (depuis_ajout or saisie_collective),
         "saisie_collective": saisie_collective, "vue_suivi": vue_suivi, "domaines_suivi": domaines_suivi,
         "effectif": effectif, "filtre": niveau or "tous", "responsable": cibler,
@@ -532,7 +535,7 @@ def catalogue(request, pk, saisie_collective=False):
         return response
     groupe_retour = request.GET.get("catalogue_retour", "")
     source_retour = request.GET.get("source_retour", "")
-    if re.fullmatch(r"catalogue-[a-f0-9]{12}|referentiels-espace-[A-Za-z0-9_-]{8,64}", groupe_retour):
+    if re.fullmatch(r"catalogue-[a-f0-9]{12}|referentiels-espace-[A-Za-z0-9_-]{8,64}|destinations-publication", groupe_retour):
         focus = f"parcourir-{source_retour}" if re.fullmatch(r"(?:source|classe)-[0-9]+", source_retour) else groupe_retour
         contexte["retour_catalogues"] = lien("suivis_referentiels_classe", classe.pk, catalogue=groupe_retour, ancre=focus)
     return render(request, "suivi/choisir_competence.html" if saisie_collective else "suivi/catalogue_competences.html", contexte)

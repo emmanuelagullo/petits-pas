@@ -1,0 +1,12 @@
+<div id="licence-espace-partage">
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if licence_enregistree %}
+<p class="message" role="status">Licence enregistrée. Vous pouvez reprendre le raccordement.</p>
+{% elif partage_classe %}
+<form method="post" id="informations-partage-classe" action="{{ request.get_full_path }}"
+      hx-post="{{ request.get_full_path }}" hx-target="#licence-espace-partage" hx-swap="outerHTML">
+{% csrf_token %}<input name="action" type="hidden" value="enregistrer-partage">
+</form>
+{% include "suivi/partiels/informations_partage_export.html" with edition_licence_sur_place=True %}
+{% endif %}
+</div>

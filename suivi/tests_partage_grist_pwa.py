@@ -202,6 +202,22 @@ class PartageGristPWA(Base):
         self.assertContains(reponse, 'value="Équipe"', status_code=400)
         self.assertFalse(PartageGristClasse.objects.exists())
 
+    def test_licence_peut_etre_renseignee_depuis_l_espace(self):
+        self.adopter()
+        self.a.source.licence = ""
+        self.a.source.save(update_fields=["licence"])
+        url = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        url += "?volet=exporter&depuis=espace&licence=1"
+        requete = {"HTTP_HX_REQUEST": "true"}
+        page = self.client.get(url, **requete)
+        self.assertContains(page, 'id="licence-espace-partage"')
+        self.assertNotContains(page, 'data-export-classe')
+        choix = {**page.context["partage_classe"].initial, "action": "enregistrer-partage",
+                 "autorisation_partage": "oui"}
+        resultat = self.client.post(url, choix, **requete)
+        self.assertContains(resultat, "Licence enregistrée")
+        self.assertFalse(PartageGristClasse.objects.exists())
+
     def test_invitation_prefill_sans_ecriture_puis_reouverture_sans_effet(self):
         self.adopter()
         invitation = reverse("invitation_grist")

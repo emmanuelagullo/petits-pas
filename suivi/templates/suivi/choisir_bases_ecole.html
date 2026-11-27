@@ -6,8 +6,8 @@
 {% ariane_gestion "Référentiels de l’école" %}
 <h1>Référentiels de l'école</h1>
 {% url 'paquets_referentiels_ecole' as echange %}
-<p><a class="bouton" href="{{ echange }}?annee={{ annee }}#import-referentiel">Importer un référentiel</a>
-<a class="bouton discret" href="{{ echange }}?annee={{ annee }}&amp;volet=exporter#export-referentiel">Exporter un référentiel</a>
+<p><a class="bouton" href="{{ echange }}?annee={{ annee }}&amp;volet=importer#import-referentiel">Importer un référentiel</a>
+<a class="bouton discret" href="{{ echange }}?annee={{ annee }}&amp;volet=exporter#export-referentiel">Exporter une édition</a>
 <a class="bouton discret" href="{% url 'consulter_referentiels_ecole' %}?annee={{ annee }}">Consulter les référentiels</a>
 <a class="bouton discret" href="{% url 'decouvrir_referentiels' %}?annee={{ annee }}">Découvrir des référentiels</a>
 <a class="bouton discret" href="{% url 'propositions_referentiels_ecole' %}">Propositions reçues</a></p>
