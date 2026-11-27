@@ -39,9 +39,18 @@ def encoder_droits(document, par_code, *, conserver_defaut=False):
         origine = c.get("source_origine")
         if origine:
             par_origine.setdefault(origine, set()).add(par_code[c["code"]])
-    notices = {origine: next(iter(choix)) for origine, choix in par_origine.items()
-               if len(choix) == 1 and defaut not in choix}
-    cles = {notice: cle for cle, notice in notices.items()}
+    tailles = Counter(c.get("source_origine") for c in competences)
+    notices, cles = {}, {}
+    for origine, choix in sorted(par_origine.items(), key=lambda item: -tailles[item[0]]):
+        if len(choix) != 1 or defaut in choix:
+            continue
+        notice, = choix
+        # Une courte référence coûte moins que recopier une longue notice
+        # lorsque plusieurs provenances renvoient aux mêmes crédits.
+        if notice in cles and tailles[origine] * (12 + len(cles[notice])) < len(origine) + sum(map(len, notice)):
+            continue
+        notices[origine] = notice
+        cles.setdefault(notice, origine)
     for c in competences:
         notice = par_code[c["code"]]
         c.pop("droits", None)

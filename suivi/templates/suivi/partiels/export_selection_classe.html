@@ -1,7 +1,7 @@
 {% if erreur_selection %}<p class="message erreur" role="alert">{{ erreur_selection }}</p>{% endif %}
 {% if selection_calculee %}
 <p><strong>{{ titre_selection }}</strong></p>
-<p><strong>{{ nombre_exportable }} compétence{{ nombre_exportable|pluralize }} prête{{ nombre_exportable|pluralize }} · {{ sources_selection|length }} source{{ sources_selection|length|pluralize }}</strong></p>
+<p><strong>{{ nombre_exportable }} compétence{{ nombre_exportable|pluralize }}{% if licences_manquantes %} prête{{ nombre_exportable|pluralize }}{% endif %} · {{ sources_selection|length }} source{{ sources_selection|length|pluralize }}</strong></p>
 <p>{{ sources_selection|join:" · " }}</p>
 {% if apercu_selection %}<details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
@@ -35,25 +35,25 @@
 {% include "suivi/partiels/contenu_zip_referentiel.html" with inclure=inclure_icones_selection %}
 </details>
 {% endif %}
+{% if nombre_creations or licences_manquantes %}
+<details class="licences-export"{% if not nombre_exportable %} open{% endif %}>
+{% if licences_manquantes %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle=resume_licences_manquantes pastille="alerte" only %}
+<p>Les compétences à vérifier restent cochées.</p>
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle=resume_licence_creation pastille="alerte" only %}
+{% endif %}
 {% if nombre_creations %}
-<aside class="avertissement-referentiel avertissement-orange" aria-label="Licence proposée">
-<p><strong>{{ licence_creation }}</strong> proposée pour {{ nombre_creations }} de vos compétence{{ nombre_creations|pluralize }}.</p>
-<details>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier la proposition" only %}
-<p><label for="licence-creation">Licence des créations sans licence renseignée</label>
+<p><label for="licence-creation">{{ resume_licence_creation }}</label>
 <select name="licence_creation" id="licence-creation">
 {% for licence in choix_licences %}<option value="{{ licence }}"{% if licence == licence_creation %} selected{% endif %}>{{ licence }}</option>{% endfor %}
 </select></p>
-<button class="bouton discret" name="action" value="preparer-selection-classe">Actualiser la proposition</button>
-</details>
-</aside>
+<button class="bouton discret" name="action" value="preparer-selection-classe">Actualiser</button>
 {% endif %}
-{% if licences_manquantes %}
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Licences à vérifier" resume="Le ZIP contiendra les compétences prêtes. Les autres restent dans votre sélection." only %}
-<details>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Licences et crédits" only %}
-<ul>{% for titre, licence in licences_manquantes %}<li>{{ titre }} · {{ licence|default:"Licence à renseigner" }}</li>{% endfor %}</ul>
-{% if not licence_confirmee %}
+{% if motifs_licences %}
+<p>Licences à vérifier · {% for licence, nombre in motifs_licences %}{{ licence }} ({{ nombre }}){% if not forloop.last %} · {% endif %}{% endfor %}</p>
+{% endif %}
+{% if licences_a_renseigner and not licence_confirmee %}
 <p><label for="licence-confirmee">Licence pour les compétences sans licence renseignée</label>
 <select name="licence_confirmee" id="licence-confirmee">
 {% for licence in choix_licences %}<option value="{{ licence }}"{% if licence == licence_proposee %} selected{% endif %}>{{ licence }}{% if licence == licence_proposee %} · proposée{% endif %}</option>{% endfor %}
@@ -64,7 +64,7 @@
 </details>
 {% endif %}
 {% if not conflits_selection and nombre_exportable %}
-<p class="encadre">ZIP · Édition 1 · {% if nombre_licences > 1 %}{{ nombre_licences }} licences conservées{% else %}{{ apercu_selection.apercu.source.licence }}{% endif %}</p>
+{% if nombre_licences > 1 %}<span class="aide">{{ nombre_licences }} licences conservées</span>{% endif %}
 <button class="bouton" name="action" value="telecharger-selection-classe">{% if licences_manquantes %}Télécharger {{ nombre_exportable }} compétence{{ nombre_exportable|pluralize }} prête{{ nombre_exportable|pluralize }}{% else %}Télécharger le ZIP de la sélection{% endif %}</button>
 {% endif %}
 </form>

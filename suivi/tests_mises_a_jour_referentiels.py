@@ -220,6 +220,21 @@ class MisesAJour(Base):
         [competence] = list(competences_document(repris))
         self.assertEqual(droits_competence(repris, competence)[0], "CC-BY-4.0")
 
+    def test_notice_majoritaire_sans_reference_par_competence(self):
+        from .services.licences_diffusion import droits_competence, encoder_droits
+
+        commun = ("CC-BY-SA-4.0", "Crédits du référentiel")
+        exception = ("CC-BY-4.0", "Crédits de l’autre référentiel")
+        competences = [{"code": "C1", "source_origine": "origine"},
+                       {"code": "C2", "source_origine": "origine"},
+                       {"code": "C3", "source_origine": "autre"}]
+        document = {"source": {"licence": commun[0], "provenance": commun[1]},
+                    "domaines": [{"competences": competences}]}
+        encoder_droits(document, {"C1": commun, "C2": commun, "C3": exception})
+        self.assertEqual(document["droits"], {"autre": exception})
+        self.assertTrue(all("droits" not in c for c in competences))
+        self.assertEqual([droits_competence(document, c) for c in competences], [commun, commun, exception])
+
     def test_selection_permet_un_zip_partiel_ou_une_licence_confirmee(self):
         from .identites_referentiels import competences_document, reference_competence
 
@@ -235,6 +250,7 @@ class MisesAJour(Base):
         donnees = {"competence_partagee": references, "action": "preparer-selection-classe"}
         page = self.client.post(url, donnees)
         self.assertContains(page, "Télécharger 1 compétence prête")
+        self.assertContains(page, "1 à vérifier")
         self.assertEqual(page.context["references_selection"], references)
         refus = self.client.post(url, {**donnees, "licence_confirmee": "CC-BY-SA-4.0",
                                        "action": "confirmer-licence-selection"})

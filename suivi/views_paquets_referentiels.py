@@ -1,5 +1,6 @@
 import re
 """Diffusion des éditions publiques accessibles dans le contexte courant."""
+from collections import Counter
 from hashlib import sha256
 
 import yaml
@@ -453,7 +454,7 @@ def partage_selection_classe(request, classe, contexte):
         licence_creation = request.POST.get("licence_creation") or licence_creations_classe(adoption) or LICENCE_PROPOSEE
         if licence_creation not in LICENCES_RECONNUES:
             raise ValidationError("Choisissez une licence proposée pour vos créations.")
-        document, sources, credits, conflits, manquantes, nombre_licences, creations = preparer_selection(
+        document, sources, conflits, manquantes, nombre_licences, creations = preparer_selection(
             request.user, adoption, references, choix, licence_confirmee=licence,
             licence_creation=licence_creation,
         )
@@ -475,9 +476,14 @@ def partage_selection_classe(request, classe, contexte):
                 if nombre_exportable else None,
             selection_calculee=True, nombre_exportable=nombre_exportable,
             licences_manquantes=manquantes, nombre_licences=nombre_licences,
+            motifs_licences=sorted(Counter(l for _, l in manquantes if l).items()),
+            licences_a_renseigner=any(not l for _, l in manquantes),
+            resume_licences_manquantes=f"{len(manquantes)} à vérifier",
+            resume_licence_creation=f"{licence_creation} proposée · {len(creations)} création"
+                + ("s" if len(creations) != 1 else ""),
             licence_proposee=LICENCE_PROPOSEE, choix_licences=sorted(LICENCES_RECONNUES),
             licence_confirmee=licence, licence_creation=licence_creation, nombre_creations=len(creations),
-            titre_selection=titre, sources_selection=sources, credits_selection=credits,
+            titre_selection=titre, sources_selection=sources,
             conflits_selection=conflits,
             empreinte_selection=empreinte, inclure_icones_selection=request.POST.get("inclure_icones") == "oui",
         )

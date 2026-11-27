@@ -166,13 +166,15 @@ def preparer_selection(utilisateur, adoption, cles, choix, *, licence_confirmee=
                          "sous_domaines": [{"code": f"S{i}", "nom": nom, "competences": competences}
                                           for i, (nom, competences) in enumerate(sous.items(), 1)]})
     licences = Counter(licence for licence, _ in notices.values())
+    licence, provenance = Counter(notices.values()).most_common(1)[0][0] if notices else (
+        LICENCE_PROPOSEE, "Sélection préparée avec Petits Pas.",
+    )
     document = {"format": 2, "version": "1", "domaines": domaines, "source": {
         "identifiant": "selection", "titre": titre[:200], "provisoire": True,
-        "provenance": "Sélection préparée avec Petits Pas.",
-        "licence": licences.most_common(1)[0][0] if licences else LICENCE_PROPOSEE,
+        "provenance": provenance,
+        "licence": licence,
     }}
     encoder_droits(document, notices)
     empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
     document["source"]["identifiant"] = f"selection-{empreinte}"
-    credits = sorted({credit for v in retenues for credit in v["credits"]})
-    return document, catalogues, credits, conflits, manquantes, len(licences), list(creations.values())
+    return document, catalogues, conflits, manquantes, len(licences), list(creations.values())

@@ -5,18 +5,10 @@
 <p><strong>{{ informations_partage.titre }}</strong> · {% if nombre_licences_partage > 1 %}{{ nombre_licences_partage }} licences conservées{% elif informations_partage.licence %}{{ informations_partage.licence }}{% else %}<span class="pastille alerte">Licence à vérifier</span>{% endif %} · Édition {{ informations_partage.version }}</p>
 <p>Dérivé de {{ base_du_partage.source.titre }}, édition {{ base_du_partage.numero }}.</p>
 {% if proposition_creations_partage %}
-<aside class="avertissement-referentiel avertissement-orange" aria-label="Licence proposée">
-<p><strong>{{ licence_proposee_creations_partage }}</strong> proposée pour {{ proposition_creations_partage }} création{{ proposition_creations_partage|pluralize }} sans licence renseignée.</p>
-</aside>
+<p><span class="pastille alerte">{{ licence_proposee_creations_partage }} proposée · {{ proposition_creations_partage }} création{{ proposition_creations_partage|pluralize }}</span></p>
 {% endif %}
 {% if modifier_partage %}
 <p class="message" role="status">Vérifiez les informations de partage, notamment la licence, avant de continuer.</p>
-{% endif %}
-{% if nombre_licences_partage > 1 %}
-<details>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Licences et crédits" only %}
-<ul>{% for licence in licences_partage %}<li>{{ licence }}</li>{% endfor %}</ul>
-</details>
 {% endif %}
 {% if apercu_partage %}
 <p>{{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }} à partager, avec leurs adaptations et ajouts. Les photos du suivi et les suivis individuels restent privés.</p>
