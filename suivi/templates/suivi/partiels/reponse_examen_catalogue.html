@@ -1,0 +1,11 @@
+{% if erreur_import %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
+{% if message_import %}<p class="message" role="status" data-import-confirme>{{ message }}</p>{% endif %}
+{% if lien_reprise %}<p><a class="bouton discret" href="{{ lien_reprise }}">Choisir des compétences à reprendre</a></p>{% endif %}
+{% include "suivi/partiels/apercu_paquet_referentiel.html" %}
+{% if jeton %}
+<form method="post" action="{{ request.get_full_path }}" hx-post="{{ request.get_full_path }}" hx-vals='{"fragment_catalogue": "1"}' hx-target="closest [data-examen-catalogue]" hx-swap="innerHTML">
+{% csrf_token %}
+<input type="hidden" name="jeton" value="{{ jeton }}">
+<button class="bouton" name="action" value="importer">Importer pour la classe</button>
+</form>
+{% endif %}

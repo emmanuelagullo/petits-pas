@@ -1099,8 +1099,27 @@ a.illustration-competence:hover { box-shadow: inset 0 0 0 2px currentColor; }
 }
 
 .entete-catalogue { justify-content: space-between; align-items: baseline; }
-.entete-catalogues-partage > details { max-width: 100%; }
+.entete-catalogues-partage { display: grid; align-items: start; }
+.entete-catalogues-partage > h1,
+.page-referentiel .entete-catalogues-partage > details { grid-area: 1 / 1; margin: 0; }
+.entete-catalogues-partage > h1 { justify-self: start; }
+.page-referentiel .entete-catalogues-partage > details { padding: 0; border: 0; min-width: 0; }
+.entete-catalogues-partage > details > summary { width: fit-content; margin-inline-start: auto; }
+.formulaire-ajout-catalogue { padding: 1rem; border: 1px solid var(--trait); border-radius: .5rem; }
 .entete-catalogues-partage form { display: block; }
+.page-referentiel details.carte-catalogue { background: var(--surface); border-radius: .75rem; }
+.ligne-referentiel-catalogue { border-top: 1px solid var(--trait); padding: .7rem 0; }
+.ligne-referentiel-catalogue h4 { margin: 0; }
+.ligne-referentiel-catalogue:has([data-import-confirme]) [data-a-importer],
+.ligne-referentiel-catalogue:has([data-import-confirme]) form:has([value="apercu-grist"]) { display: none; }
+.etat-synchronisation-catalogue { padding: .65rem .85rem; background: var(--papier); border-inline-start: 3px solid var(--trait); }
+.etat-synchronisation-catalogue h3 { margin-block: 0 .25rem; }
+.licence-proposee { background: var(--en-cours-fond); color: var(--ardoise); padding: .6rem .8rem; border-radius: .4rem; }
+@media (max-width: 48rem) {
+  .entete-catalogues-partage > h1,
+  .page-referentiel .entete-catalogues-partage > details { grid-area: auto; }
+  .entete-catalogues-partage > details > summary { margin-inline-start: 0; }
+}
 .filtres-actifs-catalogue { margin-block-start: .5rem; align-items: center; }
 
 .actions-copie-classe { margin-block-start: 1.5rem; }

@@ -1,9 +1,7 @@
 {% if groupe.espace and groupe.ancre != "espace-partage" %}<span id="espace-partage"></span>{% endif %}
-<details id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
+<details class="carte-catalogue" id="{{ groupe.ancre }}"{% if groupe.ouvrir %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe.nom resume=groupe.resume niveau_titre=2 partiel_resume=groupe.partiel_resume espace_actif=groupe.espace_actif partage_confirme=groupe.espace.partage_confirme nombre_recus=groupe.lignes|length only %}
-{% if groupe.espace.partage.actif %}
-{% include "suivi/partiels/resultat_catalogue.html" with synchronisation=True %}
-{% elif groupe.url %}
+{% if groupe.url %}
 {% include "suivi/partiels/resultat_catalogue.html" %}
 {% if classe_active %}
 <form method="post" action="{{ url_catalogues }}">{% csrf_token %}<input type="hidden" name="catalogue" value="{{ groupe.url }}">
@@ -12,10 +10,11 @@
 {% endif %}
 {% endif %}
 <div{% if groupe.espace.partage.actif %} data-referentiels-espace="{{ url_catalogues }}"{% endif %}>
+{% if groupe.lignes %}<h3>{% if groupe.espace %}Référentiels reçus{% else %}Référentiels du catalogue{% endif %}</h3>{% endif %}
 {% for ligne in groupe.lignes %}
-<section class="encadre"{% if ligne.version or ligne.autre %} id="referentiel-{{ ligne.reference }}"{% endif %}>
-<h3>{{ ligne.titre }}</h3>
-<p>{% if not ligne.version and not ligne.autre %}<span class="pastille">À importer</span>
+<section class="ligne-referentiel-catalogue"{% if ligne.version or ligne.autre %} id="referentiel-{{ ligne.reference }}"{% endif %}>
+<h4>{{ ligne.titre }}</h4>
+<p>{% if not ligne.version and not ligne.autre %}<span class="pastille" data-a-importer>À importer</span>
 {% elif ligne.courant %}<span class="pastille pastille-principale">Utilisé par la classe</span>
 {% elif ligne.ecartee %}<span class="pastille">Écarté des ajouts</span>
 {% else %}<span class="pastille pastille-positive">Proposé à l’ajout</span>{% endif %}
@@ -31,10 +30,7 @@
 {% else %}<p>Aucun changement depuis votre dernière consultation enregistrée.</p>{% endif %}{% endif %}
 <div class="actions">
 {% if ligne.lire %}<a class="bouton discret" id="parcourir-{{ ligne.reference }}" href="{{ ligne.lire }}">Parcourir les compétences</a>{% endif %}
-{% if ligne.edition_distante and classe_active %}
-{% url 'paquets_referentiels_classe' classe.pk as examen %}
-{% include "suivi/partiels/examiner_edition_grist.html" with ligne=ligne.edition_distante examen_grist=examen|add:"?volet=importer&destination=classe&depuis=catalogues&catalogue="|add:groupe.ancre|add:"#import-referentiel" %}
-{% endif %}
+
 {% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
 <form method="post" action="{{ url_catalogues }}?catalogue={{ groupe.ancre|urlencode }}">{% csrf_token %}
 <input type="hidden" name="source" value="{{ ligne.reference }}">
@@ -43,6 +39,10 @@
 </form>
 {% endif %}
 </div>
+{% if ligne.edition_distante and classe_active %}
+{% url 'paquets_referentiels_classe' classe.pk as examen %}
+{% include "suivi/partiels/examiner_edition_grist.html" with sur_place=True ligne=ligne.edition_distante examen_grist=examen|add:"?volet=importer&destination=classe&depuis=catalogues&catalogue="|add:groupe.ancre|add:"#import-referentiel" %}
+{% endif %}
 {% if not ligne.courant and ligne.lire %}
 <details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Options" only %}
@@ -62,17 +62,22 @@
 {% elif groupe.url %}<p>Aucun référentiel dans ce catalogue.</p>{% endif %}
 {% endfor %}
 </div>
+{% if groupe.espace.partage.actif %}
+{% include "suivi/partiels/resultat_catalogue.html" with synchronisation=True %}
+{% endif %}
 {% if groupe.espace %}
 {% url 'espace_grist_classe' classe.pk as espace_url %}
 {% with action_espace=espace_url|add:"?depuis=catalogues" %}
-{% if groupe.espace.partage %}<p><a class="bouton discret" href="{% url 'referentiel_equipe_grist' classe.pk %}">Référentiel d’équipe</a></p>{% endif %}
+{% if groupe.espace.partage %}
+{% include "suivi/partiels/ouvrir_referentiel_equipe.html" %}
+{% endif %}
 <details{% if groupe.espace.changer_espace %} open{% endif %}>
 {% if groupe.espace.partage %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Réglages de l’espace" only %}
 {% else %}
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Rejoindre un espace" principal=True only %}
 {% endif %}
-{% include "suivi/partiels/reglages_espace_grist.html" with classe=classe partage=groupe.espace.partage action_espace=action_espace espace_integre=True espace_attendu=groupe.espace.espace_attendu document_a_confirmer=groupe.espace.document_a_confirmer grist=groupe.espace.grist erreur=groupe.espace.erreur champ_erreur=groupe.espace.champ_erreur licence=groupe.espace.licence erreur_licence=groupe.espace.erreur_licence confirmer=groupe.espace.confirmer nom_saisi=groupe.espace.nom_saisi nom_propose=groupe.espace.nom_propose changer_espace=groupe.espace.changer_espace changer_destination=groupe.espace.changer_destination mode_pwa=groupe.espace.mode_pwa %}
+{% include "suivi/partiels/reglages_espace_grist.html" with classe=classe partage=groupe.espace.partage action_espace=action_espace espace_integre=True espace_attendu=groupe.espace.espace_attendu document_a_confirmer=groupe.espace.document_a_confirmer grist=groupe.espace.grist erreur=groupe.espace.erreur champ_erreur=groupe.espace.champ_erreur licence=groupe.espace.licence nombre_competences=groupe.espace.nombre_competences erreur_licence=groupe.espace.erreur_licence confirmer=groupe.espace.confirmer nom_saisi=groupe.espace.nom_saisi nom_propose=groupe.espace.nom_propose changer_espace=groupe.espace.changer_espace changer_destination=groupe.espace.changer_destination mode_pwa=groupe.espace.mode_pwa %}
 </details>
 {% endwith %}
 {% elif groupe.url and classe_active %}

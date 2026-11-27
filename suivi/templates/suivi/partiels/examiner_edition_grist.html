@@ -1,4 +1,4 @@
-<form method="post" action="{{ examen_grist }}">
+<form method="post" action="{{ examen_grist }}"{% if sur_place %} hx-post="{{ examen_grist }}" hx-vals='{"fragment_catalogue": "1"}' hx-target="next [data-examen-catalogue]" hx-swap="innerHTML"{% endif %}>
 {% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ ligne.url }}">
 <input type="hidden" name="reference" value="{{ ligne.reference }}">
@@ -9,3 +9,4 @@
 {% endif %}
 <button class="bouton{% if choix_edition or not ligne.mise_a_jour %} discret{% endif %}" name="action" value="apercu-grist">{% if choix_edition %}Examiner cette édition{% elif ligne.mise_a_jour %}Voir les changements{% else %}Examiner l’édition{% endif %}</button>
 </form>
+{% if sur_place %}<div data-examen-catalogue aria-live="polite"></div>{% endif %}

@@ -193,6 +193,26 @@ class CataloguesReferentiels(Base):
         self.assertEqual(source.classe_privee_id, self.classe.pk)
         self.assertNotIn(source.versions.get(), choix_bases(self.ecole, self.classe.annee_scolaire).versions)
 
+    def test_examiner_et_importer_grist_sur_place(self):
+        import yaml
+
+        from .tests_import_sources_referentiels import document
+
+        self.entrer()
+        echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        url = echange + "?volet=importer&destination=classe&depuis=catalogues&catalogue=catalogue-123abcdef456"
+        with patch("suivi.views_paquets_referentiels.edition_grist", return_value=(
+            yaml.safe_dump(document("source-grist-fictive")), {"mode_contenu": "complet"},
+        )):
+            apercu = self.client.post(url, {"action": "apercu-grist", "numero": "1", "fragment_catalogue": "1"},
+                                      HTTP_HX_REQUEST="true")
+        self.assertContains(apercu, "Importer pour la classe")
+        self.assertNotContains(apercu, "<html")
+        confirme = self.client.post(url, {"action": "importer", "jeton": apercu.context["jeton"],
+                                              "fragment_catalogue": "1"}, HTTP_HX_REQUEST="true")
+        self.assertContains(confirme, "Édition ajoutée au catalogue de la classe.")
+        self.assertNotContains(confirme, "<html")
+
     def test_actualisation_recoit_les_editions_connues_dans_le_perimetre_classe(self):
         import yaml
 

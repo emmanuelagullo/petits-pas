@@ -596,4 +596,7 @@ def paquets_referentiels(request, classe_pk=None):
     contexte["erreur_import"] = action in ("apercu", "apercu-grist", "importer", "ouvrir-catalogue-grist", "telecharger-icones-grist", "importer-icones-zip", "importer-icones-grist") and "erreur" in contexte
     contexte["message_import"] = action in ("importer", "importer-icones-zip", "importer-icones-grist") and "message" in contexte
     maj_import = action in ("apercu", "apercu-grist", "importer") and request.headers.get("HX-Request") == "true"
+    if (maj_import and import_classe and contexte["retour_catalogues"]
+            and request.POST.get("fragment_catalogue") == "1"):
+        return render(request, "suivi/partiels/reponse_examen_catalogue.html", contexte)
     return render(request, "suivi/paquets_referentiels.html", contexte, status=400 if "erreur" in contexte and not maj_import else 200)

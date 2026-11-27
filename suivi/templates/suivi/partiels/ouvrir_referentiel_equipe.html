@@ -1,0 +1,6 @@
+<div class="espace-travail-equipe">
+<p>Consultez ou modifiez un référentiel commun avec l’équipe. Le référentiel utilisé par votre classe garde ses propres réglages.</p>
+{% url 'referentiel_equipe_grist' classe.pk as url_equipe %}
+<a class="bouton discret" href="{{ url_equipe }}" hx-get="{{ url_equipe }}" hx-select="#travail-referentiel-equipe" hx-target="next [data-travail-equipe]" hx-swap="innerHTML">Consulter ou modifier le référentiel d’équipe</a>
+<div data-travail-equipe></div>
+</div>

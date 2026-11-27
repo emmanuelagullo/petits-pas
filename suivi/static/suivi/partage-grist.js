@@ -175,8 +175,9 @@
     });
   }
 
-  const publication = document.querySelector('[data-publier-equipe-grist]');
-  if (publication) {
+  function activerPublicationÉquipe() {
+    const publication = document.querySelector('[data-publier-equipe-grist][hidden]');
+    if (!publication) return;
     publication.hidden = false;
     const bouton = publication.querySelector('button');
     const état = publication.querySelector('[role=status]');
@@ -186,7 +187,7 @@
       bouton.disabled = true;
       état.textContent = 'Publication en cours…';
       try {
-        const réponse = await fetch(window.location.href, {
+        const réponse = await fetch(publication.action, {
           method: 'POST', body: new FormData(publication), signal: AbortSignal.timeout(15000),
         });
         const {api, reference, titre, contenu, icones, erreur} = await réponse.json();
@@ -239,6 +240,8 @@
       }
     });
   }
+  activerPublicationÉquipe();
+  document.addEventListener('htmx:afterSwap', activerPublicationÉquipe);
   if (!zone) return;
 
   async function synchroniser(partage, propres) {

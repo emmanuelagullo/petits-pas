@@ -111,15 +111,16 @@ def invitation_grist(request):
 def licence_raccordement(classe, partage, adoption):
     if adoption and not adoption.clos and classe.etat == Classe.ACTIVE:
         try:
-            return document_projection(classe, partage.identifiant if partage else "preparation")["source"]["licence"], ""
+            projection = document_projection(classe, partage.identifiant if partage else "preparation")
+            return projection["source"]["licence"], "", sum(1 for _ in competences_document(projection))
         except ValidationError as cause:
-            return "", " ".join(cause.messages)
-    return "", ""
+            return "", " ".join(cause.messages), 0
+    return "", "", 0
 
 
 def contexte_raccordement(classe, partage, **options):
     if "licence" not in options:
-        options["licence"], options["erreur_licence"] = licence_raccordement(classe, partage, adoption_courante(classe))
+        options["licence"], options["erreur_licence"], options["nombre_competences"] = licence_raccordement(classe, partage, adoption_courante(classe))
     return {
         "partage": partage,
         "grist": partage.url if partage else "",
@@ -141,7 +142,7 @@ def espace_classe(request, pk):
     erreur = ""
     champ_erreur = ""
     adoption = adoption_courante(classe)
-    licence, erreur_licence = licence_raccordement(classe, partage, adoption)
+    licence, erreur_licence, nombre_competences = licence_raccordement(classe, partage, adoption)
     integre = request.GET.get("depuis") == "catalogues"
     retour_catalogues = reverse("suivis_referentiels_classe", args=[pk]) + "?espace=1#espace-partage"
     retour = retour_catalogues if integre else reverse("espace_grist_classe", args=[pk])
@@ -238,6 +239,7 @@ def espace_classe(request, pk):
         document_a_confirmer=document if changer_destination else "",
         grist=request.POST.get("grist") or invitation or (partage.url if partage else ""),
         erreur=erreur, champ_erreur=champ_erreur, licence=licence, erreur_licence=erreur_licence,
+        nombre_competences=nombre_competences,
         confirmer=request_confirmee, nom_saisi=nom_saisi, changer_espace=bool(invitation or erreur),
         changer_destination=changer_destination,
     )

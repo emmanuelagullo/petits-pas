@@ -195,7 +195,8 @@ def render_espace(request, classe, editions, tetes, document_grist, *, erreur=""
         contenu, _ = normaliser(document)
         apercus.append((cle, document, [{**ligne, "reference": reference}
                                        for reference, ligne in definitions_document(contenu).items()]))
-    return render(request, "suivi/referentiel_equipe_grist.html", {
+    htmx = request.headers.get("HX-Request") == "true"
+    reponse = render(request, "suivi/referentiel_equipe_grist.html", {
         "classe": classe, "dans_espace_grist": bool(document_grist), "tetes": apercus, "a_reunir": tetes[:2] if len(tetes) >= 2 else [],
         "edition_unique": tetes[0] if len(tetes) == 1 else "",
         "rubriques_edition": ([(cle, nom) for cle, nom, _ in rubriques_equipe(editions[tetes[0]]["document"])]
@@ -207,4 +208,7 @@ def render_espace(request, classe, editions, tetes, document_grist, *, erreur=""
         "editions": [(cle, edition["document"]) for cle, edition in editions.items()],
         "erreur": erreur, "conflits": conflits,
         "choix_conflits": bool(conflits) and all(c.chemin[-1] != "emplacement" for c in conflits),
-    }, status=400 if erreur else 200)
+    }, status=400 if erreur and not htmx else 200)
+    if htmx:
+        reponse["HX-Push-Url"] = "false"
+    return reponse

@@ -2,7 +2,7 @@
 <strong>{{ ligne.libelle }}</strong> · {{ ligne.niveau }}
 <details{% if reference_editee == ligne.reference %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier" only %}
-<form method="post">{% csrf_token %}
+<form method="post" action="{{ url_equipe }}">{% csrf_token %}
 <input type="hidden" name="parent" value="{{ identifiant }}">
 <input type="hidden" name="reference" value="{{ ligne.reference }}">
 <p><label>Libellé de la compétence <input name="libelle" maxlength="300" value="{% if reference_editee == ligne.reference %}{{ saisie_libelle }}{% else %}{{ ligne.libelle }}{% endif %}" required></label></p>

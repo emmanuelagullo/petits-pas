@@ -22,7 +22,11 @@
 {% endif %}
 {% if erreur and champ_erreur != "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement"><strong>Raccordement impossible.</strong> {{ erreur }}</li></ul>{% endif %}
 {% if licence %}
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Licence proposée pour le partage" resume=licence only %}
+{% if partage.licence == licence and not changer_destination %}
+<p class="aide">Licence confirmée pour le partage · {{ licence }}</p>
+{% else %}
+<p class="licence-proposee">{% if nombre_competences == 1 %}La compétence du référentiel sera partagée{% elif nombre_competences %}Les {{ nombre_competences }} compétences du référentiel seront partagées{% else %}Le référentiel sera partagé{% endif %} sous licence <strong>{{ licence }}</strong>.</p>
+{% endif %}
 {% endif %}
 {% if erreur_licence %}
 <p><span class="pastille alerte">Licence à vérifier</span> {% if erreur != erreur_licence %}{{ erreur_licence }}{% endif %}</p>
