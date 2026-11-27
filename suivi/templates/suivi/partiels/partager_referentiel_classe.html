@@ -18,18 +18,11 @@
 </details>
 {% endif %}
 <form method="post" id="informations-partage-classe" action="#export-referentiel">{% csrf_token %}</form>
-{% if modifier_partage or revisions_licence %}
+{% if revisions_licence %}<p><span class="pastille alerte">Licence d’origine non renseignée · {{ revisions_licence|length }}</span></p>{% endif %}
+{% if modifier_partage %}
 {% include "suivi/partiels/informations_partage_export.html" %}
 {% endif %}
-{% if revisions_licence and nombre_exportable_partage %}
-<form method="post" action="#export-referentiel">{% csrf_token %}
-<input type="hidden" name="competences_pretes" value="oui">
-<input type="hidden" name="empreinte_licences" value="{{ empreinte_licences_partage }}">
-{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Certaines licences restent à vérifier" resume="Ce ZIP contient uniquement les compétences prêtes à partager." only %}
-<button class="bouton" name="action" value="telecharger-classe">Télécharger {{ nombre_exportable_partage }} compétence{{ nombre_exportable_partage|pluralize }} prête{{ nombre_exportable_partage|pluralize }}</button>
-</form>
-{% endif %}
-{% if not modifier_partage and not revisions_licence %}
+{% if not modifier_partage %}
 {% include "suivi/partiels/publication_grist.html" %}
 {% endif %}
 {% else %}

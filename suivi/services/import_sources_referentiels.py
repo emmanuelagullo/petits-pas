@@ -67,15 +67,28 @@ def normaliser_filiation(valeur):
     }
 
 
+def contenu_hors_droits(document):
+    from copy import deepcopy
+
+    contenu = deepcopy(document)
+    contenu.pop("droits", None)
+    contenu["source"].pop("licence", None)
+    for competence in competences_document(contenu):
+        competence.pop("droits", None)
+    return contenu
+
+
 def normaliser(document):
     document = objet(document, ("format", "source", "version", "domaines", "structure_seule", "droits"), "Document")
     if type(document.get("format")) is not int or document["format"] not in (1, 2):
         raise ValidationError("Format attendu : 1 ou 2.")
     source = objet(document.get("source"), ("identifiant", "titre", "provenance", "licence", "provisoire"), "Source")
+    from .licences_diffusion import resoudre_licence
+
     source = {"identifiant": identifiant(source.get("identifiant"), "Identifiant de source"),
               "titre": texte(source.get("titre"), "Titre"),
               "provenance": texte(source.get("provenance"), "Provenance", 4000),
-              "licence": texte(source.get("licence"), "Licence", 120),
+              "licence": resoudre_licence(texte(source.get("licence") or "", "Licence", 120, facultatif=True))[0],
               "provisoire": source.get("provisoire")}
     if source["identifiant"].startswith(("reprise-ecole-", "catalogue-ecole-")):
         raise ValidationError("Cet identifiant est réservé aux reprises de bases existantes.")
@@ -86,7 +99,7 @@ def normaliser(document):
         raise ValidationError("Les droits de diffusion doivent être associés à une provenance.")
     droits = {
         texte(cle, "Référence de droits", 120): [
-            texte(notice[0], "Licence", 120, facultatif=True),
+            resoudre_licence(texte(notice[0], "Licence", 120, facultatif=True))[0],
             texte(notice[1], "Crédits", 4000, facultatif=True),
         ] if isinstance(notice, (list, tuple)) and len(notice) == 2 else None
         for cle, notice in droits.items()
@@ -205,7 +218,7 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None, class
     provenance_a_completer = bool(source and ecole and not source.versions.exists()
                                   and source.provenance == "" and source.licence == "")
     if source and not provenance_a_completer and (source.ecole_id != (ecole.pk if ecole else None) or any(getattr(source, c) != metadata[c]
-                      for c in ("titre", "provenance", "licence", "provisoire"))):
+                      for c in ("titre", "provenance", "provisoire"))):
         raise ValidationError("La source existe avec une autre provenance ou description ; aucune modification effectuée.")
     empreinte = hashlib.sha256(json.dumps(contenu, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     version = source.versions.filter(numero=contenu["version"]).first() if source else None
@@ -216,7 +229,11 @@ def importer_source(contenu_yaml, *, verifier_seulement=False, ecole=None, class
             if c.get("icone_png"):
                 c["icone_png"] = png_en_ligne(c["icone_png"])
     if version and precedente != contenu:
-        raise ValidationError("Cette version existe avec un autre contenu ; publier un nouveau numéro de version.")
+        if contenu_hors_droits(precedente) != contenu_hors_droits(contenu):
+            raise ValidationError("Cette version existe avec un autre contenu ; publier un nouveau numéro de version.")
+        contenu["version"] = f'{contenu["version"][:63]}-{empreinte[:16]}'
+        version = source.versions.filter(numero=contenu["version"]).first()
+        empreinte = hashlib.sha256(json.dumps(contenu, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     empruntees = {}
     origines_manquantes = {}
     for competence in competences_document(contenu):

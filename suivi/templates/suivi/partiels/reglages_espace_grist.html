@@ -21,15 +21,15 @@
 {% endif %}
 {% endif %}
 {% if erreur and champ_erreur != "confirmer" %}<ul class="messages"><li class="error" role="alert" id="erreur-raccordement"><strong>Raccordement impossible.</strong> {{ erreur }}</li></ul>{% endif %}
-{% if licence %}
+{% if licence and not licences_origine_inconnues %}
 {% if partage.licence == licence and not changer_destination %}
 <p class="aide">Licence confirmée pour le partage · {{ licence }}</p>
 {% else %}
 <p class="licence-proposee">{% if nombre_competences == 1 %}La compétence du référentiel sera partagée{% elif nombre_competences %}Les {{ nombre_competences }} compétences du référentiel seront partagées{% else %}Le référentiel sera partagé{% endif %} sous licence <strong>{{ licence }}</strong>.</p>
 {% endif %}
 {% endif %}
-{% if erreur_licence %}
-<p><span class="pastille alerte">Licence à vérifier</span> {% if erreur != erreur_licence %}{{ erreur_licence }}{% endif %}</p>
+{% if licences_origine_inconnues %}
+<p><span class="pastille alerte">Licence d’origine non renseignée · {{ licences_origine_inconnues }}</span></p>
 {% url 'paquets_referentiels_classe' classe.pk as export_classe %}
 <div id="licence-espace-partage">
 <a class="bouton discret" href="{{ export_classe }}?volet=exporter&amp;depuis=espace#export-referentiel"
@@ -37,7 +37,7 @@
    hx-target="#licence-espace-partage" hx-swap="outerHTML">Renseigner la licence de partage</a>
 </div>
 {% endif %}
-<form method="post" action="{{ action_espace }}" class="encadre" data-raccordement-grist{% if partage.actif and not erreur_licence and partage.licence == licence %} data-document-actif="{{ partage.url }}"{% endif %}>
+<form method="post" action="{{ action_espace }}" class="encadre" data-raccordement-grist{% if partage.actif and not erreur_licence %} data-document-actif="{{ partage.url }}"{% endif %}>
 {% csrf_token %}
 <input type="hidden" name="espace_attendu" value="{{ espace_attendu }}">
 <input type="hidden" name="changement" value="{{ document_a_confirmer }}">

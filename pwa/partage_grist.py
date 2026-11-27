@@ -27,7 +27,7 @@ from suivi.referentiels import adoption_courante
 from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist, partage_grist_disponible, referentiels_grist
 from suivi.services.identites_grist import classes_grist_locales
 from suivi.services.import_sources_referentiels import importer_source
-from suivi.services.partage_referentiel_classe import preparer_referentiel_classe, verifier_licence_synchronisation
+from suivi.services.partage_referentiel_classe import preparer_referentiel_classe, resoudre_licences_classe
 from suivi.views import acces_requis
 
 TABLE = "PetitsPasClasses"
@@ -64,14 +64,12 @@ def document_projection(classe, identifiant):
         "identifiant": identifiant, "titre": titre, "provenance": "Espace de partage Petits Pas",
         "licence": adoption.version.source.licence,
     }, "courante")
-    document["source"]["licence"] = verifier_licence_synchronisation(adoption, document)
+    document["source"]["licence"] = resoudre_licences_classe(adoption, document)
     return document
 
 
 def projection(partage, icones=None):
     document = document_projection(partage.classe, partage.identifiant)
-    if document["source"]["licence"] != partage.licence:
-        raise ValidationError("La licence a changé. Confirmez à nouveau le partage de cette classe.")
     # Les références d’origine restent celles émises par la projection d’export.
     ressources = externaliser_png(document)
     if icones is not None:
@@ -116,15 +114,18 @@ def licence_raccordement(classe, partage, adoption):
     if adoption and not adoption.clos and classe.etat == Classe.ACTIVE:
         try:
             projection = document_projection(classe, partage.identifiant if partage else "preparation")
-            return projection["source"]["licence"], "", sum(1 for _ in competences_document(projection))
+            from suivi.services.licences_diffusion import droits_competence, resoudre_licence
+
+            notices = [droits_competence(projection, c)[0] for c in competences_document(projection)]
+            return projection["source"]["licence"], "", len(notices), sum(resoudre_licence(l)[1] for l in notices)
         except ValidationError as cause:
-            return "", " ".join(cause.messages), 0
-    return "", "", 0
+            return "", " ".join(cause.messages), 0, 0
+    return "", "", 0, 0
 
 
 def contexte_raccordement(classe, partage, **options):
     if "licence" not in options:
-        options["licence"], options["erreur_licence"], options["nombre_competences"] = licence_raccordement(classe, partage, adoption_courante(classe))
+        options["licence"], options["erreur_licence"], options["nombre_competences"], options["licences_origine_inconnues"] = licence_raccordement(classe, partage, adoption_courante(classe))
     return {
         "partage": partage,
         "grist": partage.url if partage else "",
@@ -146,7 +147,7 @@ def espace_classe(request, pk):
     erreur = ""
     champ_erreur = ""
     adoption = adoption_courante(classe)
-    licence, erreur_licence, nombre_competences = licence_raccordement(classe, partage, adoption)
+    licence, erreur_licence, nombre_competences, licences_origine_inconnues = licence_raccordement(classe, partage, adoption)
     integre = request.GET.get("depuis") == "catalogues"
     retour_catalogues = reverse("suivis_referentiels_classe", args=[pk]) + "?espace=1#espace-partage"
     retour = retour_catalogues if integre else reverse("espace_grist_classe", args=[pk])
@@ -202,15 +203,13 @@ def espace_classe(request, pk):
             if len(url) > 300:
                 champ_erreur = "grist"
                 raise ValidationError("Le lien de l’espace est limité à 300 caractères.")
-            if partage and partage.actif and adresse_grist(partage.url)[1] == document and partage.licence == licence:
-                PartageGristClasse.objects.filter(pk=partage.pk, url=partage.url, actif=True).update(url=url)
+            if partage and partage.actif and adresse_grist(partage.url)[1] == document:
+                PartageGristClasse.objects.filter(pk=partage.pk, url=partage.url, actif=True).update(url=url, licence=licence)
                 return redirect(retour)
             if changer_destination and request.POST.get("changement") != document:
                 # Présenter la destination avant de demander la confirmation.
                 request_confirmee = False
                 raise ValidationError("Vérifiez la nouvelle destination puis confirmez le changement d’espace.")
-            if erreur_licence:
-                raise ValidationError(erreur_licence)
             if request.POST.get("confirmer") != "oui":
                 champ_erreur = "confirmer"
                 raise ValidationError("Cochez cette case pour confirmer le partage, ou parcourez le catalogue dans Petits Pas.")
@@ -247,7 +246,7 @@ def espace_classe(request, pk):
         classe, partage, document_actif=document_actif,
         document_a_confirmer=document if changer_destination else "",
         grist=request.POST.get("grist") or invitation or (partage.url if partage else ""),
-        erreur=erreur, champ_erreur=champ_erreur, licence=licence, erreur_licence=erreur_licence,
+        erreur=erreur, champ_erreur=champ_erreur, licence=licence, erreur_licence=erreur_licence, licences_origine_inconnues=licences_origine_inconnues,
         nombre_competences=nombre_competences,
         confirmer=request_confirmee, nom_saisi=nom_saisi, changer_espace=bool(invitation or erreur),
         changer_destination=changer_destination,

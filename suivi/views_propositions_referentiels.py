@@ -19,7 +19,7 @@ from .views_paquets_referentiels import (
 )
 from .navigation import lien
 from .referentiels import adoption_courante
-from .services.partage_referentiel_classe import verifier_licence_synchronisation
+from .services.partage_referentiel_classe import resoudre_licences_classe
 
 SEL = "proposition-referentiel"
 
@@ -54,7 +54,7 @@ def proposer_classe(request, classe_pk):
                 donnees, _ = informations_partage(classe, adoption)
                 donnees = dict(donnees)
                 brut, _, _ = presenter_contenu_partage(classe, {}, donnees)
-                donnees["licence"] = verifier_licence_synchronisation(adoption, brut)
+                donnees["licence"] = resoudre_licences_classe(adoption, brut)
                 _, paquet, _ = presenter_contenu_partage(classe, {}, donnees)
                 document = lire_paquet(paquet)
             elif action == "examiner":

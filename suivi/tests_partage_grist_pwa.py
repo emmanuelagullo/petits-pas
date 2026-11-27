@@ -172,12 +172,17 @@ class PartageGristPWA(Base):
             self.assertEqual(resultat["api"], "https://grist.numerique.gouv.fr/o/docs/api/docs/document-fictif")
         self.assertEqual(self.client.get(reverse("synchroniser_grist")).json()["partages"], [])
 
+    def modifier_licence_fixture(self, licence):
+        self.a.source.licence = licence
+        self.a.source.save(update_fields=["licence"])
+        self.a.contenu["source"]["licence"] = licence
+        type(self.a).objects.filter(pk=self.a.pk).update(contenu=self.a.contenu)
+
     def test_raccordement_reutilise_la_licence_confirmee_dans_le_partage(self):
         from .models import InformationsPartageReferentielClasse
 
         adoption = self.adopter()
-        self.a.source.licence = ""
-        self.a.source.save(update_fields=["licence"])
+        self.modifier_licence_fixture("")
         InformationsPartageReferentielClasse.objects.create(
             classe=self.classe, adoption=adoption, licences_sources=[""],
             donnees={"licence": "CC-BY-SA-4.0"},
@@ -191,21 +196,22 @@ class PartageGristPWA(Base):
         self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).licence, "CC-BY-SA-4.0")
         self.assertContains(self.client.get(espace), "Licence confirmée pour le partage")
 
-    def test_licence_manquante_indique_la_source_sans_connecter_la_classe(self):
+    def test_licence_manquante_et_changement_de_licence_ne_bloquent_pas(self):
         self.adopter()
-        self.a.source.licence = "Non renseignée"
-        self.a.source.save(update_fields=["licence"])
+        self.modifier_licence_fixture("Non renseignée")
         espace = reverse("espace_grist_classe", args=[self.classe.pk])
         grist = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
+        self.assertContains(self.client.get(espace), "Licence d’origine non renseignée")
         reponse = self.client.post(espace, {"grist": grist, "confirmer": "oui", "nom_espace": "Équipe"})
-        self.assertContains(reponse, "Licence à vérifier pour " + self.a.source.titre, status_code=400)
-        self.assertContains(reponse, 'value="Équipe"', status_code=400)
-        self.assertFalse(PartageGristClasse.objects.exists())
+        self.assertEqual(reponse.status_code, 302)
+        partage = PartageGristClasse.objects.get(classe=self.classe)
+        self.modifier_licence_fixture("CC-BY-4.0")
+        from pwa.partage_grist import projection
+        self.assertIn("CC-BY-4.0", projection(partage))
 
     def test_licence_peut_etre_renseignee_depuis_l_espace(self):
         self.adopter()
-        self.a.source.licence = ""
-        self.a.source.save(update_fields=["licence"])
+        self.modifier_licence_fixture("")
         url = reverse("paquets_referentiels_classe", args=[self.classe.pk])
         url += "?volet=exporter&depuis=espace&licence=1"
         requete = {"HTTP_HX_REQUEST": "true"}
@@ -213,7 +219,7 @@ class PartageGristPWA(Base):
         self.assertContains(page, 'id="licence-espace-partage"')
         self.assertNotContains(page, 'data-export-classe')
         choix = {**page.context["partage_classe"].initial, "action": "enregistrer-partage",
-                 "autorisation_partage": "oui"}
+                 "licence": "CC-BY-SA-4.0"}
         resultat = self.client.post(url, choix, **requete)
         self.assertContains(resultat, "Licence enregistrée")
         self.assertFalse(PartageGristClasse.objects.exists())

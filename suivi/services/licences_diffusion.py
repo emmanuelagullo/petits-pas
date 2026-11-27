@@ -1,18 +1,28 @@
 """Conditions de diffusion transportées par le document commun au ZIP et à Grist."""
 from collections import Counter
 
-from django.core.exceptions import ValidationError
-
 from suivi.identites_referentiels import competences_document
 
 LICENCE_PROPOSEE = "CC-BY-SA-4.0"
 LICENCES_RECONNUES = {"CC0-1.0", "CC-BY-4.0", LICENCE_PROPOSEE, "CC-BY-NC-4.0", "CC-BY-NC-SA-4.0"}
+LICENCE_ORIGINE_NON_RENSEIGNEE = "Licence d’origine non renseignée"
 INCONNUES = {"", "non renseignée", "non renseigné", "inconnue", "à vérifier"}
 
 
 def licence_renseignee(licence):
     licence = licence.strip()
     return licence if licence.casefold() not in INCONNUES else ""
+
+
+def resoudre_licence(licence="", *, origine="", creation=False, defaut_creation=LICENCE_PROPOSEE):
+    """Renvoyer la notice effective et signaler le recours à un défaut."""
+    for valeur in (licence, origine):
+        renseignee = licence_renseignee(valeur or "")
+        if renseignee and renseignee != LICENCE_ORIGINE_NON_RENSEIGNEE:
+            return renseignee, False
+    if creation:
+        return licence_renseignee(defaut_creation) or LICENCE_PROPOSEE, True
+    return LICENCE_ORIGINE_NON_RENSEIGNEE, True
 
 
 def droits_competence(document, competence):
@@ -65,22 +75,3 @@ def encoder_droits(document, par_code, *, conserver_defaut=False):
         document["droits"] = notices
     else:
         document.pop("droits", None)
-
-
-def verifier_droits(document):
-    inconnues = [c["libelle"] for c in competences_document(document)
-                 if not droits_competence(document, c)[0]]
-    if inconnues:
-        raise ValidationError("Licence à vérifier pour %(competences)s.",
-                              params={"competences": ", ".join(inconnues[:5])})
-
-
-def retirer_droits_inconnus(document):
-    for domaine in document["domaines"]:
-        for groupe in [domaine, *domaine.get("sous_domaines", [])]:
-            groupe["competences"] = [c for c in groupe["competences"] if droits_competence(document, c)[0]]
-        domaine["sous_domaines"] = [sous for sous in domaine.get("sous_domaines", []) if sous["competences"]]
-    document["domaines"] = [d for d in document["domaines"] if d["competences"] or d["sous_domaines"]]
-    notices = {c["code"]: droits_competence(document, c) for c in competences_document(document)}
-    encoder_droits(document, notices)
-    return len(notices)

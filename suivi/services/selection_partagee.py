@@ -19,7 +19,7 @@ from .partage_referentiel_classe import code_competence_partagee, preparer_refer
 from .sources_catalogue import sources_catalogue
 
 from .licences_diffusion import (
-    LICENCE_PROPOSEE, LICENCES_RECONNUES, droits_competence, encoder_droits, licence_renseignee,
+    LICENCE_PROPOSEE, droits_competence, encoder_droits, resoudre_licence,
 )
 
 MAX_SELECTION = 500
@@ -69,7 +69,7 @@ def document_selection(adoption, cles, *, utilisateur=None):
             definition = contenu_adapte(classe.ecole, classe.annee_scolaire,
                                         definition_effective_ajout(locale), classe)["competences"][0]
             illustration = illustration_effective(classe.ecole, c, classe, reglages=reglages)
-            licence = locale.licence_partage or ("" if locale.definition.get("variante_de") else "CC-BY-SA-4.0")
+            licence, _ = resoudre_licence(locale.licence_partage, creation=not locale.definition.get("variante_de"))
             phrases = [{"code": p["cle"], "texte": p["texte"]} for p in propositions(c, classe)]
             contenu = document_ajout(locale, definition, provenance="Ajout local", licence=licence,
                                      icone=illustration.icone or "", formulations=phrases)
@@ -150,12 +150,12 @@ def preparer_selection(utilisateur, adoption, cles, choix, *, licence_confirmee=
     groupes, notices, manquantes = {}, {}, []
     for indice, v in enumerate(retenues, 1):
         nom, licence, attribution = v["credits"][0]
-        licence = licence_creation if v["cle"] in creations else licence_renseignee(licence)
-        if not licence and licence_confirmee:
-            licence = licence_confirmee
-        if licence not in LICENCES_RECONNUES:
-            manquantes.append((v["competence"]["libelle"], licence))
-            continue
+        if v["cle"] in creations:
+            licence, _ = resoudre_licence(creation=True, defaut_creation=licence_creation)
+        else:
+            licence, defaut = resoudre_licence(licence, origine=licence_confirmee)
+            if defaut:
+                manquantes.append(v["competence"]["libelle"])
         code = f"C{indice}"
         notices[code] = (licence, f"{nom}. {attribution}"[:4000])
         sous = groupes.setdefault((v["source"], v["rubrique"]), {})

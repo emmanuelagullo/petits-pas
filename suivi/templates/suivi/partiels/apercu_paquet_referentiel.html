@@ -1,7 +1,7 @@
 {% load static %}
 {% if apercu %}
 {% if not sans_entete %}<h3>{{ apercu.source.titre }} — {{ apercu.version }}</h3>
-<p>{% if not partage %}Catalogue {{ destination_import }} · {% endif %}{{ apercu.source.provenance }} · {{ apercu.source.licence }}</p>{% endif %}
+<p>{% if not partage %}Catalogue {{ destination_import }} · {% endif %}{{ apercu.source.provenance }} · {{ apercu.source.licence|urlize }}</p>{% endif %}
 {% if comparaison_import %}
 <p>Comparaison avec l’édition {{ edition_comparee }} reçue par l’école.</p>
 {% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=comparaison_import.ajouts modifications=comparaison_import.modifications retraits=comparaison_import.retraits only %}

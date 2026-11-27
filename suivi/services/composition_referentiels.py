@@ -5,6 +5,7 @@ from suivi.identites_referentiels import competences_document, reference_compete
 
 from .apercu_mises_a_jour import comparer_definition
 from .paquets_referentiels import empaqueter
+from .licences_diffusion import droits_competence, encoder_droits, resoudre_licence
 
 
 def catalogue_composition(versions):
@@ -18,9 +19,11 @@ def catalogue_composition(versions):
 def composer_paquet(catalogue, donnees, references, creations=()):
     groupes = {}
     reprises = {}
+    source = {cle: donnees.get(cle) for cle in ("identifiant", "titre", "provenance", "licence")}
+    source["licence"] = resoudre_licence(source["licence"], creation=True)[0]
 
-    def ajouter(rubrique, competence):
-        groupes.setdefault(rubrique, []).append(competence)
+    def ajouter(rubrique, competence, notice=None):
+        groupes.setdefault(rubrique, []).append((competence, notice or (source["licence"], source["provenance"])))
     for reference in dict.fromkeys(references):
         if reference not in catalogue:
             raise ValidationError("Une compétence sélectionnée n’est plus disponible.")
@@ -41,7 +44,9 @@ def composer_paquet(catalogue, donnees, references, creations=()):
                                       "Gardez cochée l’édition dont vous souhaitez reprendre la définition.")
             continue
         reprises[cle] = competence
-        ajouter(donnees.get("rubrique"), {**competence, "source_origine": origine})
+        licence, credits = droits_competence(version.contenu, competence)
+        ajouter(donnees.get("rubrique"), {**competence, "source_origine": origine},
+                (resoudre_licence(licence)[0], credits))
 
     if donnees.get("nouvelle"):
         ajouter(donnees.get("rubrique"), {"identite": donnees.get("identite_nouvelle"),
@@ -58,9 +63,10 @@ def composer_paquet(catalogue, donnees, references, creations=()):
             rang_competence += 1
             competence["code"] = f"C{rang_competence}"
         domaines.append({"code": f"R{rang}", "nom": rubrique, "competences": competences})
-    source = {cle: donnees.get(cle) for cle in ("identifiant", "titre", "provenance", "licence")}
-    return empaqueter({
+    document = {
         "format": 2, "source": {**source, "provisoire": True},
         "version": donnees.get("version"),
         "domaines": domaines,
-    })
+    }
+    encoder_droits(document, notices, conserver_defaut=True)
+    return empaqueter(document)

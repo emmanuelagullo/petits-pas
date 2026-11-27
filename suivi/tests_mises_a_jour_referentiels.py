@@ -235,31 +235,39 @@ class MisesAJour(Base):
         self.assertTrue(all("droits" not in c for c in competences))
         self.assertEqual([droits_competence(document, c) for c in competences], [commun, commun, exception])
 
-    def test_selection_permet_un_zip_partiel_ou_une_licence_confirmee(self):
+    def test_selection_avec_licence_manquante_ou_personnalisee_exporte_tout(self):
         from .identites_referentiels import competences_document, reference_competence
 
         adhesion = self.adopter()
         doc = document("licence-inconnue-fictive")
-        doc["source"]["licence"] = "Non renseignée"
+        del doc["source"]["licence"]
         autre = importer(doc)[0]
+        conditions = "Chat d’école : usage classe/formation, origine à mentionner. https://www.chatdecole.site/a-propos/"
+        doc = document("licence-chat-fictive")
+        doc["source"]["licence"] = conditions
+        chat = importer(doc)[0]
         publier_choix_application(annee=self.classe.annee_scolaire,
-            versions_ids=[self.a.pk, autre.pk], proposee_id=self.a.pk, revision_attendue=1)
-        ref = reference_competence(next(competences_document(autre.contenu)))
-        references = [f"classe:{adhesion.usages.get().competence_id}", f"version-{autre.pk}:{ref}"]
+            versions_ids=[self.a.pk, autre.pk, chat.pk], proposee_id=self.a.pk, revision_attendue=1)
+        references = [f"classe:{adhesion.usages.get().competence_id}"]
+        for version in (autre, chat):
+            ref = reference_competence(next(competences_document(version.contenu)))
+            references.append(f"version-{version.pk}:{ref}")
         url = reverse("paquets_referentiels_classe", args=[self.classe.pk])
         donnees = {"competence_partagee": references, "action": "preparer-selection-classe"}
         page = self.client.post(url, donnees)
-        self.assertContains(page, "Télécharger 1 compétence prête")
-        self.assertContains(page, "1 à vérifier")
-        self.assertEqual(page.context["references_selection"], references)
-        refus = self.client.post(url, {**donnees, "licence_confirmee": "CC-BY-SA-4.0",
-                                       "action": "confirmer-licence-selection"})
-        self.assertContains(refus, "Confirmez l’autorisation", status_code=400)
-        confirme = self.client.post(url, {
-            **donnees, "licence_confirmee": "CC-BY-SA-4.0", "autorisation": "oui",
-        })
-        self.assertEqual(confirme.context["nombre_exportable"], 2)
-        self.assertContains(confirme, "Télécharger le ZIP de la sélection")
+        self.assertContains(page, "Télécharger le ZIP de la sélection")
+        self.assertContains(page, "Licence d’origine non renseignée · 1")
+        self.assertEqual(page.context["nombre_exportable"], 3)
+        export = {**donnees, "action": "telecharger-selection-classe", "empreinte": page.context["empreinte_selection"]}
+        from .services.licences_diffusion import droits_competence, LICENCE_ORIGINE_NON_RENSEIGNEE
+        from .services.import_sources_referentiels import lire_source
+
+        for choix, attendue in (("", LICENCE_ORIGINE_NON_RENSEIGNEE), ("CC-BY-4.0", "CC-BY-4.0")):
+            zip_exporte = self.client.post(url, {**export, "licence_confirmee": choix})
+            self.assertEqual(zip_exporte["Content-Type"], "application/zip")
+            contenu, _ = lire_source(lire_paquet(zip_exporte.content))
+            self.assertEqual({droits_competence(contenu, c)[0] for c in competences_document(contenu)},
+                             {conditions, "CC-BY-SA-4.0", attendue})
 
     def test_selection_demande_une_definition_si_deux_editions_divergent(self):
         self.adopter()

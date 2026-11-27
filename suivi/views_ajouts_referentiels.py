@@ -134,7 +134,10 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         classe=classe, competence=locale.competence).first() if locale else None
     definition = definition_effective_ajout(locale) if locale else None
     proposee = contenu_adapte(ecole, annee, definition)["competences"][0] if locale else None
-    licence_proposee = ""
+    from .services.licences_diffusion import resoudre_licence
+
+    licence_proposee, licence_est_proposee = "", False
+    licence_origine = ""
     if locale:
         licence_proposee = locale.licence_partage
         origine_declaree = locale.definition.get("variante_de")
@@ -145,11 +148,10 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             source = SourceReferentiel.objects.filter(
                 Q(ecole=ecole, identifiant_diffusion=reference) | Q(ecole__isnull=True, identifiant=reference),
             ).order_by("pk").first()
-            licence_proposee = source.licence if source else ""
-            if licence_proposee.casefold() in {"non renseignée", "non renseigné", "inconnue"}:
-                licence_proposee = ""
-        elif not licence_proposee:
-            licence_proposee = "CC-BY-SA-4.0"
+            licence_origine = source.licence if source else ""
+        licence_proposee, licence_est_proposee = resoudre_licence(
+            locale.licence_partage, origine=licence_origine, creation=not origine_declaree,
+        )
     phrases_partage = propositions(locale.competence, classe) if locale and not locale.suivi_libre else []
     if request.method == "POST" and request.POST.get("action") == "partager":
         from .services.paquets_referentiels import exporter_ajout
@@ -167,7 +169,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
             image = request.FILES.get("icone_png")
             if image and request.POST.get("icone_generique") != "oui":
                 raise ValidationError("Confirmez que l’icône est générique et partageable.")
-            licence = request.POST.get("licence", "").strip()
+            licence, _ = resoudre_licence(request.POST.get("licence", "")[:120], origine=licence_proposee)
             paquet = exporter_ajout(locale, proposee,
                 provenance=request.POST.get("provenance", ""), licence=licence,
                 icone=request.POST.get("icone", ""), formulations=formulations,
@@ -331,7 +333,7 @@ def ajouts(request, classe_pk=None, locale_pk=None):
         "direction": direction, "ouvert": ouvert, "variante": variante,
         "proposer_variante_doublon": bool(classe and ouvert),
         "icone_variante": bool(icone_variante or png_variante), "phrases_variante": phrases_variante, "relais_possible": not externe and not (regle_origine and regle_origine.selection_eleves), "doublons": doublons, "form": form, "lignes": lignes, "locale": locale,
-        "origine": origine, "licence_proposee": licence_proposee, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
+        "origine": origine, "licence_proposee": licence_proposee, "licence_est_proposee": licence_est_proposee, "phrases_partage": phrases_partage, "icones_partage": catalogue_icones() if locale and not locale.suivi_libre else {},
         "retour_suivi": retour_suivi, "retour_catalogue": retour_catalogue,
         "ariane": chemin_retour_competences(classe, retour_catalogue) if retour_catalogue else [], "courante": courante, "proposee": proposee, "libelle_ecole": libelle_ecole,
         "classement": classement, "usages_classement": usages_visibles,

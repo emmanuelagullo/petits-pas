@@ -151,7 +151,7 @@
 <p><label>Identifiant du référentiel <input name="identifiant" value="{{ brouillon_composition.identifiant }}" required maxlength="120" pattern="[A-Za-z0-9][A-Za-z0-9._-]*"></label> Gardez cet identifiant pour les éditions suivantes.</p>
 <p><label>Numéro d’édition <input name="version" value="{{ brouillon_composition.version|default:"1" }}" required maxlength="80"></label></p>
 <p><label>Provenance et attributions <textarea name="provenance" required maxlength="4000">{{ brouillon_composition.provenance }}</textarea></label></p>
-<p><label>Licence <input name="licence" value="{{ brouillon_composition.licence }}" required maxlength="120"></label></p>
+<p><label>Licence <input name="licence" value="{{ brouillon_composition.licence }}" placeholder="CC-BY-SA-4.0 pour les créations" maxlength="120"></label></p>
 <p><label>Nom de la rubrique <input name="rubrique" value="{{ brouillon_composition.rubrique }}" required maxlength="200"></label></p>
 {% if catalogue_composition %}
 {% include "suivi/partiels/selection_competences_partage.html" with lignes=catalogue_composition champ="reprise" cle_panneau="partage-composition" selection=brouillon_composition.reprises %}

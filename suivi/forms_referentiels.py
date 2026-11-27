@@ -158,6 +158,6 @@ class PartageReferentielClasseForm(forms.Form):
     version = forms.RegexField(label="Numéro d’édition", regex=r"^[A-Za-z0-9][A-Za-z0-9._-]*\Z",
                                max_length=80, initial="1")
     provenance = forms.CharField(label="Provenance et crédits", max_length=4000, widget=forms.Textarea(attrs={"rows": 3}))
-    licence = forms.CharField(label="Licence", max_length=120)
+    licence = forms.CharField(label="Licence", max_length=120, required=False)
     licence_creations = forms.ChoiceField(label="Licence proposée pour les créations sans licence", required=False,
                                          choices=(("", "Réglage de la classe (CC BY-SA 4.0 par défaut)"),))

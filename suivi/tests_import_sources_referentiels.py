@@ -122,7 +122,7 @@ class ImportSources(TestCase):
                 self.assertEqual(competence["formulations"], [phrase])
 
     def test_erreurs_de_format_aucune_ecriture(self):
-        for modification in ("identite_absente", "identite_double", "code_double", "icone", "niveau", "champ", "boolean", "longueur", "licence", "reserve"):
+        for modification in ("identite_absente", "identite_double", "code_double", "icone", "niveau", "champ", "boolean", "longueur", "reserve"):
             with self.subTest(modification=modification):
                 doc = document()
                 c = doc["domaines"][0]["competences"][0]
@@ -136,10 +136,23 @@ class ImportSources(TestCase):
                 elif modification == "champ": c["libelé"] = "Faute de frappe"
                 elif modification == "boolean": doc["source"]["provisoire"] = "false"
                 elif modification == "longueur": c["libelle"] = "a" * 301
-                elif modification == "licence": del doc["source"]["licence"]
                 elif modification == "reserve": doc["source"]["identifiant"] = "reprise-ecole-1"
                 with self.assertRaises(ValidationError): importer(doc)
                 self.assertFalse(SourceReferentiel.objects.exists())
+
+    def test_licence_absente_et_notice_corrigee_a_la_meme_edition(self):
+        from .services.licences_diffusion import LICENCE_ORIGINE_NON_RENSEIGNEE
+        doc = document()
+        del doc["source"]["licence"]
+        version, cree, _ = importer(doc)
+        self.assertTrue(cree)
+        self.assertEqual(version.contenu["source"]["licence"], LICENCE_ORIGINE_NON_RENSEIGNEE)
+        doc["source"]["licence"] = "Conditions particulières : mention de l’origine"
+        corrigee, cree, _ = importer(doc)
+        self.assertTrue(cree)
+        self.assertEqual(corrigee.source_id, version.source_id)
+        self.assertEqual(corrigee.contenu["source"]["licence"], doc["source"]["licence"])
+        self.assertEqual(importer(doc)[:2], (corrigee, False))
 
     def test_yaml_invalide_et_cles_repetees(self):
         for contenu in ("domaines: [", "format: 1\nformat: 1", "!!python/object:os.system {}", "42", ""):

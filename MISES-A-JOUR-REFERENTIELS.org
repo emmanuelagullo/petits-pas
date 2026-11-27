@@ -137,3 +137,16 @@ les référencent. Le ZIP pédagogique embarque un fichier PNG par empreinte et
 vérifie celle-ci avant de lire la définition. Les anciens ZIP pédagogiques
 avec PNG intégré restent lisibles. Les exports de transfert incluent
 les PNG référencés par leur périmètre.
+
+
+* Licences et crédits à l’import et au partage
+
+Le même calcul, ~resoudre_licence()~ dans ~suivi/services/licences_diffusion.py~,
+s’applique au ZIP et à Grist. Petits Pas reprend les conditions renseignées
+ou celles de la provenance. En l’absence de notice, il propose CC BY-SA 4.0
+pour une création locale et « Licence d’origine non renseignée » pour un
+contenu repris. L’interface regroupe les défauts en orange. L’action principale
+reste disponible et la personne peut modifier le choix facultativement.
+Les notices personnalisées et leurs crédits sont conservés dans le document
+transporté. Une licence ne retire aucune compétence et n’interrompt pas une
+synchronisation.

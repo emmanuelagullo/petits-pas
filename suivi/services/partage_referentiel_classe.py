@@ -9,7 +9,7 @@ from suivi.models import AdaptationCompetence, CompetenceLocale, CompetenceSourc
 from suivi.presentation import illustration_effective, propositions, reglages_du_perimetre
 from suivi.referentiels import adoption_courante, arbre_version, contenu_adoption
 from suivi.rubriques import rubriques_saisissables
-from .licences_diffusion import LICENCE_PROPOSEE, droits_competence, encoder_droits, licence_renseignee, verifier_droits
+from .licences_diffusion import droits_competence, encoder_droits, licence_renseignee, resoudre_licence
 
 
 def arbre_commun_classe(adoption, contenu):
@@ -67,7 +67,7 @@ def preparer_referentiel_classe(classe, source, version):
     reglages = reglages_du_perimetre(classe.ecole, classe)
     base = adoption.version
     droits_base = {}
-    if base.contenu.get("droits"):
+    if base.contenu.get("origine") == "source_declaree":
         references = references_suivi(classe.ecole, base)
         droits_base = {references[reference_competence(c)]: droits_competence(base.contenu, c)
                        for c in competences_document(base.contenu) if reference_competence(c) in references}
@@ -112,7 +112,7 @@ def preparer_referentiel_classe(classe, source, version):
             if competence.pk in droits_base:
                 notice = droits_base[competence.pk]
             if ajout and not ajout.get("variante_de") and not origine:
-                licence = locales.get(competence.pk) or licence_creations or LICENCE_PROPOSEE
+                licence, _ = resoudre_licence(locales.get(competence.pk), creation=True, defaut_creation=licence_creations)
                 notice = (licence, source.get("provenance") or base.source.provenance)
             if ajout.get("variante_de") and not origine:
                 notice = (locales.get(competence.pk) or "", ajout["variante_de"]["libelle"])
@@ -169,9 +169,9 @@ def licences_referentiel_partage(adoption, document):
     return sorted({licence for _, licence in sources_referentiel_partage(adoption, document)})
 
 
-def verifier_licence_synchronisation(adoption, document):
+def resoudre_licences_classe(adoption, document):
     sources = sources_referentiel_partage(adoption, document)
-    inconnues = [c for c in competences_document(document) if not droits_competence(document, c)[0]]
+    inconnues = [c for c in competences_document(document) if resoudre_licence(droits_competence(document, c)[0])[1]]
     if inconnues:
         choix = InformationsPartageReferentielClasse.objects.filter(
             classe=adoption.classe, adoption=adoption, licences_sources=sorted({licence for _, licence in sources}),
@@ -183,14 +183,10 @@ def verifier_licence_synchronisation(adoption, document):
             portee = [reference_competence(c) for c in inconnues
                       if len(sources) == 1 and not c.get("variante_de")]
         if licence and set(map(reference_competence, inconnues)) <= set(portee):
-            encoder_droits(document, {c["code"]: (droits_competence(document, c)[0] or licence,
+            encoder_droits(document, {c["code"]: (licence if c in inconnues else droits_competence(document, c)[0],
                                                    droits_competence(document, c)[1])
                                       for c in competences_document(document)})
-    if inconnues and not any(droits_competence(document, c)[0] for c in inconnues):
-        raise ValidationError("Licence à vérifier pour %(sources)s.",
-                              params={"sources": ", ".join(titre for titre, licence in sources if not licence_renseignee(licence))
-                                      or adoption.version.source.titre})
-    verifier_droits(document)
-    return licence_renseignee(document["source"]["licence"]) or next(
-        (droits_competence(document, c)[0] for c in competences_document(document)), LICENCE_PROPOSEE,
-    )
+    notices = {c["code"]: droits_competence(document, c) for c in competences_document(document)}
+    encoder_droits(document, {code: (resoudre_licence(licence)[0], credits)
+                              for code, (licence, credits) in notices.items()})
+    return resoudre_licence(document["source"]["licence"])[0]

@@ -42,8 +42,8 @@ agissent dans le filtre courant, y compris dans les rubriques repliées.
 **Vider la sélection** efface aussi les choix faits dans d’autres référentiels.
 
 Un export peut combiner plusieurs licences. Petits Pas conserve les indications
-de provenance et les conditions de chaque compétence. Si une licence manque,
-vérifiez-la dans l’aperçu ou téléchargez uniquement les compétences prêtes.
+de provenance et les conditions de chaque compétence. Si une licence manque, Petits Pas indique le défaut utilisé. Vous pouvez le
+modifier dans l’aperçu et télécharger directement la sélection entière.
 
 
 Pour un fichier reçu, ouvrez **Compétences → Importer un ZIP pour la classe**.

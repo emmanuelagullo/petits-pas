@@ -398,6 +398,16 @@ exports d'école.
   l'impact sur le suivi ; les erreurs de fichier ou de champ restent des
   diagnostics de validation. Préserver les sélections hors filtre et distinguer
   les éléments visibles, cochés et retenus.
+- Une licence de diffusion ne bloque ni import, ni export, ni publication,
+  ni synchronisation, et n'écarte aucune compétence. Utiliser
+  `resoudre_licence()` dans `suivi/services/licences_diffusion.py` pour reprendre
+  les conditions renseignées, puis celles de la provenance, puis le défaut.
+  Préserver les crédits et les conditions personnalisées. Proposer CC BY-SA
+  4.0 pour les créations locales sans licence et « Licence d’origine non
+  renseignée » pour les contenus repris. Signaler le défaut en orange de
+  manière groupée. Le réglage reste facultatif et l'action principale valide
+  directement le choix affiché. Garder des notices compactes communes au ZIP
+  et à Grist, avec des exceptions individuelles seulement si nécessaire.
 - Pour un futur partage pédagogique, distinguer l'ajout au catalogue de la
   décision de classe. Exclure les données d'élèves, le suivi libre ciblé et les
   médias privés. Vérifier les droits et l'isolation entre écoles sur serveur,
