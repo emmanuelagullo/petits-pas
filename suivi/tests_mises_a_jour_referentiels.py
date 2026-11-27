@@ -152,6 +152,60 @@ class MisesAJour(Base):
         refus = self.client.post(echange, {"action": "exporter-classe", "jeton_partage": page.context["jeton_partage"]})
         self.assertContains(refus, "Le référentiel a changé", status_code=400)
 
+    def test_selection_des_competences_de_la_classe_et_d_un_autre_referentiel(self):
+        adoption = self.adopter()
+        competence = adoption.usages.get().competence
+        catalogue = reverse("catalogue_competences", args=[self.classe.pk])
+        export = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        page = self.client.get(catalogue, {"q": "inexistant"})
+        self.assertContains(page, "Partager le référentiel de la classe")
+        page = self.client.get(catalogue, {"source": f"version-{self.b.pk}"})
+        self.assertNotContains(page, "Ajouter aux catalogues de la classe")
+        self.assertContains(page, f'value="version-{self.b.pk}:')
+        from .identites_referentiels import competences_document, reference_competence
+        externe = reference_competence(next(competences_document(self.b.contenu)))
+        retour = catalogue + "?q=parle#partager-competences"
+        references = [f"classe:{competence.pk}", f"version-{self.b.pk}:{externe}"]
+        donnees = {"action": "preparer-selection-classe", "competence_partagee": references}
+        page = self.client.post(export, donnees, query_params={"retour": retour})
+        self.assertContains(page, "Sélection de compétences – 2 sources")
+        self.assertEqual(page.context["retour_competences"], retour)
+        self.assertContains(page, "Télécharger le ZIP de la sélection")
+        paquet = self.client.post(export, {
+            **donnees, "action": "telecharger-selection-classe",
+            "empreinte": page.context["empreinte_selection"], "titre_selection": "Ma sélection",
+        })
+        from .services.import_sources_referentiels import lire_source
+        contenu, _ = lire_source(lire_paquet(paquet.content))
+        self.assertEqual(contenu["source"]["titre"], "Ma sélection")
+        self.assertTrue(contenu["source"]["identifiant"].startswith("selection-"))
+        self.assertEqual(len(list(competences_document(contenu))), 2)
+        refus = self.client.post(export, {**donnees, "competence_partagee": [*references, "classe:999999"]})
+        self.assertContains(refus, "ne sont plus partageables", status_code=400)
+
+    def test_selection_demande_une_definition_si_deux_editions_divergent(self):
+        self.adopter()
+        from .identites_referentiels import competences_document, reference_competence
+
+        autre = document("autre-fictive", version="2")
+        autre["domaines"][0]["competences"][0]["libelle"] = "Je reformule"
+        nouvelle = importer(autre)[0]
+        publier_choix_application(annee=self.classe.annee_scolaire,
+            versions_ids=[self.a.pk, self.b.pk, nouvelle.pk], proposee_id=self.a.pk, revision_attendue=1)
+        cle = reference_competence(next(competences_document(self.b.contenu)))
+        premiere = f"version-{self.b.pk}:{cle}"
+        seconde = f"version-{nouvelle.pk}:{cle}"
+        export = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        donnees = {"action": "preparer-selection-classe", "competence_partagee": [premiere, seconde]}
+        page = self.client.post(export, donnees)
+        self.assertContains(page, "Confirmer les définitions")
+        self.assertNotContains(page, "Télécharger le ZIP de la sélection")
+        resolu = self.client.post(export, {**donnees, "definition_1": seconde})
+        self.assertContains(resolu, "Télécharger le ZIP de la sélection")
+        [competence] = resolu.context["apercu_selection"]["competences_importees"]
+        self.assertEqual(competence["libelle"], "Je reformule")
+        self.assertEqual(resolu.context["definitions_selection"], [seconde])
+
     def test_publication_grist_directe_memorise_la_destination_et_ne_duplique_pas(self):
         adoption = self.adopter()
         echange = reverse("paquets_referentiels_classe", args=[self.classe.pk])

@@ -67,7 +67,7 @@ def exporter_selection(version, references):
     return empaqueter(document)
 
 
-def exporter_ajout(locale, definition, *, provenance, licence, icone="", formulations=(), image=None):
+def document_ajout(locale, definition, *, provenance, licence, icone="", formulations=(), image=None):
     if locale.suivi_libre:
         raise ValidationError("Une compétence de suivi ciblé ne peut pas être partagée.")
     origine = locale.definition["competences"][0]
@@ -80,12 +80,16 @@ def exporter_ajout(locale, definition, *, provenance, licence, icone="", formula
         competence["icone_png"] = encoder_icone(image)
     # La même fiche pédagogique produit la même édition sur un autre poste.
     empreinte = sha256(yaml.safe_dump(competence, allow_unicode=True).encode()).hexdigest()
-    return empaqueter({
+    return {
         "format": 2, "version": empreinte,
         "source": {"identifiant": f"ajout-{identifiant}", "titre": "Compétence partagée",
                    "provenance": provenance, "licence": licence, "provisoire": True},
         "domaines": [{"code": "partage", "nom": "Compétence partagée", "competences": [competence]}],
-    })
+    }
+
+
+def exporter_ajout(locale, definition, **partage):
+    return empaqueter(document_ajout(locale, definition, **partage))
 
 
 def empaqueter(document, *, inclure_icones_fournies=True):

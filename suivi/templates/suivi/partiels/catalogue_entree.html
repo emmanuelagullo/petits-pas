@@ -1,4 +1,7 @@
 <li{% if not ligne.disponible %} id="c{{ ligne.competence.pk }}" tabindex="-1"{% endif %}>
+  {% if partage_depuis_catalogue and not ligne.competence_masquee and not ligne.rubrique_masquee and ligne.portee != "cible" %}
+  {% include "suivi/partiels/case_partage_catalogue.html" with cle=ligne.competence.pk libelle=ligne.competence.libelle source_partage="classe" only %}
+  {% endif %}
   {% include "suivi/partiels/ligne_catalogue.html" %}
   {% if ligne.rubrique_masquee %}<small> · Rubrique masquée</small>{% endif %}
   {% if afficher_classement %}<small> · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}</small>{% endif %}

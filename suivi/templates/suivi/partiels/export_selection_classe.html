@@ -1,0 +1,42 @@
+{% if erreur_selection %}<p class="message erreur" role="alert">{{ erreur_selection }}</p>{% endif %}
+{% if apercu_selection %}
+<p><strong>{{ titre_selection }}</strong></p>
+<p><strong>{{ apercu_selection.competences_importees|length }} compétence{{ apercu_selection.competences_importees|length|pluralize }} · {{ sources_selection|length }} source{{ sources_selection|length|pluralize }}</strong></p>
+<p>{{ sources_selection|join:" · " }}</p>
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
+{% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_selection.apercu competences_importees=apercu_selection.competences_importees icones_importees=apercu_selection.icones_importees partage=True only %}
+</details>
+<form method="post" action="#export-referentiel">
+{% csrf_token %}
+{% for reference in references_selection %}<input type="hidden" name="competence_partagee" value="{{ reference }}">{% endfor %}
+<input type="hidden" name="empreinte" value="{{ empreinte_selection }}">
+{% for definition in definitions_selection %}<input type="hidden" name="definition" value="{{ definition }}">{% endfor %}
+{% if conflits_selection %}
+{% for conflit in conflits_selection %}
+<fieldset class="groupe-filtres">
+<legend>Définition à retenir pour « {{ conflit.0.competence.libelle }} »</legend>
+{% for proposition in conflit %}
+<p><label><input type="radio" name="definition_{{ forloop.parentloop.counter }}" value="{{ proposition.cle }}" required> {{ proposition.titre }} · {{ proposition.competence.libelle }} · {{ proposition.competence.niveau }}</label></p>
+{% if proposition.ecarts %}<ul>{% for ecart in proposition.ecarts %}<li>{{ ecart.champ }} · {{ ecart.apres }}</li>{% endfor %}</ul>{% endif %}
+{% endfor %}
+</fieldset>
+{% endfor %}
+<button class="bouton" name="action" value="preparer-selection-classe">Confirmer les définitions</button>
+{% else %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Options d’export" resume="ZIP" only %}
+<p><label for="titre-selection">Titre de la sélection</label>
+<input id="titre-selection" name="titre_selection" value="{{ titre_selection }}" maxlength="200" required></p>
+{% include "suivi/partiels/contenu_zip_referentiel.html" with inclure=inclure_icones_selection %}
+</details>
+{% endif %}
+{% if not licences_selection_valides %}
+<p class="pastille alerte">Le ZIP exige une même licence de partage pour toutes les compétences retenues.</p>
+<ul>{% for titre, licence in credits_selection %}<li>{{ titre }} · {{ licence|default:"Licence à vérifier" }}</li>{% endfor %}</ul>
+{% elif not conflits_selection %}
+<p class="encadre">ZIP · Édition 1 · {{ apercu_selection.apercu.source.licence }}</p>
+<button class="bouton" name="action" value="telecharger-selection-classe">Télécharger le ZIP de la sélection</button>
+{% endif %}
+</form>
+{% endif %}

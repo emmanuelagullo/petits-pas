@@ -497,6 +497,7 @@ def catalogue(request, pk, saisie_collective=False):
         "a_des_competences_masquees": a_des_competences_masquees,
         "inclure_competences_masquees": inclure_competences_masquees,
         "inclure_masquees": inclure_masquees, "rubriques_masquees": bool(domaines_masques or groupes_masques),
+        "partage_depuis_catalogue": gerer and classe.etat == classe.ACTIVE and not (depuis_ajout or saisie_collective),
         "saisie_collective": saisie_collective, "vue_suivi": vue_suivi, "domaines_suivi": domaines_suivi,
         "effectif": effectif, "filtre": niveau or "tous", "responsable": cibler,
         "libelle_creation": f"Créer « {truncatechars(q, 55)} »",
@@ -505,6 +506,7 @@ def catalogue(request, pk, saisie_collective=False):
         "q": q, "niveau": niveau, "domaine": domaine,
         "domaines": domaines, "groupes": groupes, "sous_domaine": sous_domaine,
         "source": source, "sources": sources,
+        "source_partageable": bool(source and (autre and not autre.clos or version and version.contenu.get("origine") == "source_declaree")),
         "groupes_sources": [(nom, groupes_sources[nom]) for nom in sorted(
             groupes_sources, key=lambda nom: ordre_provenance(provenances[nom]),
         )],

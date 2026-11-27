@@ -40,6 +40,10 @@ def contenu_commun_classe(adoption, *, avec_heritage=True):
     return contenu
 
 
+def code_competence_partagee(classe, competence_id):
+    return "C" + sha256(f"{classe.ecole_id}/{competence_id}".encode()).hexdigest()[:19]
+
+
 def preparer_referentiel_classe(classe, source, version):
     adoption = adoption_courante(classe)
     if adoption is None:
@@ -73,7 +77,7 @@ def preparer_referentiel_classe(classe, source, version):
             ajout = identites_locales.get(competence.pk, {})
             definition = {
                 "identite": origine.identifiant if origine else (ajout.get("identite_portable") or f"classe-{cle}"),
-                "code": f"C{cle[:19]}",
+                "code": code_competence_partagee(classe, competence.pk),
                 "libelle": competence.libelle, "niveau": competence.niveau,
                 "formulations": [{"code": entree["cle"], "texte": entree["texte"]}
                                  for entree in propositions(competence, classe)],

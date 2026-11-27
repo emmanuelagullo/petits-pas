@@ -71,13 +71,7 @@ placeholder="{{ nom_catalogue_propose }}"></p>
 </details>
 </div>
 <div data-export-zip data-options-zip>
-{% if nombre_icones_ajoutees %}
-<label for="contenu-zip">Contenu du ZIP du référentiel</label>
-<select name="inclure_icones" id="contenu-zip">
-<option value="">Compétences</option>
-<option value="oui"{% if request.POST.action == "telecharger-classe" and inclure_icones %} selected{% endif %}>{{ libelle_zip_icones }}</option>
-</select>
-{% endif %}
+{% include "suivi/partiels/contenu_zip_referentiel.html" with inclure=inclure_icones seulement_zip=True %}
 <details{% if inclure_icones_fournies %} open{% endif %}>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Icônes fournies avec Petits Pas" only %}
 <p><label><input type="checkbox" name="inclure_icones_fournies" value="oui"{% if inclure_icones_fournies %} checked{% endif %}> Joindre aussi les fichiers des icônes fournies avec Petits Pas</label></p>

@@ -28,3 +28,10 @@ destination choisie. Pour parcourir les compétences d’une destination, utilis
 Une **sélection de compétences** exportée en ZIP garde l’identité de chaque
 compétence. Elle possède son propre identifiant de référentiel. Petits Pas
 l’indique dans la liste des catalogues.
+
+
+Depuis **Compétences**, utilisez **Sélectionner des compétences à partager**
+en bas de la liste, puis cochez les compétences. Vous pouvez changer de
+filtre ou de référentiel. **Compétences cochées** permet de revoir aussi celles
+qui sont hors du filtre courant. **Partager les compétences sélectionnées**
+prépare un ZIP et présente les sources avant le téléchargement.

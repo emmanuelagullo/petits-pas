@@ -1,0 +1,7 @@
+{% if nombre_icones_ajoutees %}
+<p><label for="contenu-zip">Contenu du ZIP</label>
+<select name="inclure_icones" id="contenu-zip">
+<option value="">Compétences</option>
+<option value="oui"{% if inclure and not seulement_zip or inclure and request.POST.action == "telecharger-classe" %} selected{% endif %}>Compétences et {{ nombre_icones_ajoutees }} icône{{ nombre_icones_ajoutees|pluralize }} ajoutée{{ nombre_icones_ajoutees|pluralize }}</option>
+</select></p>
+{% endif %}

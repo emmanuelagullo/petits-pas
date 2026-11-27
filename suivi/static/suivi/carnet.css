@@ -164,7 +164,7 @@ button.bouton:disabled,
   border-color: #b9c0c5;
   cursor: not-allowed;
 }
-.bouton[hidden] { display: none; }
+.bouton[hidden], [data-commandes-partage][hidden] { display: none; }
 .action-classement { margin: .5rem 0 .75rem; }
 .action-classement .bouton.discret { padding-inline: .75rem; }
 

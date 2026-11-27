@@ -20,7 +20,7 @@ from .contexte_ecole import ecole_courante
 from .forms_referentiels import PartageReferentielClasseForm
 from .identites_referentiels import competences_document, identifiant_diffusion, identifiant_source_ecole
 from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, InformationsPartageReferentielClasse, VersionReferentiel, annee_scolaire_pour
-from .navigation import lien
+from .navigation import lien, retour_competences
 from .presentation import catalogue_icones
 from .referentiels import adoption_courante
 from .publication_grist import ACTIONS_GRIST, historique_grist, presenter_publication_grist, publication_grist
@@ -205,9 +205,7 @@ def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False
             else:
                 competence.pop("icone_png", None)
     nombre = len(empreintes)
-    pluriel = "s" if nombre != 1 else ""
     contexte["nombre_icones_ajoutees"] = nombre
-    contexte["libelle_zip_icones"] = f"Compétences et {nombre} icône{pluriel} ajoutée{pluriel}"
     # Une licence manquante n'empêche pas de consulter la projection.
     a_lire = {**document, "source": {**document["source"], "licence": source["licence"] or "À vérifier"}}
     paquet = empaqueter(a_lire, inclure_icones_fournies=inclure_icones_fournies) if avec_zip else None
@@ -367,6 +365,60 @@ def presenter_import_grist(request, ecole, contexte):
                     editions_import=sorted(lignes, key=lambda ligne: not ligne["courant"]))
 
 
+def partage_selection_classe(request, classe, contexte):
+    from .services.selection_partagee import preparer_selection
+
+    adoption = adoption_courante(classe)
+    if classe.etat != Classe.ACTIVE or not adoption or adoption.clos:
+        raise PermissionDenied
+    references = request.POST.getlist("competence_partagee")
+    choix = request.POST.getlist("definition") + [
+        valeur for nom, valeur in request.POST.items() if nom.startswith("definition_")
+    ]
+    contexte.update(
+        export_selection=True, volet="exporter", peut_importer=False,
+        retour_competences=retour_competences(request, classe) or lien("catalogue_competences", classe.pk),
+        references_selection=references, definitions_selection=choix,
+    )
+    try:
+        document, sources, credits, conflits, licences_valides = preparer_selection(
+            request.user, adoption, references, choix,
+        )
+        from .icones_partagees import png_en_ligne
+
+        for competence in competences_document(document):
+            if competence.get("icone_png"):
+                competence["icone_png"] = png_en_ligne(competence["icone_png"])
+        icones = {c["icone_png"] for c in competences_document(document) if c.get("icone_png")}
+        empreinte = sha256(yaml.safe_dump(document, allow_unicode=True).encode()).hexdigest()
+        titre = request.POST.get("titre_selection", "").strip() or document["source"]["titre"]
+        if len(titre) > 200:
+            raise ValidationError("Le titre est limité à 200 caractères.")
+        document["source"]["titre"] = titre
+        contexte.update(
+            nombre_icones_ajoutees=len(icones),
+            apercu_selection=apercu_document(yaml.safe_dump(document, allow_unicode=True), classe.ecole, classe=classe),
+            titre_selection=titre, sources_selection=sources, credits_selection=credits,
+            conflits_selection=conflits, licences_selection_valides=licences_valides,
+            empreinte_selection=empreinte, inclure_icones_selection=request.POST.get("inclure_icones") == "oui",
+        )
+        if request.POST.get("action") == "telecharger-selection-classe":
+            if conflits or not licences_valides:
+                raise ValidationError("Vérifiez les définitions et les licences avant le téléchargement.")
+            if empreinte != request.POST.get("empreinte"):
+                raise ValidationError("Le contenu a changé. Vérifiez la sélection avant de télécharger.")
+            if not contexte["inclure_icones_selection"]:
+                for competence in competences_document(document):
+                    competence.pop("icone_png", None)
+            return telecharger_paquet(empaqueter(document, inclure_icones_fournies=False), titre,
+                                      type_archive="referentiel-selection", edition="1", date=timezone.now(),
+                                      nombre_competences=len(contexte["apercu_selection"]["competences_importees"]))
+    except ValidationError as erreur:
+        contexte["erreur_selection"] = " ".join(erreur.messages)
+    return render(request, "suivi/paquets_referentiels.html", contexte,
+                  status=400 if "erreur_selection" in contexte else 200)
+
+
 @acces_requis
 @require_http_methods(["GET", "POST"])
 def paquets_referentiels(request, classe_pk=None):
@@ -386,12 +438,18 @@ def paquets_referentiels(request, classe_pk=None):
     peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     contexte = {"retour_catalogues": "", "retour_competences": "", "retour_decouverte": "", "classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": import_classe or peut_importer_ecole or request.user.is_superuser, "import_classe": import_classe,
                 "peut_importer_ecole": peut_importer_ecole, "peut_importer_global": request.user.is_superuser and not import_classe}
+    if action in ("preparer-selection-classe", "telecharger-selection-classe"):
+        if classe is None:
+            raise PermissionDenied
+        return partage_selection_classe(request, classe, contexte)
     if classe and request.GET.get("depuis") == "catalogues":
         groupe = request.GET.get("catalogue", "")
         contexte["retour_catalogues"] = lien("suivis_referentiels_classe", classe.pk,
                                              catalogue=groupe, ancre=groupe)
     if classe and request.GET.get("depuis") == "competences":
-        contexte["retour_competences"] = lien("catalogue_competences", classe.pk, ancre="actions-referentiel-classe")
+        contexte["retour_competences"] = retour_competences(request, classe) or lien(
+            "catalogue_competences", classe.pk, ancre="partager-competences",
+        )
     if classe and request.GET.get("depuis") == "espace":
         contexte["retour_espace"] = lien("suivis_referentiels_classe", classe.pk, espace=1, ancre="espace-partage")
     if classe and peut_gerer_ecole and request.GET.get("depuis") == "export-ecole":

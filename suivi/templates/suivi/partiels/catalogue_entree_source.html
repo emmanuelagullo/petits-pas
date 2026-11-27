@@ -1,4 +1,7 @@
 <li{% if ligne.ancre %} id="{{ ligne.ancre }}" tabindex="-1"{% endif %}>
+  {% if partage_depuis_catalogue and source_partageable %}
+  {% include "suivi/partiels/case_partage_catalogue.html" with cle=ligne.reference libelle=ligne.competence.libelle source_partage=source only %}
+  {% endif %}
   <strong>{{ ligne.competence.libelle }}</strong>
   <small> · {{ ligne.competence.niveau }}{% if afficher_classement %} · {{ ligne.domaine }}{% if ligne.sous_domaine %} / {{ ligne.sous_domaine }}{% endif %}{% endif %} · {% if ligne.deja_suivie %}Déjà suivie{% else %}Hors suivi{% endif %}</small>
   {% if ligne.gestion.competence_masquee %}<small> · Retirée du suivi</small>{% endif %}
