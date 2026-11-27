@@ -24,7 +24,7 @@ from suivi.icones_partagees import PREFIXE, decoder_icone, empreinte_png, extern
 from suivi.identites_referentiels import competences_document, identifiant_source_classe, identifiant_source_ecole
 from suivi.models import Classe, PartageGristClasse, ReceptionReferentielGrist, SourceReferentiel, VersionReferentiel
 from suivi.referentiels import adoption_courante
-from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist, partage_grist_disponible
+from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist, partage_grist_disponible, referentiels_grist
 from suivi.services.import_sources_referentiels import importer_source
 from suivi.services.partage_referentiel_classe import preparer_referentiel_classe, verifier_licence_synchronisation
 from suivi.views import acces_requis
@@ -225,9 +225,10 @@ def espace_classe(request, pk):
                 if not cree and (partage.url != url or partage.licence != licence or not partage.actif):
                     if adresse_grist(partage.url)[1] != document:
                         partage.nom_espace = nom_initial
+                        partage.editions_catalogue = None
                     partage.url, partage.derniere_empreinte = url, ""
                     partage.licence, partage.actif = licence, True
-                    partage.save(update_fields=["url", "nom_espace", "derniere_empreinte", "licence", "actif"])
+                    partage.save(update_fields=["url", "nom_espace", "derniere_empreinte", "licence", "actif", "editions_catalogue"])
             messages.info(request, "Espace rejoint. La synchronisation démarre dans Catalogues et partage.")
             return redirect(retour_catalogues)
         except ValidationError as cause:
@@ -356,6 +357,16 @@ def synchroniser(request):
     prefixe, document = adresse_grist(partage.url)
     if reponse.get("api") != f"https://{HOTE_GRIST}{prefixe}/api/docs/{document}":
         return JsonResponse({"erreur": "L’espace de partage a changé."}, status=409)
+    catalogue_modifie = False
+    if "editions" in reponse:
+        try:
+            if not isinstance(reponse["editions"], list):
+                raise ValidationError("Index des éditions Grist illisible.")
+            editions = referentiels_grist(reponse["editions"])
+        except (TypeError, AttributeError, ValidationError):
+            return JsonResponse({"erreur": "Index des éditions Grist illisible."}, status=400)
+        catalogue_modifie = (partage.editions_catalogue or []) != editions
+    mise_a_jour_catalogue = {"editions_catalogue": editions} if "editions" in reponse else {}
     propres = {str(pk) for pk in PartageGristClasse.objects.filter(classe__ecole=partage.classe.ecole)
                .values_list("identifiant", flat=True)}
     erreurs = 0
@@ -378,7 +389,10 @@ def synchroniser(request):
         except ValidationError:
             pass
     if not PartageGristClasse.objects.filter(pk=partage.pk, actif=True, url=partage.url).update(
-            nom_espace=partage.nom_espace, derniere_empreinte=partage.derniere_empreinte):
+            nom_espace=partage.nom_espace, derniere_empreinte=partage.derniere_empreinte, **mise_a_jour_catalogue):
         return JsonResponse({"erreur": "L’espace de partage a changé."}, status=409)
-    return JsonResponse({"erreurs": erreurs, "nom": partage.nom_espace,
-                         "partage_confirme": bool(partage.derniere_empreinte)})
+    resultat = {"erreurs": erreurs, "nom": partage.nom_espace,
+                "partage_confirme": bool(partage.derniere_empreinte)}
+    if "editions" in reponse:
+        resultat["catalogue_modifie"] = catalogue_modifie
+    return JsonResponse(resultat)

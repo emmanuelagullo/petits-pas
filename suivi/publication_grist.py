@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from .icones_partagees import externaliser_png
 from .identites_referentiels import competences_document
-from .models import DestinationPublicationGrist
+from .models import DestinationPublicationGrist, PartageGristClasse
 from .services.catalogues_externes import (
     MODES_CATALOGUE_GRIST, adresse_grist, catalogues_grist_connus, enregistrer_mode_catalogue_grist,
     enregistrer_nom_catalogue_grist, numerotation_grist_globale,
@@ -119,6 +119,9 @@ def publication_grist(request, classe, contexte, action, document):
     editions = [e for e in destination["editions"] if e["Referentiel"] == reference]
     derniere = max(editions, key=lambda e: e["Numero"], default=None)
     nouvelle_edition = bool(choix and choix != "nouveau") or bool(precedente and not choix)
+    partage = PartageGristClasse.objects.filter(classe=classe).first()
+    if partage and adresse_grist(partage.url)[1] == adresse_grist(destination["url"])[1]:
+        document = {**document, "origine_classe_grist": f"classe-grist-{partage.identifiant}"}
     identique = derniere and meme_contenu_grist(derniere, document)
     if derniere and not nouvelle_edition and not identique:
         raise ValidationError("Cet identifiant existe déjà. Choisissez ce référentiel pour ajouter une édition.")

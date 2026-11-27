@@ -511,18 +511,22 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             SuiviSourceClasse.objects.filter(classe=classe, reference=cible).delete()
             return redirect(retour)
         raise Http404
-    catalogues = {
-        identifiant(portee, identite_grist(url, referentiel["reference"])): (url, catalogue["nom"], referentiel)
-        for url, catalogue in distants.items()
-        for referentiel in catalogue["referentiels"]
-        for identifiant, portee in ((identifiant_source_ecole, ecole), (identifiant_source_classe, classe))
-    }
     from pwa.partage_grist import contexte_raccordement
     from .models import PartageGristClasse, ReceptionReferentielGrist
 
     espace_disponible = classe.etat == classe.ACTIVE and partage_grist_disponible()
     partage_grist = PartageGristClasse.objects.filter(classe=classe).first() if espace_disponible else None
     document_espace = adresse_grist(partage_grist.url)[1] if partage_grist else ""
+    if partage_grist and partage_grist.actif and partage_grist.editions_catalogue is not None:
+        url_espace = next((url for url in distants if adresse_grist(url)[1] == document_espace), partage_grist.url)
+        distants[url_espace] = {"url": url_espace, "nom": partage_grist.nom_espace,
+                                "referentiels": partage_grist.editions_catalogue}
+    catalogues = {
+        identifiant(portee, identite_grist(url, referentiel["reference"])): (url, catalogue["nom"], referentiel)
+        for url, catalogue in distants.items()
+        for referentiel in catalogue["referentiels"]
+        for identifiant, portee in ((identifiant_source_ecole, ecole), (identifiant_source_classe, classe))
+    }
     documents = {}
     for source_id, document in ReceptionReferentielGrist.objects.filter(
             source_id__in={ligne["version"].source_id for ligne in lignes if ligne["version"]}
@@ -535,6 +539,7 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
         noms_espaces[document_espace] = partage_grist.nom_espace
     recus_espace = [ligne for ligne in lignes if document_espace and ligne["version"]
                     and document_espace in documents.get(ligne["version"].source_id, ())]
+    nombre_recus_espace = len(recus_espace)
     ancre_espace = "referentiels-espace-" + document_espace
     espace_demande = bool(document_espace and request.GET.get("groupe") == document_espace)
     groupes = {}
@@ -589,8 +594,27 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
                 groupe["lignes"].append({**distant, "courant": False, "edition_distante": distant})
             elif str(edition) != str(ligne["version"].numero).split("-", 1)[0]:
                 ligne["edition_distante"] = {**distant, "mise_a_jour": True}
-            if ligne is not None and source.get("contenu_courant"):
-                ligne["contenu_courant"] = True
+            if ligne is not None:
+                if source.get("contenu_courant"):
+                    ligne["contenu_courant"] = True
+                if source.get("origine_classe_grist"):
+                    ligne["origine_classe_grist"] = source["origine_classe_grist"]
+    for groupe in [*groupes.values(), {"lignes": recus_espace}]:
+        courants = {}
+        editions_liees = []
+        for ligne in groupe["lignes"]:
+            distante = ligne.get("edition_distante", ligne)
+            version = ligne.get("version")
+            reference_courante = version.source.identifiant_diffusion if version else distante.get("reference", "")
+            if reference_courante.startswith("classe-grist-"):
+                courants[reference_courante] = ligne
+            if distante.get("origine_classe_grist"):
+                editions_liees.append((ligne, distante))
+        for ligne, distante in editions_liees:
+            courante = courants.get(distante["origine_classe_grist"])
+            if courante is not None and courante is not ligne:
+                courante.setdefault("editions_publiees", []).append(ligne)
+                groupe["lignes"].remove(ligne)
     if espace_disponible:
         groupes.pop(ancre_espace, None)
         contexte_espace = contexte_espace or contexte_raccordement(classe, partage_grist)
@@ -601,7 +625,7 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             "espace": contexte_espace, "espace_actif": partage_grist,
             "partiel_resume": "suivi/partiels/resume_espace_grist.html"
                 if partage_grist and partage_grist.actif else "",
-            "lignes": recus_espace,
+            "lignes": recus_espace, "nombre_recus": nombre_recus_espace,
         }
     from .models import ContributionReferentielEquipe
     from .services.sources_catalogue import ordre_provenance

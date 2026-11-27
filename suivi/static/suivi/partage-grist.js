@@ -300,7 +300,24 @@
       }
       lignes.push({...champs, icones});
     }
-    const opérations = json('POST', {id, api, lignes, nom: nomPartage || partage.nom_espace, confirme});
+    let editions;
+    try {
+      const {tables} = await grist(api + '/tables');
+      editions = [];
+      const mode = metadata.records.find(r => r.fields.Identifiant === 'mode-contenu')?.fields.Nom;
+      if (mode !== 'icones' && tables.some(table => table.id === 'Editions')) {
+        const index = await grist(api + '/tables/Editions/records');
+        editions = index.records.map(({fields: {Referentiel, Titre, Numero, Contenu}}) => {
+          let origine;
+          try { origine = JSON.parse(Contenu)?.origine_classe_grist; } catch { /* Ancienne édition. */ }
+          return {Referentiel, Titre, Numero,
+            Contenu: Contenu ? JSON.stringify({origine_classe_grist: origine}) : ''};
+        });
+      }
+    } catch {
+      // Une indisponibilité du catalogue ne bloque pas l’envoi ni la réception des classes.
+    }
+    const opérations = json('POST', {id, api, lignes, editions, nom: nomPartage || partage.nom_espace, confirme});
     opérations.headers['X-CSRFToken'] = csrf;
     const résultat = await demander(adresse, opérations);
     const nbAutres = new Set(records.map(({fields}) => fields.Identifiant)
@@ -398,7 +415,7 @@
                 : résultat.nbAutres
                   ? 'Les référentiels des autres classes sont à jour.'
                   : 'Aucun référentiel d’une autre installation à recevoir.';
-            réceptionÀAfficher ||= résultat.nbNouveaux > 0;
+            réceptionÀAfficher ||= résultat.nbNouveaux > 0 || résultat.catalogue_modifie;
             let actualiserListe = '';
             try {
               await afficherRéception();

@@ -1427,6 +1427,7 @@ class PartageGristClasse(models.Model):
     licence = models.CharField(max_length=120)
     actif = models.BooleanField(default=True)
     nom_espace = models.CharField(max_length=200, blank=True)
+    editions_catalogue = models.JSONField(null=True, blank=True)
     derniere_empreinte = models.CharField(max_length=64, blank=True)
 
 

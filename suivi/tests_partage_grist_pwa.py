@@ -43,6 +43,31 @@ class PartageGristPWA(Base):
         self.assertEqual(VersionReferentiel.objects.filter(source__identifiant_diffusion=reference).count(), 1)
         self.assertTrue(version.source.receptions_grist.filter(document_grist="espace-fictif").exists())
 
+    def test_synchronisation_decouvre_les_editions_et_les_rattache_a_la_classe(self):
+        from uuid import uuid4
+        from .tests_import_sources_referentiels import document
+
+        self.adopter()
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        self.client.post(espace, {"grist": "https://grist.numerique.gouv.fr/o/docs/catalogue-fictif", "confirmer": "oui"})
+        synchro = reverse("synchroniser_grist")
+        travail = self.client.get(synchro).json()["partages"][0]
+        identifiant = str(uuid4())
+        projection = document()
+        projection["source"]["titre"] = "Référentiel courant du collègue"
+        reponse = self.client.post(synchro, {
+            "id": travail["id"], "api": travail["api"],
+            "lignes": [{"Identifiant": identifiant, "Contenu": json.dumps(projection)}],
+            "editions": [{"Referentiel": "edition-fictive", "Titre": "Édition publiée du collègue", "Numero": 1,
+                          "Contenu": json.dumps({"origine_classe_grist": f"classe-grist-{identifiant}"})}],
+        }, content_type="application/json")
+        self.assertTrue(reponse.json()["catalogue_modifie"])
+        page = self.client.get(reverse("suivis_referentiels_classe", args=[self.classe.pk]), {"espace": 1})
+        self.assertContains(page, "Référentiel courant du collègue")
+        self.assertContains(page, "Éditions publiées")
+        self.assertContains(page, "Édition publiée du collègue")
+        self.assertContains(page, "1 référentiel reçu")
+
     def test_propre_identifiant_ignore_et_confirmation_idempotente(self):
         from io import BytesIO
         from uuid import uuid4

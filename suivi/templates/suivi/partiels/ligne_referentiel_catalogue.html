@@ -1,0 +1,55 @@
+<section class="ligne-referentiel-catalogue"{% if ligne.version or ligne.autre %} id="referentiel-{{ ligne.reference }}"{% endif %}>
+<div class="entete-ligne-catalogue" data-barre-filtres data-barre-catalogue id="commandes-{{ groupe.ancre }}-{{ indice_ligne }}-{{ ligne.reference|slugify }}">
+<h4>{{ ligne.titre }}{% if ligne.edition_distante.contenu_courant or ligne.contenu_courant %} <span class="aide">· Contenu courant</span>{% endif %}</h4>
+{% if not ligne.version and not ligne.autre %}<span class="pastille etat-ligne-catalogue" data-a-importer>À importer</span>
+{% elif ligne.courant %}<span class="pastille pastille-principale etat-ligne-catalogue">Utilisé par la classe</span>
+{% else %}
+<details class="etat-ligne-catalogue" data-panneau-filtre>
+{% if ligne.ecartee %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Écarté des ajouts" pastille="etat-catalogue" only %}
+{% else %}
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Proposé à l’ajout" pastille="etat-catalogue pastille-positive" only %}
+{% endif %}
+<form method="post" action="{{ url_catalogues }}?catalogue={{ groupe.ancre|urlencode }}">{% csrf_token %}
+<input type="hidden" name="source" value="{{ ligne.reference }}">
+{% if ligne.ecartee %}
+<button class="bouton discret" name="action" value="proposer-ajout">Proposer les compétences de ce référentiel à l’ajout</button>
+{% else %}
+<button class="bouton discret" name="action" value="ecarter-ajout">Écarter ce référentiel des sources d’ajout</button>
+{% endif %}
+</form>
+</details>
+{% endif %}
+</div>
+{% if ligne.suivi %}{% if ligne.ajoutees or ligne.modifiees or ligne.retirees %}
+{% include "suivi/partiels/resume_ecarts_referentiel.html" with ajouts=ligne.ajoutees modifications=ligne.modifiees retraits=ligne.retirees only %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Voir les changements" only %}
+{% if ligne.ajoutees %}<h3>Ajouts</h3><ul>{% for libelle in ligne.ajoutees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
+{% if ligne.modifiees %}<h3>Modifications</h3><ul>{% for libelle in ligne.modifiees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
+{% if ligne.retirees %}<h3>Retraits</h3><ul>{% for libelle in ligne.retirees %}<li>{{ libelle }}</li>{% endfor %}</ul>{% endif %}
+<form method="post" action="{{ url_catalogues }}?catalogue={{ groupe.ancre|urlencode }}">{% csrf_token %}
+<input type="hidden" name="source" value="{{ ligne.reference }}">
+<input type="hidden" name="empreinte" value="{{ ligne.empreinte }}">
+<button class="bouton discret" name="action" value="marquer-vu">Marquer comme vu</button>
+</form>
+</details>
+{% else %}<p>Aucun changement depuis votre dernière consultation enregistrée.</p>{% endif %}{% endif %}
+<div class="actions">
+{% if ligne.lire %}<a class="bouton discret" id="parcourir-{{ ligne.reference }}" href="{{ ligne.lire }}">Parcourir les compétences</a>{% endif %}
+
+
+</div>
+{% if ligne.edition_distante and classe_active %}
+{% url 'paquets_referentiels_classe' classe.pk as examen %}
+{% include "suivi/partiels/examiner_edition_grist.html" with sur_place=True ligne=ligne.edition_distante examen_grist=examen|add:"?volet=importer&destination=classe&depuis=catalogues&catalogue="|add:groupe.ancre|add:"#import-referentiel" %}
+{% endif %}
+{% if ligne.editions_publiees %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Éditions publiées" only %}
+{% for edition in ligne.editions_publiees %}
+{% include "suivi/partiels/ligne_referentiel_catalogue.html" with ligne=edition indice_ligne=forloop.counter|add:1000 %}
+{% endfor %}
+</details>
+{% endif %}
+</section>

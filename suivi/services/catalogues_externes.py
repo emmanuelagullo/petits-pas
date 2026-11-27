@@ -144,9 +144,19 @@ def referentiels_grist(lignes):
         source = referentiels.setdefault(cle, {"titre": titre, "editions": [], "reference": cle})
         if source["titre"] != titre:
             raise ValidationError("Utilisez le même titre pour les éditions d’un référentiel.")
+        contenu = ligne.get("Contenu")
+        try:
+            origine = json.loads(contenu).get("origine_classe_grist") if contenu else None
+        except (AttributeError, TypeError, ValueError):
+            origine = None
+        if reference_classe_grist(origine):
+            source.setdefault("origines", {})[numero] = origine
         source["editions"].append(numero)
     for source in referentiels.values():
         source["editions"].sort(reverse=True)
+        origines = source.pop("origines", {})
+        if source["editions"][0] in origines:
+            source["origine_classe_grist"] = origines[source["editions"][0]]
     return list(referentiels.values())
 
 
@@ -366,6 +376,7 @@ def edition_grist(url, reference, numero, *, avec_catalogue=False):
                 edition = json.loads(contenu)
                 if not isinstance(edition, dict) or not isinstance(edition.get("source"), dict):
                     raise ValueError
+                edition.pop("origine_classe_grist", None)
                 edition["source"]["identifiant"] = identite_grist(catalogue["url"], reference)
                 edition["source"]["titre"] = source["titre"]
                 edition["version"] = str(numero)
