@@ -12,7 +12,7 @@
 {% for ligne in groupe.lignes %}
 <section class="ligne-referentiel-catalogue"{% if ligne.version or ligne.autre %} id="referentiel-{{ ligne.reference }}"{% endif %}>
 <div class="entete-ligne-catalogue" data-barre-filtres data-barre-catalogue id="commandes-{{ groupe.ancre }}-{{ forloop.counter }}">
-<h4>{{ ligne.titre }}</h4>
+<h4>{{ ligne.titre }}{% if ligne.edition_distante.contenu_courant or ligne.contenu_courant %} <span class="aide">· Contenu courant</span>{% endif %}</h4>
 {% if not ligne.version and not ligne.autre %}<span class="pastille etat-ligne-catalogue" data-a-importer>À importer</span>
 {% elif ligne.courant %}<span class="pastille pastille-principale etat-ligne-catalogue">Utilisé par la classe</span>
 {% else %}

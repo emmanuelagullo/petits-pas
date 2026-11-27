@@ -564,9 +564,15 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             cle, nom = "instance", "Catalogue Petits Pas"
         groupes.setdefault(cle, {"nom": nom, "lignes": []})["lignes"].append(ligne)
     for url, catalogue in distants.items():
-        groupe = groupes.setdefault(url, {"nom": catalogue["nom"], "lignes": []})
+        rattache = bool(document_espace and adresse_grist(url)[1] == document_espace)
+        if rattache:
+            for ancienne in groupes.pop(url, {}).get("lignes", []):
+                if ancienne not in recus_espace:
+                    recus_espace.append(ancienne)
+        groupe = ({"lignes": recus_espace} if rattache else
+                  groupes.setdefault(url, {"nom": catalogue["nom"], "lignes": []}))
         references = {catalogues[ligne["version"].source.identifiant][2]["reference"]: ligne
-                      for ligne in groupe["lignes"]}
+                      for ligne in groupe["lignes"] if ligne.get("version") and ligne["version"].source.identifiant in catalogues}
         groupe.update(url=url, lien=catalogue.get("lien", url), essai=bool(catalogue.get("essai")),
                       suivi=bool(reglages.get(url, {}).get("suivre_catalogue")),
                       lien_saisi=url_saisie if action_catalogue == "modifier-lien-catalogue" and groupe_poste == url else "",
@@ -575,12 +581,16 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
                       personnalise=url in classe.catalogues_propres)
         for source in catalogue["referentiels"]:
             ligne = references.get(source["reference"])
+            if rattache and source.get("contenu_courant"):
+                continue
             edition = source["editions"][0]
             distant = {**source, "url": catalogue.get("lien", url), "derniere": edition}
             if ligne is None:
-                groupe["lignes"].append({**distant, "edition_distante": distant})
-            elif str(edition) != str(ligne["version"].numero):
+                groupe["lignes"].append({**distant, "courant": False, "edition_distante": distant})
+            elif str(edition) != str(ligne["version"].numero).split("-", 1)[0]:
                 ligne["edition_distante"] = {**distant, "mise_a_jour": True}
+            if ligne is not None and source.get("contenu_courant"):
+                ligne["contenu_courant"] = True
     if espace_disponible:
         groupes.pop(ancre_espace, None)
         contexte_espace = contexte_espace or contexte_raccordement(classe, partage_grist)

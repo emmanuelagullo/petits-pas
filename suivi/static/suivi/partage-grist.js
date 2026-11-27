@@ -1,6 +1,6 @@
 (() => {
-  const invitation = document.querySelector('[data-invitation-grist]');
-  if (invitation && navigator.clipboard && window.parent !== window) {
+  for (const invitation of document.querySelectorAll('[data-invitation-grist]')) {
+    if (!navigator.clipboard || window.parent === window) continue;
     const lien = new URL('.', window.parent.location.href);
     lien.searchParams.set('grist', invitation.dataset.invitationGrist);
     if (invitation.dataset.usageGrist) lien.searchParams.set('usage', invitation.dataset.usageGrist);

@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -20,7 +21,7 @@ from django.views.decorators.http import require_http_methods
 from suivi.autorisations import GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, autorise, charger_classe_autorisee
 from suivi.contexte_ecole import ecole_courante
 from suivi.icones_partagees import PREFIXE, decoder_icone, empreinte_png, externaliser_png
-from suivi.identites_referentiels import competences_document, identifiant_source_ecole
+from suivi.identites_referentiels import competences_document, identifiant_source_classe, identifiant_source_ecole
 from suivi.models import Classe, PartageGristClasse, ReceptionReferentielGrist, SourceReferentiel, VersionReferentiel
 from suivi.referentiels import adoption_courante
 from suivi.services.catalogues_externes import HOTE_GRIST, TAILLE_MAX, adresse_grist, partage_grist_disponible
@@ -84,20 +85,18 @@ def invitation_grist(request):
         return render(request, "suivi/invitation_grist.html", {"erreur": cause.messages[0]}, status=400)
     url = request.GET.get("grist", "").strip()
     ecole = ecole_courante(request)
-    if request.GET.get("usage") == "suivre":
-        if not autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
-            return render(request, "suivi/invitation_grist.html", {
-                "invitation_suivi": True,
-                "erreur": "Une personne qui gère les catalogues de l’école doit ouvrir ce lien pour examiner le catalogue.",
-            }, status=403)
-        contexte = {"catalogue_invite": url}
-        classe = request.GET.get("classe", "")
-        if classe.isdecimal() and len(classe) < 18:
-            contexte["classe"] = classe
-        return redirect(reverse("decouvrir_referentiels") + "?" + urlencode(contexte) + "#ajouter-catalogue")
+    suivre = request.GET.get("usage") == "suivre"
+    if suivre and autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
+        return redirect(reverse("decouvrir_referentiels") + "?" + urlencode({
+            "catalogue_invite": url,
+        }) + "#ajouter-catalogue")
     classes = []
     for classe in Classe.objects.filter(ecole=ecole, etat=Classe.ACTIVE).order_by("nom", "pk"):
         if not autorise(request.user, GERER_REFERENTIEL_CLASSE, classe):
+            continue
+        if suivre:
+            classes.append((classe, reverse("suivis_referentiels_classe", args=[classe.pk])
+                            + "?" + urlencode({"catalogue_invite": url}) + "#ajouter-catalogue"))
             continue
         adoption = adoption_courante(classe)
         if adoption and not adoption.clos:
@@ -105,7 +104,7 @@ def invitation_grist(request):
                             + "?" + urlencode({"grist": url})))
     if len(classes) == 1:
         return redirect(classes[0][1])
-    return render(request, "suivi/invitation_grist.html", {"classes": classes})
+    return render(request, "suivi/invitation_grist.html", {"classes": classes, "invitation_suivi": suivre})
 
 
 def licence_raccordement(classe, partage, adoption):
@@ -286,8 +285,12 @@ def recevoir_projection(partage, ligne, propres):
     source_externe = document["source"]
     reference = f"classe-grist-{identifiant}"
     ecole = partage.classe.ecole
-    existante = SourceReferentiel.objects.select_for_update().filter(ecole=ecole,
-        identifiant=identifiant_source_ecole(ecole, reference)).first()
+    privee = partage.classe
+    sources = SourceReferentiel.objects.select_for_update().filter(ecole=ecole)
+    existante = sources.filter(identifiant=identifiant_source_classe(privee, reference)).first()
+    if not existante:
+        privee = None
+        existante = sources.filter(identifiant=identifiant_source_ecole(ecole, reference)).first()
     document["source"] = {
         "identifiant": reference, "titre": existante.titre if existante else source_externe.get("titre"),
         "provenance": "Espace de partage Petits Pas",
@@ -297,7 +300,7 @@ def recevoir_projection(partage, ligne, propres):
     precedente = existante.versions.order_by("-pk").first() if existante else None
     if not precedente or precedente.numero[:64] != cle:
         document["version"] = cle if precedente is None else f"{cle}-{int_to_base36(precedente.pk)}"
-        precedente, _, _ = importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=ecole)
+        precedente, _, _ = importer_source(yaml.safe_dump(document, allow_unicode=True), ecole=ecole, classe=privee)
     ReceptionReferentielGrist.objects.get_or_create(source=precedente.source,
                                                   document_grist=adresse_grist(partage.url)[1])
 
@@ -315,6 +318,7 @@ def synchroniser(request):
             prefixe, document = adresse_grist(partage.url)
             recues = {}
             for identifiant, numero in VersionReferentiel.objects.filter(
+                    Q(source__classe_privee__isnull=True) | Q(source__classe_privee=partage.classe),
                     source__ecole=ecole, source__identifiant_diffusion__startswith="classe-grist-",
                     source__receptions_grist__document_grist=document,
             ).order_by("-pk").values_list("source__identifiant_diffusion", "numero"):

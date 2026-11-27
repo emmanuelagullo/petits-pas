@@ -5,7 +5,7 @@
 {% if erreur %}
 <p role="alert" class="message erreur">{{ erreur }}</p>
 {% elif classes %}
-<p>Choisissez la classe à relier à cet espace Grist.</p>
+<p>{% if invitation_suivi %}Choisissez la classe qui pourra parcourir ce catalogue.{% else %}Choisissez la classe à relier à cet espace Grist.{% endif %}</p>
 <ul>
 {% for classe, lien in classes %}
 <li><a class="bouton" href="{{ lien }}">{{ classe.nom }}</a></li>

@@ -23,6 +23,26 @@ class PartageGristPWA(Base):
                                  proposee_id=self.a.pk, revision_attendue=0)
         self.entrer()
 
+    def test_reception_reutilise_un_referentiel_courant_deja_importe_pour_la_classe(self):
+        from uuid import uuid4
+        from pwa.partage_grist import recevoir_projection
+        from .tests_import_sources_referentiels import document, importer
+
+        identifiant = str(uuid4())
+        brut = document()
+        contenu = json.dumps(brut)
+        reference = f"classe-grist-{identifiant}"
+        edition = {**brut, "version": empreinte(contenu), "source": {
+            **brut["source"], "identifiant": reference, "provenance": "Espace de partage Petits Pas",
+        }}
+        version, _, _ = importer(edition, ecole=self.ecole, classe=self.classe)
+        partage = PartageGristClasse.objects.create(
+            classe=self.classe, url="https://grist.numerique.gouv.fr/o/docs/espace-fictif", licence="CC-BY-SA-4.0",
+        )
+        recevoir_projection(partage, {"Identifiant": identifiant, "Contenu": contenu}, set())
+        self.assertEqual(VersionReferentiel.objects.filter(source__identifiant_diffusion=reference).count(), 1)
+        self.assertTrue(version.source.receptions_grist.filter(document_grist="espace-fictif").exists())
+
     def test_propre_identifiant_ignore_et_confirmation_idempotente(self):
         from io import BytesIO
         from uuid import uuid4

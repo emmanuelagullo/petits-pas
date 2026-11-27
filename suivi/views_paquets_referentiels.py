@@ -1,3 +1,4 @@
+import re
 """Diffusion des éditions publiques accessibles dans le contexte courant."""
 from hashlib import sha256
 
@@ -565,10 +566,12 @@ def paquets_referentiels(request, classe_pk=None):
                     raise PermissionDenied
                 masquer_png = False
                 if action == "apercu-grist":
-                    try:
-                        numero = int(request.POST.get("numero", ""))
-                    except ValueError as erreur:
-                        raise ValidationError("Choisissez une édition Grist à examiner.") from erreur
+                    numero = request.POST.get("numero", "")
+                    if not re.fullmatch(r"[0-9a-f]{64}", numero):
+                        try:
+                            numero = int(numero)
+                        except ValueError as erreur:
+                            raise ValidationError("Choisissez une édition Grist à examiner.") from erreur
                     document, catalogue = edition_grist(
                         request.POST.get("catalogue", ""), request.POST.get("reference"), numero, avec_catalogue=True,
                     )

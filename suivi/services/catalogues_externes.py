@@ -2,6 +2,7 @@
 import hashlib
 import json
 import re
+from uuid import UUID
 from http.client import HTTPException
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
@@ -128,6 +129,8 @@ def referentiels_grist(lignes):
     globale = numerotation_grist_globale(lignes)
     for ligne in lignes:
         cle = identifiant(ligne.get("Referentiel"), "Identifiant du référentiel")
+        if reference_classe_grist(cle):
+            raise ValidationError("Cette référence est réservée aux référentiels courants des classes.")
         titre = texte(ligne.get("Titre"), "Titre du référentiel")
         numero = ligne.get("Numero")
         if type(numero) is not int or numero < 1:
@@ -227,15 +230,23 @@ def enregistrer_nom_catalogue_grist(url, nom, *, remplacer=False):
 def lire_catalogue_grist(url, *, avec_lignes=False):
     prefixe, document, url, nom = document_grist(url)
     tables = tables_grist(prefixe, document)
-    if "Editions" not in tables and "PetitsPasClasses" in tables:
-        raise ValidationError(
-            "Ce document est un espace de partage. Il ne contient pas encore d’édition publiée au catalogue. "
-            "Pour recevoir les référentiels des autres installations, rejoignez cet espace de partage."
-        )
-    lignes = lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
+    espace = {"PetitsPasClasses", "PetitsPasContenus"} <= tables
+    lignes = (lignes_grist(lire_api(prefixe, document, "/tables/Editions/records"))
+              if "Editions" in tables or not espace else [])
     referentiels = referentiels_grist(lignes)
     mode = mode_catalogue_grist(prefixe, document, tables)
-    if not referentiels and mode != "icones":
+    if espace and mode != "icones":
+        for ligne in lignes_grist(lire_api(prefixe, document, "/tables/PetitsPasClasses/records")):
+            try:
+                reference = "classe-grist-" + str(UUID(ligne["Identifiant"]))
+            except (ValueError, TypeError, KeyError, AttributeError):
+                continue
+            empreinte = ligne.get("Empreinte")
+            titre = ligne.get("Nom")
+            if isinstance(empreinte, str) and re.fullmatch(r"[0-9a-f]{64}", empreinte) and isinstance(titre, str) and titre:
+                referentiels.append({"reference": reference, "titre": titre[:200],
+                                     "editions": [empreinte], "contenu_courant": True})
+    if not referentiels and mode != "icones" and not espace:
         raise ValidationError("Ce catalogue Grist ne contient aucune édition.")
     nom_partage = nom_catalogue_grist(prefixe, document, tables)
     resultat = {"url": url, "nom": nom_partage or nom,
@@ -244,7 +255,15 @@ def lire_catalogue_grist(url, *, avec_lignes=False):
     return (resultat, lignes) if avec_lignes else resultat
 
 
+def reference_classe_grist(reference):
+    return isinstance(reference, str) and bool(re.fullmatch(
+        r"classe-grist-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}", reference,
+    ))
+
+
 def identite_grist(url, reference):
+    if reference_classe_grist(reference):
+        return reference
     _, document = adresse_grist(url)
     empreinte = hashlib.sha256(f"{HOTE_GRIST}/{document}/{reference}".encode()).hexdigest()
     return f"grist-{empreinte}"
@@ -318,6 +337,28 @@ def edition_grist(url, reference, numero, *, avec_catalogue=False):
     if not source or numero not in source["editions"]:
         raise ValidationError("Cette édition ne figure plus dans le catalogue Grist.")
     prefixe, document = adresse_grist(catalogue["url"])
+    if source.get("contenu_courant"):
+        from urllib.parse import urlencode
+
+        filtre = urlencode({"filter": json.dumps({"Identifiant": [reference.removeprefix("classe-grist-")]})})
+        recues = lignes_grist(lire_api(prefixe, document, "/tables/PetitsPasContenus/records?" + filtre))
+        if len(recues) != 1 or recues[0].get("Identifiant") != reference.removeprefix("classe-grist-"):
+            raise ValidationError("Le référentiel courant est indisponible.")
+        brut = texte(recues[0].get("Contenu"), "Référentiel courant", TAILLE_MAX)
+        if hashlib.sha256(brut.encode()).hexdigest() != numero:
+            raise ValidationError("Le référentiel courant a changé. Actualisez le catalogue.")
+        try:
+            edition = json.loads(brut)
+            licence = edition["source"]["licence"]
+            titre = edition["source"]["titre"]
+        except (TypeError, ValueError, KeyError) as erreur:
+            raise ValidationError("Le référentiel courant est illisible.") from erreur
+        edition["source"] = {"identifiant": reference, "titre": titre,
+                            "provenance": "Espace de partage Petits Pas", "licence": licence, "provisoire": True}
+        edition["version"] = numero
+        restituer_icones_grist(edition, prefixe, document)
+        resultat = yaml.safe_dump(edition, allow_unicode=True)
+        return (resultat, catalogue) if avec_catalogue else resultat
     for ligne in lignes:
         if ligne.get("Numero") == numero and ligne.get("Referentiel") == reference and ligne.get("Contenu"):
             contenu = texte(ligne["Contenu"], "Contenu de l’édition", TAILLE_MAX)

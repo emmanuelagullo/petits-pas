@@ -2,11 +2,11 @@
 {% csrf_token %}
 <input type="hidden" name="catalogue" value="{{ ligne.url }}">
 <input type="hidden" name="reference" value="{{ ligne.reference }}">
-{% if choix_edition %}
+{% if choix_edition and not ligne.contenu_courant %}
 <label>Édition à examiner <select name="numero">{% for numero in ligne.editions %}<option>{{ numero }}</option>{% endfor %}</select></label>
 {% else %}
 <input type="hidden" name="numero" value="{{ ligne.derniere }}">
 {% endif %}
-<button class="bouton{% if choix_edition or not ligne.mise_a_jour %} discret{% endif %}" name="action" value="apercu-grist">{% if choix_edition %}Examiner cette édition{% elif ligne.mise_a_jour %}Voir les changements{% else %}Examiner l’édition{% endif %}</button>
+<button class="bouton{% if choix_edition or not ligne.mise_a_jour %} discret{% endif %}" name="action" value="apercu-grist">{% if choix_edition %}Examiner cette édition{% elif ligne.mise_a_jour %}Voir les changements{% elif ligne.contenu_courant %}Examiner le contenu courant{% else %}Examiner l’édition{% endif %}</button>
 </form>
 {% if sur_place %}<div data-examen-catalogue aria-live="polite"></div>{% endif %}

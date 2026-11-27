@@ -10,6 +10,35 @@ from .services.publications_grist import contenu_grist, meme_contenu_grist, publ
 
 
 class PublicationsGrist(SimpleTestCase):
+    def test_espace_sans_editions_expose_le_contenu_courant_en_lecture(self):
+        from hashlib import sha256
+        from uuid import uuid4
+        from .tests_import_sources_referentiels import document
+
+        identifiant = str(uuid4())
+        projection = document()
+        projection["format"] = 2
+        contenu = json.dumps(projection)
+        empreinte = sha256(contenu.encode()).hexdigest()
+        reference = f"classe-grist-{identifiant}"
+
+        def api(prefixe, document_id, chemin=""):
+            if not chemin:
+                return {"name": "Espace fictif", "id": document_id}
+            if chemin == "/tables":
+                return {"tables": [{"id": nom} for nom in ("PetitsPasClasses", "PetitsPasContenus")]}
+            if chemin == "/tables/PetitsPasClasses/records":
+                return {"records": [{"fields": {"Identifiant": identifiant, "Nom": "Classe", "Empreinte": empreinte}}]}
+            self.assertTrue(chemin.startswith("/tables/PetitsPasContenus/records?filter="))
+            return {"records": [{"fields": {"Identifiant": identifiant, "Contenu": contenu}}]}
+
+        with patch("suivi.services.catalogues_externes.lire_api", side_effect=api):
+            catalogue = lire_catalogue_grist(CATALOGUE_DEMONSTRATION)
+            self.assertEqual(catalogue["referentiels"][0]["reference"], reference)
+            source, _ = lire_source(edition_grist(CATALOGUE_DEMONSTRATION, reference, empreinte))
+            self.assertEqual(source["source"]["identifiant"], reference)
+            self.assertEqual(source["version"], empreinte)
+
     def test_relire_une_publication_et_refuser_decraser_une_edition(self):
         lignes = []
         document = {

@@ -4,7 +4,11 @@
 {% if mode_pwa %}
 <div data-invitation-grist="{{ partage.url }}" hidden>
 <p>Ce lien permet à un collègue de rejoindre le même espace.</p>
-<button type="button" class="bouton discret">Copier le lien d’invitation</button>
+<button type="button" class="bouton discret">Inviter à collaborer</button>
+<p role="status"></p>
+</div>
+<div data-invitation-grist="{{ partage.url }}" data-usage-grist="suivre" hidden>
+<button type="button" class="bouton discret">Faire suivre le catalogue</button>
 <p role="status"></p>
 </div>
 {% endif %}
