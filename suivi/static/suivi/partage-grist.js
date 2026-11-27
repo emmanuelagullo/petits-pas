@@ -1,12 +1,22 @@
 (() => {
   for (const invitation of document.querySelectorAll('[data-invitation-grist]')) {
-    if (!navigator.clipboard || window.parent === window) continue;
-    const lien = new URL('.', window.parent.location.href);
-    lien.searchParams.set('grist', invitation.dataset.invitationGrist);
-    if (invitation.dataset.usageGrist) lien.searchParams.set('usage', invitation.dataset.usageGrist);
+    const ouverture = invitation.querySelector('[data-ouvrir-invitation]');
+    const bouton = invitation.querySelector('button');
+    let lien;
+    if (invitation.hasAttribute('data-invitation-pwa')) {
+      if (window.parent === window) continue;
+      lien = new URL('.', window.parent.location.href);
+      lien.searchParams.set('grist', invitation.dataset.invitationGrist);
+      if (invitation.dataset.usageGrist) lien.searchParams.set('usage', invitation.dataset.usageGrist);
+    } else if (ouverture) {
+      lien = new URL(ouverture.href);
+    } else {
+      continue;
+    }
     const message = invitation.querySelector('[role=status]');
-    invitation.hidden = false;
-    invitation.querySelector('button').addEventListener('click', async () => {
+    invitation.hidden = bouton.hidden = false;
+    if (ouverture) ouverture.hidden = true;
+    bouton.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(lien.href);
         message.textContent = 'Lien d’invitation copié.';

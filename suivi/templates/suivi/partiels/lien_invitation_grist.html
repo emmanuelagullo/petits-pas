@@ -1,0 +1,10 @@
+{% if mode_pwa or not mode_local and usage_invitation == "suivre" or partage_grist_disponible and not mode_local %}
+{% url 'invitation_grist' as destination_invitation %}
+<div data-invitation-grist="{{ url_grist_invitation }}" data-usage-grist="{{ usage_invitation|default:'' }}"{% if mode_pwa %} data-invitation-pwa hidden{% endif %}>
+{% if not mode_pwa %}
+<a class="bouton{% if not principal_invitation %} discret{% endif %}" data-ouvrir-invitation href="{{ destination_invitation }}?grist={{ url_grist_invitation|urlencode:"" }}{% if usage_invitation %}&amp;usage={{ usage_invitation|urlencode:"" }}{% endif %}">{{ libelle_invitation }}</a>
+{% endif %}
+<button type="button" class="bouton{% if not principal_invitation %} discret{% endif %}" hidden>{{ libelle_invitation }}</button>
+<p role="status"></p>
+</div>
+{% endif %}

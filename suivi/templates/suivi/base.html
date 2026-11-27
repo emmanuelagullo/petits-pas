@@ -21,7 +21,11 @@
 <body>
 {% if partage_grist_disponible and request.user.is_authenticated and not generation_pdf %}
 <div hidden data-synchroniser-grist="{% url 'synchroniser_grist' %}">{% csrf_token %}</div>
+{% endif %}
+{% if request.user.is_authenticated and not generation_pdf %}
+{% if partage_grist_disponible or not mode_local %}
 <script src="{% static 'suivi/partage-grist.js' %}" defer></script>
+{% endif %}
 {% endif %}
 {% if not generation_pdf and not mode_local and not mode_pwa %}
 <aside id="annonce-maintenance" class="encadre sans-impression" hidden data-url="{% url 'maintenance_annonce' %}">

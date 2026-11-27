@@ -75,17 +75,18 @@ def projection(partage, icones=None):
     return texte_json(document)
 
 
-@partage_disponible
 @acces_requis
 @require_http_methods(["GET"])
 def invitation_grist(request):
+    suivre = request.GET.get("usage") == "suivre"
+    if not suivre and not partage_grist_disponible():
+        raise Http404
     try:
         adresse_grist(request.GET.get("grist", ""))
     except ValidationError as cause:
         return render(request, "suivi/invitation_grist.html", {"erreur": cause.messages[0]}, status=400)
     url = request.GET.get("grist", "").strip()
     ecole = ecole_courante(request)
-    suivre = request.GET.get("usage") == "suivre"
     if suivre and autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole):
         return redirect(reverse("decouvrir_referentiels") + "?" + urlencode({
             "catalogue_invite": url,

@@ -292,7 +292,15 @@ class PartageGristPWA(Base):
         adresse = "https://grist.numerique.gouv.fr/o/docs/document-fictif"
         self.assertEqual(self.client.post(espace, {"grist": adresse, "confirmer": "oui"}).status_code, 302)
         suivis = reverse("suivis_referentiels_classe", args=[self.classe.pk])
-        self.assertContains(self.client.get(suivis), ">Réglages</summary>")
+        from urllib.parse import urlencode
+
+        page = self.client.get(suivis)
+        invitation = reverse("invitation_grist")
+        for usage in ({}, {"usage": "suivre"}):
+            lien = f'{invitation}?{urlencode({"grist": adresse, **usage})}'
+            self.assertContains(page, lien.replace("&", "&amp;"))
+            self.assertEqual(self.client.get(lien).status_code, 302)
+        self.assertContains(page, ">Réglages</summary>")
         self.assertRedirects(self.client.post(equipe, {"action": "initialiser"}), equipe)
         travaux = self.client.get(reverse("synchroniser_grist")).json()["partages"]
         transfert = travaux[0]["transfert_equipe"]

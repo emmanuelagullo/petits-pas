@@ -3,14 +3,15 @@
 <p class="message" role="status">{{ publication_icones_grist.nombre }} icône{{ publication_icones_grist.nombre|pluralize }} publiée{{ publication_icones_grist.nombre|pluralize }} dans {{ publication_icones_grist.nom }}.</p>
 {% endif %}
 {% if publication_grist_reussie %}
-<p class="message" role="status">Édition {{ publication_grist_reussie.numero }} {% if publication_grist_reussie.identique %}déjà publiée{% else %}publiée{% endif %} dans <a href="{{ publication_grist_reussie.url }}">{{ publication_grist_reussie.nom }}</a>.</p>
-{% if mode_pwa %}
-<div data-invitation-grist="{{ publication_grist_reussie.url }}" data-usage-grist="suivre" hidden>
-<button type="button" class="bouton discret">Copier un lien de suivi</button>
-<p role="status"></p>
-</div>
+<p class="message" role="status">Édition {{ publication_grist_reussie.numero }} {% if publication_grist_reussie.identique %}déjà publiée{% else %}publiée{% endif %} dans {{ publication_grist_reussie.nom }}.</p>
 {% endif %}
-
+{% if publication_grist_reussie or publication_icones_grist %}
+{% firstof publication_grist_reussie.url publication_icones_grist.url as url_publication %}
+{% include "suivi/partiels/lien_invitation_grist.html" with url_grist_invitation=url_publication libelle_invitation="Copier le lien de suivi" usage_invitation="suivre" principal_invitation=True %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Document Grist" only %}
+<p><a href="{{ url_publication }}">Ouvrir le document dans Grist</a></p>
+</details>
 {% endif %}
 {% if erreur_grist %}<ul class="messages"><li class="error" role="alert" id="erreur-grist"><strong>Publication Grist impossible.</strong> {{ erreur_grist }}</li></ul>{% endif %}
 <form method="post" action="#export-referentiel" data-publication-grist>

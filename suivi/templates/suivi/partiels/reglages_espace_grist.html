@@ -1,17 +1,13 @@
 {% if partage %}
-<details>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Lien de l’espace" resume="Document Grist" only %}
-{% if mode_pwa %}
-<div data-invitation-grist="{{ partage.url }}" hidden>
-<p>Ce lien permet à un collègue de rejoindre le même espace.</p>
-<button type="button" class="bouton discret">Inviter à collaborer</button>
-<p role="status"></p>
+{% if mode_pwa or partage_grist_disponible and not mode_local %}
+<div class="actions">
+{% include "suivi/partiels/lien_invitation_grist.html" with url_grist_invitation=partage.url libelle_invitation="Inviter à collaborer" principal_invitation=True %}
+{% include "suivi/partiels/lien_invitation_grist.html" with url_grist_invitation=partage.url libelle_invitation="Faire suivre le catalogue" usage_invitation="suivre" %}
 </div>
-<div data-invitation-grist="{{ partage.url }}" data-usage-grist="suivre" hidden>
-<button type="button" class="bouton discret">Faire suivre le catalogue</button>
-<p role="status"></p>
-</div>
+{% if not mode_pwa %}<p class="aide">Ces liens ouvrent cette instance de Petits Pas. Les destinataires doivent y avoir accès.</p>{% endif %}
 {% endif %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Document Grist" only %}
 <p><a href="{{ partage.url }}">Ouvrir le document dans Grist</a></p>
 </details>
 {% endif %}
