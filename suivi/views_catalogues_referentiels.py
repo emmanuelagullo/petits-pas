@@ -372,6 +372,13 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             statut = "Catalogue actualisé." if action_catalogue == "actualiser-catalogue" else "Catalogue enregistré."
             request.session[f"catalogue-resultat-{classe.pk}"] = (cle, statut)
             ancre = "catalogue-" + hashlib.sha256(cle.encode()).hexdigest()[:12]
+            if action_catalogue == "ajouter":
+                from .models import PartageGristClasse
+
+                partage_actif = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
+                document = adresse_grist(cle)[1]
+                if partage_actif and adresse_grist(partage_actif.url)[1] == document:
+                    ancre = "referentiels-espace-" + document
             return redirect(lien("suivis_referentiels_classe", classe.pk, catalogue=ancre, ancre=ancre))
         groupe_poste = cle
     resultat_catalogue = request.session.pop(f"catalogue-resultat-{classe.pk}", None)
@@ -654,7 +661,10 @@ def suivis_classe(request, classe_pk, contexte_espace=None):
             "espace" if groupe.get("espace") or cle.startswith(("referentiels-espace-", "espace-grist")) else
             "instance" if cle == "instance" else "grist" if groupe.get("url") else "ecole"
         )
-    groupes = dict(sorted(groupes.items(), key=lambda item: ordre_provenance(item[1]["provenance"])))
+    ordre_grist = {url: indice for indice, url in enumerate(distants)}
+    groupes = dict(sorted(groupes.items(), key=lambda item: (
+        ordre_provenance(item[1]["provenance"]), ordre_grist.get(item[0], 0),
+    )))
     for cle, groupe in groupes.items():
         ancre = groupe.setdefault("ancre", "catalogue-" + hashlib.sha256(cle.encode()).hexdigest()[:12])
         nombre = len(groupe["lignes"])

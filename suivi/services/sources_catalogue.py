@@ -149,7 +149,7 @@ def ajouter_depuis_source(*, utilisateur, classe, source, reference, adoption_at
     return regle.competence
 
 
-ORDRE_PROVENANCES = ("ecole", "classes", "instance", "grist", "espace")
+ORDRE_PROVENANCES = ("ecole", "classes", "instance", "espace", "grist")
 
 
 def ordre_provenance(provenance):
