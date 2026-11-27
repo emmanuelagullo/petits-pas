@@ -152,6 +152,7 @@ class ImportEcoleTests(TransactionTestCase):
         self.assertEqual(list(m.Trace.objects.filter(pk__in=[r['id'] for r in avant]).order_by('pk').values()), avant)
         nouvelle = m.Classe.objects.get(ecole=ecole, nom=self.classe.nom)
         self.assertEqual(nouvelle.etat, m.Classe.PREPARATION)
+        self.assertEqual(nouvelle.identifiant_publication, self.classe.identifiant_publication)
         self.assertFalse(AffectationClasse.objects.filter(classe__ecole=ecole).exists())
         self.assertEqual(list(AppartenanceEcole.objects.filter(ecole=ecole).values_list('utilisateur_id', flat=True)), [self.compte.pk])
         self.assertTrue(ResponsabiliteEcole.objects.filter(appartenance__ecole=ecole, type='direction').exists())

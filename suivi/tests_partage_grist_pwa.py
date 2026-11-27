@@ -23,6 +23,15 @@ class PartageGristPWA(Base):
                                  proposee_id=self.a.pk, revision_attendue=0)
         self.entrer()
 
+    def test_premier_raccordement_reutilise_identite_de_classe(self):
+        self.adopter()
+        identifiant = self.classe.identifiant_publication
+        self.assertIsNotNone(identifiant)
+        self.assertFalse(PartageGristClasse.objects.filter(classe=self.classe).exists())
+        espace = reverse("espace_grist_classe", args=[self.classe.pk])
+        self.client.post(espace, {"grist": "https://grist.numerique.gouv.fr/o/docs/espace-fictif", "confirmer": "oui"})
+        self.assertEqual(PartageGristClasse.objects.get(classe=self.classe).identifiant, identifiant)
+
     def test_reception_reutilise_un_referentiel_courant_deja_importe_pour_la_classe(self):
         from uuid import uuid4
         from pwa.partage_grist import recevoir_projection

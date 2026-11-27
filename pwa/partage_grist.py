@@ -4,7 +4,7 @@ import json
 from base64 import b64encode
 from functools import wraps
 from urllib.parse import urlencode
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import yaml
 from django.conf import settings
@@ -216,14 +216,18 @@ def espace_classe(request, pk):
                 raise ValidationError("Le nom de l’espace est limité à 200 caractères.")
             nom_initial = nom_saisi or nom_espace_propose(classe)
             with transaction.atomic():
-                Classe.objects.select_for_update().get(pk=classe.pk)
-                actuel = PartageGristClasse.objects.filter(classe=classe, actif=True).first()
-                if actuel and adresse_grist(actuel.url)[1] != document and (
+                classe = Classe.objects.select_for_update().get(pk=classe.pk)
+                actuel = PartageGristClasse.objects.filter(classe=classe).first()
+                if actuel and actuel.actif and adresse_grist(actuel.url)[1] != document and (
                     request.POST.get("espace_attendu") != actuel.url or request.POST.get("changement") != document
                 ):
                     raise ValidationError("L’espace actif a changé. Vérifiez les destinations avant de confirmer.")
+                if classe.identifiant_publication is None:
+                    classe.identifiant_publication = actuel.identifiant if actuel else uuid4()
+                    classe.save(update_fields=["identifiant_publication"])
                 partage, cree = PartageGristClasse.objects.get_or_create(classe=classe,
-                    defaults={"url": url, "licence": licence, "nom_espace": nom_initial})
+                    defaults={"url": url, "licence": licence, "nom_espace": nom_initial,
+                              "identifiant": classe.identifiant_publication})
                 if not cree and (partage.url != url or partage.licence != licence or not partage.actif):
                     if adresse_grist(partage.url)[1] != document:
                         partage.nom_espace = nom_initial

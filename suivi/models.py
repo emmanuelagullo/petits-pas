@@ -193,6 +193,7 @@ class Classe(models.Model):
     ]
 
     ecole = models.ForeignKey(Ecole, on_delete=models.CASCADE, related_name="classes")
+    identifiant_publication = models.UUIDField(default=uuid.uuid4, null=True, editable=False)
     nom = models.CharField(max_length=100, help_text="Par exemple : PS-MS de Nadia")
     historique_heritage = models.JSONField(default=list, blank=True)
     catalogues_propres = models.JSONField(default=dict, blank=True)
