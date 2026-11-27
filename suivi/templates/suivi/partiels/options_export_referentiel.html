@@ -1,0 +1,85 @@
+<form method="post" action="#export-referentiel" data-publication-grist data-export-classe>
+{% csrf_token %}
+<fieldset class="choix-export-classe choix-segmentes">
+<legend>Destination</legend>
+<label><input type="radio" name="destination_export" value="zip"{% if destination_export == "zip" or not destination_export and not derniere_destination %} checked{% endif %}> ZIP</label>
+<label><input type="radio" name="destination_export" value="grist"{% if destination_export == "grist" or not destination_export and derniere_destination %} checked{% endif %}> Catalogue Grist</label>
+</fieldset>
+<details data-options-export{% if erreur_grist or destination_grist or request.POST.action == "telecharger-classe" and erreur or destination_export == "grist" and not choix_catalogue_grist and not lien_grist_saisi %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Options d’export" partiel_resume="suivi/partiels/resume_options_export.html" only %}
+{% include "suivi/partiels/informations_partage_export.html" %}
+<div data-options-grist>
+{% if destinations_grist %}
+<p>{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="documents-recents-grist" champ_catalogue="destination_grist" libelle="Catalogue de destination" catalogues=destinations_grist selection=choix_catalogue_grist only %}</p>
+{% endif %}
+<p>{% if erreur_grist %}
+{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="url-grist" champ_catalogue="url_grist" libelle="Lien du catalogue Grist" edition_lien=True selection=lien_grist_saisi catalogues=destinations_grist erreur_lien="erreur-grist" %}
+{% else %}
+{% include "suivi/partiels/choisir_catalogue_grist.html" with id_catalogue="url-grist" champ_catalogue="url_grist" libelle="Lien du catalogue Grist" edition_lien=True selection=lien_grist_saisi catalogues=destinations_grist %}
+{% endif %}</p>
+{% if references_grist or publication_connue %}
+<p><label for="reference-grist">Dans ce catalogue, publier…</label>
+<select id="reference-grist" name="reference_grist">
+<option value="">{% if publication_connue and not url_grist %}Une nouvelle édition du référentiel déjà publié dans ce catalogue{% else %}Un nouveau référentiel, ou une nouvelle édition si cette classe l’a déjà publié ici{% endif %}</option>
+<option value="nouveau"{% if reference_grist == "nouveau" %} selected{% endif %}>Un nouveau référentiel</option>
+{% for reference, titre in references_grist %}
+<option value="{{ reference }}"{% if reference_grist == reference %} selected{% endif %}>Une nouvelle édition de {{ titre }}</option>
+{% endfor %}
+</select></p>
+{% endif %}
+<p data-consulter-grist{% if destination_grist %} data-catalogue-consulte="{{ destination_grist.url }}"{% endif %}>
+<button class="bouton discret" name="action" value="voir-grist">Voir les référentiels de ce catalogue</button>
+</p>
+{% if destination_grist.nom_a_initialiser or not destination_grist and not derniere_destination %}
+<p class="aide">Nom proposé pour un nouveau catalogue · <strong>{{ nom_catalogue_saisi|default:nom_catalogue_propose }}</strong></p>
+<details{% if nom_catalogue_saisi %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Nom du catalogue" only %}
+<p><label for="nom-catalogue-grist">Nom du nouveau catalogue Grist</label>
+<input id="nom-catalogue-grist" name="nom_catalogue_grist" maxlength="200" value="{{ nom_catalogue_saisi }}"
+placeholder="{{ nom_catalogue_propose }}"></p>
+</details>
+{% endif %}
+{% if modele_grist %}<p><a href="{{ modele_grist }}" target="_blank" rel="noopener">Créer un document depuis le modèle Grist</a></p>{% endif %}
+<details{% if request.POST.mode_contenu_grist and not mode_grist_enregistre %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Contenu proposé par le catalogue" resume=destination_grist.libelle_contenu only %}
+{% if destination_grist %}
+<label for="mode-contenu-grist">Contenu proposé à toutes les personnes qui consultent ce catalogue</label>
+<select name="mode_contenu_grist" id="mode-contenu-grist">
+{% for valeur, libelle in modes_catalogue_grist.items %}<option value="{{ valeur }}"{% if destination_grist.mode_contenu == valeur %} selected{% endif %}>{{ libelle }}</option>{% endfor %}
+</select>
+<p class="aide">Ce réglage s’applique à tout le catalogue. Les éditions et les icônes déjà publiées restent enregistrées dans Grist.</p>
+<button class="bouton discret" name="action" value="enregistrer-mode-grist">Enregistrer le contenu du catalogue</button>
+{% else %}
+<p class="aide">Un nouveau catalogue propose les compétences par défaut. Pour modifier le contenu d’un catalogue existant, examinez d’abord ses référentiels.</p>
+{% endif %}
+</details>
+</div>
+<div data-export-zip data-options-zip>
+{% include "suivi/partiels/contenu_zip_referentiel.html" with inclure=inclure_icones seulement_zip=True %}
+<details{% if inclure_icones_fournies %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Icônes fournies avec Petits Pas" only %}
+<p><label><input type="checkbox" name="inclure_icones_fournies" value="oui"{% if inclure_icones_fournies %} checked{% endif %}> Joindre aussi les fichiers des icônes fournies avec Petits Pas</label></p>
+<p class="aide">Petits Pas retrouve déjà ces icônes à l’import. Joignez leurs fichiers pour les ouvrir en dehors de Petits Pas.</p>
+</details>
+{% if nombre_icones_ajoutees %}
+<p>
+<button class="bouton discret" name="action" value="telecharger-icones-classe" formnovalidate>Télécharger un ZIP d’icônes seules</button>
+<span class="aide">{{ nombre_icones_ajoutees }} icône{{ nombre_icones_ajoutees|pluralize }} ajoutée{{ nombre_icones_ajoutees|pluralize }}</span>
+</p>
+{% endif %}
+</div>
+</details>
+<div class="encadre" id="resume-export-classe" aria-live="polite">
+<strong>{{ informations_partage.titre }}</strong>
+<div data-resume-zip>
+<p>Version {{ informations_partage.version }} · {{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }}{% if licence_export %} · {{ licence_export }}{% endif %}<span data-resume-icones-zip>{% if inclure_icones and destination_export == "zip" %} · {{ nombre_icones_ajoutees }} icône{{ nombre_icones_ajoutees|pluralize }} ajoutée{{ nombre_icones_ajoutees|pluralize }}{% endif %}</span></p>
+</div>
+<div data-resume-grist data-nom-destination="{% firstof destination_grist.nom derniere_destination.nom %}" data-licence="{{ licence_export }}" data-competences="{{ apercu_partage.competences_importees|length }}" data-icones="{{ nombre_icones_ajoutees|default:0 }}" data-edition-prevue="{{ edition_prevue|default:'' }}" data-edition-identique="{% if edition_identique %}oui{% endif %}" data-reference-verifiee="{{ reference_grist|default:'' }}">
+<p data-choix-grist>{% firstof destination_grist.nom derniere_destination.nom "Choisissez un catalogue de destination" %}</p>
+<p data-effet-grist>{% if mode_actuel == "icones" %}Icônes seules · {{ nombre_icones_ajoutees }} icône{{ nombre_icones_ajoutees|pluralize }}{% else %}{% if edition_prevue %}{% if edition_identique %}Contenu identique à l’édition{% else %}Édition{% endif %} {{ edition_prevue }}{% elif publication_connue %}Nouvelle édition{% else %}Publication du référentiel{% endif %} · {{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }}{% endif %}{% if licence_export %} · {{ licence_export }}{% endif %}</p>
+<p class="aide" id="aide-destination-grist" data-aide-destination-grist{% if choix_catalogue_grist or lien_grist_saisi %} hidden{% endif %}>Choisissez un catalogue ou collez son lien pour publier dans Grist.</p>
+</div>
+</div>
+<button type="submit" class="bouton" name="action" value="telecharger-classe" aria-describedby="resume-export-classe" formnovalidate>Télécharger le ZIP du référentiel</button>
+<button type="submit" class="bouton" name="action" value="publier-grist" data-mode-grist="{{ mode_actuel }}" aria-describedby="resume-export-classe">{% if mode_actuel == "icones" %}Publier les icônes dans Grist{% else %}Publier dans Grist{% endif %}</button>
+</form>

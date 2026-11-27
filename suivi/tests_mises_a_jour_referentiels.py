@@ -130,7 +130,7 @@ class MisesAJour(Base):
         self.assertContains(page_classe, "Publier dans Grist")
         self.assertNotContains(page_classe, 'id="edition"')
         self.assertContains(page_ecole, 'id="edition"')
-        self.assertContains(page_classe, '<summary class="bouton bouton-depliant discret">Modifier les informations</summary>')
+        self.assertContains(page_classe, '<summary class="bouton bouton-depliant discret">Informations de partage</summary>')
         self.assertContains(page_classe, "Référentiel de " + self.classe.nom)
         depuis_ecole = self.client.get(echange, {"volet": "exporter", "depuis": "export-ecole"})
         self.assertContains(depuis_ecole, "Choisir une autre classe")
@@ -158,7 +158,7 @@ class MisesAJour(Base):
         catalogue = reverse("catalogue_competences", args=[self.classe.pk])
         export = reverse("paquets_referentiels_classe", args=[self.classe.pk])
         page = self.client.get(catalogue, {"q": "inexistant"})
-        self.assertContains(page, "Partager le référentiel de la classe")
+        self.assertContains(page, "Exporter le référentiel de la classe")
         page = self.client.get(catalogue, {"source": f"version-{self.b.pk}"})
         self.assertNotContains(page, "Ajouter aux catalogues de la classe")
         self.assertContains(page, f'value="version-{self.b.pk}:')
@@ -182,6 +182,68 @@ class MisesAJour(Base):
         self.assertEqual(len(list(competences_document(contenu))), 2)
         refus = self.client.post(export, {**donnees, "competence_partagee": [*references, "classe:999999"]})
         self.assertContains(refus, "ne sont plus partageables", status_code=400)
+
+    def test_selection_mixte_conserve_les_licences_apres_import_et_reexport(self):
+        from .identites_referentiels import competences_document, reference_competence
+        from .services.import_sources_referentiels import lire_source
+        from .services.licences_diffusion import droits_competence
+        from .services.paquets_referentiels import exporter_selection
+        from .services.publications_grist import contenu_grist
+        import json
+
+        adhesion = self.adopter()
+        doc = document("licences-mixtes-fictives")
+        doc["source"]["licence"] = "CC-BY-4.0"
+        autre = importer(doc)[0]
+        publier_choix_application(annee=self.classe.annee_scolaire,
+            versions_ids=[self.a.pk, autre.pk], proposee_id=self.a.pk, revision_attendue=1)
+        choix = reference_competence(next(competences_document(autre.contenu)))
+        references = [f"classe:{adhesion.usages.get().competence_id}", f"version-{autre.pk}:{choix}"]
+        url = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        donnees = {"competence_partagee": references}
+        page = self.client.post(url, {**donnees, "action": "preparer-selection-classe"})
+        self.assertContains(page, "2 licences conservées")
+        paquet = self.client.post(url, {**donnees, "action": "telecharger-selection-classe",
+                                        "empreinte": page.context["empreinte_selection"]})
+        self.assertEqual(paquet.status_code, 200)
+        texte = lire_paquet(paquet.content)
+        portable, _ = lire_source(texte)
+        document_grist = json.loads(contenu_grist(portable))
+        self.assertEqual(document_grist["droits"], portable["droits"])
+        self.assertEqual({droits_competence(portable, c)[0] for c in competences_document(portable)},
+                         {"CC-BY-4.0", "CC-BY-SA-4.0"})
+        from .services.import_sources_referentiels import importer_source
+        importe, _, _ = importer_source(texte, ecole=self.ecole)
+        ref = next(reference_competence(c) for c in competences_document(importe.contenu)
+                   if droits_competence(importe.contenu, c)[0] == "CC-BY-4.0")
+        repris, _ = lire_source(lire_paquet(exporter_selection(importe, [ref])))
+        [competence] = list(competences_document(repris))
+        self.assertEqual(droits_competence(repris, competence)[0], "CC-BY-4.0")
+
+    def test_selection_permet_un_zip_partiel_ou_une_licence_confirmee(self):
+        from .identites_referentiels import competences_document, reference_competence
+
+        adhesion = self.adopter()
+        doc = document("licence-inconnue-fictive")
+        doc["source"]["licence"] = "Non renseignée"
+        autre = importer(doc)[0]
+        publier_choix_application(annee=self.classe.annee_scolaire,
+            versions_ids=[self.a.pk, autre.pk], proposee_id=self.a.pk, revision_attendue=1)
+        ref = reference_competence(next(competences_document(autre.contenu)))
+        references = [f"classe:{adhesion.usages.get().competence_id}", f"version-{autre.pk}:{ref}"]
+        url = reverse("paquets_referentiels_classe", args=[self.classe.pk])
+        donnees = {"competence_partagee": references, "action": "preparer-selection-classe"}
+        page = self.client.post(url, donnees)
+        self.assertContains(page, "Télécharger 1 compétence prête")
+        self.assertEqual(page.context["references_selection"], references)
+        refus = self.client.post(url, {**donnees, "licence_confirmee": "CC-BY-SA-4.0",
+                                       "action": "confirmer-licence-selection"})
+        self.assertContains(refus, "Confirmez l’autorisation", status_code=400)
+        confirme = self.client.post(url, {
+            **donnees, "licence_confirmee": "CC-BY-SA-4.0", "autorisation": "oui",
+        })
+        self.assertEqual(confirme.context["nombre_exportable"], 2)
+        self.assertContains(confirme, "Télécharger le ZIP de la sélection")
 
     def test_selection_demande_une_definition_si_deux_editions_divergent(self):
         self.adopter()

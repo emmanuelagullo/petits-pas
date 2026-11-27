@@ -103,11 +103,14 @@
 <div class="contenu-echange">
 {% endif %}
 {% if classe %}
+<div data-preparation-export>
+{% if erreur %}<p class="message erreur" role="alert">{{ erreur }}</p>{% endif %}
 {% if export_selection %}
 {% include "suivi/partiels/export_selection_classe.html" %}
 {% else %}
 {% include "suivi/partiels/partager_referentiel_classe.html" %}
 {% endif %}
+</div>
 {% else %}
 <h3>Partager le référentiel courant d’une classe</h3>
 <p>Choisissez une classe pour examiner son référentiel courant, le télécharger en ZIP ou le publier dans Grist.</p>

@@ -106,10 +106,13 @@
 </div>
 {% if partage_depuis_catalogue %}
 {% url 'paquets_referentiels_classe' classe.pk as export %}
-<div id="partager-competences" data-partage-catalogue data-classe="{{ classe.pk }}" tabindex="-1">
-<p><a class="bouton discret" data-partager-classe href="{{ export }}?volet=exporter&amp;depuis=competences&amp;retour={{ url_resultats|add:'#partager-competences'|urlencode:'' }}#export-referentiel"{% if source %} hidden{% endif %}>Partager le référentiel de la classe</a></p>
-<div class="actions" data-commandes-partage hidden>
-<button type="button" class="bouton discret" data-commencer-partage aria-pressed="false">Sélectionner des compétences à partager</button>
+<details class="encadre preparation-export" id="partager-competences" data-partage-catalogue data-classe="{{ classe.pk }}" tabindex="-1">
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Préparer un export" niveau_titre=2 partiel_resume="suivi/partiels/resume_preparation_export.html" only %}
+<div class="actions">
+<a class="bouton" data-partager-classe href="{{ export }}?volet=exporter&amp;depuis=competences&amp;retour={{ url_resultats|add:'#partager-competences'|urlencode:'' }}#export-referentiel"{% if source %} hidden{% endif %}>Exporter le référentiel de la classe</a>
+<span data-commandes-partage hidden>
+<button type="button" class="bouton discret" data-commencer-partage aria-pressed="false">Sélectionner des compétences à exporter</button>
+</span>
 </div>
 <form method="post" action="{{ export }}?volet=exporter&amp;depuis=competences#export-referentiel" data-preparer-partage hidden>
 {% csrf_token %}
@@ -118,10 +121,15 @@
 <details data-liste-partage hidden>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Compétences cochées" only %}
 <ul class="liste" data-coches-partage></ul>
+<button class="bouton discret" type="button" data-vider-partage>Vider la sélection</button>
 </details>
 <p class="actions"><button class="bouton" name="action" value="preparer-selection-classe" disabled>Partager les compétences sélectionnées</button></p>
 </form>
-</div>
+<div data-export-sur-place></div>
+<p role="status" data-etat-export></p>
+</details>
+<script src="{% static 'suivi/publication-grist.js' %}" defer></script>
+<script src="{% static 'suivi/selection-competences-partage.js' %}" defer></script>
 <script src="{% static 'suivi/selection-catalogue-classe.js' %}" defer></script>
 {% endif %}
 <script src="{% static 'suivi/catalogue_dynamique.js' %}" defer></script>

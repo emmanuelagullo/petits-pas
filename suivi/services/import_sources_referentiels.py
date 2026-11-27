@@ -68,7 +68,7 @@ def normaliser_filiation(valeur):
 
 
 def normaliser(document):
-    document = objet(document, ("format", "source", "version", "domaines", "structure_seule"), "Document")
+    document = objet(document, ("format", "source", "version", "domaines", "structure_seule", "droits"), "Document")
     if type(document.get("format")) is not int or document["format"] not in (1, 2):
         raise ValidationError("Format attendu : 1 ou 2.")
     source = objet(document.get("source"), ("identifiant", "titre", "provenance", "licence", "provisoire"), "Source")
@@ -81,6 +81,18 @@ def normaliser(document):
         raise ValidationError("Cet identifiant est réservé aux reprises de bases existantes.")
     if type(source["provisoire"]) is not bool:
         raise ValidationError("Provisoire doit valoir true ou false.")
+    droits = document.get("droits", {})
+    if not isinstance(droits, dict):
+        raise ValidationError("Les droits de diffusion doivent être associés à une provenance.")
+    droits = {
+        texte(cle, "Référence de droits", 120): [
+            texte(notice[0], "Licence", 120, facultatif=True),
+            texte(notice[1], "Crédits", 4000, facultatif=True),
+        ] if isinstance(notice, (list, tuple)) and len(notice) == 2 else None
+        for cle, notice in droits.items()
+    }
+    if None in droits.values():
+        raise ValidationError("Chaque notice de diffusion doit contenir une licence et des crédits.")
     numero = identifiant(document.get("version"), "Version", 80)
     domaines = []
     identites, codes_competences, codes_domaines = set(), set(), set()
@@ -96,7 +108,7 @@ def normaliser(document):
         for c in liste(valeurs, chemin):
             champs = ("identite", "code", "libelle", "niveau", "icone", "formulations")
             if document["format"] == 2:
-                champs += ("source_origine", "icone_png", "variante_de", "active")
+                champs += ("source_origine", "icone_png", "variante_de", "active", "droits")
             c = objet(c, champs, "Compétence")
             identite = identifiant(c.get("identite"), "Identité")
             origine = {}
@@ -113,6 +125,11 @@ def normaliser(document):
             if icone and icone not in catalogue_icones():
                 raise ValidationError(f"Icône inconnue : {icone}.")
             personnalisee = {}
+            if "droits" in c:
+                cle_droits = texte(c["droits"], "Référence de droits", 120)
+                if cle_droits not in droits:
+                    raise ValidationError("Une notice de diffusion référencée est absente.")
+                personnalisee["droits"] = cle_droits
             if "active" in c:
                 if type(c["active"]) is not bool:
                     raise ValidationError("La disponibilité doit être vraie ou fausse.")
@@ -155,6 +172,8 @@ def normaliser(document):
     if not domaines or (not structure and not identites):
         raise ValidationError("Au moins un domaine et une compétence sont nécessaires.")
     contenu = {"format": document["format"], "origine": "source_declaree", "source": source, "version": numero, "domaines": domaines}
+    if droits:
+        contenu["droits"] = droits
     if structure:
         contenu["structure_seule"] = True
     return contenu, identites

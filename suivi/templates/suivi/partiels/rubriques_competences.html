@@ -3,21 +3,24 @@
 <div class="actions" role="group" aria-label="Rubriques des compétences" data-commandes-rubriques hidden>
   <button class="bouton discret" type="button" data-replier-rubriques="ouvrir">Tout déplier</button>
   <button class="bouton discret" type="button" data-replier-rubriques="fermer">Tout replier</button>
+  {% if partage_depuis_catalogue %}{% include "suivi/partiels/cocher_resultats_partage.html" %}{% endif %}
 </div>
 {% for domaine_competences in domaines_competences %}
+  {% if partage_depuis_catalogue %}<div class="ligne-selection-rubrique" data-portee-partage><div class="choix-partage-rubrique">{% include "suivi/partiels/cocher_resultats_partage.html" %}</div>{% endif %}
   <details class="domaine"{% if domaines_competences|length == 1 or domaine or q or afficher_rubriques_ouvertes %} open{% endif %}>
     {% include "suivi/partiels/bouton_depliant.html" with libelle=domaine_competences.list.0.domaine niveau_titre=niveau_domaine|default:2 only %}
     {% regroup domaine_competences.list by sous_domaine_affiche_id|default:sous_domaines_competences.sous_domaine as sous_domaines_competences %}
     {% for groupe_competences in sous_domaines_competences %}
       {% if groupe_competences.list.0.sous_domaine %}
+        {% if partage_depuis_catalogue %}<div class="ligne-selection-rubrique" data-portee-partage><div class="choix-partage-rubrique">{% include "suivi/partiels/cocher_resultats_partage.html" %}</div>{% endif %}
         <details class="sous-domaine"{% if sous_domaines_competences|length == 1 or sous_domaine or q or afficher_rubriques_ouvertes %} open{% endif %}>
           {% include "suivi/partiels/bouton_depliant.html" with libelle=groupe_competences.list.0.sous_domaine niveau_titre=niveau_sous_domaine|default:3 only %}
       {% endif %}
       <ul class="liste">
         {% for ligne in groupe_competences.list %}{% include entree %}{% endfor %}
       </ul>
-      {% if groupe_competences.list.0.sous_domaine %}</details>{% endif %}
+      {% if groupe_competences.list.0.sous_domaine %}</details>{% if partage_depuis_catalogue %}</div>{% endif %}{% endif %}
     {% endfor %}
-  </details>
+  </details>{% if partage_depuis_catalogue %}</div>{% endif %}
 {% endfor %}
 </div>

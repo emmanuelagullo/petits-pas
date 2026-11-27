@@ -1,0 +1,11 @@
+<details{% if modifier_partage %} open{% endif %}>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Informations de partage" only %}
+{{ partage_classe.as_p }}
+{% if revisions_licence %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="CC BY-SA 4.0 proposée pour les compétences sans licence" resume="Renseignez la licence applicable si vous avez l’autorisation de partager ces contenus." only %}
+<p><label><input type="checkbox" form="informations-partage-classe" name="autorisation_partage" value="oui"> J’ai l’autorisation de partager ces compétences sous cette licence.</label></p>
+{% endif %}
+<p class="actions">
+<button class="bouton discret" form="informations-partage-classe" name="action" value="enregistrer-partage">Enregistrer les informations</button>
+</p>
+</details>

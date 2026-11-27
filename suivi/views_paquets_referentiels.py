@@ -18,7 +18,7 @@ from .autorisations import (GERER_REFERENTIEL_CLASSE, GERER_REFERENTIEL_ECOLE, I
                             autorise, charger_classe_autorisee)
 from .contexte_ecole import ecole_courante
 from .forms_referentiels import PartageReferentielClasseForm
-from .identites_referentiels import competences_document, identifiant_diffusion, identifiant_source_ecole
+from .identites_referentiels import competences_document, identifiant_diffusion, identifiant_source_ecole, reference_competence
 from .models import AdoptionReferentiel, BrouillonReferentiel, ChoixApplicationAnnuel, Classe, Ecole, InformationsPartageReferentielClasse, VersionReferentiel, annee_scolaire_pour
 from .navigation import lien, retour_competences
 from .presentation import catalogue_icones
@@ -192,8 +192,30 @@ def informations_partage(classe, adoption):
 def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False, inclure_icones_fournies=False, avec_zip=True):
     from .icones_partagees import empreinte_png, decoder_icone, png_en_ligne
 
-    source = {k: v for k, v in donnees.items() if k != "version"}
+    source = {k: donnees[k] for k in ("identifiant", "titre", "provenance", "licence")}
+    source["licence_creations"] = donnees.get("licence_creations", "")
     document = preparer_referentiel_classe(classe, source, donnees["version"])
+    from .services.licences_diffusion import LICENCE_PROPOSEE, droits_competence
+    from .services.partage_referentiel_classe import (
+        compter_creations_sans_licence, licence_creations_classe, verifier_licence_synchronisation,
+    )
+
+    try:
+        document["source"]["licence"] = verifier_licence_synchronisation(adoption_courante(classe), document)
+    except ValidationError:
+        # L'aperçu permet de choisir une licence ou de télécharger les compétences prêtes.
+        pass
+    reglage_creations = licence_creations_classe(adoption_courante(classe))
+    contexte["proposition_creations_partage"] = compter_creations_sans_licence(classe, document) if not reglage_creations else 0
+    contexte["licence_proposee_creations_partage"] = source["licence_creations"] or reglage_creations or LICENCE_PROPOSEE
+    droits = [(c["libelle"], droits_competence(document, c)[0]) for c in competences_document(document)]
+    contexte["revisions_licence"] = [libelle for libelle, licence in droits if not licence]
+    contexte["references_licence"] = [reference_competence(c) for c in competences_document(document)
+                                     if not droits_competence(document, c)[0]]
+    contexte["licences_partage"] = sorted({licence for _, licence in droits if licence})
+    contexte["nombre_licences_partage"] = len(contexte["licences_partage"])
+    contexte["nombre_exportable_partage"] = sum(bool(licence) for _, licence in droits)
+    contexte["empreinte_licences_partage"] = sha256(yaml.safe_dump(droits, allow_unicode=True).encode()).hexdigest()
     empreintes = set()
     for competence in competences_document(document):
         png = competence.get("icone_png")
@@ -207,7 +229,7 @@ def presenter_contenu_partage(classe, contexte, donnees, *, inclure_icones=False
     nombre = len(empreintes)
     contexte["nombre_icones_ajoutees"] = nombre
     # Une licence manquante n'empêche pas de consulter la projection.
-    a_lire = {**document, "source": {**document["source"], "licence": source["licence"] or "À vérifier"}}
+    a_lire = {**document, "source": {**document["source"], "licence": document["source"]["licence"] or "À vérifier"}}
     paquet = empaqueter(a_lire, inclure_icones_fournies=inclure_icones_fournies) if avec_zip else None
     normalise, _ = lire_source(yaml.safe_dump(a_lire, allow_unicode=True))
     icones = catalogue_icones()
@@ -232,9 +254,14 @@ def partage_classe(request, classe, contexte, action):
     initial, base_changee = informations_partage(classe, adoption)
     contexte.update(base_du_partage=adoption.version, informations_partage=initial,
                     modifier_partage=base_changee or not initial["licence"])
+    partiel = action == "telecharger-classe" and request.POST.get("competences_pretes") == "oui"
     direct = action in ACTIONS_DIRECTES_PARTAGE
-    formulaire = PartageReferentielClasseForm(request.POST if direct and "titre" in request.POST else None,
-                                              initial=initial)
+    from .services.licences_diffusion import LICENCE_PROPOSEE
+
+    formulaire = PartageReferentielClasseForm(
+        request.POST if direct and "titre" in request.POST else None,
+        initial={**initial, "licence": initial["licence"] or LICENCE_PROPOSEE},
+    )
     contexte["partage_classe"] = formulaire
     if action in ACTIONS_GRIST:
         contexte["destination_export"] = "grist"
@@ -252,9 +279,11 @@ def partage_classe(request, classe, contexte, action):
             contexte["modifier_partage"] = True
             return
         donnees = formulaire.cleaned_data if formulaire.is_bound else initial
+        if partiel and not donnees["licence"]:
+            donnees = {**donnees, "licence": "À vérifier"}
         formulaire = PartageReferentielClasseForm(donnees)
         contexte["partage_classe"] = formulaire
-        if not formulaire.is_valid() or (base_changee and "titre" not in request.POST):
+        if not formulaire.is_valid() or (base_changee and not partiel and "titre" not in request.POST):
             contexte["modifier_partage"] = True
             return
         donnees = formulaire.cleaned_data
@@ -287,20 +316,49 @@ def partage_classe(request, classe, contexte, action):
     if not direct and empreinte != preparation["empreinte"]:
         raise ValidationError("Le référentiel a changé. Examinez de nouveau le contenu à partager.")
     licences = licences_referentiel_partage(adoption, document)
-    if direct and not request.POST.get("titre") and any(licence != donnees["licence"] for licence in licences):
-        if not InformationsPartageReferentielClasse.objects.filter(
-            classe=classe, adoption=adoption, donnees=donnees, licences_sources=licences,
-        ).exists():
-            contexte["modifier_partage"] = True
-            return
+    if action == "enregistrer-partage" and contexte["revisions_licence"] and request.POST.get("autorisation_partage") != "oui":
+        contexte["modifier_partage"] = True
+        raise ValidationError("Confirmez l’autorisation de partager les compétences sans licence renseignée.")
+    if action in {"telecharger-classe", "exporter-classe", "publier-grist"}:
+        from .services.partage_referentiel_classe import verifier_licence_synchronisation
+
+        if partiel:
+            if contexte["empreinte_licences_partage"] != request.POST.get("empreinte_licences"):
+                raise ValidationError("Le périmètre de l’export a changé. Vérifiez les compétences prêtes.")
+            from .services.licences_diffusion import retirer_droits_inconnus
+
+            if not retirer_droits_inconnus(document):
+                raise ValidationError("Renseignez les licences avant de télécharger.")
+            contenu = yaml.safe_dump(document, allow_unicode=True)
+            document["source"].update(
+                identifiant="selection-" + sha256(contenu.encode()).hexdigest(),
+                titre=f"Sélection · {donnees['titre']}"[:200],
+            )
+        else:
+            document["source"]["licence"] = verifier_licence_synchronisation(adoption, document)
+        # Le document normalisé utilisé par Grist et le ZIP doivent conserver les mêmes droits.
+        normalise, _ = lire_source(yaml.safe_dump(document, allow_unicode=True))
+        if action in {"telecharger-classe", "exporter-classe"}:
+            paquet = empaqueter(document, inclure_icones_fournies=inclure_icones_fournies)
     contexte["modifier_partage"] = False
-    enregistrement = {"donnees": donnees, "adoption": adoption, "licences_sources": licences}
+    sauvegardees = informations_partage(classe, adoption)[0].get("competences_licence_confirmee", [])
+    portee = contexte["references_licence"] if action == "enregistrer-partage" and contexte["references_licence"] else sauvegardees
+    licence_creations = donnees.get("licence_creations") or initial.get("licence_creations", "")
+    if contexte["proposition_creations_partage"] and action in {"telecharger-classe", "exporter-classe", "publier-grist"}:
+        licence_creations = contexte["licence_proposee_creations_partage"]
+    enregistrement = {"donnees": {**donnees, "competences_licence_confirmee": portee,
+                                 "licence_creations": licence_creations},
+                      "adoption": adoption, "licences_sources": licences}
     if action == "telecharger-icones-classe":
         from .icones_partagees import externaliser_png
         from .services.paquets_referentiels import empaqueter_icones
 
         return telecharger_paquet(empaqueter_icones(externaliser_png(normalise)), donnees["titre"],
                                   type_archive="icones", nombre_competences=0)
+    if partiel:
+        return telecharger_paquet(paquet, document["source"]["titre"], edition=donnees["version"],
+                                  type_archive="referentiel-selection", date=timezone.now(),
+                                  nombre_competences=sum(1 for _ in competences_document(document)))
     if action in ("telecharger-classe", "exporter-classe"):
         InformationsPartageReferentielClasse.objects.update_or_create(
             classe=classe, defaults=enregistrement,
@@ -309,6 +367,7 @@ def partage_classe(request, classe, contexte, action):
                                   nombre_competences=len(contexte["apercu_partage"]["competences_importees"]))
     if action == "enregistrer-partage":
         InformationsPartageReferentielClasse.objects.update_or_create(classe=classe, defaults=enregistrement)
+        presenter_contenu_partage(classe, contexte, donnees, avec_zip=False)
         presenter_publication_grist(request, classe, contexte, donnees["identifiant"])
         return
     if action in ACTIONS_GRIST:
@@ -367,6 +426,8 @@ def presenter_import_grist(request, ecole, contexte):
 
 def partage_selection_classe(request, classe, contexte):
     from .services.selection_partagee import preparer_selection
+    from .services.partage_referentiel_classe import licence_creations_classe
+    from .services.licences_diffusion import LICENCE_PROPOSEE, LICENCES_RECONNUES
 
     adoption = adoption_courante(classe)
     if classe.etat != Classe.ACTIVE or not adoption or adoption.clos:
@@ -381,9 +442,22 @@ def partage_selection_classe(request, classe, contexte):
         references_selection=references, definitions_selection=choix,
     )
     try:
-        document, sources, credits, conflits, licences_valides = preparer_selection(
-            request.user, adoption, references, choix,
+        action_selection = request.POST.get("action")
+        licence = request.POST.get("licence_confirmee", "")
+        if action_selection == "confirmer-licence-selection" and request.POST.get("autorisation") != "oui":
+            raise ValidationError("Confirmez l’autorisation de partager sous la licence choisie.")
+        if request.POST.get("autorisation") != "oui":
+            licence = ""
+        if licence and licence not in LICENCES_RECONNUES:
+            raise ValidationError("Confirmez l’autorisation de partager sous la licence choisie.")
+        licence_creation = request.POST.get("licence_creation") or licence_creations_classe(adoption) or LICENCE_PROPOSEE
+        if licence_creation not in LICENCES_RECONNUES:
+            raise ValidationError("Choisissez une licence proposée pour vos créations.")
+        document, sources, credits, conflits, manquantes, nombre_licences, creations = preparer_selection(
+            request.user, adoption, references, choix, licence_confirmee=licence,
+            licence_creation=licence_creation,
         )
+        nombre_exportable = sum(1 for _ in competences_document(document))
         from .icones_partagees import png_en_ligne
 
         for competence in competences_document(document):
@@ -397,22 +471,33 @@ def partage_selection_classe(request, classe, contexte):
         document["source"]["titre"] = titre
         contexte.update(
             nombre_icones_ajoutees=len(icones),
-            apercu_selection=apercu_document(yaml.safe_dump(document, allow_unicode=True), classe.ecole, classe=classe),
+            apercu_selection=apercu_document(yaml.safe_dump(document, allow_unicode=True), classe.ecole, classe=classe)
+                if nombre_exportable else None,
+            selection_calculee=True, nombre_exportable=nombre_exportable,
+            licences_manquantes=manquantes, nombre_licences=nombre_licences,
+            licence_proposee=LICENCE_PROPOSEE, choix_licences=sorted(LICENCES_RECONNUES),
+            licence_confirmee=licence, licence_creation=licence_creation, nombre_creations=len(creations),
             titre_selection=titre, sources_selection=sources, credits_selection=credits,
-            conflits_selection=conflits, licences_selection_valides=licences_valides,
+            conflits_selection=conflits,
             empreinte_selection=empreinte, inclure_icones_selection=request.POST.get("inclure_icones") == "oui",
         )
         if request.POST.get("action") == "telecharger-selection-classe":
-            if conflits or not licences_valides:
+            if conflits or not nombre_exportable:
                 raise ValidationError("Vérifiez les définitions et les licences avant le téléchargement.")
             if empreinte != request.POST.get("empreinte"):
                 raise ValidationError("Le contenu a changé. Vérifiez la sélection avant de télécharger.")
             if not contexte["inclure_icones_selection"]:
                 for competence in competences_document(document):
                     competence.pop("icone_png", None)
-            return telecharger_paquet(empaqueter(document, inclure_icones_fournies=False), titre,
-                                      type_archive="referentiel-selection", edition="1", date=timezone.now(),
-                                      nombre_competences=len(contexte["apercu_selection"]["competences_importees"]))
+            reponse = telecharger_paquet(empaqueter(document, inclure_icones_fournies=False), titre,
+                                         type_archive="referentiel-selection", edition="1", date=timezone.now(),
+                                         nombre_competences=nombre_exportable)
+            from .models import CompetenceLocale
+
+            CompetenceLocale.objects.filter(pk__in=creations, auteur=request.user, licence_partage="").update(
+                licence_partage=licence_creation,
+            )
+            return reponse
     except ValidationError as erreur:
         contexte["erreur_selection"] = " ".join(erreur.messages)
     return render(request, "suivi/paquets_referentiels.html", contexte,
@@ -438,7 +523,7 @@ def paquets_referentiels(request, classe_pk=None):
     peut_gerer_ecole = autorise(request.user, GERER_REFERENTIEL_ECOLE, ecole)
     contexte = {"retour_catalogues": "", "retour_competences": "", "retour_decouverte": "", "classe": classe, "annee": annee, "volet": request.GET.get("volet"), "peut_importer": import_classe or peut_importer_ecole or request.user.is_superuser, "import_classe": import_classe,
                 "peut_importer_ecole": peut_importer_ecole, "peut_importer_global": request.user.is_superuser and not import_classe}
-    if action in ("preparer-selection-classe", "telecharger-selection-classe"):
+    if action in ("preparer-selection-classe", "confirmer-licence-selection", "telecharger-selection-classe"):
         if classe is None:
             raise PermissionDenied
         return partage_selection_classe(request, classe, contexte)

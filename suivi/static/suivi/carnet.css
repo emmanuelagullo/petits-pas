@@ -1301,7 +1301,7 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
 .contenu-echange { padding: .65rem .85rem .85rem; }
 
 /* Même présentation pour les compétences d'une classe et les éditions reçues. */
-.rubriques-competences > .domaine { margin-block: .6rem; }
+.rubriques-competences .domaine { margin-block: .6rem; }
 .rubriques-competences summary.bouton-depliant {
   display: flex;
   width: 100%;
@@ -1310,7 +1310,7 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
   white-space: normal;
 }
 .rubriques-competences summary > :is(h2, h3, h4, h5) { margin: 0; font: inherit; }
-.rubriques-competences > .domaine > summary { font-weight: 650; }
+.rubriques-competences .domaine > summary { font-weight: 650; }
 .rubriques-competences .sous-domaine { margin: .4rem .6rem; }
 .rubriques-competences .liste { margin: .4rem .6rem .6rem; }
 
@@ -1373,3 +1373,15 @@ details[open] > summary.bouton-depliant::before { content: '▾'; }
 }
 [data-export-classe] .choix-export-classe { margin-block: .65rem; }
 [data-export-classe] [data-choix-grist] { overflow-wrap: anywhere; }
+
+.preparation-export { margin-block-start: 1.5rem; }
+.preparation-export > summary { max-inline-size: 100%; }
+.preparation-export > .actions,
+.preparation-export [data-export-sur-place]:not(:empty) { margin-block-start: 1rem; }
+.ligne-selection-rubrique { position: relative; }
+.ligne-selection-rubrique > .choix-partage-rubrique { position: absolute; inset-inline-end: 0; inset-block-start: 0; }
+.ligne-selection-rubrique.avec-selection > details > summary { max-inline-size: calc(100% - 11rem); }
+@media (max-width: 35rem) {
+  .ligne-selection-rubrique > .choix-partage-rubrique { position: static; text-align: end; }
+  .ligne-selection-rubrique.avec-selection > details > summary { max-inline-size: 100%; }
+}

@@ -4,11 +4,12 @@ from hashlib import sha256
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 
-from suivi.identites_referentiels import competences_document, identifiant_diffusion
-from suivi.models import AdaptationCompetence, CompetenceLocale, CompetenceSourceEcole, SourceReferentiel
+from suivi.identites_referentiels import competences_document, identifiant_diffusion, reference_competence, references_suivi
+from suivi.models import AdaptationCompetence, CompetenceLocale, CompetenceSourceEcole, InformationsPartageReferentielClasse, SourceReferentiel
 from suivi.presentation import illustration_effective, propositions, reglages_du_perimetre
 from suivi.referentiels import adoption_courante, arbre_version, contenu_adoption
 from suivi.rubriques import rubriques_saisissables
+from .licences_diffusion import LICENCE_PROPOSEE, droits_competence, encoder_droits, licence_renseignee, verifier_droits
 
 
 def arbre_commun_classe(adoption, contenu):
@@ -64,6 +65,18 @@ def preparer_referentiel_classe(classe, source, version):
     }
 
     reglages = reglages_du_perimetre(classe.ecole, classe)
+    base = adoption.version
+    droits_base = {}
+    if base.contenu.get("droits"):
+        references = references_suivi(classe.ecole, base)
+        droits_base = {references[reference_competence(c)]: droits_competence(base.contenu, c)
+                       for c in competences_document(base.contenu) if reference_competence(c) in references}
+    source = dict(source)
+    licence_creations = source.pop("licence_creations", "") or licence_creations_classe(adoption)
+    notices = {}
+    locales = dict(CompetenceLocale.objects.filter(
+        ecole=classe.ecole, competence_id__in=identites_locales,
+    ).values_list("competence_id", "licence_partage"))
     domaines = []
     for domaine in arbre_commun_classe(adoption, contenu):
         groupes = {None: []}
@@ -93,16 +106,47 @@ def preparer_referentiel_classe(classe, source, version):
                 definition["icone_png"] = image.icone_png
             elif image.icone:
                 definition["icone"] = image.icone
+            notice = (licence_renseignee(base.source.licence), base.source.provenance)
+            if origine:
+                notice = (licence_renseignee(origine.source.licence), origine.source.provenance)
+            if competence.pk in droits_base:
+                notice = droits_base[competence.pk]
+            if ajout and not ajout.get("variante_de") and not origine:
+                licence = locales.get(competence.pk) or licence_creations or LICENCE_PROPOSEE
+                notice = (licence, source.get("provenance") or base.source.provenance)
+            if ajout.get("variante_de") and not origine:
+                notice = (locales.get(competence.pk) or "", ajout["variante_de"]["libelle"])
+            notices[definition["code"]] = notice
             groupes[competence.sous_domaine_id].append(definition)
         domaines.append({
             "code": domaine.code, "nom": domaine.nom, "competences": groupes[None],
             "sous_domaines": sous_domaines,
             "attendus": [{"code": a.code, "texte": a.texte} for a in domaine.attendus.all()],
         })
-    return {"format": 2, "version": version, "source": {**source, "provisoire": True},
+    document = {"format": 2, "version": version, "source": {**source, "provisoire": True},
             "domaines": domaines, "structure_seule": not any(
                 d["competences"] or any(s["competences"] for s in d["sous_domaines"]) for d in domaines)}
 
+    document["source"].setdefault("licence", "")
+    document["source"].setdefault("provenance", base.source.provenance)
+    encoder_droits(document, notices)
+    return document
+
+
+
+def licence_creations_classe(adoption):
+    choix = InformationsPartageReferentielClasse.objects.filter(classe=adoption.classe, adoption=adoption).first()
+    return choix.donnees.get("licence_creations", "") if choix else ""
+
+
+def compter_creations_sans_licence(classe, document):
+    codes = {c["code"] for c in competences_document(document) if not c.get("source_origine")}
+    if not codes:
+        return 0
+    locales = CompetenceLocale.objects.filter(ecole=classe.ecole, suivi_libre=False, licence_partage="").exclude(
+        definition__has_key="variante_de",
+    ).values_list("competence_id", flat=True)
+    return sum(code_competence_partagee(classe, pk) in codes for pk in locales)
 
 
 def sources_referentiel_partage(adoption, document):
@@ -126,23 +170,27 @@ def licences_referentiel_partage(adoption, document):
 
 
 def verifier_licence_synchronisation(adoption, document):
-    from suivi.models import InformationsPartageReferentielClasse
-
     sources = sources_referentiel_partage(adoption, document)
-    inconnues = [titre for titre, licence in sources if licence.casefold() in
-                 {"", "non renseignée", "non renseigné", "inconnue"}]
+    inconnues = [c for c in competences_document(document) if not droits_competence(document, c)[0]]
     if inconnues:
-        if len(sources) == 1:
-            choix = InformationsPartageReferentielClasse.objects.filter(
-                classe=adoption.classe, adoption=adoption, licences_sources=[sources[0][1]],
-            ).first()
-            if choix:
-                licence = choix.donnees.get("licence", "").strip()
-                if licence.casefold() not in {"", "non renseignée", "non renseigné", "inconnue"}:
-                    return licence
+        choix = InformationsPartageReferentielClasse.objects.filter(
+            classe=adoption.classe, adoption=adoption, licences_sources=sorted({licence for _, licence in sources}),
+        ).first()
+        licence = licence_renseignee(choix.donnees.get("licence", "")) if choix else ""
+        portee = choix.donnees.get("competences_licence_confirmee") if choix else None
+        if portee is None:
+            # Les anciennes confirmations ne couvraient qu'une source.
+            portee = [reference_competence(c) for c in inconnues
+                      if len(sources) == 1 and not c.get("variante_de")]
+        if licence and set(map(reference_competence, inconnues)) <= set(portee):
+            encoder_droits(document, {c["code"]: (droits_competence(document, c)[0] or licence,
+                                                   droits_competence(document, c)[1])
+                                      for c in competences_document(document)})
+    if inconnues and not any(droits_competence(document, c)[0] for c in inconnues):
         raise ValidationError("Licence à vérifier pour %(sources)s.",
-                              params={"sources": ", ".join(inconnues)})
-    if len({licence for _, licence in sources}) != 1:
-        raise ValidationError("Vérifiez les licences des sources : %(sources)s.",
-                              params={"sources": ", ".join(f"{titre} ({licence})" for titre, licence in sources)})
-    return sources[0][1]
+                              params={"sources": ", ".join(titre for titre, licence in sources if not licence_renseignee(licence))
+                                      or adoption.version.source.titre})
+    verifier_droits(document)
+    return licence_renseignee(document["source"]["licence"]) or next(
+        (droits_competence(document, c)[0] for c in competences_document(document)), LICENCE_PROPOSEE,
+    )

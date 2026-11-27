@@ -64,6 +64,10 @@ def exporter_selection(version, references):
     document["version"] = "1"
     document["source"]["identifiant"] = f"selection-{empreinte}"
     document["source"]["titre"] = f"Sélection · {document['source']['titre']}"[:200]
+    if document.get("droits"):
+        from .licences_diffusion import droits_competence, encoder_droits
+
+        encoder_droits(document, {c["code"]: droits_competence(document, c) for c in competences_document(document)})
     return empaqueter(document)
 
 

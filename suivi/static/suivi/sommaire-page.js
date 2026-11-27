@@ -125,18 +125,26 @@
   page.classList.add('avec-sommaire');
   depuisAncre();
 })();
+function rubriquesDeListe(liste) {
+  return liste.querySelectorAll('details.domaine, details.sous-domaine');
+}
 function activerCommandesRubriques(racine) {
   racine.querySelectorAll('[data-commandes-rubriques]').forEach(commandes => {
     const liste = commandes.parentElement;
-    commandes.hidden = liste.querySelectorAll(':scope > details.domaine, :scope > details.domaine > details.sous-domaine').length < 2;
+    const deplier = rubriquesDeListe(liste).length >= 2;
+    commandes.hidden = !deplier && !commandes.querySelector('[data-cocher-resultats]');
+    commandes.querySelectorAll('[data-replier-rubriques]').forEach(bouton => {
+      bouton.hidden = !deplier;
+    });
   });
 }
 document.addEventListener('click', event => {
   const bouton = event.target.closest('[data-replier-rubriques]');
   if (!bouton) return;
   const liste = bouton.closest('.rubriques-competences');
-  liste.querySelectorAll(':scope > details.domaine, :scope > details.domaine > details.sous-domaine')
-    .forEach(rubrique => { rubrique.open = bouton.dataset.replierRubriques === 'ouvrir'; });
+  rubriquesDeListe(liste).forEach(rubrique => {
+    rubrique.open = bouton.dataset.replierRubriques === 'ouvrir';
+  });
 });
 activerCommandesRubriques(document);
 document.addEventListener('htmx:afterSwap', () => activerCommandesRubriques(document));

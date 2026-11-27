@@ -57,11 +57,14 @@ def nom_espace_propose(classe):
 def document_projection(classe, identifiant):
     identifiant = f"classe-grist-{identifiant}"
     titre = f"Référentiel de {classe.nom}"
+    adoption = adoption_courante(classe)
+    if not adoption or adoption.clos:
+        raise ValidationError("Choisissez d’abord le référentiel de la classe.")
     document = preparer_referentiel_classe(classe, {
         "identifiant": identifiant, "titre": titre, "provenance": "Espace de partage Petits Pas",
-        "licence": "",
+        "licence": adoption.version.source.licence,
     }, "courante")
-    document["source"]["licence"] = verifier_licence_synchronisation(adoption_courante(classe), document)
+    document["source"]["licence"] = verifier_licence_synchronisation(adoption, document)
     return document
 
 
@@ -298,11 +301,16 @@ def recevoir_projection(partage, ligne, propres):
     if not existante:
         privee = None
         existante = sources.filter(identifiant=identifiant_source_ecole(ecole, reference)).first()
+    from suivi.services.licences_diffusion import droits_competence, encoder_droits
+
+    notices = {c["code"]: droits_competence(document, c) for c in competences_document(document)} if document.get("droits") else {}
     document["source"] = {
         "identifiant": reference, "titre": existante.titre if existante else source_externe.get("titre"),
         "provenance": "Espace de partage Petits Pas",
         "licence": source_externe.get("licence"), "provisoire": True,
     }
+    if notices:
+        encoder_droits(document, notices, conserver_defaut=True)
     cle = empreinte(contenu)
     precedente = existante.versions.order_by("-pk").first() if existante else None
     if not precedente or precedente.numero[:64] != cle:

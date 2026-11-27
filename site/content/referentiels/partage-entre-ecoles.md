@@ -31,7 +31,16 @@ l’indique dans la liste des catalogues.
 
 
 Depuis **Compétences**, utilisez **Sélectionner des compétences à partager**
-en bas de la liste, puis cochez les compétences. Vous pouvez changer de
+dans **Préparer un export**, en bas de la liste, puis cochez les compétences. Vous pouvez changer de
 filtre ou de référentiel. **Compétences cochées** permet de revoir aussi celles
 qui sont hors du filtre courant. **Partager les compétences sélectionnées**
 prépare un ZIP et présente les sources avant le téléchargement.
+
+
+La préparation s’ouvre sous la liste. Les commandes **Cocher les résultats**
+agissent dans le filtre courant, y compris dans les rubriques repliées.
+**Vider la sélection** efface aussi les choix faits dans d’autres référentiels.
+
+Un export peut combiner plusieurs licences. Petits Pas conserve les indications
+de provenance et les conditions de chaque compétence. Si une licence manque,
+vérifiez-la dans l’aperçu ou téléchargez uniquement les compétences prêtes.

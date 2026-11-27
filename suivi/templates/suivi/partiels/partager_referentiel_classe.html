@@ -3,10 +3,21 @@
 {% if retour_export_ecole %}<p><a class="bouton discret" href="{{ retour_export_ecole }}">Choisir une autre classe</a></p>{% endif %}
 {% if peut_importer %}<h3>Partager le référentiel courant de cette classe</h3>{% endif %}
 {% if partage_classe %}
-<p><strong>{{ informations_partage.titre }}</strong> · {% if informations_partage.licence %}{{ informations_partage.licence }}{% else %}<span class="pastille alerte">Licence à vérifier</span>{% endif %} · Édition {{ informations_partage.version }}</p>
+<p><strong>{{ informations_partage.titre }}</strong> · {% if nombre_licences_partage > 1 %}{{ nombre_licences_partage }} licences conservées{% elif informations_partage.licence %}{{ informations_partage.licence }}{% else %}<span class="pastille alerte">Licence à vérifier</span>{% endif %} · Édition {{ informations_partage.version }}</p>
 <p>Dérivé de {{ base_du_partage.source.titre }}, édition {{ base_du_partage.numero }}.</p>
+{% if proposition_creations_partage %}
+<aside class="avertissement-referentiel avertissement-orange" aria-label="Licence proposée">
+<p><strong>{{ licence_proposee_creations_partage }}</strong> proposée pour {{ proposition_creations_partage }} création{{ proposition_creations_partage|pluralize }} sans licence renseignée.</p>
+</aside>
+{% endif %}
 {% if modifier_partage %}
 <p class="message" role="status">Vérifiez les informations de partage, notamment la licence, avant de continuer.</p>
+{% endif %}
+{% if nombre_licences_partage > 1 %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Licences et crédits" only %}
+<ul>{% for licence in licences_partage %}<li>{{ licence }}</li>{% endfor %}</ul>
+</details>
 {% endif %}
 {% if apercu_partage %}
 <p>{{ apercu_partage.competences_importees|length }} compétence{{ apercu_partage.competences_importees|length|pluralize }} à partager, avec leurs adaptations et ajouts. Les photos du suivi et les suivis individuels restent privés.</p>
@@ -15,17 +26,19 @@
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_partage.apercu competences_importees=apercu_partage.competences_importees icones_importees=apercu_partage.icones_importees partage=True only %}
 </details>
 {% endif %}
-<details{% if modifier_partage %} open{% endif %}>
-{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier les informations" only %}
-<form method="post">
-{% csrf_token %}
-{{ partage_classe.as_p }}
-<p class="actions">
-<button class="bouton discret" name="action" value="enregistrer-partage">Enregistrer les informations</button>
-</p>
+<form method="post" id="informations-partage-classe" action="#export-referentiel">{% csrf_token %}</form>
+{% if modifier_partage or revisions_licence %}
+{% include "suivi/partiels/informations_partage_export.html" %}
+{% endif %}
+{% if revisions_licence and nombre_exportable_partage %}
+<form method="post" action="#export-referentiel">{% csrf_token %}
+<input type="hidden" name="competences_pretes" value="oui">
+<input type="hidden" name="empreinte_licences" value="{{ empreinte_licences_partage }}">
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Certaines licences restent à vérifier" resume="Ce ZIP contient uniquement les compétences prêtes à partager." only %}
+<button class="bouton" name="action" value="telecharger-classe">Télécharger {{ nombre_exportable_partage }} compétence{{ nombre_exportable_partage|pluralize }} prête{{ nombre_exportable_partage|pluralize }}</button>
 </form>
-</details>
-{% if not modifier_partage %}
+{% endif %}
+{% if not modifier_partage and not revisions_licence %}
 {% include "suivi/partiels/publication_grist.html" %}
 {% endif %}
 {% else %}

@@ -1,16 +1,20 @@
 {% if erreur_selection %}<p class="message erreur" role="alert">{{ erreur_selection }}</p>{% endif %}
-{% if apercu_selection %}
+{% if selection_calculee %}
 <p><strong>{{ titre_selection }}</strong></p>
-<p><strong>{{ apercu_selection.competences_importees|length }} compétence{{ apercu_selection.competences_importees|length|pluralize }} · {{ sources_selection|length }} source{{ sources_selection|length|pluralize }}</strong></p>
+<p><strong>{{ nombre_exportable }} compétence{{ nombre_exportable|pluralize }} prête{{ nombre_exportable|pluralize }} · {{ sources_selection|length }} source{{ sources_selection|length|pluralize }}</strong></p>
 <p>{{ sources_selection|join:" · " }}</p>
-<details>
+{% if apercu_selection %}<details>
 {% include "suivi/partiels/bouton_depliant.html" with libelle="Voir le contenu à partager" only %}
 {% include "suivi/partiels/apercu_paquet_referentiel.html" with apercu=apercu_selection.apercu competences_importees=apercu_selection.competences_importees icones_importees=apercu_selection.icones_importees partage=True only %}
-</details>
+</details>{% endif %}
 <form method="post" action="#export-referentiel">
 {% csrf_token %}
 {% for reference in references_selection %}<input type="hidden" name="competence_partagee" value="{{ reference }}">{% endfor %}
 <input type="hidden" name="empreinte" value="{{ empreinte_selection }}">
+{% if licence_confirmee %}
+<input type="hidden" name="licence_confirmee" value="{{ licence_confirmee }}">
+<input type="hidden" name="autorisation" value="oui">
+{% endif %}
 {% for definition in definitions_selection %}<input type="hidden" name="definition" value="{{ definition }}">{% endfor %}
 {% if conflits_selection %}
 {% for conflit in conflits_selection %}
@@ -31,12 +35,37 @@
 {% include "suivi/partiels/contenu_zip_referentiel.html" with inclure=inclure_icones_selection %}
 </details>
 {% endif %}
-{% if not licences_selection_valides %}
-<p class="pastille alerte">Le ZIP exige une même licence de partage pour toutes les compétences retenues.</p>
-<ul>{% for titre, licence in credits_selection %}<li>{{ titre }} · {{ licence|default:"Licence à vérifier" }}</li>{% endfor %}</ul>
-{% elif not conflits_selection %}
-<p class="encadre">ZIP · Édition 1 · {{ apercu_selection.apercu.source.licence }}</p>
-<button class="bouton" name="action" value="telecharger-selection-classe">Télécharger le ZIP de la sélection</button>
+{% if nombre_creations %}
+<aside class="avertissement-referentiel avertissement-orange" aria-label="Licence proposée">
+<p><strong>{{ licence_creation }}</strong> proposée pour {{ nombre_creations }} de vos compétence{{ nombre_creations|pluralize }}.</p>
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Modifier la proposition" only %}
+<p><label for="licence-creation">Licence des créations sans licence renseignée</label>
+<select name="licence_creation" id="licence-creation">
+{% for licence in choix_licences %}<option value="{{ licence }}"{% if licence == licence_creation %} selected{% endif %}>{{ licence }}</option>{% endfor %}
+</select></p>
+<button class="bouton discret" name="action" value="preparer-selection-classe">Actualiser la proposition</button>
+</details>
+</aside>
+{% endif %}
+{% if licences_manquantes %}
+{% include "suivi/partiels/avertissement_referentiel.html" with niveau="orange" titre="Licences à vérifier" resume="Le ZIP contiendra les compétences prêtes. Les autres restent dans votre sélection." only %}
+<details>
+{% include "suivi/partiels/bouton_depliant.html" with libelle="Licences et crédits" only %}
+<ul>{% for titre, licence in licences_manquantes %}<li>{{ titre }} · {{ licence|default:"Licence à renseigner" }}</li>{% endfor %}</ul>
+{% if not licence_confirmee %}
+<p><label for="licence-confirmee">Licence pour les compétences sans licence renseignée</label>
+<select name="licence_confirmee" id="licence-confirmee">
+{% for licence in choix_licences %}<option value="{{ licence }}"{% if licence == licence_proposee %} selected{% endif %}>{{ licence }}{% if licence == licence_proposee %} · proposée{% endif %}</option>{% endfor %}
+</select></p>
+<p><label><input type="checkbox" name="autorisation" value="oui"> J’ai l’autorisation de partager ces compétences sous cette licence.</label></p>
+<button class="bouton{% if nombre_exportable or conflits_selection %} discret{% endif %}" name="action" value="confirmer-licence-selection">Appliquer la licence aux compétences sans licence</button>
+{% endif %}
+</details>
+{% endif %}
+{% if not conflits_selection and nombre_exportable %}
+<p class="encadre">ZIP · Édition 1 · {% if nombre_licences > 1 %}{{ nombre_licences }} licences conservées{% else %}{{ apercu_selection.apercu.source.licence }}{% endif %}</p>
+<button class="bouton" name="action" value="telecharger-selection-classe">{% if licences_manquantes %}Télécharger {{ nombre_exportable }} compétence{{ nombre_exportable|pluralize }} prête{{ nombre_exportable|pluralize }}{% else %}Télécharger le ZIP de la sélection{% endif %}</button>
 {% endif %}
 </form>
 {% endif %}
