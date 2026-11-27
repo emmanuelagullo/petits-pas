@@ -6,7 +6,7 @@ from django.db.models import Q
 
 from suivi.identites_referentiels import competences_document, identifiant_diffusion
 from suivi.models import AdaptationCompetence, CompetenceLocale, CompetenceSourceEcole, SourceReferentiel
-from suivi.presentation import illustration_effective, propositions
+from suivi.presentation import illustration_effective, propositions, reglages_du_perimetre
 from suivi.referentiels import adoption_courante, arbre_version, contenu_adoption
 from suivi.rubriques import rubriques_saisissables
 
@@ -59,6 +59,7 @@ def preparer_referentiel_classe(classe, source, version):
         ).values_list("competence_id", "definition")
     }
 
+    reglages = reglages_du_perimetre(classe.ecole, classe)
     domaines = []
     for domaine in arbre_commun_classe(adoption, contenu):
         groupes = {None: []}
@@ -83,7 +84,7 @@ def preparer_referentiel_classe(classe, source, version):
                     raise ValidationError("Donnez à ce référentiel un identifiant différent de la base d’origine.")
             if ajout.get("variante_de"):
                 definition["variante_de"] = ajout["variante_de"]
-            image = illustration_effective(classe.ecole, competence, classe)
+            image = illustration_effective(classe.ecole, competence, classe, reglages=reglages)
             if image.icone_png:
                 definition["icone_png"] = image.icone_png
             elif image.icone:
